@@ -4,7 +4,7 @@ import itertools as it
 import numpy as np
 import matplotlib as mpl
 import utool as ut
-from plottool import color_funcs as color_fns
+from plottool_ibeis import color_funcs as color_fns
 ut.noinject(__name__, '[pt.mpl_sift]')
 
 
@@ -58,15 +58,15 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         ?: coll_tup
 
     CommandLine:
-        python -m plottool.mpl_sift --test-get_sift_collection
+        python -m plottool_ibeis.mpl_sift --test-get_sift_collection
 
     Example:
-        >>> from plottool.mpl_sift import *  # NOQA
+        >>> from plottool_ibeis.mpl_sift import *  # NOQA
         >>> sift = testdata_sifts()[0]
         >>> aff = None
-        >>> bin_color = array([ 0.,  0.,  0.,  1.])
-        >>> arm1_color = array([ 1.,  0.,  0.,  1.])
-        >>> arm2_color = array([ 0.,  0.,  0.,  1.])
+        >>> bin_color = np.array([ 0.,  0.,  0.,  1.])
+        >>> arm1_color = np.array([ 1.,  0.,  0.,  1.])
+        >>> arm2_color = np.array([ 0.,  0.,  0.,  1.])
         >>> arm_alpha = 1.0
         >>> arm1_lw = 0.5
         >>> arm2_lw = 1.0
@@ -235,13 +235,13 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
     Gets sift patch collections, transforms them and then draws them.
 
     CommandLine:
-        python -m plottool.mpl_sift --test-draw_sifts --show
+        python -m plottool_ibeis.mpl_sift --test-draw_sifts --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.mpl_sift import *  # NOQA
+        >>> from plottool_ibeis.mpl_sift import *  # NOQA
         >>> # build test data
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.figure(1)
         >>> ax = pt.gca()
         >>> ax.set_xlim(-1.1, 1.1)
@@ -277,7 +277,7 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
 
 
 def draw_sift_on_patch(patch, sift, **kwargs):
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.imshow(patch)
     ax = pt.gca()
     half_size = patch.shape[0] / 2
@@ -288,7 +288,7 @@ def draw_sift_on_patch(patch, sift, **kwargs):
 
 
 def render_sift_on_patch(patch, sift):
-    import plottool as pt
+    import plottool_ibeis as pt
     with pt.RenderingContext() as render:
         draw_sift_on_patch(patch, sift)
     rendered = render.image
@@ -298,9 +298,9 @@ def render_sift_on_patch(patch, sift):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.mpl_sift
-        python -m plottool.mpl_sift --allexamples
-        python -m plottool.mpl_sift --allexamples --noface --nosrc
+        python -m plottool_ibeis.mpl_sift
+        python -m plottool_ibeis.mpl_sift --allexamples
+        python -m plottool_ibeis.mpl_sift --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

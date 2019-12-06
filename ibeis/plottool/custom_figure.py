@@ -7,7 +7,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
 import functools
-from plottool import custom_constants
+from plottool_ibeis import custom_constants
 import matplotlib.gridspec as gridspec  # NOQA
 ut.noinject(__name__, '[customfig]')
 
@@ -143,22 +143,23 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         ?: fig
 
     CommandLine:
-        python -m plottool.custom_figure --exec-figure:0 --show
-        python -m plottool.custom_figure --exec-figure:1 --show
+        python -m plottool_ibeis.custom_figure --exec-figure:0 --show
+        python -m plottool_ibeis.custom_figure --exec-figure:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.custom_figure import *  # NOQA
+        >>> from plottool_ibeis.custom_figure import *  # NOQA
         >>> fnum = 1
         >>> fig = figure(fnum, (2, 2, 1))
         >>> gca().text(0.5, 0.5, "ax1", va="center", ha="center")
         >>> fig = figure(fnum, (2, 2, 2))
         >>> gca().text(0.5, 0.5, "ax2", va="center", ha="center")
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.custom_figure import *  # NOQA
+        >>> from plottool_ibeis.custom_figure import *  # NOQA
         >>> fnum = 1
         >>> fig = figure(fnum, (2, 2, 1))
         >>> gca().text(0.5, 0.5, "ax1", va="center", ha="center")
@@ -166,7 +167,8 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         >>> gca().text(0.5, 0.5, "ax2", va="center", ha="center")
         >>> fig = figure(fnum, (2, 4, (1, slice(1, None))))
         >>> gca().text(0.5, 0.5, "ax3", va="center", ha="center")
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     #mpl.pyplot.xkcd()
     fig = ensure_fig(fnum)
@@ -366,7 +368,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
         print('[pt.save_figure] saveax = %r' % (saveax,))
 
     if False:
-        import plottool as pt
+        import plottool_ibeis as pt
         extent = pt.extract_axes_extents(fig)
         savekw['bbox_inches'] = extent
 
@@ -377,7 +379,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             saveax = plt.gca()
         #ut.embed()
         #saveax.set_aspect('auto')
-        import plottool as pt
+        import plottool_ibeis as pt
         import numpy as np
         xy, w, h = pt.get_axis_xy_width_height(saveax)
         ar = np.abs(w / h)
@@ -475,12 +477,12 @@ def set_xlabel(lbl, ax=None, **kwargs):
         **kwargs:
 
     CommandLine:
-        python -m plottool.custom_figure set_xlabel
+        python -m plottool_ibeis.custom_figure set_xlabel
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.custom_figure import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.custom_figure import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> fig = pt.figure()
         >>> pt.adjust_subplots(fig=fig, bottom=.5)
         >>> ax = pt.gca()
@@ -490,9 +492,8 @@ def set_xlabel(lbl, ax=None, **kwargs):
         >>> xlabel = xaxis.get_label()
         >>> xlabel.set_horizontalalignment('left')
         >>> xlabel.set_x(0)
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if ax is None:
         ax = gca()
@@ -543,17 +544,17 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         fig (None): (default = None)
 
     CommandLine:
-        python -m plottool.custom_figure set_figtitle --show
+        python -m plottool_ibeis.custom_figure set_figtitle --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.custom_figure import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.custom_figure import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> fig = pt.figure(fnum=1, doclf=True)
         >>> result = pt.set_figtitle(figtitle='figtitle', fig=fig)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     # if size is None:
     #     size = FIGTITLE_SIZE
@@ -593,8 +594,8 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m plottool.custom_figure
-        python -m plottool.custom_figure --allexamples
+        python -m plottool_ibeis.custom_figure
+        python -m plottool_ibeis.custom_figure --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

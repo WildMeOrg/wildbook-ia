@@ -4,44 +4,44 @@ Wrappers around matplotlib
 """
 from __future__ import absolute_import, division, print_function
 
-__version__ = '1.0.1.dev1'
+__version__ = '2.1.0'
 
 import utool as ut
-ut.noinject(__name__, '[plottool.__init__]')
+ut.noinject(__name__, '[plottool_ibeis.__init__]')
 
 
 # Hopefully this was imported sooner. TODO remove dependency
-#from guitool import __PYQT__
-#import guitool.__PYQT__ as __PYQT__
-from plottool import __MPL_INIT__
+#from guitool_ibeis import __PYQT__
+#import guitool_ibeis.__PYQT__ as __PYQT__
+from plottool_ibeis import __MPL_INIT__
 __MPL_INIT__.init_matplotlib()
 
 import matplotlib as mpl
 #mpl.use('Qt4Agg')
 import matplotlib.pyplot as plt
 
-from plottool import plot_helpers as ph
-from plottool import plot_helpers
-from plottool import mpl_keypoint
-from plottool import mpl_keypoint as mpl_kp
-from plottool import mpl_sift as mpl_sift
-from plottool import draw_func2
-from plottool import draw_func2 as df2
-from plottool import fig_presenter
-from plottool import custom_constants
-from plottool import custom_figure
-from plottool import draw_sv
-from plottool import viz_featrow
-from plottool import viz_keypoints
-from plottool import viz_image2
-from plottool import plots
-from plottool import interact_annotations
-from plottool import interact_keypoints
-from plottool import interact_multi_image
-from plottool import interactions
-from plottool import interact_impaint
-from plottool import color_funcs
-#from plottool import abstract_iteraction
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import plot_helpers
+from plottool_ibeis import mpl_keypoint
+from plottool_ibeis import mpl_keypoint as mpl_kp
+from plottool_ibeis import mpl_sift as mpl_sift
+from plottool_ibeis import draw_func2
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import fig_presenter
+from plottool_ibeis import custom_constants
+from plottool_ibeis import custom_figure
+from plottool_ibeis import draw_sv
+from plottool_ibeis import viz_featrow
+from plottool_ibeis import viz_keypoints
+from plottool_ibeis import viz_image2
+from plottool_ibeis import plots
+from plottool_ibeis import interact_annotations
+from plottool_ibeis import interact_keypoints
+from plottool_ibeis import interact_multi_image
+from plottool_ibeis import interactions
+from plottool_ibeis import interact_impaint
+from plottool_ibeis import color_funcs
+#from plottool_ibeis import abstract_iteraction
 
 
 # TODO utoolify this
@@ -63,11 +63,11 @@ IMPORT_TUPLES = [
 
 # The other module shouldn't exist.
 # Functions in it need to be organized
-from plottool.plots import draw_hist_subbin_maxima
-#from plottool.draw_func2 import *  # NOQA
-from plottool.mpl_keypoint import draw_keypoints
-from plottool.mpl_sift import draw_sifts, render_sift_on_patch
-from plottool import fig_presenter
+from plottool_ibeis.plots import draw_hist_subbin_maxima
+#from plottool_ibeis.draw_func2 import *  # NOQA
+from plottool_ibeis.mpl_keypoint import draw_keypoints
+from plottool_ibeis.mpl_sift import draw_sifts, render_sift_on_patch
+from plottool_ibeis import fig_presenter
 
 import utool
 
@@ -88,8 +88,8 @@ __DYNAMIC__ = '--nodyn' not in sys.argv
 
 #__DYNAMIC__ = '--dyn' in sys.argv
 """
-python -c "import plottool" --dump-plottool-init
-python -c "import plottool" --update-plottool-init
+python -c "import plottool_ibeis" --dump-plottool_ibeis-init
+python -c "import plottool_ibeis" --update-plottool_ibeis-init
 """
 
 
@@ -115,24 +115,24 @@ if DOELSE:
     pass
     # <AUTOGEN_INIT>
 
-    from plottool import plot_helpers
-    from plottool import fig_presenter
-    from plottool import custom_constants
-    from plottool import custom_figure
-    from plottool import plots
-    from plottool import draw_func2
-    from plottool import interact_impaint
-    from plottool import interactions
-    from plottool import interact_multi_image
-    from plottool import interact_keypoints
-    from plottool import interact_matches
-    from plottool import nx_helpers
-    from plottool.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
+    from plottool_ibeis import plot_helpers
+    from plottool_ibeis import fig_presenter
+    from plottool_ibeis import custom_constants
+    from plottool_ibeis import custom_figure
+    from plottool_ibeis import plots
+    from plottool_ibeis import draw_func2
+    from plottool_ibeis import interact_impaint
+    from plottool_ibeis import interactions
+    from plottool_ibeis import interact_multi_image
+    from plottool_ibeis import interact_keypoints
+    from plottool_ibeis import interact_matches
+    from plottool_ibeis import nx_helpers
+    from plottool_ibeis.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
                                        ensureqt, get_bbox_centers,
                                        get_plotdat, get_plotdat_dict,
                                        get_square_row_cols, kp_info, qt4ensure,
                                        set_plotdat,)
-    from plottool.fig_presenter import (SLEEP_TIME, VERBOSE,
+    from plottool_ibeis.fig_presenter import (SLEEP_TIME, VERBOSE,
                                         all_figures_bring_to_front,
                                         all_figures_show,
                                         all_figures_tight_layout,
@@ -145,7 +145,7 @@ if DOELSE:
                                         present, register_qt4_win, reset,
                                         set_geometry, show, show_figure,
                                         unregister_qt4_win, update,)
-    from plottool.custom_constants import (BLACK, BLUE, BRIGHT_GREEN,
+    from plottool_ibeis.custom_constants import (BLACK, BLUE, BRIGHT_GREEN,
                                            BRIGHT_PURPLE, DARK_BLUE,
                                            DARK_GREEN, DARK_ORANGE, DARK_RED,
                                            DARK_YELLOW, DEEP_PINK, DPI,
@@ -162,7 +162,7 @@ if DOELSE:
                                            SMALLEST, TRUE_BLUE, TRUE_GREEN,
                                            UNKNOWN_PURP, WHITE, YELLOW,
                                            golden_wh, golden_wh2,)
-    from plottool.custom_figure import (FIGTITLE_SIZE, LABEL_SIZE, LEGEND_SIZE,
+    from plottool_ibeis.custom_figure import (FIGTITLE_SIZE, LABEL_SIZE, LEGEND_SIZE,
                                         TITLE_SIZE, cla, clf, customize_figure,
                                         customize_fontprop, figure, gca, gcf,
                                         get_ax, get_image_from_figure,
@@ -172,7 +172,7 @@ if DOELSE:
                                         set_figtitle, set_ticks, set_title,
                                         set_xlabel, set_xticks, set_ylabel,
                                         set_yticks, split,)
-    from plottool.plots import (colorline, draw_histogram,
+    from plottool_ibeis.plots import (colorline, draw_histogram,
                                 draw_time_distribution, draw_time_histogram,
                                 draw_timedelta_pie, estimate_pdf,
                                 get_good_logyscale_kwargs, interval_line_plot,
@@ -185,7 +185,7 @@ if DOELSE:
                                 plot_stems, set_logyscale_from_data,
                                 unicode_literals, word_histogram2, wordcloud,
                                 zoom_effect01,)
-    from plottool.draw_func2 import (BASE_FNUM, DARKEN, DEBUG, DF2_DIVIDER_KEY,
+    from plottool_ibeis.draw_func2 import (BASE_FNUM, DARKEN, DEBUG, DF2_DIVIDER_KEY,
                                      FALSE, LEGEND_LOCATION, OffsetImage2,
                                      RenderingContext, SAFE_POS, TAU,
                                      TMP_mevent, TRUE, absolute_lbl, add_alpha,
@@ -240,19 +240,19 @@ if DOELSE:
                                      update_figsize, upperleft_text,
                                      upperright_text, variation_trunctate,
                                      width_from,)
-    from plottool.interact_impaint import (PAINTER_BASE, PaintInteraction,
+    from plottool_ibeis.interact_impaint import (PAINTER_BASE, PaintInteraction,
                                            draw_demo, impaint_mask2,)
-    from plottool.interactions import (ExpandableInteraction, PanEvents,
+    from plottool_ibeis.interactions import (ExpandableInteraction, PanEvents,
                                        check_if_subinteract, pan_factory,
                                        zoom_factory,)
-    from plottool.interact_multi_image import (BASE_CLASS, Button,
+    from plottool_ibeis.interact_multi_image import (BASE_CLASS, Button,
                                                MultiImageInteraction,)
-    from plottool.interact_keypoints import (KeypointInteraction,
+    from plottool_ibeis.interact_keypoints import (KeypointInteraction,
                                              draw_feat_row, ishow_keypoints,
                                              show_keypoints,)
-    from plottool.interact_matches import (MatchInteraction2,
+    from plottool_ibeis.interact_matches import (MatchInteraction2,
                                            show_keypoint_gradient_orientations,)
-    from plottool.nx_helpers import (GraphVizLayoutConfig, LARGE_GRAPH,
+    from plottool_ibeis.nx_helpers import (GraphVizLayoutConfig, LARGE_GRAPH,
                                      apply_graph_layout_attrs, draw_network2,
                                      dump_nx_ondisk, ensure_nonhex_color,
                                      format_anode_pos, get_explicit_graph,
@@ -264,7 +264,7 @@ if DOELSE:
                                      parse_anode_layout_attrs, parse_point,
                                      show_nx,)
     import utool
-    print, rrr, profile = utool.inject2(__name__, '[plottool]')
+    print, rrr, profile = utool.inject2(__name__, '[plottool_ibeis]')
 
 
     def reassign_submodule_attributes(verbose=True):
@@ -275,14 +275,14 @@ if DOELSE:
         if verbose and '--quiet' not in sys.argv:
             print('dev reimport')
         # Self import
-        import plottool
+        import plottool_ibeis
         # Implicit reassignment.
         seen_ = set([])
         for tup in IMPORT_TUPLES:
             if len(tup) > 2 and tup[2]:
                 continue  # dont import package names
             submodname, fromimports = tup[0:2]
-            submod = getattr(plottool, submodname)
+            submod = getattr(plottool_ibeis, submodname)
             for attr in dir(submod):
                 if attr.startswith('_'):
                     continue
@@ -292,11 +292,11 @@ if DOELSE:
                     # which is good
                     continue
                 seen_.add(attr)
-                setattr(plottool, attr, getattr(submod, attr))
+                setattr(plottool_ibeis, attr, getattr(submod, attr))
 
 
     def reload_subs(verbose=True):
-        """ Reloads plottool and submodules """
+        """ Reloads plottool_ibeis and submodules """
         if verbose:
             print('Reloading submodules')
         rrr(verbose=verbose)

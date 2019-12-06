@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
-import plottool.draw_func2 as df2
-from plottool import custom_constants
-#from vtool import keypoint as ktool
+import plottool_ibeis.draw_func2 as df2
+from plottool_ibeis import custom_constants
+#from vtool_ibeis import keypoint as ktool
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
 ut.noinject(__name__, '[viz_sv]')
 
@@ -12,7 +12,7 @@ def get_blended_chip(chip1, chip2, M):
     """
     warps chip1 into chip2 space
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     wh2 = vt.get_size(chip2)
     chip1_Mt = vt.warpHomog(chip1, M, wh2)
     chip2_blendM = vt.blend_images(chip1_Mt, chip2)
@@ -26,11 +26,11 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     """ Visualizes spatial verification
 
     CommandLine:
-        python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts --show
 
     """
-    import vtool as vt
-    #import plottool as pt
+    import vtool_ibeis as vt
+    #import plottool_ibeis as pt
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
@@ -83,7 +83,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         df2.show_chipmatch2(chip1, chip2, kpts1_m, kpts2_m, __fm, **dmkwargs)
         return px + 1
 
-    from plottool import color_funcs
+    from plottool_ibeis import color_funcs
     colors = df2.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0], colors[1]
     color1_dark = color_funcs.darken_rgb(color1, .2)
@@ -160,12 +160,12 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
     """
 
     CommandLine:
-        python -m plottool.draw_sv --test-show_sv_simple --show
+        python -m plottool_ibeis.draw_sv --test-show_sv_simple --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_sv import *  # NOQA
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_sv import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts1, kpts2, fm, aff_inliers, chip1, chip2, xy_thresh_sqrd = vt.testdata_matching_affine_inliers()
         >>> inliers = aff_inliers
         >>> mx = None
@@ -173,9 +173,11 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
         >>> vert = None  # ut.get_argval('--vert', type_=bool, default=None)
         >>> result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum, vert=vert)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     colors = pt.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0:2]
     # Begin the drawing
@@ -199,9 +201,9 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.draw_sv
-        python -m plottool.draw_sv --allexamples
-        python -m plottool.draw_sv --allexamples --noface --nosrc
+        python -m plottool_ibeis.draw_sv
+        python -m plottool_ibeis.draw_sv --allexamples
+        python -m plottool_ibeis.draw_sv --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

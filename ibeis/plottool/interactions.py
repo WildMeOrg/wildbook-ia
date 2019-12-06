@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import plottool as pt
-from plottool import abstract_interaction
-import plottool.interact_helpers as ih
+import plottool_ibeis as pt
+from plottool_ibeis import abstract_interaction
+import plottool_ibeis.interact_helpers as ih
 
 
 def check_if_subinteract(func):
@@ -36,13 +36,13 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         **kwargs: nRows, nCols
 
     CommandLine:
-        python -m plottool.interactions --exec-ExpandableInteraction --show
+        python -m plottool_ibeis.interactions --exec-ExpandableInteraction --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.interactions import *  # NOQA
+        >>> from plottool_ibeis.interactions import *  # NOQA
         >>> import numpy as np
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> inter = pt.interactions.ExpandableInteraction()
         >>> inter.append_plot(ut.partial(pt.plot_func, np.sin, stop=np.pi * 2))
         >>> inter.append_plot(ut.partial(pt.plot_func, np.cos, stop=np.pi * 2))
@@ -119,7 +119,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     def show_page(self):
         if self.fig is None:
             raise AssertionError('fig is None, did you run interction.start()?')
-        import plottool as pt
+        import plottool_ibeis as pt
         fig = ih.begin_interaction('expandable', self.fnum)
         if not any(self.pnum_list):
             # If no pnum was given, find a set that agrees with constraints
@@ -277,7 +277,7 @@ class PanEvents(object):
         self.cidScroll = None
         self.ax = ax
         #if ax is None:
-        #    import plottool as pt
+        #    import plottool_ibeis as pt
         #    ax = pt.gca()
         #self.ax = ax
         #self.connect()
@@ -320,8 +320,8 @@ class PanEvents(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m plottool.interactions
-        python -m plottool.interactions --allexamples
+        python -m plottool_ibeis.interactions
+        python -m plottool_ibeis.interactions --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

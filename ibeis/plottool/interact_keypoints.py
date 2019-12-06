@@ -2,29 +2,29 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
-from plottool import interact_helpers as ih
-from plottool.viz_featrow import draw_feat_row
-from plottool.viz_keypoints import show_keypoints
-from plottool import abstract_interaction
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import interact_helpers as ih
+from plottool_ibeis.viz_featrow import draw_feat_row
+from plottool_ibeis.viz_keypoints import show_keypoints
+from plottool_ibeis import abstract_interaction
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 class KeypointInteraction(abstract_interaction.AbstractInteraction):
     r"""
     CommandLine:
-        python -m plottool.interact_keypoints --exec-KeypointInteraction --show
-        python -m plottool.interact_keypoints --exec-KeypointInteraction --show --fname=lena.png
+        python -m plottool_ibeis.interact_keypoints --exec-KeypointInteraction --show
+        python -m plottool_ibeis.interact_keypoints --exec-KeypointInteraction --show --fname=lena.png
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_keypoints import *  # NOQA
+        >>> from plottool_ibeis.interact_keypoints import *  # NOQA
         >>> import numpy as np
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import utool as ut
         >>> import pyhesaff
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> ut.quit_if_noshow()
         >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
@@ -41,7 +41,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         super(KeypointInteraction, self).__init__(**kwargs)
 
     def plot(self, fnum=None, pnum=(1, 1, 1), **kwargs):
-        import plottool as pt
+        import plottool_ibeis as pt
         fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum, docla=True, doclf=True)
         show_keypoints(self.chip, self.kpts, fnum=fnum, pnum=pnum, **kwargs)
@@ -67,7 +67,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
 
     def on_click_inside(self, event, ax):
-        import plottool as pt
+        import plottool_ibeis as pt
         viztype = ph.get_plotdat(ax, 'viztype', None)
         print('[ik] viztype=%r' % viztype)
         if viztype is None:
@@ -79,7 +79,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
             else:
                 print('...nearest')
                 x, y = event.xdata, event.ydata
-                import vtool as vt
+                import vtool_ibeis as vt
                 fx = vt.nearest_point(x, y, kpts)[0]
                 self._select_ith_kpt(fx)
         elif viztype == 'warped':
@@ -103,17 +103,17 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     TODO: Depricate in favor of the class
 
     CommandLine:
-        python -m plottool.interact_keypoints --test-ishow_keypoints --show
-        python -m plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
+        python -m plottool_ibeis.interact_keypoints --test-ishow_keypoints --show
+        python -m plottool_ibeis.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_keypoints import *  # NOQA
+        >>> from plottool_ibeis.interact_keypoints import *  # NOQA
         >>> import numpy as np
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import utool as ut
         >>> import pyhesaff
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> ut.quit_if_noshow()
         >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
@@ -121,7 +121,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         >>> pt.show_if_requested()
     """
     if isinstance(chip, six.string_types):
-        import vtool as vt
+        import vtool_ibeis as vt
         chip = vt.imread(chip)
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
@@ -167,7 +167,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 else:
                     print('...nearest')
                     x, y = event.xdata, event.ydata
-                    import vtool as vt
+                    import vtool_ibeis as vt
                     fx = vt.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
@@ -206,9 +206,9 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_keypoints
-        python -m plottool.interact_keypoints --allexamples
-        python -m plottool.interact_keypoints --allexamples --noface --nosrc
+        python -m plottool_ibeis.interact_keypoints
+        python -m plottool_ibeis.interact_keypoints --allexamples
+        python -m plottool_ibeis.interact_keypoints --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

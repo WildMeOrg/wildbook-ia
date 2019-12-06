@@ -5,9 +5,9 @@ import sys
 import utool as ut
 import numpy as np
 try:
-    import guitool as gt
-    from guitool.__PYQT__ import QtWidgets
-    from guitool.__PYQT__ import QtCore
+    import guitool_ibeis as gt
+    from guitool_ibeis.__PYQT__ import QtWidgets
+    from guitool_ibeis.__PYQT__ import QtCore
 except ImportError:
     try:
         from PyQt4 import QtGui as QtWidgets
@@ -19,7 +19,7 @@ except ImportError:
         from PyQt5 import QtCore  # NOQA
     except ImportError:
         pass
-    print('Warning: guitool did not import correctly')
+    print('Warning: guitool_ibeis did not import correctly')
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[screeninfo]', DEBUG=True)
 ut.noinject(__name__, '[screeninfo]')
 
@@ -102,19 +102,19 @@ def get_resolution_info(monitor_num=0):
         dict: info
 
     CommandLine:
-        python -m plottool.screeninfo get_resolution_info --show
+        python -m plottool_ibeis.screeninfo get_resolution_info --show
         xrandr | grep ' connected'
         grep "NVIDIA" /var/log/Xorg.0.log
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.screeninfo import *  # NOQA
+        >>> from plottool_ibeis.screeninfo import *  # NOQA
         >>> monitor_num = 1
         >>> for monitor_num in range(get_number_of_monitors()):
         >>>     info = get_resolution_info(monitor_num)
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     app = gt.ensure_qtapp()[0]  # NOQA
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
@@ -251,11 +251,11 @@ def get_monitor_geom(monitor_num=0):
         tuple: geom
 
     CommandLine:
-        python -m plottool.screeninfo get_monitor_geom --show
+        python -m plottool_ibeis.screeninfo get_monitor_geom --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.screeninfo import *  # NOQA
+        >>> from plottool_ibeis.screeninfo import *  # NOQA
         >>> monitor_num = 0
         >>> geom = get_monitor_geom(monitor_num)
         >>> result = ('geom = %s' % (ut.repr2(geom),))
@@ -368,8 +368,8 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m plottool.screeninfo
-        python -m plottool.screeninfo --allexamples
+        python -m plottool_ibeis.screeninfo
+        python -m plottool_ibeis.screeninfo --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from plottool import viz_image2
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
+from plottool_ibeis import viz_image2
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import plot_helpers as ph
 import utool
 import numpy as np
-from plottool.tests.test_helpers import dummy_bbox, imread_many
+from plottool_ibeis.tests.test_helpers import dummy_bbox, imread_many
 
 
 def test_viz_image(imgpaths):

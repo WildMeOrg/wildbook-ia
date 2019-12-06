@@ -25,22 +25,22 @@ References:
     Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 
 CommandLine:
-    python -m plottool.interact_annotations --test-test_interact_annots --show
+    python -m plottool_ibeis.interact_annotations --test-test_interact_annots --show
 """
 from __future__ import absolute_import, division, print_function
 import six
 import re
 import numpy as np
 try:
-    import vtool as vt
+    import vtool_ibeis as vt
 except ImportError:
     pass
 import utool as ut
 import itertools as it
 import matplotlib as mpl
 from six.moves import zip, range
-from plottool import draw_func2 as df2
-from plottool import abstract_interaction
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import abstract_interaction
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -72,7 +72,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
+        >>> from plottool_ibeis.interact_annotations import *  # NOQA
         >>> verts = vt.verts_from_bbox([0, 0, 10, 10])
         >>> poly = AnnotPoly(None, 0, verts, 0, '____')
     """
@@ -196,11 +196,11 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         r"""
 
         CommandLine:
-            python -m plottool.interact_annotations --test-calc_tag_position --show
+            python -m plottool_ibeis.interact_annotations --test-calc_tag_position --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from plottool.interact_annotations import *  # NOQA
+            >>> from plottool_ibeis.interact_annotations import *  # NOQA
             >>> poly = ut.DynStruct()
             >>> poly.basecoords = vt.verts_from_bbox([0, 0, 400, 400], True)
             >>> poly.theta = 0
@@ -264,11 +264,11 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         current rotation.
 
         CommandLine:
-            python -m plottool.interact_annotations --exec-resize_poly --show
+            python -m plottool_ibeis.interact_annotations --exec-resize_poly --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from plottool.interact_annotations import *  # NOQA
+            >>> from plottool_ibeis.interact_annotations import *  # NOQA
             >>> (h, w) = img.shape[0:2]
             >>> x1, y1 = 10, 10
             >>> x2, y2 = w - 10,  h - 10
@@ -278,7 +278,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
             >>> idx = 3
             >>> resize_poly(poly, x, y, idx)
             >>> update_UI()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.show_if_requested()
         """
         # TODO: allow resize by middle click to scale from the center
@@ -1203,7 +1203,7 @@ def rotate_points_around(points, theta, ax, ay):
     References:
         http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
     """
-    # TODO: Can use vtool for this
+    # TODO: Can use vtool_ibeis for this
     sin, cos, array = np.sin, np.cos, np.array
     augpts = array([array((x, y, 1)) for (x, y) in points])
     ct = cos(theta)
@@ -1341,12 +1341,12 @@ def enforce_dims(ax, xy_pt, margin=0.5):
 def test_interact_annots():
     r"""
     CommandLine:
-        python -m plottool.interact_annotations --test-test_interact_annots --show
+        python -m plottool_ibeis.interact_annotations --test-test_interact_annots --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.interact_annotations import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> # execute function
         >>> self = test_interact_annots()
@@ -1379,11 +1379,11 @@ def test_interact_annots():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_annotations --exec-test_interact_annots --show
+        python -m plottool_ibeis.interact_annotations --exec-test_interact_annots --show
     CommandLine:
-        python -m plottool.interact_annotations
-        python -m plottool.interact_annotations --allexamples
-        python -m plottool.interact_annotations --allexamples --noface --nosrc
+        python -m plottool_ibeis.interact_annotations
+        python -m plottool_ibeis.interact_annotations --allexamples
+        python -m plottool_ibeis.interact_annotations --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

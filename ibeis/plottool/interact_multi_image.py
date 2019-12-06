@@ -1,19 +1,19 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 #import matplotlib.image as mpimg
-from plottool import viz_image2
-from plottool import interact_annotations
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
-from plottool import interact_helpers as ih
-from plottool import abstract_interaction
+from plottool_ibeis import viz_image2
+from plottool_ibeis import interact_annotations
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import interact_helpers as ih
+from plottool_ibeis import abstract_interaction
 
 from matplotlib.widgets import Button  # NOQA
 import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
 import six
 try:
-    import vtool as vt
+    import vtool_ibeis as vt
 except ImportError:
     pass
 #import utool
@@ -30,11 +30,11 @@ class MultiImageInteraction(BASE_CLASS):
     """
 
     CommandLine:
-        python -m plottool.interact_multi_image --exec-MultiImageInteraction --show
+        python -m plottool_ibeis.interact_multi_image --exec-MultiImageInteraction --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.interact_multi_image import *  # NOQA
+        >>> from plottool_ibeis.interact_multi_image import *  # NOQA
         >>> import utool as ut
         >>> TEST_IMAGES_URL = 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
         >>> test_image_dir = ut.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
@@ -45,7 +45,8 @@ class MultiImageInteraction(BASE_CLASS):
         >>> bboxes_list[0] = [(20, 10, 400, 400)]
         >>> iteract_obj = MultiImageInteraction(imgpaths, nPerPage=4,
         >>>                                     bboxes_list=bboxes_list)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
 
     def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
@@ -93,7 +94,7 @@ class MultiImageInteraction(BASE_CLASS):
 
     def dump_to_disk(self, dpath, num=None, prefix='temp_img'):
         import numpy as np
-        import plottool as pt
+        import plottool_ibeis as pt
         dpath = ut.ensurepath(dpath)
         num_zeros = np.ceil(np.log10(len(self.gpath_list)))
         total = len(self.gpath_list)
@@ -177,7 +178,7 @@ class MultiImageInteraction(BASE_CLASS):
             # HACK
             # override of plot image function
             showfunc(**_vizkw)
-            import plottool as pt
+            import plottool_ibeis as pt
             ax = pt.gca()
         else:
             if isinstance(gpath, six.string_types):
@@ -204,7 +205,7 @@ class MultiImageInteraction(BASE_CLASS):
             #print('vizkw = ' + utool.repr2(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
             if self.xlabel_list is not None:
-                import plottool as pt
+                import plottool_ibeis as pt
                 pt.set_xlabel(self.xlabel_list[index])
             #print(index)
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
@@ -256,7 +257,7 @@ class MultiImageInteraction(BASE_CLASS):
                 if ut.is_funclike(gpath):
                     print('gpath_isfunklike')
                     print('gpath = %r' % (gpath,))
-                    import plottool as pt
+                    import plottool_ibeis as pt
                     fnum = pt.next_fnum()
                     gpath(fnum=fnum)
                     df2.update()
@@ -334,9 +335,9 @@ class MultiImageInteraction(BASE_CLASS):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_multi_image
-        python -m plottool.interact_multi_image --allexamples
-        python -m plottool.interact_multi_image --allexamples --noface --nosrc
+        python -m plottool_ibeis.interact_multi_image
+        python -m plottool_ibeis.interact_multi_image --allexamples
+        python -m plottool_ibeis.interact_multi_image --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

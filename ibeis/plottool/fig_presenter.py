@@ -3,7 +3,7 @@ import sys
 import time
 import utool as ut
 import matplotlib as mpl
-from plottool import custom_figure
+from plottool_ibeis import custom_figure
 
 #from .custom_constants import golden_wh
 
@@ -51,7 +51,7 @@ def get_geometry(fnum):
 
 
 #def get_screen_info():
-#    # TODO Move dependency to guitool
+#    # TODO Move dependency to guitool_ibeis
 #    desktop = QtWidgets.QDesktopWidget()
 #    mask = desktop.mask()  # NOQA
 #    layout_direction = desktop.layoutDirection()  # NOQA
@@ -101,7 +101,7 @@ def show_figure(fig):
         fig.show()
         fig.canvas.draw()
     except AttributeError as ex:
-        if not hasattr(fig, '_no_raise_plottool'):
+        if not hasattr(fig, '_no_raise_plottool_ibeis'):
             ut.printex(ex, '[pt] probably registered made figure with Qt.', iswarning=True)
 
 
@@ -122,7 +122,7 @@ def get_main_win_base():
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
-            #from guitool.__PYQT__ import QtGui
+            #from guitool_ibeis.__PYQT__ import QtGui
             QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
@@ -150,7 +150,7 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    #print('[plottool] all_figures_tile()')
+    #print('[plottool_ibeis] all_figures_tile()')
     if no_tile:
         return
 
@@ -164,7 +164,7 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     if num_wins == 0:
         return
 
-    from plottool import screeninfo
+    from plottool_ibeis import screeninfo
 
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
@@ -174,8 +174,8 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
-        from guitool.__PYQT__ import QtGui  # NOQA
-        from guitool.__PYQT__ import QtWidgets  # NOQA
+        from guitool_ibeis.__PYQT__ import QtGui  # NOQA
+        from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
         isqt4_back = isinstance(win, QtWidgets.QMainWindow)
         isqt4_widget = isinstance(win, QtWidgets.QWidget)
         (x, y, w, h) = valid_positions[ix]
@@ -198,7 +198,7 @@ def all_figures_bring_to_front():
         for fig in iter(all_figures):
             bring_to_front(fig)
     except Exception as ex:
-        if not hasattr(fig, '_no_raise_plottool'):
+        if not hasattr(fig, '_no_raise_plottool_ibeis'):
             ut.printex(ex, iswarning=True)
 
 
@@ -234,7 +234,7 @@ def bring_to_front(fig):
     #if not ut.WIN32:
     # NOT sure on the correct order of these
     # can cause the figure geometry to be unset
-    from guitool.__PYQT__.QtCore import Qt
+    from guitool_ibeis.__PYQT__.QtCore import Qt
     qtwin.activateWindow()
     qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
     qtwin.setWindowFlags(Qt.WindowFlags(0))
@@ -286,16 +286,15 @@ def present(*args, **kwargs):
         hide_toolbar
 
     CommandLine:
-        python -m plottool.fig_presenter present
+        python -m plottool_ibeis.fig_presenter present
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.fig_presenter import *  # NOQA
+        >>> from plottool_ibeis.fig_presenter import *  # NOQA
         >>> result = present()
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if VERBOSE:
         print('[pt] present')

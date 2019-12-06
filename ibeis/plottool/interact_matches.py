@@ -6,12 +6,12 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np
-from plottool import abstract_interaction
+from plottool_ibeis import abstract_interaction
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
 
 
-# TODO: move to plottool and decouple with IBEIS
+# TODO: move to plottool_ibeis and decouple with IBEIS
 # TODO: abstract interaction
 @six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction2(BASE_CLASS):
@@ -24,11 +24,12 @@ class MatchInteraction2(BASE_CLASS):
         ibeis.viz.interact.interact_matches.MatchInteraction
 
     CommandLine:
-        python -m plottool.interact_matches --test-MatchInteraction2 --show
+        python -m plottool_ibeis.interact_matches --test-MatchInteraction2 --show
 
 
     Example:
-        >>> from plottool.interact_matches import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:ibeis)
+        >>> from plottool_ibeis.interact_matches import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -49,12 +50,13 @@ class MatchInteraction2(BASE_CLASS):
         >>> self = MatchInteraction2(rchip1, rchip2, kpts1, kpts2, fm, fs, fsv,
         >>>                          vecs1, vecs2, H1)
         >>> self.show_page()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
 
     """
     def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
                  H1=None, H2=None, fnum=None, **kwargs):
-        import plottool as pt
+        import plottool_ibeis as pt
         kwargs = kwargs.copy()
 
         # Drawing Data
@@ -99,8 +101,8 @@ class MatchInteraction2(BASE_CLASS):
         """
         just visualizes the matches using some type of lines
         """
-        import plottool as pt
-        from plottool import plot_helpers as ph
+        import plottool_ibeis as pt
+        from plottool_ibeis import plot_helpers as ph
         if fnum is None:
             fnum = self.fnum
         if verbose is None:
@@ -159,9 +161,9 @@ class MatchInteraction2(BASE_CLASS):
         Selects the ith match and visualizes and prints information concerning
         features weights, keypoint details, and sift descriptions
         """
-        import plottool as pt
-        from plottool import viz_featrow
-        from plottool import interact_helpers as ih
+        import plottool_ibeis as pt
+        from plottool_ibeis import viz_featrow
+        from plottool_ibeis import interact_helpers as ih
         fnum       = self.fnum
         same_fig   = self.same_fig
         rchip1     = self.rchip1
@@ -238,7 +240,7 @@ class MatchInteraction2(BASE_CLASS):
 
     # Callback
     def on_click_inside(self, event, ax):
-        from plottool import plot_helpers as ph
+        from plottool_ibeis import plot_helpers as ph
         (x, y) = (event.xdata, event.ydata)
         viztype = ph.get_plotdat(ax, 'viztype', '')
 
@@ -256,7 +258,7 @@ class MatchInteraction2(BASE_CLASS):
                 kpts1_m = self.kpts1[self.fm[:, 0]]
                 kpts2_m = self.kpts2[self.fm[:, 1]]
                 x2, y2, w2, h2 = self.xywh2
-                import vtool as vt
+                import vtool_ibeis as vt
                 _mx1, _dist1 = vt.nearest_point(x, y, kpts1_m)
                 _mx2, _dist2 = vt.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
@@ -327,7 +329,7 @@ class MatchInteraction2(BASE_CLASS):
 def show_keypoint_gradient_orientations(ibs, rchip, kp, vec, fnum=None,
                                         pnum=None, config2_=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
-    import plottoola as pt
+    import plottool_ibeisa as pt
     if fnum is None:
         fnum = pt.next_fnum()
     #rchip = ibs.get_annot_chips(aid, config2_=config2_)
@@ -341,9 +343,9 @@ def show_keypoint_gradient_orientations(ibs, rchip, kp, vec, fnum=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_matches
-        python -m plottool.interact_matches --allexamples
-        python -m plottool.interact_matches --allexamples --noface --nosrc
+        python -m plottool_ibeis.interact_matches
+        python -m plottool_ibeis.interact_matches --allexamples
+        python -m plottool_ibeis.interact_matches --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

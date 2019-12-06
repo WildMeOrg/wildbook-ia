@@ -27,12 +27,12 @@ Notes:
 
 
 CommandLine:
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=gdk
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=cairo
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=GTKAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=TkAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=WxAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=WebAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=gdk
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=cairo
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -40,7 +40,7 @@ import sys
 import os
 import utool as ut
 from six.moves import builtins
-ut.noinject(__name__, '[plottool.__MPL_INIT__]')
+ut.noinject(__name__, '[plottool_ibeis.__MPL_INIT__]')
 
 try:
     profile = getattr(builtins, 'profile')
@@ -70,10 +70,10 @@ def print_all_backends():
 
 
 def get_pyqt():
-    have_guitool = ut.check_module_installed('guitool')
+    have_guitool_ibeis = ut.check_module_installed('guitool_ibeis')
     try:
-        if have_guitool:
-            from guitool import __PYQT__ as PyQt
+        if have_guitool_ibeis:
+            from guitool_ibeis import __PYQT__ as PyQt
             pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
         else:
             try:
@@ -230,14 +230,14 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
     target_backend = get_target_backend()
     if __IS_INITIALIZED__ is True:
         if verbose:
-            print('[!plottool] matplotlib has already been initialized.  backend=%r' % current_backend)
-            print('[!plottool] Initially initialized by %r' % __WHO_INITIALIZED__)
-            print('[!plottool] Trying to be init by %r' % (ut.get_caller_name(N=range(0, 5))))
+            print('[!plottool_ibeis] matplotlib has already been initialized.  backend=%r' % current_backend)
+            print('[!plottool_ibeis] Initially initialized by %r' % __WHO_INITIALIZED__)
+            print('[!plottool_ibeis] Trying to be init by %r' % (ut.get_caller_name(N=range(0, 5))))
         return False
     __IS_INITIALIZED__ = True
 
     if verbose:
-        print('[plottool] matplotlib initialized by %r' % __WHO_INITIALIZED__)
+        print('[plottool_ibeis] matplotlib initialized by %r' % __WHO_INITIALIZED__)
         __WHO_INITIALIZED__ = ut.get_caller_name(N=range(0, 5))
     if verbose:
         print('--- INIT MPL---')

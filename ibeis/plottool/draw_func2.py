@@ -32,11 +32,11 @@ try:
 except ImportError as ex:
     print('ERROR PLOTTOOL CANNOT IMPORT CV2')
     print(ex)
-from plottool import mpl_keypoint as mpl_kp
-from plottool import color_funcs as color_fns
-from plottool import custom_constants
-from plottool import custom_figure
-from plottool import fig_presenter
+from plottool_ibeis import mpl_keypoint as mpl_kp
+from plottool_ibeis import color_funcs as color_fns
+from plottool_ibeis import custom_constants
+from plottool_ibeis import custom_figure
+from plottool_ibeis import fig_presenter
 DEBUG = False
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -284,14 +284,14 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         max_dsize (None): (default = None)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-overlay_icon --show --icon zebra.png
-        python -m plottool.draw_func2 --exec-overlay_icon --show --icon lena.png
-        python -m plottool.draw_func2 --exec-overlay_icon --show --icon lena.png --artist
+        python -m plottool_ibeis.draw_func2 --exec-overlay_icon --show --icon zebra.png
+        python -m plottool_ibeis.draw_func2 --exec-overlay_icon --show --icon lena.png
+        python -m plottool_ibeis.draw_func2 --exec-overlay_icon --show --icon lena.png --artist
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(np.arange(100), np.arange(100))
         >>> icon = ut.get_argval('--icon', type_=str, default='lena.png')
         >>> coords = (0, 0)
@@ -303,12 +303,11 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         >>> result = overlay_icon(icon, coords, coord_type, bbox_alignment,
         >>>                       max_asize, max_dsize, as_artist)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     #from mpl_toolkits.axes_grid.anchored_artists import AnchoredAuxTransformBox
-    import vtool as vt
+    import vtool_ibeis as vt
     ax = gca()
     if isinstance(icon, six.string_types):
         # hack because icon is probably a url
@@ -447,7 +446,7 @@ def udpate_adjust_subplots():
 def render_figure_to_image(fig, **savekw):
     import io
     import cv2
-    import plottool as pt
+    import plottool_ibeis as pt
     # Pop save kwargs from kwargs
     #save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
     # Write matplotlib axes to an image
@@ -474,7 +473,7 @@ class RenderingContext(object):
         self.savekw = savekw
 
     def __enter__(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         tmp_fnum = -1
         import matplotlib as mpl
         self.fig = pt.figure(fnum=tmp_fnum)
@@ -488,7 +487,7 @@ class RenderingContext(object):
             #print('[util_time] Error in context manager!: ' + str(value))
             return False  # return a falsey value on error
         # Ensure that this figure will not pop up
-        import plottool as pt
+        import plottool_ibeis as pt
         self.image = pt.render_figure_to_image(self.fig, **self.savekw)
         pt.plt.close(self.fig)
         if self.was_interactive:
@@ -499,8 +498,8 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
     """
 
     CommandLine:
-        python -m plottool.draw_func2 extract_axes_extents
-        python -m plottool.draw_func2 extract_axes_extents --save foo.jpg
+        python -m plottool_ibeis.draw_func2 extract_axes_extents
+        python -m plottool_ibeis.draw_func2 extract_axes_extents --save foo.jpg
 
      Notes:
           contour does something weird to axes
@@ -512,8 +511,8 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> import matplotlib.gridspec as gridspec
         >>> import matplotlib.pyplot as plt
         >>> pt.qtensure()
@@ -549,9 +548,10 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         >>> fig.suptitle('SupTitle')
         >>> subkw = dict(left=.001, right=.9, top=.9, bottom=.05, hspace=.2, wspace=.1)
         >>> plt.subplots_adjust(**subkw)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
 
     # Make sure we draw the axes first so we can
     # extract positions from the text objects
@@ -668,12 +668,12 @@ def save_parts(fig, fpath, grouped_axes=None, dpi=None):
         list: subpaths
 
     CommandLine:
-        python -m plottool.draw_func2 save_parts
+        python -m plottool_ibeis.draw_func2 save_parts
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> import matplotlib as mpl
         >>> import matplotlib.pyplot as plt
         >>> def testimg(fname):
@@ -729,9 +729,9 @@ def save_parts(fig, fpath, grouped_axes=None, dpi=None):
 
 
 def quit_if_noshow():
+    import utool as ut
     saverequest = ut.get_argval('--save', default=None)
     if not (saverequest or ut.get_argflag(('--show', '--save')) or ut.inIPython()):
-        import utool as ut
         raise ut.ExitTestException('This should be caught gracefully by ut.run_test')
 
 
@@ -770,8 +770,8 @@ def show_if_requested(N=1):
                                    type_hints={'t': list, 'a': list})
         #import sys
         from os.path import basename, splitext, join, dirname
-        import plottool as pt
-        import vtool as vt
+        import plottool_ibeis as pt
+        import vtool_ibeis as vt
 
         # HACK
         arg_dict = {
@@ -968,10 +968,10 @@ def show_if_requested(N=1):
             else:
                 print('Cannot copy log file because none exists')
     if ut.inIPython():
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.iup()
     # elif ut.get_argflag('--cmd'):
-    #     import plottool as pt
+    #     import plottool_ibeis as pt
     #     pt.draw()
     #     ut.embed(N=N)
     elif ut.get_argflag('--cmd'):
@@ -996,21 +996,22 @@ def distinct_markers(num, style='astrisk', total=None, offset=0):
         num (?):
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-distinct_markers --show
-        python -m plottool.draw_func2 --exec-distinct_markers --style=star --show
-        python -m plottool.draw_func2 --exec-distinct_markers --style=polygon --show
+        python -m plottool_ibeis.draw_func2 --exec-distinct_markers --show
+        python -m plottool_ibeis.draw_func2 --exec-distinct_markers --mstyle=star --show
+        python -m plottool_ibeis.draw_func2 --exec-distinct_markers --mstyle=polygon --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> style = ut.get_argval('--style', type_=str, default='astrisk')
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> style = ut.get_argval('--mstyle', type_=str, default='astrisk')
         >>> marker_list = distinct_markers(10, style)
         >>> x_data = np.arange(0, 3)
         >>> for count, (marker) in enumerate(marker_list):
         >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, markersize=10, linestyle='', label=str(marker))
         >>> pt.legend()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     num_sides = 3
     style_num = {
@@ -1032,7 +1033,7 @@ def distinct_markers(num, style='astrisk', total=None, offset=0):
 def get_all_markers():
     r"""
     CommandLine:
-        python -m plottool.draw_func2 --exec-get_all_markers --show
+        python -m plottool_ibeis.draw_func2 --exec-get_all_markers --show
 
     References:
         http://matplotlib.org/1.3.1/examples/pylab_examples/line_styles.html
@@ -1040,14 +1041,15 @@ def get_all_markers():
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> marker_dict = get_all_markers()
         >>> x_data = np.arange(0, 3)
         >>> for count, (marker, name) in enumerate(marker_dict.items()):
         >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, linestyle='', label=name)
         >>> pt.legend()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     marker_dict = {
         0: u'tickleft',
@@ -1113,11 +1115,11 @@ def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
         tuple : pnum
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-pnum_generator --show
+        python -m plottool_ibeis.draw_func2 --exec-pnum_generator --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> nRows = 3
         >>> nCols = 2
         >>> base = 0
@@ -1133,7 +1135,7 @@ def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> nRows = 3
         >>> nCols = 2
         >>> pnum_ = pnum_generator(nRows, nCols, start=3)
@@ -1167,7 +1169,7 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
         iterator: pnum_next
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-make_pnum_nextgen --show
+        python -m plottool_ibeis.draw_func2 --exec-make_pnum_nextgen --show
 
     GridParams:
         >>> param_grid = dict(
@@ -1179,7 +1181,7 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
 
     GridExample:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> base, start = 0, 0
         >>> pnum_next = make_pnum_nextgen(nRows, nCols, base, nSubplots, start)
         >>> pnum_list = list( (pnum_next() for _ in it.count()) )
@@ -1209,11 +1211,11 @@ def get_num_rc(nSubplots=None, nRows=None, nCols=None):
         tuple: (nRows, nCols)
 
     CommandLine:
-        python -m plottool.draw_func2 get_num_rc
+        python -m plottool_ibeis.draw_func2 get_num_rc
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> cases = [
         >>>     dict(nRows=None, nCols=None, nSubplots=None),
         >>>     dict(nRows=2, nCols=None, nSubplots=5),
@@ -1235,7 +1237,7 @@ def get_num_rc(nSubplots=None, nRows=None, nCols=None):
             nCols = 1
     else:
         if nRows is None and nCols is None:
-            from plottool import plot_helpers
+            from plottool_ibeis import plot_helpers
             nRows, nCols = plot_helpers.get_square_row_cols(nSubplots)
         elif nRows is not None:
             nCols = int(np.ceil(nSubplots / nRows))
@@ -1299,7 +1301,7 @@ def label_to_colors(labels_):
 #    Returns:
 #        RGB_tuples
 #    Example:
-#        >>> from plottool.draw_func2 import *  # NOQA
+#        >>> from plottool_ibeis.draw_func2 import *  # NOQA
 #    """
 #    # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
 #    sat = brightness
@@ -1364,11 +1366,11 @@ def rotate_plot(theta=TAU / 8, ax=None):
         ax (None):
 
     CommandLine:
-        python -m plottool.draw_func2 --test-rotate_plot
+        python -m plottool_ibeis.draw_func2 --test-rotate_plot
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> # build test data
         >>> ax = gca()
         >>> theta = TAU / 8
@@ -1379,10 +1381,10 @@ def rotate_plot(theta=TAU / 8, ax=None):
         >>> print(result)
         >>> show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if ax is None:
         ax = gca()
-    #import vtool as vt
+    #import vtool_ibeis as vt
     xy, width, height = get_axis_xy_width_height(ax)
     bbox = [xy[0], xy[1], width, height]
     M = mpl.transforms.Affine2D(vt.rotation_around_bbox_mat3x3(theta, bbox))
@@ -1562,7 +1564,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
 
         use_darkbackground = dark
         if use_darkbackground is None:
-            import plottool as pt
+            import plottool_ibeis as pt
             use_darkbackground = pt.is_default_dark_bg()
         if use_darkbackground:
             dark_background(ax)
@@ -1599,7 +1601,7 @@ def presetup_axes(x_label='x', y_label='y', title_pref='', title=None,
 
 
 def postsetup_axes(use_legend=True, bg=None):
-    import plottool as pt
+    import plottool_ibeis as pt
     if bg is None:
         if pt.is_default_dark_bg():
             bg = 'dark'
@@ -1695,12 +1697,12 @@ def relative_text(pos, text, ax=None, offset=None, **kwargs):
                   fontsize, fontproperties, fontproperties, clip_on
 
     CommandLine:
-        python -m plottool.draw_func2 relative_text --show
+        python -m plottool_ibeis.draw_func2 relative_text --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> x = .5
         >>> y = .5
         >>> txt = 'Hello World'
@@ -1713,9 +1715,8 @@ def relative_text(pos, text, ax=None, offset=None, **kwargs):
         >>> result = relative_text((x, y), txt, ax, halign='center',
         >>>                           fontproperties=fontproperties)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if pos == 'lowerleft':
         pos = (.01, .99)
@@ -1925,11 +1926,11 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 def show_histogram(data, bins=None, **kwargs):
     """
     CommandLine:
-        python -m plottool.draw_func2 --test-show_histogram --show
+        python -m plottool_ibeis.draw_func2 --test-show_histogram --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> # build test data
         >>> data = np.array([1, 24, 0, 0, 3, 4, 5, 9, 3, 0, 0, 0, 0, 2, 2, 2, 0, 0, 1, 1, 0, 0, 0, 3,])
         >>> bins = None
@@ -1937,7 +1938,8 @@ def show_histogram(data, bins=None, **kwargs):
         >>> result = show_histogram(data, bins)
         >>> # verify results
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     print('[df2] show_histogram()')
     dmin = int(np.floor(data.min()))
@@ -1982,12 +1984,12 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None,
         http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
 
     CommandLine:
-        python -m plottool.draw_func2 --test-draw_stems --show
-        python -m plottool.draw_func2 --test-draw_stems
+        python -m plottool_ibeis.draw_func2 --test-draw_stems --show
+        python -m plottool_ibeis.draw_func2 --test-draw_stems
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> x_data = np.append(np.arange(1, 10), np.arange(1, 10))
         >>> rng = np.random.RandomState(0)
         >>> y_data = sorted(rng.rand(len(x_data)) * 10)
@@ -1998,7 +2000,8 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None,
         >>> marker = 'o'
         >>> bottom = None
         >>> result = draw_stems(x_data, y_data, setlims, color, markersize, bottom, marker)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if y_data is not None and x_data is None:
         x_data = np.arange(len(y_data))
@@ -2063,20 +2066,21 @@ def plot_sift_signature(sift, title='', fnum=None, pnum=None):
         AxesSubplot: ax
 
     CommandLine:
-        python -m plottool.draw_func2 --test-plot_sift_signature --show
+        python -m plottool_ibeis.draw_func2 --test-plot_sift_signature --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import vtool as vt
-        >>> sift = vt.dummy.testdata_dummy_sift(1, np.random.RandomState(0))[0]
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> sift = vt.demodata.testdata_dummy_sift(1, np.random.RandomState(0))[0]
         >>> title = 'test sift histogram'
         >>> fnum = None
         >>> pnum = None
         >>> ax = plot_sift_signature(sift, title, fnum, pnum)
         >>> result = ('ax = %s' % (str(ax),))
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     fnum = ensure_fnum(fnum)
     figure(fnum=fnum, pnum=pnum)
@@ -2111,15 +2115,15 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
         AxesSubplot: ax
 
     CommandLine:
-        python -m plottool.draw_func2 --test-plot_descriptor_signature --show
+        python -m plottool_ibeis.draw_func2 --test-plot_descriptor_signature --show
 
     SeeAlso:
         plot_sift_signature
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> vec = ((np.random.RandomState(0).rand(258) - .2) * 4)
         >>> title = 'test sift histogram'
         >>> fnum = None
@@ -2127,7 +2131,8 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
         >>> ax = plot_descriptor_signature(vec, title, fnum, pnum)
         >>> result = ('ax = %s' % (str(ax),))
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     fnum = ensure_fnum(fnum)
     figure(fnum=fnum, pnum=pnum)
@@ -2155,15 +2160,16 @@ def dark_background(ax=None, doubleit=False, force=False):
         doubleit (bool): (default = False)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-dark_background --show
+        python -m plottool_ibeis.draw_func2 --exec-dark_background --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> fig = pt.figure()
         >>> pt.dark_background()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     def is_using_style(style):
         style_dict = mpl.style.library[style]
@@ -2247,12 +2253,12 @@ def append_phantom_legend_label(label, color, type_='circle', alpha=1.0, ax=None
         loc (str):
 
     CommandLine:
-        python -m plottool.draw_func2 --test-append_phantom_legend_label --show
+        python -m plottool_ibeis.draw_func2 --test-append_phantom_legend_label --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> label = 'some label'
         >>> color = 'b'
         >>> loc = 'upper right'
@@ -2260,9 +2266,10 @@ def append_phantom_legend_label(label, color, type_='circle', alpha=1.0, ax=None
         >>> ax = pt.gca()
         >>> result = append_phantom_legend_label(label, color, loc, ax=ax)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> pt.quit_if_noshow()
         >>> pt.show_phantom_legend_labels(ax=ax)
-        >>> ut.show_if_requested()
+        >>> pt.show_if_requested()
     """
     #pass
     #, loc=loc
@@ -2320,13 +2327,13 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
         size (None): (default = None)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-legend --show
+        python -m plottool_ibeis.draw_func2 --exec-legend --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> loc = 'best'
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> xdata = np.linspace(-6, 6)
         >>> ydata = np.sin(xdata)
         >>> pt.plot(xdata, ydata, label='sin')
@@ -2334,7 +2341,8 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
         >>> size = None
         >>> result = legend(loc, fontproperties, size)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     assert loc in LEGEND_LOCATION or loc == 'best', (
         'invalid loc. try one of %r' % (LEGEND_LOCATION,))
@@ -2361,7 +2369,7 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):
     freq, _ = plot_hist(data, nbins=nbins)
-    from plottool import plots
+    from plottool_ibeis import plots
     plots.plot_pdf(data, draw_support=draw_support, scale_to=freq.max(), label=label)
 
 
@@ -2414,22 +2422,22 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         <class '_ast.ListComp'>
 
     SeeAlso:
-        python -m plottool.color_funcs --test-show_all_colormaps --show --type "Perceptually Uniform Sequential"
+        python -m plottool_ibeis.color_funcs --test-show_all_colormaps --show --type "Perceptually Uniform Sequential"
 
     CommandLine:
-        python -m plottool.draw_func2 scores_to_color --show
+        python -m plottool_ibeis.draw_func2 scores_to_color --show
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> ut.exec_funckw(pt.scores_to_color, globals())
         >>> score_list = np.array([-1, -2, 1, 1, 2, 10])
         >>> # score_list = np.array([0, .1, .11, .12, .13, .8])
         >>> # score_list = np.linspace(0, 1, 100)
         >>> cmap_ = 'plasma'
         >>> colors = pt.scores_to_color(score_list, cmap_)
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> imgRGB = vt.atleast_nd(np.array(colors)[:, 0:3], 3, tofront=True)
         >>> imgRGB = imgRGB.astype(np.float32)
         >>> imgBGR = vt.convert_colorspace(imgRGB, 'BGR', 'RGB')
@@ -2437,7 +2445,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         >>> pt.show_if_requested()
 
     Example:
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> score_list = np.array([-1, -2, 1, 1, 2, 10])
         >>> cmap_ = 'hot'
         >>> logscale = False
@@ -2578,7 +2586,7 @@ DF2_DIVIDER_KEY = '_df2_divider'
 
 def ensure_divider(ax):
     """ Returns previously constructed divider or creates one """
-    from plottool import plot_helpers as ph
+    from plottool_ibeis import plot_helpers as ph
     divider = ph.get_plotdat(ax, DF2_DIVIDER_KEY, None)
     if divider is None:
         divider = make_axes_locatable(ax)
@@ -2626,12 +2634,12 @@ def interpolated_colormap(color_frac_list, resolution=64, space='lch-ab'):
     http://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
 
     CommandLine:
-        python -m plottool.draw_func2 interpolated_colormap --show
+        python -m plottool_ibeis.draw_func2 interpolated_colormap --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> color_frac_list = [
         >>>     (pt.TRUE_BLUE, 0),
         >>>     #(pt.WHITE, .5),
@@ -2674,12 +2682,12 @@ def interpolated_colormap(color_frac_list, resolution=64, space='lch-ab'):
         >>> #resolution = 16 + 1
         >>> resolution = 256 + 1
         >>> cmap = interpolated_colormap(color_frac_list, resolution, space)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
+        >>> pt.quit_if_noshow()
         >>> a = np.linspace(0, 1, resolution).reshape(1, -1)
         >>> pylab.imshow(a, aspect='auto', cmap=cmap, interpolation='nearest')  # , origin="lower")
         >>> plt.grid(False)
-        >>> ut.show_if_requested()
+        >>> pt.show_if_requested()
     """
     import colorsys
 
@@ -2816,14 +2824,14 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None,
         cb : matplotlib colorbar object
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-colorbar --show
-        python -m plottool.draw_func2 --exec-colorbar:1 --show
+        python -m plottool_ibeis.draw_func2 --exec-colorbar --show
+        python -m plottool_ibeis.draw_func2 --exec-colorbar:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> from plottool import draw_func2 as df2
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis import draw_func2 as df2
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> scalars = np.array([-1, -2, 1, 1, 2, 7, 10])
         >>> cmap_ = 'plasma'
         >>> logscale = False
@@ -2835,16 +2843,15 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None,
         ...    }
         >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale, reverse_cmap=reverse_cmap, val2_customcolor=val2_customcolor)
         >>> colorbar(scalars, colors, custom=custom)
-        >>> df2.present()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> from plottool import draw_func2 as df2
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis import draw_func2 as df2
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> scalars = np.linspace(0, 1, 100)
         >>> cmap_ = 'plasma'
         >>> logscale = False
@@ -2854,11 +2861,10 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None,
         >>>                          reverse_cmap=reverse_cmap)
         >>> colors = [pt.lighten_rgb(c, .3) for c in colors]
         >>> colorbar(scalars, colors, custom=custom)
-        >>> df2.present()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_if_requested()
     """
-    from plottool import plot_helpers as ph
+    from plottool_ibeis import plot_helpers as ph
     assert len(scalars) == len(colors), 'scalars and colors must be corresponding'
     if len(scalars) == 0:
         return None
@@ -2944,7 +2950,7 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
                 H1=None, H2=None, scale_factor1=None, scale_factor2=None,
                 ax=None, **kwargs):
-    import vtool as vt
+    import vtool_ibeis as vt
     if scale_factor1 is None:
         scale_factor1 = 1.0, 1.0
     if scale_factor2 is None:
@@ -3008,22 +3014,24 @@ def draw_line_segments2(pts1, pts2, ax=None, **kwargs):
         ax (None): (default = None)
 
     CommandLine:
-        python -m plottool.draw_func2 draw_line_segments2 --show
+        python -m plottool_ibeis.draw_func2 draw_line_segments2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> pts1 = np.array([(1, 1), (0, 0)])
         >>> pts2 = np.array([(2, 2), (1, 0)])
         >>> pt.figure(fnum=None)
         >>> #segments = [np.array((xy1, xy2)) for xy1, xy2 in zip(pts1, pts2)]
         >>> #draw_line_segments(segments)
         >>> draw_line_segments2(pts1, pts2)
-        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> pt.quit_if_noshow()
         >>> ax = pt.gca()
         >>> pt.set_axis_limit(-1, 3, -1, 3, ax)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if ax is None:
         ax = gca()
@@ -3044,7 +3052,7 @@ def draw_line_segments(segments_list, **kwargs):
     """
     segments_list - list of [xs,ys,...] defining the segments
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     marker = '.-'
     for data in segments_list:
         pt.plot(data.T[0], data.T[1], marker, **kwargs)
@@ -3064,7 +3072,7 @@ def draw_line_segments(segments_list, **kwargs):
 def draw_patches_and_sifts(patch_list, sift_list, fnum=None, pnum=(1, 1, 1)):
     # Hacked together will not work on inputs of all sizes
     #raise NotImplementedError('unfinished')
-    import plottool as pt
+    import plottool_ibeis as pt
     num, width, height = patch_list.shape[0:3]
     rows = int(np.sqrt(num))
     cols = num // rows
@@ -3103,18 +3111,19 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
         kpts (ndarray[float32_t, ndim=2]):  keypoints
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-show_kpts --show
+        xdoctest -m ~/code/plottool/plottool_ibeis/draw_func2.py show_kpts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import vtool as vt
-        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> kpts = vt.demodata.get_dummy_kpts()
         >>> result = show_kpts(kpts)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
     pt.draw_kpts2(kpts, **kwargs)
     ax = pt.gca()
@@ -3166,8 +3175,8 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         color_list (list):
 
     Example:
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> from plottool import draw_func2 as df2
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis import draw_func2 as df2
         >>> offset = (0, 0)
         >>> scale_factor = 1
         >>> ell = True
@@ -3254,7 +3263,7 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
     it with respect to the current mode.
 
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     wpatch, wkp  = vt.get_warped_patch(rchip, kpt, gray=True)
     try:
         gradx, grady = vt.patch_gradient(wpatch)
@@ -3269,7 +3278,7 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
     if mode == 'vec' or mode == 'vecfield':
         fig = draw_vector_field(gradx, grady, **kwargs)
     elif mode == 'col' or mode == 'colors':
-        import plottool as pt
+        import plottool_ibeis as pt
         gmag = vt.patch_mag(gradx, grady)
         gori = vt.patch_ori(gradx, grady)
         gorimag = pt.color_orimag(gori, gmag)
@@ -3294,12 +3303,12 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         ?: ax
 
     CommandLine:
-        python -m plottool.draw_func2 --test-draw_keypoint_patch --show
+        python -m plottool_ibeis.draw_func2 --test-draw_keypoint_patch --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> rchip = vt.imread(ut.grab_test_imgpath('lena.png'))
         >>> kp = [100, 100, 20, 0, 20, 0]
         >>> sift = None
@@ -3308,9 +3317,10 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         >>> ax = draw_keypoint_patch(rchip, kp, sift, warped, patch_dict)
         >>> result = ('ax = %s' % (str(ax),))
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     #print('--------------------')
     kpts = np.array([kp])
     if warped:
@@ -3376,18 +3386,19 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         tuple: (fig, ax)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-imshow --show
+        python -m plottool_ibeis.draw_func2 --exec-imshow --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> (fig, ax) = imshow(img)
         >>> result = ('(fig, ax) = %s' % (str((fig, ax)),))
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if ax is not None:
         fig = ax.figure
@@ -3407,7 +3418,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         # Allow for path to image to be specified
         img_fpath = img
         ut.assertpath(img_fpath)
-        import vtool as vt
+        import vtool_ibeis as vt
         img = vt.imread(img_fpath)
     #darken = .4
     if darken is not None:
@@ -3524,21 +3535,20 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True,
                       stride=1):
     r"""
     CommandLine:
-        python -m plottool.draw_func2 draw_vector_field --show
-        python -m plottool.draw_func2 draw_vector_field --show --fname=zebra.png --fx=121 --stride=3
+        python -m plottool_ibeis.draw_func2 draw_vector_field --show
+        python -m plottool_ibeis.draw_func2 draw_vector_field --show --fname=zebra.png --fx=121 --stride=3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import utool as ut
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> patch = vt.testdata_patch()
         >>> gx, gy = vt.patch_gradient(patch, gaussian_weighted=False)
         >>> stride = ut.get_argval('--stride', default=1)
         >>> pt.draw_vector_field(gx, gy, stride=stride)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     # https://stackoverflow.com/questions/1843194/plotting-vector-fields-in-python-matplotlib
     # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.quiver
@@ -3628,54 +3638,15 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         tuple: (xywh1, xywh2, sf_tup)
 
     CommandLine:
-        python -m plottool.draw_func2 show_chipmatch2 --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> rchip1 = '?'
-        >>> rchip2 = '?'
-        >>> kpts1 = None
-        >>> kpts2 = None
-        >>> fm = None
-        >>> fs = None
-        >>> fm_norm = None
-        >>> title = None
-        >>> vert = None
-        >>> fnum = None
-        >>> pnum = None
-        >>> heatmap = False
-        >>> modifysize = False
-        >>> new_return = False
-        >>> draw_fmatch = True
-        >>> darken = None
-        >>> H1 = None
-        >>> H2 = None
-        >>> sel_fm = []
-        >>> ax = None
-        >>> heatmask = False
-        >>> (xywh1, xywh2, sf_tup) = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs, fm_norm, title, vert, fnum, pnum, heatmap, modifysize, new_return, draw_fmatch, darken, H1, H2, sel_fm, ax, heatmask)
-        >>> result = ('(xywh1, xywh2, sf_tup) = %s' % (ut.repr2((xywh1, xywh2, sf_tup)),))
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
-
-     Returns:
-         ax, xywh1, xywh2
-
-    CommandLine:
-        python -m plottool.draw_func2 show_chipmatch2 --show
+        python -m plottool_ibeis.draw_func2 show_chipmatch2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
-        >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
-        >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
-        >>> rchip1 = vt.imread(ut.grab_test_imgpath(fname1))
-        >>> rchip2 = vt.imread(ut.grab_test_imgpath(fname2))
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
+        >>> rchip1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
+        >>> rchip2 = vt.imread(ut.grab_test_imgpath('easy2.png'))
         >>> kpts1 = np.array([
         >>>     [10,  10,   30,   0,    30,    0.  ],
         >>>     [ 355.89,  142.95,   10.46,   -0.63,    8.59,    0.  ],
@@ -3699,12 +3670,12 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> #H_half = np.array([[.2, 0, 0], [0, .2, 0], [0, 0, 1]])
         >>> #H1 = H_half
         >>> #H2 = H_half
-        >>> kwargs = dict(H1=H1, H2=H2, fm=fm, draw_lines=False, draw_ell=False)
+        >>> kwargs = dict(H1=H1, H2=H2, fm=fm, draw_lines=True, draw_ell=True)
         >>> kwargs.update(ell_linewidth=5, lw=10, line_alpha=[1, .3, .3, .3])
         >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, **kwargs)
         >>> pt.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
@@ -3715,7 +3686,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         dsize2 = wh1
 
     if heatmask:
-        from vtool.coverage_kpts import make_kpts_heatmask
+        from vtool_ibeis.coverage_kpts import make_kpts_heatmask
         if not kwargs.get('all_kpts', False) and fm is not None:
             kpts1_m = kpts1[fm.T[0]]
             kpts2_m = kpts2[fm.T[1]]
@@ -3738,7 +3709,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     # modifysize = True
     match_img, offset_tup, sf_tup = vt.stack_images(
         rchip1_, rchip2_, vert, modifysize=modifysize, return_sf=True,
-        white_background=white_background)
+        white_background=white_background,
+    )
 
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)
@@ -3798,11 +3770,11 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
         ?: None
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_fmatch
+        python -m plottool_ibeis.draw_func2 --exec-plot_fmatch
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> xywh1 = '?'
         >>> xywh2 = '?'
         >>> kpts1 = '?'
@@ -3961,13 +3933,13 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=.5):
         ndarray: rgb_ori or bgr_ori
 
     CommandLine:
-        python -m plottool.draw_func2 --test-color_orimag --show
+        python -m plottool_ibeis.draw_func2 --test-color_orimag --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> gori = np.array([[ 0.        ,  0.        ,  3.14159265,  3.14159265,  0.        ],
         ...                  [ 1.57079633,  3.92250052,  1.81294053,  3.29001537,  1.57079633],
@@ -4038,11 +4010,11 @@ def get_orientation_color(radians_list):
         radians_list (list):
 
     CommandLine:
-        python -m plottool.draw_func2 --test-get_orientation_color
+        python -m plottool_ibeis.draw_func2 --test-get_orientation_color
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> # build test data
         >>> radians_list = np.linspace(-1, 10, 10)
         >>> # execute function
@@ -4078,12 +4050,12 @@ def make_ori_legend_img():
     keypoint eigenvector. and its color should be red due to the hsv mapping
 
     CommandLine:
-        python -m plottool.draw_func2 --test-make_ori_legend_img --show
+        python -m plottool_ibeis.draw_func2 --test-make_ori_legend_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> # execute function
         >>> img_BGR = make_ori_legend_img()
@@ -4092,7 +4064,7 @@ def make_ori_legend_img():
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     TAU = 2 * np.pi
     NUM = 36
     NUM = 36 * 2
@@ -4168,18 +4140,17 @@ def imshow_null(msg=None, ax=None, **kwargs):
                   docla, doclf, projection, use_gridspec
 
     CommandLine:
-        python -m plottool.draw_func2 imshow_null --show
+        python -m plottool_ibeis.draw_func2 imshow_null --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> msg = None
         >>> ax = None
         >>> result = imshow_null(msg, ax)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if ax is None:
         ax = gca()
@@ -4252,9 +4223,9 @@ def width_from(num, pad=.05, start=0, stop=1):
 
 
 #+-----
-# From vtool.patch
+# From vtool_ibeis.patch
 def param_plot_iterator(param_list, fnum=None, projection=None):
-    from plottool import plot_helpers
+    from plottool_ibeis import plot_helpers
     nRows, nCols = plot_helpers.get_square_row_cols(len(param_list), fix=True)
     #next_pnum = make_pnum_nextgen(nRows=nRows, nCols=nCols)
     pnum_gen = pnum_generator(nRows, nCols)
@@ -4281,13 +4252,13 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_surface3d --show
+        python -m plottool_ibeis.draw_func2 --exec-plot_surface3d --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> shape=(19, 19)
         >>> sigma1, sigma2 = 2.0, 1.0
         >>> ybasis = np.arange(shape[0])
@@ -4368,7 +4339,7 @@ def draw_text_annotations(text_list,
     """
     Hack fixes to issues in text annotations
     """
-    import plottool as pt
+    import plottool_ibeis as pt
 
     artist_list = []
     offset_box_list = []
@@ -4458,22 +4429,22 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
         num (int): (default = 100)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=np.exp
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(((x * 2) - 1.0) * 6)"
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(-6 + 12 * x)"
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,4 --func="lambda x: vt.logistic_01((-1 + x) * 2)"
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: np.tan((x - .5) * np.pi)" --ylim=-10,10
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,3 --func=np.tan
-        python -m plottool.draw_func2 --exec-plot_func --show --range=0,50 --func="lambda x: np.exp(-x / 50)"
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_loss
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-1,1 --func=np.exp
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(((x * 2) - 1.0) * 6)"
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(-6 + 12 * x)"
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,4 --func="lambda x: vt.logistic_01((-1 + x) * 2)"
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: np.tan((x - .5) * np.pi)" --ylim=-10,10
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,3 --func=np.tan
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,50 --func="lambda x: np.exp(-x / 50)"
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_loss
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
 
-        python -m plottool plot_func --show --range=-1,1 \
+        python -m plottool_ibeis plot_func --show --range=-1,1 \
                 --setup="from ibeis.algo.smk.smk_pipeline import SMK" \
                 --func=lambda u: SMK.selectivity(u, 3.0, 0)
 
-        python -m plottool plot_func --show --range=-1,1 \
+        python -m plottool_ibeis plot_func --show --range=-1,1 \
                 --func \
                 "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)" \
                 "lambda u: (sign((u+1)/2) * abs((u+1)/2)**3.0 * greater_equal(u, 0+.5))"
@@ -4481,13 +4452,13 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
         alpha=3
         thresh=-1
 
-        python -m plottool plot_func --show --range=-1,1 \
+        python -m plottool_ibeis plot_func --show --range=-1,1 \
                 --func \
                 "lambda u: sign(u) * abs(u)**$alpha * greater_equal(u, $thresh)" \
                 "lambda u: (sign(u) * abs(u)**$alpha * greater_equal(u, $thresh) + 1) / 2" \
                 "lambda u: sign((u+1)/2) * abs((u+1)/2)**$alpha * greater_equal(u, $thresh)"
 
-        python -m plottool plot_func --show --range=4,100 \
+        python -m plottool_ibeis plot_func --show --range=4,100 \
                 --func \
                 "lambda n: log2(n)"\
                 "lambda n: log2(log2(n))"\
@@ -4495,18 +4466,18 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
                 "lambda n: log2(n) ** 2"\
                 "lambda n: n"\
 
-        python -m plottool plot_func --show --range=4,1000000 \
+        python -m plottool_ibeis plot_func --show --range=4,1000000 \
                 --func \
                 "lambda n: log2(n)"\
                 "lambda n: n ** (1/3)"
 
-        python -m plottool plot_func --show --range=0,10 \
+        python -m plottool_ibeis plot_func --show --range=0,10 \
                 --func \
                 "lambda x: (3 * (x ** 2) - 18 * (x) - 81) / ((x ** 2) - 54) "
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool_ibeis.draw_func2 import *  # NOQA
         >>> import scipy
         >>> import scipy.special  # NOQA
         >>> func_list = ut.get_argval('--func', type_=list, default=['np.exp'])
@@ -4518,13 +4489,15 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
         >>> num = 1000
         >>> result = plot_func(funcs, start, stop, num, setup=setup)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> ylim = ut.get_argval('--ylim', type_=list, default=None)
         >>> import plottool as pt
+        >>> pt.quit_if_noshow()
+        >>> ylim = ut.get_argval('--ylim', type_=list, default=None)
+        >>> import plottool_ibeis as pt
         >>> None if ylim is None else plt.gca().set_ylim(*ylim)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     xdata = np.linspace(start, stop, num)
     if not ut.isiterable(funcs):
         funcs = [funcs]
@@ -4556,23 +4529,16 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
 def test_save():
     """
     CommandLine:
-        python -m plottool.draw_func2 test_save --show
-        python -m plottool.draw_func2 test_save
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *
-        >>> fpath = test_save()
-        >>> ut.quit_if_noshow()
-        >>> ut.startfile(fpath)
+        python -m plottool_ibeis.draw_func2 test_save --show
+        python -m plottool_ibeis.draw_func2 test_save
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import utool as ut
     from os.path import join
     fig = pt.figure(fnum=1)
     ax = pt.plt.gca()
     ax.plot([1, 2, 3], [4, 5, 7])
-    dpath = ut.ensure_app_cache_dir('plottool')
+    dpath = ut.ensure_app_cache_dir('plottool_ibeis')
     fpath = join(dpath, 'test.png')
     fig.savefig(fpath)
     return fpath
@@ -4581,9 +4547,9 @@ def test_save():
 if __name__ == '__main__':
     """
     commandline:
-        python -m plottool.draw_func2
-        python -m plottool.draw_func2 --allexamples
-        python -m plottool.draw_func2 --allexamples --noface --nosrc
+        python -m plottool_ibeis.draw_func2
+        python -m plottool_ibeis.draw_func2 --allexamples
+        python -m plottool_ibeis.draw_func2 --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

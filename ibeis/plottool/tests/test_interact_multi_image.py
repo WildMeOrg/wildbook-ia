@@ -2,8 +2,8 @@
 
 # DUPLICATE CODE, DELETE
 from __future__ import absolute_import, division, print_function
-from plottool import interact_multi_image
-from plottool import draw_func2 as df2
+from plottool_ibeis import interact_multi_image
+from plottool_ibeis import draw_func2 as df2
 import utool
 #import ibeis
 

@@ -4,7 +4,7 @@ from six.moves import zip
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import vtool.histogram as htool
+import vtool_ibeis.histogram as htool
 import utool as ut
 ut.noinject(__name__, '[pt.other]')
 

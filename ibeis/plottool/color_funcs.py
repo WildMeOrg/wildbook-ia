@@ -1,12 +1,12 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map  # NOQA
-from plottool import custom_constants  # NOQA
+from plottool_ibeis import custom_constants  # NOQA
 import six
 from matplotlib import colors as mcolors
 import colorsys
 import numpy as np  # NOQA
 import utool as ut
-#from plottool import colormaps as cmaps2
+#from plottool_ibeis import colormaps as cmaps2
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
 ut.noinject(__name__)
 # '[colorfuncs]')
@@ -88,11 +88,11 @@ def ensure_base01(color):
         ?: color01
 
     CommandLine:
-        python -m plottool.color_funcs ensure_base01
+        python -m plottool_ibeis.color_funcs ensure_base01
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> ensure_base01('g')
         >>> ensure_base01('orangered')
         >>> ensure_base01('#AAAAAA')
@@ -162,7 +162,7 @@ def ensure_base255(color):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> ensure_base255('g')
         >>> ensure_base255('orangered')
         >>> ensure_base255('#AAAAAA')
@@ -208,19 +208,20 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
     colors = list(mcolors.CSS4_COLORS.keys())
 
     CommandLine:
-        python -m plottool.color_funcs testshow_colors --show
+        python -m plottool_ibeis.color_funcs testshow_colors --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> colors = ut.get_argval('--colors', type_=list, default=['k', 'r'])
         >>> ut.quit_if_noshow()
         >>> rgb_list = ut.emap(ensure_base01, colors)
         >>> testshow_colors(rgb_list)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
     #print(ut.repr2(block_list))
@@ -243,19 +244,17 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
 def desaturate_rgb(rgb, amount):
     r"""
     CommandLine:
-        python -m plottool.color_funcs --test-desaturate_rgb --show
+        python -m plottool_ibeis.color_funcs --test-desaturate_rgb --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
-        >>> # build test data
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> rgb = (255.0 / 255.0, 100 / 255.0, 0 / 255.0)
         >>> amount = .5
-        >>> # execute function
         >>> new_rgb = desaturate_rgb(rgb, amount)
-        >>> if ut.show_was_requested():
-        >>>     color_list = [rgb, new_rgb, desaturate_rgb(rgb, .7)]
-        >>>     testshow_colors(color_list)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> color_list = [rgb, new_rgb, desaturate_rgb(rgb, .7)]
+        >>> testshow_colors(color_list)
         >>> # verify results
         >>> result = ut.repr2(new_rgb)
         >>> print(result)
@@ -281,24 +280,24 @@ def darken_rgb(rgb, amount):
 def lighten_rgb(rgb, amount):
     r"""
     CommandLine:
-        python -m plottool.color_funcs --test-lighten_rgb --show
-        python -m plottool.color_funcs --test-lighten_rgb
+        python -m plottool_ibeis.color_funcs --test-lighten_rgb --show
+        python -m plottool_ibeis.color_funcs --test-lighten_rgb
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> # build test data
         >>> rgb = np.array((255.0 / 255.0, 100 / 255.0, 0 / 255.0))
         >>> amount = .1
         >>> # execute function
         >>> new_rgb = lighten_rgb(rgb, amount)
-        >>> if ut.show_was_requested():
+        >>> import plottool_ibeis as pt
+        >>> if pt.show_was_requested():
         >>>     color_list = [rgb, new_rgb, lighten_rgb(rgb, .5)]
         >>>     testshow_colors(color_list)
         >>> # verify results
         >>> result = ut.repr2(new_rgb, with_dtype=False)
         >>> print(result)
-        np.array([ 1.        ,  0.45294118,  0.1       ])
     """
     hue_adjust = 0.0
     sat_adjust = -amount
@@ -310,12 +309,12 @@ def lighten_rgb(rgb, amount):
 def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
     """
     CommandLine:
-        python -m plottool.color_funcs --test-adjust_hsv_of_rgb255 --show
+        python -m plottool_ibeis.color_funcs --test-adjust_hsv_of_rgb255 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> rgb = (220, 220, 255)
         >>> hue_adjust =  0.0
@@ -326,7 +325,8 @@ def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
         >>> # verify results
         >>> result = str(new_rgb)
         >>> print(result)
-        >>> if ut.show_was_requested():
+        >>> import plottool_ibeis as pt
+        >>> if pt.show_was_requested():
         >>>     color_list = [to_base01(rgb), to_base01(new_rgb)]
         >>>     testshow_colors(color_list)
     """
@@ -349,12 +349,12 @@ def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
         ?: new_rgb
 
     CommandLine:
-        python -m plottool.color_funcs --test-adjust_hsv_of_rgb --show
+        python -m plottool_ibeis.color_funcs --test-adjust_hsv_of_rgb --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> rgb_list = [pt.DEEP_PINK[0:3], pt.DARK_YELLOW[0:3], pt.DARK_GREEN[0:3]]
         >>> hue_adjust = -0.1
@@ -362,7 +362,8 @@ def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
         >>> val_adjust = -0.1
         >>> # execute function
         >>> new_rgb_list = [adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust) for rgb in rgb_list]
-        >>> if ut.show_was_requested():
+        >>> import plottool_ibeis as pt
+        >>> if pt.show_was_requested():
         >>>     color_list = rgb_list + new_rgb_list
         >>>     testshow_colors(color_list)
         >>> # verify results
@@ -424,25 +425,25 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         list: RGB_tuples
 
     CommandLine:
-        python -m plottool.color_funcs --test-distinct_colors --N 2 --show --hue-range=0.05,.95
-        python -m plottool.color_funcs --test-distinct_colors --N 3 --show --hue-range=0.05,.95
-        python -m plottool.color_funcs --test-distinct_colors --N 4 --show --hue-range=0.05,.95
-        python -m plottool.color_funcs --test-distinct_colors --N 3 --show --no-randomize
-        python -m plottool.color_funcs --test-distinct_colors --N 4 --show --no-randomize
-        python -m plottool.color_funcs --test-distinct_colors --N 6 --show --no-randomize
-        python -m plottool.color_funcs --test-distinct_colors --N 20 --show
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 2 --show --hue-range=0.05,.95
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 3 --show --hue-range=0.05,.95
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 4 --show --hue-range=0.05,.95
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 3 --show --no-randomize
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 4 --show --no-randomize
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 6 --show --no-randomize
+        python -m plottool_ibeis.color_funcs --test-distinct_colors --N 20 --show
 
     References:
         http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
 
     CommandLine:
-        python -m plottool.color_funcs --exec-distinct_colors --show
-        python -m plottool.color_funcs --exec-distinct_colors --show --no-randomize --N 50
-        python -m plottool.color_funcs --exec-distinct_colors --show --cmap_seed=foobar
+        python -m plottool_ibeis.color_funcs --exec-distinct_colors --show
+        python -m plottool_ibeis.color_funcs --exec-distinct_colors --show --no-randomize --N 50
+        python -m plottool_ibeis.color_funcs --exec-distinct_colors --show --cmap_seed=foobar
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
         >>> # build test data
         >>> N = ut.get_argval('--N', int, 2)
         >>> randomize = not ut.get_argflag('--no-randomize')
@@ -458,12 +459,13 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         >>> ut.quit_if_noshow()
         >>> color_list = RGB_tuples
         >>> testshow_colors(color_list)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     # TODO: Add sin wave modulation to the sat and value
-    #import plottool as pt
+    #import plottool_ibeis as pt
     if True:
-        import plottool as pt
+        import plottool_ibeis as pt
         # HACK for white figures
         remove_yellow = not pt.is_default_dark_bg()
         #if not pt.is_default_dark_bg():
@@ -471,7 +473,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
 
     use_jet = False
     if use_jet:
-        import plottool as pt
+        import plottool_ibeis as pt
         cmap = pt.plt.cm.jet
         RGB_tuples = list(map(tuple, cmap(np.linspace(0, 1, N))))
     elif cmap_seed is not None:
@@ -602,14 +604,14 @@ def show_all_colormaps():
 
 
     CommandLine:
-        python -m plottool.color_funcs --test-show_all_colormaps --show
-        python -m plottool.color_funcs --test-show_all_colormaps --show --type=Miscellaneous
-        python -m plottool.color_funcs --test-show_all_colormaps --show --cmap=RdYlBu
+        python -m plottool_ibeis.color_funcs --test-show_all_colormaps --show
+        python -m plottool_ibeis.color_funcs --test-show_all_colormaps --show --type=Miscellaneous
+        python -m plottool_ibeis.color_funcs --test-show_all_colormaps --show --cmap=RdYlBu
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.color_funcs import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.color_funcs import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> show_all_colormaps()
         >>> pt.show_if_requested()
     """
@@ -669,9 +671,9 @@ def show_all_colormaps():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.color_funcs
-        python -m plottool.color_funcs --allexamples
-        python -m plottool.color_funcs --allexamples --noface --nosrc
+        python -m plottool_ibeis.color_funcs
+        python -m plottool_ibeis.color_funcs --allexamples
+        python -m plottool_ibeis.color_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

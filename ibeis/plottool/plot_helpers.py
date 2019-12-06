@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-# import plottool.draw_func2 as df2
-from plottool import fig_presenter
-#from plottool import custom_figure
-#from plottool import custom_constants
+# import plottool_ibeis.draw_func2 as df2
+from plottool_ibeis import fig_presenter
+#from plottool_ibeis import custom_figure
+#from plottool_ibeis import custom_constants
 #from os.path import join
 import utool as ut
 ut.noinject(__name__, '[plot_helpers]')
@@ -52,11 +52,11 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
         tuple: (None, None)
 
     CommandLine:
-        python -m plottool.plot_helpers --test-get_square_row_cols
+        python -m plottool_ibeis.plot_helpers --test-get_square_row_cols
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plot_helpers import *  # NOQA
+        >>> from plottool_ibeis.plot_helpers import *  # NOQA
         >>> # build test data
         >>> nSubplots = 9
         >>> nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -141,7 +141,7 @@ def qt4ensure():
 
 
 def qtensure():
-    import guitool as gt
+    import guitool_ibeis as gt
     if ut.inIPython():
         import IPython
         ipython = IPython.get_ipython()
@@ -172,7 +172,7 @@ ensureqt = qt4ensure
 
 
 def kp_info(kp):
-    import vtool.keypoint as ktool
+    import vtool_ibeis.keypoint as ktool
     kpts = np.array([kp])
     xy_str    = ktool.get_xy_strs(kpts)[0]
     shape_str = ktool.get_shape_strs(kpts)[0]

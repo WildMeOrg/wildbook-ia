@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 from six.moves import zip, range, zip_longest
-from plottool import draw_func2 as df2
+from plottool_ibeis import draw_func2 as df2
 import six
 from six.moves import reduce
 import scipy.stats
@@ -58,12 +58,12 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         matplotlib.org/examples/api/barchart_demo.html
 
     CommandLine:
-        python -m plottool.plots multi_plot:0 --show
-        python -m plottool.plots multi_plot:1 --show
+        python -m plottool_ibeis.plots multi_plot:0 --show
+        python -m plottool_ibeis.plots multi_plot:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> xdata = [1, 2, 3, 4, 5]
         >>> ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
         >>> kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
@@ -73,15 +73,17 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         >>> fig2 = multi_plot([1, 2, 3], [4, 5, 6], fnum=4)
         >>> result = ('fig = %s' % (str(fig),))
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> fig = multi_plot([1, 2, 3], [4, 5, 6])
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
 
     if isinstance(ydata_list, dict):
         # Special case where ydata is a dictionary
@@ -549,19 +551,20 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
 def demo_fonts():
     r"""
     CommandLine:
-        python -m plottool.plots demo_fonts --show
+        python -m plottool_ibeis.plots demo_fonts --show
 
     References:
         http://stackoverflow.com/questions/8753835/list-of-fonts-avail-mpl
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> demo_fonts()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.present()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     import matplotlib.font_manager
     avail_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
@@ -589,15 +592,15 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     Plots nd-data in 2d using multiple contour lines
 
     CommandLine:
-        python -m plottool.plots --test-plot_multiple_scores --show
+        python -m plottool_ibeis.plots --test-plot_multiple_scores --show
 
-        python -m plottool.plots --exec-plot_rank_cumhist \
+        python -m plottool_ibeis.plots --exec-plot_rank_cumhist \
             --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
             --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> known_nd_data = np.array([[  1,   2,   4,   7,   1,   2,   4,   7,   1,   2,   4,   7,   1,
         ...                              2,   4,   7,   1,   2,   4,   7],
         ...                           [ 50,  50,  50,  50, 100, 100, 100, 100, 200, 200, 200, 200, 300,
@@ -613,7 +616,8 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         >>> title = 'test'
         >>> result = plot_multiple_scores(known_nd_data, known_target_points, nd_labels, target_label, title=title)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
 
@@ -631,7 +635,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
     if report_max:
         # TODO: multiple max poses
-        import vtool as vt
+        import vtool_ibeis as vt
         maxpos_list = ydata_list.argmax(axis=1)
         max_nd0_list = nd_basis[0].take(maxpos_list)
         max_score_list = vt.ziptake(ydata_list, maxpos_list)
@@ -670,15 +674,15 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
     TODO rename to plot_cmc
 
     CommandLine:
-        python -m plottool.plots --test-plot_rank_cumhist --show
+        python -m plottool_ibeis.plots --test-plot_rank_cumhist --show
 
-        python -m plottool.plots --exec-plot_rank_cumhist \
+        python -m plottool_ibeis.plots --exec-plot_rank_cumhist \
             --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
             --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> cdf_list = np.array(
         >>>     [[ 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
         >>>      [ 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
@@ -687,7 +691,8 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         >>> fnum = None
         >>> pnum = None
         >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     # Remove values of None (those are defaults)
     for k in list(kwargs.keys()):
@@ -742,25 +747,25 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
         centers (None):
 
     CommandLine:
-        python -m plottool.plots --test-draw_hist_subbin_maxima --show
+        python -m plottool_ibeis.plots --test-draw_hist_subbin_maxima --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.plots import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> bin_colors = pt.df2.plt.get_cmap('hsv')(centers / vt.TAU)
         >>> use_darkbackground = True
         >>> maxima_thresh = .8
         >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors,
-        >>>                                  maxima_thresh
+        >>>                                  maxima_thresh,
         >>>                                  use_darkbackground=use_darkbackground)
         >>> print(result)
         >>> pt.show_if_requested()
     """
     # Find maxima
-    import vtool as vt
+    import vtool_ibeis as vt
     maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(hist, centers, maxima_thresh)
     argmaxima = np.array(ut.ensure_iterable(argmaxima))
     maxima_y = np.array(ut.ensure_iterable(maxima_y))
@@ -834,13 +839,13 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
         xdata (None):
 
     CommandLine:
-        python -m plottool.plots --test-draw_subextrema --show
+        python -m plottool_ibeis.plots --test-draw_subextrema --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> import vtool as vt
-        >>> import plottool as pt
+        >>> from plottool_ibeis.plots import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> import plottool_ibeis as pt
         >>> ydata = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.01, 0.00, 6.73, 8.69])
         >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> bin_colors = pt.df2.plt.get_cmap('hsv')(xdata / vt.TAU)
@@ -854,7 +859,7 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
         >>> pt.show_if_requested()
     """
     # Find maxima
-    import vtool as vt
+    import vtool_ibeis as vt
     # Hack into the source code
     locals_ = ut.exec_func_src2(vt.argsubextrema2)
 
@@ -931,12 +936,12 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
         matplotlib.org/users/annotations_guide.html
 
     CommandLine:
-        python -m plottool.plots zoom_effect01 --show
+        python -m plottool_ibeis.plots zoom_effect01 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.plots import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> cdf_list = np.array(
         >>>     [[10, 15, 40, 42, 50, 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
         >>>      [20, 30, 31, 66, 75, 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
@@ -955,8 +960,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
         >>> result = ('(c1, c2, bbox_patch1, bbox_patch2, p) = %s' % (ut.repr2((c1, c2, bbox_patch1, bbox_patch2, p)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
 
     """
     from matplotlib.transforms import (
@@ -1029,12 +1034,12 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
         nbviewer.ipython.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 
     CommandLine:
-        python -m plottool.plots --test-colorline --show
+        python -m plottool_ibeis.plots --test-colorline --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.plots import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> x = np.array([1, 3, 3, 2, 5]) / 5.0
         >>> y = np.array([1, 2, 1, 3, 5]) / 5.0
@@ -1085,15 +1090,10 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
 
 
 def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
-    """
-
-    CommandLine:
-        python -m plottool.plots --test-plot_stems
-        python -m plottool.plots --test-plot_stems --show
+    r"""
 
     Example:
-        >>> from plottool import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> x_data = [1, 1, 2, 3, 3, 3, 4, 4, 5]
         >>> y_data = [1, 2, 1, 2, 1, 4, 4, 5, 1]
         >>> pt.plots.plot_stems(x_data, y_data)
@@ -1113,7 +1113,7 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
     if use_darkbackground:
         df2.dark_background()
 
-    ax.set_figtitle('plot_stems')
+    # pt.set_figtitle('plot_stems')
     #df2.legend(loc='upper left')
     df2.legend(loc='best')
     df2.iup()
@@ -1138,14 +1138,14 @@ def plot_score_histograms(scores_list,
     Accumulates scores into histograms and plots them
 
     CommandLine:
-        python -m plottool.plots --test-plot_score_histograms --show
+        python -m plottool_ibeis.plots --test-plot_score_histograms --show
 
     Ignore:
         >>> score_label = 'score'
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> rng = np.random.RandomState(seed=0)
         >>> tp_support = rng.normal(loc=6.5, size=(256,))
         >>> tn_support = rng.normal(loc=3.5, size=(256,))
@@ -1154,10 +1154,11 @@ def plot_score_histograms(scores_list,
         >>> title = 'plot_scores_histogram'
         >>> result = plot_score_histograms(scores_list, title=title,
         >>>                                logscale=logscale)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if isinstance(scores_list, np.ndarray):
         if len(scores_list.shape) == 1:
             scores_list = [scores_list]
@@ -1408,11 +1409,11 @@ def plot_probabilities(prob_list,
         fill (bool): (default = False)
 
     CommandLine:
-        python -m plottool.plots --exec-plot_probabilities --show --lightbg
+        python -m plottool_ibeis.plots --exec-plot_probabilities --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> prob_list = [[.01, .02, .03, .04, .03, .06, .03, .04]]
         >>> prob_lbls = ['prob']
         >>> prob_colors = None
@@ -1425,7 +1426,8 @@ def plot_probabilities(prob_list,
         >>> score_thresh = None
         >>> result = plot_probabilities(prob_list, prob_lbls, prob_colors, xdata, prob_thresh, score_thresh, figtitle, fnum, pnum, fill)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     assert len(prob_list) > 0
     if xdata is None:
@@ -1501,11 +1503,11 @@ def plot_sorted_scores(scores_list,
         figtitle (str):
 
     CommandLine:
-        python -m plottool.plots --test-plot_sorted_scores --show
+        python -m plottool_ibeis.plots --test-plot_sorted_scores --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> rng = np.random.RandomState(seed=0)
         >>> tp_support = rng.normal(loc=6.5, size=(256,))
         >>> tn_support = rng.normal(loc=3.5, size=(256,))
@@ -1521,7 +1523,8 @@ def plot_sorted_scores(scores_list,
         >>> result = plot_sorted_scores(scores_list, score_lbls, score_markers,
         >>>                             score_colors, markersizes, fnum, pnum,
         >>>                             logscale, figtitle)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
         >>> print(result)
     """
     if figtitle is None:
@@ -1753,13 +1756,13 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
         pnum (tuple):  plot number
 
     CommandLine:
-        python -m plottool.plots --test-interval_stats_plot
-        python -m plottool.plots --test-interval_stats_plot --show
+        python -m plottool_ibeis.plots --test-interval_stats_plot
+        python -m plottool_ibeis.plots --test-interval_stats_plot --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.plots import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> param2_stat_dict = {
         ...     0.5: dict([('max', 0.0584), ('min', 0.0543), ('mean', 0.0560), ('std', 0.00143),]),
@@ -1776,7 +1779,8 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
         >>> y_label = 'score diff'
         >>> result = interval_stats_plot(param2_stat_dict, fnum, pnum, x_label, y_label, title)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if fnum is None:
         fnum = df2.next_fnum()
@@ -1844,17 +1848,18 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0],
         pt.multi_plot (using the spread_list kwarg)
 
     CommandLine:
-        python -m plottool.plots --test-interval_line_plot --show
+        python -m plottool_ibeis.plots --test-interval_line_plot --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> xdata = [1, 2, 3, 4, 5, 6, 7, 8]
         >>> ydata_mean = [2, 3, 4, 3, 3, 2, 2, 2]
         >>> y_data_std = [1, 2, 1, 1, 3, 2, 2, 1]
         >>> result = interval_line_plot(xdata, ydata_mean, y_data_std)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     xdata = np.array(xdata)
     ydata_mean = np.array(ydata_mean)
@@ -1883,11 +1888,11 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
         ?: ax
 
     CommandLine:
-        python -m plottool.plots --exec-plot_search_surface --show
+        python -m plottool_ibeis.plots --exec-plot_search_surface --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> known_nd_data = np.array([x.flatten() for x in np.meshgrid(*[np.linspace(-20, 20, 10).astype(np.int32), np.linspace(-20, 20, 10).astype(np.int32)])]).T
         >>> # complicated polynomial target
         >>> known_target_points = -.001 * known_nd_data.T[0] ** 4 + .25 * known_nd_data.T[1] ** 2 - .0005 * known_nd_data.T[1] ** 4 + .001 * known_nd_data.T[1] ** 3
@@ -1895,9 +1900,8 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
         >>> target_label = ['score']
         >>> fnum = 1
         >>> ax = plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum)
-        >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
     fnum = pt.ensure_fnum(fnum)
     print('fnum = %r' % (fnum,))
@@ -2024,11 +2028,11 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
         bins (None): (default = None)
 
     CommandLine:
-        python -m plottool.plots --exec-draw_timedelta_pie --show
+        python -m plottool_ibeis.plots --exec-draw_timedelta_pie --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> timedeltas = np.array([    1.,    14.,    17.,    34.,     4.,    36.,    34.,     2.,
         ...                         3268.,    34., np.nan,    33.,     5.,     2.,    16.,     5.,
         ...                           35.,    64.,   299.,    35.,     2.,     5.,    34.,    12.,
@@ -2036,7 +2040,8 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
         ...                           22.,     3.,  np.nan,    11.], dtype=np.float64) ** 2
         >>> bins = None
         >>> result = draw_timedelta_pie(timedeltas, bins)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     import datetime
     xdata = timedeltas[~np.isnan(timedeltas)]
@@ -2069,7 +2074,7 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
 
     # Convert to percent
     fnum = None
-    import plottool as pt
+    import plottool_ibeis as pt
 
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum)
@@ -2104,20 +2109,21 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
         stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
 
     CommandLine:
-        python -m plottool.plots --exec-word_histogram2 --show --lightbg
+        python -m plottool_ibeis.plots --exec-word_histogram2 --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> text_list = []
         >>> item_list = text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
         >>> weight_list = None
         >>> #weight_list = [.1, .2, .3, .4, .5, .5, .4, .3, .1]
         >>> #text_list = [x.strip() for x in ut.lorium_ipsum().split()]
         >>> result = word_histogram2(text_list, weight_list)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     text_hist = ut.dict_hist(text_list, weight_list=weight_list)
     text_vals = list(text_hist.values())
     sortx = ut.list_argsort(text_vals)[::-1]
@@ -2153,7 +2159,7 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
 
 
 def draw_time_histogram(unixtime_list, **kwargs):
-    import plottool as pt
+    import plottool_ibeis as pt
     freq, bins = np.histogram(unixtime_list, bins=30)
 
     #meanshift = sklearn.cluster.MeanShift()
@@ -2200,11 +2206,11 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
         legend_alpha, use_darkbackground, lightbg
 
     CommandLine:
-        python -m plottool.plots --exec-draw_histogram --show
+        python -m plottool_ibeis.plots --exec-draw_histogram --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> bin_labels = ['label1', 'label2']
         >>> bin_values = [.4, .6]
         >>> xlabel = ''
@@ -2214,9 +2220,10 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
         >>> kwargs = dict(use_darkbackground=False)
         >>> result = draw_histogram(bin_labels, bin_values, xlabel, ylabel, xtick_rotation, transpose, **kwargs)
         >>> print(result)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     xints = np.arange(len(bin_labels))
     width = .95
     kwargs = kwargs.copy()
@@ -2234,8 +2241,8 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
 
 
 def draw_time_distribution(unixtime_list, bw=None):
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     if len(unixtime_list) > 0:
         from sklearn.neighbors.kde import KernelDensity
         unixtime_arr = np.asarray(unixtime_list)
@@ -2322,12 +2329,12 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
         pnum (tuple):  plot number(default = None)
 
     CommandLine:
-        python -m plottool.plots --exec-wordcloud --show
-        python -m plottool.plots --exec-wordcloud --show
+        python -m plottool_ibeis.plots --exec-wordcloud --show
+        python -m plottool_ibeis.plots --exec-wordcloud --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
+        >>> from plottool_ibeis.plots import *  # NOQA
         >>> text = '''
                 Normally, Frost-Breath-type cards are only good in aggressive decks,
                 but add an Eldrazi Scion into the mix and that all changes. I'm not
@@ -2343,10 +2350,11 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
         >>> fnum = None
         >>> pnum = None
         >>> result = wordcloud(text, fnum, pnum)
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from wordcloud import WordCloud
     if ax is None:
         fnum = pt.ensure_fnum(fnum)
@@ -2404,9 +2412,9 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.plots
-        python -m plottool.plots --allexamples
-        python -m plottool.plots --allexamples --noface --nosrc
+        python -m plottool_ibeis.plots
+        python -m plottool_ibeis.plots --allexamples
+        python -m plottool_ibeis.plots --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

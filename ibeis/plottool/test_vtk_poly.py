@@ -372,8 +372,8 @@ def rhombic_dodecahedron():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m plottool.test_vtk_poly
-        python -m plottool.test_vtk_poly --allexamples
-        python plottool/test_vtk_poly.py
+        python -m plottool_ibeis.test_vtk_poly
+        python -m plottool_ibeis.test_vtk_poly --allexamples
+        python plottool_ibeis/test_vtk_poly.py
     """
     rhombicuboctahedron()
