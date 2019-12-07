@@ -1,8 +1,8 @@
 ![Logo](_installers/WildBook_logo_72dpi-03.png)
 
-NOTICE: The main github repo is now: https://github.com/WildbookOrg/ibeis
+This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
-# IBEIS - Image Analysis
+# IBEIS - Image Analysis - 2.0.0
 
 ## I.B.E.I.S. = Image Based Ecological Information System
 
