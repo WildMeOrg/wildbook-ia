@@ -1,339 +1,203 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import numpy as np
+#import numpy as np
 from os.path import join, dirname
 from six.moves import zip
 
 
-def test_getprop_with_configs():
-    r"""
-    CommandLine:
-        python -m dtool.example_depcache2 test_getprop_with_configs --show
+def depc_34_helper(depc):
+    def register_dummy_config(tablename, parents, **kwargs):
+        config_param = tablename + '_param'
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from dtool.example_depcache2 import *  # NOQA
-        >>> test_getprop_with_configs()
-    """
-    config1 = {'manual_extract': True}
-    config2 = {'manual_extract': False}
-    depc = testdata_depc2()
+        def dummy_single_func(depc, *row_arg, **kw):
+            config = kw.get('config')
+            param_val = config[config_param]
+            data = []
+            for row, p in zip(row_arg, parents):
+                p = p.replace('*', '')
+                #print('p = %r' % (p,))
+                #print('row = %r' % (row,))
+                if not p.startswith(depc.root):
+                    native_cols = depc.get_native(p, ut.ensure_iterable(row))
+                    parent_data = '+'.join(['#'.join(col) for col in native_cols])
+                else:
+                    parent_data = 'root(' + ';'.join(list(map(str, ut.ensure_iterable(row)))) + ')'
+                data += [parent_data]
+            d = '[' + '&'.join(data) + ']'
+            retstr = tablename + '(' + d + ':' + str(param_val) + ')'
+            return retstr,
+            #return (data + tablename + repr(row_arg) + repr(param_val)),
 
-    aid = 2
-    _debug = False
-
-    cropchip1 = depc.get('cropchip', aid, 'img', config=config1)
-    cropchip2 = depc.get('cropchip', aid, 'img', config=config2)
-    print('cropchip1.shape = %r' % (cropchip1.shape,))
-    print('cropchip2.shape = %r' % (cropchip2.shape,))
-    cropchip1 = depc.get('cropchip', aid, 'img', config=config1)
-    cropchip2 = depc.get('cropchip', aid, 'img', config=config2)
-
-    print('cropchip1.shape = %r' % (cropchip1.shape,))
-    print('cropchip2.shape = %r' % (cropchip2.shape,))
-
-    chip = depc.get('chip', aid, 'img')
-    print('chip.shape = %r' % (chip.shape,))
-
-    tip1 = depc.get('tip', aid, config=config1, _debug=_debug)
-    tip2 = depc.get('tip', aid, config=config2, _debug=_debug)
-
-    print('tip1 = %r' % (tip1,))
-    print('tip2 = %r' % (tip2,))
-
-    depc.print_all_tables()
-    depc.print_config_tables()
-    #import utool
-    #utool.embed()
-
-
-def testdata_depc2():
-    """
-    Example of local registration
-    sudo pip install freetype-py
-
-    CommandLine:
-        python -m dtool.example_depcache2 testdata_depc2 --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from dtool.example_depcache2 import *  # NOQA
-        >>> depc = testdata_depc2()
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> depc.show_graph()
-        >>> ut.show_if_requested()
-    """
-    import dtool
-    import vtool as vt
-    from vtool import fontdemo
-
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE2')
-
-    root = 'annot'
-
-    depc = dtool.DependencyCache(
-        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
-
-    # ----------
-
-    class ChipConfig(dtool.Config):
-        _param_info_list = [
-            ut.ParamInfo('dim_size', 500),
-            ut.ParamInfo('ext', '.png'),
-        ]
-
-    @depc.register_preproc(
-        tablename='chip', parents=[root], colnames=['size', 'img'],
-        coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
-        configclass=ChipConfig)
-    def compute_chip(depc, aids, config=None):
-        for aid in aids:
-            chip = fontdemo.get_text_test_img(str(aid))
-            size = vt.get_size(chip)
-            yield size, chip
-
-    # ----------
-
-    class TipConfig(dtool.Config):
-        _param_info_list = [
-            ut.ParamInfo('manual_extract', False, hideif=False),
-        ]
-
-    @depc.register_preproc(
-        tablename='tip', parents=['chip'],
-        colnames=['notch', 'left', 'right'],
-        coltypes=[np.ndarray, np.ndarray, np.ndarray],
-        configclass=TipConfig,
-    )
-    def compute_tips(depc, chip_rowids, config=None):
-        manual_extract = config['manual_extract']
-        chips = depc.get_native('chip', chip_rowids, 'img')
-        for chip in chips:
-            seed = (chip).sum()
-            perb = ((seed % 1000) / 1000) * .25
-            w, h = vt.get_size(chip)
-            if manual_extract:
-                # Make noticable difference between config outputs
-                lpb =  np.ceil(w * perb)
-                npb =  np.ceil(h * perb)
-                rpb = -np.ceil(w * perb)
-            else:
-                lpb =  np.ceil(w * perb / 2)
-                npb = -np.ceil(h * perb)
-                rpb = -np.ceil(w * perb)
-            wh = np.array([w, h], dtype=np.int32)[None, :]
-            rel_base = np.array([[.0, .5], [.5, .5], [1., .5]])
-            offset   = np.array([[lpb, 0], [0, npb], [rpb, 0]])
-            tip = np.round((wh * rel_base)) + offset
-            left, notch, right = tip
-            yield left, notch, right
-
-    # ----------
-
-    class CropChipConfig(dtool.Config):
-        _param_info_list = [
-            ut.ParamInfo('dim_size', 500),
-        ]
-
-    @depc.register_preproc(
-        tablename='cropchip', parents=['chip', 'tip'],
-        colnames=['img'],
-        coltypes=[np.ndarray],
-        configclass=CropChipConfig,
-    )
-    def compute_cropchip(depc, cids, tids, config=None):
-        print("COMPUTE CROPCHIP")
-        print('config = %r' % (config,))
-        chips = depc.get_native('chip', cids, 'img')
-        tips = depc.get_native('tip', tids)
-        print('tips = %r' % (tips,))
-        for chip, tip in zip(chips, tips):
-            notch, left, right = tip
-            lx = left[0]
-            rx = right[0]
-            cropped_chip = chip[lx:(rx - 1), ...]
-            yield (cropped_chip,)
-
-    # ----------
-
-    class TrailingEdgeConfig(dtool.Config):
-        _param_info_list = []
-
-    @depc.register_preproc(
-        tablename='trailingedge', parents=['cropchip'],
-        colnames=['te'],
-        coltypes=[np.ndarray],
-        configclass=TrailingEdgeConfig,
-    )
-    def compute_trailing_edge(depc, cropped_chips, config=None):
-        for cc in cropped_chips:
-            #depc.get_native('chip', cids)
-            size = 1
-            te = np.arange(size)
-            yield (te,)
-
-    depc.initialize()
-    return depc
+        if kwargs.get('vectorized'):
+            dummy_func = dummy_single_func
+        else:
+            def dummy_gen_func(depc, *argsT, **kw):
+                #config = kw.get('config')
+                #param_val = config[config_param]
+                for row_arg in zip(*argsT):
+                    yield dummy_single_func(depc, *row_arg, **kw)
+                    #(tablename + repr(row_arg) + repr(param_val)),
+                #yield (np.array([row_arg]),)
+            dummy_func = dummy_gen_func
+        from dtool_ibeis import base
+        configclass = base.make_configclass({config_param: 42}, tablename)
+        dummy_cols = dict(colnames=['data'], coltypes=[str], configclass=configclass, **kwargs)
+        depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(dummy_func)
+    return register_dummy_config
 
 
-def testdata_depc3():
+def testdata_depc3(in_memory=True):
     """
     Example of local registration
-    sudo pip install freetype-py
 
     CommandLine:
-        python -m dtool.example_depcache2 testdata_depc3 --show
+        python -m dtool_ibeis.example_depcache2 testdata_depc3 --show
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
+        >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
+        >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
+        >>> depc.print_all_tables()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> depc.show_graph()
-        >>> depc['smk_match'].show_input_graph()
-        >>> depc['vsone'].show_input_graph()
-        >>> depc['vocab'].show_input_graph()
-        >>> depc['neighbs'].show_input_graph()
-        >>> depc['viewpoint_classification'].show_input_graph()
-        >>> print(depc['smk_match'].compute_order)
+        >>> from plottool_ibeis.interactions import ExpandableInteraction
+        >>> inter = ExpandableInteraction(nCols=2)
+        >>> depc['smk_match'].show_input_graph(inter)
+        >>> depc['vsone'].show_input_graph(inter)
+        >>> #depc['vocab'].show_input_graph(inter)
+        >>> depc['neighbs'].show_input_graph(inter)
+        >>> inter.start()
+        >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    import dtool
+    import dtool_ibeis
 
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+    # put the test cache in the dtool_ibeis repo
+    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    cache_dpath = join(dtool_repo, 'DEPCACHE3')
+
+    # FIXME: this only puts the sql files in memory
+    default_fname = ':memory:' if in_memory else None
 
     root = 'annot'
-
-    depc = dtool.DependencyCache(
-        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+    depc = dtool_ibeis.DependencyCache(
+        root_tablename=root, get_root_uuid=ut.identity,
+        default_fname=default_fname,
+        cache_dpath=cache_dpath, use_globals=False)
 
     # ----------
-    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
-    def dummy_func(depc, *args, **kwargs):
-        return None
+    #dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    register_dummy_config = depc_34_helper(depc)
 
-    depc.register_preproc(tablename='indexer', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='neighbs', parents=['annot', 'indexer'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vocab', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_vec', parents=['annot', 'vocab'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vsone', parents=['annot', 'annot'], **dummy_cols)(dummy_func)
-
-    depc.register_preproc(tablename='viewpoint_classifier', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'], **dummy_cols)(dummy_func)
+    register_dummy_config(tablename='labeler', parents=['annot'])
+    register_dummy_config(tablename='meta_labeler', parents=['labeler'])
+    register_dummy_config(tablename='indexer', parents=['annot*'])
+    # register_dummy_config(tablename='neighbs', parents=['annot', 'indexer'])
+    register_dummy_config(tablename='neighbs', parents=['meta_labeler', 'indexer'])
+    register_dummy_config(tablename='vocab', parents=['annot*'])
+    # register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'], vectorized=True)
+    register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'])
+    # vectorized=True)
+    #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
+    register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
+    register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
+    register_dummy_config(tablename='vsone', parents=['annot', 'annot'])
+    #register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
+    #register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
 
     depc.initialize()
     return depc
 
 
-def testdata_depc_image():
+def testdata_depc4(in_memory=True):
     """
     Example of local registration
-    sudo pip install freetype-py
 
     CommandLine:
-        python -m dtool.example_depcache2 testdata_depc_image --show
+        python -m dtool_ibeis.example_depcache2 testdata_depc4 --show
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> from dtool.example_depcache2 import *  # NOQA
-        >>> depc = testdata_depc_image()
+        >>> # ENABLE_DOCTEST
+        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+        >>> depc = testdata_depc4()
+        >>> #data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
+        >>> #data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
+        >>> depc.print_all_tables()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> depc.show_graph()
-        >>> depc['detection'].show_input_graph()
-        >>> print(depc['detection'].compute_order)
+        >>> from plottool_ibeis.interactions import ExpandableInteraction
+        >>> inter = ExpandableInteraction(nCols=2)
+        >>> depc['smk_match'].show_input_graph(inter)
+        >>> depc['vsone'].show_input_graph(inter)
+        >>> depc['vocab'].show_input_graph(inter)
+        >>> depc['neighbs'].show_input_graph(inter)
+        >>> inter.start()
+        >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    import dtool
+    import dtool_ibeis
 
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+    # put the test cache in the dtool_ibeis repo
+    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    cache_dpath = join(dtool_repo, 'DEPCACHE3')
 
-    root = 'image'
+    # FIXME: this only puts the sql files in memory
+    default_fname = ':memory:' if in_memory else None
 
-    depc = dtool.DependencyCache(
-        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+    root = 'annot'
+    depc = dtool_ibeis.DependencyCache(
+        root_tablename=root, get_root_uuid=ut.identity,
+        default_fname=default_fname,
+        cache_dpath=cache_dpath, use_globals=False)
 
     # ----------
-    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
-    def dummy_func(depc, *args, **kwargs):
-        return None
+    #dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
 
-    depc.register_preproc(tablename='detector', parents=['image*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='detection', parents=['image', 'detector'], **dummy_cols)(dummy_func)
+    register_dummy_config = depc_34_helper(depc)
+
+    register_dummy_config(tablename='chip', parents=['annot'])
+    register_dummy_config(tablename='probchip', parents=['annot'])
+    register_dummy_config(tablename='feat', parents=['chip', 'probchip'])
+    register_dummy_config(tablename='labeler', parents=['feat'])
+
+    register_dummy_config(tablename='indexer', parents=['feat*'])
+    register_dummy_config(tablename='neighbs', parents=['feat', 'indexer'])
+    register_dummy_config(tablename='vocab', parents=['feat*'])
+    register_dummy_config(tablename='smk_vec', parents=['feat', 'vocab'], vectorized=False)
+    #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
+    register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
+    register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
+    register_dummy_config(tablename='vsone', parents=['feat', 'feat'])
+    #register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
+    #register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
 
     depc.initialize()
     return depc
 
 
-def testdata_depc_annot():
-    """
-    CommandLine:
-        python -m dtool.example_depcache2 testdata_depc_annot --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from dtool.example_depcache2 import *  # NOQA
-        >>> depc = testdata_depc_annot()
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> depc.show_graph()
-        >>> tablename = 'featweight'
-        >>> table = depc[tablename]
-        >>> table.show_input_graph()
-        >>> print(table.compute_order)
-        >>> ut.show_if_requested()
-    """
-    import dtool
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE2')
-    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
-    def dummy_func(depc, *args, **kwargs):
-        return None
-
-    # NOTE: Consider the smk_match.
-    # It would be really cool if we could say that the vocab
-    # for the input to the parent smk_vec must be the same vocab
-    # that was used to compute the inverted index. How do we encode that?
-
+def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
+    import dtool_ibeis
+    # put the test cache in the dtool_ibeis repo
+    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    cache_dpath = join(dtool_repo, 'DEPCACHE5')
+    # FIXME: this only puts the sql files in memory
+    default_fname = ':memory:' if in_memory else None
     root = 'annot'
-    #vocab_parent = 'annot'
-    #vocab_parent = 'chip'
-    #vocab_parent = 'feat'
-    vocab_parent = 'featweight'
-    depc = dtool.DependencyCache(
-        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
-    depc.register_preproc(tablename='chip', parents=['annot'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='fgmodel', parents=['chip*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='probchip', parents=['annot', 'fgmodel'], **dummy_cols)(dummy_func)
-    #depc.register_preproc(tablename='probchip', parents=['annot'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='feat', parents=['chip'], **dummy_cols)(dummy_func)
-    #depc.register_preproc(tablename='feat', parents=['annot'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='featweight', parents=['feat', 'probchip'], **dummy_cols)(dummy_func)
+    depc = dtool_ibeis.DependencyCache(
+        root_tablename=root, get_root_uuid=ut.identity,
+        default_fname=default_fname,
+        cache_dpath=cache_dpath, use_globals=False)
+    # ----------
+    register_dummy_config = depc_34_helper(depc)
 
-    depc.register_preproc(tablename='indexer', parents=[vocab_parent + '*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='neighbs', parents=[vocab_parent, 'indexer'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vocab', parents=[vocab_parent + '*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_vec', parents=[vocab_parent, 'vocab'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vsone', parents=[vocab_parent, vocab_parent], **dummy_cols)(dummy_func)
-
-    depc.register_preproc(tablename='viewpoint_model', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='viewpoint', parents=['annot', 'viewpoint_model'], **dummy_cols)(dummy_func)
-
-    depc.register_preproc(tablename='quality_model', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='quality', parents=['annot', 'quality_model'], **dummy_cols)(dummy_func)
+    for dummy in dummy_dependencies:
+        register_dummy_config(**dummy)
 
     depc.initialize()
     return depc
@@ -342,8 +206,8 @@ def testdata_depc_annot():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.example_depcache2
-        python -m dtool.example_depcache2 --allexamples
+        python -m dtool_ibeis.example_depcache2
+        python -m dtool_ibeis.example_depcache2 --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

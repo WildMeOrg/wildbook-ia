@@ -9,7 +9,8 @@ import io
 import uuid
 import numpy as np
 import utool as ut
-ut.noinject(__name__, '[dtool.__SQLITE__]')
+from six.moves import input
+ut.noinject(__name__, '[dtool_ibeis.__SQLITE__]')
 
 
 VERBOSE_SQL = '--veryverbose' in sys.argv or '--verbose' in sys.argv or '--verbsql' in sys.argv
@@ -17,6 +18,7 @@ TRY_NEW_SQLITE3 = False
 
 # SQL This should be the only file which imports sqlite3
 if not TRY_NEW_SQLITE3:
+    from sqlite3 import Binary, register_adapter, register_converter
     from sqlite3 import *  # NOQA
 
 #try:
@@ -53,6 +55,12 @@ def REGISTER_SQLITE3_TYPES():
         out.close()
         return arr
 
+    def _read_bool(b):
+        return None if b is None else bool(b)
+
+    def _write_bool(b):
+        return b
+
     if six.PY2:
         def _write_numpy_to_sqlite3(arr):
             out = io.BytesIO()
@@ -70,9 +78,11 @@ def REGISTER_SQLITE3_TYPES():
     def _read_uuid_from_sqlite3(blob):
         try:
             return uuid.UUID(bytes_le=blob)
-        except ValueError:
+        except ValueError as ex:
+            ut.printex(ex, keys=['blob'])
+            raise
             print('WARNING: COULD NOT PARSE UUID %r, GIVING RANDOM' % (blob, ))
-            raw_input('continue... [enter]')
+            input('continue... [enter]')
             return uuid.uuid4()
 
     if six.PY2:
@@ -86,12 +96,11 @@ def REGISTER_SQLITE3_TYPES():
     def register_numpy_dtypes():
         if VERBOSE_SQL:
             print('Register NUMPY dtypes with SQLite3')
+
+        py_int_type = long if six.PY2 else int
         for dtype in (np.int8, np.int16, np.int32, np.int64,
                       np.uint8, np.uint16, np.uint32, np.uint64):
-            if six.PY2:
-                register_adapter(dtype, long)
-            elif six.PY3:
-                register_adapter(dtype, int)
+            register_adapter(dtype, py_int_type)
         register_adapter(np.float32, float)
         register_adapter(np.float64, float)
 
@@ -131,11 +140,19 @@ def REGISTER_SQLITE3_TYPES():
         register_converter('LIST', ut.from_json)
         register_adapter(list, ut.to_json)
 
+    def register_bool():
+        # FIXME: ensure this works
+        if VERBOSE_SQL:
+            print('Register BOOL with SQLite3')
+        register_converter('BOOL', _read_bool)
+        register_adapter(bool, _write_bool)
+
     register_numpy_dtypes()
     register_numpy()
     register_uuid()
     register_dict()
     register_list()
+    # register_bool()  # TODO
 REGISTER_SQLITE3_TYPES()
 
 
@@ -156,6 +173,7 @@ TYPE_TO_SQLTYPE = {
     float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',
+    # bool: 'BOOL',  # TODO
     bool: 'INTEGER',
     dict: 'DICT',
     list: 'LIST',

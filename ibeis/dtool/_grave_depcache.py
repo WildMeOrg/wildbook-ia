@@ -120,12 +120,12 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     annotations seems to go beyond that.  Therefore, AlgoRequest.
 
     Ignore:
-        cls = dtool.AlgoRequest
+        cls = dtool_ibeis.AlgoRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
         >>> request2 = depc.new_request('vsmany', [1, 2], [1, 2])
@@ -407,10 +407,10 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         """
         Returns which nodes to compute first, and what inputs are needed
 
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> from dtool_ibeis.depcache_control import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> import plottool_ibeis as pt
+            >>> pt.ensureqt()
             >>> depc = testdata_depc()
             >>> tablename = 'neighbs'
             >>> tablename = 'multitest_score'
@@ -473,7 +473,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         if False:
             nodes = ut.all_nodes_between(graph, source, target)
             tablegraph = graph.subgraph(nodes)
-            import plottool as pt
+            import plottool_ibeis as pt
             # pt.show_nx(tablegraph.reverse())
             # sink = ut.nx_sink_nodes(tablegraph)[0]
             # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
@@ -546,3 +546,112 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             >>> inter.append_plot(ut.partial(pt.show_nx, composed_graph,
             >>>                              title='composed'))
         path_edges_nodata = ut.lmap(tuple, ut.lmap(ut.take_column, accum_path_edges, colx=slice(0, 3)))
+
+
+def get_all_ancestor_rowids(depc, tablename, native_rowids):
+    r"""
+    Gets the root_rowids of the root table associated with the
+    `native_rowids` of `tablename.
+
+    Args:
+        tablename (str):
+        root_rowids (list):
+        config (None): (default = None)
+
+    Returns:
+        dict: rowid_dict
+
+    CommandLine:
+        python -m dtool_ibeis.depcache_control --exec-get_all_ancestor_rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool_ibeis.depcache_control import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> tablename = 'spam'
+        >>> target_root_rowids = [4, 9, 7]
+        >>> native_rowids = depc.get_rowids(tablename, target_root_rowids)
+        >>> rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+        >>> root_rowids = list(rowid_dict[depc.root])
+        >>> print(ut.repr3(rowid_dict, nl=1))
+        >>> assert root_rowids == target_root_rowids
+    """
+    if depc._debug:
+        print('[depc.descendant] GET ANSCESTOR ROWIDS %s ' % (tablename,))
+    dependency_levels = depc.get_dependencies(tablename)
+    rowid_dict = {}
+    rowid_dict[tablename] = native_rowids
+
+    # FIXME: not implemented very efficiently
+    # Can do shortest existing path instead
+
+    for level_keys in dependency_levels[::-1]:
+        for tablekey in level_keys:
+            if tablekey == depc.root:
+                break
+            table = depc[tablekey]
+            child_rowids = rowid_dict[tablekey]
+            colnames = table.parent_id_colnames
+            parent_rowids_listT = table.get_internal_columns(
+                child_rowids, colnames, keepwrap=True)
+            parent_rowids_list = list(zip(*parent_rowids_listT))
+            for parent_key, parent_rowids in zip(table.parent, parent_rowids_list):
+                rowid_dict[parent_key] = parent_rowids
+    return rowid_dict
+
+def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
+    """
+    ancestor_tablename = depc.root
+    native_rowids = cid_list
+    tablename = const.CHIP_TABLE
+    """
+    if ancestor_tablename is None:
+        ancestor_tablename = depc.root
+    # rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+    # ancestor_rowids = list(rowid_dict[ancestor_tablename])
+    table = depc[tablename]
+    ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
+    return ancestor_rowids
+
+
+#def _parse_sqlkw(kwargs):
+#    default_sqlkw = dict(
+#        _debug=None, ensure=True, recompute=False, recompute_all=False,
+#        eager=True, nInput=None, read_extern=True, onthefly=False,
+#    )
+#    otherkw = kwargs.copy()
+#    sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
+#    return sqlkw, otherkw
+
+
+    def get_dependants(depc, tablename):
+        """
+        gets level dependences table to the leaves. ie ancestors
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool_ibeis.depcache_control import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'chip'
+            >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
+            >>> print(result)
+
+            [
+                ['chip'],
+                ['keypoint'],
+                ['fgweight', 'nnindexer', 'descriptor'],
+                ['spam'],
+                ['multitest'],
+                ['multitest_score'],
+            ]
+        """
+        # get_descendant_levels
+        edges = depc.get_edges()
+        children_, parents_ = list(zip(*edges))
+        parent_to_children = ut.group_items(parents_, children_)
+        to_leafs = {tablename: ut.path_to_leafs(tablename, parent_to_children)}
+        dependency_levels_ = ut.get_levels(to_leafs)
+        dependency_levels = ut.longest_levels(dependency_levels_)
+        return dependency_levels

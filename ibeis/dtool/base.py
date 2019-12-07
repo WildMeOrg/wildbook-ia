@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import re
+import functools
+import operator as op
 import utool as ut
 import numpy as np
 import copy
@@ -7,11 +10,65 @@ import six
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
-class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
+class StackedConfig(ut.DictLike, ut.HashComparable):
+    """
+    Manages a list of configurations
+    """
+
+    def __init__(self, config_list):
+        self._orig_config_list = config_list
+        # Cast all inputs to config classes
+        self._new_config_list = [
+            cfg if hasattr(cfg, 'get_cfgstr') else make_configclass(cfg, '')
+            for cfg in self._orig_config_list
+        ]
+        # Parse out items
+        self._items = ut.flatten([
+            list(cfg.parse_items()) if hasattr(cfg, 'parse_items') else
+            list(cfg.items())
+            for cfg in self._orig_config_list
+        ])
+        for key, val in self._items:
+            setattr(self, key, val)
+        #self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)
+
+    def get_cfgstr(self):
+        cfgstr_list = [cfg.get_cfgstr() for cfg in self._new_config_list]
+        cfgstr = '_'.join(cfgstr_list)
+        return cfgstr
+
+    def keys(self):
+        return ut.take_column(self._items, 0)
+
+    def __hash__(cfg):
+        """ Needed for comparison operators """
+        return hash(cfg.get_cfgstr())
+
+    def getitem(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError as ex:
+            raise KeyError(ex)
+
+
+# @six.add_metaclass(ut.HashComparableMetaclass)
+@functools.total_ordering
+class Config(ut.NiceRepr, ut.DictLike):
     r"""
     Base class for heirarchical config
     need to overwrite get_param_info_list
 
+    CommandLine:
+        python -m dtool_ibeis.base Config
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> cfg1 = Config.from_dict({'a': 1, 'b': 2})
+        >>> cfg2 = Config.from_dict({'a': 2, 'b': 2})
+        >>> # Must be hashable and orderable
+        >>> hash(cfg1)
+        >>> cfg1 > cfg2
 
     """
     def __init__(cfg, **kwargs):
@@ -31,18 +88,22 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     def __nice__(cfg):
         return cfg.get_cfgstr(with_name=False)
 
+    def __lt__(self, other):
+        """ hash comparable broke in python3 """
+        return ut.compare_instance(op.lt, self, other)
+
+    def __eq__(self, other):
+        """ hash comparable broke in python3 """
+        return ut.compare_instance(op.eq, self, other)
+
     def __hash__(cfg):
         """ Needed for comparison operators """
         return hash(cfg.get_cfgstr())
 
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        #class_str = str(cfg.__class__)
-        #full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
-        #config_name = splitext(full_class_str)[1][1:].replace('Config', '')
-        config_name = cfg.__class__.__name__.replace('Config', '')
         # VERY HACKY
-        import re
+        config_name = cfg.__class__.__name__.replace('Config', '')
         config_name = re.sub('_$', '', config_name)
         return config_name
 
@@ -53,26 +114,147 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     def update(cfg, **kwargs):
         """
         Overwrites default DictLike update for only keys that exist.
+        Non-existing key are ignored.
+
+        Note:
+            prefixed keys in the form <classname>_<key> will be just be
+            interpreted as <key>
+
+        CommandLine:
+            python -m dtool_ibeis.base update --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> cfg.update(DummyAlgo_version=4)
             >>> print(cfg)
         """
         # FIXME: currently can't update subconfigs based on namespaces
         # and non-namespaced vars are in the context of the root level.
-        self_keys = set(cfg.__dict__.keys())
-        name = cfg.get_config_name()
-        prefix = name + '_'
+        #self_keys = set(cfg.__dict__.keys())
+        #self_keys.append(cfg.get_varnames())
+        _aliases = cfg._make_key_alias_checker()
+        self_keys = set(cfg.keys())
         for key, val in six.iteritems(kwargs):
             # update only existing keys or namespace prefixed keys
-            if key.startswith(prefix):
-                key = key[len(prefix):]
-            if key in self_keys:
-                setattr(cfg, key, val)
+            for k in _aliases(key):
+                if k in self_keys:
+                    cfg.setitem(k, val)
+                    break
+
+    def pop_update(cfg, other):
+        """
+        Updates based on other, while popping off used arguments.
+        (useful for testing if a parameter was unused or misspelled)
+
+        Doctest:
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> import dtool_ibeis as dt
+            >>> cfg = dt.Config.from_dict({'a': 1, 'b': 2, 'c': 3})
+            >>> other = {'a': 5, 'e': 2}
+            >>> cfg.pop_update(other)
+            >>> assert cfg['a'] == 5
+            >>> assert len(other) == 1 and 'a' not in other
+        """
+        _aliases = cfg._make_key_alias_checker()
+        self_keys = set(cfg.keys())
+        for key in list(other.keys()):
+            # update only existing keys or namespace prefixed keys
+            for k in _aliases(key):
+                if k in self_keys:
+                    val = other.pop(key)
+                    cfg.setitem(k, val)
+                    break
+
+    def _make_key_alias_checker(cfg):
+        prefixes = (cfg.get_config_name(), cfg.__class__.__name__)
+        def _aliases(key):
+            yield key
+            for part in prefixes:
+                prefix = part + '_'
+                if key.startswith(prefix):
+                    key_alias = key[len(prefix):]
+                    yield key_alias
+        return _aliases
+
+    def update2(cfg, *args, **kwargs):
+        """
+        Overwrites default DictLike update for only keys that exist.
+        Non-existing key are ignored.
+        Also updates nested configs.
+
+        Note:
+            prefixed keys in the form <classname>_<key> will be just be
+            interpreted as <key>
+
+        CommandLine:
+            python -m dtool_ibeis.base update --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> import dtool_ibeis as dt
+            >>> cfg = dt.Config.from_dict({
+            >>>     'a': 1,
+            >>>     'b': 2,
+            >>>     'c': 3,
+            >>>     'sub1': dt.Config.from_dict({
+            >>>         'x': 'x',
+            >>>         'y': {'z', 'x'},
+            >>>         'c': 33,
+            >>>     }),
+            >>>     'sub2': dt.Config.from_dict({
+            >>>         's': [1, 2, 3],
+            >>>         't': (1, 2, 3),
+            >>>         'c': 42,
+            >>>         'sub3': dt.Config.from_dict({
+            >>>             'b': 99,
+            >>>             'c': 88,
+            >>>         }),
+            >>>     }),
+            >>> })
+            >>> kwargs = {'c': 10}
+            >>> cfg.update2(c=10, y={1,2})
+            >>> assert cfg.c == 10
+            >>> assert cfg.sub1.c == 10
+            >>> assert cfg.sub2.c == 10
+            >>> assert cfg.sub2.sub3.c == 10
+            >>> assert cfg.sub1.y == {1, 2}
+        """
+        if len(args) > 1:
+            raise ValueError('only specify one arg')
+        elif len(args) == 1:
+            kwargs.update(args[0])
+        return list(cfg._update2(kwargs))
+
+    def _update2(cfg, kwargs):
+        # yields a list of keys updated as they happen
+        _aliases = cfg._make_key_alias_checker()
+        for key, val in cfg.native_items():
+            for k in _aliases(key):
+                if k in kwargs:
+                    cfg.setitem(k, kwargs[k])
+                    yield k
+                    break
+        for key, val in cfg.nested_items():
+            val = cfg[key]
+            if isinstance(val, Config):
+                for k in val._update2(kwargs):
+                    yield k
+
+    def nested_items(cfg):
+        for key in cfg.keys():
+            val = cfg[key]
+            if isinstance(val, Config):
+                yield key, val
+
+    def native_items(cfg):
+        for key in cfg.keys():
+            val = cfg[key]
+            if not isinstance(val, Config):
+                yield key, val
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
@@ -117,6 +299,16 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
                 child_cfg = val
                 child_params = child_cfg.parse_namespace_config_items()
                 param_list.extend(child_params)
+            elif hasattr(val, 'parse_items'):
+                # hack for ut.Pref configs
+                name = val.get_config_name()
+                for key, val in val.parse_items():
+                    if key in seen:
+                        print('[Config] WARNING: key=%r appears more than once' %
+                              (key,))
+                    seen.add(key)
+                    # Incorporate namespace
+                    param_list.append((name, key, val))
             elif key.startswith('_'):
                 pass
             else:
@@ -135,12 +327,12 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             list: param_list
 
         CommandLine:
-            python -m dtool.base --exec-parse_items
+            python -m dtool_ibeis.base --exec-parse_items
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> param_list = cfg.parse_items()
             >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
@@ -156,10 +348,10 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             param_list[idx][0] = name + '_' + param_list[idx][0]
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
         # hack to let version through
-        import utool
-        with utool.embed_on_exception_context:
-            assert len(duplicate_keys) == 0, (
-                'Configs have duplicate names: %r' % duplicate_keys)
+        #import utool
+        #with utool.embed_on_exception_context:
+        assert len(duplicate_keys) == 0, (
+            'Configs have duplicate names: %r' % duplicate_keys)
         return param_list
 
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
@@ -220,7 +412,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def get(qparams, key, *d):
         """ get a paramater value by string """
-        ERROR_ON_DEFAULT = True
+        ERROR_ON_DEFAULT = False
         if ERROR_ON_DEFAULT:
             return getattr(qparams, key)
         else:
@@ -229,7 +421,8 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     def setitem(cfg, key, value):
         """ Required for DictLike interface """
         # TODO; check for valid config setting
-        pi = cfg.get_param_info_dict()[key]
+        pi_dict = cfg.get_param_info_dict()
+        pi = pi_dict[key]
         pi.error_if_invalid_value(value)
         return setattr(cfg, key, value)
 
@@ -279,79 +472,107 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             list: param_info_list
 
         CommandLine:
-            python -m dtool.base Config.from_dict --show
+            python -m dtool_ibeis.base Config.from_dict --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
+            >>> from dtool_ibeis.base import *  # NOQA
             >>> cls = Config
             >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
             >>> tablename = None
             >>> config = cls.from_dict(dict_, tablename)
             >>> print(config)
+            >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import guitool
-            >>> guitool.ensure_qapp()  # must be ensured before any embeding
-            >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
+            >>> dlg = config.make_qt_dialog(
             >>>     title='Confirm Merge Query',
-            >>>     msg='Confirm',
-            >>>     config=config)
+            >>>     msg='Confirm')
             >>> dlg.resize(700, 500)
-            >>> self = dlg.widget
             >>> dlg.show()
-            >>> import plottool as pt
-            >>> guitool.qtapp_loop(qwin=dlg)
+            >>> import plottool_ibeis as pt
+            >>> self = dlg.widget
+            >>> guitool_ibeis.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
         """
-        if tablename is None:
-            tablename = 'Unknown'
-
-        def rectify_item(key, val):
-            if val is None:
-                return ut.ParamInfo(key, val)
-            elif isinstance(val, ut.ParamInfo):
-                if val.varname is None:
-                    # Copy and assign a new varname
-                    pi = copy.deepcopy(val)
-                    pi.varname = key
-                else:
-                    pi = val
-                    assert pi.varname == key, (
-                        'Given varname=%r does not match key=%r' % (pi.varname, key))
-                return pi
-            else:
-                return ut.ParamInfo(key, val, type_=type(val))
-
-        param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
-        #ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
-        #for key, val in dict_.items()]
-        class UnnamedConfig(cls):
-            def get_param_info_list(cfg):
-                #print('default_cfgdict = %r' % (default_cfgdict,))
-                return param_info_list
-        UnnamedConfig.__name__ = str(tablename + 'Config')
+        UnnamedConfig = cls.class_from_dict(dict_, tablename)
         config = UnnamedConfig()
         return config
 
+    @classmethod
+    def class_from_dict(cls, dict_, tablename=None):
+        if tablename is None:
+            tablename = 'Unnamed'
+        UnnamedConfig = make_configclass(dict_, tablename)
+        return UnnamedConfig
+
+    def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
+        import guitool_ibeis as gt
+        gt.ensure_qapp()  # must be ensured before any embeding
+        dlg = gt.ConfigConfirmWidget.as_dialog(
+            title=title, msg=msg, config=cfg)
+        dlg.resize(700, 500)
+        dlg.show()
+        return dlg
+
+    def getstate_todict_recursive(cfg):
+        import dtool_ibeis
+        _dict = cfg.asdict()
+        _dict2 = {}
+        for key, val in _dict.items():
+            if isinstance(val, dtool_ibeis.Config):
+                # val = val.asdict()
+                try:
+                    val = val.getstate_todict_recursive()
+                except Exception:
+                    val = getstate_todict_recursive(val)  # NOQA
+                _dict2[key] = val
+            else:
+                _dict2[key] = val
+        return _dict2
+
     def __getstate__(cfg):
         """
+        FIXME
+
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyKptsConfig
             >>> from six.moves import cPickle as pickle
-            >>> cfg = DummyVsManyConfig()
+            >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
             >>> cfg2 = pickle.loads(ser)
             >>> assert cfg == cfg2
             >>> assert cfg is not cfg2
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
+            >>> from six.moves import cPickle as pickle
+            >>> cfg = DummyVsManyConfig()
+            >>> state = cfg.__getstate__()
+            >>> cfg2 = DummyVsManyConfig()
+            >>> serialized = pickle.dumps(cfg)
+            >>> unserialized = pickle.loads(serialized)
+            >>> assert cfg == unserialized
+            >>> assert cfg is not unserialized
         """
-        return cfg.asdict()
+        #import dtool_ibeis
+        #_dict = cfg.asdict()
+        #_dict2 = {}
+        #for key, val in _dict.items():
+        #    if isinstance(val, dtool_ibeis.Config):
+        #        val = val.asdict()
+        #    _dict2[key] = val
+        #return {'dtool_ibeis.Config': _dict2}
+        return cfg.__dict__
 
     def __setstate__(cfg, state):
-        cfg.initialize_params()
-        cfg.update(**state)
+        cfg.__dict__.update(**state)
+        #cfg.initialize_params()
+        #cfg.update(**state)
 
     #@classmethod
     #def static_config_name(cls):
@@ -361,14 +582,36 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     #    return config_name
 
 
-def dict_as_config(default_cfgdict, tablename):
-    # TODO: use Config.from_dict instead
-    import dtool
-    class UnnamedConfig(dtool.Config):
-        def get_param_info_list(cfg):
-            #print('default_cfgdict = %r' % (default_cfgdict,))
-            return [ut.ParamInfo(key, val)
-                    for key, val in default_cfgdict.items()]
+def make_configclass(dict_, tablename):
+    """ Creates a custom config class from a dict """
+    def rectify_item(key, val):
+        if val is None:
+            return ut.ParamInfo(key, val)
+        elif isinstance(val, ut.ParamInfo):
+            if val.varname is None:
+                # Copy and assign a new varname
+                pi = copy.deepcopy(val)
+                pi.varname = key
+            else:
+                pi = val
+                assert pi.varname == key, (
+                    'Given varname=%r does not match key=%r' % (pi.varname, key))
+            return pi
+        else:
+            if isinstance(val, Config):
+                # Set table name from key when doing nested from dicts
+                if val.__class__.__name__ == 'UnnamedConfig':
+                    val.__class__.__name__ = str(key + 'Config')
+            return ut.ParamInfo(key, val, type_=type(val))
+
+    param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
+    return from_param_info_list(param_info_list, tablename)
+
+
+def from_param_info_list(param_info_list, tablename='Unnamed'):
+    import dtool_ibeis
+    class UnnamedConfig(dtool_ibeis.Config):
+        _param_info_list = param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
 
@@ -383,17 +626,41 @@ class IBEISRequestHacks(object):
             return None
         return request.depc.controller
 
-    def get_external_data_config2(request):
-        # HACK
-        #return None
-        #print('[d] request.params = %r' % (request.params,))
+    @property
+    def qannots(self):
+        return self.ibs.annots(self.qaids, self.params)
+
+    @property
+    def dannots(self):
+        return self.ibs.annots(self.daids, self.params)
+
+    def get_qreq_annot_nids(self, aids):
+        # VERY HACKY. To be just hacky it should store
+        # the nids as a state, but whatever...
+        # devleopment time constraints and whatnot
+        return self.ibs.get_annot_nids(aids)
+        #return self.ibs.annots(self.daids, self.params)
+
+    @property
+    def extern_query_config2(request):
         return request.params
 
-    def get_external_query_config2(request):
-        # HACK
-        #return None
-        #print('[q] request.params = %r' % (request.params,))
+    @property
+    def extern_data_config2(request):
         return request.params
+    #
+
+    #def get_external_data_config2(request):
+    #    # HACK
+    #    #return None
+    #    #print('[d] request.params = %r' % (request.params,))
+    #    return request.params
+
+    #def get_external_query_config2(request):
+    #    # HACK
+    #    #return None
+    #    #print('[q] request.params = %r' % (request.params,))
+    #    return request.params
 
 
 def config_graph_subattrs(cfg, depc):
@@ -466,6 +733,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         uuid_list = request.depc.get_root_uuid(root_rowids)
         #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
         uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
+        # TODO: uuid_hashid = ut.hashid_arr(uuid_list, label=label)
         return uuid_hashid
 
     def get_cfgstr(request, with_input=False, with_pipe=True, **kwargs):
@@ -492,12 +760,12 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
     def ensure_dependencies(request):
         r"""
         CommandLine:
-            python -m dtool.base --exec-BaseRequest.ensure_dependencies
+            python -m dtool_ibeis.base --exec-BaseRequest.ensure_dependencies
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> request = depc.new_request('vsmany', [1, 2], [2, 3, 4])
             >>> request.ensure_dependencies()
@@ -607,12 +875,12 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         another-super-wrinkle-raising-typeerror/
 
     CommandLine:
-        python -m dtool.base --exec-VsOneSimilarityRequest
+        python -m dtool_ibeis.base --exec-VsOneSimilarityRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
         >>> qaid_list = [1, 2, 3, 5]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
@@ -654,11 +922,14 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         if parent_rowids is None:
             parent_rowids = request.parent_rowids
         else:
+            # previously defined in execute subset
+            #subparent_rowids = request.make_parent_rowids(
+            #qaids, request.daids)
             print('given %d specific parent_rowids' % (len(parent_rowids),))
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
-            import vtool as vt
+            import vtool_ibeis as vt
             directed_edges = np.array(parent_rowids)
             undirected_edges = vt.to_undirected_edges(directed_edges)
             edge_ids = vt.compute_unique_data_ids(undirected_edges)
@@ -682,11 +953,6 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             pass
         return result_list
 
-    def execute_subset(request, qaids, use_cache=None):
-        subparent_rowids = request.make_parent_rowids(qaids, request.daids)
-        results = request.execute(subparent_rowids, use_cache)
-        return results
-
     def get_input_hashid(request):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
 
@@ -706,12 +972,12 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
     Request for one-vs-many simlarity
 
     CommandLine:
-        python -m dtool.base --exec-VsManySimilarityRequest
+        python -m dtool_ibeis.base --exec-VsManySimilarityRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
         >>> qaid_list = [1, 2]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
@@ -736,10 +1002,6 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
         # HACK
         request.config.daids = request.daids
         return request
-
-    def execute_subset(request, qaids, use_cache=None):
-        subparent_rowids = qaids
-        return request.execute(subparent_rowids, use_cache)
 
     def get_input_hashid(request):
         #return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
@@ -836,8 +1098,8 @@ class MatchResult(AlgoResult, ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.base
-        python -m dtool.base --allexamples
+        python -m dtool_ibeis.base
+        python -m dtool_ibeis.base --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
