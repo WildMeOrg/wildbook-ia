@@ -1,9 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
-from plottool import mpl_sift
+from plottool_ibeis import mpl_sift
 import numpy as np
 import matplotlib as mpl
-import vtool.keypoint as ktool
 import utool as ut
 ut.noinject(__name__, '[pt.mpl_keypoint]')
 
@@ -54,23 +53,25 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         sifts (None):
 
     References:
-        http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches
+        http://stackoverflow.com/questions/28401788/transforms-non-affine-patch
 
     CommandLine:
-        python -m plottool.mpl_keypoint --test-draw_keypoints --show
+        python -m plottool_ibeis.mpl_keypoint draw_keypoints --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from plottool.mpl_keypoint import *  # NOQA
-        >>> from plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from plottool_ibeis.mpl_keypoint import *  # NOQA
+        >>> from plottool_ibeis.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
+        >>> H = np.array([[.8, 0, 0], [0, .8, 0], [0, 0, 1]])
         >>> H = None
         >>> TAU = 2 * np.pi
         >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
+        >>> #offset=(0.0, -4.0)
         >>> offset=(0.0, 0.0)
         >>> rotation=0.0
         >>> ell=True
@@ -81,15 +82,18 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> # make random sifts
         >>> sifts = mpl_sift.testdata_sifts()
         >>> siftkw = {}
-        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0], pts_size=.1)
+        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1],
+        >>>               eig_color=[1, 1, 0], pts_size=.1)
         >>> w, h = imgBGR.shape[0:2][::-1]
-        >>> imgBGR_ = imgBGR if H is None else vt.warpAffine(imgBGR, H, (w * 2, h * 2))
+        >>> imgBGR_ = imgBGR if H is None else vt.warpAffine(
+        >>>     imgBGR, H, (int(w * .8), int(h * .8)))
         >>> fig, ax = pt.imshow(imgBGR_ * 255)
         >>> draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts,
         ...                rect, eig, ori, sifts, siftkw, H=H, **kwargs)
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
+    import vtool_ibeis.keypoint as ktool
     if kpts_.shape[1] == 2:
         # pad out structure if only xy given
         kpts = np.zeros((len(kpts_), 6))
@@ -100,7 +104,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
     if scale_factor is None:
         scale_factor = 1.0
-    #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.dict_str(kwargs))
+    #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.repr2(kwargs))
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)
     pts_alpha      = kwargs.get('pts_alpha', 1.0)
@@ -128,7 +132,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         if sifts is not None:
             # SIFT descriptors
             pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
-                       'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha', 'multicolored_arms')
+                       'arm1_lw', 'arm2_lw', 'stroke', 'arm_alpha',
+                       'arm_alpha', 'multicolored_arms')
             mpl_sift.draw_sifts(ax, sifts, invVR_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles
@@ -151,7 +156,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
             _xs, _ys = ktool.get_xys(kpts)
             if H is not None:
                 # adjust for homogrpahy
-                import vtool as vt
+                import vtool_ibeis as vt
                 _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
 
             pts_patches = _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha)
@@ -173,7 +178,7 @@ def _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha=None):
     #if pts_alpha is not None:
     #    ptskw['alpha'] = pts_alpha
     if OLD_WAY:
-        #print(ut.dict_str(ptskw))
+        #print(ut.repr2(ptskw))
         ax.scatter(_xs, _ys, **ptskw)
         # FIXME: THIS MIGHT CAUSE ISSUES: UNEXPECTED CALL
         #ax.autoscale(enable=False)
@@ -204,7 +209,7 @@ class HomographyTransform(mpl.transforms.Transform):
         """
         The input and output are Nx2 numpy arrays.
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         _xys = input_xy.T
         xy_t = vt.transform_points_with_homography(self.H, _xys)
         output_xy = xy_t.T
@@ -226,15 +231,16 @@ def get_invVR_aff2Ds(kpts, H=None):
 
     Example:
         >>> # Test CV2 ellipse vs mine using MSER
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
+        >>> import vtool_ibeis as vt
+        >>> import cv2
+        >>> import plottool_ibeis as pt
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
         >>> imgBGR = vt.imread(img_fpath)
         >>> imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
         >>> mser = cv2.MSER_create()
         >>> regions, bboxs = mser.detectRegions(imgGray)
         >>> region = regions[0]
-        >>> bbox = bboxes[0]
+        >>> bbox = bboxs[0]
         >>> vis = imgBGR.copy()
         >>> vis[region.T[1], region.T[0], :] = 0
         >>> hull = cv2.convexHull(region.reshape(-1, 1, 2))
@@ -258,6 +264,7 @@ def get_invVR_aff2Ds(kpts, H=None):
         >>> # we start out with a unit circle not a half circle
         >>> pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)
     """
+    import vtool_ibeis.keypoint as ktool
     #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
     if H is None:
@@ -307,6 +314,7 @@ def eigenvector_actors(invVR_aff2Ds):
 
 def orientation_actors(kpts, H=None):
     """ creates orientation actors w.r.t. the gravity vector """
+    import vtool_ibeis.keypoint as ktool
     try:
         # Get xy diretion of the keypoint orientations
         _xs, _ys = ktool.get_xys(kpts)
@@ -324,7 +332,7 @@ def orientation_actors(kpts, H=None):
 
         #if H is not None:
         #    # adjust for homogrpahy
-        #    import vtool as vt
+        #    import vtool_ibeis as vt
         #    _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
         #    _dxs, _dys = vt.transform_points_with_homography(H, np.vstack((_dxs, _dys)))
 
@@ -345,7 +353,7 @@ def orientation_actors(kpts, H=None):
     except ValueError as ex:
         print('\n[mplkp.2] !!! ERROR %s: ' % str(ex))
         print('_oris.shape = %r' % (_oris.shape,))
-        print('x, y, dx, dy = %r' % ((x, y, dx, dy),))
+        # print('x, y, dx, dy = %r' % ((x, y, dx, dy),))
         print('_dxs = %r' % (_dxs,))
         print('_dys = %r' % (_dys,))
         print('_xs = %r' % (_xs,))
@@ -358,9 +366,9 @@ def orientation_actors(kpts, H=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.mpl_keypoint
-        python -m plottool.mpl_keypoint --allexamples
-        python -m plottool.mpl_keypoint --allexamples --noface --nosrc
+        python -m plottool_ibeis.mpl_keypoint
+        python -m plottool_ibeis.mpl_keypoint --allexamples
+        python -m plottool_ibeis.mpl_keypoint --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

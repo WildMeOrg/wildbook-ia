@@ -3,10 +3,10 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #import itertools
-import plottool.draw_func2 as df2
-from plottool import plot_helpers as ph
-from plottool import custom_constants
-from plottool import custom_figure
+import plottool_ibeis.draw_func2 as df2
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import custom_constants
+from plottool_ibeis import custom_figure
 #(print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
 ut.noinject(__name__, '[viz_featrow]')
@@ -42,17 +42,17 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     CommandLine:
 
         # Use this to find the fx you want to visualize
-        python -m plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
+        python -m plottool_ibeis.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
 
         # Use this to visualize the featrow
-        python -m plottool.viz_featrow --test-draw_feat_row --show
-        python -m plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
-        python -m plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
+        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --show
+        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
+        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.viz_featrow import *  # NOQA
-        >>> import plottool as pt
+        >>> from plottool_ibeis.viz_featrow import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> chip = imgBGR
@@ -64,6 +64,10 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> nRows = 1
         >>> nCols = 2
         >>> px = 0
+        >>> if True:
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     import matplotlib as mpl
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> hack = ut.get_argflag('--feat-all')
         >>> sift = sift if not ut.get_argflag('--no-sift') else None
         >>> draw_desc = sift is not None
@@ -80,7 +84,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> pt.show_if_requested()
     """
     import numpy as np
-    import vtool as vt
+    import vtool_ibeis as vt
     # should not need ncols here
 
     if nCols is not None:
@@ -108,7 +112,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     if draw_chip:
         pnum = pnum_()
         df2.imshow(chip, fnum=fnum, pnum=pnum)
-        kpts_kw = dict(ell_linewidth=5, ell_alpha=1.0)
+        kpts_kw = dict(ell_linewidth=1, ell_alpha=1.0)
         kpts_kw.update(kwargs)
         df2.draw_kpts2([kp], **kpts_kw)
 
@@ -159,11 +163,12 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
             df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
         else:
             if sift.dtype.type == np.uint8:
-                sigtitle =  'sift histogram' if (px % 3) == 0 else ''
-                ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                # sigtitle =  'sift histogram' if (px % 3) == 0 else ''
+                # ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                ax = df2.plot_sift_signature(sift, fnum=fnum, pnum=pnum)
             else:
-                sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
-                ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
+                # sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
+                ax = df2.plot_descriptor_signature(sift, fnum=fnum, pnum=pnum)
             ax._hs_viztype = 'histogram'
         #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
         #dist_list = ['L2', 'hist_isect']
@@ -192,9 +197,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.viz_featrow
-        python -m plottool.viz_featrow --allexamples
-        python -m plottool.viz_featrow --allexamples --noface --nosrc
+        python -m plottool_ibeis.viz_featrow
+        python -m plottool_ibeis.viz_featrow --allexamples
+        python -m plottool_ibeis.viz_featrow --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -6,20 +6,21 @@ Known Interactions that use AbstractInteraction:
     ibeis.NameInteraction
 """
 from __future__ import absolute_import, division, print_function
-from plottool import plot_helpers as ph
-from plottool import interact_helpers as ih
 import six
 import re
 import utool as ut
-import plottool.draw_func2 as df2
-from plottool import fig_presenter
 import matplotlib as mpl
 ut.noinject(__name__, '[abstract_iteract]')
+import plottool_ibeis.draw_func2 as df2  # NOQA
+from plottool_ibeis import fig_presenter  # NOQA
+from plottool_ibeis import plot_helpers as ph  # NOQA
+from plottool_ibeis import interact_helpers as ih  # NOQA
 
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #'[abstract_iteract]')
 
 DEBUG = ut.get_argflag('--debug-interact')
+VERBOSE = ut.VERBOSE or True
 
 
 # for scoping
@@ -28,16 +29,23 @@ __REGISTERED_INTERACTIONS__ = []
 
 def register_interaction(self):
     global __REGISTERED_INTERACTIONS__
-    if ut.VERBOSE:
-        print('Registering intearction: self=%r' % (self,))
+    if VERBOSE:
+        print('[pt] Registering intearction: self=%r' % (self,))
     __REGISTERED_INTERACTIONS__.append(self)
+    if VERBOSE:
+        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
 
 
 def unregister_interaction(self):
     global __REGISTERED_INTERACTIONS__
-    if ut.VERBOSE:
-        print('Unregistering intearction: self=%r' % (self,))
-    __REGISTERED_INTERACTIONS__
+    if VERBOSE:
+        print('[pt] Unregistering intearction: self=%r' % (self,))
+    try:
+        __REGISTERED_INTERACTIONS__.remove(self)
+    except ValueError:
+        pass
+    if VERBOSE:
+        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
 
 
 class AbstractInteraction(object):
@@ -58,7 +66,8 @@ class AbstractInteraction(object):
     }
 
     def __init__(self, **kwargs):
-        self.debug = DEBUG
+        debug = kwargs.get('debug', None)
+        self.debug = DEBUG if debug is None else debug
         if self.debug:
             print('[pt.a] create interaction')
         self.fnum = kwargs.get('fnum', None)
@@ -84,17 +93,23 @@ class AbstractInteraction(object):
         if autostart:
             self.start()
 
+    def reset_mouse_state(self):
+        for key in self.is_down.keys():
+            self.is_down[key] = False
+        for key in self.is_drag.keys():
+            self.is_drag[key] = False
+
     def enable_pan_and_zoom(self, ax):
         self.enable_zoom(ax)
         self.enable_pan(ax)
 
     def enable_pan(self, ax):
-        from plottool.interactions import PanEvents
+        from plottool_ibeis.interactions import PanEvents
         pan = PanEvents(ax)
         self.pan_event_list.append(pan)
 
     def enable_zoom(self, ax):
-        from plottool.interactions import zoom_factory
+        from plottool_ibeis.interactions import zoom_factory
         self.zoom_event_list.append(zoom_factory(ax))
 
     def _start_interaction(self):
@@ -111,10 +126,26 @@ class AbstractInteraction(object):
     def start(self):
         self._ensure_running()
         self.show_page()
+        self.show()
 
     def print_status(self):
         print('is_down = ' + ut.repr2(self.is_down))
         print('is_drag = ' + ut.repr2(self.is_drag))
+
+    def _preshow_page(self):
+        self._ensure_running()
+        if self.debug:
+            print('[pt.a] show page')
+        self.fig = ih.begin_interaction(self.interaction_name, fnum=self.fnum)
+
+    def _postshow_page(self):
+        self.connect_callbacks()
+
+    def _show_page(self):
+        if hasattr(self, 'plot'):
+            self.plot(fnum=self.fnum, pnum=(1, 1, 1))
+        else:
+            self.static_plot(fnum=self.fnum, pnum=(1, 1, 1))
 
     def show_page(self, *args):
         """
@@ -123,15 +154,9 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
-        self._ensure_running()
-        if self.debug:
-            print('[pt.a] show page')
-        self.fig = ih.begin_interaction(self.interaction_name, self.fnum)
-        if hasattr(self, 'plot'):
-            self.plot(self.fnum, (1, 1, 1))
-        else:
-            self.static_plot(self.fnum, (1, 1, 1))
-        self.connect_callbacks()
+        self._preshow_page()
+        self._show_page()
+        self._postshow_page()
 
     def connect_callbacks(self):
         if self.debug:
@@ -144,7 +169,9 @@ class AbstractInteraction(object):
         ih.connect_callback(self.fig, 'scroll_event', self.on_scroll)
 
     def bring_to_front(self):
-        fig_presenter.bring_to_front(self.fig)
+        import utool
+        with utool.embed_on_exception_context:
+            fig_presenter.bring_to_front(self.fig)
 
     def draw(self):
         if self.debug > 5:
@@ -200,7 +227,7 @@ class AbstractInteraction(object):
         pass
 
     def on_drag(self, event=None):
-        if self.debug:
+        if self.debug > 1:
             print('[pt.a] on_drag')
         if ih.clicked_inside_axis(event):
             self.on_drag_inside(event)
@@ -209,7 +236,7 @@ class AbstractInteraction(object):
         pass
 
     def on_drag_inside(self, event=None):
-        if self.debug:
+        if self.debug > 1:
             print('[pt.a] on_drag_inside')
 
     def on_drag_stop(self, event=None):
@@ -225,7 +252,7 @@ class AbstractInteraction(object):
     def on_key_press(self, event):
         if self.debug > 0:
             print('[pt.a] on_key_press')
-        self.print_status()
+        #self.print_status()
         pass
 
     def on_click(self, event):
@@ -233,9 +260,10 @@ class AbstractInteraction(object):
             print('[pt.a] on_click')
             #print('[pt.a] on_click. event=%r' % (ut.repr2(event.__dict__)))
         #raise NotImplementedError('implement yourself')
-        for button in self.MOUSE_BUTTONS.values():
-            if self.MOUSE_BUTTONS[event.button] == button:
-                self.is_down[button] = True
+        if event.button is not None:
+            for button in self.MOUSE_BUTTONS.values():
+                if self.MOUSE_BUTTONS[event.button] == button:
+                    self.is_down[button] = True
         #if event.button == self.LEFT_BUTTON:
         #    self.is_down['left'] = True
         #if event.button == self.RIGHT_BUTTON:
@@ -255,7 +283,9 @@ class AbstractInteraction(object):
         if self.debug > 0:
             print('[pt.a] on_release')
         for button in self.MOUSE_BUTTONS.values():
-            if self.MOUSE_BUTTONS[event.button] == button:
+            flag = (event is None or event.button is None or
+                    self.MOUSE_BUTTONS[event.button] == button)
+            if flag:
                 self.is_down[button] = False
                 if self.is_drag[button]:
                     self.is_drag[button] = False
@@ -280,11 +310,11 @@ class AbstractInteraction(object):
         """
         context menu
         """
-        import guitool
+        import guitool_ibeis as gt
         height = self.fig.canvas.geometry().height()
-        qpoint = guitool.newQPoint(event.x, height - event.y)
+        qpoint = gt.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
-        guitool.popup_menu(qwin, qpoint, options)
+        gt.popup_menu(qwin, qpoint, options)
 
     def clear_parent_axes(self, ax):
         """ for clearing axes that we appended anything to """
@@ -393,7 +423,7 @@ class AbstractPagedInteraction(AbstractInteraction):
 
     def make_hud(self):
         """ Creates heads up display """
-        import plottool as pt
+        import plottool_ibeis as pt
         if not self.draw_hud:
             return
         # Button positioning
@@ -417,7 +447,7 @@ class AbstractPagedInteraction(AbstractInteraction):
         self.append_button(next_text, callback=next_callback, rect=next_rect)
 
     def prepare_page(self, fulldraw=True):
-        import plottool as pt
+        import plottool_ibeis as pt
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.disconnect_callback(self.fig, 'button_release_event')
         ih.disconnect_callback(self.fig, 'key_press_event')

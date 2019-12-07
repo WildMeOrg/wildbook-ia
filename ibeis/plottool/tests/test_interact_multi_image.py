@@ -1,9 +1,9 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 # DUPLICATE CODE, DELETE
 from __future__ import absolute_import, division, print_function
-from plottool import interact_multi_image
-from plottool import draw_func2 as df2
+from plottool_ibeis import interact_multi_image
+from plottool_ibeis import draw_func2 as df2
 import utool
 #import ibeis
 
@@ -24,7 +24,7 @@ def test_interact_multimage(imgpaths):
     return iteract_obj
 
 if __name__ == '__main__':
-    TEST_IMAGES_URL = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
+    TEST_IMAGES_URL = 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths       = utool.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
     iteract_obj = test_interact_multimage(imgpaths)

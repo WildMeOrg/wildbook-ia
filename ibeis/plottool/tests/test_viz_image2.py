@@ -1,11 +1,11 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from plottool import viz_image2
-from plottool import draw_func2 as df2
+from plottool_ibeis import viz_image2
+from plottool_ibeis import draw_func2 as df2
 import cv2
 import utool
 import numpy as np
-from plottool.tests.test_helpers import dummy_bbox
+from plottool_ibeis.tests.test_helpers import dummy_bbox
 
 
 def test_viz_image(img_fpath):
@@ -27,7 +27,7 @@ def test_viz_image(img_fpath):
         'label_list' : ['test label', 'lbl2'],
     }
     # Print the keyword arguments to illustrate their format
-    print('showkw = ' + utool.dict_str(showkw))
+    print('showkw = ' + utool.repr2(showkw))
     # Display the image in figure-num 42, using a 1x1 axis grid in the first
     # axis. Pass showkw as keyword arguments.
     viz_image2.show_image(img, fnum=42, pnum=(1, 1, 1), **showkw)
@@ -35,7 +35,7 @@ def test_viz_image(img_fpath):
 
 
 if __name__ == '__main__':
-    TEST_IMAGES_URL = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
+    TEST_IMAGES_URL = 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths       = utool.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
     # Get one image filepath to load and display

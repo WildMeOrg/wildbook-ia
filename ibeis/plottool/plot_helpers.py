@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import plottool.draw_func2 as df2
-from plottool import fig_presenter
-#from plottool import custom_figure
-#from plottool import custom_constants
+# import plottool_ibeis.draw_func2 as df2
+from plottool_ibeis import fig_presenter
+#from plottool_ibeis import custom_figure
+#from plottool_ibeis import custom_constants
 #from os.path import join
 import utool as ut
 ut.noinject(__name__, '[plot_helpers]')
@@ -14,7 +14,6 @@ SIFT_OR_VECFIELD = ut.get_argval('--vecfield', type_=bool)
 
 
 def draw():
-    df2.adjust_subplots_safe()
     fig_presenter.draw()
 
 
@@ -43,7 +42,7 @@ def draw():
 #    return fpath_clean
 
 
-def get_square_row_cols(nSubplots, max_cols=None, fix=False):
+def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
     r"""
     Args:
         nSubplots (?):
@@ -53,11 +52,11 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False):
         tuple: (None, None)
 
     CommandLine:
-        python -m plottool.plot_helpers --test-get_square_row_cols
+        python -m plottool_ibeis.plot_helpers --test-get_square_row_cols
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.plot_helpers import *  # NOQA
+        >>> from plottool_ibeis.plot_helpers import *  # NOQA
         >>> # build test data
         >>> nSubplots = 9
         >>> nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -72,11 +71,15 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False):
     """
     if nSubplots == 0:
         return 0, 0
+    if inclusive:
+        rounder = np.ceil
+    else:
+        rounder = np.floor
     if fix:
         # This function is very broken, but it might have dependencies
         # this is the correct version
-        nCols = int(np.ceil(np.sqrt(nSubplots)))
-        nRows = int(np.ceil(nSubplots / nCols))
+        nCols = int(rounder(np.sqrt(nSubplots)))
+        nRows = int(rounder(nSubplots / nCols))
         return nRows, nCols
     else:
         # This is the clamped num cols version
@@ -90,8 +93,8 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False):
             if nSubplots in [8]:
                 max_cols = 4
         nCols = int(min(nSubplots, max_cols))
-        #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
-        nRows = int(np.ceil(nSubplots / nCols))
+        #nCols = int(min(rounder(np.sqrt(nrids)), 5))
+        nRows = int(rounder(nSubplots / nCols))
     return nRows, nCols
 
 
@@ -129,13 +132,39 @@ def get_bbox_centers(bbox_list):
     return bbox_centers
 
 
-def ensure_pylab_qt4():
+def qt4ensure():
+    qtensure()
+    # if ut.inIPython():
+    #     import IPython
+    #     #IPython.get_ipython().magic('pylab qt4')
+    #     IPython.get_ipython().magic('pylab qt4 --no-import-all')
+
+
+def qtensure():
+    import guitool_ibeis as gt
     if ut.inIPython():
         import IPython
-        IPython.get_ipython().magic('pylab qt4')
+        ipython = IPython.get_ipython()
+        if ipython is None:
+            # we must have exited ipython at some point
+            return
+        if gt.__PYQT__.GUITOOL_PYQT_VERSION == 5:
+            """
+            sudo apt-get install python3-pyqt5.qtsvg
+            """
+            # import os
+            # os.environ['QT_API'] = 'pyqt5'
+            # import matplotlib
+            # matplotlib.use('Qt5Agg')
+            # IPython.get_ipython().magic('matplotlib qt5')
+            #IPython.get_ipython().magic('pylab qt4')
+            ipython.magic('pylab qt5 --no-import-all')
+        else:
+            #IPython.get_ipython().magic('pylab qt4')
+            ipython.magic('pylab qt4 --no-import-all')
 
 
-qt4ensure = ensure_pylab_qt4
+ensureqt = qt4ensure
 
 #==========================#
 #  --- TESTING FUNCS ---   #
@@ -143,7 +172,7 @@ qt4ensure = ensure_pylab_qt4
 
 
 def kp_info(kp):
-    import vtool.keypoint as ktool
+    import vtool_ibeis.keypoint as ktool
     kpts = np.array([kp])
     xy_str    = ktool.get_xy_strs(kpts)[0]
     shape_str = ktool.get_shape_strs(kpts)[0]

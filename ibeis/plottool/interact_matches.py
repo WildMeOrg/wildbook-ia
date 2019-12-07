@@ -6,13 +6,12 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np
-
-from plottool import abstract_interaction
+from plottool_ibeis import abstract_interaction
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
 
 
-# TODO: move to plottool and decouple with IBEIS
+# TODO: move to plottool_ibeis and decouple with IBEIS
 # TODO: abstract interaction
 @six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction2(BASE_CLASS):
@@ -25,15 +24,16 @@ class MatchInteraction2(BASE_CLASS):
         ibeis.viz.interact.interact_matches.MatchInteraction
 
     CommandLine:
-        python -m plottool.interact_matches --test-MatchInteraction2 --show
+        python -m plottool_ibeis.interact_matches --test-MatchInteraction2 --show
 
 
     Example:
-        >>> from plottool.interact_matches import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:ibeis)
+        >>> from plottool_ibeis.interact_matches import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(augment_queryside_hack=True))
+        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = qreq_.execute()[0]
         >>> qaid = cm.qaid
         >>> daid = cm.get_top_aids()[0]
@@ -50,11 +50,15 @@ class MatchInteraction2(BASE_CLASS):
         >>> self = MatchInteraction2(rchip1, rchip2, kpts1, kpts2, fm, fs, fsv,
         >>>                          vecs1, vecs2, H1)
         >>> self.show_page()
-        >>> ut.show_if_requested()
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
 
     """
     def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
                  H1=None, H2=None, fnum=None, **kwargs):
+        import plottool_ibeis as pt
+        kwargs = kwargs.copy()
+
         # Drawing Data
         self.rchip1 = rchip1
         self.rchip2 = rchip2
@@ -62,6 +66,7 @@ class MatchInteraction2(BASE_CLASS):
         self.kpts2 = kpts2
         self.fm = fm
         self.fs = fs
+        self.fk = kwargs.pop('fk', None)
         self.fsv = fsv
         self.vecs1 = vecs1
         self.vecs2 = vecs2
@@ -69,7 +74,6 @@ class MatchInteraction2(BASE_CLASS):
         self.H2 = H2
 
         # Drawing settings
-        kwargs = kwargs.copy()
         self.warp_homog = False
         self.mode = kwargs.pop('mode', 0)
         self.mx = kwargs.pop('mx', None)
@@ -78,7 +82,6 @@ class MatchInteraction2(BASE_CLASS):
         self.last_fx = 0
         # self.figtitle = kwargs.get('figtitle', 'Inspect Matches')
         self.xywh2 = None
-        import plottool as pt
         self.fnum2 = pt.ensure_fnum(fnum)
 
         self.title = kwargs.get('title', True)
@@ -98,10 +101,10 @@ class MatchInteraction2(BASE_CLASS):
         """
         just visualizes the matches using some type of lines
         """
-        import plottool as pt
-        from plottool import plot_helpers as ph
+        import plottool_ibeis as pt
+        from plottool_ibeis import plot_helpers as ph
         if fnum is None:
-            fnum     = self.fnum
+            fnum = self.fnum
         if verbose is None:
             verbose = ut.VERBOSE
 
@@ -123,7 +126,8 @@ class MatchInteraction2(BASE_CLASS):
             draw_lines=draw_lines,
             draw_ell=draw_ell,
             colorbar_=True,
-            vert=self.vert)
+            vert=self.vert,
+            white_background=False)
         show_matches_kw.update(kwargs_)
 
         if verbose:
@@ -132,7 +136,7 @@ class MatchInteraction2(BASE_CLASS):
             show_matches_kw['H1'] = self.H1
             show_matches_kw['H2'] = self.H2
         if verbose:
-            print('show_matches_kw = %s' % (ut.dict_str(show_matches_kw, truncate=True)))
+            print('show_matches_kw = %s' % (ut.repr2(show_matches_kw, truncate=True)))
 
         #tup = show_matches(fm, fs, **show_matches_kw)
         ax, xywh1, xywh2 = pt.show_chipmatch2(
@@ -157,22 +161,20 @@ class MatchInteraction2(BASE_CLASS):
         Selects the ith match and visualizes and prints information concerning
         features weights, keypoint details, and sift descriptions
         """
-        import plottool as pt
-        from plottool import viz_featrow
-        from plottool import interact_helpers as ih
-        # <CLOSURE VARS>
+        import plottool_ibeis as pt
+        from plottool_ibeis import viz_featrow
+        from plottool_ibeis import interact_helpers as ih
         fnum       = self.fnum
         same_fig   = self.same_fig
         rchip1     = self.rchip1
         rchip2     = self.rchip2
-        # </CLOSURE VARS>
         self.mx    = mx
         print('+--- SELECT --- ')
         print('... selecting mx-th=%r feature match' % mx)
         fsv = self.fsv
         fs  = self.fs
         print('score stats:')
-        print(ut.get_stats_str(fsv, axis=0, newlines=True))
+        print(ut.repr2(ut.get_stats(fsv, axis=0), nl=1))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
         #----------------------
@@ -183,7 +185,7 @@ class MatchInteraction2(BASE_CLASS):
 
         # Older info
         fscore2  = self.fs[mx]
-        fk2      = None
+        fk2      = None if self.fk is None else self.fk[mx]
         kp1, kp2     = self.kpts1[fx1], self.kpts2[fx2]
         vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
@@ -238,7 +240,7 @@ class MatchInteraction2(BASE_CLASS):
 
     # Callback
     def on_click_inside(self, event, ax):
-        from plottool import plot_helpers as ph
+        from plottool_ibeis import plot_helpers as ph
         (x, y) = (event.xdata, event.ydata)
         viztype = ph.get_plotdat(ax, 'viztype', '')
 
@@ -247,7 +249,7 @@ class MatchInteraction2(BASE_CLASS):
             return
         #key = '' if event.key is None else event.key
         #ctrl_down = key.find('control') == 0
-        if viztype == 'matches':
+        if viztype in ['matches', 'multi_match']:
             if len(self.fm) == 0:
                 print('[inter] no feature matches to click')
             else:
@@ -256,20 +258,21 @@ class MatchInteraction2(BASE_CLASS):
                 kpts1_m = self.kpts1[self.fm[:, 0]]
                 kpts2_m = self.kpts2[self.fm[:, 1]]
                 x2, y2, w2, h2 = self.xywh2
-                _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
-                _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
+                import vtool_ibeis as vt
+                _mx1, _dist1 = vt.nearest_point(x, y, kpts1_m)
+                _mx2, _dist2 = vt.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 self.select_ith_match(mx)
-        elif viztype in ['warped', 'unwarped']:
-            pass
-            #hs_aid = ax.__dict__.get('_hs_aid', None)
-            #hs_fx = ax.__dict__.get('_hs_fx', None)
-            #if hs_aid is not None and viztype == 'unwarped':
-            #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
-            #elif hs_aid is not None and viztype == 'warped':
-            #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,
-            #    hs_fx, fnum=pt.next_fnum())
+        #elif viztype in ['warped', 'unwarped']:
+        #    pass
+        #    #hs_aid = ax.__dict__.get('_hs_aid', None)
+        #    #hs_fx = ax.__dict__.get('_hs_fx', None)
+        #    #if hs_aid is not None and viztype == 'unwarped':
+        #    #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
+        #    #elif hs_aid is not None and viztype == 'warped':
+        #    #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,
+        #    #    hs_fx, fnum=pt.next_fnum())
         # Click in match axes
         #elif viztype == 'matches' and ctrl_down:
         #    # Ctrl-Click
@@ -323,12 +326,26 @@ class MatchInteraction2(BASE_CLASS):
         return options
 
 
+def show_keypoint_gradient_orientations(ibs, rchip, kp, vec, fnum=None,
+                                        pnum=None, config2_=None):
+    # Draw the gradient vectors of a patch overlaying the keypoint
+    import plottool_ibeisa as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
+    #rchip = ibs.get_annot_chips(aid, config2_=config2_)
+    #kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
+    #sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
+    pt.draw_keypoint_gradient_orientations(rchip, kp, sift=vec,
+                                            mode='vec', fnum=fnum, pnum=pnum)
+    #pt.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_matches
-        python -m plottool.interact_matches --allexamples
-        python -m plottool.interact_matches --allexamples --noface --nosrc
+        python -m plottool_ibeis.interact_matches
+        python -m plottool_ibeis.interact_matches --allexamples
+        python -m plottool_ibeis.interact_matches --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

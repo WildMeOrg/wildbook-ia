@@ -27,19 +27,26 @@ Notes:
 
 
 CommandLine:
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=gdk
-    python -m plottool.draw_func2 --exec-imshow --show --mplbe=cairo
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=GTKAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=TkAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=WxAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=WebAgg
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=gdk
+    python -m plottool_ibeis.draw_func2 --exec-imshow --show --mplbe=cairo
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
 import utool as ut
-ut.noinject(__name__, '[plottool.__MPL_INIT__]')
+from six.moves import builtins
+ut.noinject(__name__, '[plottool_ibeis.__MPL_INIT__]')
+
+try:
+    profile = getattr(builtins, 'profile')
+except AttributeError:
+    def profile(func):
+        return func
 
 
 __IS_INITIALIZED__ = False
@@ -47,7 +54,7 @@ __WHO_INITIALIZED__ = None
 
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
-TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
+TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=os.environ.get('MPL_BACKEND', None))
 FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='agg')
 
 
@@ -62,6 +69,25 @@ def print_all_backends():
     del valid_backends
 
 
+def get_pyqt():
+    have_guitool_ibeis = ut.check_module_installed('guitool_ibeis')
+    try:
+        if have_guitool_ibeis:
+            from guitool_ibeis import __PYQT__ as PyQt
+            pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
+        else:
+            try:
+                import PyQt5 as PyQt
+                pyqt_version = 5
+            except ImportError:
+                import PyQt4 as PyQt
+                pyqt_version = 4
+    except ImportError:
+        PyQt = None
+        pyqt_version = None
+    return PyQt, pyqt_version
+
+
 def get_target_backend():
     if (not sys.platform.startswith('win32') and
         not sys.platform.startswith('darwin') and
@@ -72,16 +98,16 @@ def get_target_backend():
     else:
         target_backend = TARGET_BACKEND
         if target_backend is None:
-            try:
-                # This might be the cause of some issues
-                try:
-                    from guitool import __PYQT__  # NOQA
-                except ImportError:
-                    import PyQt4  # NOQA
-                target_backend = 'Qt4Agg'
-            except ImportError:
+            PyQt, pyqt_version = get_pyqt()
+            if pyqt_version is None:
                 print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND, ))
                 target_backend = FALLBACK_BACKEND
+            elif pyqt_version == 4:
+                target_backend = 'Qt4Agg'
+            elif pyqt_version == 5:
+                target_backend = 'Qt5Agg'
+            else:
+                raise ValueError('Unknown pyqt version %r' % (pyqt_version,))
     return target_backend
 
 
@@ -177,6 +203,9 @@ def _init_mpl_rcparams():
     #    mpl.rcParams['toolbar'] = 'None'
     #    mpl.rcParams['interactive'] = True
 
+    # import matplotlib.pyplot as plt
+    # plt.xkcd()
+
 
 def _mpl_set_backend(target_backend):
     import matplotlib as mpl
@@ -201,14 +230,14 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
     target_backend = get_target_backend()
     if __IS_INITIALIZED__ is True:
         if verbose:
-            print('[!plottool] matplotlib has already been initialized.  backend=%r' % current_backend)
-            print('[!plottool] Initially initialized by %r' % __WHO_INITIALIZED__)
-            print('[!plottool] Trying to be init by %r' % (ut.get_caller_name(N=range(0, 5))))
+            print('[!plottool_ibeis] matplotlib has already been initialized.  backend=%r' % current_backend)
+            print('[!plottool_ibeis] Initially initialized by %r' % __WHO_INITIALIZED__)
+            print('[!plottool_ibeis] Trying to be init by %r' % (ut.get_caller_name(N=range(0, 5))))
         return False
     __IS_INITIALIZED__ = True
 
     if verbose:
-        print('[plottool] matplotlib initialized by %r' % __WHO_INITIALIZED__)
+        print('[plottool_ibeis] matplotlib initialized by %r' % __WHO_INITIALIZED__)
         __WHO_INITIALIZED__ = ut.get_caller_name(N=range(0, 5))
     if verbose:
         print('--- INIT MPL---')
@@ -219,12 +248,8 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
     _init_mpl_rcparams()
 
 
+@profile
 def init_matplotlib(verbose=VERBOSE_MPLINIT):
     if ut.in_main_process():
-        try:
-            # This might be the cause of some issues
-            from guitool import __PYQT__  # NOQA
-        except ImportError:
-            print('[!plotttool] WARNING guitool does not have __PYQT__')
-            pass
+        PyQt, pyqt_version = get_pyqt()
         return _init_mpl_mainprocess(verbose=verbose)

@@ -1,15 +1,15 @@
 from __future__ import absolute_import, division, print_function
 import utool
-import plottool.draw_func2 as df2
+import plottool_ibeis.draw_func2 as df2
 import numpy as np
-from plottool import plot_helpers as ph
+from plottool_ibeis import plot_helpers as ph
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
 utool.noinject(__name__, '[viz_keypoints]')
 
 
 def testdata_kpts():
     import utool as ut
-    import vtool as vt
+    import vtool_ibeis as vt
     import pyhesaff
     img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='star.png'))
     kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
@@ -31,12 +31,12 @@ def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
         darken, update, redraw_image, docla, doclf, projection, sel_fx
 
     CommandLine:
-        python -m plottool.viz_keypoints --exec-show_keypoints
+        python -m plottool_ibeis.viz_keypoints --exec-show_keypoints
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool.viz_keypoints import *  # NOQA
-        >>> import vtool as vt
+        >>> from plottool_ibeis.viz_keypoints import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts, vecs, chip = testdata_kpts()
         >>> fnum = 0
         >>> pnum = None
@@ -66,7 +66,7 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         None
 
     Example:
-        >>> from plottool.viz_keypoints import *  # NOQA
+        >>> from plottool_ibeis.viz_keypoints import *  # NOQA
         >>> sel_fx = None
         >>> kpts = np.array([[  92.9246,   17.5453,    7.8103,   -3.4594,   10.8566,    0.    ],
         ...                  [  76.8585,   24.7918,   11.4412,   -3.2634,    9.6287,    0.    ],
@@ -83,7 +83,7 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         color = df2.distinct_colors(len(kpts_))  # , randomize=True)
     elif color == 'scale':
         # hack for distinct colors
-        import vtool as vt
+        import vtool_ibeis as vt
         #color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='inferno', score_range=(0, 50))
         color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='viridis', score_range=(5, 30), cmap_range=None)
         #df2.distinct_colors(len(kpts_))  # , randomize=True)

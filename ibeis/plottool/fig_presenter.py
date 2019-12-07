@@ -1,19 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import sys
-import textwrap
 import time
-#import warnings
 import utool as ut
-# maptlotlib
 import matplotlib as mpl
-#import matplotlib.pyplot as plt
-# Science
-from plottool.custom_figure import get_fig
+from plottool_ibeis import custom_figure
 
 #from .custom_constants import golden_wh
 
 
-SLEEP_TIME = .05
+SLEEP_TIME = .01
 __QT4_WINDOW_LIST__ = []
 ut.noinject(__name__, '[fig_presenter]')
 
@@ -42,22 +37,22 @@ def register_qt4_win(win):
 # ---- GENERAL FIGURE COMMANDS ----
 
 def set_geometry(fnum, x, y, w, h):
-    fig = get_fig(fnum)
-    qtwin = fig.canvas.manager.window
+    fig = custom_figure.ensure_fig(fnum)
+    qtwin = get_figure_window(fig)
     qtwin.setGeometry(x, y, w, h)
 
 
 def get_geometry(fnum):
-    fig = get_fig(fnum)
-    qtwin = fig.canvas.manager.window
+    fig = custom_figure.ensure_fig(fnum)
+    qtwin = get_figure_window(fig)
     (x1, y1, x2, y2) = qtwin.geometry().getCoords()
     (x, y, w, h) = (x1, y1, x2 - x1, y2 - y1)
     return (x, y, w, h)
 
 
 #def get_screen_info():
-#    # TODO Move dependency to guitool
-#    desktop = QtGui.QDesktopWidget()
+#    # TODO Move dependency to guitool_ibeis
+#    desktop = QtWidgets.QDesktopWidget()
 #    mask = desktop.mask()  # NOQA
 #    layout_direction = desktop.layoutDirection()  # NOQA
 #    screen_number = desktop.screenNumber()  # NOQA
@@ -65,17 +60,20 @@ def get_geometry(fnum):
 #    num_screens = desktop.screenCount()  # NOQA
 #    avail_rect = desktop.availableGeometry()  # NOQA
 #    screen_rect = desktop.screenGeometry()  # NOQA
-#    QtGui.QDesktopWidget().availableGeometry().center()  # NOQA
+#    QtWidgets.QDesktopWidget().availableGeometry().center()  # NOQA
 #    normal_geometry = desktop.normalGeometry()  # NOQA
 
 
 #@profile
 def get_all_figures():
     manager_list = mpl._pylab_helpers.Gcf.get_all_fig_managers()
-    all_figures_ = [manager.canvas.figure for manager in manager_list]
     all_figures = []
     # Make sure you dont show figures that this module closed
-    for fig in iter(all_figures_):
+    for manager in manager_list:
+        try:
+            fig = manager.canvas.figure
+        except AttributeError:
+            continue
         if not fig.__dict__.get('df2_closed', False):
             all_figures.append(fig)
     # Return all the figures sorted by their number
@@ -90,7 +88,7 @@ def get_all_qt4_wins():
 def all_figures_show():
     if VERBOSE:
         print('all_figures_show')
-    if '--noshow' not in sys.argv:
+    if not ut.get_argflag('--noshow'):
         for fig in get_all_figures():
             time.sleep(SLEEP_TIME)
             show_figure(fig)
@@ -99,8 +97,12 @@ def all_figures_show():
 
 
 def show_figure(fig):
-    fig.show()
-    fig.canvas.draw()
+    try:
+        fig.show()
+        fig.canvas.draw()
+    except AttributeError as ex:
+        if not hasattr(fig, '_no_raise_plottool_ibeis'):
+            ut.printex(ex, '[pt] probably registered made figure with Qt.', iswarning=True)
 
 
 def all_figures_tight_layout():
@@ -111,13 +113,17 @@ def all_figures_tight_layout():
 
 
 def get_main_win_base():
+    if hasattr(mpl.backends, 'backend_qt4'):
+        backend = mpl.backends.backend_qt4
+    else:
+        backend = mpl.backends.backend_qt5
     try:
-        QMainWin = mpl.backends.backend_qt4.MainWindow
+        QMainWin = backend.MainWindow
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
-            #from guitool.__PYQT__ import QtGui
-            QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
+            #from guitool_ibeis.__PYQT__ import QtGui
+            QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
             QMainWin = object
@@ -129,7 +135,7 @@ def get_all_windows():
     try:
         all_figures = get_all_figures()
         all_qt4wins = get_all_qt4_wins()
-        all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
+        all_wins = all_qt4wins + [get_figure_window(fig) for fig in all_figures]
         return all_wins
     except AttributeError as ex:
         ut.printex(ex, 'probably using a windowless backend',
@@ -138,15 +144,13 @@ def get_all_windows():
 
 
 #@profile
-def all_figures_tile(max_rows=None,
-                     row_first=True,
-                     no_tile=False,
-                     monitor_num=None,
-                     **kwargs):
+def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
+                     monitor_num=None, percent_w=None, percent_h=None,
+                     hide_toolbar=True):
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    #print('[plottool] all_figures_tile()')
+    #print('[plottool_ibeis] all_figures_tile()')
     if no_tile:
         return
 
@@ -160,24 +164,29 @@ def all_figures_tile(max_rows=None,
     if num_wins == 0:
         return
 
-    from plottool import screeninfo
+    from plottool_ibeis import screeninfo
 
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
-                                                         adaptive=True)
+                                                         percent_w=percent_w,
+                                                         percent_h=percent_h)
 
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
-        from guitool.__PYQT__ import QtGui
-        isqt4_back = isinstance(win, QtGui.QMainWindow)
-        isqt4_widget = isinstance(win, QtGui.QWidget)
+        from guitool_ibeis.__PYQT__ import QtGui  # NOQA
+        from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+        isqt4_back = isinstance(win, QtWidgets.QMainWindow)
+        isqt4_widget = isinstance(win, QtWidgets.QWidget)
         (x, y, w, h) = valid_positions[ix]
         #printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
         if not isqt4_mpl and not isqt4_back and not isqt4_widget:
             raise NotImplementedError('%r-th Backend %r is not a Qt Window' %
                                       (ix, win))
         try:
+            if hide_toolbar:
+                toolbar = win.findChild(QtWidgets.QToolBar)
+                toolbar.setVisible(False)
             win.setGeometry(x, y, w, h)
         except Exception as ex:
             ut.printex(ex)
@@ -189,35 +198,43 @@ def all_figures_bring_to_front():
         for fig in iter(all_figures):
             bring_to_front(fig)
     except Exception as ex:
-        ut.printex(ex)
+        if not hasattr(fig, '_no_raise_plottool_ibeis'):
+            ut.printex(ex, iswarning=True)
 
 
 def close_all_figures():
+    print('[pt] close_all_figures')
     all_figures = get_all_figures()
     for fig in iter(all_figures):
         close_figure(fig)
 
 
 def close_figure(fig):
+    print('[pt] close_figure')
     fig.clf()
     fig.df2_closed = True
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     qtwin.close()
 
-#def close_figure(fig):
-#    plt.close(fig)
+
+def get_figure_window(fig):
+    try:
+        qwin = fig.canvas.manager.window
+    except AttributeError:
+        qwin = fig.canvas.window()
+    return qwin
 
 
 def bring_to_front(fig):
     if VERBOSE:
         print('[pt] bring_to_front')
     #what is difference between show and show normal?
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     qtwin.raise_()
     #if not ut.WIN32:
     # NOT sure on the correct order of these
     # can cause the figure geometry to be unset
-    from guitool.__PYQT__.QtCore import Qt
+    from guitool_ibeis.__PYQT__.QtCore import Qt
     qtwin.activateWindow()
     qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
     qtwin.setWindowFlags(Qt.WindowFlags(0))
@@ -262,29 +279,30 @@ iup = iupdate
 
 def present(*args, **kwargs):
     """
-    execing present should cause IPython magic
-
     basically calls show if not embeded.
+
+    Kwargs:
+        max_rows, row_first, no_tile, monitor_num, percent_w, percent_h,
+        hide_toolbar
+
+    CommandLine:
+        python -m plottool_ibeis.fig_presenter present
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool_ibeis.fig_presenter import *  # NOQA
+        >>> result = present()
+        >>> print(result)
+        >>> import plottool_ibeis as pt
+        >>> pt.show_if_requested()
     """
     if VERBOSE:
         print('[pt] present')
-    if '--noshow' not in sys.argv:
+    if not ut.get_argflag('--noshow'):
         #print('[fig_presenter] Presenting figures...')
         #with warnings.catch_warnings():
         #    warnings.simplefilter("ignore")
         all_figures_tile(*args, **kwargs)
+        # Both of these lines cause the weird non-refresh black border behavior
         all_figures_show()
         all_figures_bring_to_front()
-        # Return an exec string
-    execstr = ut.ipython_execstr()
-    execstr += textwrap.dedent('''
-    if not embedded:
-        if '--quiet' not in sys.argv:
-            print('[fig_presenter] Presenting in normal shell.')
-            print('[fig_presenter] ... plt.show()')
-        import matplotlib.pyplot as plt
-        if '--noshow' not in sys.argv:
-            print('WARNING USING plt.show')
-            plt.show()
-    ''')
-    return execstr

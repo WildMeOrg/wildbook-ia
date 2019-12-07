@@ -1,11 +1,11 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from plottool import viz_image2
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
+from plottool_ibeis import viz_image2
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import plot_helpers as ph
 import utool
 import numpy as np
-from plottool.tests.test_helpers import dummy_bbox, imread_many
+from plottool_ibeis.tests.test_helpers import dummy_bbox, imread_many
 
 
 def test_viz_image(imgpaths):
@@ -39,7 +39,7 @@ def test_viz_image(imgpaths):
 
 
 if __name__ == '__main__':
-    TEST_IMAGES_URL = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
+    TEST_IMAGES_URL = 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths       = utool.list_images(test_image_dir, fullpath=True)   # test image paths
     test_viz_image(imgpaths)

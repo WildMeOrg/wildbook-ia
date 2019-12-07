@@ -66,11 +66,14 @@ else:
 
 # COLORS
 
-ORANGE        = np.array((255, 127,   0, 255)) / 255.0
 RED           = np.array((255,   0,   0, 255)) / 255.0
-GREEN         = np.array((  0, 255,   0, 255)) / 255.0
-BLUE          = np.array((  0,   0, 255, 255)) / 255.0
 YELLOW        = np.array((255, 255,   0, 255)) / 255.0
+GREEN         = np.array((  0, 255,   0, 255)) / 255.0
+CYAN          = np.array((  0, 255, 255, 255)) / 255.0
+BLUE          = np.array((  0,   0, 255, 255)) / 255.0
+MAGENTA       = np.array((255,   0, 255, 255)) / 255.0
+
+ORANGE        = np.array((255, 127,   0, 255)) / 255.0
 BLACK         = np.array((  0,   0,   0, 255)) / 255.0
 WHITE         = np.array((255, 255, 255, 255)) / 255.0
 GRAY          = np.array((127, 127, 127, 255)) / 255.0
@@ -80,7 +83,8 @@ PINK          = np.array((255, 100, 100, 255)) / 255.0
 LIGHT_PINK    = np.array((255, 200, 200, 255)) / 255.0
 FALSE_RED     = np.array((255,  51,   0, 255)) / 255.0
 TRUE_GREEN    = np.array((  0, 255,   0, 255)) / 255.0
-TRUE_BLUE     = np.array((  0, 255, 255, 255)) / 255.0
+# TRUE_BLUE     = np.array((  0, 255, 255, 255)) / 255.0
+TRUE_BLUE     = np.array((  0, 115, 207, 255)) / 255.0
 DARK_GREEN    = np.array((  0, 127,   0, 255)) / 255.0
 DARK_BLUE     = np.array((  0,   0, 127, 255)) / 255.0
 DARK_RED      = np.array((127,  0,    0, 255)) / 255.0
