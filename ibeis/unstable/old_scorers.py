@@ -285,7 +285,7 @@ def get_masks(qreq_, cm, config={}):
         >>> config = qreq_.qparams
         >>> id_list, score_list, masks_list = get_masks(qreq_, cm, config)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> show_coverage_mask(qreq_, cm, masks_list, index=score_list.argmax())
         >>> pt.show_if_requested()
     """
@@ -320,7 +320,7 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     """
     DEPRICATE
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis import viz
     fnum = pt.ensure_fnum(fnum)
     idx_list = ut.dict_take(cm.daid2_idx, daids)
@@ -369,7 +369,7 @@ def show_annot_weights(qreq_, aid, config={}):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.scoring import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = qreq_.ibs
@@ -378,7 +378,7 @@ def show_annot_weights(qreq_, aid, config={}):
         >>> show_annot_weights(qreq_, aid, config)
         >>> pt.show_if_requested()
     """
-    #import plottool as pt
+    #import plottool_ibeis as pt
     fnum = 1
     chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.extern_query_config2)
     chip  = qreq_.ibs.get_annot_chips(aid, config2_=qreq_.extern_query_config2)

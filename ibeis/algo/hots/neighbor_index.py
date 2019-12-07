@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import pyflann
 # import itertools as it
 #import lockfile

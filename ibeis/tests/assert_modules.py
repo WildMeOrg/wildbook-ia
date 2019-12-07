@@ -197,16 +197,16 @@ def pyrf_version():
 
 @checkinfo('1.0.1')
 def vtool_version():
-    import vtool
+    import vtool_ibeis
     libdep = None
     if LIB_DEP:
         libdep = None
     else:
         try:
-            libdep = ut.get_dynlib_dependencies(vtool.sver_c_wrapper.lib_fname)
+            libdep = ut.get_dynlib_dependencies(vtool_ibeis.sver_c_wrapper.lib_fname)
         except Exception:
             pass
-    return module_stdinfo_dict(vtool, libdep=libdep)
+    return module_stdinfo_dict(vtool_ibeis, libdep=libdep)
 
 
 #@checkinfo('1.1.7')

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
-from plottool import plot_helpers as ph
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
@@ -15,7 +15,7 @@ def HARDCODE_SHOW_PB_PAIR():
     Example:
         >>> # SCRIPT
         >>> from ibeis.viz.viz_chip import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> HARDCODE_SHOW_PB_PAIR()
         >>> pt.show_if_requested()
     """
@@ -33,7 +33,7 @@ def HARDCODE_SHOW_PB_PAIR():
     selected_ams = ut.compress(ams, flags)
     aid_pairs = ibs.get_annotmatch_aids(selected_ams)
     aid1, aid2 = aid_pairs[index]
-    import plottool as pt
+    import plottool_ibeis as pt
     fnum = 1
     if ut.get_argflag('--match'):
         request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])
@@ -93,7 +93,7 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=Tru
         print('[viz] show_many_chips')
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
-    import vtool as vt
+    import vtool_ibeis as vt
     stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True, vert=vert)
     pt.imshow(stacked_chips, fnum=None, pnum=None)
 
@@ -137,7 +137,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
@@ -216,7 +216,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         zoom_ = ut.get_argval('--zoom', type_=float, default=None)
         if zoom_ is not None:
-            import vtool as vt
+            import vtool_ibeis as vt
             # Zoom into the chip for some image context
             rotated_verts = ibs.get_annot_rotated_verts(aid)
             bbox = ibs.get_annot_bboxes(aid)

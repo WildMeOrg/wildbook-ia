@@ -38,7 +38,7 @@ from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import parse
 
 """
@@ -97,11 +97,11 @@ class Ingestable2(object):
         self.imgpath_list = imgpath_list
         self.postingest_func = postingest_func
 
-        import dtool
+        import dtool_ibeis
         # valid_species = None
         valid_species = ['____']
 
-        class IngestConfig(dtool.Config):
+        class IngestConfig(dtool_ibeis.Config):
             _param_info_list = [
                 ut.ParamInfo(
                     'images_as_annots', False),
@@ -626,7 +626,7 @@ def ingest_testdb1(dbname):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> import utool as ut
-        >>> from vtool.tests import grabdata
+        >>> from vtool_ibeis.tests import grabdata
         >>> import ibeis
         >>> grabdata.ensure_testdata()
         >>> # DELETE TESTDB1
@@ -634,7 +634,7 @@ def ingest_testdb1(dbname):
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from vtool.tests import grabdata   # TODO: remove and use utool appdir
+    from vtool_ibeis.tests import grabdata   # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
         from ibeis import constants as const
@@ -904,7 +904,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_oxford_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
 
     Ignore:
@@ -1186,7 +1186,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_coco_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import simplejson as json

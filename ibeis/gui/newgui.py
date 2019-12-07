@@ -22,15 +22,15 @@ from os.path import isdir
 import sys
 import functools
 import utool as ut
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
-from guitool import slot_, ChangeLayoutContext
-# from guitool import BlockContext
-# from guitool import checks_qt_error
-import guitool as gt
-import plottool as pt
-from plottool import color_funcs
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis import slot_, ChangeLayoutContext
+# from guitool_ibeis import BlockContext
+# from guitool_ibeis import checks_qt_error
+import guitool_ibeis as gt
+import plottool_ibeis as pt
+from plottool_ibeis import color_funcs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six

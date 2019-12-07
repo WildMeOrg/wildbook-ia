@@ -13,7 +13,7 @@ def flow():
     import pystruct.models  # NOQA
     import networkx as netx  # NOQA
 
-    import vtool as vt
+    import vtool_ibeis as vt
     num_annots = 10
     num_names = num_annots
     hidden_nids = np.random.randint(0, num_names, num_annots)
@@ -25,7 +25,7 @@ def flow():
     }
 
     if True:
-        import plottool as pt
+        import plottool_ibeis as pt
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
         fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])

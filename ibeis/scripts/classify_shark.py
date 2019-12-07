@@ -342,7 +342,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         Xb_, yb_ = model.augment(Xb)
         yb_ = None
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> from ibeis_cnn import augment
         >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
@@ -416,7 +416,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     try:
         dataset.load()
     except IOError:
-        import vtool as vt
+        import vtool_ibeis as vt
         dataset.ensure_dirs()
 
         if data_type == 'hog':
@@ -719,7 +719,7 @@ class ClfProblem(object):
             y_data_min = ydata_mean - y_data_std
 
             #pt.plot(xdata, ydata, '-rx')
-            import plottool as pt
+            import plottool_ibeis as pt
             pt.figure(fnum=pt.ensure_fnum(None))
             ax = pt.gca()
             ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
@@ -729,7 +729,7 @@ class ClfProblem(object):
             #ydata_mean = c_ydata
             #y_data_max = ydata_mean + y_data_std
             #y_data_min = ydata_mean - y_data_std
-            ##import plottool as pt
+            ##import plottool_ibeis as pt
             ##pt.figure(fnum=pt.ensure_fnum(None))
             #ax = pt.gca()
             #ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
@@ -1110,7 +1110,7 @@ def shark_svm():
 
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
             c_ydata = np.array([t[1] for t in grid.grid_scores_])
-            import vtool as vt
+            import vtool_ibeis as vt
             #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
             submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
             #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
@@ -1146,7 +1146,7 @@ def shark_svm():
     result_list = [result]
 
     import pandas as pd
-    #import plottool as pt
+    #import plottool_ibeis as pt
     # Combine information from results
     df = pd.concat([r.df for r in result_list])
     df['hardness'] = 1 / df['easiness']
@@ -1218,7 +1218,7 @@ def shark_svm():
 
 def inspect_results(ds, result_list):
     import pandas as pd
-    import plottool as pt
+    import plottool_ibeis as pt
     pd.set_option("display.max_rows", 20)
     pt.qt4ensure()
 

@@ -6,7 +6,7 @@ import utool as ut
 import numpy as np
 import six
 from six.moves import zip, map  # NOQA
-from vtool import nearest_neighbors as nntool
+from vtool_ibeis import nearest_neighbors as nntool
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
 from ibeis.algo.hots.smk import smk_index

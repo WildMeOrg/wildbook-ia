@@ -35,7 +35,7 @@ Note:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import dtool
+import dtool_ibeis
 import atexit
 import weakref
 import utool as ut
@@ -100,7 +100,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
-    (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
+    # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     #'ibeis.web.apis_engine',
 ]
 
@@ -525,7 +525,7 @@ class IBEISController(BASE_CLASS):
         needs_backup = not ut.get_argflag('--nobackup')
         if ibs.get_dbname() == 'PZ_MTEST':
             needs_backup = False
-        if dtool.sql_control.READ_ONLY:
+        if dtool_ibeis.sql_control.READ_ONLY:
             needs_backup = False
         return needs_backup
 
@@ -583,7 +583,7 @@ class IBEISController(BASE_CLASS):
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
-            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
+            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
                 ibs.sqldb_fname, ibs.db_version_expected, version_next='1.8.1')
             ibs.db_version_expected = new_version
@@ -594,7 +594,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.db = dtool.SQLDatabaseController(
+        ibs.db = dtool_ibeis.SQLDatabaseController(
             fpath=sqldb_fpath, text_factory=six.text_type,
             inmemory=False, readonly=readonly,
             always_check_metadata=False,
@@ -666,7 +666,7 @@ class IBEISController(BASE_CLASS):
             ibs.staging_version_expected = request_stagingversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
-            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
+            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
                 ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.1.0')
             ibs.staging_version_expected = new_version
@@ -677,7 +677,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.staging = dtool.SQLDatabaseController(
+        ibs.staging = dtool_ibeis.SQLDatabaseController(
             fpath=sqlstaging_fpath, text_factory=six.text_type,
             inmemory=False, readonly=readonly,
             always_check_metadata=False,
@@ -700,7 +700,7 @@ class IBEISController(BASE_CLASS):
     def _init_depcache(ibs):
         # Initialize dependency cache for images
         image_root_getters = {}
-        ibs.depc_image = dtool.DependencyCache(
+        ibs.depc_image = dtool_ibeis.DependencyCache(
             root_tablename=const.IMAGE_TABLE,
             default_fname=const.IMAGE_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
@@ -724,7 +724,7 @@ class IBEISController(BASE_CLASS):
             'theta': ibs.get_annot_thetas,
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc_annot = dtool.DependencyCache(
+        ibs.depc_annot = dtool_ibeis.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
@@ -742,7 +742,7 @@ class IBEISController(BASE_CLASS):
 
         # Initialize dependency cache for parts
         part_root_getters = {}
-        ibs.depc_part = dtool.DependencyCache(
+        ibs.depc_part = dtool_ibeis.DependencyCache(
             root_tablename=const.PART_TABLE,
             default_fname=const.PART_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
@@ -1098,14 +1098,14 @@ class IBEISController(BASE_CLASS):
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> icon = ibs.get_database_icon()
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.imshow(icon)
             >>> ut.show_if_requested()
         """
         #if ibs.get_dbname() == 'Oxford':
         #    pass
         #else:
-        import vtool as vt
+        import vtool_ibeis as vt
         if hasattr(ibs, 'force_icon_aid'):
             aid = ibs.force_icon_aid
         if aid is None:

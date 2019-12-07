@@ -41,17 +41,17 @@ CommandLine:
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
     >>> import ibeis
-    >>> import plottool as pt
+    >>> import plottool_ibeis as pt
     >>> ibs = ibeis.opendb('testdb1')
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from vtool import image_filters
-import dtool
+from vtool_ibeis import image_filters
+import dtool_ibeis
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import numpy as np
 import cv2
 from ibeis.control.controller_inject import register_preprocs, register_subprops
@@ -62,12 +62,12 @@ from ibeis.algo.hots import neighbor_index
 
 derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
-# dtool.Config.register_func = derived_attribute
+# dtool_ibeis.Config.register_func = derived_attribute
 
 
 def testdata_core(defaultdb='testdb1', size=2):
     import ibeis
-    # import plottool as pt
+    # import plottool_ibeis as pt
     ibs = ibeis.opendb(defaultdb=defaultdb)
     depc = ibs.depc_annot
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
@@ -75,7 +75,7 @@ def testdata_core(defaultdb='testdb1', size=2):
     return ibs, depc, aid_list
 
 
-class ChipThumbConfig(dtool.Config):
+class ChipThumbConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('thumbsize', 128, 'sz', type_=eval),
         ut.ParamInfo('pad', 0, hideif=0),
@@ -88,7 +88,7 @@ class ChipThumbConfig(dtool.Config):
 @derived_attribute(
     tablename='chipthumb', parents=['annotations'],
     colnames=['img', 'width', 'height'],
-    coltypes=[dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
+    coltypes=[dtool_ibeis.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
               int, int],
     configclass=ChipThumbConfig,
     fname='chipthumb',
@@ -110,7 +110,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> compute_chipthumb(depc, aid_list, config)
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import ibeis.viz.interact.interact_chip
         >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
         >>> interact_obj.start()
@@ -240,7 +240,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         yield (thumbBGR, width, height)
 
 
-class ChipConfig(dtool.Config):
+class ChipConfig(dtool_ibeis.Config):
     _param_info_list = [
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
         #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
@@ -270,7 +270,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
-ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
+ChipImgType = dtool_ibeis.ExternType(vt.imread, vt.imwrite, extkey='ext')
 
 
 @derived_attribute(
@@ -312,7 +312,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> #interact_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
         >>> import ibeis.viz.interact.interact_chip
         >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
@@ -331,7 +331,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config=config, recompute=True)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
     """
@@ -505,7 +505,7 @@ def compute_dlen_sqrd(depc, aid_list, config=None):
     return dlen_sqrt_list
 
 
-class AnnotMaskConfig(dtool.Config):
+class AnnotMaskConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('manual', True)
     ]
@@ -548,13 +548,13 @@ def compute_annotmask(depc, aid_list, config=None):
         >>> mask = depc.get_property('annotmask', aid_list, 'img', config, recompute=edit)[0]
         >>> chip = depc.get_property('chips', aid_list, 'img', config=chip_config)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> resized = vt.resize_mask(mask, chip)
         >>> blended = vt.blend_images_multiply(chip, resized)
         >>> pt.imshow(blended, title='mask')
         >>> pt.show_if_requested()
     """
-    from plottool import interact_impaint
+    from plottool_ibeis import interact_impaint
     # TODO: Ensure interactive required cache words
     # Keep manual things above the cache dir
     mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
@@ -591,7 +591,7 @@ def compute_annotmask(depc, aid_list, config=None):
         # ibs.delete_annot_chip_thumbs([aid])
 
 
-class ProbchipConfig(dtool.Config):
+class ProbchipConfig(dtool_ibeis.Config):
     # TODO: incorporate into base
     _named_defaults = {
         'rf': {
@@ -616,7 +616,7 @@ class ProbchipConfig(dtool.Config):
     #]
 
 
-ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
+ProbchipImgType = dtool_ibeis.ExternType(ut.partial(vt.imread, grayscale=True),
                                    vt.imwrite, extern_ext='.png')
 
 
@@ -648,7 +648,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> #result = ut.repr2(probchip_fpath_list_)
         >>> #print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> #xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
         >>> #iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> xlabel_list = [str(vt.get_size(img)) for img in probchip_list_]
@@ -658,7 +658,7 @@ def compute_probchip(depc, aid_list, config=None):
     """
     print('[core] COMPUTING FEATWEIGHTS')
     print('config = %r' % (config,))
-    import vtool as vt
+    import vtool_ibeis as vt
 
     ibs = depc.controller
 
@@ -828,7 +828,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
 
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = ChipConfig.from_argv_dict()
         >>> probchip_config = ProbchipConfig(smooth_thresh=None)
@@ -856,7 +856,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     return mask2
 
 
-class HOGConfig(dtool.Config):
+class HOGConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('orientations', 8),
         ut.ParamInfo('pixels_per_cell', (16, 16)),
@@ -929,7 +929,7 @@ def compute_hog(depc, cid_list, config=None):
         >>> hoggen = compute_hog(depc, cid_list, config)
         >>> hog = list(hoggen)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> hog_image = make_hog_block_image(hog, config)
         >>> ut.show_if_requested()
     """
@@ -948,7 +948,7 @@ def compute_hog(depc, cid_list, config=None):
         yield (hog,)
 
 
-class FeatConfig(dtool.Config):
+class FeatConfig(dtool_ibeis.Config):
     r"""
     Example:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1013,7 +1013,7 @@ def compute_feats(depc, cid_list, config=None):
     this equation. Move the firewall towards the controller
 
     Args:
-        depc (dtool.DependencyCache):
+        depc (dtool_ibeis.DependencyCache):
         cid_list (list):
         config (None):
 
@@ -1041,7 +1041,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> assert kpts.shape[1] == 6
         >>> assert vecs.shape[1] == 128
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1059,7 +1059,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> idx = 5
         >>> (nFeat, kpts, vecs) = feat_list[idx]
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> chip = depc.get_native('chips', cid_list[idx:idx + 1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1150,8 +1150,8 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         >>> result = ('(num_kpts, kpts, vecs) = %s' % (ut.repr2((num_kpts, kpts, vecs)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> from plottool.interactions import ExpandableInteraction
+        >>> import plottool_ibeis as pt
+        >>> from plottool_ibeis.interactions import ExpandableInteraction
         >>> interact = ExpandableInteraction()
         >>> interact.append_plot(pt.interact_keypoints.KeypointInteraction(masked_chip, kpts, vecs))
         >>> interact.append_plot(lambda **kwargs: pt.plot_score_histograms([vt.get_scales(kpts)], **kwargs))
@@ -1173,11 +1173,11 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
     return (num_kpts, kpts, vecs)
 
 
-class FeatWeightConfig(dtool.Config):
+class FeatWeightConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('featweight_enabled', True, 'enabled='),
     ]
-    # FIXME: incorporate config dependencies in dtool
+    # FIXME: incorporate config dependencies in dtool_ibeis
     #_parents = [FeatConfig, ProbchipConfig]
 
 
@@ -1191,7 +1191,7 @@ class FeatWeightConfig(dtool.Config):
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
     Args:
-        depc (dtool.DependencyCache): depc
+        depc (dtool_ibeis.DependencyCache): depc
         fid_list (list):
         config (None): (default = None)
 
@@ -1260,7 +1260,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
         >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> fnum = 1
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.figure(fnum=fnum, doclf=True)
@@ -1296,7 +1296,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
     return weights
 
 
-class VsOneConfig(dtool.Config):
+class VsOneConfig(dtool_ibeis.Config):
     """
     Example:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1461,7 +1461,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         return configured_lazy_annots
 
 
-class IndexerConfig(dtool.Config):
+class IndexerConfig(dtool_ibeis.Config):
     """
     Example:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1507,9 +1507,9 @@ testmode = ut.get_argflag('--testmode')
 def compute_neighbor_index(depc, fids_list, config):
     r"""
     Args:
-        depc (dtool.DependencyCache):
+        depc (dtool_ibeis.DependencyCache):
         fids_list (list):
-        config (dtool.Config):
+        config (dtool_ibeis.Config):
 
     CommandLine:
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
@@ -1554,7 +1554,7 @@ def compute_neighbor_index(depc, fids_list, config):
     yield (nnindexer,)
 
 
-# class FeatNeighborConfig(dtool.Config)
+# class FeatNeighborConfig(dtool_ibeis.Config)
 
 
 if testmode:
@@ -1568,9 +1568,9 @@ if testmode:
     def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
         """
         Args:
-            depc (dtool.DependencyCache):
+            depc (dtool_ibeis.DependencyCache):
             aids_list (list):
-            config (dtool.Config):
+            config (dtool_ibeis.Config):
 
         CommandLine:
             python -m ibeis.core_annots --exec-compute_feature_neighbors --show
@@ -1642,7 +1642,7 @@ if testmode:
         pass
 
 
-class ClassifierConfig(dtool.Config):
+class ClassifierConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
@@ -1703,7 +1703,7 @@ def compute_classifications(depc, aid_list, config=None):
         yield result
 
 
-class LabelerConfig(dtool.Config):
+class LabelerConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
@@ -1764,7 +1764,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         yield result
 
 
-class AoIConfig(dtool.Config):
+class AoIConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('aoi_two_weight_filepath', None),
     ]

@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range
 from os.path import expanduser, join, abspath
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
 import cv2
 from ibeis.control import controller_inject
@@ -1195,7 +1195,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
                                             target_recall=0.8, BEST_INDEX=None, offset_color=0,
                                             write_images=False, plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    import plottool_ibeis as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
@@ -1626,7 +1626,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
 @register_ibs_method
 def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(20, 20)):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    import plottool_ibeis as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
@@ -1940,7 +1940,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                                               test_gid_list=None,
                                               figsize=(20, 9), **kwargs):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    import plottool_ibeis as pt
 
     depc = ibs.depc_image
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
@@ -2229,7 +2229,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 # def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
 #                                           category_mapping=None, figsize=(30, 9), **kwargs):
 #     import matplotlib.pyplot as plt
-#     import plottool as pt
+#     import plottool_ibeis as pt
 
 #     if category_list is None:
 #         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2489,7 +2489,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 @register_ibs_method
 def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=False, figsize=(20, 20)):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    import plottool_ibeis as pt
 
     fig_ = plt.figure(figsize=figsize)
 

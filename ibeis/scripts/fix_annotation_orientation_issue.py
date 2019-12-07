@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import numpy as np
 
 
@@ -20,7 +20,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         >>> unfixable_gid_list = fix_annotation_orientation(ibs)
         >>> assert len(unfixable_gid_list) == 0
     """
-    from vtool import exif
+    from vtool_ibeis import exif
 
     def bbox_overlap(bbox1, bbox2):
         ax1 = bbox1[0]

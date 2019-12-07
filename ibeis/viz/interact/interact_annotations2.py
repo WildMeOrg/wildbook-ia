@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from plottool import interact_annotations
-import plottool as pt  # NOQA
+from plottool_ibeis import interact_annotations
+import plottool_ibeis as pt  # NOQA
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 

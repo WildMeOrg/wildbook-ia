@@ -178,7 +178,7 @@ def run_tests():
     doctest_modname_list2 = []
 
     try:
-        import guitool  # NOQA
+        import guitool_ibeis  # NOQA
     except ImportError:
         HAVE_GUI = False
     else:

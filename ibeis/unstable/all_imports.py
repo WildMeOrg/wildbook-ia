@@ -57,11 +57,11 @@ if six.PY2:
 import psutil
 # Qt
 import sip
-from guitool import __PYQT__
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__.QtCore import Qt
+from guitool_ibeis import __PYQT__
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__.QtCore import Qt
 # Matplotlib
-from plottool import __MPL_INIT__
+from plottool_ibeis import __MPL_INIT__
 __MPL_INIT__.init_matplotlib()
 #mpl.use('Qt4Agg')  # pyinstaller hack
 import matplotlib
@@ -95,34 +95,34 @@ import simplejson
 import utool
 import utool as ut
 import detecttools
-import vtool
-import vtool as vt
-import plottool
-import guitool
+import vtool_ibeis
+import vtool_ibeis as vt
+import plottool_ibeis
+import guitool_ibeis
 
 # VTool
-import vtool
-from vtool import chip as ctool
-from vtool import image as gtool
-from vtool import histogram as htool
-from vtool import patch as ptool
-from vtool import keypoint as ktool
-from vtool import linalg as ltool
-from vtool import linalg
-from vtool import geometry
-from vtool import segmentation
-from vtool import spatial_verification as sverif
-from vtool.tests import grabdata
+import vtool_ibeis
+from vtool_ibeis import chip as ctool
+from vtool_ibeis import image as gtool
+from vtool_ibeis import histogram as htool
+from vtool_ibeis import patch as ptool
+from vtool_ibeis import keypoint as ktool
+from vtool_ibeis import linalg as ltool
+from vtool_ibeis import linalg
+from vtool_ibeis import geometry
+from vtool_ibeis import segmentation
+from vtool_ibeis import spatial_verification as sverif
+from vtool_ibeis.tests import grabdata
 
 # PlotTool
-import plottool
-import plottool as pt
-from plottool import plot_helpers as ph
-from plottool import draw_func2 as df2
-from plottool import interact_helpers as ih
-from plottool import viz_keypoints
-from plottool import viz_image2
-from plottool import fig_presenter
+import plottool_ibeis
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import interact_helpers as ih
+from plottool_ibeis import viz_keypoints
+from plottool_ibeis import viz_image2
+from plottool_ibeis import fig_presenter
 
 (print, rrr, profile) = utool.inject2(__name__)
 
@@ -149,9 +149,9 @@ def reload_all():
     # reload utool first so class functions will be reregistered
     utool.reload_subs()
     guiback.rrr()
-    vtool.reload_subs()
-    guitool.reload_subs()
-    plottool.reload_subs()
+    vtool_ibeis.reload_subs()
+    guitool_ibeis.reload_subs()
+    plottool_ibeis.reload_subs()
     # reload ibeis last
     ibeis.reload_subs()
 

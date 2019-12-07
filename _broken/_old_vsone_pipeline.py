@@ -25,7 +25,7 @@
 #         >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list, verbose=verbose)
 #         >>> ut.quit_if_noshow()
 #         >>> from ibeis.algo.hots import vsone_pipeline
-#         >>> import plottool as pt
+#         >>> import plottool_ibeis as pt
 #         >>> # NOTE: the aid2_score field must have been hacked
 #         >>> vsone_pipeline.show_top_chipmatches(ibs, cm_list, 0,  'prescore')
 #         >>> vsone_pipeline.show_top_chipmatches(ibs, cm_list_VSONE,   1, 'vsone-reranked')
@@ -91,12 +91,12 @@ TestFuncs:
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import six  # NOQA
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import scoring
 import functools
-from vtool import matching
+from vtool_ibeis import matching
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range, reduce  # NOQA
@@ -124,7 +124,7 @@ def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> import ibeis
         >>> cfgdict = {}
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -133,7 +133,7 @@ def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):
         >>> qreq_ = ibs.new_query_request([qaid], [daid], cfgdict=cfgdict)
         >>> use_ibscache = not ut.get_argflag('--noibscache')
         >>> metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache)
-        >>> from vtool import inspect_matches
+        >>> from vtool_ibeis import inspect_matches
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> self = inspect_matches.MatchInspector(metadata=metadata)
@@ -253,8 +253,8 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    from plottool.interactions import ExpandableInteraction
-    import plottool as pt
+    from plottool_ibeis.interactions import ExpandableInteraction
+    import plottool_ibeis as pt
     import ibeis.viz
     fnum = pt.ensure_fnum(None)
     inter = ExpandableInteraction(fnum)
@@ -395,7 +395,7 @@ def vsone_independant(qreq_):
 
     qaids = qreq_.get_internal_qaids()
     daids = qreq_.get_internal_daids()
-    import vtool as vt
+    import vtool_ibeis as vt
 
     info_list = []
     #for aid1, aid2 in ut.ProgressIter(aid_pair_list):
@@ -423,7 +423,7 @@ def show_post_vsmany_vser():
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> show_post_vsmany_vser()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()
     # HACK TO PRESCORE
     prepare_vsmany_chipmatch(qreq_, cm_list_SVER)
@@ -490,7 +490,7 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list_SVER)
         >>> #cm_list = cm_list_VSONE
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'
         >>> # ut.repr2(rrvsone_cfgdict, newlines=False)
         >>> show_all_ranked_matches(qreq_, cm_list_VSONE, figtitle=figtitle)
@@ -545,7 +545,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
         >>> matches, metadata = extract_aligned_parts(ibs, qaid, daid, qreq_)
         >>> rchip1_crop, rchip2_crop = metadata['rchip1_crop'], metadata['rchip2_crop']
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> #pt.imshow(vt.stack_images(rchip1_, rchip2)[0])
         >>> pt.figure(doclf=True)
         >>> blend = vt.blend_images(rchip1_crop, rchip2_crop)
@@ -562,7 +562,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
         >>> ibs = ibeis.opendb(defaultdb='PZ_FlankHack')
         >>> nid_list = ibs.get_valid_nids(min_pername=2)
         >>> pcfgdict = ibeis.main_helpers.testdata_pipecfg()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> custom_actions = [
         >>>     ('present', ['s'], 'present', pt.present),
         >>> ]
@@ -587,7 +587,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
     rchip1 = metadata['annot1']['rchip']
     rchip2 = metadata['annot2']['rchip']
     H1 = metadata['H_RAT']
-    import vtool as vt
+    import vtool_ibeis as vt
     wh2 = vt.get_size(rchip2)
     rchip1_ = vt.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
     isfill = vt.get_pixel_dist(rchip1_, np.array([0, 0, 0])) == 0
@@ -664,8 +664,8 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
 #     W = score_mat
 #     D = np.diag(W.sum(axis=0))  # NOQA
 
-#     from plottool.interactions import ExpandableInteraction
-#     import plottool as pt
+#     from plottool_ibeis.interactions import ExpandableInteraction
+#     import plottool_ibeis as pt
 #     import networkx as nx
 #     if False:
 #         pos = nx.circular_layout(g)
@@ -743,7 +743,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
 
 #     inter.start()
 #     #pt.plot_score_histograms([fx2_to_dist.T[0]])
-#     #import plottool as pt
+#     #import plottool_ibeis as pt
 #     #pt.plot_score_histograms([m.matches['TOP+SV'][1]])
 
 #     sym_score_mat = np.maximum(score_mat, score_mat.T)
@@ -799,7 +799,7 @@ def get_selectivity_score_list(qreq_, qaid, daid_list, fm_list, cos_power):
 
 @profile
 def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
-    from vtool import spatial_verification as sver
+    from vtool_ibeis import spatial_verification as sver
     # params
     # TODO: rectify with sver_single_chipmatch
     # TODO paramaterize better
@@ -978,7 +978,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
     Example1:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
         >>> config = qreq_.qparams
@@ -1060,7 +1060,7 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         >>> match_results = compute_query_unconstrained_matches(qreq_, qaid, daid_list, config)
         >>> fm_RAT_list, fs_RAT_list, fm_norm_RAT_list = match_results
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> idx = ut.listfind(ibs.get_annot_nids(daid_list).tolist(), ibs.get_annot_nids(qaid))
         >>> args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)
         >>> show_single_match(*args, index=idx)
@@ -1113,7 +1113,7 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
         >>> match_results = compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config)
         >>> fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = match_results
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
         >>> index = ut.get_argval('--index', int, idx)
         >>> args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
@@ -1232,11 +1232,11 @@ def gridsearch_single_vsone_rerank():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gridsearch_single_vsone_rerank()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     ibs, qreq_, prior_cm = plh.testdata_matching()
     config = qreq_.qparams
     fnum = pt.ensure_fnum(None)
@@ -1295,12 +1295,12 @@ def gridsearch_constrained_matches():
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> gridsearch_constrained_matches()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
     cfgdict_list, cfglbl_list = SCR_DEFAULTS.get_gridsearch_input(defaultslice=slice(0, 10))
@@ -1365,12 +1365,12 @@ def gridsearch_unconstrained_matches():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gridsearch_unconstrained_matches()
         >>> pt.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
     cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_output_weighting=True)
@@ -1450,7 +1450,7 @@ def show_matches(ibs, qaid, daid, fm, fs=None, fm_norm=None,
 
 
 def show_ranked_matches(ibs, cm, fnum=None):
-    import plottool as pt
+    import plottool_ibeis as pt
     qaid = cm.qaid
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1476,7 +1476,7 @@ def show_ranked_matches(ibs, cm, fnum=None):
 
 def show_all_ranked_matches(qreq_, cm_list, fnum_offset=0, figtitle=''):
     """ helper """
-    import plottool as pt
+    import plottool_ibeis as pt
     for fnum_, cm in enumerate(cm_list):
         #cm.foo()
         fnum = fnum_ + fnum_offset

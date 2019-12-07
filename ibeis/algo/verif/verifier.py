@@ -5,7 +5,7 @@ import pandas as pd
 import utool as ut
 from ibeis.algo.verif import pairfeat
 from ibeis.algo.verif import sklearn_utils
-import vtool as vt
+import vtool_ibeis as vt
 # import itertools as it
 # from os.path import join
 print, rrr, profile = ut.inject2(__name__)

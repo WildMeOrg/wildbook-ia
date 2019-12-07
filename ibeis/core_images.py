@@ -34,10 +34,10 @@ Needed Tables:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-import dtool
+import dtool_ibeis
 import utool as ut
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
@@ -46,7 +46,7 @@ from ibeis.control.controller_inject import register_preprocs
 register_preproc = register_preprocs['image']
 
 
-class ThumbnailConfig(dtool.Config):
+class ThumbnailConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('draw_annots', True, hideif=True),
         ut.ParamInfo('thumbsize', None, type_=None, hideif=None),
@@ -88,7 +88,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221}, recompute=True)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)
         >>> iteract_obj.start()
         >>> pt.show_if_requested()
@@ -155,7 +155,7 @@ def draw_thumb_helper(thumbsize, gpath, orient, bbox_list, theta_list, interest_
     return thumb, width, height
 
 
-class ClassifierConfig(dtool.Config):
+class ClassifierConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -236,7 +236,7 @@ def compute_classifications(depc, gid_list, config=None):
         yield result
 
 
-class Classifier2Config(dtool.Config):
+class Classifier2Config(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'rf']),
         ut.ParamInfo('classifier_two_weight_filepath', None),
@@ -309,7 +309,7 @@ def compute_classifications2(depc, gid_list, config=None):
         yield result
 
 
-class FeatureConfig(dtool.Config):
+class FeatureConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
         ut.ParamInfo('flatten', True),
@@ -420,7 +420,7 @@ def compute_features(depc, gid_list, config=None):
         yield (features, )
 
 
-class LocalizerOriginalConfig(dtool.Config):
+class LocalizerOriginalConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
         ut.ParamInfo('species', None),
@@ -706,7 +706,7 @@ def compute_localizations_original(depc, gid_list, config=None):
         yield result
 
 
-class LocalizerConfig(dtool.Config):
+class LocalizerConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('nms', True),
@@ -1068,14 +1068,14 @@ def get_localization_aoi2(ibs, loc_id_list, target_size=(192, 192)):
     return gid_list_, gid_list, thumbnail_list, bbox_list, size_list
 
 
-ChipListImgType = dtool.ExternType(
+ChipListImgType = dtool_ibeis.ExternType(
     ut.partial(ut.load_cPkl, verbose=False),
     ut.partial(ut.save_cPkl, verbose=False),
     extkey='ext'
 )
 
 
-class Chip2Config(dtool.Config):
+class Chip2Config(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('localization_chip_target_size', (128, 128)),
         ut.ParamInfo('localization_chip_masking', False),
@@ -1167,7 +1167,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         yield ret_tuple
 
 
-class ClassifierLocalizationsConfig(dtool.Config):
+class ClassifierLocalizationsConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -1365,7 +1365,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             yield ret_tuple
 
 
-class Feature2Config(dtool.Config):
+class Feature2Config(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('feature2_algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
         ut.ParamInfo('feature2_chip_masking', False, hideif=False),
@@ -1514,7 +1514,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         yield ret_tuple
 
 
-class LabelerConfig(dtool.Config):
+class LabelerConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
@@ -1593,7 +1593,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         yield ret_tuple
 
 
-class AoIConfig(dtool.Config):
+class AoIConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('aoi_two_weight_filepath', None),
     ]
@@ -1669,7 +1669,7 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
         yield ret_tuple
 
 
-class DetectorConfig(dtool.Config):
+class DetectorConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', 'candidacy'),
         ut.ParamInfo('classifier_sensitivity',     0.0),

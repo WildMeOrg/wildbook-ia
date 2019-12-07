@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
-import vtool as vt
-from vtool import clustering2 as clustertool
+import vtool_ibeis as vt
+from vtool_ibeis import clustering2 as clustertool
 from ibeis.algo.hots import hstypes
 (print, rrr, profile) = ut.inject2(__name__, '[smk_residuals]')
 

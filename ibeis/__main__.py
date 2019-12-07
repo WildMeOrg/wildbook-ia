@@ -18,7 +18,7 @@ def dependencies_for_myprogram():
     References:
         http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
     """
-    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
+    from guitool_ibeis.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
     from PyQt4 import QtCore, QtGui  # NOQA
     #from PyQt4 import QtCore, QtGui  # NOQA
     from scipy.sparse.csgraph import _validation  # NOQA
@@ -59,9 +59,9 @@ def run_ibeis():
         retcode = utool.tests.run_tests.run_tests()
         print('... exiting')
         sys.exit(retcode)
-    elif ut.get_argflag('--run-vtool-tests'):
-        import vtool.tests.run_tests
-        retcode = vtool.tests.run_tests.run_tests()
+    elif ut.get_argflag('--run-vtool_ibeis-tests'):
+        import vtool_ibeis.tests.run_tests
+        retcode = vtool_ibeis.tests.run_tests.run_tests()
         print('... exiting')
         sys.exit(retcode)
     elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
@@ -117,7 +117,7 @@ def run_ibeis():
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
         """
         print('[ibeis] Testing module')
         mod_alias_list = {

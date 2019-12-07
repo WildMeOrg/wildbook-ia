@@ -52,7 +52,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
         >>> aids_list = ibs.detect_random_forest(gid_list, species)
         >>> # Visualize results
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
+        >>>     import plottool_ibeis as pt
         >>>     from ibeis.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
@@ -519,7 +519,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
         >>> gid_list = ibs.get_valid_gids()[:5]
         >>> aids_list = ibs.detect_cnn_yolo(gid_list)
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
+        >>>     import plottool_ibeis as pt
         >>>     from ibeis.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
@@ -665,7 +665,7 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
         >>> gid_list = ibs.get_valid_gids()[:5]
         >>> aids_list = ibs.detect_cnn_lightnet(gid_list)
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
+        >>>     import plottool_ibeis as pt
         >>>     from ibeis.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)

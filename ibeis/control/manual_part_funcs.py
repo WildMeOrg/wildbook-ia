@@ -157,7 +157,7 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
         URL:    /api/part/
     """
     #ut.embed()
-    from vtool import geometry
+    from vtool_ibeis import geometry
     if ut.VERBOSE:
         print('[ibs] adding parts')
     # Prepare the SQL input
@@ -493,7 +493,7 @@ def get_part_rotated_verts(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/vert/rotated/
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     vert_list = ibs.get_part_verts(part_rowid_list)
     theta_list = ibs.get_part_thetas(part_rowid_list)
     # Convex bounding boxes for verticies
@@ -838,7 +838,7 @@ def set_part_bboxes(ibs, part_rowid_list, bbox_list):
         Method: PUT
         URL:    /api/part/bbox/
     """
-    from vtool import geometry
+    from vtool_ibeis import geometry
     # changing the bboxes also changes the bounding polygon
     vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     # naively overwrite the bounding polygon with a rectangle - for now trust the user!
@@ -953,7 +953,7 @@ def set_part_verts(ibs, part_rowid_list, verts_list):
         Method: PUT
         URL:    /api/part/vert/
     """
-    from vtool import geometry
+    from vtool_ibeis import geometry
     nInput = len(part_rowid_list)
     # Compute data to set
     if isinstance(verts_list, np.ndarray):

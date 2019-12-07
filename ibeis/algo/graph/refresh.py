@@ -116,7 +116,7 @@ class RefreshCriteria(object):
             >>>     n_pred_list.append(n_pred)
             >>>     xdata.append(count + 1)
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.qtensure()
             >>> n_pred_list = n_pred_list[10:]
             >>> n_real_list = n_real_list[10:]
@@ -180,7 +180,7 @@ class RefreshCriteria(object):
             >>>     reals.append(n_real)
             >>>     xdata.append(count + 1)
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.qtensure()
             >>> pt.multi_plot(xdata, [ma1, ma2, reals], marker='',
             >>>               label_list=['exp', 'win', 'real'], xlabel='review num',
@@ -247,7 +247,7 @@ def demo_refresh():
     ])
 
     ut.quit_if_noshow()
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.qtensure()
     from ibeis.scripts.thesis import TMP_RC
     import matplotlib as mpl
@@ -384,7 +384,7 @@ def _dev_iters_until_threshold():
 
     S, A = np.meshgrid(np.arange(1, 150, 1), np.arange(0, 150, 1))
 
-    import plottool as pt
+    import plottool_ibeis as pt
     SA_coords = list(zip(S.ravel(), A.ravel()))
     for sval, aval in ut.ProgIter(SA_coords):
         if (sval, aval) not in poisson_cache:

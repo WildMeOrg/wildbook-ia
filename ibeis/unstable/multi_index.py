@@ -10,7 +10,7 @@ import six
 from six.moves import zip, map, range
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import hstypes
 (print, rrr, profile) = ut.inject(__name__)

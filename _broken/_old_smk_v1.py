@@ -770,7 +770,7 @@ def render_vocab(vocab, inva=None, use_data=False):
         >>> vocab = inva.vocab
         >>> all_words = vocab.render_vocab(inva, use_data=use_data)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> pt.imshow(all_words)
         >>> ut.show_if_requested()
@@ -788,7 +788,7 @@ def render_vocab(vocab, inva=None, use_data=False):
             word_patch = inva.get_word_patch(wx)
         else:
             word_patch = vt.inverted_sift_patch(word, 64)
-        import plottool as pt
+        import plottool_ibeis as pt
         word_patch = pt.render_sift_on_patch(word_patch, word)
         word_patch_list.append(word_patch)
 

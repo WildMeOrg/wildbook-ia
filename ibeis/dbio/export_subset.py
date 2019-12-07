@@ -488,7 +488,7 @@ def fix_bidirectional_annotmatch(ibs):
     ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
     if False:
-        import guitool as gt
+        import guitool_ibeis as gt
         gt.ensure_qapp()
         ut.qtensure()
         from ibeis.gui import inspect_gui
@@ -610,7 +610,7 @@ def fix_annotmatch_pzmaster1():
         ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
         if False:
-            import guitool as gt
+            import guitool_ibeis as gt
             gt.ensure_qapp()
             ut.qtensure()
             from ibeis.gui import inspect_gui
@@ -676,7 +676,7 @@ def fix_annotmatch_pzmaster1():
     # # pd.unique(annotmatch['annotmatch_evidence_decision'])
     # from ibeis.gui import inspect_gui
     # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
-    # from vtool import inspect_matches
+    # from vtool_ibeis import inspect_matches
 
     # aid1, aid2 = 2108, 2040
 
@@ -835,7 +835,7 @@ def remerge_subset():
     #     # infr = ibeis.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
 
     #     # randomly sample some new labels to verify
-    #     import guitool as gt
+    #     import guitool_ibeis as gt
     #     from ibeis.gui import inspect_gui
     #     gt.ensure_qapp()
     #     ut.qtensure()
@@ -1025,7 +1025,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool as pt
+                import plottool_ibeis as pt
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
@@ -1066,7 +1066,7 @@ def check_database_overlap(ibs1, ibs2):
             # if False:
             #     # Debug code
             #     import ibeis.viz
-            #     import plottool as pt
+            #     import plottool_ibeis as pt
             #     gid_pairs = list(zip(changed_gids1, changed_gids2))
             #     pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
             #     for fnum, pairs in enumerate(pairs_iter, start=1):
@@ -1143,7 +1143,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool as pt
+                import plottool_ibeis as pt
                 #aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
                 pairs_iter = ut.ichunks(aid_pairs, chunksize=8)

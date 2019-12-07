@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 from os.path import splitext, basename, isabs
 import warnings
-import vtool.exif as vtexif
+import vtool_ibeis.exif as vtexif
 import utool as ut
 import six
 (print, rrr, profile) = ut.inject2(__name__)
@@ -164,7 +164,7 @@ def parse_imageinfo(gpath):
 #     Example0:
 #         >>> # ENABLE_DOCTEST
 #         >>> from ibeis.algo.preproc.preproc_image import *   # NOQA
-#         >>> from vtool.tests import grabdata
+#         >>> from vtool_ibeis.tests import grabdata
 #         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
 #         >>> params_list = list(add_images_params_gen(gpath_list))
 #         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'

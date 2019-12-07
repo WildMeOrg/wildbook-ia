@@ -330,7 +330,7 @@ def make_temp_state(state):
 
 def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs,
                     reduced_values):
-    import vtool as vt
+    import vtool_ibeis as vt
     #assert np.all(reduced_joint.values.ravel() == reduced_joint.values.flatten())
     reduced_ttypes = [model.var2_cpd[var].ttype for var in reduced_variables]
 
@@ -450,7 +450,7 @@ def collapse_factor_labels(model, reduced_joint, evidence):
 
 def report_partitioning_statistics(new_reduced_joint):
     # compute partitioning statistics
-    import vtool as vt
+    import vtool_ibeis as vt
     vals, idxs = vt.group_indices(new_reduced_joint.values.ravel())
     #groupsize = list(map(len, idxs))
     #groupassigns = ut.unflat_vecmap(new_reduced_joint.assignment, idxs)
@@ -712,7 +712,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
 
 
 def draw_tree_model(model, **kwargs):
-    import plottool as pt
+    import plottool_ibeis as pt
     import networkx as netx
     if not ut.get_argval('--hackjunc'):
         fnum = pt.ensure_fnum(None)
@@ -838,14 +838,14 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         >>> result = show_model(model, evidence, soft_evidence)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
         draw_tree_model(model, **kwargs)
         return
 
-    import plottool as pt
+    import plottool_ibeis as pt
     import networkx as netx
     fnum = pt.ensure_fnum(None)
     netx_graph = (model)

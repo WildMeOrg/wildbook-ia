@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import sys
-import dtool
+import dtool_ibeis
 from datetime import timedelta
 from functools import update_wrapper
 import warnings
@@ -1011,9 +1011,9 @@ def make_ibs_register_decorator(modname):
         return func
     return CLASS_INJECT_KEY, register_ibs_method
 
-_decors_image = dtool.make_depcache_decors(const.IMAGE_TABLE)
-_decors_annot = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-_decors_part  = dtool.make_depcache_decors(const.PART_TABLE)
+_decors_image = dtool_ibeis.make_depcache_decors(const.IMAGE_TABLE)
+_decors_annot = dtool_ibeis.make_depcache_decors(const.ANNOTATION_TABLE)
+_decors_part  = dtool_ibeis.make_depcache_decors(const.PART_TABLE)
 
 register_preprocs = {
     'image' : _decors_image['preproc'],

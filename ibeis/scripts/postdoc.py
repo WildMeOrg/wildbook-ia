@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-import plottool as pt
+import plottool_ibeis as pt
 import utool as ut
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
@@ -16,7 +16,7 @@ import itertools as it
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -608,8 +608,8 @@ def draw_match_states():
             NEGTV: list(infr.neg_graph.edges())[0],
             INCMP: list(infr.incmp_graph.edges())[0],
         }
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     for key, edge in chosen.items():
         match = infr._make_matches_from([edge], config={
             'match_config': {'ratio_thresh': .7}})[0]

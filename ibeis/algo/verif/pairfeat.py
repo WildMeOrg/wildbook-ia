@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import numpy as np
 import ubelt as ub
 import pandas as pd
-import dtool as dt
+import dtool_ibeis as dt
 from os.path import join
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.core_annots import ChipConfig

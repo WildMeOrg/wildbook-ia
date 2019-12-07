@@ -5,7 +5,7 @@ import utool as ut
 import ibeis
 from ibeis.scripts import classify_shark
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 
 modelStateLocation = "https://lev.cs.rpi.edu/public/models/classifier.lenet.whale_shark.pkl"
 

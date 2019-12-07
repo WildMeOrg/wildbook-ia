@@ -627,8 +627,8 @@ def hackshow_names(ibs, aid_list, fnum=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
@@ -702,8 +702,8 @@ def show_image_time_distributions(ibs, gid_list):
 def show_time_distributions(ibs, unixtime_list):
     r"""
     """
-    #import vtool as vt
-    import plottool as pt
+    #import vtool_ibeis as vt
+    import plottool_ibeis as pt
     unixtime_list = np.array(unixtime_list)
     num_nan = np.isnan(unixtime_list).sum()
     num_total = len(unixtime_list)
@@ -742,7 +742,7 @@ def show_time_distributions(ibs, unixtime_list):
         icon = ibs.get_database_icon()
         if False and icon is not None:
             #import matplotlib as mpl
-            #import vtool as vt
+            #import vtool_ibeis as vt
             ax = pt.gca()
             # Overlay a species icon
             # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html

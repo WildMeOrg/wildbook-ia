@@ -161,7 +161,7 @@ def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
 
 
 def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None, fnum=1):
-    import plottool as pt
+    import plottool_ibeis as pt
     if recall_range_ is None:
         recall_range_ = np.array([])
         p_interp_curve = np.array([])

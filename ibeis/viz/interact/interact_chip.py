@@ -8,12 +8,12 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool as vt
-import plottool as pt  # NOQA
+import vtool_ibeis as vt
+import plottool_ibeis as pt  # NOQA
 from functools import partial
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from plottool import interact_helpers as ih
+from plottool_ibeis import interact_helpers as ih
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -42,7 +42,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         >>> ut.show_if_requested()
     """
     # FIXME: needs to be flushed out a little
-    import plottool as pt
+    import plottool_ibeis as pt
     show_chip_list = [
         partial(viz.show_chip, ibs, aid, config2_=config2_)
         for aid in aid_list
@@ -69,7 +69,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
         python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
 
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     callback_list = build_annot_context_options(
         ibs, aid, refresh_func=refresh_func,
         with_interact_name=with_interact_name,
@@ -117,7 +117,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>> result = ('callback_list = %s' % (ut.repr2(callback_list, nl=4),))
         >>> print(result)
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
     def refresh_wrp(func):
@@ -133,7 +133,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     def newplot_wrp(func):
         def _wrp():
-            import plottool as pt
+            import plottool_ibeis as pt
             ret = func()
             pt.draw()
             return ret
@@ -289,7 +289,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     ]
 
     def _setname_callback():
-        import guitool as gt
+        import guitool_ibeis as gt
         name = ibs.get_annot_name_texts([aid])[0]
         newname = gt.user_input(title='edit name', msg=name, text=name)
         if newname is not None:
@@ -344,7 +344,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             print('aid = %r' % (aid,))
             print('config2_ = %r' % (config2_,))
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
-            #import plottool as pt
+            #import plottool_ibeis as pt
             #pt.plt.ioff()
             # TODO need to disable matplotlib callbacks?
             # Causes can't re-enter readline error
@@ -428,7 +428,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
     mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
-        from plottool.viz_featrow import draw_feat_row
+        from plottool_ibeis.viz_featrow import draw_feat_row
         # Get the fx-th keypiont
         chip = ibs.get_annot_chips(aid, config2_=config2_)
         kp = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
@@ -462,7 +462,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 _chip_view(**kwargs)
         else:
             if event.button == 3:   # right-click
-                import guitool as gt
+                import guitool_ibeis as gt
                 #from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = gt.newQPoint(event.x, height - event.y)

@@ -188,13 +188,13 @@ def postload_commands(ibs, back):
 
     screengrab_fpath = ut.get_argval('--screengrab')
     if screengrab_fpath:
-        from guitool.__PYQT__.QtGui import QPixmap
+        from guitool_ibeis.__PYQT__.QtGui import QPixmap
         from PyQt4.QtTest import QTest
         from PyQt4.QtCore import Qt
         fpath = ut.truepath(screengrab_fpath)
-        import guitool
+        import guitool_ibeis
         #ut.embed()
-        timer2 = guitool.__PYQT__.QtCore.QTimer()
+        timer2 = guitool_ibeis.__PYQT__.QtCore.QTimer()
         done = [1000]
 
         def delayed_screenshot_func():
@@ -222,7 +222,7 @@ def postload_commands(ibs, back):
         timer2.timeout.connect(timer2.delayed_screenshot_func)
         timer2.start(1)
         back.mainwin.timer2 = timer2
-        guitool.activate_qwindow(back.mainwin)
+        guitool_ibeis.activate_qwindow(back.mainwin)
         #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
         #ut.startfile(fpath)
         #ut.embed()

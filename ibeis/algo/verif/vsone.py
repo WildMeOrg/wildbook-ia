@@ -15,8 +15,8 @@ import utool as ut
 import ubelt as ub
 import itertools as it
 import numpy as np
-import vtool as vt
-import dtool as dt
+import vtool_ibeis as vt
+import dtool_ibeis as dt
 import six  # NOQA
 import hashlib
 import copy
@@ -1283,7 +1283,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm.setup_evaluation()
             >>> featinfo = pblm.feature_info(task_key, clf_key, data_key)
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> text = importances
             >>> pt.wordcloud(featinfo.importances)
             >>> ut.show_if_requested()
@@ -1305,7 +1305,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def report_importance(pblm, task_key, clf_key, data_key):
         # ut.qtensure()
-        # import plottool as pt  # NOQA
+        # import plottool_ibeis as pt  # NOQA
         if clf_key != 'RF':
             print('Can only report importance for RF not %r' % (clf_key,))
             return
@@ -1421,7 +1421,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         u = mccs2.mean(axis=0)
         s = mccs2.std(axis=0)
 
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.qtensure()
         pt.plot(n_dims, u, label='mean')
         ax = pt.gca()

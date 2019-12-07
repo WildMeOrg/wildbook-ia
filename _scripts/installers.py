@@ -373,7 +373,7 @@ def run_suite_test():
     app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
     ut.cmd(app_fpath + ' --run-utool-tests')
-    #ut.cmd(app_fpath + ' --run-vtool-tests')
+    #ut.cmd(app_fpath + ' --run-vtool_ibeis-tests')
     #ut.cmd(app_fpath + ' --run-ibeis-tests')
 
 

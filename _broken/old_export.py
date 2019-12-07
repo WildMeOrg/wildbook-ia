@@ -19,7 +19,7 @@ def tryindex(value, list_, warning=True):
 #                              CONTRIBUTOR_TABLE, GSG_RELATION_TABLE, IMAGESET_TABLE,
 #                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,
 #                              LBLIMAGE_TABLE, __STR__)
-# from vtool import geometry
+# from vtool_ibeis import geometry
 
 # Transfer data structures could become classes.
 # TODO: Remove the nesting of transfer datas

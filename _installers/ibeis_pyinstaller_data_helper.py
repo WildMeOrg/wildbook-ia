@@ -88,10 +88,10 @@ def get_path_extensions():
     """
     module_repos = [
         'utool',
-        'vtool',
-        'guitool',
-        'guitool.__PYQT__',
-        'plottool',
+        'vtool_ibeis',
+        'guitool_ibeis',
+        'guitool_ibeis.__PYQT__',
+        'plottool_ibeis',
         'pyrf',
         'flann/src/python',
         #'pygist',
@@ -118,7 +118,7 @@ def get_path_extensions():
 
 def get_hidden_imports():
     hiddenimports = [
-        'guitool.__PYQT__',
+        'guitool_ibeis.__PYQT__',
         'sklearn.utils.sparsetools._graph_validation',
         'sklearn.utils.sparsetools._graph_tools',
         'scipy.special._ufuncs_cxx',
@@ -205,8 +205,8 @@ def get_data_list():
     vtool_libs = ['libsver']
     for libname in vtool_libs:
         lib_fname = libname + LIB_EXT
-        vtlib_src = realpath(join(root_dir, '..', 'vtool', 'vtool', lib_fname))
-        vtlib_dst = join(ibsbuild, 'vtool', lib_fname)
+        vtlib_src = realpath(join(root_dir, '..', 'vtool_ibeis', 'vtool_ibeis', lib_fname))
+        vtlib_dst = join(ibsbuild, 'vtool_ibeis', lib_fname)
         DATATUP_LIST.append((vtlib_dst, vtlib_src))
 
     linux_lib_dpaths = [

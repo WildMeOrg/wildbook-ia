@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import ubelt as ub
 import numpy as np
-import dtool as dt
+import dtool_ibeis as dt
 import pandas as pd
 import sklearn
 import sklearn.metrics
@@ -528,7 +528,7 @@ class ClfProblem(ut.NiceRepr):
         print('uncal_score = %r' % (uncal_score,))
         print('cal_score = %r' % (cal_score,))
 
-        import plottool as pt
+        import plottool_ibeis as pt
         ut.qtensure()
         pt.figure()
         ax = pt.gca()
@@ -869,7 +869,7 @@ class ClfResult(ut.NiceRepr):
 
             if warmup is not None:
                 """
-                python -m plottool.draw_func2 plot_func --show --range=0,1 \
+                python -m plottool_ibeis.draw_func2 plot_func --show --range=0,1 \
                         --func="lambda x: np.maximum(0, (x - .6) / (1 - .6))"
                 """
                 # If n_support < warmup: then interpolate to learned thresh
@@ -886,7 +886,7 @@ class ClfResult(ut.NiceRepr):
         return pos_threshes
 
     def report_thresholds(res, warmup=200):
-        # import vtool as vt
+        # import vtool_ibeis as vt
         ut.cprint('Threshold Report', 'yellow')
         y_test_bin = res.target_bin_df.values
         # y_test_enc = y_test_bin.argmax(axis=1)
@@ -1020,7 +1020,7 @@ class ClfResult(ut.NiceRepr):
         return report
 
     def confusions(res, class_name):
-        import vtool as vt
+        import vtool_ibeis as vt
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
         k = res.class_names.index(class_name)
@@ -1029,8 +1029,8 @@ class ClfResult(ut.NiceRepr):
         return confusions
 
     def ishow_roc(res):
-        import vtool as vt
-        import plottool as pt
+        import vtool_ibeis as vt
+        import plottool_ibeis as pt
         ut.qtensure()
         y_test_bin = res.target_bin_df.values
         # The maximum allowed false positive rate
@@ -1061,7 +1061,7 @@ class ClfResult(ut.NiceRepr):
         pass
 
     def show_roc(res, class_name, **kwargs):
-        import vtool as vt
+        import vtool_ibeis as vt
         labels = res.target_bin_df[class_name].values
         probs = res.probs_df[class_name].values
         confusions = vt.ConfusionMetrics().fit(probs, labels)
@@ -1085,7 +1085,7 @@ class ClfResult(ut.NiceRepr):
 
     def confusions_ovr(res):
         # one_vs_rest confusions
-        import vtool as vt
+        import vtool_ibeis as vt
         res.augment_if_needed()
         for k in range(res.y_test_bin.shape[1]):
             class_k_truth = res.y_test_bin.T[k]

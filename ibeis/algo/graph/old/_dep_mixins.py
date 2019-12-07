@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import itertools as it
 import collections
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
 import six
 from ibeis.algo.hots import infr_model
@@ -1179,7 +1179,7 @@ class _AnnotInfrDepMixin(object):
             >>> infr.show_graph(show_cuts=True)
             >>> infr.add_feedback((1, 3), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.present()
             >>> ut.show_if_requested()
         """

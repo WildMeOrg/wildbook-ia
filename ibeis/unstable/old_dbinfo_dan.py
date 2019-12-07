@@ -114,7 +114,7 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> print('pl_high = %r' % (pl_high,))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import scipy, scipy.stats
         >>> x = pl_index  # np.array([10, 11, 12])
         >>> k, N, K, n = resight, x, nvisit1, nvisit2
@@ -162,11 +162,11 @@ def dans_splits(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> win = dans_splits(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     #pair = 9262, 932
@@ -211,8 +211,8 @@ def dans_splits(ibs):
 
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
-    import guitool as gt
-    import plottool as pt
+    import guitool_ibeis as gt
+    import plottool_ibeis as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -242,11 +242,11 @@ def fix_splits_interaction(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> win = fix_splits_interaction(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     split_props = {'splitcase', 'photobomb'}
@@ -262,8 +262,8 @@ def fix_splits_interaction(ibs):
 
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
-    import guitool as gt
-    import plottool as pt
+    import guitool_ibeis as gt
+    import plottool_ibeis as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -299,11 +299,11 @@ def split_analysis(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> win = split_analysis(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gt.qtapp_loop(qwin=win)
         >>> #ut.show_if_requested()
     """
@@ -350,7 +350,7 @@ def split_analysis(ibs):
         aid_pairs = [annots.get_aidpairs() for annots in annots_list]
 
     speeds_list = ibs.unflat_map(ibs.get_annotpair_speeds, aid_pairs)
-    import vtool as vt
+    import vtool_ibeis as vt
     max_speeds = np.array([vt.safe_max(s, nans=False) for s in speeds_list])
 
     nan_idx = np.where(np.isnan(max_speeds))[0]
@@ -416,7 +416,7 @@ def split_analysis(ibs):
 
     if 1:
         from ibeis.viz import viz_graph2
-        import guitool as gt
+        import guitool_ibeis as gt
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):
@@ -831,7 +831,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         assert np.all(0 == np.diff(np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1))
 
-        import plottool as pt
+        import plottool_ibeis as pt
         import networkx as nx
         #pt.qt4ensure()
         #len(list(nx.connected_components(graph1)))
@@ -1010,7 +1010,7 @@ def print_feature_info(testres):
         testres (ibeis.expt.test_result.TestResult): test result
 
     Ignore:
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.qt4ensure()
         testres.draw_rank_cmc()
 
@@ -1023,10 +1023,10 @@ def print_feature_info(testres):
         >>> result = ('(tex_nKpts, tex_kpts_stats, tex_scale_stats) = %s' % (ut.repr2((tex_nKpts, tex_kpts_stats, tex_scale_stats)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     #ibs = testres.ibs
     def print_feat_stats(kpts, vecs):
         assert len(vecs) == len(kpts), 'disagreement'

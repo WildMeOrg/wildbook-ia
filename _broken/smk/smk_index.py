@@ -19,7 +19,7 @@ import six  # NOQA
 import pyflann
 #import pandas as pd
 from six.moves import zip, map, range  # NOQA
-from vtool import clustering2 as clustertool
+from vtool_ibeis import clustering2 as clustertool
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
 from ibeis.algo.hots.smk import smk_residuals

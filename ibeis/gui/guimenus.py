@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
 from ibeis import constants as const
-import guitool as gt
+import guitool_ibeis as gt
 ut.noinject(__name__, '[guimenus]')
 
 
@@ -36,7 +36,7 @@ def setup_dummy_menus():
         >>> print(result)
     """
     #import unittest
-    import guitool as gt
+    import guitool_ibeis as gt
     gt.ensure_qapp()  # must be ensured before any embeding
     mainwin = gt.QtWidgets.QMainWindow()
     back = DummyBack()

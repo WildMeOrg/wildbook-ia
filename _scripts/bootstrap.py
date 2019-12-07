@@ -31,18 +31,18 @@ sudo pip install pillow
 
 
 pip uninstall utool -y
-pip uninstall vtool -y
+pip uninstall vtool_ibeis -y
 pip uninstall pyhesaff -y
 pip uninstall detectools -y
 pip uninstall pyrf -y
-pip uninstall guitool -y
-pip uninstall plottool -y
+pip uninstall guitool_ibeis -y
+pip uninstall plottool_ibeis -y
 
 cd ~/code/utool
 python setup.py install
 cd ~/code/hesaff
 python setup.py install
-cd ~/code/vtool
+cd ~/code/vtool_ibeis
 python setup.py install
 cd ~/code/hesaff
 python setup.py install
@@ -50,9 +50,9 @@ cd ~/code/detecttools/
 python setup.py install
 cd ~/code/pyrf
 python setup.py install
-cd ~/code/guitool
+cd ~/code/guitool_ibeis
 python setup.py install
-cd ~/code/plottool
+cd ~/code/plottool_ibeis
 python setup.py install
 
 CommandLine:

@@ -53,15 +53,15 @@ def _parse_args():
 
 
 def _init_matplotlib():
-    from plottool import __MPL_INIT__
+    from plottool_ibeis import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
 
 
 def _init_gui(activate=True):
-    import guitool
+    import guitool_ibeis
     if NOT_QUIET:
         print('[main] _init_gui()')
-    guitool.ensure_qtapp()
+    guitool_ibeis.ensure_qtapp()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
     #if USE_OLD_BACKEND:
     from ibeis.gui import guiback
@@ -70,7 +70,7 @@ def _init_gui(activate=True):
     #    from ibeis.gui import newgui
     #    back = newgui.IBEISGuiWidget()
     if activate:
-        guitool.activate_qwindow(back.mainwin)
+        guitool_ibeis.activate_qwindow(back.mainwin)
     return back
 
 
@@ -173,14 +173,14 @@ def _init_numpy():
 
 
 def _guitool_loop(main_locals, ipy=False):
-    import guitool
+    import guitool_ibeis
     from ibeis import params
-    print('[main] guitool loop')
+    print('[main] guitool_ibeis loop')
     back = main_locals.get('back', None)
     if back is not None:
         loop_freq = params.args.loop_freq
         ipy = ipy or params.args.cmd
-        guitool.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False)
+        guitool_ibeis.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False)
         if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:

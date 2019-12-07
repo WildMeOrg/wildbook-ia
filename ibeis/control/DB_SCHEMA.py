@@ -838,7 +838,7 @@ def update_1_3_4(db, ibs=None):
         yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
-    from dtool.sql_control import SQLDatabaseController
+    from dtool_ibeis.sql_control import SQLDatabaseController
     assert isinstance(db,  SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
@@ -1821,7 +1821,7 @@ def dump_schema_sql():
     CommandLine:
         python -m ibeis.control.DB_SCHEMA dump_schema_sql
     """
-    import dtool as dt
+    import dtool_ibeis as dt
     from ibeis.control import DB_SCHEMA_CURRENT
     db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)

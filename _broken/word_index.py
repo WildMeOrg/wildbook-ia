@@ -9,9 +9,9 @@ python -m doctest ibeis/algo/hots/word_index.py
 from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
-import vtool
+import vtool_ibeis
 import utool
-import vtool.nearest_neighbors as nntool
+import vtool_ibeis.nearest_neighbors as nntool
 print, rrr_, profile = utool.inject2(__name__)
 
 
@@ -242,7 +242,7 @@ def invert_index(vecs_list, ax_list):
 def vlad(qfx2_vec, qfx2_cvec):
     qfx2_rvec = qfx2_cvec - qfx2_vec
     aggvlad = qfx2_rvec.sum(axis=0)
-    aggvlad_norm = vtool.l2normalize(aggvlad)
+    aggvlad_norm = vtool_ibeis.l2normalize(aggvlad)
     return aggvlad_norm
 
 

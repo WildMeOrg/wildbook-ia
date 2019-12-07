@@ -376,8 +376,8 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     ibeis_rman = ut.RepoManager([
         'https://github.com/WildbookOrg/utool.git',
         # 'https://github.com/WildbookOrg/sandbox_utools.git',
-        'https://github.com/WildbookOrg/vtool.git',
-        'https://github.com/WildbookOrg/dtool.git',
+        'https://github.com/WildbookOrg/vtool_ibeis.git',
+        'https://github.com/WildbookOrg/dtool_ibeis.git',
         'https://github.com/Erotemic/ubelt.git',
         'https://github.com/WildbookOrg/detecttools.git',
     ], CODE_DIR, label='core', pythoncmd=pythoncmd)
@@ -389,12 +389,12 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     if WITH_GUI:
         ibeis_rman.add_repos([
-            'https://github.com/WildbookOrg/plottool.git',
+            'https://github.com/WildbookOrg/plottool_ibeis.git',
         ])
 
         if WITH_QT:
             ibeis_rman.add_repos([
-                'https://github.com/WildbookOrg/guitool.git',
+                'https://github.com/WildbookOrg/guitool_ibeis.git',
             ])
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
@@ -853,7 +853,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         python -c "import numpy; print(numpy.__version__)"
         python -c "import cv2; print(cv2.__version__)"
         python -c "import cv2; print(cv2.__file__)"
-        #python -c "import vtool"
+        #python -c "import vtool_ibeis"
         # Check if we have contrib modules
         python -c "import cv2; print(cv2.xfeatures2d)"
         # ENDBLOCK

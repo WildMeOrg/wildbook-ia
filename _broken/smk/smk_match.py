@@ -189,5 +189,5 @@ if __name__ == '__main__':
         fig = qres.show_top(ibs)
         fig.show()
     main()
-    from plottool import draw_func2 as df2
+    from plottool_ibeis import draw_func2 as df2
     exec(df2.present())

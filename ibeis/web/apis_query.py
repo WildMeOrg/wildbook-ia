@@ -212,7 +212,7 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> print('image.shape = %r' % (image.shape,))
         >>> print('image.dtype = %r' % (image.dtype,))
         >>> ut.print_object_size(image)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
@@ -331,7 +331,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> html_str = web_ibs.send_ibeis_request('/api/review/query/graph/', type_='get', **kw)
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
 
@@ -377,7 +377,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>                             query_config_dict, _internal_state=None,
         >>>                             callback_url=None)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
     """
@@ -781,7 +781,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
 
 def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
-    import plottool as pt
+    import plottool_ibeis as pt
     render_config = {
         'overlay'    : overlay,
         'show_ell'   : draw_matches,

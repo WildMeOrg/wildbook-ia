@@ -44,7 +44,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import nn_weights
@@ -343,7 +343,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     r"""
     Returns a hacky cacheid for neighbor configs.
-    DEPRICATE: This will be replaced by dtool caching
+    DEPRICATE: This will be replaced by dtool_ibeis caching
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -772,7 +772,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> verbose = True
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> verbose = True
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -805,7 +805,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(filtvalids_list, [[None, None], [None, None], [None, None]])
         >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.BARL2])
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> verbose = True
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -1213,7 +1213,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         >>> ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), 'feature matches were not filtered'
         >>> ut.quit_if_noshow()
         >>> cmSV.show_daids_matches(qreq_, gt_daids)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> #homog_tup = (refined_inliers, H)
         >>> #aff_tup = (aff_inliers, Aff)
         >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
@@ -1352,7 +1352,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.extern_query_config2)
         >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.extern_data_config2)
         >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.extern_data_config2)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import matplotlib as mpl
         >>> from ibeis.scripts.thesis import TMP_RC
         >>> mpl.rcParams.update(TMP_RC)
@@ -1521,5 +1521,5 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     ut.doctest_funcs()
     # if ut.get_argflag('--show'):
-    #     import plottool as pt
+    #     import plottool_ibeis as pt
     #     exec(pt.present())

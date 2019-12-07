@@ -8,9 +8,11 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+__version__ = '2.0.0'
+
 try:
     import utool as ut
-    import dtool
+    import dtool_ibeis
 except ImportError as ex:
     print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
     print('[ibeis !!!] Perhaps try super_setup.py pull')
@@ -31,11 +33,11 @@ if ut.is_developer():
         #'show_vocabulary',
     ]
 
-# If we dont initialize plottool before <something>
+# If we dont initialize plottool_ibeis before <something>
 # then it causes a crash in windows. Its so freaking weird.
-# something is not guitool, ibeis.viz
+# something is not guitool_ibeis, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
-#import plottool
+#import plottool_ibeis
 
 
 ENABLE_WILDBOOK_SIGNAL = True
@@ -318,7 +320,6 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 # __version__ = VERSION_CURRENT
-__version__ = '1.8.1'
 
 # __version__ = '1.6.0'
 # if __version__ != VERSION_CURRENT:

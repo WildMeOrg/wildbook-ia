@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse as spsparse
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
-import vtool as vt
+import vtool_ibeis as vt
 (print, rrr, profile) = utool.inject2(__name__, '[smk_core]')
 
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
@@ -443,7 +443,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     %timeit build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
     %timeit build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
     """
-    # FIXME: move groupby to vtool
+    # FIXME: move groupby to vtool_ibeis
     if utool.VERBOSE:
         print('[smk_core] build cmtup_old')
 

@@ -3,13 +3,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 print, rrr, profile = ut.inject2(__name__)
 
 
 def estimate_threshold(curve, method=None):
     """
-        import plottool as pt
+        import plottool_ibeis as pt
         idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
         pt.plot(curve)
         pt.plot(idx1, curve[idx1], 'bo')
@@ -104,7 +104,7 @@ class InfrModel(ut.NiceRepr):
             valueNotEqual = same_weight
             if not np.isfinite(valueNotEqual):
                 """
-                python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+                python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
                 print('valueNotEqual = %r' % (valueNotEqual,))
                 print('p_same = %r' % (p_same,))
@@ -241,7 +241,7 @@ class InfrModel(ut.NiceRepr):
 
     def _estimate_threshold(model, method=None, curve=None):
         """
-            import plottool as pt
+            import plottool_ibeis as pt
             idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
             pt.plot(curve)
             pt.plot(idx1, curve[idx1], 'bo')

@@ -13,11 +13,11 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
-from plottool import fig_presenter
-import guitool as gt
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from plottool_ibeis import fig_presenter
+import guitool_ibeis as gt
 #import six
 import utool as ut
 from ibeis.gui import id_review_api
@@ -236,8 +236,8 @@ class QueryResultsWidget(gt.APIItemWidget):
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
     def edit_filters(qres_wgt):
-        import dtool
-        config = dtool.Config.from_dict(qres_wgt.review_cfg)
+        import dtool_ibeis
+        config = dtool_ibeis.Config.from_dict(qres_wgt.review_cfg)
         dlg = gt.ConfigConfirmWidget.as_dialog(qres_wgt, title='Edit Filters',
                                                msg='Edit Filters',
                                                with_spoiler=False,
@@ -373,7 +373,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 option_dict = {key[key.find('&') + 1]: val for key, val in options
                                if '&' in key}
                 return option_dict
-            # TODO: use guitool options dict
+            # TODO: use guitool_ibeis options dict
             #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
             option_dict = make_option_dict(options)
 
@@ -734,7 +734,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             )
 
         def show_single_namematch():
-            import plottool as pt
+            import plottool_ibeis as pt
             ax = cm.show_single_namematch(qreq_, aid2, mode=0)
             ax = pt.gca()
             ax.figure.canvas.draw()
@@ -860,8 +860,8 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
     """
-    from vtool import inspect_matches
-    import vtool as vt
+    from vtool_ibeis import inspect_matches
+    import vtool_ibeis as vt
 
     if cfgdict is not None:
         assert qreq_ is None, 'specify only one cfg or qreq_'

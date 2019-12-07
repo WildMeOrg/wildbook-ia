@@ -42,7 +42,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         else:
             dup_edges.append((u, v))
     graph.remove_edges_from(dup_edges)
-    import plottool as pt
+    import plottool_ibeis as pt
     import networkx as nx
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
@@ -237,7 +237,7 @@ def try_rf_classifier():
 
 
 def make_test_pairwise_fetaures(case1, case2, label, rng):
-    import vtool as vt
+    import vtool_ibeis as vt
     mu_fm = 50 if label == 1 else 10
     sigma_fm = 10 if label == 1 else 20
     mu_fs = .2 if label == 1 else .4
@@ -265,7 +265,7 @@ def make_test_pairwise_fetaures(case1, case2, label, rng):
 
 
 def make_test_pairwise_labels(case1, case2):
-    import vtool as vt
+    import vtool_ibeis as vt
     is_same = case1['name'] == case2['name']
     yaw1 = case1['yaw']
     yaw2 = case2['yaw']
@@ -287,7 +287,7 @@ def make_test_pairwise_labels(case1, case2):
 
 
 def make_test_pairwise_labels2(cases1, cases2):
-    import vtool as vt
+    import vtool_ibeis as vt
     is_same = np.array(cases1['name']) == np.array(cases2['name'])
     yaw1 = np.array(cases1['yaw'])
     yaw2 = np.array(cases2['yaw'])
@@ -322,7 +322,7 @@ def try_em():
         >>> from ibeis.algo.hots.testem import *  # NOQA
         >>> P, Pn, PL, gam, num_labels = test_em()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> draw_em_graph(P, Pn, PL, gam, num_labels)
         >>> ut.show_if_requested()
@@ -358,7 +358,7 @@ def try_em():
         #     'B':  1 * tau / 4,
         #     'R':  2 * tau / 4,
         # }
-        import vtool as vt
+        import vtool_ibeis as vt
 
         nid_list = np.array(ut.dict_take_column(test_case, 'name'))
         yaw_list = np.array(ut.dict_take(view_to_ori, ut.dict_take_column(test_case, 'view')))

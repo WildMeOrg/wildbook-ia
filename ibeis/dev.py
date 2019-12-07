@@ -40,7 +40,7 @@ import utool as ut
 from utool.util_six import get_funcname
 import utool
 #from ibeis.algo.hots import smk
-import plottool as pt
+import plottool_ibeis as pt
 import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -757,7 +757,7 @@ def ggr_random_name_splits():
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     gt.ensure_qtapp()
     #nid_list = ibs.get_valid_nids(filter_empty=True)
     import ibeis
@@ -856,7 +856,7 @@ def ggr_random_name_splits():
                              ibs.get_name_aids(remain_unique_nids)]
 
     sample_size = 75
-    import vtool as vt
+    import vtool_ibeis as vt
     vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
 
     remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)

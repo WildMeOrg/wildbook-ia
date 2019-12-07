@@ -1,6 +1,6 @@
 def load_multiclass_scores(self):
     # convert simple scores to multiclass scores
-    import vtool as vt
+    import vtool_ibeis as vt
     self.multiclass_scores = {}
     for key in self.samples.simple_scores.keys():
         scores = self.samples.simple_scores[key].values
@@ -149,7 +149,7 @@ def bigcache_vsone(qreq_, hyper_params):
         >>> qreq_ = self.qreq_
         >>> hyper_params = self.hyper_params
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     import ibeis
     # Get a set of training pairs
     ibs = qreq_.ibs
@@ -297,7 +297,7 @@ def bigcache_vsone(qreq_, hyper_params):
         >>> qreq_ = self.qreq_
         >>> hyper_params = self.hyper_params
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     import ibeis
     # Get a set of training pairs
     ibs = qreq_.ibs

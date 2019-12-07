@@ -62,9 +62,9 @@ CLUTTER_DIRS = [
     #'testdb_dst',
     '__pycache__/',
     # From pyinstaller
-    #'vtool',
+    #'vtool_ibeis',
     #'utool',
-    #'plottool',
+    #'plottool_ibeis',
     #'pyrf',
     #'pyhesaff',
     #'pyflann',
@@ -77,11 +77,11 @@ CLUTTER_DIRS = [
 
 INSTALL_REQUIRES = [
     'utool >= 1.0.0.dev1',
-    'vtool >= 1.0.0.dev1',
+    'vtool_ibeis >= 1.0.0.dev1',
     'pyhesaff >= 1.0.0.dev1',
     'pyrf >= 1.0.0.dev1',
-    'guitool >= 1.0.0.dev1',
-    'plottool >= 1.0.0.dev1',
+    'guitool_ibeis >= 1.0.0.dev1',
+    'plottool_ibeis >= 1.0.0.dev1',
     'scipy >= 0.13.2',
     'Pillow >= 2.4.0',
     'psutil',

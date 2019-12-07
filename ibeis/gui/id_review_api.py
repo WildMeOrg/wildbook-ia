@@ -6,7 +6,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from ibeis.viz import viz_helpers as vh
-import guitool as gt
+import guitool_ibeis as gt
 import numpy as np
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
@@ -92,7 +92,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     from ibeis.algo.hots import chip_match
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
     automatch_kw = ut.update_existing(automatch_kw, review_cfg)
@@ -234,7 +234,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> from ibeis.gui import id_review_api
         >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
         >>> tblname = 'chipmatch'
@@ -632,8 +632,8 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     from ibeis.viz import viz_matches
     import cv2
     import io
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     import matplotlib as mpl
 
     if cm.__class__.__name__ == 'PairwiseMatch':

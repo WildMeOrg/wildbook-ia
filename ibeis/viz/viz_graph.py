@@ -12,12 +12,12 @@ WindowsDepends:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
-import vtool as vt
-import dtool
+import vtool_ibeis as vt
+import dtool_ibeis
 import numpy as np  # NOQA
 import itertools
-from plottool.abstract_interaction import AbstractInteraction
-import plottool as pt
+from plottool_ibeis.abstract_interaction import AbstractInteraction
+import plottool_ibeis as pt
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP)
 #import sys
 #from os.path import join
@@ -77,7 +77,7 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     graph = nx.DiGraph()
     graph.add_nodes_from(netx_nodes)
     graph.add_edges_from(netx_edges)
-    #import plottool as pt
+    #import plottool_ibeis as pt
     #nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE)
     return graph
 
@@ -173,7 +173,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     nx.set_node_attributes(graph, name='nid',
                            value=ut.dzip(graph.nodes(), unique_nids))
 
-    import plottool as pt
+    import plottool_ibeis as pt
     ensure_names_are_connected(graph, aids_list)
 
     # Color edges by nid
@@ -203,7 +203,7 @@ def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
 def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     """ Colors edges and nodes by nid """
     # TODO use ut.color_nodes
-    import plottool as pt
+    import plottool_ibeis as pt
 
     ensure_graph_nid_labels(graph, unique_nids, ibs=ibs)
     node_to_nid = nx.get_node_attributes(graph, 'nid')
@@ -234,7 +234,7 @@ def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
 
 
 def augment_graph_mst(ibs, graph):
-    import plottool as pt
+    import plottool_ibeis as pt
     #spantree_aids1_ = []
     #spantree_aids2_ = []
     # Add edges between all names
@@ -325,7 +325,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
         >>> make_name_graph_interaction(ibs, nid_list, prog='neato')
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     print('[viz_graph] drawing chip graph')
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
@@ -359,7 +359,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
     return plotinfo
 
 
-class InferenceConfig(dtool.Config):
+class InferenceConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('min_labels', 1),
         ut.ParamInfo('max_labels', 5),
@@ -390,7 +390,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def make_hud(self):
         """ Creates heads up display """
-        import plottool as pt
+        import plottool_ibeis as pt
         hl_slot, hr_slot = pt.make_bbox_positioners(
             y=.01, w=.10, h=.03, xpad=.01, startx=0, stopx=1)
 
@@ -472,7 +472,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def plot_weights(self, event=None):
         scalars = self.infr.get_scalars()
-        import plottool as pt
+        import plottool_ibeis as pt
         inter = pt.ExpandableInteraction(fnum=1)
         for px, (key, vals) in enumerate(scalars.items()):
             print(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
@@ -484,12 +484,12 @@ class AnnotGraphInteraction(AbstractInteraction):
         pt.update()
 
     def edit_config(self, event):
-        import guitool
-        guitool.ensure_qtapp()
-        from guitool import PrefWidget2
+        import guitool_ibeis
+        guitool_ibeis.ensure_qtapp()
+        from guitool_ibeis import PrefWidget2
         self.widget = PrefWidget2.EditConfigWidget(config=self.config)
         self.widget.show()
-        #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
+        #dlg = guitool_ibeis.ConfigConfirmWidget.as_dialog(None,
         #                                            title='Confirm Import Images',
         #                                            msg='New Settings',
         #                                            config=self.config)
@@ -546,7 +546,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def show_selected(self, event):
-        import plottool as pt
+        import plottool_ibeis as pt
         print('show_selected')
         from ibeis.viz import viz_chip
         fnum = pt.ensure_fnum(10)
@@ -601,7 +601,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         print('Finished Plot')
 
     def highlight_aid(self, aid, color=None):
-        import plottool as pt
+        import plottool_ibeis as pt
         node = self.aid2_node[aid]
         frame = self.plotinfo['patch_frame_dict'][node]
         framewidth = self.infr.graph.node[node]['framewidth']
@@ -619,7 +619,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         frame.set_edgecolor(color)
 
     def toggle_selected_aid(self, aid):
-        import plottool as pt
+        import plottool_ibeis as pt
         if aid in self.selected_aids:
             self.selected_aids.remove(aid)
             #self.highlight_aid(aid, pt.WHITE)
@@ -741,7 +741,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
         >>> import ibeis
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> exec(ut.execstr_funckw(make_name_graph_interaction), globals())
         >>> defaultdb='testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
@@ -779,7 +779,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     if ut.get_argflag('--cut'):
         infr.apply_all()
 
-    #import guitool as gt
+    #import guitool_ibeis as gt
     #gt.ensure_qtapp()
     #print('infr = %r' % (infr,))
     #win = test_qt_graphs(infr=infr, use_image=use_image)
@@ -811,7 +811,7 @@ def tryout_web_graphs(self, infr):
     mpld3.save_json(fig, open('fig.json', 'w'))
     fig = pt.gcf()
     """
-    #import plottool as pt
+    #import plottool_ibeis as pt
     # http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
     from networkx.readwrite import json_graph
 

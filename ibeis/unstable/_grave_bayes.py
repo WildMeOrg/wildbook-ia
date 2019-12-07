@@ -101,7 +101,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     if True:
         return bruteforce(model, query_vars=None, evidence=evidence)
     else:
-        import vtool as vt
+        import vtool_ibeis as vt
         query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
         # hack
         query_vars = ut.setdiff_ordered(query_vars, ut.list_getattr(model.ttype2_cpds['score'], 'variable'))
@@ -645,7 +645,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         draw_tree_model(model, **kwargs)
         return
 
-    import plottool as pt
+    import plottool_ibeis as pt
     import networkx as netx
     import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
@@ -844,7 +844,7 @@ def flow():
     import pystruct.models  # NOQA
     import networkx as netx  # NOQA
 
-    import vtool as vt
+    import vtool_ibeis as vt
     num_annots = 10
     num_names = num_annots
     hidden_nids = np.random.randint(0, num_names, num_annots)
@@ -856,8 +856,8 @@ def flow():
     }
 
     if True:
-        import vtool as vt
-        import plottool as pt
+        import vtool_ibeis as vt
+        import plottool_ibeis as pt
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
         fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
