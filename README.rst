@@ -4,8 +4,8 @@
 This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
 
-IBEIS - Image Analysis - 2.0.0
---------------------------------
+IBEIS - Image Analysis 
+----------------------
 
 I.B.E.I.S. = Image Based Ecological Information System
 ------------------------------------------------------
@@ -13,7 +13,8 @@ I.B.E.I.S. = Image Based Ecological Information System
 .. image:: http://i.imgur.com/TNCiEBe.png
     :alt: "(Note: the rhino and wildebeest mathces may be dubious. Other species do work well though")
 
-# Program Description
+Program Description
+-------------------
 
 IBEIS program for the storage and management of images and derived data for
 use in computer vision algorithms. It aims to compute who an animal is, what
@@ -30,7 +31,7 @@ and deep neural networks for detection and localization.
 
 The core of IBEIS is the IBEISController class. It provides an API into IBEIS
 data management and algorithms. The IBEIS API Documentation can be found here:
- http://erotemic.github.io/ibeis
+`http://erotemic.github.io/ibeis`
 
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
@@ -41,7 +42,7 @@ Unfortunately we have not released self-installing-executables for IBEIS yet.
 We plan to release these "soon". 
 
 However there are old HotSpotter (the software which IBEIS is based on)
-binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
+binaries available. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
 
 Visual Demo
 -----------
@@ -56,14 +57,15 @@ Visual Demo
    :alt: Nearest Neighbors
 
 
-### Match Scoring 
+Match Scoring 
+-------------
 
 .. image:: http://imgur.com/Hj43Xxy.png
    :width: 600
    :alt: Match Inspection
 
 Spatial Verification
----------------------
+--------------------
 
 .. image:: http://i.imgur.com/VCz0j9C.jpg
    :width: 600
@@ -75,7 +77,7 @@ Spatial Verification
     python -m vtool.spatial_verification --test-spatially_verify_kpts --show
 
 Name Scoring
--------------
+------------
 
 .. image:: http://i.imgur.com/IDUnxu2.jpg
    :width: 600
@@ -451,3 +453,4 @@ Caveats / Things we are not currently doing
 -------------------------------------------
 
 * We do not add or remove points from kdtrees. They are always rebuilt
+
