@@ -616,8 +616,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # But the setup script is generated during build
         # python {repo_dir}/build/src/python/setup.py develop
 
-        python -c "import pyflann; print(pyflann.__file__)" --verb-flann
-        python -c "import pyflann; print(pyflann)" --verb-flann
+        python -c "from vtool._pyflann_backend import pyflann as pyflann; print(pyflann.__file__)" --verb-flann
+        python -c "from vtool._pyflann_backend import pyflann as pyflann; print(pyflann)" --verb-flann
         # ENDBLOCK bash
         ''').format(repo_dir=ibeis_rman['pyflann'].dpath)
     )
@@ -1360,7 +1360,7 @@ def main():
         print('python super_setup.py --opencv')
 
     try:
-        import pyflann  # NOQA
+        from vtool._pyflann_backend import pyflann as pyflann  # NOQA
     except ImportError:
         print('Need to install FLANN')
         print('python super_setup.py --flann')

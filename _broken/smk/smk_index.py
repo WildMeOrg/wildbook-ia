@@ -16,7 +16,7 @@ import utool as ut
 #import weakref
 import numpy as np
 import six  # NOQA
-import pyflann
+from vtool._pyflann_backend import pyflann as pyflann
 #import pandas as pd
 from six.moves import zip, map, range  # NOQA
 from vtool_ibeis import clustering2 as clustertool

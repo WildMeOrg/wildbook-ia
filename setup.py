@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import setuptools
 from os.path import exists
 import sys
 
@@ -161,25 +160,40 @@ def autogen_explicit_imports():
 NAME = 'ibeis'
 VERSION = parse_version('ibeis/__init__.py')  # must be global for git tags
 
-
 if __name__ == '__main__':
-    from setuptools import setup
-    kwargs = setup(
+    extras_require = {
+        'all': parse_requirements('requirements.txt'),
+        'tests': parse_requirements('requirements/tests.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
+    }
+    install_requires = parse_requirements('requirements/runtime.txt')
+
+    try:
+        import ubelt as ub
+        print('install_requires = {}'.format(ub.repr2(install_requires, nl=1)))
+        # print('extras_require = {}'.format(ub.repr2(extras_require, nl=2)))
+    except ImportError:
+        pass
+
+    from setuptools import setup, find_packages
+    kwargs = dict(
         name=NAME,
         version=VERSION,
-        author='Jon Crall, Jason Parham',
-        author_email='erotemic@gmail.com',
         description='Image Based Ecological Information System',
         long_description=parse_description(),
         long_description_content_type='text/markdown',
-        project_dirs=[
-            'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
-            'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
-            'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
-            'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
-            'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
-            'ibeis/viz/interact'
-        ],
+        author='Jon Crall, Jason Parham',
+        author_email='erotemic@gmail.com',
+        install_requires=install_requires,
+        # extras_require=extras_require,
+        # project_dirs=[
+        #     'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
+        #     'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
+        #     'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
+        #     'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
+        #     'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
+        #     'ibeis/viz/interact'
+        # ],
         entry_points={
             'console_scripts': [
                 # Register specific python functions as command line scripts
@@ -196,8 +210,6 @@ if __name__ == '__main__':
             # Supported Python versions
             'Programming Language :: Python :: 3',
         ],
+        packages=find_packages('ibeis*')
     )
-
-    # kwargs['cmdclass'] = setman.get_cmdclass()
-
-    setuptools.setup(**kwargs)
+    setup(**kwargs)

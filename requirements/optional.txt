@@ -13,3 +13,5 @@ pydot-ng
 
 Flask-CAS
 # -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
+
+Cython>=0.24
