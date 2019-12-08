@@ -34,7 +34,7 @@ def parse_description():
         python -c "import setup; print(setup.parse_description())"
     """
     from os.path import dirname, join, exists
-    readme_fpath = join(dirname(__file__), 'README.md')
+    readme_fpath = join(dirname(__file__), 'README.rst')
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
         with open(readme_fpath, 'r') as f:
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         version=VERSION,
         description='Image Based Ecological Information System',
         long_description=parse_description(),
-        long_description_content_type='text/markdown',
+        long_description_content_type='text/x-rst',
         author='Jon Crall, Jason Parham',
         author_email='erotemic@gmail.com',
         install_requires=install_requires,
