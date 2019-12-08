@@ -8,7 +8,7 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 try:
     import utool as ut
