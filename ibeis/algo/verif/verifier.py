@@ -66,6 +66,7 @@ class Verifier(BaseVerifier):
                 data_info - tuple of (feat_extract_config, feat_dims)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

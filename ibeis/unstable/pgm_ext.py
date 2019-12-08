@@ -131,7 +131,7 @@ class ApproximateFactor(object):
         return self.variables
 
     def marginalize(self, variables, inplace=True):
-        """
+        r"""
         Modifies the factor with marginalized values.
 
         Args:
@@ -151,6 +151,7 @@ class ApproximateFactor(object):
             python -m ibeis.algo.hots.pgm_ext marginalize --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
@@ -238,7 +239,7 @@ class ApproximateFactor(object):
             return phi
 
     def normalize(self, inplace=True):
-        """
+        r"""
         Normalizes the weights of factor so that they sum to 1.
 
         Args:

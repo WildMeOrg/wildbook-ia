@@ -119,6 +119,7 @@ class Chap5(DBInputs):
         python -m ibeis Chap5._setup
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> #self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
@@ -197,6 +198,7 @@ class Chap5(DBInputs):
     def _thresh_test(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('PZ_Master1')
             >>> self = Chap5('GZ_Master1')
@@ -1073,6 +1075,7 @@ class Chap5(DBInputs):
             python -m ibeis Chap5.draw_simulation2 --db PZ_Master1 --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap5(dbname)
@@ -1329,6 +1332,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap4(dbname)
@@ -1428,6 +1432,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.measure_all --db GZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -1495,6 +1500,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.draw_all --db PZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -2639,6 +2645,7 @@ class Chap4(DBInputs):
     def custom_single_hard_case(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'
@@ -3874,6 +3881,7 @@ class Sampler(object):
         Vary num per name and total number of annots
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()

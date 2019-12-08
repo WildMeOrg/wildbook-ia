@@ -46,6 +46,7 @@ class Actor(object):
     thread/process
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from concurrent.futures import ThreadActor
         >>> class MyActor(ThreadActor):
         >>>     def __init__(self):

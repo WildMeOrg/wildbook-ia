@@ -7,6 +7,7 @@ print, rrr, profile = ut.inject2(__name__)
 class Siamese(torch.nn.Module):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.siamese import *
         >>> self = Siamese()
     """

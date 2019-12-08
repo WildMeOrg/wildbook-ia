@@ -442,6 +442,7 @@ class AnnotGroups(ut.NiceRepr):
 class _AnnotMatchPropInjector(BASE_TYPE):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis import _ibeis_object
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

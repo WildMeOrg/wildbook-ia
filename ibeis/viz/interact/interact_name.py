@@ -503,7 +503,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             >>> result = self.show_hud()
             >>> # verify results
             >>> print(result)
-            >>> ut.quit_if_noshow():
+            >>> ut.quit_if_noshow()
             >>> self.show_page()
             >>> pt.show_if_requested()
         """

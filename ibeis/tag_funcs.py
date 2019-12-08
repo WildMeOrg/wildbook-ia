@@ -166,7 +166,7 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
     CommandLine:
         python -m ibeis.tag_funcs --exec-rename_and_reduce_tags --db PZ_Master1
 
-    Example:
+    Ignore:
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> import ibeis
         >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')

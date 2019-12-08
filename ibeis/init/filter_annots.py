@@ -1495,7 +1495,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                 -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 --db lynx --veryverbtd --nocache-aid
 
-    Example:
+    Ignore:
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
     """
@@ -1857,7 +1857,7 @@ def multi_sampled_seaturtle_queries():
 
 @profile
 def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
-    """
+    r"""
     Sampling preserves input sample structure and thust does not always return
     exact values
 

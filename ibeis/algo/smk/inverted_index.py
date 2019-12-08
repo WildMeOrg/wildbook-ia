@@ -154,6 +154,7 @@ class InvertedAnnotsExtras(object):
             python -m ibeis.algo.smk.inverted_index render_inverted_vocab_word --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.inverted_index import *  # NOQA
             >>> import plottool_ibeis as pt
             >>> qreq_, inva = testdata_inva()
@@ -219,6 +220,7 @@ class InvertedAnnotsExtras(object):
             python -m ibeis.algo.smk.inverted_index render_inverted_vocab --show --debug-depc
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
@@ -267,6 +269,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         >>> inva = InvertedAnnots(aids, qreq_)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> qreq_, inva = testdata_inva()
     """
 
@@ -594,6 +597,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> tup = dat[1]
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.inverted_index import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')

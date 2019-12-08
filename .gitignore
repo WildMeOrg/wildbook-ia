@@ -135,7 +135,7 @@ model.*.npy
 test/
 test_*.npy
 
-ibeis/control/_autogen_explicit_controller.py
+# ibeis/control/_autogen_explicit_controller.py
 timeings.txt
 test_times.txt*
 profile_output*

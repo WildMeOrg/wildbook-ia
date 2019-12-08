@@ -391,6 +391,7 @@ class ClfProblem(ut.NiceRepr):
         helper script I've only run interactively
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             #>>> pblm = OneVsOneProblem.from_empty('GZ_Master1')

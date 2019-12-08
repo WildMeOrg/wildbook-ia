@@ -669,7 +669,7 @@ if False:
         """
         Will fill the queue with content of the source in a separate thread.
 
-        Example:
+        Ignore:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',

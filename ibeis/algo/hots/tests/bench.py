@@ -1,11 +1,13 @@
 import utool as ut
 
+
 def benchmark_knn():
     r"""
     CommandLine:
         python ~/code/ibeis/ibeis/algo/hots/tests/bench.py benchmark_knn --profile
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from bench import *  # NOQA
         >>> result = benchmark_knn()
         >>> print(result)

@@ -950,7 +950,7 @@ class _RedundancyComputers(object):
         """
         Get pairs of PCCs that are not complete.
 
-        Example:
+        Ignore:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(pcc_sizes=[1, 1, 2, 3, 5, 8], ignore_pair=True)

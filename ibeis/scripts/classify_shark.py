@@ -26,6 +26,7 @@ def shark_net(dry=False):
         python -m ibeis.scripts.classify_shark shark_net --vd --monitor
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.classify_shark import *  # NOQA
         >>> shark_net()
     """
@@ -146,6 +147,7 @@ def shark_net(dry=False):
 class WhaleSharkInjuryModel(AbstractCategoricalModel):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.classify_shark import *  # NOQA
         >>> from ibeis.scripts import classify_shark
         >>> ds = classify_shark.get_sharks_dataset('binary', 'chip')
@@ -658,6 +660,7 @@ class ClfProblem(object):
     def gridsearch_linear_svm_params(problem, train_idx):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
             >>> from ibeis.scripts import classify_shark
             >>> ds = classify_shark.get_sharks_dataset('binary')
@@ -846,6 +849,7 @@ class ClfSingleResult(object):
     Reports the results of a classification problem
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> result = ClfSingleResult()
     """
     def __init__(result, ds=None, test_idx=None, y_true=None, y_pred=None, y_conf=None):
@@ -975,6 +979,7 @@ def shark_svm():
         python -m ibeis.scripts.classify_shark shark_svm
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.classify_shark import *  # NOQA
         >>> shark_svm()
         >>> ut.show_if_requested()

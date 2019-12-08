@@ -312,6 +312,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> ut.show_if_requested()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> annot_score_list = []
         >>> annot_aid_list   = []

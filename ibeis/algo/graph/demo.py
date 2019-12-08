@@ -444,7 +444,7 @@ def demodata_infr(**kwargs):
         python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
         python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=100
 
-    Example:
+    Ignore:
         >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> from ibeis.algo.graph import demo
         >>> import networkx as nx

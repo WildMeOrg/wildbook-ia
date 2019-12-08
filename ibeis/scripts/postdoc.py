@@ -119,6 +119,7 @@ class GraphExpt(DBInputs):
         python -m ibeis GraphExpt._setup
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> #self = GraphExpt('GZ_Master1')
             >>> self = GraphExpt('PZ_MTEST')
@@ -347,6 +348,7 @@ class GraphExpt(DBInputs):
             python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --diskshow
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = GraphExpt(dbname)
@@ -814,6 +816,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure all RotanTurtles --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = VerifierExpt(dbname)
@@ -1791,6 +1794,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.draw_all --db PZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -2892,6 +2896,7 @@ class VerifierExpt(DBInputs):
     def custom_single_hard_case(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'

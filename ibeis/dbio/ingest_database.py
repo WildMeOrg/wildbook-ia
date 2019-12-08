@@ -14,21 +14,21 @@ rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
 python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 
 
-
 Example:
+    >>> # xdoctest: +SKIP
     >>> # The scripts in this file essentiall do this:
-    >>> dbdir = <your new database directory>
-    >>> gpath_list = <path to your images>
+    >>> dbdir = '<your new database directory>'
+    >>> gpath_list = '<path to your images>'
     >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
     >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
     >>> # use whole images as annotations
     >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
     >>> # Extra stuff
-    >>> name_list = <names that correspond to your annots>
+    >>> name_list = '<names that correspond to your annots>'
     >>> ibs.set_annot_names(aid_list, name_list)
-    >>> occur_text_list = <occurrence that images belongs to>
+    >>> occur_text_list = '<occurrence that images belongs to>'
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
-    >>> ibs.append_annot_case_tags(aid_list, <annotation tags>)
+    >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -865,7 +865,7 @@ def ingest_standard_database(dbname, force_delete=False):
         dbname (str): database name
         force_delete (bool):
 
-    Example:
+    Ignore:
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> dbname = 'testdb1'
         >>> force_delete = False
@@ -1701,21 +1701,7 @@ def injest_main():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict  # NOQA
-
-
-        python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete
-        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
-        python ibeis/dbio/ingest_database.py --db snails_drop1
-        python ibeis/dbio/ingest_database.py --db testdb1
-        python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
-
+        xdoctest -m ibeis.dbio.ingest_database
     """
-    ut.inject_colored_exceptions()
-    if ut.doctest_was_requested():
-        ut.doctest_funcs()
-    else:
-        injest_main()
-    import multiprocessing
-    multiprocessing.freeze_support()  # win32
+    import xdoctest
+    xdoctest.doctest_module(__file__)

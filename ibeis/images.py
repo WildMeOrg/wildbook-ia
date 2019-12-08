@@ -90,6 +90,7 @@ class Images(IMAGE_BASE):
         python -m ibeis.images Images --show
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.images import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -187,6 +188,7 @@ class ImageSets(IMAGESET_BASE):
         python -m ibeis.images ImageSets
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.images import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

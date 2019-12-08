@@ -375,6 +375,7 @@ class InfrLearning(object):
         Uses current knowledge to train verifiers for new unseen pairs.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
@@ -508,6 +509,7 @@ class _RedundancyAugmentation(object):
             k (int): redundnacy level (if None uses infr.params['redun.neg'])
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph import demo
             >>> k = 2
             >>> cc1, cc2 = {1}, {2, 3}
@@ -636,6 +638,7 @@ class _RedundancyAugmentation(object):
         Finds edges that might complete them.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(ccs=[(1,), (2,), (3,)], ignore_pair=True)
@@ -645,6 +648,7 @@ class _RedundancyAugmentation(object):
             >>> assert len(list(infr.find_neg_redun_candidate_edges())) == 0
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(pcc_sizes=[3] * 20, ignore_pair=True)
             >>> ccs = list(infr.positive_components())

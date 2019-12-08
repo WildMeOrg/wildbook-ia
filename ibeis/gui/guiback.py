@@ -55,7 +55,7 @@ def backreport(func):
     def backreport_wrapper(back, *args, **kwargs):
         try:
             result = func(back, *args, **kwargs)
-        except guiexcept.UserCancel as ex:
+        except guiexcept.UserCancel:
             print('handling user cancel')
             return None
         except Exception as ex:
@@ -1547,7 +1547,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         try:
             destination_index = imgsetid_list.index(destination_imgsetid)
-        except:
+        except Exception:
             # Default to the first value selected if the imgsetid doesn't exist in imgsetid_list
             print('[back] merge_imagesets cannot find index for %r' % (destination_imgsetid,))
             destination_index = 0
@@ -2515,6 +2515,7 @@ class MainWindowBackend(GUIBACK_BASE):
         image set that matches the appropriate filters.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> ut.exec_funckw(back._get_expanded_aids_groups, globals())
             >>> imgsetid = ibs.get_imageset_imgsetids_from_text('*All Images')
             >>> species2_expanded_aids = back._get_expanded_aids_groups(imgsetid)
@@ -2690,7 +2691,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.do_group_occurrence_step(dry=dry)
 
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back =
             >>> refresh = True
             >>> result = back.commit_to_wb_step(refresh)
             >>> print(result)
@@ -3771,11 +3771,7 @@ def testdata_guiback(defaultdb='testdb2', **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.guiback
-        python -m ibeis.gui.guiback --allexamples
-        python -m ibeis.gui.guiback --allexamples --noface --nosrc
+        xdoctest -m ibeis.gui.guiback
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

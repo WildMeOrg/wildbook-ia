@@ -70,7 +70,7 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
         >>> images = ibs.images()
         >>> gid_list = images.gids
         >>> config = {}  # ibeis.algo.Config.OccurrenceConfig().asdict()
-        >>> tup = ibeis_compute_occurr ences(ibs, gid_list)
+        >>> tup = ibeis_compute_occurrences(ibs, gid_list)
         >>> (flat_imgsetids, flat_gids)
         >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
         >>> metric = list(map(len, aids_list))
@@ -423,6 +423,7 @@ def plot_gps_html(gps_list):
         pip install git+git://github.com/myuser/foo.git@v123
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

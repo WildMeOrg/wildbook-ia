@@ -93,6 +93,7 @@ def classify_k(cfg={}):
         python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.unstable.demobayes import *  # NOQA
         >>> cfg_list = testdata_demo_cfgs()
         >>> classify_k(cfg_list[0])

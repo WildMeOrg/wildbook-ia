@@ -463,7 +463,7 @@ def opendb_bg_web(*args, **kwargs):
 
 def opendb_fg_web(*args, **kwargs):
     """
-    Example:
+    Ignore:
         >>> from ibeis.main_module import *  # NOQA
         >>> kwargs = {'db': 'testdb1'}
         >>> args = tuple()

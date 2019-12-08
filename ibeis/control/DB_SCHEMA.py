@@ -22,7 +22,7 @@ try:
     from ibeis.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = DB_SCHEMA_CURRENT.VERSION_CURRENT
-except:
+except Exception:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")
@@ -815,6 +815,7 @@ def update_1_3_4(db, ibs=None):
         """ we initially had viewpoint coordinates inverted
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import math
             >>> TAU = 2 * math.pi
             >>> old_viewpoint_labels = [

@@ -17,6 +17,7 @@ def _find_ibeis_attrs(ibs, objname, blacklist=[]):
         python -m ibeis.images _find_ibeis_attrs
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis._ibeis_object import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -25,6 +26,7 @@ def _find_ibeis_attrs(ibs, objname, blacklist=[]):
         >>> _find_ibeis_attrs(ibs, objname, blacklist)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis._ibeis_object import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -299,6 +301,7 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
             python -m ibeis._ibeis_object ObjectScalar0D._make_lazy_dict
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis._ibeis_object import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')

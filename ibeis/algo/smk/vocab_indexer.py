@@ -119,6 +119,7 @@ class VisualVocab(ut.NiceRepr):
             python -m ibeis.algo.smk.vocab_indexer render_vocab --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> vocab = testdata_vocab('PZ_MTEST', num_words=64)
             >>> all_words = vocab.render_vocab()

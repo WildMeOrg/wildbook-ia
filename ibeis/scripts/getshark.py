@@ -921,10 +921,12 @@ def parse_wildbook(images_url, keyword_url=None):
     Combines old and new
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.getshark import *  # NOQA
         >>> url = images_url = 'http://www.mantamatcher.org/listImages.jsp'
 
-    Example
+    Example:
+        >>> # DISABLE_DOCTEST
         >>> images_url = 'http://www.whaleshark.org/listImages.jsp'
         >>> keyword_url = 'http://www.whaleshark.org/getKeywordImages.jsp'
     """
@@ -999,6 +1001,7 @@ def parse_wildbook(images_url, keyword_url=None):
 def parse_wildbook_images(url):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> url = 'www.whaleshark.org/listImages.jsp'
         >>> url = images_url = 'http://www.mantamatcher.org/listImages.jsp'
         >>> parse_wildbook_images(url)

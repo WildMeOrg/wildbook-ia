@@ -439,7 +439,7 @@ class Feedback(object):
         """
         Removes all edges from graph and resets name labels.
 
-        Example:
+        Ignore:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=5)
@@ -638,8 +638,7 @@ class NameRelabel(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback_from([(2, 3), NEGTV) (5, 6), NEGTV)
-            >>>                         (1, 2), POSTV)]
+            >>> infr.add_feedback_from([(2, 3, NEGTV), (5, 6, NEGTV), (1, 2, POSTV)])
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
@@ -675,7 +674,8 @@ class MiscHelpers(object):
             dict: split: indicates which PCCs were split by this action.
         Note:
             This may cause unintended splits!
-        Example:
+
+        Ignore:
             >>> from graphid import demo, util
             >>> infr = demo.demodata_infr(num_pccs=5, pos_redun=1)
             >>> infr.refresh_candidate_edges()

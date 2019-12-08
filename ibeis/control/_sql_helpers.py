@@ -238,6 +238,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         dobackup (bool):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control._sql_helpers import *  # NOQA
         >>> ibs = '?'
         >>> db = ibs.db

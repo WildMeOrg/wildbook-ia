@@ -134,6 +134,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         flat_offsets (ndarray): offset positions per annotation
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)
         >>> words = data['words']
@@ -146,6 +147,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         >>> assert len(agg_flags_list) == len(flat_offsets) - 1
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=100, nannots=5)
         >>> words = data['words']
@@ -864,6 +866,7 @@ def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
         gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
         >>> ibs, smk, qreq_= testdata_smk()
         >>> X = qreq_.qinva.grouped_annots[0]

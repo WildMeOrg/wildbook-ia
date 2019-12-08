@@ -65,6 +65,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 
     Example:
+            >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> pblm.hyper_params['xval_kw']['n_splits'] = 10
@@ -578,6 +579,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone make_training_pairs --db PZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> pblm.make_training_pairs()
@@ -618,6 +620,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone load_samples --profile
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> #pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
@@ -646,6 +649,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone load_features --profile
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
@@ -755,6 +759,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 the publication server.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
@@ -836,6 +841,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone report_evaluation --db PZ_MTEST
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
@@ -858,6 +864,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone evaluate_classifiers --db GIRM_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
@@ -1275,6 +1282,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.algo.verif.vsone report_importance --show --db PZ_PB_RF_TRAIN
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> data_key = pblm.default_data_key
@@ -1434,6 +1442,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def qt_review_hardcases(pblm):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
             >>> #pblm = OneVsOneProblem.from_empty('GIRM_Master1')
@@ -1574,6 +1583,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         python -m ibeis.algo.verif.vsone AnnotPairSamples
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty()
         >>> pblm.load_samples()

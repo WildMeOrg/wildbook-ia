@@ -247,6 +247,7 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         python -m ibeis.web.app --test-add_annots_json
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> web_instance = ibeis.opendb(db='testdb1')

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+mkinit ~/code/ibeis/ibeis
+
+
+
 DEV SCRIPT
 
 TODO: DEPRICATE
@@ -42,12 +46,18 @@ import utool
 #from ibeis.algo.hots import smk
 import plottool_ibeis as pt
 import ibeis
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    ibeis._preload()
+# if __name__ == '__main__':
+#     multiprocessing.freeze_support()
+#     ibeis._preload()
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
-from ibeis._devcmds_ibeis import *  # NOQA
+from ibeis._devscript import devcmd, devprecmd  # NOQA
+from os.path import split, join, expanduser  # NOQA
+from plottool_ibeis import draw_func2 as df2  # NOQA
+from ibeis import sysres  # NOQA
+from ibeis.other import ibsfuncs  # NOQA
+from ibeis.dbio import ingest_hsdb  # NOQA
+from ibeis._devcmds_ibeis import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
 # IBEIS
 from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
@@ -173,6 +183,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
@@ -657,8 +668,6 @@ def devmain():
         -w     # wait / show the gui / figures are visible
         --cmd  # ipython shell to play with variables
         -t     # run list of tests
-
-        Examples:
     """
 
     helpstr = ut.codeblock(
@@ -755,7 +764,7 @@ def ggr_random_name_splits():
         sshfs -o idmap=user lev:/ ~/lev
 
     Example:
-        >>> # DISABLE_DOCTEST GGR
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """

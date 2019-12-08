@@ -245,6 +245,7 @@ def classification_report2(y_true, y_pred, target_names=None,
             Error Measures in MultiClass Prediction
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
         >>> y_true = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
         >>> y_pred = [1, 2, 1, 3, 1, 2, 2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 1, 3]

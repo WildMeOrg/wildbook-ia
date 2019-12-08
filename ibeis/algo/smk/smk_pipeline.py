@@ -95,6 +95,7 @@ class SMKRequest(mc5.EstimatorRequest):
             -a ctrl:qmingt=2,qindex=40:60 --profile
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
@@ -141,6 +142,7 @@ class SMKRequest(mc5.EstimatorRequest):
     def dump_vectors(qreq_):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
             >>> import ibeis
             >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')

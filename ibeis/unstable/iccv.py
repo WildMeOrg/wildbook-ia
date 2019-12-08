@@ -99,6 +99,7 @@ def gt_review():
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> result = gt_review()
         >>> print(result)
@@ -729,6 +730,7 @@ def end_to_end():
         python -m ibeis.scripts.iccv end_to_end --db GZ_Master1
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> result = end_to_end()
         >>> print(result)

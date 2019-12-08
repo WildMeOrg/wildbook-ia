@@ -100,6 +100,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     Yet another chip thumb computer
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -951,6 +952,7 @@ def compute_hog(depc, cid_list, config=None):
 class FeatConfig(dtool_ibeis.Config):
     r"""
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> feat_cfg = FeatConfig()
         >>> result = str(feat_cfg)
@@ -1028,6 +1030,7 @@ def compute_feats(depc, cid_list, config=None):
         python -m ibeis.core_annots --test-compute_feats:1
 
     Doctest:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
@@ -1047,6 +1050,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> ut.show_if_requested()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # TIMING
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
@@ -1299,6 +1303,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
 class VsOneConfig(dtool_ibeis.Config):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> cfg = VsOneConfig()
         >>> result = str(cfg)
@@ -1464,6 +1469,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
 class IndexerConfig(dtool_ibeis.Config):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> cfg = VsOneConfig()
         >>> result = str(cfg)

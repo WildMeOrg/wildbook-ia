@@ -302,6 +302,7 @@ def main():
         python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy5.jpg" --figsize=10,10 --nanrate=0
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> result = toy_classify_nans()
     """
     from sklearn.ensemble import RandomForestClassifier

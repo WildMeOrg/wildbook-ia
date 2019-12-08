@@ -296,6 +296,7 @@ class DBInputs(object):
         Sets up an ibs object with an aids_pool
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('humpbacks_fb')
             >>> self = Chap3('GZ_Master1')
