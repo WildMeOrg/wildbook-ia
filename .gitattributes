@@ -1,0 +1,7 @@
+# Tell github what the language really is
+*.py linguist-detectable=true
+*.js linguist-detectable=false
+*.html linguist-detectable=false
+*.xml linguist-detectable=false
+*.ipynb linguist-detectable=false
+
