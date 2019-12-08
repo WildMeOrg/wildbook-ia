@@ -3231,6 +3231,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         Example:
             >>> # DEV_GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='freshsmart_test', delete_ibsdir=True, allow_newdir=True)
             >>> ibs = back.ibs
