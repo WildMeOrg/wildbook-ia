@@ -1,5 +1,6 @@
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
 
-.. image:: _installers/WildBook_logo_72dpi-03.png
+.. image:: https://i.imgur.com/L0k84xQ.png
 
 This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
@@ -121,16 +122,13 @@ In the interest of modular code we are actively developing several different mod
 
 Erotemic's IBEIS Image Analysis module dependencies 
 
-* https://github.com/WildbookOrg/utool
-  docs: http://erotemic.github.io/utool
-* https://github.com/WildbookOrg/plottool
-  docs: http://erotemic.github.io/plottool
-* https://github.com/WildbookOrg/vtool
-  docs: http://erotemic.github.io/vtool
-* https://github.com/WildbookOrg/hesaff
-  docs: http://erotemic.github.io/hesaff
-* https://github.com/WildbookOrg/guitool
-  docs: http://erotemic.github.io/guitool
+* https://github.com/Erotemic/utool
+* https://github.com/Erotemic/plottool
+* https://github.com/Erotemic/vtool
+* https://github.com/Erotemic/hesaff
+* https://github.com/Erotemic/guitool
+* https://github.com/Erotemic/pyflann_ibeis
+* https://github.com/Erotemic/futures_actors
 
 
 bluemellophone's IBEIS Image Analysis modules
@@ -454,3 +452,17 @@ Caveats / Things we are not currently doing
 
 * We do not add or remove points from kdtrees. They are always rebuilt
 
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/ibeis.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/ibeis
+.. |Travis| image:: https://img.shields.io/travis/Erotemic/ibeis/master.svg?label=Travis%20CI
+   :target: https://travis-ci.org/Erotemic/ibeis?branch=master
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ibeis?branch=master&svg=True
+   :target: https://ci.appveyor.com/project/Erotemic/ibeis/branch/master
+.. |Codecov| image:: https://codecov.io/github/Erotemic/ibeis/badge.svg?branch=master&service=github
+   :target: https://codecov.io/github/Erotemic/ibeis?branch=master
+.. |Pypi| image:: https://img.shields.io/pypi/v/ibeis.svg
+   :target: https://pypi.python.org/pypi/ibeis
+.. |Downloads| image:: https://img.shields.io/pypi/dm/ibeis.svg
+   :target: https://pypistats.org/packages/ibeis
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/ibeis/badge/?version=latest
+    :target: http://ibeis.readthedocs.io/en/latest/

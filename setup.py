@@ -168,13 +168,6 @@ if __name__ == '__main__':
     }
     install_requires = parse_requirements('requirements/runtime.txt')
 
-    try:
-        import ubelt as ub
-        print('install_requires = {}'.format(ub.repr2(install_requires, nl=1)))
-        # print('extras_require = {}'.format(ub.repr2(extras_require, nl=2)))
-    except ImportError:
-        pass
-
     from setuptools import setup, find_packages
     kwargs = dict(
         name=NAME,
@@ -185,15 +178,7 @@ if __name__ == '__main__':
         author='Jon Crall, Jason Parham',
         author_email='erotemic@gmail.com',
         install_requires=install_requires,
-        # extras_require=extras_require,
-        # project_dirs=[
-        #     'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
-        #     'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
-        #     'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
-        #     'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
-        #     'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
-        #     'ibeis/viz/interact'
-        # ],
+        extras_require=extras_require,
         entry_points={
             'console_scripts': [
                 # Register specific python functions as command line scripts
@@ -210,6 +195,14 @@ if __name__ == '__main__':
             # Supported Python versions
             'Programming Language :: Python :: 3',
         ],
-        packages=find_packages('ibeis*')
+        packages=find_packages('.')
+        # packages=[
+        #     'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
+        #     'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
+        #     'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
+        #     'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
+        #     'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
+        #     'ibeis/viz/interact'
+        # ],
     )
     setup(**kwargs)
