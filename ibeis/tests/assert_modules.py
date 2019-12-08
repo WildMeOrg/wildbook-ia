@@ -167,7 +167,7 @@ reg_std_version_check('1.1.6', 'cachetools')
 
 @checkinfo(None)
 def pyflann_version():
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     if LIB_DEP:
         libdep = None
     else:

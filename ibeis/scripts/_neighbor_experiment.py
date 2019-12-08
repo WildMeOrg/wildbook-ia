@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import vtool_ibeis as vt
 import numpy as np
 import utool as ut
-from vtool._pyflann_backend import pyflann as pyflann
+from vtool_ibeis._pyflann_backend import pyflann as pyflann
 from os.path import basename, exists  # NOQA
 from six.moves import range
 from ibeis.algo.hots import neighbor_index_cache
@@ -335,7 +335,7 @@ def subindexer_time_experiment():
     """
     import ibeis
     import utool as ut
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     import plottool_ibeis as pt
     ibs = ibeis.opendb(db='PZ_Master0')
     daid_list = ibs.get_valid_aids()
@@ -614,11 +614,11 @@ def trytest_multiple_add_removes():
     idx2_vec_masked = nnindexer.idx2_vec
     idx2_vec_compressed = nnindexer.get_indexed_vecs()
 
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     flann1 = pyflann.FLANN()
     flann1.load_index('test.flann', idx2_vec_masked)
 
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     flann2 = pyflann.FLANN()
     flann2.load_index('test.flann', idx2_vec_compressed)
 
@@ -639,7 +639,7 @@ def pyflann_test_remove_add():
         >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     import numpy as np
     rng = np.random.RandomState(0)
 
@@ -684,7 +684,7 @@ def pyflann_test_remove_add2():
         >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add2()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     import numpy as np
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
@@ -757,7 +757,7 @@ def pyflann_remove_and_save():
         >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_remove_and_save()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     import numpy as np
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)

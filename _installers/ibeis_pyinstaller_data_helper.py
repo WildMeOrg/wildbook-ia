@@ -181,7 +181,7 @@ def get_data_list():
     # FLANN
     libflann_fname = 'libflann' + LIB_EXT
     #try:
-    #    #from vtool._pyflann_backend import pyflann as pyflann
+    #    #from vtool_ibeis._pyflann_backend import pyflann as pyflann
     #    #pyflann.__file__
     #    #join(dirname(dirname(pyflann.__file__)), 'build')
     #except ImportError as ex:

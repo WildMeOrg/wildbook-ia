@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import dtool_ibeis
 import utool as ut
 import vtool_ibeis as vt
-from vtool._pyflann_backend import pyflann as pyflann
+from vtool_ibeis._pyflann_backend import pyflann as pyflann
 from ibeis.algo.smk import pickle_flann
 import numpy as np
 import warnings

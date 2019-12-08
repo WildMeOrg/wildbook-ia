@@ -33,7 +33,8 @@ sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_ibeis" $LIVE_RUN
 TOOL_NAME="plottool" 
 sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_ibeis" $LIVE_RUN
 TOOL_NAME="guitool" 
-sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_ibeis"$LIVE_RUN
+sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_ibeis" $LIVE_RUN
 
 TOOL_NAME="pyflann" 
-sedr_python "import pyflann" "from vtool._pyflann_backend import pyflann as pyflann" True 
+sedr_python "import pyflann" "from vtool._pyflann_backend import pyflann as pyflann" $LIVE_RUN 
+sedr_python "from vtool._pyflann_backend" "from vtool_ibeis._pyflann_backend" $LIVE_RUN 

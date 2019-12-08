@@ -71,7 +71,7 @@ def get_workdir(allow_gui=True):
         str: work_dir
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-get_workdir
+        python -m ibeis.init.sysres get_workdir
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -82,7 +82,7 @@ def get_workdir(allow_gui=True):
         >>> print(result)
     """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
-    if work_dir is not '.' and exists(work_dir):
+    if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
         work_dir = set_workdir()
@@ -101,7 +101,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
 
-        python -m ibeis.init.sysres --exec-set_workdir --workdir
+        python -m ibeis.init.sysres set_workdir
 
     Example:
         >>> # SCRIPT
@@ -815,11 +815,7 @@ def get_global_distinctiveness_modeldir(ensure=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.init.sysres
-        python -m ibeis.init.sysres --allexamples
-        python -m ibeis.init.sysres --allexamples --noface --nosrc
+        xdoctest -m ibeis.init.sysres
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

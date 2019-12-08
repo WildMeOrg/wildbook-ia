@@ -3,6 +3,7 @@
 Runs functions in pipeline to get query reuslts and does some caching.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import ubelt as ub
 import utool as ut
 from os.path import exists
 from ibeis.algo.hots import chip_match
@@ -66,7 +67,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     # Create new query request object to store temporary state
     if verbose:
         #print('[mc4] --- Submit QueryRequest_ --- ')
-        ut.colorprint('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow')
+        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow'))
     assert qreq_ is not None, 'query request must be prebuilt'
 
     # Check fo empty queries
