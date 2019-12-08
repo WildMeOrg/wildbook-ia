@@ -4,19 +4,17 @@ import collections
 import utool as ut
 from ibeis.algo.hots import hstypes
 from ibeis.algo import Config
-(print, rrr, profile) = ut.inject2(__name__, '[qreq]')
-
-
-def testdata_queryparams():
-    cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-    qparams = QueryParams(cfgdict=cfgdict)
-    return qparams
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # This object will behave like a dictionary with ** capability
 class QueryParams(collections.Mapping):
+
+    @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
+        DEPRICATE
+
         Rename to pipeline params
 
         Structure to store static query pipeline parameters
@@ -33,23 +31,9 @@ class QueryParams(collections.Mapping):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> import ibeis
+            >>> from ibeis.algo import Config
             >>> ibs = ibeis.opendb('testdb1')
-            >>> query_cfg = ibs.cfg.query_cfg
-            >>> #query_cfg.pipeline_root = 'asmk'
-            >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-            >>> qparams = QueryParams(query_cfg, cfgdict)
-            >>> assert qparams.pipeline_root == 'smk'
-            >>> assert qparams.fg_on is True
-            >>> result = qparams.query_cfgstr
-            >>> print(')_\n'.join(result.split(')_')))
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_params import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> query_cfg = ibs.cfg.query_cfg
-            >>> #query_cfg.pipeline_root = 'asmk'
+            >>> query_cfg = Config.QueryConfig()
             >>> cfgdict = dict(rotation_invariance=True)
             >>> qparams = QueryParams(query_cfg, cfgdict)
             >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
@@ -97,9 +81,21 @@ class QueryParams(collections.Mapping):
         qparams.sv_cfgstr         = query_cfg.sv_cfg.get_cfgstr()
         qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = query_cfg.get_cfgstr()
-        qparams.vocabtrain_cfgstr = query_cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
-        qparams.rrvsone_cfgstr    = query_cfg.rrvsone_cfg.get_cfgstr()
 
+    def hack_lnbnn_config_trail(qparams):
+        query_cfg = Config.QueryConfig()
+        lnbnn_trail = [
+            query_cfg.nn_cfg.asdict(),
+            query_cfg.nnweight_cfg.asdict(),
+            query_cfg.sv_cfg.asdict(),
+            query_cfg.agg_cfg.asdict(),
+            query_cfg.flann_cfg.asdict(),
+        ]
+        # Does not include feautres. Instead use
+        # print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
+        return lnbnn_trail
+
+    @profile
     def get_postsver_filtkey_list(qparams):
         """ HACK: gets columns of fsv post spatial verification.  This will
         eventually be incorporated into cmtup_old instead and will not be
@@ -137,7 +133,8 @@ class QueryParams(collections.Mapping):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> from six.moves import cPickle as pickle
-            >>> qparams = testdata_queryparams()
+            >>> cfgdict = {'pipeline_root': 'vsmany', 'sv_on': False, 'fg_on': True}
+            >>> qparams = QueryParams(cfgdict=cfgdict)
             >>> qparams_dump = pickle.dumps(qparams)
             >>> qparams2 = pickle.loads(qparams_dump)
         """

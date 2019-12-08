@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
-from plottool import plot_helpers as ph
-from plottool import abstract_interaction
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import abstract_interaction
 from ibeis import viz
 from ibeis.viz.interact.interact_sver import ishow_sver
 
@@ -122,7 +122,7 @@ class InteractQres(BASE_CLASS):
         #    print(str(event.__dict__))
         print('viztype=%r' % viztype)
         # Clicked a specific matches
-        print('plodat_dict = ' + ut.dict_str(ph.get_plotdat_dict(ax)))
+        print('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
         if viztype.startswith('chip'):
             from ibeis.viz.interact import interact_chip
             options = interact_chip.build_annot_context_options(

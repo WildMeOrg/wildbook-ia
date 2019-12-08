@@ -1,128 +1,118 @@
-function update_label()
-{
+function update_label() {
   var viewpoint_strs = [];
+  viewpoint_strs[-1] = 'Unspecified';
   viewpoint_strs[0] = 'Left';
-  viewpoint_strs[45] = 'Back-Left';
-  viewpoint_strs[90] = 'Back';
-  viewpoint_strs[135] = 'Back-Right';
-  viewpoint_strs[180] = 'Right';
-  viewpoint_strs[225] = 'Front-Right';
-  viewpoint_strs[270] = 'Front';
-  viewpoint_strs[315] = 'Front-Left';
+  viewpoint_strs[1] = 'Front-Left';
+  viewpoint_strs[2] = 'Front';
+  viewpoint_strs[3] = 'Front-Right';
+  viewpoint_strs[4] = 'Right';
+  viewpoint_strs[5] = 'Back-Right';
+  viewpoint_strs[6] = 'Back';
+  viewpoint_strs[7] = 'Back-Left';
 
-  value = parseFloat( $("#slider-viewpoint").val() );
-  radians_sub = (value / 360.0) * 2.0;
-  $("#viewpoint-label-degrees").html(value);
-  $("#viewpoint-label-radians1").html((radians_sub * Math.PI).toFixed(4));
-  $("#viewpoint-label-radians2").html((radians_sub).toFixed(4));
-  value = Math.round(value / 45.0) * 45;
-  if(value == 360) value = 0;
-  $("#viewpoint-label-text").html(viewpoint_strs[value]);
+  value = parseFloat($("#ia-annotation-viewpoint").val());
+  $("#ia-annotation-viewpoint-label-text").html(viewpoint_strs[value]);
 
   var quality_strs = [];
-  quality_strs[5] = 'Excellent';
-  quality_strs[4] = 'Good';
-  quality_strs[3] = 'OK';
-  quality_strs[2] = 'Poor';
-  quality_strs[1] = 'Junk';
+  quality_strs[-1] = 'Unspecified';
+  quality_strs[0] = 'Poor';
+  quality_strs[1] = 'Good';
 
-  value = parseFloat( $("#slider-quality").val() );
-  $("#quality-label-value").html(value);
-  $("#quality-label-text").html(quality_strs[value]);
+  value = parseFloat($("#ia-annotation-quality").val());
+  $("#ia-quality-label-text").html(quality_strs[value]);
 }
 
-function add_species()
-{
+function add_species() {
   value = $('input[name="species-add"]').val()
-  console.log(value);ww
+  console.log(value);
 
-  $('select[name="viewpoint-species"]')
-     .append($("<option></option>")
-     .attr("value", value)
-     .text(value));
+  $('select[name="ia-annotation-species"]')
+    .append($("<option></option>")
+      .attr("value", value)
+      .text(value));
+  $('select[name="ia-annotation-species"] option[value="' + value + '"]').prop('selected', true)
 }
-
-var hotkeys_disabled = false;
-
-$('#species-add').on('shown.bs.modal', function () {
-  $('input[name="species-add"]').val('')
-  hotkeys_disabled = true;
-});
-
-$('#species-add').on('hidden.bs.modal', function () {
-  hotkeys_disabled = false;
-});
-
 
 $(window).keydown(function(event) {
   key = event.which;
   console.log(key);
-  console.log('disabled ' + hotkeys_disabled);
+  console.log('disabled ' + hotkeys_global_disabled);
 
-  if( ! hotkeys_disabled)
-  {
-    if(key == 13)
-    {
+  if (!hotkeys_global_disabled) {
+    if (key == 13) {
       // Enter key pressed, submit form as accept
-      $('input#turk-submit-accept').click();
-    }
-    else if(key == 32)
-    {
+      $('input#ia-turk-submit-accept').click();
+    } else if (key == 32) {
       // Space key pressed, submit form as delete
-      $('input#turk-submit-delete').click();
+      $('input#ia-turk-submit-delete').click();
     }
-    // else if(key == 76)
-    // {
-    //   // L key pressed, submit form as left
-    //   $('input#turk-submit-left').click();
-    // }
-    // else if(key == 82)
-    // {
-    //   // R key pressed, submit form as right
-    //   $('input#turk-submit-right').click();
-    // }
-    else if(key == 81)
+    else if(key == 76)
     {
-      // Q key pressed, 1 star
-      $("#slider-quality").val(1);
-      update_label();
-    }
-    else if(key == 87)
-    {
-      // W key pressed, 2 stars
-      $("#slider-quality").val(2);
-      update_label();
-    }
-    else if(key == 69)
-    {
-      // E key pressed, 3 starts
-      $("#slider-quality").val(3);
-      update_label();
+      // L key pressed, submit form as left
+      $('input#ia-turk-submit-left').click();
     }
     else if(key == 82)
     {
-      // R key pressed, 4 stars
-      $("#slider-quality").val(4);
-      update_label();
+      // R key pressed, submit form as right
+      $('input#ia-turk-submit-right').click();
     }
-    else if(key == 84)
-    {
-      // T key pressed, 5 stars
-      $("#slider-quality").val(5);
+    else if (key == 69) {
+      // E key pressed, No quality
+      $("#ia-annotation-quality").val(-1);
       update_label();
+    } else if (key == 81) {
+      // Q key pressed, 1 star
+      $("#ia-annotation-quality").val(0);
+      update_label();
+    } else if (key == 87) {
+      // W key pressed, 2 stars
+      $("#ia-annotation-quality").val(1);
+      update_label();
+    } else if (key == 79) {
+      $('#ia-annotation-multiple').trigger('click');
     }
+    // else if(key == 69)
+    // {
+    //   $('#ia-annotation-multiple').trigger('click');
+    //   E key pressed, 3 starts
+    //   $("#ia-annotation-quality").val(3);
+    //   update_label();
+    // }
+    // else if(key == 82)
+    // {
+    //   // R key pressed, 4 stars
+    //   $("#ia-annotation-quality").val(4);
+    //   update_label();
+    // }
+    // else if(key == 84)
+    // {
+    //   // T key pressed, 5 stars
+    //   $("#ia-annotation-quality").val(5);
+    //   update_label();
+    // }
     // else if(key == 85)
     // {
     //   // U key pressed, select Unspecified Animal in selection box
     //   $('select[name="viewpoint-species"]').val("unspecified_animal");
     // }
-    else if(key == 80)
-    {
+    else if (key == 67) {
+      // C pressed
+      var element = $("#ia-annotation-species")
+      var children = element.children('option')
+      var length = children.length;
+      var index = element.find("option:selected").index()
+        // Increment
+      if (event.shiftKey) {
+        index -= 1
+      } else {
+        index += 1
+      }
+      index = index % length
+      children.eq(index).prop('selected', true);
+    } else if (key == 80) {
       // P key pressed, follow previous link
-      $('a#turk-previous')[0].click();
-    }
-    else if(49 <= key && key <= 56)
-    {
+      $('a#ia-turk-previous')[0].click();
+    } else if (48 <= key && key <= 56) {
       // 48 == numeric key 0
       // 49 == numeric key 1
       // 50 == numeric key 2
@@ -134,12 +124,10 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value);
       update_label();
-    }
-    else if(97 <= key && key <= 104)
-    {
-      // 48 ==  number pad key 0
+    } else if (96 <= key && key <= 104) {
+      // 96 ==  number pad key 0
       // 97 ==  number pad key 1
       // 98 ==  number pad key 2
       // 99 ==  number pad key 3
@@ -150,7 +138,7 @@ $(window).keydown(function(event) {
       // 104 == number pad key 8
       // 105 == number pad key 9
       value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value);
       update_label();
     }
   }

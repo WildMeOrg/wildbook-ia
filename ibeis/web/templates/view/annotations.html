@@ -45,7 +45,7 @@
         {% if page_previous != None %}
         <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
+        <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})</h3></a>
         {% endif %}
       </div>
 
@@ -80,7 +80,7 @@
             <th>Quality</th>
             <th>Sex / Age</th>
             <th>Image</th>
-            <th>Image Set</th>
+            <th>ImageSet</th>
           </tr>
         </thead>
         <tbody>
@@ -96,10 +96,10 @@
               <td>{{ src }}</td>
               <td>{{ name }}</td>
               <td>{{ exemplar }}</td>
-              <td>{{ species }}</td>
+              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ species }}</a></td>
               <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
               <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
-              <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
+              <td><a href="{{ url_for('turk_demographics') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
               <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
             </tr>
@@ -138,7 +138,7 @@
     if(!contains(loading, aid) && requests.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/annotation/src/" + aid )
+      request = $.ajax( "/ajax/annot/src/" + aid )
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);

@@ -3,15 +3,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import utool as ut
 from ibeis import constants as const  # NOQA
-from plottool import interact_helpers as ih
-import plottool as pt
+from plottool_ibeis import interact_helpers as ih
+import plottool_ibeis as pt
 from ibeis.viz.interact import interact_matches  # NOQA
 # from ibeis.gui import guiback
 from functools import partial
-import guitool
+import guitool_ibeis
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
-from plottool.abstract_interaction import AbstractInteraction
+from plottool_ibeis.abstract_interaction import AbstractInteraction
 ut.noinject(__name__, '[interact_query_decision]')
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
 #                                                       '[interact_query_decision]', DEBUG=False)
@@ -91,8 +91,6 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         self.aid_list = [self.query_aid] + self.comp_aids
 
-        # cm = ibs.query_chips(query_aid,)
-
         #HACK: make sure that comp_aids is of length NUM_TOP
         if len(self.comp_aids) != NUM_TOP:
             self.comp_aids += [None for i in range(NUM_TOP - len(self.comp_aids))]
@@ -139,7 +137,8 @@ class QueryVerificationInteraction(AbstractInteraction):
             self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix=query_title)
 
         self.show_hud()
-        pt.adjust_subplots_safe(top=0.88, hspace=0.12)
+        pt.adjust_subplots(top=0.88, hspace=0.12, left=.1, right=.9, bottom=.1,
+                           wspace=.3)
         self.draw()
         self.show()
         if bring_to_front:
@@ -182,7 +181,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             'enable_chip_title_prefix': enable_chip_title_prefix,
             'show_name': True,
             'show_aidstr': True,
-            'show_yawtext': True,
+            'show_viewcode': True,
             'show_quality_text': True,
         }
 
@@ -359,7 +358,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             options = selected_names
             parent = None
             title = 'Confirm Merge'
-            merge_name = guitool.user_option(parent, msg=msg, title=title,
+            merge_name = guitool_ibeis.user_option(parent, msg=msg, title=title,
                                              options=options)
             if merge_name is None:
                 print('[interact_query_decision] cancelled merge')
@@ -395,9 +394,9 @@ class QueryVerificationInteraction(AbstractInteraction):
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     from ibeis.viz.interact import interact_chip
-                    import guitool
+                    import guitool_ibeis
                     height = self.fig.canvas.geometry().height()
-                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
                     if self.qreq_ is None:
                         config2_ = None
                     else:
@@ -407,12 +406,12 @@ class QueryVerificationInteraction(AbstractInteraction):
                             config2_ = self.qreq_.data_config2_
                     callback_list = interact_chip.build_annot_context_options(
                         self.ibs, aid, refresh_func=self.show_page, config2_=config2_)
-                    guitool.popup_menu(self.fig.canvas, qpoint, callback_list)
+                    guitool_ibeis.popup_menu(self.fig.canvas, qpoint, callback_list)
                     #interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #self.show_page()
                     #ibs.print_annotation_table()
-                print(ut.dict_str(event.__dict__))
+                print(ut.repr2(event.__dict__))
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from ibeis.control.accessor_decors import (
 import utool as ut
 #from ibeis.other import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_lblimg]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -46,15 +46,6 @@ def get_glr_image_rowids(ibs, glrid_list):
     image_rowids_list = ibs.db.get(const.GL_RELATION_TABLE, ('image_rowid',), glrid_list)
     return image_rowids_list
 
-
-@register_ibs_method
-@getter_1to1
-def get_glr_config_rowid(ibs, glrid_list):
-    """
-    Returns:
-        list_ (list):  config_rowid in an image relationship """
-    config_rowid_list = ibs.db.get(const.GL_RELATION_TABLE, ('config_rowid',), glrid_list)
-    return config_rowid_list
 
 # ADDERS::LBLIMAGE
 
@@ -165,18 +156,16 @@ def get_lblimage_gids(ibs, lblimage_rowid_list):
 
 @register_ibs_method
 @adder
-def add_image_relationship_one(ibs, gid_list, lblimage_rowid_list, config_rowid_list=None,
-                                glr_confidence_list=None):
+def add_image_relationship_one(ibs, gid_list, lblimage_rowid_list,
+                               glr_confidence_list=None):
     """ Adds a relationship between images and lblimages
         (imageations and labels of imageations) """
-    if config_rowid_list is None:
-        config_rowid_list = [ibs.MANUAL_CONFIGID] * len(gid_list)
     if glr_confidence_list is None:
         glr_confidence_list = [0.0] * len(gid_list)
-    colnames = ('image_rowid', 'lblimage_rowid', 'config_rowid', 'glr_confidence',)
-    params_iter = list(zip(gid_list, lblimage_rowid_list, config_rowid_list, glr_confidence_list))
+    colnames = ('image_rowid', 'lblimage_rowid', 'glr_confidence',)
+    params_iter = list(zip(gid_list, lblimage_rowid_list, glr_confidence_list))
     get_rowid_from_superkey = ibs.get_glrid_from_superkey
-    superkey_paramx = (0, 1, 2)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
+    superkey_paramx = (0, 1)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
     glrid_list = ibs.db.add_cleanly(const.GL_RELATION_TABLE, colnames, params_iter,
                                     get_rowid_from_superkey, superkey_paramx)
     return glrid_list
@@ -184,37 +173,33 @@ def add_image_relationship_one(ibs, gid_list, lblimage_rowid_list, config_rowid_
 
 @register_ibs_method
 @getter_1to1
-def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list, config_rowid_list):
+def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list):
     """
     Args:
         gid_list (list): list of image row-ids
         lblimage_rowid_list (list): list of lblimage row-ids
-        config_rowid_list (list): list of config row-ids
     Returns:
         glrid_list (list): image-label relationship id list
     """
     colnames = ('image_rowid',)
-    params_iter = zip(gid_list, lblimage_rowid_list, config_rowid_list)
-    where_clause = 'image_rowid=? AND lblimage_rowid=? AND config_rowid=?'
+    params_iter = zip(gid_list, lblimage_rowid_list)
+    where_clause = 'image_rowid=? AND lblimage_rowid=?'
     glrid_list = ibs.db.get_where(const.GL_RELATION_TABLE, colnames, params_iter, where_clause)
     return glrid_list
 
 
 @register_ibs_method
 @getter_1toM
-def get_image_glrids(ibs, gid_list, configid=None):
+def get_image_glrids(ibs, gid_list):
     """ FIXME: __name__
     Get all the relationship ids belonging to the input images
     if lblimage lbltype is specified the relationship ids are filtered to
     be only of a specific lbltype/category/type
     """
-    if configid is None:
-        configid = ibs.MANUAL_CONFIGID
-    params_iter = ((gid, configid) for gid in gid_list)
-    where_clause = 'image_rowid=? AND config_rowid=?'
+    params_iter = ((gid,) for gid in gid_list)
+    where_clause = 'image_rowid=?'
     glrids_list = ibs.db.get_where(const.GL_RELATION_TABLE, ('glr_rowid',), params_iter,
                                    where_clause=where_clause, unpack_scalars=False)
-    # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
     return glrids_list
 
 

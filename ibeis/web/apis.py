@@ -6,30 +6,57 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
-import cStringIO as StringIO
+from io import BytesIO
+from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
-import vtool as vt
-import uuid
+import vtool_ibeis as vt
+import uuid as uuid_module
 import six
-print, rrr, profile = ut.inject2(__name__, '[apis]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+@register_api('/api/embed/', methods=['GET'])
+def web_embed(*args, **kwargs):
+    ibs = current_app.ibs  # NOQA
+
+    if False:
+        from ibeis.algo.graph.state import POSTV
+
+        payload = {
+            'action'      : 'update_task_thresh',
+            'task'        : 'match_state',
+            'decision'    : POSTV,
+            'value'       : 0.95,
+        }
+
+        for graph_uuid in current_app.GRAPH_CLIENT_DICT:
+            graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+            if graph_client is None:
+                continue
+            if len(graph_client.futures) > 0:
+                continue
+            future = graph_client.post(payload)  # NOQA
+            # future.result()  # Guarantee that this has happened before calling refresh
+
+    ut.embed()
+
+
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/<gid>/', methods=['GET'], __api_prefix_check__=False)
-def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
+@register_route('/api/image/src/<rowid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
+def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the image file of image <gid>
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
@@ -39,21 +66,21 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
     RESTful:
         Method: GET
-        URL:    /api/image/src/<gid>/
+        URL:    /api/image/src/<rowid>/
     """
     from PIL import Image  # NOQA
     thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     ibs = current_app.ibs
     if thumbnail:
-        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+        gpath = ibs.get_image_thumbpath(rowid, ensure_paths=True)
         fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
         if fresh:
             #import os
             #os.remove(gpath)
             ut.delete(gpath)
-            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+            gpath = ibs.get_image_thumbpath(rowid, ensure_paths=True)
     else:
-        gpath = ibs.get_image_paths(gid)
+        gpath = ibs.get_image_paths(rowid)
 
     # Load image
     assert gpath is not None, 'image path should not be None'
@@ -63,7 +90,10 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    img_io = StringIO.StringIO()
+    if six.PY2:
+        img_io = StringIO()
+    else:
+        img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -72,13 +102,13 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/json/<image_uuid>/', methods=['GET'], __api_prefix_check__=False)
-def image_src_api_json(image_uuid=None, **kwargs):
+@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
+def image_src_api_json(uuid=None, **kwargs):
     r"""
     Returns the image file of image <gid>
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
@@ -92,14 +122,14 @@ def image_src_api_json(image_uuid=None, **kwargs):
     """
     ibs = current_app.ibs
     try:
-        if isinstance(image_uuid, six.string_types):
-            image_uuid = uuid.UUID(image_uuid)
-        gid = ibs.get_image_gids_from_uuid(image_uuid)
-        return image_src_api(gid, **kwargs)
+        if isinstance(uuid, six.string_types):
+            uuid = uuid_module.UUID(uuid)
     except:
         from ibeis.control.controller_inject import translate_ibeis_webreturn
         return translate_ibeis_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')
+    gid = ibs.get_image_gids_from_uuid(uuid)
+    return image_src_api(gid, **kwargs)
 
 
 @register_api('/api/upload/image/', methods=['POST'])
@@ -119,7 +149,7 @@ def image_upload(cleanup=True, **kwargs):
 
     RESTful:
         Method: POST
-        URL:    /api/image/
+        URL:    /api/upload/image/
     """
     ibs = current_app.ibs
     print('request.files = %s' % (request.files,))
@@ -232,21 +262,25 @@ def hello_world(*args, **kwargs):
         python -m ibeis.web.apis --exec-hello_world:1
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> print('web_ibs = %r' % (web_ibs,))
         >>> print('Server will run until control c')
         >>> #web_ibs.terminate2()
 
     Example1:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> import requests
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> domain = 'http://127.0.0.1:5000'
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not running on any expected port')
+        >>> domain = 'http://127.0.0.1:%s' % (web_port, )
         >>> url = domain + '/api/test/helloworld/?test0=0'
         >>> payload = {
         >>>     'test1' : 'test1',

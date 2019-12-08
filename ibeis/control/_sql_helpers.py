@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
+import six
 import datetime
 import distutils
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[sql-helpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
-# =======================
-# Helper Functions
-# =======================
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
-#AUTODUMP = ut.get_argflag('--auto-dump')
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
 def compare_string_versions(a, b):
-    """
+    r"""
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._sql_helpers import *  # NOQA
@@ -36,30 +33,24 @@ def compare_string_versions(a, b):
         return -1
     elif va == vb:
         return 0
-    #a = map(int, a.strip().split('.'))
-    #b = map(int, b.strip().split('.'))
-    #while len(a) < 3:
-    #    a.append(0)
-    #while len(b) < 3:
-    #    b.append(0)
-    #if a[0] < b[0]:
-    #    return -1
-    #elif a[0] > b[0]:
-    #    return 1
-    #else:
-    #    if a[1] < b[1]:
-    #        return -1
-    #    elif a[1] > b[1]:
-    #        return 1
-    #    else:
-    #        if a[2] < b[2]:
-    #            return -1
-    #        elif a[2] > b[2]:
-    #            return 1
-    #        elif a[2] == b[2]:
-    #            return 0
-    ## return 0 - identical
-    raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
+    raise AssertionError('[!update_schema_version] Two version numbers are '
+                         'the same along the update path')
+
+
+def _devcheck_backups():
+    import dtool_ibeis as dt
+    dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
+    sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*staging_back*.sqlite3'))
+    fpaths = sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*database_back*.sqlite3'))
+    for fpath in fpaths:
+        db = dt.SQLDatabaseController(fpath=fpath)
+        print('fpath = %r' % (fpath,))
+        num_edges = len(db.executeone('SELECT rowid from annotmatch'))
+        print('num_edges = %r' % (num_edges,))
+        num_names = len(db.executeone('SELECT DISTINCT name_rowid from annotations'))
+        print('num_names = %r' % (num_names,))
+        # df = db.get_table_as_pandas('annotations', columns=['annot_rowid',
+        #                                                     'name_rowid'])
 
 
 def fix_metadata_consistency(db):
@@ -112,20 +103,38 @@ def revert_to_backup(ibs):
         >>> # SCRIPT
         >>> from ibeis.control._sql_helpers import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> ibs = ibeis.opendb(defaultdb='elephants')
         >>> result = revert_to_backup(ibs)
         >>> print(result)
     """
     db_path = ibs.get_db_core_path()
+    staging_path = ibs.get_db_staging_path()
+
     ibs.disconnect_sqldatabase()
     backup_dir = ibs.backupdir
 
-    ut.move(db_path, ut.get_nonconflicting_path(db_path + 'revertfrom.%d.orig'))
-    # Carefull may invalidate the cache
+    # Core database
     fname, ext = splitext(db_path)
-    path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
+    db_path_ = '%s_revert.sqlite3' % (fname, )
+    ut.move(db_path, db_path_)
+    fpath, fname = split(fname)
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    assert len(path_list) > 0
     previous_backup = path_list[-1]
-    ut.copy(previous_backup, db_path)
+    copy_database(previous_backup, db_path)
+
+    # Staging database
+    fname, ext = splitext(staging_path)
+    staging_path_ = '%s_revert.sqlite3' % (fname, )
+    ut.move(staging_path, staging_path_)
+    fpath, fname = split(fname)
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    assert len(path_list) > 0
+    previous_backup = path_list[-1]
+    copy_database(previous_backup, staging_path)
+
+    # Delete the cache
+    ut.delete(ibs.cachedir)
 
 
 def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
@@ -164,7 +173,23 @@ def get_backup_fpaths(ibs):
     pass
 
 
+def copy_database(src_fpath, dst_fpath):
+    import dtool_ibeis
+    # Load database and ask it to copy itself, which enforces an exclusive
+    # blocked lock for all processes potentially writing to the database
+    db = dtool_ibeis.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
+                                     inmemory=False)
+    db.backup(dst_fpath)
+
+
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
+    """
+    >>> db_dir = ibs.get_ibsdir()
+    >>> db_fname = ibs.sqldb_fname
+    >>> backup_dir = ibs.backupdir
+    >>> max_keep = MAX_KEEP
+    >>> manual = False
+    """
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
     #now = datetime.datetime.now()
@@ -178,7 +203,7 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
     dst_fpath = join(backup_dir, dst_fname)
     if exists(src_fpath) and not exists(dst_fpath):
         print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
-        ut.copy(src_fpath, dst_fpath)
+        copy_database(src_fpath, dst_fpath)
         # Clean-up old database backups
         remove_old_backups(backup_dir, ext, max_keep)
 
@@ -213,6 +238,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         dobackup (bool):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control._sql_helpers import *  # NOQA
         >>> ibs = '?'
         >>> db = ibs.db
@@ -329,14 +355,17 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
                                        version, '_copy', str(count), ext))
             db_backup_fpath = join(db_dpath, db_backup_fname)
             count += 1
-        ut.copy(db_fpath, db_backup_fpath)
+        copy_database(db_fpath, db_backup_fpath)
 
     legacy_update_funcs = schema_spec.LEGACY_UPDATE_FUNCTIONS
     for legacy_version, func in legacy_update_funcs:
         if compare_string_versions(version, legacy_version) == -1:
             func(db)
     db_versions = schema_spec.VALID_VERSIONS
-    valid_versions = sorted(db_versions.keys(), compare_string_versions)
+    import functools
+    _key = functools.cmp_to_key(compare_string_versions)
+    valid_versions = sorted(db_versions.keys(), key=_key)
+    print('valid_versions = %r' % (valid_versions,))
     try:
         start_index = valid_versions.index(version) + 1
     except IndexError:
@@ -366,7 +395,7 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
             msg = 'The database update failed, rolled back to the original version.'
             ut.printex(ex, msg, iswarning=True)
             ut.remove_file(db_fpath)
-            ut.copy(db_backup_fpath, db_fpath)
+            copy_database(db_backup_fpath, db_fpath)
             if clearbackup:
                 ut.remove_file(db_backup_fpath)
             raise
@@ -455,14 +484,14 @@ def get_nth_test_schema_version(schema_spec, n=-1):
         schema_spec (module): schema module to get nth version of
         n (int): version index (-1 is the latest)
     """
-    from dtool.sql_control import SQLDatabaseController
+    from dtool_ibeis.sql_control import SQLDatabaseController
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
     cachedir = ut.ensure_app_resource_dir('ibeis_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db = SQLDatabaseController(cachedir, db_fname, text_factory=unicode)
+    db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
     ensure_correct_version(
         None, db, version_expected, schema_spec, dobackup=False)
     return db

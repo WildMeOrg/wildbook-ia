@@ -12,6 +12,7 @@
   	<link rel="stylesheet" href="{{ url_for('static', filename='include/jquery-ui/jquery-ui.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='include/jquery.ui.rotatable/jquery.ui.rotatable.css') }}">
   	<link rel="stylesheet" href="{{ url_for('static', filename='include/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='include/bootstrap-toggle/css/bootstrap-toggle.min.css') }}">
   	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <script type="text/javascript" src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>
@@ -19,8 +20,10 @@
     <script type="text/javascript" src="{{ url_for('static', filename='include/jquery.ui.rotatable/jquery.ui.rotatable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='include/jquery.onscreen.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='include/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/bootstrap-toggle/js/bootstrap-toggle.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='include/countUp.js/countUp.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='include/Chart.js/Chart.min.js') }}"></script>
+    <!-- <script type="text/javascript" src="{{ url_for('static', filename='include/Chart.js/Chart.bundle.min.js') }}"></script> -->
     <script type="text/javascript" src="{{ url_for('static', filename='javascript/script.js') }}"></script>
 
     {% block content_custom_css %}{% endblock %}
@@ -28,16 +31,41 @@
 
   <body>
     <div class="container">
-      {% if __wrapper__ %}
+      {% if __wrapper__ and __wrapper_header__ %}
         <div class="header">
-          <ul class="nav nav-pills pull-right">
-            {% for active, link, nice in NAVBAR %}
-              <li {% if active %}class="active"{% endif %}>
-                <a href="{{ url_for(link) }}">{{ nice }}</a>
-              </li>
-            {% endfor %}
-          </ul>
-          <h3 class="text-muted">IBEIS Web Interface</h3>
+          <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-4">
+              <h3 class="text-muted">IBEIS Web</h3>
+            </div>
+            <div class="col-lg-8 col-md-8 col-sm-8">
+              <div class="row">
+                <div class="col-lg-12">
+                  <ul class="nav nav-pills pull-right" style="margin-top: 10px;">
+                    {% for active, link, nice in NAVBAR %}
+                      <li {% if active %}class="active"{% endif %}>
+                        <a href="{{ url_for(link) }}">{{ nice }}</a>
+                      </li>
+                    {% endfor %}
+
+                    {% if user %}
+                      <li>
+                        <a class="pull-right" data-toggle="modal" data-target="#logout-confirm">Logout</a>
+                      </li>
+                    {% else %}
+                      <li {% if __login__ %}class="active"{% endif %}>
+                        <a href="{{ url_for('login') }}">Login</a>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-lg-12" style="text-align: right">
+                  <div style="color: #aaa;">
+                    {% if user %}User: <span id="userid-container">{{ user.username }}</span>{% endif %}
+                  </div>
+                </div>
+            </div>
+          </div>
         </div>
       {% endif %}
 
@@ -45,12 +73,27 @@
   	    {% block content %}{% endblock %}
   	  </div>
 
-      {% if __wrapper__ %}
+      {% if __wrapper__ and __wrapper_footer__ %}
         <div class="footer">
-          <p>&copy; IBEIS {{ YEAR }}</p>
+          <p>&copy; WildMe / IBEIS {{ YEAR }}</p>
         </div>
       {% endif %}
     </div> <!-- /container -->
+
+    <div class="modal fade" id="logout-confirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Are you sure you want to logout?</h4>
+          </div>
+          <div class="modal-footer">
+            <a href="{{ url_for('logout') }}" type="button" class="btn btn-primary">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {% block content_custom_javascript %}{% endblock %}
   </body>
 </html>

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+DEPRICATE THIS ENTIRE FILE
+
 this module lists most of the command line args available for use.  there are
 still many cases where util_arg.get_argval and util_arg.get_argflag are used
 instead of this module. Those command line arguments will not be represented
@@ -52,7 +54,6 @@ def parse_args():
         parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
-        parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
         parser2.add_ints(('--qindex', '-qx', '--index'), None, help='test only these query indices. Out of bounds errors are clipped')
         parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indices. . Out of bounds errors are clipped')
@@ -60,8 +61,8 @@ def parse_args():
         #parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
         #parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
         #parser2.add_ints(('--daid-exclude', '--daids-exclude'), default=[], help='exclude daids from matching')
-        parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
-        parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
+        # parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
+        # parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_flag(('--fulltb'), help='shows a full traceback (default behavior removes decorators from the trace)')
         parser2.add_flag(('--verbose'), help='turns on verbosity')
         parser2.add_flag((('--veryverbose', '--very-verbose')), help='turns on extra verbosity')
@@ -109,7 +110,9 @@ def parse_args():
         parser2.add_str(('--logdir', '--set-logdir'), None,
                         help='sets the default logging directory')
         parser2.add_flag('--get-logdir', help='gets the current logging directory')
-        parser2.add_flag(('--view-logdir', '--vld'), help='views the current logging directory')
+        parser2.add_flag(('--view-logdir', '--vld'), help='views the current (local and global) logging directories')
+        parser2.add_flag(('--view-logdir-local', '--vldl'), help='views the current local logging directory')
+        parser2.add_flag(('--view-logdir-global', '--vldg'), help='views the current global logging directory')
         parser2.add_flag('--force-incremental-db-update',
                          help='ignores the current database schema and forces an incremental update for new databases')
         parser2.add_flag('--dump-autogen-schema',
@@ -141,8 +144,6 @@ def parse_args():
         parser2.add_int(('--select-aid', '--aid'), help='view col')
         parser2.add_ints(('--query-aid', '--query'), help='query aid(s)')
         parser2.add_flag(('--edit-notes'), help='edits database notes')
-        parser2.add_str(('--set-notes'), help='overwrites database notes')
-        parser2.add_ints('--set-aids-as-hard', help='set hard tag on selected aids')
         parser2.add_str(('--set-all-species'), help='careful. overwrites all species info.')
         parser2.add_flag(('--dump-schema', '--print-schema'), help='dumps schema to stdout')
         parser2.add_flag(('--delete-cache'), help='deletes most of the cache')

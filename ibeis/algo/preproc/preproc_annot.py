@@ -1,24 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-The goal of this module is to offload annotation work from the controller into a
-single place.
-
-CommandLine Help for manual controller functions
-
-# Cross platform alias helper
-python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"  # NOQA
-
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
-Tgen.sh --tbls annotations --Tcfg with_getters:True with_native:True strip_docstr:True
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True with_columns:False --quiet
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+helpers for controller manual_annot_funcs
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter, map  # NOQA
+import six
 import utool as ut
 import uuid
-from vtool import geometry
-from ibeis import constants as const
+from vtool_ibeis import geometry
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
 
 
@@ -96,7 +85,7 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     if len(gid_list) == 0:
         # nothing is being added
         print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.dict_str(locals()))
+        print(ut.repr2(locals()))
         return []
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids
@@ -108,62 +97,10 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     if yaw_list is None:
         yaw_list = [-1.0] * len(image_uuid_list)
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [const.__STR__(verts) for verts in vert_list]
+    vertstr_list = [six.text_type(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
     # Define arguments to insert
-
-
-def make_annot_visual_uuid(visual_infotup):
-    """
-    Args:
-        visual_infotup (tuple):  (image_uuid_list, verts_list, theta_list)
-
-    Returns:
-        list: annot_visual_uuid_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-        >>> annot_visual_uuid_list = make_annot_visual_uuid(visual_infotup)
-        >>> result = str(annot_visual_uuid_list[0])
-        >>> print(result)
-        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
-    """
-    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
-    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-    return annot_visual_uuid_list
-
-
-def make_annot_semantic_uuid(semantic_infotup):
-    """
-
-    Args:
-        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
-
-    Returns:
-        list: annot_semantic_uuid_list
-
-    CommandLine:
-        python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
-        >>> result = str(annot_semantic_uuid_list[0])
-        >>> print(result)
-        bf774bf3-582d-dbce-6ca6-329adeb086a6
-
-        215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
-    """
-    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
-    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
-    return annot_semantic_uuid_list
 
 
 def testdata_preproc_annot():
@@ -171,26 +108,6 @@ def testdata_preproc_annot():
     ibs = ibeis.opendb('testdb1')
     aid_list = ibs.get_valid_aids()
     return ibs, aid_list
-
-
-def test_annotation_uuid(ibs):
-    """ Consistency test """
-    # DEPRICATE
-    aid_list        = ibs.get_valid_aids()
-    bbox_list       = ibs.get_annot_bboxes(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-
-    annotation_uuid_list1 = ibs.get_annot_uuids(aid_list)
-    annotation_uuid_list2 = make_annotation_uuids(image_uuid_list, bbox_list, theta_list)
-
-    assert annotation_uuid_list1 == annotation_uuid_list2
-
-
-#def distinguish_unknown_nids(ibs, aid_list, nid_list_):
-#    nid_list = [-aid if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
-#                for nid, aid in zip(nid_list_, aid_list)]
-#    return nid_list
 
 
 def postget_annot_verts(vertstr_list):

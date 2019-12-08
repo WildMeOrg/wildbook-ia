@@ -35,19 +35,18 @@ Note:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import dtool
-#import sys
+import dtool_ibeis
 import atexit
 import weakref
+import utool as ut
 from six.moves import zip
 from os.path import join, split
-import utool as ut
-#import ibeis  # NOQA
 from ibeis.init import sysres
+from ibeis.dbio import ingest_hsdb
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[ibs]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 # Import modules which define injectable functions
 
@@ -56,12 +55,17 @@ from ibeis.control import accessor_decors, controller_inject
 AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.annotmatch_funcs',
     'ibeis.tag_funcs',
+    'ibeis.annots',
+    'ibeis.images',
     'ibeis.other.ibsfuncs',
     'ibeis.other.detectfuncs',
+    'ibeis.other.detectcore',
+    'ibeis.other.detectgrave',
+    'ibeis.other.detecttrain',
     'ibeis.init.filter_annots',
     'ibeis.control.manual_featweight_funcs',
     'ibeis.control._autogen_party_funcs',
-    'ibeis.control._autogen_annotmatch_funcs',
+    'ibeis.control.manual_annotmatch_funcs',
     'ibeis.control.manual_ibeiscontrol_funcs',
     'ibeis.control.manual_wildbook_funcs',
     'ibeis.control.manual_meta_funcs',
@@ -73,19 +77,30 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_gsgrelate_funcs',
     'ibeis.control.manual_garelate_funcs',
     'ibeis.control.manual_annot_funcs',
+    'ibeis.control.manual_part_funcs',
     'ibeis.control.manual_name_funcs',
+    'ibeis.control.manual_review_funcs',
+    'ibeis.control.manual_test_funcs',
     'ibeis.control.manual_species_funcs',
     'ibeis.control.manual_annotgroup_funcs',
     #'ibeis.control.manual_dependant_funcs',
     'ibeis.control.manual_chip_funcs',
     'ibeis.control.manual_feat_funcs',
+    #'ibeis.algo.hots.query_request',
     'ibeis.web.apis_detect',
     'ibeis.web.apis_engine',
     'ibeis.web.apis_query',
+    'ibeis.web.apis_sync',
     'ibeis.web.apis',
+    'ibeis.core_images',
+    'ibeis.core_annots',
+    'ibeis.core_parts',
+    'ibeis.algo.smk.vocab_indexer',
+    'ibeis.algo.smk.smk_pipeline',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
+    # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     #'ibeis.web.apis_engine',
 ]
 
@@ -106,14 +121,17 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
     try:
         ut.import_modname(modname)
     except ImportError as ex:
-        ut.printex(ex, iswarning=True)
+        if 'ibeis_cnn' in modname:
+            ut.printex(ex, 'Unable to load plugin: %r' % (modname,), iswarning=True)
+        else:
+            raise
 
 
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.  THE Long term solution is to get these
 # working (which are partially integrated)
-#     python -m ibeis --tf dev_autogen_explicit_imports
-#     python -m ibeis --tf dev_autogen_explicit_injects
+#     python -m ibeis dev_autogen_explicit_imports
+#     python -m ibeis dev_autogen_explicit_injects
 
 # Ensure that all injectable modules are imported before constructing the
 # class instance
@@ -124,7 +142,7 @@ try:
         raise ImportError
     else:
         """
-        python -m ibeis --tf dev_autogen_explicit_injects
+        python -m ibeis dev_autogen_explicit_injects
         """
         from ibeis.control import _autogen_explicit_controller
         BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
@@ -133,16 +151,17 @@ except ImportError:
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
+CORE_DB_UUID_INIT_API_RULE = '/api/core/db/uuid/init/'
 
 
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
-        use_cache=True, request_dbversion=None, asproxy=None):
+        use_cache=True, request_dbversion=None, request_stagingversion=None,
+        force_serial=False, asproxy=None, check_hsdb=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -155,6 +174,7 @@ def request_IBEISController(
         use_cache (bool): use the global ibeis controller cache.
             Make sure this is false if calling from a Thread. (default=True)
         request_dbversion (str): developer flag. Do not use.
+        request_stagingversion (str): developer flag. Do not use.
 
     Returns:
         IBEISController: ibs
@@ -176,34 +196,24 @@ def request_IBEISController(
         >>> print(result)
     """
     global __IBEIS_CONTROLLER_CACHE__
-    if asproxy:
-        # Not sure if this is the correct way to do a controller proxy
-        from multiprocessing.managers import BaseManager
-        class IBEISManager(BaseManager):
-            pass
-        IBEISManager.register(str('IBEISController'), IBEISController)
-        manager = IBEISManager()
-        manager.start()
-        ibs = manager.IBEISController(
-            dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-            request_dbversion=request_dbversion)
-        return ibs
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
             print('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
+        if force_serial:
+            assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
     else:
         # Convert hold hotspotter dirs if necessary
-        from ibeis.dbio import ingest_hsdb
-        if ingest_hsdb.check_unconverted_hsdb(dbdir):
+        if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
                                                     verbose=verbose)
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-                request_dbversion=request_dbversion)
+                force_serial=force_serial, request_dbversion=request_dbversion,
+                request_stagingversion=request_stagingversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -247,27 +257,34 @@ class IBEISController(BASE_CLASS):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
+    @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
-                 request_dbversion=None, force_serial=None):
+                 request_dbversion=None, request_stagingversion=None,
+                 force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
         # HACK
         try:
             from ibeis_flukematch import plugin  # NOQA
-        except ImportError as ex:
-            ut.printex(ex, 'flukematch disabled', iswarning=True)
-            print('[ibeis] plugin hack')
+        except Exception as ex:
+            msg = ('Cannot import the flukematch plugin. '
+                   'It does not exist or has not been built.')
+            ut.printex(ex, msg, iswarning=True)
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
         ibs.readonly = None
-        ibs.depc_annot = None
         ibs.depc_image = None
+        ibs.depc_annot = None
+        ibs.depc_part = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         if force_serial is None:
-            force_serial = not ut.in_main_process()
+            if ut.get_argflag(('--utool-force-serial', '--force-serial', '--serial')):
+                force_serial = True
+            else:
+                force_serial = not ut.in_main_process()
         ibs.force_serial = force_serial
         # observer_weakref_list keeps track of the guibacks connected to this
         # controller
@@ -279,12 +296,22 @@ class IBEISController(BASE_CLASS):
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
         ibs._send_wildbook_request(wbaddr)
-        ibs._init_sql(request_dbversion=request_dbversion)
+        ibs._init_sql(request_dbversion=request_dbversion,
+                      request_stagingversion=request_stagingversion)
         ibs._init_config()
         if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
             ibs._clean_species()
         ibs.job_manager = None
+
+        # Hack for changing the way chips compute
+        # by default use serial because warpAffine is weird with multiproc
+        ibs._parallel_chips = False
+
+        ibs.containerized = ut.get_argflag('--containerized')
+        if ibs.containerized:
+            print('[ibs.__init__] CONTAINERIZED: True\n')
+
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):
@@ -388,7 +415,7 @@ class IBEISController(BASE_CLASS):
             ibs, controller_inject.CONTROLLER_CLASSNAME,
             allow_override=ibs.allow_override)
         assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
-        assert hasattr(ibs, 'get_annot_pair_timdelta'), (
+        assert hasattr(ibs, 'get_annot_pair_timedelta'), (
             'issue with annotmatch_funcs')
         ibs.register_controller()
 
@@ -442,18 +469,15 @@ class IBEISController(BASE_CLASS):
         for observer_weakref in ibs.observer_weakref_list:
             observer_weakref().notify_controller_killed()
 
-    @accessor_decors.default_decorator
     def register_observer(ibs, observer):
         print('[register_observer] Observer registered: %r' % observer)
         observer_weakref = weakref.ref(observer)
         ibs.observer_weakref_list.append(observer_weakref)
 
-    @accessor_decors.default_decorator
     def remove_observer(ibs, observer):
         print('[remove_observer] Observer removed: %r' % observer)
         ibs.observer_weakref_list.remove(observer)
 
-    @accessor_decors.default_decorator
     def notify_observers(ibs):
         print('[notify_observers] Observers (if any) notified')
         for observer_weakref in ibs.observer_weakref_list:
@@ -469,8 +493,8 @@ class IBEISController(BASE_CLASS):
         # ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
         # ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
 
-        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
-        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        # ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
+        # ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         # duct_tape.fix_nulled_yaws(ibs)
@@ -479,15 +503,31 @@ class IBEISController(BASE_CLASS):
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
-    @accessor_decors.default_decorator
-    def _init_sql(ibs, request_dbversion=None):
+    @profile
+    def _init_sql(ibs, request_dbversion=None, request_stagingversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
-        ibs._init_sqldbcore(request_dbversion=request_dbversion)
+        # LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE
+        # CALLS TO THE CORE DATABASE WILL HAVE ACCESS TO THE CACHE DATABASES IF
+        # THEY ARE NEEDED.  THIS IS A DECISION MADE ON 8/16/16 BY JP AND JC TO
+        # ALLOW FOR COLUMN DATA IN THE CORE DATABASE TO BE MIGRATED TO THE CACHE
+        # DATABASE DURING A POST UPDATE FUNCTION ROUTINE, WHICH HAS TO BE LOADED
+        # FIRST AND DEFINED IN ORDER TO MAKE THE SUBSEQUENT WRITE CALLS TO THE
+        # RELEVANT CACHE DATABASE
         ibs._init_depcache()
+        ibs._init_sqldbcore(request_dbversion=request_dbversion)
+        ibs._init_sqldbstaging(request_stagingversion=request_stagingversion)
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs._init_rowid_constants()
+
+    def _needs_backup(ibs):
+        needs_backup = not ut.get_argflag('--nobackup')
+        if ibs.get_dbname() == 'PZ_MTEST':
+            needs_backup = False
+        if dtool_ibeis.sql_control.READ_ONLY:
+            needs_backup = False
+        return needs_backup
 
     @profile
     def _init_sqldbcore(ibs, request_dbversion=None):
@@ -523,7 +563,7 @@ class IBEISController(BASE_CLASS):
             print('backups = %r' % (backups,))
             sqldb_fpath = backups[backup_idx]
             print('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
-        if backup_idx is None and not ut.get_argflag('--nobackup'):
+        if backup_idx is None and ibs._needs_backup():
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
                                                           ibs.sqldb_fname,
@@ -532,18 +572,20 @@ class IBEISController(BASE_CLASS):
                 ut.printex(ex, (
                     'Failed making daily backup. '
                     'Run with --nobackup to disable'))
+                import utool
+                utool.embed()
                 raise
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.3'
+            ibs.db_version_expected = '1.8.1'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
-            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
+            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.3')
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.8.1')
             ibs.db_version_expected = new_version
             ibs.sqldb_fname = new_fname
         if sqldb_fpath is None:
@@ -552,9 +594,11 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.db = dtool.SQLDatabaseController(
-            fpath=sqldb_fpath, text_factory=const.__STR__,
-            inmemory=False, readonly=readonly)
+        ibs.db = dtool_ibeis.SQLDatabaseController(
+            fpath=sqldb_fpath, text_factory=six.text_type,
+            inmemory=False, readonly=readonly,
+            always_check_metadata=False,
+        )
         ibs.readonly = ibs.db.readonly
 
         if backup_idx is None:
@@ -565,25 +609,122 @@ class IBEISController(BASE_CLASS):
                 ibs.db_version_expected,
                 DB_SCHEMA,
                 verbose=ut.VERBOSE,
+                dobackup=not ibs.readonly
+            )
+        #import sys
+        #sys.exit(1)
+
+    @profile
+    def _init_sqldbstaging(ibs, request_stagingversion=None):
+        """
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> #ibs = ibeis.opendb('PZ_MTEST')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
+
+        Ignore:
+            aid_list = ibs.get_valid_aids()
+            #ibs.update_annot_visual_uuids(aid_list)
+            vuuid_list = ibs.get_annot_visual_uuids(aid_list)
+            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            assert aid_list2 == aid_list
+            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s
+            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
+
+            ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
+        """
+        from ibeis.control import _sql_helpers
+        from ibeis.control import STAGING_SCHEMA
+        # Before load, ensure database has been backed up for the day
+        backup_idx = ut.get_argval('--loadbackup-staging', type_=int, default=None)
+        sqlstaging_fpath = None
+        if backup_idx is not None:
+            backups = _sql_helpers.get_backup_fpaths(ibs)
+            print('backups = %r' % (backups,))
+            sqlstaging_fpath = backups[backup_idx]
+            print('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
+        # HACK
+        if backup_idx is None and ibs._needs_backup():
+            try:
+                _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
+                                                          ibs.sqlstaging_fname,
+                                                          ibs.backupdir)
+            except IOError as ex:
+                ut.printex(ex, (
+                    'Failed making daily backup. '
+                    'Run with --nobackup to disable'))
+                raise
+        # IBEIS SQL State Database
+        if request_stagingversion is None:
+            ibs.staging_version_expected = '1.1.0'
+        else:
+            ibs.staging_version_expected = request_stagingversion
+        # TODO: add this functionality to SQLController
+        if backup_idx is None:
+            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
+                ibs.get_dbname(), ibs.get_ibsdir(),
+                ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.1.0')
+            ibs.staging_version_expected = new_version
+            ibs.sqlstaging_fname = new_fname
+        if sqlstaging_fpath is None:
+            assert backup_idx is None
+            sqlstaging_fpath = join(ibs.get_ibsdir(), ibs.sqlstaging_fname)
+            readonly = None
+        else:
+            readonly = True
+        ibs.staging = dtool_ibeis.SQLDatabaseController(
+            fpath=sqlstaging_fpath, text_factory=six.text_type,
+            inmemory=False, readonly=readonly,
+            always_check_metadata=False,
+        )
+        ibs.readonly = ibs.staging.readonly
+
+        if backup_idx is None:
+            # Ensure correct schema versions
+            _sql_helpers.ensure_correct_version(
+                ibs,
+                ibs.staging,
+                ibs.staging_version_expected,
+                STAGING_SCHEMA,
+                verbose=ut.VERBOSE,
             )
         #import sys
         #sys.exit(1)
 
     @profile
     def _init_depcache(ibs):
+        # Initialize dependency cache for images
+        image_root_getters = {}
+        ibs.depc_image = dtool_ibeis.DependencyCache(
+            root_tablename=const.IMAGE_TABLE,
+            default_fname=const.IMAGE_TABLE + '_depcache',
+            cache_dpath=ibs.get_cachedir(),
+            controller=ibs,
+            get_root_uuid=ibs.get_image_uuids,
+            root_getters=image_root_getters,
+        )
+        ibs.depc_image.initialize()
+
         """ Need to reinit this sometimes if cache is ever deleted """
         # Initialize dependency cache for annotations
         annot_root_getters = {
             'name': ibs.get_annot_names,
             'species': ibs.get_annot_species,
             'yaw': ibs.get_annot_yaws,
+            'viewpoint_int': ibs.get_annot_viewpoint_int,
+            'viewpoint': ibs.get_annot_viewpoints,
             'bbox': ibs.get_annot_bboxes,
             'verts': ibs.get_annot_verts,
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
             'theta': ibs.get_annot_thetas,
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc_annot = dtool.DependencyCache(
+        ibs.depc_annot = dtool_ibeis.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
@@ -599,31 +740,34 @@ class IBEISController(BASE_CLASS):
         # requested computation.
         ibs.depc_annot.initialize()
 
-        # Initialize dependency cache for images
-        image_root_getters = {}
-        ibs.depc_image = dtool.DependencyCache(
-            root_tablename=const.IMAGE_TABLE,
-            default_fname=const.IMAGE_TABLE + '_depcache',
+        # Initialize dependency cache for parts
+        part_root_getters = {}
+        ibs.depc_part = dtool_ibeis.DependencyCache(
+            root_tablename=const.PART_TABLE,
+            default_fname=const.PART_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
             controller=ibs,
-            get_root_uuid=ibs.get_image_uuids,
-            root_getters=image_root_getters,
+            get_root_uuid=ibs.get_part_uuids,
+            root_getters=part_root_getters,
         )
-        ibs.depc_image.initialize()
+        ibs.depc_part.initialize()
 
     def _close_depcache(ibs):
-        ibs.depc_annot.close()
-        ibs.depc_annot = None
         ibs.depc_image.close()
         ibs.depc_image = None
+        ibs.depc_annot.close()
+        ibs.depc_annot = None
+        ibs.depc_part.close()
+        ibs.depc_part = None
 
     def disconnect_sqldatabase(ibs):
         print('disconnecting from sql database')
         ibs._close_depcache()
         ibs.db.close()
         ibs.db = None
+        ibs.staging.close()
+        ibs.staging = None
 
-    @accessor_decors.default_decorator
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
@@ -632,13 +776,13 @@ class IBEISController(BASE_CLASS):
         #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
         return ibs2
 
-    @accessor_decors.default_decorator
     def backup_database(ibs):
         from ibeis.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
                                      ibs.backupdir)
+        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqlstaging_fname,
+                                     ibs.backupdir)
 
-    @accessor_decors.default_decorator
     def _send_wildbook_request(ibs, wbaddr, payload=None):
         import requests
         if wbaddr is None:
@@ -657,7 +801,6 @@ class IBEISController(BASE_CLASS):
             return None
         return response
 
-    @accessor_decors.default_decorator
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
                    workdir='~/ibeis_workdir', ensure=True):
         """
@@ -673,13 +816,14 @@ class IBEISController(BASE_CLASS):
         ibs.workdir  = ut.truepath(workdir)
         ibs.dbname = dbname
         ibs.sqldb_fname = PATH_NAMES.sqldb
+        ibs.sqlstaging_fname = PATH_NAMES.sqlstaging
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != ut.dirsplit(ibs.workdir), \
             'cannot work in _ibsdb internals'
         assert PATH_NAMES._ibsdb != dbname,\
             'cannot create db in _ibsdb internals'
-        ibs.dbdir    = join(ibs.workdir, ibs.dbname)
+        ibs.dbdir      = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         # TODO: constantify these
         # so non controller objects (like in score normalization) have access
@@ -688,6 +832,7 @@ class IBEISController(BASE_CLASS):
         ibs.trashdir    = join(ibs.dbdir, REL_PATHS.trashdir)
         ibs.cachedir    = join(ibs.dbdir, REL_PATHS.cache)
         ibs.backupdir   = join(ibs.dbdir, REL_PATHS.backups)
+        ibs.logsdir     = join(ibs.dbdir, REL_PATHS.logs)
         ibs.chipdir     = join(ibs.dbdir, REL_PATHS.chips)
         ibs.imgdir      = join(ibs.dbdir, REL_PATHS.images)
         ibs.uploadsdir  = join(ibs.dbdir, REL_PATHS.uploads)
@@ -709,6 +854,7 @@ class IBEISController(BASE_CLASS):
         ut.ensuredir(ibs._ibsdb)
         ut.ensuredir(ibs.cachedir,    verbose=_verbose)
         ut.ensuredir(ibs.backupdir,   verbose=_verbose)
+        ut.ensuredir(ibs.logsdir,     verbose=_verbose)
         ut.ensuredir(ibs.workdir,     verbose=_verbose)
         ut.ensuredir(ibs.imgdir,      verbose=_verbose)
         ut.ensuredir(ibs.chipdir,     verbose=_verbose)
@@ -723,7 +869,7 @@ class IBEISController(BASE_CLASS):
     # --- DIRS ----
     #--------------
 
-    @register_api('/api/core/dbname/', methods=['GET'])
+    @register_api('/api/core/db/name/', methods=['GET'])
     def get_dbname(ibs):
         """
         Returns:
@@ -731,30 +877,43 @@ class IBEISController(BASE_CLASS):
 
         RESTful:
             Method: GET
-            URL:    /api/core/dbname/
+            URL:    /api/core/db/name/
         """
         return ibs.dbname
 
-    def get_logdir(ibs):
+    def get_db_name(ibs):
+        """ Alias for ibs.get_dbname(). """
+        return ibs.get_dbname()
+
+    @register_api(CORE_DB_UUID_INIT_API_RULE, methods=['GET'])
+    def get_db_init_uuid(ibs):
+        """
+        Returns:
+            UUID: The SQLDatabaseController's initialization UUID
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/db/uuid/init/
+        """
+        return ibs.db.get_db_init_uuid()
+
+    def get_logdir_local(ibs):
+        return ibs.logsdir
+
+    def get_logdir_global(ibs, local=False):
         return ut.get_logging_dir(appname='ibeis')
 
     def get_dbdir(ibs):
-        """
-        Returns:
-            list_ (list): database dir with ibs internal directory """
-        #return join(ibs.workdir, ibs.dbname)
+        """ database dir with ibs internal directory """
         return ibs.dbdir
 
     def get_db_core_path(ibs):
-        """
-        Returns:
-            path (str): path of the sqlite3 core database file """
         return ibs.db.fpath
 
+    def get_db_staging_path(ibs):
+        return ibs.staging.fpath
+
     def get_db_cache_path(ibs):
-        """
-        Returns:
-            path (str): path of the sqlite3 cache database file """
         return ibs.dbcache.fpath
 
     def get_shelves_path(ibs):
@@ -764,9 +923,7 @@ class IBEISController(BASE_CLASS):
         return ibs.trashdir
 
     def get_ibsdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs._ibsdb
 
     def get_chipdir(ibs):
@@ -776,39 +933,27 @@ class IBEISController(BASE_CLASS):
         return join(ibs.get_cachedir(), 'prob_chips')
 
     def get_fig_dir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return join(ibs._ibsdb, 'figures')
 
     def get_imgdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs.imgdir
 
     def get_uploadsdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs.uploadsdir
 
     def get_thumbdir(ibs):
-        """
-        Returns:
-            list_ (list): database directory where thumbnails are cached """
+        """ database directory where thumbnails are cached """
         return ibs.thumb_dpath
 
     def get_workdir(ibs):
-        """
-        Returns:
-            list_ (list): directory where databases are saved to """
+        """ directory where databases are saved to """
         return ibs.workdir
 
     def get_cachedir(ibs):
-        """
-        Returns:
-            list_ (list): database directory of all cached files """
+        """ database directory of all cached files """
         return ibs.cachedir
 
     def get_match_thumbdir(ibs):
@@ -820,64 +965,6 @@ class IBEISController(BASE_CLASS):
         """ returns the global resource dir in .config or AppData or whatever """
         resource_dir = sysres.get_ibeis_resource_dir()
         return resource_dir
-
-    def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
-        """
-        Args:
-            species_text (str):
-            ensure       (bool):
-
-        Returns:
-            str: species_cachedir
-
-        CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> species_text = ibeis.const.TEST_SPECIES.ZEB_GREVY
-            >>> ensure = True
-            >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
-            >>> resourcedir = ibs.get_ibeis_resource_dir()
-            >>> result = ut.relpath_unix(species_cachedir, resourcedir)
-            >>> print(result)
-            scorenorm/zebra_grevys
-        """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(),
-                                  const.PATH_NAMES.scorenormdir)
-        species_cachedir = join(scorenorm_cachedir, species_text)
-        if ensure:
-            ut.ensurepath(scorenorm_cachedir)
-            ut.ensuredir(species_cachedir)
-        return species_cachedir
-
-    def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
-        """
-        """
-        scorenorm_cachedir = join(ibs.get_cachedir(),
-                                  const.PATH_NAMES.scorenormdir)
-        species_cachedir = join(scorenorm_cachedir, species_text)
-        if ensure:
-            ut.ensuredir(scorenorm_cachedir)
-            ut.ensuredir(species_cachedir)
-        return species_cachedir
-
-    def get_global_distinctiveness_modeldir(ibs, ensure=True):
-        """
-        Returns:
-            global_distinctdir (str): ibs internal directory
-        """
-        global_distinctdir = sysres.get_global_distinctiveness_modeldir(ensure=ensure)
-        return global_distinctdir
-
-    def get_local_distinctiveness_modeldir(ibs):
-        """
-        Returns:
-            distinctdir (str): ibs internal directory """
-        return ibs.distinctdir
 
     def get_detect_modeldir(ibs):
         return join(sysres.get_ibeis_resource_dir(), 'detectmodels')
@@ -901,7 +988,8 @@ class IBEISController(BASE_CLASS):
     def get_qres_cachedir(ibs):
         """
         Returns:
-            qresdir (str): database directory where query results are stored """
+            qresdir (str): database directory where query results are stored
+        """
         return ibs.qresdir
 
     def get_neighbor_cachedir(ibs):
@@ -948,7 +1036,6 @@ class IBEISController(BASE_CLASS):
     # --- WEB CORE ----
     #------------------
 
-    @accessor_decors.default_decorator
     @register_api('/log/current/', methods=['GET'])
     def get_current_log_text(ibs):
         r"""
@@ -957,7 +1044,7 @@ class IBEISController(BASE_CLASS):
             python -m ibeis.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
 
         Example:
-            >>> # WEB_DOCTEST
+            >>> # xdoctest: +REQUIRES(--web)
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis
             >>> import ibeis.web
@@ -971,8 +1058,7 @@ class IBEISController(BASE_CLASS):
         text = ut.get_current_log_text()
         return text
 
-    @accessor_decors.default_decorator
-    @register_api('/api/core/dbinfo/', methods=['GET'])
+    @register_api('/api/core/db/info/', methods=['GET'])
     def get_dbinfo(ibs):
         from ibeis.other import dbinfo
         locals_ = dbinfo.get_dbinfo(ibs)
@@ -983,7 +1069,16 @@ class IBEISController(BASE_CLASS):
     # --- MISC ----
     #--------------
 
-    @accessor_decors.default_decorator
+    def copy_database(ibs, dest_dbdir):
+        # TODO: rectify with rsync, script, and merge script.
+        from ibeis.init import sysres
+        sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
+
+    def dump_database_csv(ibs):
+        dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
+        ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
+        ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
+
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
         Args:
@@ -1003,14 +1098,14 @@ class IBEISController(BASE_CLASS):
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> icon = ibs.get_database_icon()
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.imshow(icon)
             >>> ut.show_if_requested()
         """
         #if ibs.get_dbname() == 'Oxford':
         #    pass
         #else:
-        import vtool as vt
+        import vtool_ibeis as vt
         if hasattr(ibs, 'force_icon_aid'):
             aid = ibs.force_icon_aid
         if aid is None:
@@ -1050,6 +1145,69 @@ class IBEISController(BASE_CLASS):
 
     def __repr__(ibs):
         return ibs._custom_ibsstr()
+
+    def __getstate__(ibs):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import ibeis
+            >>> from six.moves import cPickle as pickle
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs_dump = pickle.dumps(ibs)
+            >>> ibs2 = pickle.loads(ibs_dump)
+        """
+        # Hack to allow for ibeis objects to be pickled
+        state = {
+            'dbdir': ibs.get_dbdir(),
+            'machine_name': ut.get_computer_name(),
+        }
+        return state
+
+    def __setstate__(ibs, state):
+        # Hack to allow for ibeis objects to be pickled
+        import ibeis
+        dbdir = state['dbdir']
+        machine_name = state.pop('machine_name')
+        try:
+            assert machine_name == ut.get_computer_name(), (
+                'ibeis objects can only be picked and unpickled on the same machine')
+        except AssertionError as ex:
+            iswarning = ut.checkpath(dbdir)
+            ut.printex(ex, iswarning=iswarning)
+            if not iswarning:
+                raise
+        ibs2 = ibeis.opendb(dbdir=dbdir, web=False)
+        ibs.__dict__.update(**ibs2.__dict__)
+
+    def predict_ws_injury_interim_svm(ibs, aids):
+        from ibeis.scripts import classify_shark
+        return classify_shark.predict_ws_injury_interim_svm(ibs, aids)
+
+    def get_web_port_via_scan(ibs, url_base='127.0.0.1', port_base=5000,
+                              scan_limit=100, verbose=True):
+        import requests
+        api_rule = CORE_DB_UUID_INIT_API_RULE
+        target_uuid = ibs.get_db_init_uuid()
+        for candidate_port in range(port_base, port_base + scan_limit + 1):
+            candidate_url = 'http://%s:%s%s' % (url_base, candidate_port, api_rule)
+            try:
+                response = requests.get(candidate_url)
+            except (requests.ConnectionError):
+                if verbose:
+                    print('Failed to find IA server at %s' % (candidate_url, ))
+                continue
+            print('Found IA server at %s' % (candidate_url, ))
+            try:
+                response = ut.from_json(response.text)
+                candidate_uuid = response.get('response')
+                assert candidate_uuid == target_uuid
+                return candidate_port
+            except (AssertionError):
+                if verbose:
+                    print('Invalid response from IA server at %s' % (candidate_url, ))
+                continue
+
+        return None
 
 
 if __name__ == '__main__':

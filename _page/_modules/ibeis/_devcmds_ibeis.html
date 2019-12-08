@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis._devcmds_ibeis &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis._devcmds_ibeis &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,21 +120,38 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
-      
-    <li>ibeis._devcmds_ibeis</li>
+        
+      <li>ibeis._devcmds_ibeis</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -131,22 +160,24 @@
   <h1>Source code for ibeis._devcmds_ibeis</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># This is supposed to be pristine, it turns out to be mostly clutter</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">ibeis._devscript</span> <span class="kn">import</span> <span class="n">devcmd</span><span class="p">,</span> <span class="n">devprecmd</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span>
-<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis._devscript</span> <span class="k">import</span> <span class="n">devcmd</span><span class="p">,</span> <span class="n">devprecmd</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="k">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="kn">as</span> <span class="nn">ktool</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">interact</span>
-<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
+<span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="k">as</span> <span class="nn">ktool</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="k">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="k">import</span> <span class="n">ingest_hsdb</span>
 
 
-<div class="viewcode-block" id="test_openworkdirs"><a class="viewcode-back" href="../../ibeis.html#ibeis._devcmds_ibeis.test_openworkdirs">[docs]</a><span class="k">def</span> <span class="nf">test_openworkdirs</span><span class="p">():</span>
+<div class="viewcode-block" id="openworkdirs_test"><a class="viewcode-back" href="../../ibeis.html#ibeis._devcmds_ibeis.openworkdirs_test">[docs]</a><span class="k">def</span> <span class="nf">openworkdirs_test</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    problems:</span>
 <span class="sd">        PZ_DanExt_All</span>
@@ -173,11 +204,11 @@
         <span class="s1">&#39;/raid/work/NAUT_test&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="k">import</span> <span class="n">sysres</span>
     <span class="kn">import</span> <span class="nn">os</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="k">import</span> <span class="n">ingest_hsdb</span>
     <span class="kn">import</span> <span class="nn">ibeis.other.dbinfo</span>
     <span class="n">ibeis</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
@@ -192,22 +223,23 @@
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">hsdb_dpath</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Succesfully opened hsdb: &#39;</span> <span class="o">+</span> <span class="n">hsdb_dpath</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbinfo_str</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Succesfully opened hsdb: &#39;</span> <span class="o">+</span> <span class="n">hsdb_dpath</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbinfo_str</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Failed to convert hsdb: &#39;</span> <span class="o">+</span> <span class="n">hsdb_dpath</span><span class="p">)</span>
             <span class="n">regen_cmd</span> <span class="o">=</span> <span class="s1">&#39;python dev.py --convert --dbdir &#39;</span> <span class="o">+</span> <span class="n">hsdb_dpath</span>
             <span class="n">regen_cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">regen_cmd</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">regen_cmds</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">regen_cmds</span><span class="p">))</span></div>
 
-</div>
+
 <span class="nd">@devcmd</span>
-<span class="k">def</span> <span class="nf">vdd</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">vdd</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;show&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">show_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="k">import</span> <span class="n">interact</span>
     <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">:</span>
         <span class="n">interact</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">())</span>
 
@@ -230,55 +262,50 @@
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">query_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">query_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python dev.py -w --show -t query --db PZ_MTEST --qaid 72</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">hots</span><span class="o">.</span><span class="n">hots_query_result</span><span class="o">.</span><span class="n">QueryResult</span><span class="p">)</span>
-        <span class="n">qres</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">make_figtitle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">hots</span><span class="o">.</span><span class="n">hots_query_result</span><span class="o">.</span><span class="n">QueryResult</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">make_figtitle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;sver&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">sver_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">sver_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python dev.py -w --show -t sver --db PZ_MTEST --qaid 72</span>
 <span class="sd">        python dev.py -w --show -t sver --db PZ_MTEST --qaid 1</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="k">import</span> <span class="n">interact</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">:</span>
-        <span class="n">aid2</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">interact</span><span class="o">.</span><span class="n">ishow_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-
-<span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;cfg&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">printcfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">interact</span><span class="o">.</span><span class="n">ishow_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;listdbs&#39;</span><span class="p">,</span> <span class="s1">&#39;list_dbs&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">list_dbs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="n">ibsdb_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_ibsdb_list</span><span class="p">())</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;IBEIS Databases:&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBEIS Databases:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;list_hsdbs&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">list_unconverted_hsdbs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="n">needs_convert_hsdbs</span> <span class="o">=</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">get_unconverted_hsdbs</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;NEEDS CONVERSION:&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">needs_convert_hsdbs</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NEEDS CONVERSION:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">needs_convert_hsdbs</span><span class="p">))</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;convertall&#39;</span><span class="p">)</span>
@@ -343,13 +370,13 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../ibeis.html#ibeis._devcmds_ibeis.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../ibeis.html#ibeis._devcmds_ibeis.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    3 - 4 different animals</span>
 <span class="sd">    2 views of each</span>
 <span class="sd">    matching keypoint coordinates on each annotation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">aid_pairs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aid_pairs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;PZ_MOTHERS&#39;</span><span class="p">:</span>
             <span class="n">aid_pair_list</span> <span class="o">=</span> <span class="n">MOTHERS_VIEWPOINT_EXPORT_PAIRS</span>
         <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">:</span>
@@ -359,17 +386,17 @@
     <span class="c1">#utool.view_directory(export_path)</span>
     <span class="c1"># MOTHERS EG:</span>
     <span class="k">for</span> <span class="n">aid_pair</span> <span class="ow">in</span> <span class="n">aid_pair_list</span><span class="p">:</span>
-        <span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">aid_pair</span><span class="p">,</span> <span class="n">aid_pair</span><span class="p">)</span>
+        <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">aid_pair</span><span class="p">,</span> <span class="n">aid_pair</span><span class="p">)</span>
         <span class="c1">#ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()</span>
         <span class="n">mrids_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">mkpts_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">:</span>
-            <span class="n">qaid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Getting kpts from </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">qaid</span><span class="p">)</span>
-            <span class="c1">#qres.show_top(ibs)</span>
-            <span class="n">posrid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_classified_pos</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+            <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Getting kpts from </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">qaid</span><span class="p">)</span>
+            <span class="c1">#cm.show_top(ibs)</span>
+            <span class="n">posrid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_classified_pos</span><span class="p">())</span>
             <span class="n">mrids_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">posrid</span><span class="p">)</span> <span class="k">for</span> <span class="n">posrid</span> <span class="ow">in</span> <span class="n">posrid_list</span><span class="p">])</span>
-            <span class="n">mkpts_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_matching_keypoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">posrid_list</span><span class="p">))</span>
+            <span class="n">mkpts_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_matching_keypoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">posrid_list</span><span class="p">))</span>
 
         <span class="n">mkey2_kpts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">mrids_tup</span><span class="p">,</span> <span class="n">mkpts_tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mrids_list</span><span class="p">,</span> <span class="n">mkpts_list</span><span class="p">):</span>
@@ -383,9 +410,9 @@
             <span class="n">mkey</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">mrids_</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">mkey2_kpts</span><span class="p">[</span><span class="n">mkey</span><span class="p">]</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;append to mkey=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mkey</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;append to mkey=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mkey</span><span class="p">,))</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;new mkey=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mkey</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new mkey=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mkey</span><span class="p">,))</span>
                 <span class="n">kpts_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">kpts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mkpts_</span><span class="p">)</span>
             <span class="n">mkey2_kpts</span><span class="p">[</span><span class="n">mkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts_list</span>
@@ -394,8 +421,8 @@
         <span class="n">mkeys_keypoints</span> <span class="o">=</span> <span class="n">mkey2_kpts</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">mkeys</span><span class="p">,</span> <span class="n">mkpts_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mkeys_list</span><span class="p">,</span> <span class="n">mkeys_keypoints</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">mkeys</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">mkeys</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">))</span>
             <span class="n">kpts1_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mkpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">mkpts</span> <span class="ow">in</span> <span class="n">mkpts_list</span><span class="p">])</span>
             <span class="n">kpts2_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mkpts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">mkpts</span> <span class="ow">in</span> <span class="n">mkpts_list</span><span class="p">])</span>
             <span class="n">match_lines</span> <span class="o">=</span> <span class="p">[</span>
@@ -422,10 +449,13 @@
             <span class="n">matchfile_name</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;match_aids(</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">).txt&#39;</span> <span class="o">%</span> <span class="n">mkey</span><span class="p">)</span>
             <span class="n">matchfile_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">matchfile_name</span><span class="p">)</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">matchfile_path</span><span class="p">,</span> <span class="n">matchfile_text</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">header_text</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">match_text</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">500</span><span class="p">))</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="n">header_text</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">match_text</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">500</span><span class="p">))</span></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -435,7 +465,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -457,10 +487,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../_static/jquery.js"></script>

@@ -28,27 +28,25 @@
 
       Aid: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
-      <br/>
-      Path: {{ image_path }}
-      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 500px;">
       <div style="text-align: center; color: #aaa;">
         <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_viewpoint') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
-        Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>)
+        Viewpoint: <span id="ia-viewpoint-label-text"></span>
         <br/>
-        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value %}{{ value }}{% else %}0{% endif %}" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value %}{{ value }}{% else %}0{% endif %}" min="0" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand">
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down"            ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-right rotate-45"  ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-right"           ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-up rotate-45" ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
-          <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-down"            ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-right rotate-45"  ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-right"           ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-up rotate-45" ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
+          <div class="col-custom-span col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
         </div>
         <br/>
         {% if previous %}
@@ -159,7 +157,7 @@
           </ul>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('viewpoint_instructions_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-viewpoint_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>

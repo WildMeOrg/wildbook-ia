@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
+        <canvas id="canvasLine" height="300" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Unique sightings over time
+          <br/>
+          (Blue - number of sightings cumulatively, Grey - upper-bound f(x) = x)
+        </div>
+        <a id='linkLine' href="#" download='sightings-timeline.png'>Download Chart</a>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+{% endblock %}
+
+{% block content_custom_javascript %}
+<script type="text/javascript">
+
+  var dataLine = {
+    {% autoescape false %}
+    labels : {{ line_label_list }},
+    {% endautoescape %}
+    datasets : [
+      {
+        label: "Sightings",
+        backgroundColor : "rgba(220,220,220,0.2)",
+        borderColor : "rgba(220,220,220,1)",
+        pointBackgroundColor : "rgba(220,220,220,0.5)",
+        pointBorderColorColor : "transparent",
+        pointHoverBackgroundColor : "transparent",
+        // pointBorderColorColor : "#fff",
+        // pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(220,220,220,1)",
+        data : {{ line_index_list }}
+      },
+      {
+        label: "Unique Sightings",
+        backgroundColor : "rgba(151,187,205,0.2)",
+        borderColor : "rgba(151,187,205,1)",
+        pointBackgroundColor : "rgba(151,187,205,1)",
+        pointBorderColorColor : "transparent",
+        pointHoverBackgroundColor : "transparent",
+        // pointBorderColorColor : "#fff",
+        // pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
+        data : {{ line_value_list }}
+      },
+    ]
+  };
+
+  window.onload = function()
+  {
+    Chart.defaults.global.defaultFontSize = 40;
+
+    var ctxLine = document.getElementById("canvasLine").getContext("2d");
+    var linkLine = document.getElementById("linkLine");
+    var chartLine = new Chart(ctxLine, {
+      type: 'line',
+      data: dataLine,
+      options: {
+        responsive: true,
+        animation: false,
+        pointDotRadius: 2,
+        pointHitDetectionRadius : 1,
+        // maintainAspectRatio: false,
+        scales: {
+            xAxes: [{
+              gridLines: {
+                display: false,
+              }
+            }],
+            yAxes: [{
+              gridLines: {
+                display: true,
+              }
+            }]
+        },
+        legend:{display: true,labels:{fontSize:50}},
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkLine.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
+      }
+    });
+  };
+
+</script>
+{% endblock %}

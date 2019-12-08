@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 git config --global push.default current
@@ -11,9 +11,7 @@ cd ibeis
 ./_scripts/__install_prereqs__.sh
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
-"""
 
-"""
 pip list --outdated
 
 python -c
@@ -33,18 +31,18 @@ sudo pip install pillow
 
 
 pip uninstall utool -y
-pip uninstall vtool -y
+pip uninstall vtool_ibeis -y
 pip uninstall pyhesaff -y
 pip uninstall detectools -y
 pip uninstall pyrf -y
-pip uninstall guitool -y
-pip uninstall plottool -y
+pip uninstall guitool_ibeis -y
+pip uninstall plottool_ibeis -y
 
 cd ~/code/utool
 python setup.py install
 cd ~/code/hesaff
 python setup.py install
-cd ~/code/vtool
+cd ~/code/vtool_ibeis
 python setup.py install
 cd ~/code/hesaff
 python setup.py install
@@ -52,16 +50,14 @@ cd ~/code/detecttools/
 python setup.py install
 cd ~/code/pyrf
 python setup.py install
-cd ~/code/guitool
+cd ~/code/guitool_ibeis
 python setup.py install
-cd ~/code/plottool
+cd ~/code/plottool_ibeis
 python setup.py install
 
 CommandLine:
     # upgrade pip packages
     ./_scripts/bootstrap.py --no-syspkg --upgrade
-
-
 """
 import sys
 import os
@@ -108,6 +104,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
         # gfortran may need to be removed for apple
         'cmake',
+        # 'cmake-qt-gui',
         'ffmpeg',  # need -dev / -devel versions of all these as well / libav
         'libpng',
         'libjpg',
@@ -116,6 +113,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libeigen3-dev',
         'graphviz',
         'graphviz-dev',
+        'libv4l-dev',  # for opencv
         'libgraphviz-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
@@ -125,12 +123,12 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'fftw3',
         'atlas',
         'libgeos-dev',  # for shapely
-        'python-qt4',
-        'python-tk',  # for %paste in IPython
         'pkg-config',  # recommended for Matplotlib
         'libffi-dev',  # requests secure dependencies
         'libssl-dev',  # requests secure dependencies
         #'jasper',  # hyrule cannot handle this
+        # 'python-qt4',
+        'python-tk',  # for %paste in IPython
     ]
 
     if util_cplat_packages.APPLE:
@@ -149,9 +147,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             #'libjpeg-dev',
             #'zlib1g-dev',
             'python-dev',
-            #'libopencv-dev',  # Do we need these?
-            #'python-opencv',  # Do we really need these~these?
-            # FIXME: Ensure there is a way to install opencv
+            # 'libopencv-dev',
+            # 'python-opencv'
         ])
 
     if util_cplat_packages.FEDORA_FAMILY:
@@ -161,46 +158,71 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         pass
 
     PREREQ_PYPKG_LIST = [
+        # Initial
         'pip',
         'setuptools',
-        'psutil',
-        'functools32',
-        'requests',
-        'pyopenssl',  # needed for secure requests
-        'ndg-httpsclient',  # needed for secure requests
-        'pyasn1',  # needed for secure requests
+        # Core
         'Cython',
         'numpy',
         'scipy',
-        'Pygments',
-        'colorama',
-        'six',
-        'dateutils',
-        'pyreadline',
-        'pyparsing',
-        #'sip',
-        #'PyQt4',
+        'scikit-learn',
         'Pillow',
         'ipython',
+        # Algorithm helpers
+        'shapely',
+        'statsmodels',
+        'networkx',
+        # Plotting
+        'matplotlib',
+        'pygraphviz',
+        # Web-based
+        'zmq',
         'tornado',
         'flask',
         'flask-cors',
         'flask-cas',
-        'matplotlib',
-        'scikit-learn',
-        'parse',
+        'requests',
+        'pyopenssl',  # needed for secure requests
+        'ndg-httpsclient',  # needed for secure requests
+        'pyasn1',  # needed for secure requests
+        'pynmea2',
+        # System Helpers
         'simplejson',
-        # 'pyinstaller',
-        'statsmodels',
         'lockfile',  # Need to do upgrade on this
         'lru-dict',
-        'shapely',
-        'zmq',
-        'networkx',
+        'dateutils',
+        'pyreadline',
+        'pyparsing',
+        'parse',
+        'psutil',
+        # 'pyinstaller',
+        # Convinence
+        'six',
         'pyfiglet',
-        'pygraphviz',
-        'pynmea2',
+        'Pygments',
+        'colorama',
+        # Amazon server
+        'boto',
+        #
+        'futures_actors',
     ]
+
+    import platform
+    python_version = platform.python_version()
+    PYTHON3 = python_version.startswith('3')
+
+    if not PYTHON3:
+        PREREQ_PYPKG_LIST += [
+            # 'functools32',
+            # 'functools32',
+            #'sip',
+            #'PyQt4',
+        ]
+    else:
+        PREREQ_PYPKG_LIST += [
+            'pyqt5',
+            'pydot-ng',
+        ]
 
     OPTIONAL_PYPKG_LIST = [
         #'pandas',
@@ -209,7 +231,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'autopep8',
         'flake8',
         'guppy',
-        'functools32',
+        # 'functools32',
         'argparse',
         'h5py',
         'memory-profiler',

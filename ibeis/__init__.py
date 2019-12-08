@@ -8,9 +8,11 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+__version__ = '2.0.0'
+
 try:
     import utool as ut
-    import dtool
+    import dtool_ibeis
 except ImportError as ex:
     print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
     print('[ibeis !!!] Perhaps try super_setup.py pull')
@@ -31,11 +33,15 @@ if ut.is_developer():
         #'show_vocabulary',
     ]
 
-# If we dont initialize plottool before <something>
+# If we dont initialize plottool_ibeis before <something>
 # then it causes a crash in windows. Its so freaking weird.
-# something is not guitool, ibeis.viz
+# something is not guitool_ibeis, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
-#import plottool
+#import plottool_ibeis
+
+
+ENABLE_WILDBOOK_SIGNAL = True
+
 
 try:
     from ibeis import constants
@@ -52,10 +58,11 @@ try:
 
     from ibeis.init import sysres
     from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
-                                   test_main, opendb, opendb_in_background, opendb_bg_web)
+                                   opendb, opendb_in_background, opendb_bg_web)
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
     from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
+    from ibeis.algo.graph.core import AnnotInference
     from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
                                    ensure_nauts, ensure_wilddogs, list_dbs)
     from ibeis.init import main_helpers
@@ -63,12 +70,16 @@ try:
     from ibeis import algo
 
     from ibeis import expt
-    from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
     from ibeis.control.controller_inject import register_preprocs
     from ibeis import core_annots
     from ibeis import core_images
+
+    try:
+        from ibeis.scripts import postdoc
+    except ImportError:
+        pass
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise
@@ -83,7 +94,7 @@ def import_subs():
     from ibeis import templates
 
 
-def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
+def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'],
                    initial_aids=None, qaid_override=None, daid_override=None,
                    lazy=False, **kwargs):
     """
@@ -109,7 +120,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis import *  # NOQA
-        >>> e = 'rank_cdf'
+        >>> e = 'rank_cmc'
         >>> db = 'testdb1'
         >>> a = ['default:species=primary']
         >>> t = ['default']
@@ -141,15 +152,23 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     def build_commandline(e=e, **kwargs):
         # Equivalent command line version of this func
         import ibeis.dev
-        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2] for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
+        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2]
+                                    for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
         if e in valid_e_flags:
             epref = '-e'
         else:
             # hack to use tf
             epref = '--tf'
+
+        if dbdir is not None:
+            db_flag = '--dbdir'
+            db_value = dbdir
+        else:
+            db_flag = '--db'
+            db_value = db
         command_parts = ['ibeis',
                          epref, e,
-                         '--db', db,
+                         db_flag, db_value,
                          '-a', ' '.join(a).replace('(', '\(').replace(')', '\)'),
                          '-t', ' '.join(t),
                         ]
@@ -205,7 +224,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         argspec = ut.get_func_argspec(func)
         if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'testres':
             # most experiments need a testres
-            expts_kw = dict(defaultdb=db, a=a, t=t,
+            expts_kw = dict(defaultdb=db, dbdir=dbdir, a=a, t=t,
                             qaid_override=qaid_override,
                             daid_override=daid_override,
                             initial_aids=initial_aids
@@ -275,7 +294,7 @@ testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, rrr, profile = ut.inject2(__name__, '[ibeis]')
+print, rrr, profile = ut.inject2(__name__)
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """
@@ -300,13 +319,13 @@ rrrr = reload_subs
 
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
-__version__ = VERSION_CURRENT
-__version__ = '1.5.3'
+# __version__ = VERSION_CURRENT
 
-if __version__ != VERSION_CURRENT:
-    raise AssertionError(
-        'need to update version in __init__ file from %r to %r so setup.py can work nicely' % (
-            __version__, VERSION_CURRENT))
+# __version__ = '1.6.0'
+# if __version__ != VERSION_CURRENT:
+#     raise AssertionError(
+#         'need to update version in __init__ file from %r to %r so setup.py can work nicely' % (
+#             __version__, VERSION_CURRENT))
 
 """
 Regen Command:
@@ -314,8 +333,8 @@ Regen Command:
     autogenerate correctly.
 
     cd /home/joncrall/code/ibeis/ibeis/other
-    makeinit.py -x web viz tests gui all_imports
-    makeinit.py -x constants params main_module other control dbio tests all_imports
+    makeinit.py -x web viz tests gui
+    makeinit.py -x constants params main_module other control dbio tests
 """
 
 if __name__ == '__main__':

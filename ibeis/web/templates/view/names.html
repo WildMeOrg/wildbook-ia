@@ -81,7 +81,7 @@
             <th>Quality</th>
             <th>Sex / Age</th>
             <th>Image</th>
-            <th>Image Set</th>
+            <th>ImageSet</th>
           </tr>
         </thead>
         <tbody>
@@ -91,7 +91,7 @@
             </tr>
           {% else %}
             {% for (nid, annotation_list) in name_list %}
-            <tr {% if reviewed %}class="success"{% endif %} style="background-color: #333; color: white;">
+            <tr {% if reviewed %}class="success"{% endif %} style="background-color: #ddd;">
               <th scope="row">{{ nid }}</th>
               <td></td>
               <td></td>
@@ -102,7 +102,7 @@
               <td></td>
               <td></td>
               {% if annotation_list %}
-                <td><a href="{{ url_for('turk_additional') }}?aid={{ annotation_list[0][0] }}&refer={{ REFER_SRC_ENCODED }}">{{ annotation_list[0][-3] }} / {{ annotation_list[0][-2] }}</a></td>
+                <td><a href="{{ url_for('turk_demographics') }}?aid={{ annotation_list[0][0] }}&refer={{ REFER_SRC_ENCODED }}">{{ annotation_list[0][-3] }} / {{ annotation_list[0][-2] }}</a></td>
               {% else %}
                 <td></td>
               {% endif %}
@@ -117,10 +117,10 @@
                   <td>{{ src }}</td>
                   <td>{{ name }}</td>
                   <td>{{ exemplar }}</td>
-                  <td>{{ species }}</td>
+                  <td><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ species }}</a></td>
                   <td><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
                   <td><a href="{{ url_for('turk_quality') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
-                  <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
+                  <td><a href="{{ url_for('turk_demographics') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
                   <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
                   <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
                 </tr>
@@ -161,7 +161,7 @@ var loading = [];
     if(!contains(loading, aid) && requests.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/annotation/src/" + aid )
+      request = $.ajax( "/ajax/annot/src/" + aid )
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);

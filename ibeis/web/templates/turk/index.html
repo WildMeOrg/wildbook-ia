@@ -2,37 +2,83 @@
 {% block content %}
   <div class="row marketing">
     <div class="col-lg-4">
-      <h4>Detection Review Turking</h4>
-      <p>Online turking for bounding box detection regions</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Detection Review</a></p>
+      <h4>Cameratrap</h4>
+      <p>Online turking for cameratrap review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('turk_cameratrap') }}?imgsetid={{ imgsetid }}" role="button">Turk Cameratraps</a></p>
     </div>
 
     <div class="col-lg-4">
-      <h4>Viewpoint Turking</h4>
-      <p>Online turking for viewpointing annotations.</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Viewpoint Annotation</a></p>
+      <h4>Detections</h4>
+      <p>Online turking for detection review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}" role="button">Turk Detections</a></p>
     </div>
 
     <div class="col-lg-4">
-      <h4>Quality Turking</h4>
-      <p>Online turking for qualitizing annotations.</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Quality Annotation</a></p>
+      <h4>Annotations</h4>
+      <p>Online turking for annotation review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotations</a></p>
     </div>
   </div>
 
   <div class="row marketing">
     <div class="col-lg-4">
-      <h4>Additional Review Turking</h4>
-      <p>Online turking of additional information for annotations</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Additional Review</a></p>
+      <h4>Annotation Species</h4>
+      <p>Online turking for annotation species</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_species') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotation Species</a></p>
     </div>
 
     <div class="col-lg-4">
+      <h4>Annotation Yaws</h4>
+      <p>Online turking for annotation yaws</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotation Yaw</a></p>
     </div>
 
     <div class="col-lg-4">
+      <h4>Annotation Viewpoints</h4>
+      <p>Online turking for annotation viewpoints</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint2') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotation Viewpoints</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Annotation Qualities</h4>
+      <p>Online turking for annotation qualities</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotation Qualities</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Annotation Demographics</h4>
+      <p>Online turking for annotation age and sex</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_demographics') }}?imgsetid={{ imgsetid }}" role="button">Turk Annotation Demographics</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Part Contours</h4>
+      <p>Online turking for part contours</p>
+      <p><a class="btn btn-lg btn-warning" href="{{ url_for('turk_contour') }}?imgsetid={{ imgsetid }}" role="button">Turk Part Contours</a></p>
     </div>
   </div>
+
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>LNBNN Matches</h4>
+      <p>Online turking for LNBNN identification matches</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}" role="button">Turk LNBNN Matches</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Graph Matches</h4>
+      <p>Online turking for Graph identification matches</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('turk_identification_graph') }}" role="button">Turk Graph Matches</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Review Hardcases</h4>
+      <p>Online turking for hardcase re-review</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('turk_identification_hardcase') }}" role="button">Turk Hardcases</a></p>
+    </div>
+  </div>
+
+
 
   <!-- Modal -->
   <div class="modal fade" id="turk-id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -48,7 +94,7 @@
           <input id="turk-id-value" type="text">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('turk_id', $('input#turk-id-value').val());">Enter!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-turk_id', $('input#ia-turk-id-value').val());">Enter!</button>
         </div>
       </div>
     </div>

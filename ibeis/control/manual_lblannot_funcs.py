@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import uuid
-import six  # NOQA
 from six.moves import range
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
@@ -9,7 +8,7 @@ from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, getter_1toM, default_decorator, ider)
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_lblannot]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -31,20 +30,18 @@ def _get_all_lblannot_rowids(ibs):
 
 @register_ibs_method
 @adder
-def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, config_rowid_list=None,
-                                alr_confidence_list=None):
+def add_annot_relationship(ibs, aid_list, lblannot_rowid_list,
+                           alr_confidence_list=None):
     """
     Adds a relationship between annots and lblannots
         (annotations and labels of annotations)
     """
-    if config_rowid_list is None:
-        config_rowid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
     if alr_confidence_list is None:
         alr_confidence_list = [0.0] * len(aid_list)
-    colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence',)
-    params_iter = list(zip(aid_list, lblannot_rowid_list, config_rowid_list, alr_confidence_list))
+    colnames = ('annot_rowid', 'lblannot_rowid', 'alr_confidence',)
+    params_iter = list(zip(aid_list, lblannot_rowid_list, alr_confidence_list))
     get_rowid_from_superkey = ibs.get_alrid_from_superkey
-    superkey_paramx = (0, 1, 2)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
+    superkey_paramx = (0, 1)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
     alrid_list = ibs.db.add_cleanly(const.AL_RELATION_TABLE, colnames, params_iter,
                                     get_rowid_from_superkey, superkey_paramx)
     return alrid_list
@@ -168,19 +165,6 @@ def get_alr_confidence(ibs, alrid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_alr_config_rowid(ibs, alrid_list):
-    """
-    Args:
-        alrid_list (list of rowids): annot + label relationship rows
-    Returns:
-        config_rowid_list (list): config_rowid in an annotation relationship
-    """
-    config_rowid_list = ibs.db.get(const.AL_RELATION_TABLE, ('config_rowid',), alrid_list)
-    return config_rowid_list
-
-
-@register_ibs_method
-@getter_1to1
 def get_alr_lblannot_rowids(ibs, alrid_list):
     """
     Args:
@@ -194,18 +178,17 @@ def get_alr_lblannot_rowids(ibs, alrid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_alrid_from_superkey(ibs, aid_list, lblannot_rowid_list, config_rowid_list):
+def get_alrid_from_superkey(ibs, aid_list, lblannot_rowid_list):
     """
     Args:
         aid_list (list): list of annotation row-ids
         lblannot_rowid_list (list): list of lblannot row-ids
-        config_rowid_list (list): list of config row-ids
     Returns:
         alrid_list (list): annot-label relationship id list
     """
     colnames = ('annot_rowid',)
-    params_iter = zip(aid_list, lblannot_rowid_list, config_rowid_list)
-    where_clause = 'annot_rowid=? AND lblannot_rowid=? AND config_rowid=?'
+    params_iter = zip(aid_list, lblannot_rowid_list)
+    where_clause = 'annot_rowid=? AND lblannot_rowid=?'
     alrid_list = ibs.db.get_where(const.AL_RELATION_TABLE, colnames, params_iter, where_clause)
     return alrid_list
 
@@ -383,54 +366,44 @@ def set_lblannot_values(ibs, lblannot_rowid_list, value_list):
 
 @register_ibs_method
 @getter_1toM
-def get_annot_alrids(ibs, aid_list, configid=None):
+def get_annot_alrids(ibs, aid_list):
     """ FIXME: __name__
     Get all the relationship ids belonging to the input annotations
     if lblannot lbltype is specified the relationship ids are filtered to
     be only of a specific lbltype/category/type
     """
-    if configid is None:
-        alrids_list = ibs.db.get(const.AL_RELATION_TABLE, ('alr_rowid',), aid_list,
-                                 id_colname='annot_rowid', unpack_scalars=False)
-    else:
-        params_iter = ((aid, configid) for aid in aid_list)
-        where_clause = 'annot_rowid=? AND config_rowid=?'
-        alrids_list = ibs.db.get_where(const.AL_RELATION_TABLE, ('alr_rowid',), params_iter,
-                                       where_clause=where_clause, unpack_scalars=False)
-    # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
+    alrids_list = ibs.db.get(const.AL_RELATION_TABLE, ('alr_rowid',), aid_list,
+                             id_colname='annot_rowid', unpack_scalars=False)
     return alrids_list
 
 
 @register_ibs_method
 @getter_1toM
-def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
+def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid):
     """
     Get all the relationship ids belonging to the input annotations where the
     relationship ids are filtered to be only of a specific lbltype/category/type
     """
-    alrids_list = ibs.get_annot_alrids(aid_list, configid=configid)
+    alrids_list = ibs.get_annot_alrids(aid_list)
     # Get lblannot_rowid of each relationship
     lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
     # Get the type of each lblannot
-    lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
+    lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids,
+                                              lblannot_rowids_list)
     # only want the nids of individuals, not species, for example
-    valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-    alrids_list = [ut.compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
-    if configid is None:
-        def resolution_func_first(alrid_list):
-            return [ alrid_list[0] ]
+    valids_list = [[typeid == lbltype_rowid for typeid in rowids]
+                   for rowids in lbltype_rowids_list]
+    alrids_list = [ut.compress(alrids, valids)
+                   for alrids, valids in zip(alrids_list, valids_list)]
+    def resolution_func_first(alrid_list):
+        return [ alrid_list[0] ]
 
-        def resolution_func_lowest_config(alrid_list):
-            config_rowid_list = ibs.get_alr_config(alrid_list)
-            temp = sorted(list(zip(config_rowid_list, alrid_list)))
-            return [ temp[0][0] ]
-
-        alrids_list = [
-            resolution_func_first(alrid_list)
-            if len(alrid_list) > 1 else
-            alrid_list
-            for alrid_list in alrids_list
-        ]
+    alrids_list = [
+        resolution_func_first(alrid_list)
+        if len(alrid_list) > 1 else
+        alrid_list
+        for alrid_list in alrids_list
+    ]
     assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
         ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
          ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))

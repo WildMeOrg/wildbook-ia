@@ -2,21 +2,20 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 from six.moves import zip, map, range
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
 import sklearn.cluster
-#from sklearn.cluster import MeanShift, estimate_bandwidth
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 
 
-#@ut.indent_func('[occurrence]')
-def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, verbose=None):
+def ibeis_compute_occurrences(ibs, gid_list, config=None, verbose=None):
     """
-    clusters occurrences togethers (by time, not yet space) An occurrence is a
-    meeting, localized in time and space between a camera and a group of
-    animals.  Animals are identified within each occurrence.
+    clusters occurrences togethers (by time, not yet space)
+    An occurrence is a meeting, localized in time and space between a camera
+    and a group of animals.
+    Animals are identified within each occurrence.
 
     Does not modify database state, just returns cluster ids
 
@@ -29,77 +28,17 @@ def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, verbose=None):
 
     CommandLine:
         python -m ibeis --tf ibeis_compute_occurrences:0 --show
-
         TODO: FIXME: good example of autogen doctest return failure
-
-    #Ignore:
-    #    >>> import ibeis
-    #    >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-    #    >>> ibs = ibeis.opendb(defaultdb='lynx')
-    #    >>> aid_list = ibs.get_valid_aids()
-    #    >>> filter_kw = {}
-    #    >>> filter_kw['been_adjusted'] = True
-    #    >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
-    #    >>> gid_list = ibs.get_annot_gids(aid_list_)
-    #    >>> flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
-    #    >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
-    #    >>> metric = list(map(len, aids_list))
-    #    >>> sortx = ut.list_argsort(metric)[::-1]
-    #    >>> index = sortx[1]
-    #    >>> #gids = occur_gids[index]
-    #    >>> aids = aids_list[index]
-    #    >>> gids = list(set(ibs.get_annot_gids(aids)))
-    #    >>> print('len(aids) = %r' % (len(aids),))
-    #    >>> ut.quit_if_noshow()
-    #    >>> from ibeis.viz import viz_graph
-    #    >>> import plottool as pt
-    #    >>> #pt.imshow(bigimg)
-    #    >>> #bigimg = vt.stack_image_recurse(img_list)
-    #    >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
-    #    >>> ut.show_if_requested()
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> gid_list = ibs.get_valid_gids()
-        >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
-        >>> (flat_imgsetids, flat_gids) = ibeis_compute_occurrences(ibs, gid_list)
-        >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
-        >>> metric = list(map(len, aids_list))
-        >>> sortx = ut.list_argsort(metric)[::-1]
-        >>> index = sortx[1]
-        >>> #gids = occur_gids[index]
-        >>> aids = aids_list[index]
-        >>> gids = list(set(ibs.get_annot_gids(aids)))
-        >>> print('len(aids) = %r' % (len(aids),))
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> from ibeis.viz import viz_graph
-        >>> import plottool as pt
-        >>> #pt.imshow(bigimg)
-        >>> #bigimg = vt.stack_image_recurse(img_list)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
-        >>>                                              with_all=False,
-        >>>                                              prog='neato')
-        >>> ut.show_if_requested()
     """
-    occur_cfgstr = ibs.cfg.occur_cfg.get_cfgstr()
-    print('[occur] occur_cfgstr = %r' % occur_cfgstr)
-    cluster_algo  = ibs.cfg.occur_cfg.cluster_algo
-    if seconds_thresh is None:
-        seconds_thresh = ibs.cfg.occur_cfg.seconds_thresh
-    cfgdict = dict(
-        min_imgs_per_occurence=ibs.cfg.occur_cfg.min_imgs_per_occurrence,
-        seconds_thresh=seconds_thresh,
-        quantile=ibs.cfg.occur_cfg.quantile,
-    )
-    print('seconds_thresh = %r' % (seconds_thresh,))
-    # TODO: use gps
-    occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict, verbose=verbose)
+    if config is None:
+        config = {'use_gps': False, 'seconds_thresh': 600}
+        #from ibeis.algo import Config
+        #config = Config.OccurrenceConfig().asdict()
+    occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, config,
+                                                         verbose=verbose)
     if True:
-        gid2_label = {gid: label for label, gids in zip(occur_labels, occur_gids) for gid in gids}
+        gid2_label = {gid: label for label, gids in zip(occur_labels, occur_gids)
+                      for gid in gids}
         # Assert that each gid only belongs to one occurrence
         flat_imgsetids = ut.dict_take(gid2_label, gid_list)
         flat_gids = gid_list
@@ -109,7 +48,8 @@ def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, verbose=None):
     return flat_imgsetids, flat_gids
 
 
-def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False, verbose=None):
+def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
+                              verbose=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -119,106 +59,84 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis --tf compute_occurrence_groups
-        python -m ibeis --tf compute_occurrence_groups --show --zoom=.3
+        python -m ibeis compute_occurrence_groups
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> import ibeis
-        >>> import vtool as vt
-        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> gid_list = ibs.get_valid_gids(require_unixtime=True, require_gps=True)
-        >>> use_gps = True
-        >>> cluster_algo = 'meanshift'
-        >>> cfgdict = dict(quantile=.005, min_imgs_per_occurence=2)
-        >>> (occur_labels, occur_gids) = compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict, use_gps=use_gps)
-        >>> aidsgroups_list = ibs.unflat_map(ibs.get_image_aids, occur_gids)
-        >>> aids_list = list(map(ut.flatten, aidsgroups_list))
-        >>> nids_list = list(map(np.array, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)))
-        >>> metric = [len(np.unique(nids[nids > -1])) for nids in nids_list]
-        >>> metric = [vt.safe_max(np.array(ut.dict_hist(nids).values())) for nids in nids_list]
-        >>> #metric = list(map(len, aids_list))
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> verbose = True
+        >>> images = ibs.images()
+        >>> gid_list = images.gids
+        >>> config = {}  # ibeis.algo.Config.OccurrenceConfig().asdict()
+        >>> tup = ibeis_compute_occurrences(ibs, gid_list)
+        >>> (flat_imgsetids, flat_gids)
+        >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
+        >>> metric = list(map(len, aids_list))
         >>> sortx = ut.list_argsort(metric)[::-1]
-        >>> index = sortx[20]
-        >>> #gids = occur_gids[index]
+        >>> index = sortx[1]
         >>> aids = aids_list[index]
-        >>> aids = ibs.filter_annots_general(aids, min_qual='ok', is_known=True)
         >>> gids = list(set(ibs.get_annot_gids(aids)))
-        >>> print('len(aids) = %r' % (len(aids),))
-        >>> img_list = ibs.get_images(gids)
-        >>> ut.quit_if_noshow()
-        >>> from ibeis.viz import viz_graph
-        >>> import plottool as pt
-        >>> #pt.imshow(bigimg)
-        >>> #aids = ibs.group_annots_by_name(aids)[0][0]
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
-        >>>                                              with_all=False,
-        >>>                                              prog='neato')
-        >>> ut.show_if_requested()
-
-        ibs.unflat_map(ibs.get_annot_case_tags, aids_list)
-        ibs.filter_aidpairs_by_tags(has_any='photobomb')
-
-        photobomb_aids = ibs.filter_aidpairs_by_tags(has_any='photobomb')
-        aids = photobomb_aids[0:10].flatten()
-        _gt_aids = ibs.get_annot_groundtruth(aids)
-        gt_aids = ut.get_list_column_slice(_gt_aids, slice(0, 3))
-        aid_set = np.unique(np.append(aids.flatten(), ut.flatten(gt_aids)))
-        aid_set = ibs.filter_annots_general(aid_set, minqual='ok')
-
-        # This is the set of annotations used for testing intraoccurrence photobombs
-        #print(ut.repr3(ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_set), strvals=True, nl=1))
-        print(ut.repr3(ibs.get_annot_stats_dict(aid_set, forceall=True), strvals=True, nl=1))
-
     """
     if verbose is None:
         verbose = ut.NOT_QUIET
     # Config info
     gid_list = np.unique(gid_list)
     if verbose:
-        print('[occur] Computing %r occurrences on %r images.' % (
-            cluster_algo, len(gid_list)))
-    if len(gid_list) == 0:
-        print('[occur] WARNING: len(gid_list) == 0. '
-              'No images to compute occurrences with')
-        occur_labels, occur_gids = [], []
-    else:
-        if len(gid_list) == 1:
-            print('[occur] WARNING: custering 1 image into its own occurrence')
-            gid_arr = np.array(gid_list)
-            label_arr = np.zeros(gid_arr.shape)
-        else:
-            X_data, gid_arr = prepare_X_data(ibs, gid_list, use_gps=use_gps)
-            # Agglomerative clustering of unixtimes
-            if cluster_algo == 'agglomerative':
-                seconds_thresh = cfgdict.get('seconds_thresh', 60.0)
-                label_arr = agglomerative_cluster_occurrences(X_data,
-                                                              seconds_thresh)
-            elif cluster_algo == 'meanshift':
-                quantile = cfgdict.get('quantile', 0.01)
-                label_arr = meanshift_cluster_occurrences(X_data, quantile)
-            else:
-                raise AssertionError(
-                    '[occurrence] Uknown clustering algorithm: %r' % cluster_algo)
-        # Group images by unique label
-        labels, label_gids = group_images_by_label(label_arr, gid_arr)
-        # Remove occurrences less than the threshold
-        occur_labels    = labels
-        occur_gids      = label_gids
-        occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
-        min_imgs_per_occurence = cfgdict.get('min_imgs_per_occurence', 1)
-        occur_labels, occur_gids = filter_and_relabel(
-            labels, label_gids, min_imgs_per_occurence, occur_unixtimes)
-        if verbose:
-            print('[occur] Found %d clusters.' % len(occur_labels))
-        if len(label_gids) > 0 and verbose:
-            print('[occur] Cluster image size stats:')
-            ut.print_dict(
-                ut.get_stats(list(map(len, occur_gids)), use_median=True,
-                             use_sum=True),
-                'occur image stats')
+        print('[occur] Computing occurrences on %r images.' % (len(gid_list)))
+        print('[occur] config = ' + ut.repr3(config))
+
+    use_gps = config['use_gps']
+    datas = prepare_X_data(ibs, gid_list, use_gps=use_gps)
+
+    from ibeis.algo.preproc import occurrence_blackbox
+
+    cluster_algo           = config.get('cluster_algo', 'agglomerative')
+    km_per_sec             = config.get('km_per_sec', occurrence_blackbox.KM_PER_SEC)
+    thresh_sec             = config.get('seconds_thresh', 30 * 60.0)
+    min_imgs_per_occurence = config.get('min_imgs_per_occurence', 1)
+    # 30 minutes = 3.6 kilometers
+    # 5 minutes = 0.6 kilometers
+
+    assert cluster_algo == 'agglomerative', 'only agglomerative is supported'
+
+    # Group datas with different values separately
+    all_gids = []
+    all_labels = []
+    for key in datas.keys():
+        val = datas[key]
+        gids, latlons, posixtimes = val
+        labels = occurrence_blackbox.cluster_timespace_sec(
+            latlons, posixtimes, thresh_sec, km_per_sec=km_per_sec)
+        if labels is None:
+            labels = np.zeros(len(gids), dtype=np.int)
+        all_gids.append(gids)
+        all_labels.append(labels)
+
+    # Combine labels across different groups
+    pads = [vt.safe_max(ys, fill=0) + 1 for ys in all_labels]
+    offsets = np.array([0] + pads[:-1]).cumsum()
+    all_labels_ = [ys + offset for ys, offset in zip(all_labels, offsets)]
+    label_arr = np.array(ut.flatten(all_labels_))
+    gid_arr = np.array(ut.flatten(all_gids))
+
+    # Group images by unique label
+    labels, label_gids = group_images_by_label(label_arr, gid_arr)
+    # Remove occurrences less than the threshold
+    occur_labels    = labels
+    occur_gids      = label_gids
+    occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
+    occur_labels, occur_gids = filter_and_relabel(
+        labels, label_gids, min_imgs_per_occurence, occur_unixtimes)
+    if verbose:
+        print('[occur] Found %d clusters.' % len(occur_labels))
+    if len(label_gids) > 0 and verbose:
+        print('[occur] Cluster image size stats:')
+        ut.print_dict(
+            ut.get_stats(list(map(len, occur_gids)), use_median=True,
+                         use_sum=True),
+            'occur image stats')
     return occur_labels, occur_gids
 
 
@@ -240,35 +158,62 @@ def _compute_occurrence_datetime(ibs, occur_gids):
     return occur_datetimes
 
 
-def prepare_X_data(ibs, gid_list, use_gps=False):
+def prepare_X_data(ibs, gid_list, use_gps=True):
     """
-    FIXME: use vt.haversine formula on gps dimensions
-    fix weighting between seconds and gps
+    Splits data into groups with/without gps and time
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> images = ibs.images()
+        >>> # ibeis.control.accessor_decors.DEBUG_GETTERS = True
+        >>> use_gps = True
+        >>> gid_list = images.gids
+        >>> datas = prepare_X_data(ibs, gid_list, use_gps)
+        >>> print(ut.repr2(datas, nl=2, precision=2))
+        >>> assert len(datas['both'][0]) == 12
+        >>> assert len(datas['neither'][0]) == 0
     """
-    # Data to cluster
-    unixtime_list = ibs.get_image_unixtime(gid_list)
-    gid_arr       = np.array(gid_list)
-    unixtime_arr  = np.array(unixtime_list)
+    images = ibs.images(gid_list, caching=True)
+    gps_list_ = images.gps2
+    unixtime_list_ = images.unixtime2
+    gps_list_ = vt.ensure_shape(gps_list_, (None, 2))
+    has_gps = np.all(np.logical_not(np.isnan(gps_list_)), axis=1)
+    has_time = np.logical_not(np.isnan(unixtime_list_))
 
-    if use_gps:
-        lat_list = ibs.get_image_lat(gid_list)
-        lon_list = ibs.get_image_lon(gid_list)
-        lat_arr = np.array(lat_list)
-        lon_arr = np.array(lon_list)
-        X_data = np.vstack([unixtime_arr, lat_arr, lon_arr]).T
-    else:
-        # scipy clustering requires 2d input
-        X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
-    return X_data, gid_arr
+    if not use_gps:
+        has_gps[:] = False
+
+    has_both = np.logical_and(has_time, has_gps)
+    has_either = np.logical_or(has_time, has_gps)
+    has_gps_only = np.logical_and(has_gps, np.logical_not(has_both))
+    has_time_only = np.logical_and(has_time, np.logical_not(has_both))
+    has_neither = np.logical_not(has_either)
+
+    both    = images.compress(has_both)
+    xgps    = images.compress(has_gps_only)
+    xtime   = images.compress(has_time_only)
+    neither = images.compress(has_neither)
+
+    # Group imagse with different attributes separately
+    datas = {
+        'both'      : (both.gids,    both.unixtime2,  both.gps2),
+        'gps_only'  : (xgps.gids,    None,            xgps.gps2),
+        'time_only' : (xtime.gids,   xtime.unixtime2, None),
+        'neither'   : (neither.gids, None,            None),
+    }
+    return datas
 
 
-def agglomerative_cluster_occurrences(X_data, seconds_thresh):
+def agglomerative_cluster_occurrences(X_data, thresh_sec):
     """
     Agglomerative occurrence clustering algorithm
 
     Args:
         X_data (ndarray):  Length N array of data to cluster
-        seconds_thresh (float):
+        thresh_sec (float):
 
     Returns:
         ndarray: (label_arr) - Length N array of cluster indexes
@@ -284,13 +229,13 @@ def agglomerative_cluster_occurrences(X_data, seconds_thresh):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = '?'
-        >>> seconds_thresh = '?'
-        >>> (occur_ids, occur_gids) = agglomerative_cluster_occurrences(X_data, seconds_thresh)
+        >>> thresh_sec = '?'
+        >>> (occur_ids, occur_gids) = agglomerative_cluster_occurrences(X_data, thresh_sec)
         >>> result = ('(occur_ids, occur_gids) = %s' % (str((occur_ids, occur_gids)),))
         >>> print(result)
     """
     label_arr = scipy.cluster.hierarchy.fclusterdata(
-        X_data, seconds_thresh, criterion='distance')
+        X_data, thresh_sec, criterion='distance')
     return label_arr
 
 
@@ -344,7 +289,7 @@ def group_images_by_label(label_arr, gid_arr):
     Output: Length M list of unique labels, and lenth M list of lists of ids
     """
     # Reverse the image to cluster index mapping
-    import vtool as vt
+    import vtool_ibeis as vt
     labels_, groupxs_ = vt.group_indices(label_arr)
     sortx = np.array(list(map(len, groupxs_))).argsort()[::-1]
     labels  = labels_.take(sortx, axis=0)
@@ -459,89 +404,127 @@ def testdata_gps():
     ])
     return X_name, X_data
 
-    #timespace_distance(X_data[1], X_data[0])
 
-    #from scipy.cluster.hierarchy import fcluster
-    ##import numpy as np
-    ##np.set_printoptions(precision=8, threshold=1000, linewidth=200)
-
-    #condenced_dist_mat = distance.pdist(X_data, timespace_distance)
-    ##linkage_methods = [
-    ##    'single',
-    ##    'complete',
-    ##    'average',
-    ##    'weighted',
-    ##    'centroid',
-    ##    'median',
-    ##    'ward',
-    ##]
-    ## Linkage matrixes are interpeted incrementally starting from the first row
-    ## They are unintuitive, but not that difficult to grasp
-    #linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
-    ##print(linkage_mat)
-    ##hier.leaves_list(linkage_mat)
-    ## FCluster forms flat clusters from the heirarchical linkage matrix
-    ##fcluster_criterions = [
-    ##    'inconsistent',  # use a threshold
-    ##    'distance',  # cophentic distance greter than t
-    ##    'maxclust',
-    ##    'monogrit',
-    ##    'maxclust_monocrit',
-    ##]
-    ## depth has no meaning outside inconsistent criterion
-    ##R = hier.inconsistent(linkage_mat) # calcualted automagically in fcluster
-    #thresh = .8
-    #depth = 2
-    #R = None  # calculated automatically for 'inconsistent' criterion
-    #monocrit = None
-    #X_labels = fcluster(linkage_mat, thresh, criterion='inconsistent',
-    #                    depth=depth, R=R, monocrit=monocrit)
-
-    #print(X_labels)
-    #return X_data, linkage_mat
-
-
-def plot_annotaiton_gps(X_data):
+def plot_gps_html(gps_list):
     """ Plots gps coordinates on a map projection
 
     InstallBasemap:
         sudo apt-get install libgeos-dev
         pip install git+https://github.com/matplotlib/basemap
+        http://matplotlib.org/basemap/users/examples.html
+
+        pip install gmplot
+
+        sudo apt-get install netcdf-bin
+        sudo apt-get install libnetcdf-dev
+        pip install netCDF4
 
     Ignore:
         pip install git+git://github.com/myuser/foo.git@v123
 
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> images = ibs.images()
+        >>> # Setup GPS points to draw
+        >>> print('Setup GPS points')
+        >>> gps_list_ = np.array(images.gps2)
+        >>> unixtime_list_ = np.array(images.unixtime2)
+        >>> has_gps = np.all(np.logical_not(np.isnan(gps_list_)), axis=1)
+        >>> has_unixtime = np.logical_not(np.isnan(unixtime_list_))
+        >>> isvalid = np.logical_and(has_gps, has_unixtime)
+        >>> gps_list = gps_list_.compress(isvalid, axis=0)
+        >>> unixtime_list = unixtime_list_.compress(isvalid)  # NOQA
+        >>> plot_image_gps(gps_list)
     """
-    import plottool as pt
-    from mpl_toolkits.basemap import Basemap
-    #lat = X_data[1:5, 1]
-    #lon = X_data[1:5, 2]
-    lat = X_data[:, 1]  # NOQA
-    lon = X_data[:, 2]  # NOQA
-    fnum = pt.ensure_fnum(None)
-    fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA
-    pt.close_figure(fig)
-    fig = pt.figure(fnum=fnum, doclf=True, docla=True)
-    # setup Lambert Conformal basemap.
-    m = Basemap(llcrnrlon=lon.min(),
-                urcrnrlon=lon.max(),
-                llcrnrlat=lat.min(),
-                urcrnrlat=lat.max(),
-                projection='cea',
-                resolution='h')
-    # draw coastlines.
+    import plottool_ibeis as pt
+    import gmplot
+    import matplotlib as mpl
+    import vtool_ibeis as vt
+    pt.qt4ensure()
+
+    lat = gps_list.T[0]
+    lon = gps_list.T[1]
+
+    # Get extent of
+    bbox = vt.bbox_from_verts(gps_list)
+    centerx, centery = vt.bbox_center(bbox)
+
+    gmap = gmplot.GoogleMapPlotter(centerx, centery, 13)
+    color = mpl.colors.rgb2hex(pt.ORANGE)
+    gmap.scatter(lat, lon, color=color, size=100, marker=False)
+    gmap.draw("mymap.html")
+    ut.startfile('mymap.html')
+
+    ## Scale
+    #bbox = vt.scale_bbox(bbox, 10.0)
+    #extent = vt.extent_from_bbox(bbox)
+    #basemap_extent = dict(llcrnrlon=extent[2], urcrnrlon=extent[3],
+    #                      llcrnrlat=extent[0], urcrnrlat=extent[1])
+    ## Whole globe
+    ##basemap_extent = dict(llcrnrlon=0, llcrnrlat=-80,
+    ##                      urcrnrlon=360, urcrnrlat=80)
+
+    #from mpl_toolkits.basemap import Basemap
+    #from matplotlib.colors import LightSource  # NOQA
+    #from mpl_toolkits.basemap import shiftgrid, cm  # NOQA
+    #from netCDF4 import Dataset
+    ## Read information to make background pretty
+    #print('Grab topo information')
+    #etopodata = Dataset('http://ferret.pmel.noaa.gov/thredds/dodsC/data/PMEL/etopo5.nc')
+    #print('Read topo information')
+    #topoin = etopodata.variables['ROSE'][:]
+    #lons = etopodata.variables['ETOPO05_X'][:]
+    #lats = etopodata.variables['ETOPO05_Y'][:]
+    ## shift data so lons go from -180 to 180 instead of 20 to 380.
+    #print('Shift data')
+    #topoin, lons = shiftgrid(180., topoin, lons, start=False)
+
+    #print('Make figure')
+    #fnum = pt.ensure_fnum(None)
+    #fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA
+    #print('Draw projection')
+    #m = Basemap(projection='mill', **basemap_extent)
+    ## setup Lambert Conformal basemap.
+    ##m = Basemap(projection='cea',resolution='h', **basemap_extent)
+
+    ## transform to nx x ny regularly spaced 5km native projection grid
+    #print('projection grid')
+    #nx = int((m.xmax - m.xmin) / 5000.) + 1
+    #ny = int((m.ymax - m.ymin) / 5000.) + 1
+    #topodat = m.transform_scalar(topoin, lons, lats, nx, ny)
+
+    ## plot image over map with imshow.
+    #im = m.imshow(topodat, cm.GMT_haxby)  # NOQA
+    ## draw coastlines and political boundaries.
     #m.drawcoastlines()
+    #m.drawcountries()
     #m.drawstates()
+
+    # transform to nx x ny regularly spaced 5km native projection grid
+    #ls = LightSource(azdeg=90, altdeg=20)
+    #rgb = ls.shade(topodat, cm.GMT_haxby)
+    #im = m.imshow(rgb)
+    # draw coastlines and political boundaries.
+
+    #m.drawcoastlines()
+    #m.drawcountries()
+    #m.drawstates()
+
     # draw a boundary around the map, fill the background.
     # this background will end up being the ocean color, since
     # the continents will be drawn on top.
     #m.bluemarble()
-    m.drawmapboundary(fill_color='aqua')
-    m.fillcontinents(color='coral', lake_color='aqua')
+    #m.drawmapboundary(fill_color='aqua')
+    #m.fillcontinents(color='coral', lake_color='aqua')
     # Convert GPS to projected coordinates
-    x1, y1 = m(lon, lat)  # convert to meters # lon==X, lat==Y
-    m.plot(x1, y1, 'o')
-    fig.show()
+    #x1, y1 = m(lon, lat)  # convert to meters # lon==X, lat==Y
+    #m.plot(x1, y1, '*', markersize=10)
+    #fig.zoom_fac = pt.zoom_factory()
+    #fig.pan_fac = pt.pan_factory()
+    #fig.show()
 
 
 if __name__ == '__main__':

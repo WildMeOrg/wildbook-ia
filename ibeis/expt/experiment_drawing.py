@@ -6,10 +6,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import join
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.expt import draw_helpers
-from six.moves import map, range
-print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
+from six.moves import map, range, reduce
+print, rrr, profile = ut.inject2(__name__)
 
 
 def scorediff(ibs, testres, f=None, verbose=None):
@@ -22,13 +22,13 @@ def scorediff(ibs, testres, f=None, verbose=None):
 
     CommandLine:
         python -m ibeis.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
+        python -m ibeis.expt.experiment_drawing scorediff --db PZ_MTEST -a default -t best --show
 
         python -m ibeis.expt.experiment_drawing scorediff --db humpbacks_fb \
             -a default:has_any=hasnotch,mingt=2 \
             -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,use_te_scorer=False,manual_extract=True,ignore_notch=True,te_net=annot_simple --show
 
     Example:
-        >>> # DISABLE_DOCTEST
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
@@ -38,46 +38,112 @@ def scorediff(ibs, testres, f=None, verbose=None):
         >>> scorediff(ibs, testres, f=f, verbose=ut.VERBOSE)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     for cfgx in range(testres.nConfig):
-        annot_matches = testres.cfgx2_qreq_[cfgx].execute()
-        aid_list = [cm.qaid for cm in annot_matches]
+        cm_list = testres.cfgx2_qreq_[cfgx].execute()
+        aid_list = [cm.qaid for cm in cm_list]
         score_diffs = []
         top_scores = []
-        for amatch in annot_matches:
-            annot_scores = sorted(amatch.annot_score_list, key=lambda x: -x)
-            diff = annot_scores[0] - annot_scores[1]
+        for cm in cm_list:
+            annot_scores = sorted(cm.annot_score_list, key=lambda x: -x)
+            if False:
+                # We want to measure just the top 2 regardless of what they are
+                diff = annot_scores[0] - annot_scores[1]
+            else:
+                try:
+                    # We want to measure just the top 2 wrt truth
+                    top_true_aid = cm.get_top_gt_aids(ibs)[0]
+                    top_false_aid = cm.get_top_gf_aids(ibs)[0]
+                    gt_score = cm.get_annot_scores([top_true_aid])[0]
+                    gf_score = cm.get_annot_scores([top_false_aid])[0]
+                    diff = gt_score - gf_score
+                except IndexError:
+                    continue
+                    # diff = 0  # np.nan
             top_scores.append(annot_scores[0])
             score_diffs.append(diff)
         score_diffs = np.array(score_diffs)
         top_scores = np.array(top_scores)
 
-        succ = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] == 0
-        fail = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] != 0
+        succ = score_diffs > 0
+        fail = score_diffs <= 0
+
+        # succ = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] == 0
+        # fail = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] != 0
 
         #fail = np.where(testres.get_truth2_prop()[0]['gt']['score'][:, 0] != 0)
-        #succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
-        #fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
+        width = .25
+        succ_max = max(2, score_diffs[succ].max())
+        fail_max = max(2, -score_diffs[fail].min())
+        num_succ_bins = int(succ_max / width)
+        num_fail_bins = int(fail_max / width)
+        succ_bins = np.linspace(0, succ_max, num_succ_bins + 1)
+        fail_bins = np.linspace(-fail_max, 0, num_fail_bins + 1)
+        print('succ_bins = %r' % (succ_bins,))
+        print('fail_bins = %r' % (fail_bins,))
+        succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=succ_bins)
+        fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=fail_bins)
         #bin_max = (score_diffs.max() - score_diffs.min()) / 50
 
-        nbins = 8
+        ydata_list = [succ_hist, fail_hist]
+        bins_list  = [succ_bins, fail_bins]
+        # xdata_list = [(bins[:-1] + bins[1:]) / 2 for bins in bins_list]
+        xdata_list = [bins[:-1] for bins in bins_list]
+        width_list = [np.diff(bins)[0] for bins in bins_list]
+
+        # nbins = 8
         #bin_width = (score_diffs.mean() + score_diffs.std()) / nbins
         #bin_width = int(np.ceil((score_diffs.mean() + score_diffs.std() / 4) / nbins))
-        bin_width = 1
-        bins = np.arange(nbins) * bin_width
-        succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
-        fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
-        ymax = max(max(succ_hist), max(fail_hist)) * 1.1
+        # bin_width = 1
+        # bins = np.arange(nbins) * bin_width
+        # succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
+        # fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
+        # hist, edges = np.histogram(score_diffs)
+        # print('hist = %r' % (hist,))
+        # ymax = max(max(succ_hist), max(fail_hist)) * 1.1
 
-        fnum = pt.next_fnum()
-        pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score',
-                          autolabel=False, color='blue', title='Success Cases',
-                          ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
-        pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score',
-                          autolabel=False, title='Failure Cases', ymax=ymax,
-                          pnum=(1, 2, 2), fnum=fnum)
+        species = ibs.get_dominant_species(testres.qaids)
+        species_nice = ibs.get_species_nice(ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids)))
+        species_nice = {
+            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_plains': 'Plains Zebras',
+            'giraffe_masai': 'Masai Giraffes',
+        }.get(species, species_nice)
 
-        from plottool.abstract_interaction import AbstractInteraction
+        pt.multi_plot(
+            xdata_list,
+            ydata_list,
+            label_list=['correct match at rank 1', 'correct match above rank 1'],
+            width_list=width_list,
+            fnum=pt.next_fnum(),
+            color_list=[pt.TRUE_BLUE, pt.FALSE_RED], kind='bar',
+            alpha=.7, stacked=True,
+            edgecolor='none', xlabel='difference between the best correct score and the best incorrect score',
+            ylabel='frequency (number of query annotations)',
+            title='Score differences for %s' % (species_nice,),
+            xmin=-10,
+            xmax=30,
+            use_legend=True
+        )
+
+        # fnum = pt.next_fnum()
+        # pt.plot_score_histograms(
+        #     [score_diffs[succ], score_diffs[fail]],
+        #     fnum=fnum,
+        #     score_colors=[pt.TRUE_BLUE, pt.FALSE_RED],
+        #     score_lbls=['correct', 'incorrect'],
+        #     bin_width=.5,
+        #     # histnorm='percent',
+        # )
+
+        # pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score',
+        #                   autolabel=False, color='blue', title='Success Cases',
+        #                   ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
+        # pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score',
+        #                   autolabel=False, title='Failure Cases', ymax=ymax,
+        #                   pnum=(1, 2, 2), fnum=fnum)
+
+        from plottool_ibeis.abstract_interaction import AbstractInteraction
 
         class SortedScoreSupportInteraction(AbstractInteraction):
 
@@ -94,7 +160,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 pt.set_ylabel('score diff')
 
             def on_click_inside(self, event, ex):
-                import vtool as vt
+                import vtool_ibeis as vt
                 #ax = event.inaxes
                 #for l in ax.get_lines():
                 #    print(l.get_label())
@@ -105,7 +171,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 aid = aid_list[idx]
                 print('aid = %r' % (aid,))
                 if event.button == 3:   # right-click
-                    cm = annot_matches[idx]
+                    cm = cm_list[idx]
                     from ibeis.gui import inspect_gui
                     qaid = aid
                     qreq_ = testres.cfgx2_qreq_[cfgx]
@@ -131,9 +197,9 @@ def scorediff(ibs, testres, f=None, verbose=None):
                     #    testres.ibs, aid, refresh_func=self.show_page, config2_=.extern_query_config2)
                     self.show_popup_menu(options, event)
 
-        x = SortedScoreSupportInteraction()
-        x.start()
-        pt.interactions.zoom_factory()
+        # x = SortedScoreSupportInteraction()
+        # x.start()
+        # pt.interactions.zoom_factory()
 
 
 #@devcmd('scores', 'score', 'namescore_roc')
@@ -146,12 +212,18 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
     CommandLine:
         ib
-        python -m ibeis --tf draw_annot_scoresep --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
-        python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
-        python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
+        python -m ibeis draw_annot_scoresep --show
+        python -m ibeis draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
+        python -m ibeis draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
+        python -m ibeis draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
+        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
+        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
+
+    Paper:
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GGR-IBEIS  -a timectrl --save gz_scoresep.png
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl:species=zebra_plains --save pz_scoresep.png
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl1h:species=giraffe_masai --save girm_scoresep.png
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -167,13 +239,11 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         import IPython
         IPython.get_ipython().magic('pylab qt4')
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     from ibeis.expt import cfghelpers
     if ut.VERBOSE:
         print('[dev] draw_annot_scoresep')
-    #from ibeis.init import main_helpers
-    #filt_cfg = main_helpers.testdata_filtcfg(default=f)
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -239,75 +309,13 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     fpr = ut.get_argval('--fpr', type_=float, default=None)
     tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
 
-    def find_auto_decision_thresh(encoder, label, part_attrs):
-        """
-        Uses the extreme of one type of label to get an automatic decision
-        threshold.  Ideally the threshold would be a little bigger than this.
-
-        label = True  # find auto accept accept thresh
-        """
-        import operator
-        other_attrs = part_attrs[not label]
-        op = operator.lt if label else operator.gt
-        if label:
-            other_support = tn_scores
-            decision_support = tp_scores
-            sortx = np.argsort(other_support)[::-1]
-        else:
-            other_support = tp_scores
-            decision_support = tn_scores
-            sortx = np.argsort(other_support)
-        sort_support = other_support[sortx]
-        sort_qaids = other_attrs['qaid'][sortx]
-        flags = np.isfinite(sort_support)
-        sort_support = sort_support[flags]
-        sort_qaids = sort_qaids[flags]
-        # ---
-        # HACK: Dont let photobombs contribute here
-        #from ibeis import tag_funcs
-        #other_tags = ibs.get_annot_all_tags(sort_qaids)
-        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
-        #sort_support = sort_support[flags2]
-        # ---
-        autodecide_thresh = sort_support[0]
-        can_auto_decide = op(autodecide_thresh, decision_support)
-
-        autodecide_scores = decision_support[can_auto_decide]
-
-        if len(autodecide_scores) == 0:
-            decision_extreme = np.nan
-        else:
-            if label:
-                decision_extreme = np.nanmin(autodecide_scores)
-            else:
-                decision_extreme = np.nanmax(autodecide_scores)
-
-        num_auto_decide = can_auto_decide.sum()
-        num_total = len(decision_support)
-        percent_auto_decide = 100 * num_auto_decide / num_total
-        print('Decision type: %r' % (label,))
-        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
-        print('Automatic decision threshold2 = %r' % (decision_extreme,))
-        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
-
     for score_group, lbl in zip(grouped_scores, cfgx2_shortlbl):
         tp_nscores = np.hstack(ut.take_column(score_group, 0))
         tn_nscores = np.hstack(ut.take_column(score_group, 1))
-        combine_attrs = ut.partial(ut.dict_union_combine, combine_op=ut.partial(ut.dict_union_combine, combine_op=np.append))
+        combine_attrs = ut.partial(ut.dict_union_combine,
+                                   combine_op=ut.partial(ut.dict_union_combine,
+                                                         combine_op=np.append))
         part_attrs = reduce(combine_attrs, ut.take_column(score_group, 2))
-        # def context_combine(val1, val2):
-        #     import operator as op
-        #     if isinstance(val1, dict):
-        #         return ut.partial(ut.dict_union_combine, combine_op=context_combine)
-        #     elif isinstance(val1, list):
-        #         return ut.partial(ut.dict_union_combine, combine_op=op.add)
-        #     elif isinstance(val1, np.ndarray):
-        #         return ut.partial(ut.dict_union_combine, combine_op=np.append)
-        #     else:
-        #         raise TypeError()
-        # combine_func = ut.partial(ut.dict_union_combine, combine_op=context_combine)
-        # part_attrs = reduce(combine_func, ut.take_column(score_group, 2))
-        # for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
         #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
         encoder = vt.ScoreNormalizer(
             #adjust=8,
@@ -323,14 +331,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr(), fnum=cfgx)
         #pt.set_figsize(w=30, h=10, dpi=256)
 
-        # --- NEW ---
-        # Fit accept and reject thresholds
-
-        #find_auto_decision_thresh(encoder, True, part_attrs)
-        #find_auto_decision_thresh(encoder, False, part_attrs)
-
-        # --- /NEW ---
-
         plotname = ''
         figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
 
@@ -341,26 +341,33 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             with_prebayes=False,
             with_postbayes=False,
             #
+            histnorm='percent',
+            histoverlay=False,
             with_hist=True,
-            with_roc=True,
+            with_roc=False,
             attr_callback=attr_callback,
             #bin_width=.125,
             #bin_width=.05,
-            score_range=(0, 14),
-            bin_width=.5,
+            # logscale=dict(linthreshx=1, linthreshy=1, basex=2, basey=0),
+            # score_range=(0, 14),
+            # score_range=(0, 10),
+            score_range=(0, 6),
+            # bin_width=.5,
+            bin_width=.125,
+            score_lbls=('incorrect', 'correct'),
             verbose=verbose
         )
 
         icon = ibs.get_database_icon()
-        if icon is not None:
+        if False and icon is not None:
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0),
                             as_artist=1, max_asize=(1000, 2000))
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-            pt.adjust_subplots2(use_argv=True)
-        pt.set_figsize(w=30, h=10, dpi=256)
-        pt.set_figtitle(lbl)
+            pt.adjust_subplots(use_argv=True)
+        # pt.set_figsize(w=30, h=10, dpi=256)
+        pt.set_figtitle(ibs.get_dbname() + ' ' + lbl)
 
     locals_ = locals()
     return locals_
@@ -407,7 +414,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         >>> draw_casetag_hist(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis import tag_funcs
     from ibeis.expt import cfghelpers
     # All unfiltered tags
@@ -436,13 +443,12 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
                                         other_problem_tags])
     if not ut.get_argflag('--fulltag'):
-        all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags)
-                    for case_tags in all_tags]
+        all_tags = [tag_funcs.consolodate_annotmatch_tags(tags)
+                    for tags in all_tags]
     # Get tags that match the filter
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
-    #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_ordered(case_pos_list.T[0])
     selected_tags = ut.take(all_tags, case_qx_list)
@@ -485,7 +491,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         #pt.adjust_subplots(wspace=.01)
-        pt.adjust_subplots2(use_argv=True, wspace=.01, bottom=.3)
+        pt.adjust_subplots(use_argv=True, wspace=.01, bottom=.3)
 
 
 def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
@@ -525,11 +531,10 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
-    #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
     percent_le1_list = cfgx2_cumhist_percent.T[0]
@@ -555,9 +560,9 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         basis_dict[key] = _basis
 
     if verbose:
-        print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
+        print('basis_dict = ' + ut.repr2(basis_dict, nl=1, hack_liststr=True))
         print('e.g. cfgx_lists_dict[1] contains indicies of configs where K = basis_dict["K"][1]')
-        print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
+        print('cfx_lists_dict = ' + ut.repr2(cfgx_lists_dict, nl=2, hack_liststr=True))
 
     #const_key = 'K'
 
@@ -700,30 +705,209 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     pt.adjust_subplots(left=.05, bottom=.08, top=.80, right=.95, wspace=.2, hspace=.3)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-        pt.adjust_subplots2(use_argv=True)
+        pt.adjust_subplots(use_argv=True)
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True, numranks=3, kind='bar',
-                  cdfzoom=False):
+def temp_num_exmaples_cmc():
+    import ibeis
+    ibs1, testres1 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
+        t='Ell:K=1',
+        # t='best:prescore_method=nsum',
+        # a='timectrl'
+        a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=[1,2],dsize=1939'
+    )
+
+    ibs2, testres2 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        # t='best:prescore_method=nsum',
+        t='CircQRH:K=3',
+        a='timectrl:species=zebra_plains,qmin_pername=3,dsample_per_name=[1,2],dsize=1187'
+        # a='timectrl:species=zebra_plains,sample_per_name=3'
+    )
+
+    key = 'qx2_gt_rank'
+    ydata_list = []
+    label_list = []
+    num_ranks = 5
+
+    testres_list = [testres1, testres2]
+    ibs_list = [ibs1, ibs2]
+
+    # ibs = ibs1
+    # testres = testres1
+    for ibs, testres in zip(ibs_list, testres_list):
+        cfgx2_cmc, edges = testres.get_rank_percentage_cumhist(
+            bins='dense', key=key, join_acfgs=True)
+
+        species = ibs.get_dominant_species(testres.qaids)
+        species_nice = ibs.get_species_nice(ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids)))
+        species_nice = {
+            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_plains': 'Plains Zebras',
+            'giraffe_masai': 'Masai Giraffes',
+        }.get(species, species_nice)
+
+        cmcs = cfgx2_cmc.T[:num_ranks].T
+        lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
+        # lbls = ['%6.2f%% @ rank #1' % (cmc[0],) + ' - ' + lbl + ' - ' + species_nice
+        #         for lbl, cmc in zip(lbls, cmcs)]
+        lbls = [species_nice + ' - ' + lbl.replace('dpername', 'exemplars')
+                for lbl, cmc in zip(lbls, cmcs)]
+
+        ydata_list.extend(cmcs)
+        label_list.extend(lbls)
+
+    sortx = np.argsort(ut.take_column(ydata_list, 0))[::-1]
+    ydata_list = ut.take(ydata_list, sortx)
+    label_list = ut.take(label_list, sortx)
+
+    xdata = list(range(1, num_ranks + 1))
+
+    import plottool_ibeis as pt
+    ymin = 30
+    xpad = .9  # if kind == 'plot' else .5
+    num_yticks = 8 if ymin == 30 else 11
+    # ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
+
+    fig = pt.multi_plot(
+        xdata, ydata_list,
+        marker_list=pt.distinct_markers(len(ydata_list)),
+        label_list=label_list,
+        num_xticks=num_ranks,
+        xlabel='rank', ylabel='recognition rate (%)',
+        legend_loc='lower right',
+        num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
+        xmin=xpad,
+        xmax=num_ranks + 1 - xpad,
+        use_legend=True,
+        title='Cumulative match characteristics',
+        legendsize=10,
+        titlesize=12,
+        labelsize=12,
+    )
+    fig.set_size_inches(*((1.0 * np.array([4, 3])).tolist()))
+    pt.adjust_subplots(bottom=.15, top=.9, left=.2)
+    fpath = 'cmc-dpername-combined.png'
+    fig.savefig(fpath, transparent=True, edgecolor='none')
+    import vtool_ibeis as vt
+    vt.clipwhite_ondisk(fpath, fpath, verbose=True)
+    ut.startfile(fpath)
+
+
+def temp_multidb_cmc():
+    """
+    Plots multiple database CMC curves in the same plot for the AI for social
+    good paper
+    """
+    import ibeis
+    ibs1, testres1 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
+        t='Ell:K=4',
+        # t='best:prescore_method=nsum',
+        a='timectrl'
+        # a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=2'
+    )
+    ibs2, testres2 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        # t='best:prescore_method=nsum',
+        t='CircQRH:K=3',
+        a='timectrl:species=zebra_plains'
+        # a='timectrl:species=zebra_plains,qmin_pername=3,dsample_per_name=2'
+        # a='timectrl:species=zebra_plains,sample_per_name=3'
+    )
+    ibs3, testres3 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        t='Ell:K=2',
+        a='timectrl1h:species=giraffe_masai'
+        # a='timectrl1h:species=giraffe_masai,qmin_pername=2,dsample_per_name=2'
+    )
+
+    testres_list = [testres1, testres2, testres3]
+    ibs_list = [ibs1, ibs2, ibs3]
+
+    key = 'qx2_gt_rank'
+    ydata_list = []
+    label_list = []
+    num_ranks = 5
+
+    for ibs, testres in zip(ibs_list, testres_list):
+        cfgx2_cmc, edges = testres.get_rank_percentage_cumhist(
+            bins='dense', key=key, join_acfgs=True)
+        cmc = cfgx2_cmc[0][:num_ranks]
+
+        species = ibs.get_dominant_species(testres.qaids)
+        species_nice = ibs.get_species_nice(ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids)))
+        species_nice = {
+            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_plains': 'Plains Zebras',
+            'giraffe_masai': 'Masai Giraffes',
+        }.get(species, species_nice)
+        label = ('%6.2f%% @ rank #1' % (cmc[0],)) + ' - ' + species_nice
+        label_list.append(label)
+        ydata_list.append(cmc)
+
+    sortx = np.argsort(ut.take_column(ydata_list, 0))[::-1]
+    ydata_list = ut.take(ydata_list, sortx)
+    label_list = ut.take(label_list, sortx)
+
+    xdata = list(range(1, num_ranks + 1))
+
+    import plottool_ibeis as pt
+    ymin = 30
+    xpad = .9  # if kind == 'plot' else .5
+    num_yticks = 8 if ymin == 30 else 11
+    # ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
+
+    fig = pt.multi_plot(
+        xdata, ydata_list,
+        marker_list=pt.distinct_markers(len(ydata_list)),
+        label_list=label_list,
+        num_xticks=num_ranks,
+        xlabel='rank', ylabel='recognition rate (%)',
+        legend_loc='lower right',
+        num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
+        xmin=xpad,
+        xmax=num_ranks + 1 - xpad,
+        use_legend=True,
+        title='Cumulative match characteristics'
+    )
+    fig.set_size_inches(*((1.5 * np.array([4, 3])).tolist()))
+    pt.adjust_subplots(bottom=.15)
+    fig.savefig('cmc-combined.png', transparent=True, edgecolor='none')
+    import vtool_ibeis as vt
+    vt.clipwhite_ondisk('cmc-combined.png', 'cmc-combined.png', verbose=True)
+    ut.startfile('cmc-combined.png')
+
+
+def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
+                  group_queries=False, draw_icon=True,
+                  numranks=5, kind='cmc', cdfzoom=True, **kwargs):
+    # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):
 
+    TODO:
+        # Cross-validated results with timectrl
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl:xval=True -t invar --kind=cmc
+
     CommandLine:
-        python -m ibeis.dev -e draw_rank_cdf
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
-        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t default --kind=cmc
 
-        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
+        #ibeis -e rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+        python -m ibeis --tf draw_rank_cmc -t best -a timectrl --db PZ_Master1 --show
+
+        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
@@ -736,7 +920,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
             -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
              default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
 
-        ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
+        ibeis draw_rank_cmc --db GZ_ALL -a ctrl -t default --show
         ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
 
     Example:
@@ -746,32 +930,37 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> #ibs, testres = main_helpers.testdata_expts(
         >>> #    'seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
-        >>> result = draw_rank_cdf(ibs, testres, **kwargs)
+        >>> kwargs = ut.argparse_funckw(draw_rank_cmc)
+        >>> result = draw_rank_cmc(ibs, testres, **kwargs)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
-    #cdf_list, edges = testres.get_rank_cumhist(bins='dense')
-    if do_per_annot:
-        key = 'qx2_bestranks'
-        target_label = 'accuracy (% per annotation)'
-    else:
+    import plottool_ibeis as pt
+    if group_queries:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
+    else:
+        key = 'qx2_gt_rank'
+        target_label = 'accuracy (% per annotation)'
 
     join_acfgs = True
-    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key, join_acfgs=join_acfgs)
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
+        bins='dense', key=key, join_acfgs=join_acfgs)
 
-    #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
-    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
-    #label_list = [l1 + l2 for l1, l2 in zip(label_list, label_list2)]
+    # Do this twice, but no sep the first time
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs)
+    cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
+    cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
+    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True,
+                                         precision=4))
 
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs,
+                                            sep=kwargs.get('sep', ''))
     label_list = [
-        ('%6.2f%%' % (percent,)) +
-        #ut.scalar_str(percent, precision=2)
-        ' - ' + label
-        for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+        ('%6.2f%%' % (percent,)) + ' - ' + label
+        for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])]
 
     cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
     color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
@@ -801,14 +990,16 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     numranks = ut.get_argval('--numranks', type_=int, default=numranks)
 
-    if numranks is not None:
-        maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
-        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
-        edges_short = edges[0:min(len(edges), numranks + 1)]
+    if numranks is None:
+        numranks = len(cfgx2_cumhist_percent.T)
 
-    if cdfzoom is None:
-        cdfzoom = ut.get_argflag('--cdfzoom')
-    pnum_ = pt.make_pnum_nextgen(nRows=cdfzoom + 1, nCols=1)
+    maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
+    cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
+    edges_short = edges[0:min(len(edges), numranks + 1)]
+
+    # twoplots = not ut.get_argflag('--cdfzoom')
+    twoplots = not cdfzoom
+    pnum_ = pt.make_pnum_nextgen(nRows=twoplots + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
     #target_label = '% groundtrue matches ≤ rank'
@@ -822,10 +1013,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     elif kind == 'cmc':
         kind = 'plot'
 
-    if kind == 'plot':
-        plotname = ('Cumulative Match Curve (CMC)')
-    else:
-        plotname = ('Cumulative Rank Histogram')
+    plotname = ('Cumulative Match Characteristic (CMC)')
     plotname = ut.get_argval('--plotname', default=plotname)
     figtitle = testres.make_figtitle(plotname)
 
@@ -839,40 +1027,49 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=xpad,
         kind=kind,
+        title=figtitle,
+        # figtitle=figtitle,
         #xpad=.05,
         #**FONTKW
     )
+    cumhistkw.update(kwargs)
+
+    # if not twoplots:
+    minval = numranks if numranks <= 10 else 10
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-        num_xticks=numranks,
+        num_xticks=max(5, min(minval, (numranks // 20) + 2)),
         #legend_alpha=.85,
         legend_alpha=.92,
         #legendsize=12,
         xmax=numranks + 1 - xpad,
-        use_legend=not cdfzoom,
+        use_legend=not twoplots,
         pnum=pnum_(), **cumhistkw)
 
-    if cdfzoom:
+    if twoplots:
+        del cumhistkw['title']
         numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
             cfgx2_cumhist_percent, edges=edges, label_list=label_list,
-            num_xticks=numranks2, use_legend=cdfzoom, pnum=pnum_(),
+            num_xticks=numranks2, use_legend=twoplots, pnum=pnum_(),
             xmax=numranks2 + 1 - xpad,
             **cumhistkw)
         ax2 = pt.gca()
         #pt.zoom_effect01(ax1, ax2, 1, numranks2, fc='w')
         #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
-    #pt.set_figtitle(figtitle, size=14)
-    pt.set_figtitle(figtitle)
 
     icon = ibs.get_database_icon()
+    # print('draw_icon = %r' % (draw_icon,))
     if draw_icon and icon is not None:
         #ax = pt.gca()
         #ax.get_xlim()
-        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
+        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True)
+        # pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=False, max_asize=(.5, .5))
+        # pt.overlay_icon(icon, bbox_alignment=(0, 1), as_artist=False)
+        # max_asize=(2, 4))
         pass
         #ax.get_ylim()
 
@@ -884,8 +1081,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     #fig.set_size_inches(15, 7)
     if ut.get_argflag('--contextadjust') or True:
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
-        pt.adjust_subplots2(use_argv=True)
-    #pt.set_figtitle(figtitle, size=10)
+        pt.adjust_subplots(use_argv=True)
 
 
 @profile
@@ -924,7 +1120,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
         >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import datetime
     plotkw = {}
     plotkw['markersize'] = 12
@@ -1030,14 +1226,15 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
         ax.set_aspect('equal')
 
     if ut.get_argflag('--contextadjust'):
-        pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
-        pt.adjust_subplots2(use_argv=True)
+        pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        pt.adjust_subplots(use_argv=True)
 
 
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     case_pos_list=None, verbose=None, interact=None, **kwargs):
+                     case_pos_list=None, verbose=None, interact=None,
+                     figdir=None, **kwargs):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -1051,12 +1248,14 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         # Shows the best results
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :sortasc=gtscore,success=True,index=200:201 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 \
+            -a timectrl -t invarbest
+            --filt :sortasc=gtscore,success=True,index=200:201 --show
 
         # Shows failures sorted by gt score
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :sortdsc=gfscore,min_gtrank=1 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 \
+            -a timectrl -t invarbest \
+            --filt :sortdsc=gfscore,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
         python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
@@ -1073,11 +1272,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
-        ibeis --tf draw_match_cases --db humpbacks_fb \
-            -a default:has_any=hasnotch,mingt=2 \
-            -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple default:proot=vsmany \
-            --qaids-override 12 --show
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -1085,103 +1279,99 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
-        >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata, f=filt_cfg)
+        >>> figdir = ut.get_argval(('--figdir', '--dpath'), type_=str, default=None)
+        >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata,
+        >>>                                        f=filt_cfg, figdir=figdir)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
-    # FIXME: make save work
-    cfgx2_qreq_ = testres.cfgx2_qreq_
+
+    if True:
+        import matplotlib as mpl
+        from ibeis.scripts.thesis import TMP_RC
+        mpl.rcParams.update(TMP_RC)
+
+    #### ARGUMENT PARSING AND RECTIFICATION ###
+    cmdaug = ut.get_argval('--cmdaug', type_=str, help_='candhack')
+
+    show = ut.get_argflag('--show')
     if interact is None:
-        interact = ut.get_argflag('--show')
-    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
-    filt_cfg = f
-    if case_pos_list is None:
-        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+        interact = ut.get_argflag('--interact')
 
-    qx_list, cfgx_list = case_pos_list.T
-    # Get configs needed for each query
-    qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
-
-    show_kwargs = {
-        'N': 3,
-        'ori': True,
-        'ell_alpha': .9,
-    }
+    if figdir is None:
+        figdir = ibs.get_fig_dir()
+    show_kwargs = {'N': 3, 'ori': True, 'ell_alpha': .9}
     # show analysis
     show_kwargs['show_query'] = False
     show_kwargs['viz_name_score'] = kwargs.get('viz_name_score', True)
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    #show_kwargs['with_figtitle'] = True
+    show_kwargs['colorbar_'] = False
     show_kwargs['with_figtitle'] = show_in_notebook
     show_kwargs['fastmode'] = True
-    #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
-        annot_modes = [0]
-    #annot_modes = [0]
-    #show_kwargs['annot_mode'] = 1 if not SHOW else 0
+        annot_modes = ut.get_argval('--annotmodes', default=[0])
+    filt_cfg = f
+    if case_pos_list is None:
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    #########################
 
-    # if False:
+    #### DIRECTORY SETUP ###
+    figdir = ut.truepath(figdir)
+    case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
+    ut.ensuredir(case_figdir)
+    if ut.get_argflag(('--view-fig-directory', '--vf')):
+        ut.view_directory(case_figdir)
+    # Common directory
+    indiv_results_figdir = ut.ensuredir((case_figdir, 'indiv_results'))
+    top_rank_analysis_dir = ut.ensuredir((case_figdir, 'top_rank_analysis'))
+    dump = False
     DO_COPY_QUEUE = True
     if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
+    if ut.NOT_QUIET:
+        print('case_figdir = %r' % (case_figdir,))
+    ##########################
 
-    figdir = ibs.get_fig_dir()
-    figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
-    #figdir = join(figdir, 'cases_' + testres.get_fname_aug(withinfo=False))
-    case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
-    ut.ensuredir(case_figdir)
-
-    if ut.get_argflag(('--view-fig-directory', '--vf')):
-        ut.view_directory(case_figdir)
-
-    # Common directory
-    individual_results_figdir = join(case_figdir, 'individual_results')
-    ut.ensuredir(individual_results_figdir)
-
-    top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
-    ut.ensuredir(top_rank_analysis_dir)
-
-    qaids = testres.get_test_qaids()
-    # Ensure semantic uuids are in the APP cache.
-    ibs.get_annot_semantic_uuids(ut.take(qaids, qx_list))
-
+    #### INTERACTIVE SETUP ###
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
-            annot_modes[ix] = (annot_modes[ix] + 1 % 3)
-
+            # See viz_qres.py for more annot_mode info
+            # TODO: use viz_qres to get the number of possible annot modes.
+            annot_modes[ix] = (annot_modes[ix] + 1 % 4)
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
         print('show_kwargs[\'fastmode\'] = %r' % (show_kwargs['fastmode'],))
-
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
         ('toggle_annot_mode', ['a'], 'toggle_annot_mode', toggle_annot_mode),
         ('toggle_fast_mode', ['f'], 'toggle_fast_mode', toggle_fast_mode,
          'Fast mode lowers drwaing quality'),
     ]
+    ##########################
 
-    analysis_fpath_list = []
-
+    cfgx2_qreq_ = testres.cfgx2_qreq_
+    qaids = testres.get_test_qaids()
     cfgx2_shortlbl = testres.get_short_cfglbls()
-
-    if ut.NOT_QUIET:
-        print('case_figdir = %r' % (case_figdir,))
-    fpaths_list = []
-
-    fnum_start = None
-    fnum = pt.ensure_fnum(fnum_start)
+    qx_list, cfgx_list = case_pos_list.T
+    # Get configs needed for each query
+    qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
 
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
+    unique_qx = ut.unique(qx_list)
     if interact:
-        _iter = ut.InteractiveIter(qx_list, enabled=interact, custom_actions=custom_actions)
+        _iter = ut.InteractiveIter(unique_qx, enabled=interact,
+                                   custom_actions=custom_actions)
     else:
-        _iter = ut.ProgIter(qx_list, lbl='drawing cases')
+        _iter = ut.ProgIter(unique_qx, lbl='drawing cases')
 
+    fnum = pt.ensure_fnum(None)
+    fpaths_list = []
+    analysis_fpath_list = []
     for count, qx in enumerate(_iter):
         cfgxs = qx2_cfgxs[qx]
         qreq_list = ut.take(cfgx2_qreq_, cfgxs)
@@ -1190,12 +1380,14 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         qaid = qaids[qx]
-        cm_list = [qreq_.execute_subset(qaids=[qaid])[0] for qreq_ in qreq_list]
+        cm_list = [qreq_.execute(qaids=[qaid])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()
 
         if 0 or ut.VERBOSE:
+            print('=== QUERY INFO ===')
+            print('=== QUERY INFO ===')
             print('qaid = %r' % (qaid,))
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))
@@ -1224,7 +1416,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             cfgstr = testres.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
             qres_dpath = 'qaid={qaid}'.format(qaid=cm.qaid)
-            individ_results_dpath = join(individual_results_figdir, qres_dpath)
+            individ_results_dpath = join(indiv_results_figdir, qres_dpath)
             ut.ensuredir(individ_results_dpath)
             # Draw Result
             # try to shorten query labels a bit
@@ -1233,7 +1425,13 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             qres_fname = query_lbl + '.png'
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
-            if interact or show_in_notebook or not ut.checkpath(analysis_fpath):
+
+            if show or interact or show_in_notebook:
+                needs_draw = True
+            else:
+                needs_draw = not (dump and ut.checkpath(analysis_fpath))
+
+            if needs_draw:
                 bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (
                     count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
                 print('bar_label = %r' % (bar_label,))
@@ -1251,9 +1449,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if show_in_notebook:
                         fnum = fnum + 1
                     if interact:
-                        cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                        cm.ishow_analysis(qreq_, figtitle=_query_lbl,
+                                          fnum=fnum, **show_kwargs)
                     else:
-                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum,
+                                         **show_kwargs)
                     if show_in_notebook:
                         _query_lbl = ''  # only show the query label once
                         if figsize is not None:
@@ -1265,7 +1465,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     # Hack for candidacy
                     analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
                     print('analysis_fpath = %r' % (analysis_fpath,))
-                if not show_in_notebook:
+                if show_in_notebook:
+                    pt.plt.show()
+
+                # elif not show:
+                if False:
                     fig = pt.gcf()
                     print('analysis_fpath = %r' % (analysis_fpath,))
                     fig.savefig(analysis_fpath)
@@ -1273,8 +1477,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if DO_COPY_QUEUE:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
-                else:
-                    pt.plt.show()
             analysis_fpath_list.append(analysis_fpath)
             fpaths_list[-1].append(analysis_fpath)
             if metadata is not None:
@@ -1290,9 +1492,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # Copy summary images to query_analysis folder
         cpq.flush_copy_tasks()
 
-    # flat_case_labels = None
-    # draw_helpers.make_individual_latex_figures(ibs, fpaths_list,
-    # flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list)
     return analysis_fpath_list
 
 

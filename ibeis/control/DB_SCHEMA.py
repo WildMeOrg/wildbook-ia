@@ -22,7 +22,7 @@ try:
     from ibeis.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = DB_SCHEMA_CURRENT.VERSION_CURRENT
-except:
+except Exception:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")
@@ -30,13 +30,18 @@ import utool as ut
 profile = ut.profile
 
 
+ANNOTMATCH_TABLE     = 'annotmatch'
 NAME_TABLE_v121     = const.NAME_TABLE_v121
 NAME_TABLE_v130     = const.NAME_TABLE_v130
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_UUID          = 'annot_uuid'
+ANNOT_STAGED_UUID   = 'annot_staged_uuid'
 ANNOT_YAW           = 'annot_yaw'
 ANNOT_VIEWPOINT     = 'annot_viewpoint'
+PART_ROWID          = 'part_rowid'
+PART_UUID           = 'part_uuid'
+PART_STAGED_UUID    = 'part_staged_uuid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 IMAGE_ROWID         = 'image_rowid'
@@ -244,7 +249,6 @@ def post_1_2_0(db, ibs=None):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
             >>> import ibeis
             >>> #import sys
             #>>> sys.argv.append('--force-fresh')
@@ -258,27 +262,14 @@ def post_1_2_0(db, ibs=None):
         """
         import utool as ut
 
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         #ibs.get_annot_name_rowids(aid_list)
         #
         #ANNOT_ROWID             = 'annot_rowid'
         ANNOTATION_TABLE        = 'annotations'
-        ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
         NAME_ROWID              = 'name_rowid'
         SPECIES_ROWID           = 'species_rowid'
         AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
-
-        def set_annot_semantic_uuids(ibs, aid_list, annot_semantic_uuid_list):
-            id_iter = aid_list
-            colnames = (ANNOT_SEMANTIC_UUID,)
-            ibs.db.set(ANNOTATION_TABLE, colnames,
-                       annot_semantic_uuid_list, id_iter)
-
-        def set_annot_visual_uuids(ibs, aid_list, annot_visual_uuid_list):
-            id_iter = aid_list
-            colnames = (ANNOT_VISUAL_UUID,)
-            ibs.db.set(ANNOTATION_TABLE, colnames,
-                       annot_visual_uuid_list, id_iter)
 
         def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
             id_iter = aid_list
@@ -381,7 +372,6 @@ def post_1_2_1(db, ibs=None):
     if ibs is not None:
         print('applying post_1_2_1')
         import utool as ut
-        from ibeis.algo.preproc import preproc_annot
         if ibs is not None:
             ibs._init_rowid_constants()
             #db = ibs.db
@@ -440,7 +430,8 @@ def post_1_2_1(db, ibs=None):
             # It is visual info augmented with name and species
             def get_annot_viewpoints(ibs, aid_list):
                 viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
-                viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                viewpoint_list = [viewpoint if viewpoint is None or viewpoint >= 0.0
+                                  else None for viewpoint in viewpoint_list]
                 return viewpoint_list
             view_list       = get_annot_viewpoints(ibs, aid_list)
             name_list       = get_annot_names_v121(aid_list)
@@ -458,12 +449,14 @@ def post_1_2_1(db, ibs=None):
 
         def update_annot_semantic_uuids_v121(aid_list, _visual_infotup=None):
             semantic_infotup = get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup)
-            annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+            assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+            annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
             ibs.db.set(ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
 
         def update_annot_visual_uuids_v121(aid_list):
             visual_infotup = get_annot_visual_uuid_info_v121(aid_list)
-            annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+            assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+            annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
             ibs.db.set(ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
             # If visual uuids are changes semantic ones are also changed
             update_annot_semantic_uuids_v121(aid_list, visual_infotup)
@@ -474,7 +467,8 @@ def post_1_3_4(db, ibs=None):
     if ibs is not None:
         ibs._init_rowid_constants()
         ibs._init_config()
-        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+        # Move up because this has changed
+        # ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 
 def pre_1_3_1(db, ibs=None):
@@ -488,9 +482,8 @@ def pre_1_3_1(db, ibs=None):
         import six
         ibs._init_rowid_constants()
         ibs._init_config()
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         def pre_1_3_1_update_visual_uuids(ibs, aid_list):
-            from ibeis.algo.preproc import preproc_annot
             def pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list):
                 image_uuid_list = ibs.get_annot_image_uuids(aid_list)
                 verts_list      = ibs.get_annot_verts(aid_list)
@@ -501,7 +494,8 @@ def pre_1_3_1(db, ibs=None):
                 image_uuid_list, verts_list, theta_list = visual_infotup
                 def get_annot_viewpoints(ibs, aid_list):
                     viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
-                    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                    viewpoint_list = [viewpoint if viewpoint is None or viewpoint >= 0.0
+                                      else None for viewpoint in viewpoint_list]
                     return viewpoint_list
                 # It is visual info augmented with name and species
                 viewpoint_list  = get_annot_viewpoints(ibs, aid_list)
@@ -511,18 +505,20 @@ def pre_1_3_1(db, ibs=None):
                                     name_list, species_list)
                 return semantic_infotup
             visual_infotup = pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list)
-            annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+            assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+            annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
             ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
             # If visual uuids are changes semantic ones are also changed
             # update semeantic pre 1_3_1
             _visual_infotup = visual_infotup
             semantic_infotup = pre_1_3_1_get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup)
-            annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+            assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+            annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
             ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
             pass
         pre_1_3_1_update_visual_uuids(ibs, aid_list)
         #ibsfuncs.fix_remove_visual_dupliate_annotations(ibs)
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
         ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
         dupaids_list = []
@@ -532,13 +528,9 @@ def pre_1_3_1(db, ibs=None):
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)
             print('About to delete toremove_aids=%r' % (toremove_aids,))
-            #if ut.are_you_sure():
-            #ibs.delete_annots(toremove_aids)
-            #from ibeis.algo.preproc import preproc_annot
-            #preproc_annot.on_delete(ibs, toremove_aids)
             ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
 
-            aid_list = ibs.get_valid_aids()
+            aid_list = ibs.get_valid_aids(is_staged=None)
             visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
             ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
             assert len(ibs_dup_annots) == 0
@@ -823,6 +815,7 @@ def update_1_3_4(db, ibs=None):
         """ we initially had viewpoint coordinates inverted
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import math
             >>> TAU = 2 * math.pi
             >>> old_viewpoint_labels = [
@@ -846,7 +839,7 @@ def update_1_3_4(db, ibs=None):
         yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
-    from dtool.sql_control import SQLDatabaseController
+    from dtool_ibeis.sql_control import SQLDatabaseController
     assert isinstance(db,  SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
@@ -870,8 +863,11 @@ def update_1_3_5(db, ibs=None):
     """ expand datasets to use new quality measures """
     if ibs is not None:
         # Adds a few different degrees of quality
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         qual_list = ibs.get_annot_qualities(aid_list)
+        flags = [q is not None for q in qual_list]
+        qual_list = ut.compress(qual_list, flags)
+        aid_list = ut.compress(aid_list, flags)
         assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
         old_to_new = {
             2: 3,
@@ -954,7 +950,7 @@ def update_1_3_6(db, ibs=None):
 
 
 def update_1_3_7(db, ibs=None):
-    # Part of the dependsmap property might be infered, but at least the keys and tables are needed.
+    # Part of the dependsmap property might be inferred, but at least the keys and tables are needed.
     db.modify_table(
         const.ANNOTATION_TABLE,
         extern_tables=[const.NAME_TABLE, const.SPECIES_TABLE, const.IMAGE_TABLE],
@@ -1204,13 +1200,13 @@ def pre_1_4_8(db, ibs=None):
             const.ANNOTMATCH_TABLE, ('annotmatch_note',), annotmatch_rowids,
             id_colname='rowid')
         new_notes_list = annotmatch_note_list
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'photobomb', new_notes_list, annotmatch_is_photobomb_list)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'nondistinct', new_notes_list, annotmatch_is_nondistinct)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'hard', new_notes_list, annotmatch_is_hard)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'scenerymatch', new_notes_list, annotmatch_is_scenerymatch)
 
         ibs.db.set(const.ANNOTMATCH_TABLE, ('annotmatch_note',),
@@ -1299,14 +1295,14 @@ def update_1_4_9(db, ibs=None):
 def post_1_4_9(db, ibs=None):
     if ibs is not None:
         ibs._clean_species()
-        db.modify_table(
-            const.SPECIES_TABLE,
-            [
-                # change type of species_nice
-                ('species_nice', '', 'TEXT NOT NULL', None),
-                ('species_code', '', 'TEXT NOT NULL', None),
-            ],
-        )
+    db.modify_table(
+        const.SPECIES_TABLE,
+        [
+            # change type of species_nice
+            ('species_nice', '', 'TEXT NOT NULL', None),
+            ('species_code', '', 'TEXT NOT NULL', None),
+        ],
+    )
 
 
 def update_1_5_0(db, ibs=None):
@@ -1376,14 +1372,286 @@ def update_1_5_2(db, ibs=None):
 
 def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
-        from ibeis.other.duct_tape import parse_and_update_image_exif_orientations
-        parse_and_update_image_exif_orientations(ibs, verbose=verbose)
+        from PIL import Image  # NOQA
+        from ibeis.algo.preproc.preproc_image import parse_exif
+        from ibeis.scripts import fix_annotation_orientation_issue as faoi
+        from os.path import exists
+
+        def _parse_orient(gpath):
+            if verbose:
+                print('[db_update (1.5.2)]     Parsing: %r' % (gpath, ))
+            pil_img = Image.open(gpath, 'r')  # NOQA
+            time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+            return orient
+
+        # Get images without orientations and add to the database
+        gid_list_all = ibs.get_valid_gids()
+        gpath_list = ibs.get_image_paths(gid_list_all)
+        valid_list = [ exists(gpath) for gpath in gpath_list ]
+        gid_list = ut.filter_items(gid_list_all, valid_list)
+
+        orient_list = ibs.get_image_orientation(gid_list)
+        zipped = zip(gid_list, orient_list)
+        gid_list_ = [ gid for gid, orient in zipped if orient in [0, None] ]
+        args = (len(gid_list_), len(gid_list_all), valid_list.count(False))
+        print('[db_update (1.5.2)] Parsing Exif orientations for %d / %d images (skipping %d)' % args)
+        gpath_list_ = ibs.get_image_paths(gid_list_)
+        orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
+        ibs._set_image_orientation(gid_list_, orient_list_)
+        faoi.fix_annotation_orientation(ibs)
 
 
 def update_1_5_3(db, ibs=None):
     # Add reviewed flag to annotations
     db.modify_table(const.ANNOTATION_TABLE, (
         (13, 'annot_toggle_reviewed',        'INTEGER DEFAULT 0', None),
+    ))
+
+
+def update_1_5_4(db, ibs=None):
+    # Add reviewed flag to annotations
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (14, 'annot_toggle_multiple',        'INTEGER DEFAULT NULL', None),
+    ))
+
+
+def update_1_5_5(db, ibs=None):
+    # Remove the config table
+    db.drop_table('configs')
+    db.modify_table('image_lblimage_relationship',
+                    drop_columns=['config_rowid'],
+                    superkeys=[('image_rowid', 'lblimage_rowid')])
+    db.modify_table('annotation_lblannot_relationship',
+                    drop_columns=['config_rowid'],
+                    superkeys=[('annot_rowid', 'lblannot_rowid')])
+    db.modify_table('imagesets',
+                    drop_columns=['config_rowid'],
+                    dependsmap={})
+
+
+def update_1_6_0(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (None, 'image_metadata_json', 'TEXT', None),
+    ))
+
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (None, 'annot_metadata_json', 'TEXT', None),
+    ))
+
+
+def update_1_6_1(db, ibs=None):
+    # if ibs is not None:
+    #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+    #         'this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2')
+    db.modify_table(
+        'annotmatch',
+        colmap_list=[
+            ('annotmatch_truth', 'annotmatch_truth', 'INTEGER', None)
+        ]
+    )
+
+
+def post_1_6_1(db, ibs=None, verbose=False):
+    # Find annotmatch rowids that have an old value of 2
+    ams = db.get_where_eq('annotmatch', colnames=('annotmatch_rowid',),
+                          params_iter=[(2,)], unpack_scalars=False,
+                          where_colnames=('annotmatch_truth',))[0]
+    print('Setting %d old unknown values to NULL' % (len(ams)))
+    # if ibs is not None:
+    #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+    #         'this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2')
+    # if False:
+    db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
+
+
+def update_1_6_2(db, ibs=None):
+    # All confidences thusfar have had no meaning. Change the column to an integer
+    # to user the USER_CONFIDENCE_CODES and reset all values to None
+    db.modify_table(
+        'annotmatch',
+        colmap_list=[
+            ('annotmatch_confidence', 'annotmatch_confidence', 'INTEGER', lambda val: None)
+        ]
+    )
+
+
+def update_1_6_3(db, ibs=None):
+    db.modify_table(const.IMAGESET_TABLE, (
+        (None, 'imageset_metadata_json', 'TEXT', None),
+    ))
+
+    db.modify_table(const.NAME_TABLE, (
+        (None, 'name_metadata_json', 'TEXT', None),
+    ))
+
+
+def update_1_6_4(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (12, 'annot_viewpoint', 'TEXT', None),
+        (16, 'annot_toggle_interest', 'INTEGER DEFAULT NULL', None),
+    ))
+
+    db.add_table(const.PART_TABLE, (
+        (PART_ROWID,                     'INTEGER PRIMARY KEY'),
+        (PART_UUID,                      'UUID NOT NULL'),
+        (ANNOT_ROWID,                    'INTEGER NOT NULL'),
+        ('part_xtl',                     'INTEGER NOT NULL'),
+        ('part_ytl',                     'INTEGER NOT NULL'),
+        ('part_width',                   'INTEGER NOT NULL'),
+        ('part_height',                  'INTEGER NOT NULL'),
+        ('part_theta',                   'REAL DEFAULT 0.0'),
+        ('part_num_verts',               'INTEGER NOT NULL'),
+        ('part_verts',                   'TEXT'),
+        ('part_viewpoint',               'TEXT'),
+        ('part_detect_confidence',       'REAL DEFAULT -1.0'),
+        ('part_toggle_reviewed',         'INTEGER DEFAULT 0'),
+        ('part_quality',                 'INTEGER'),
+        ('part_type',                    'TEXT'),
+        ('part_note',                    'TEXT'),
+        ('part_tag_text',                'TEXT'),
+    ),
+        docstr='''
+        Mainly used to store the geometry of the annotation parts within its parent
+        annotation. The one-to-many relationship between annotations and parts is
+        encoded here
+        ''',
+        superkeys=[(PART_UUID,), ],
+        shortname='part',
+        extern_tables=[const.ANNOTATION_TABLE],
+        dependsmap={
+            ANNOT_ROWID         : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+    },)
+
+
+def post_1_6_4(db, ibs=None):
+    if ibs is not None:
+        from ibeis.other import ibsfuncs
+        aids = ibs.get_valid_aids(is_staged=None)
+        # Get old yaw values
+        yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
+        yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
+        # Convert into viewpoint text
+        viewpoint_list = ibsfuncs.get_yaw_viewtexts(yaws)
+        db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list,
+               id_iter=aids)
+
+
+def update_1_6_5(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (15, 'image_toggle_cameratrap', 'INTEGER DEFAULT NULL', None),
+    ))
+
+
+def update_1_6_6(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        (None, 'annotmatch_count', 'INTEGER', None),
+    ))
+
+
+def update_1_6_7(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        ('annotmatch_pairwise_prob', None, None, None),
+        ('config_hashid', None, None, None),
+    ))
+
+
+def update_1_6_8(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        # Rename truth to visual decision
+        ('annotmatch_truth', 'annotmatch_evidence_decision', 'INTEGER', None),
+        # Add new meta_decision
+        (None, 'annotmatch_meta_decision', 'INTEGER', None),
+        # remove the reviewed flag. This is basically stored via userid/count
+        ('annotmatch_reviewed', None, None, None),
+    ))
+
+
+def update_1_6_9(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add column to mirror wildbook encounters
+        # FIXME: make this an int that points to a different "static_encounter"
+        # table rowid
+        (None, 'annot_static_encounter', 'TEXT', None),
+    ))
+
+
+# TODO: YAW TO VIEWPOINT CODE DATABASE CHANGE
+def update_1_7_0(db, ibs=None):
+    """
+    Ignore:
+        import ibeis
+        ibs = ibeis.opendb('testdb1')
+        ibs.annots().yaws
+        ibs.annots().viewpoint_int
+        codes = ibs.annots().viewpoint_code
+        texts = ['unknown' if y is None else y for y in ibs.annots().yaw_texts]
+        assert codes == texts
+    """
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add code to represent an arbitrary viewpoint
+        # We are just depricating yaw for now.
+        (None, 'annot_viewpoint_int', 'INTEGER', None),
+    ))
+
+
+def post_1_7_0(db, ibs=None):
+    if ibs is not None:
+        from ibeis.other import ibsfuncs
+        aids = db.get_all_rowids(const.ANNOTATION_TABLE)
+
+        # Get old yaw values
+        yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
+        yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
+        # Convert them into yaw/view codes
+        view_codes = ibsfuncs.get_yaw_viewtexts(yaws)
+
+        # Convert the codes into integers
+        VIEW = ibs.const.VIEW
+        UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
+        view_codes = [UNKNOWN_CODE if y is None else y for y in view_codes]
+        view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+
+        ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
+                   view_ints, id_iter=aids)
+
+        # Moved here from 1.3.4 because the way it is calculated changed
+        ibs.update_annot_visual_uuids(ibs.get_valid_aids(is_staged=None))
+
+
+def update_1_7_1(db, ibs=None):
+    db.modify_table(
+        const.PART_TABLE, [],
+        dependsmap={
+            ANNOT_ROWID         : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_UUID,)),
+        },
+    )
+
+
+def update_1_8_0(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (None, 'annot_staged_flag',          'INTEGER DEFAULT 0', None),
+        (None, 'annot_staged_uuid',          'UUID',              None),
+        (None, 'annot_staged_user_identity', 'TEXT',              None),
+        (None, 'annot_staged_metadata_json', 'TEXT',              None),
+    ),
+        superkeys=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID, ANNOT_STAGED_UUID,)],
+        primary_superkey=(ANNOT_UUID,),
+    )
+
+    db.modify_table(const.PART_TABLE, (
+        (None, 'part_staged_flag',           'INTEGER DEFAULT 0', None),
+        (None, 'part_staged_uuid',           'UUID',              None),
+        (None, 'part_staged_user_identity',  'TEXT',              None),
+        (None, 'part_staged_metadata_json',  'TEXT',              None),
+    ),
+        superkeys=[(PART_UUID,)]
+    )
+
+
+def update_1_8_1(db, ibs=None):
+    db.modify_table(const.PART_TABLE, (
+        (None, 'part_metadata_json', 'TEXT', None),
+        (None, 'part_contour_json', 'TEXT', None),
     ))
 
 
@@ -1429,6 +1697,22 @@ VALID_VERSIONS = ut.odict([
     ('1.5.1',    (None,                 update_1_5_1,       None                )),
     ('1.5.2',    (None,                 update_1_5_2,       post_1_5_2          )),
     ('1.5.3',    (None,                 update_1_5_3,       None                )),
+    ('1.5.4',    (None,                 update_1_5_4,       None                )),
+    ('1.5.5',    (None,                 update_1_5_5,       None                )),
+    ('1.6.0',    (None,                 update_1_6_0,       None                )),
+    ('1.6.1',    (None,                 update_1_6_1,       post_1_6_1          )),
+    ('1.6.2',    (None,                 update_1_6_2,       None                )),
+    ('1.6.3',    (None,                 update_1_6_3,       None                )),
+    ('1.6.4',    (None,                 update_1_6_4,       post_1_6_4          )),
+    ('1.6.5',    (None,                 update_1_6_5,       None                )),
+    ('1.6.6',    (None,                 update_1_6_6,       None                )),
+    ('1.6.7',    (None,                 update_1_6_7,       None                )),
+    ('1.6.8',    (None,                 update_1_6_8,       None                )),
+    ('1.6.9',    (None,                 update_1_6_9,       None                )),
+    ('1.7.0',    (None,                 update_1_7_0,       post_1_7_0          )),
+    ('1.7.1',    (None,                 update_1_7_1,       None                )),
+    ('1.8.0',    (None,                 update_1_8_0,       None                )),
+    ('1.8.1',    (None,                 update_1_8_1,       None                )),
 ])
 """
 SeeAlso:
@@ -1531,6 +1815,25 @@ def autogen_db_schema():
     schema_spec = DB_SCHEMA
     db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
     return db
+
+
+def dump_schema_sql():
+    """
+    CommandLine:
+        python -m ibeis.control.DB_SCHEMA dump_schema_sql
+    """
+    import dtool_ibeis as dt
+    from ibeis.control import DB_SCHEMA_CURRENT
+    db = dt.SQLDatabaseController(fpath=':memory:')
+    DB_SCHEMA_CURRENT.update_current(db)
+    dump_str = db.dump_to_string()
+    print(dump_str)
+
+    for tablename in db.get_table_names():
+        autogen_dict = db.get_table_autogen_dict(tablename)
+        coldef_list = autogen_dict['coldef_list']
+        str_ = db._make_add_table_sqlstr(tablename, coldef_list=coldef_list, sep='\n    ')
+        print(str_)
 
 
 if __name__ == '__main__':

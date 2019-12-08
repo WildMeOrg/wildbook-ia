@@ -1,7 +1,13 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+mkinit ~/code/ibeis/ibeis
+
+
+
 DEV SCRIPT
+
+TODO: DEPRICATE
 
 This is a hacky script meant to be run mostly automatically with the option of
 interactions.
@@ -32,28 +38,33 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import sys
-#from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS, DEVCMD_FUNCTIONS2, devcmd2
+import numpy as np
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
 #from ibeis.algo.hots import smk
-import plottool as pt
+import plottool_ibeis as pt
 import ibeis
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    ibeis._preload()
-    #from ibeis.all_imports import *  # NOQA
+# if __name__ == '__main__':
+#     multiprocessing.freeze_support()
+#     ibeis._preload()
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
-from ibeis._devcmds_ibeis import *  # NOQA
+from ibeis._devscript import devcmd, devprecmd  # NOQA
+from os.path import split, join, expanduser  # NOQA
+from plottool_ibeis import draw_func2 as df2  # NOQA
+from ibeis import sysres  # NOQA
+from ibeis.other import ibsfuncs  # NOQA
+from ibeis.dbio import ingest_hsdb  # NOQA
+from ibeis._devcmds_ibeis import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
 # IBEIS
 from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
 from ibeis.expt import harness  # NOQA
 from ibeis import params  # NOQA
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 #------------------
@@ -65,7 +76,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 """
 ./dev.py -e print_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --intersect_hack
-./dev.py -e draw_rank_cdf -t baseline -a baseline --show --db PZ_Master1
+./dev.py -e draw_rank_cmc -t baseline -a baseline --show --db PZ_Master1
 ./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline
 ./dev.py -e get_dbinfo --db PZ_MTEST
 ./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline --hackshow-unixtime --show
@@ -78,7 +89,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 
     ('ibeis.expt.old_storage', 'draw_results'),
-    ('ibeis.expt.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
+    ('ibeis.expt.experiment_drawing', 'draw_rank_cmc', ['rank_cmc']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.other.dbinfo', 'latex_dbstats'),
     ('ibeis.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),
@@ -131,6 +142,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    import vtool_ibeis as vt
     tuned_params = vt.tune_flann(vecs,
                                  target_precision=.98,
                                  build_weight=0.05,
@@ -171,7 +183,8 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400
 
     Example:
-        >>> from ibeis.all_imports import *  # NOQA
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None
@@ -186,7 +199,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
-    return inspect_gui.test_inspect_matches(ibs, qaid_list, daid_list)
+    return inspect_gui.test_review_widget(ibs, qaid_list, daid_list)
 
 
 def get_ibslist(ibs):
@@ -265,7 +278,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
-    print('input_test_list = %s' % (ut.list_str(input_test_list),))
+    print('input_test_list = %s' % (ut.repr2(input_test_list),))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -296,7 +309,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 
     # Explicit (simple) test functions
     if intest('export'):
-        export(ibs)
+        raise NotImplementedError('export')
     if intest('dbinfo'):
         dbinfo.get_dbinfo(ibs)
     if intest('headers', 'schema'):
@@ -304,7 +317,8 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     if intest('info'):
         print(ibs.get_infostr())
     if intest('printcfg'):
-        printcfg(ibs)
+        raise NotImplementedError('printcfg')
+        # printcfg(ibs)
     if intest('tables'):
         ibs.print_tables()
     if intest('imgtbl'):
@@ -402,6 +416,8 @@ def dev_snippets(main_locals):
             selection_model = view.selectionModel()
     if ibs is not None:
         #ibs.dump_tables()
+        annots = ibs.annots()
+        images = ibs.images()
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
         #nid_list = ibs.get_valid_nids()
@@ -437,139 +453,60 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
     return boxjoin(sorted_strs, header)
 
 
-@devcmd('test_feats')
-def test_feats(ibs, qaid_list, daid_list=None):
-    """
-    test_feats shows features using several different parameters
+# @devcmd('test_feats')
+# def tst_feats(ibs, qaid_list, daid_list=None):
+#     """
+#     test_feats shows features using several different parameters
 
-    Args:
-        ibs (IBEISController):
-        qaid_list (int): query annotation id
+#     Args:
+#         ibs (IBEISController):
+#         qaid_list (int): query annotation id
 
-    CommandLine:
-        python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
+#     CommandLine:
+#         python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
 
-    Example:
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_list = [1]
-    """
-    from ibeis import viz
-    from ibeis.expt import experiment_configs
-    import utool as ut
+#     Example:
+#         >>> import ibeis
+#         >>> ibs = ibeis.opendb('testdb1')
+#         >>> qaid_list = [1]
+#     """
+#     from ibeis import viz
+#     from ibeis.expt import experiment_configs
+#     import utool as ut
 
-    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
-    varyparams_list = [experiment_configs.featparams]
+#     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
+#     varyparams_list = [experiment_configs.featparams]
 
-    def test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
-        for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
-            # Set ibs parameters to the current config
-            for key_, val_ in six.iteritems(dict_):
-                ibs.cfg.feat_cfg[key_] = val_
-            cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
-            if count == 0:
-                # On first run just record info
-                kpts = ibs.get_annot_kpts(aid)
-                nKpts_list.append(len(kpts))
-                cfgstr_list.append(cfgstr_)
-            if count == 1:
-                kpts = ibs.get_annot_kpts(aid)
-                # If second run happens display info
-                cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
-                                              breakchars=',', newline_prefix='',
-                                              break_words=False, wordsep=',')
-                title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
-                viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
-                              title_suffix=title_suffix, darken=.8,
-                              ell_linewidth=2, ell_alpha=.6)
+#     def tst_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
+#         for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
+#             cfgstr_ = ut.repr2(dict_)
+#             if count == 0:
+#                 # On first run just record info
+#                 kpts = ibs.get_annot_kpts(aid)
+#                 nKpts_list.append(len(kpts))
+#                 cfgstr_list.append(cfgstr_)
+#             if count == 1:
+#                 kpts = ibs.get_annot_kpts(aid)
+#                 # If second run happens display info
+#                 cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
+#                                               breakchars=',', newline_prefix='',
+#                                               break_words=False, wordsep=',')
+#                 title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
+#                 viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
+#                               title_suffix=title_suffix, darken=.8,
+#                               ell_linewidth=2, ell_alpha=.6, config=dict_)
 
-    alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
-    for count in range(NUM_PASSES):
-        nKpts_list = []
-        cfgstr_list = []
-        for aid in qaid_list:
-            test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
-            #for dict_ in alldictcomb:
-        if count == 0:
-            nKpts_list = np.array(nKpts_list)
-            cfgstr_list = np.array(cfgstr_list)
-            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
-
-
-def devfunc(ibs, qaid_list):
-    """ Function for developing something """
-    print('[dev] devfunc')
-    import ibeis  # NOQA
-    from ibeis.algo import Config  # NOQA
-    #from ibeis.algo.Config import *  # NOQA
-    feat_cfg = Config.FeatureConfig()
-    #feat_cfg.printme3()
-    print('\ncfgstr..')
-    print(feat_cfg.get_cfgstr())
-    print(utool.dict_str(feat_cfg.get_hesaff_params()))
-    from ibeis import viz
-    aid = 1
-    ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
-    kpts = ibs.get_annot_kpts(aid)
-    print('len(kpts) = %r' % len(kpts))
-    from ibeis.expt import experiment_configs
-    #varyparams_list = [
-    #    #{
-    #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-    #    #    'numberOfScales': [3, 2, 1],
-    #    #    'maxIterations': [16, 32],
-    #    #    'convergenceThreshold': [.05, .1],
-    #    #    'initialSigma': [1.6, 1.2],
-    #    #},
-    #    {
-    #        #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-    #        'numberOfScales': [1],
-    #        #'maxIterations': [16, 32],
-    #        #'convergenceThreshold': [.05, .1],
-    #        #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
-    #        'initialSigma': [3.2, 1.6, 0.8],
-    #        'edgeEigenValueRatio': [10, 5, 3],
-    #    },
-    #]
-    varyparams_list = [experiment_configs.featparams]
-
-    # low threshold = more keypoints
-    # low initialSigma = more keypoints
-
-    nKpts_list = []
-    cfgstr_list = []
-
-    alldictcomb = utool.flatten([utool.util_dict.all_dict_combinations(varyparams) for varyparams in featparams_list])
-    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
-    for count in range(NUM_PASSES):
-        for aid in qaid_list:
-            #for dict_ in utool.progiter(alldictcomb, lbl='feature param comb: ', total=len(alldictcomb)):
-            for dict_ in alldictcomb:
-                for key_, val_ in six.iteritems(dict_):
-                    ibs.cfg.feat_cfg[key_] = val_
-                cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
-                cfgstr = utool.packstr(cfgstr_, textwidth=80,
-                                        breakchars=',', newline_prefix='', break_words=False, wordsep=',')
-                if count == 0:
-                    kpts = ibs.get_annot_kpts(aid)
-                    #print('___________')
-                    #print('len(kpts) = %r' % len(kpts))
-                    #print(cfgstr)
-                    nKpts_list.append(len(kpts))
-                    cfgstr_list.append(cfgstr_)
-                if count == 1:
-                    title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgstr
-                    viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
-                                   title_suffix=title_suffix, darken=.4,
-                                   ell_linewidth=2, ell_alpha=.8)
-
-        if count == 0:
-            nKpts_list = np.array(nKpts_list)
-            cfgstr_list = np.array(cfgstr_list)
-            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
-    pt.present()
-    locals_ = locals()
-    return locals_
+#     alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
+#     for count in range(NUM_PASSES):
+#         nKpts_list = []
+#         cfgstr_list = []
+#         for aid in qaid_list:
+#             test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
+#             #for dict_ in alldictcomb:
+#         if count == 0:
+#             nKpts_list = np.array(nKpts_list)
+#             cfgstr_list = np.array(cfgstr_list)
+#             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
 
 
 def run_dev(ibs):
@@ -583,17 +520,20 @@ def run_dev(ibs):
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
-        ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
-        #qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
-        #daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
-        print('[run_def] Test Annotations:')
-        #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        if ut.get_argflag('--expanded-aids'):
+            ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
+            print('[run_def] Test Annotations:')
+            #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        else:
+            qaid_list = []
+            daid_list = []
         try:
             assert len(qaid_list) > 0, 'assert!'
             assert len(daid_list) > 0, 'daid_list!'
         except AssertionError as ex:
-            utool.printex(ex, 'len(qaid_list) = 0', iswarning=True)
-            utool.printex(ex, 'or len(daid_list) = 0', iswarning=True)
+            message = ' (try using command line argument --expanded-aids to enable)'
+            utool.printex(ex, 'len(qaid_list) = 0%s' % (message, ), iswarning=True)
+            utool.printex(ex, 'or len(daid_list) = 0%s' % (message, ), iswarning=True)
             #qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
@@ -602,10 +542,6 @@ def run_dev(ibs):
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
-        if ut.get_argflag('--devmode'):
-            # Execute the dev-func and add to local namespace
-            devfunc_locals = devfunc(ibs, qaid_list)
-            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     return locals()
 
@@ -680,7 +616,7 @@ python dev.py --hard -t best vsone nsum
 
 #def run_devmain2():
 #    input_test_list = ut.get_argval(('--tests', '-t',), type_=list, default=[])[:]
-#    print('input_test_list = %s' % (ut.list_str(input_test_list),))
+#    print('input_test_list = %s' % (ut.repr2(input_test_list),))
 #    # fnum = 1
 
 #    valid_test_list = []  # build list for printing in case of failure
@@ -732,8 +668,6 @@ def devmain():
         -w     # wait / show the gui / figures are visible
         --cmd  # ipython shell to play with variables
         -t     # run list of tests
-
-        Examples:
     """
 
     helpstr = ut.codeblock(
@@ -807,7 +741,8 @@ def devmain():
     ut.show_if_requested()
     if ut.get_argflag(('--show', '--wshow')):
         pt.present()
-    main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
+    main_execstr = ibeis.main_loop(main_locals, rungui=not NOGUI,
+                                   ipy=(NOGUI or CMD))
     exec(main_execstr)
 
     #
@@ -818,6 +753,164 @@ def devmain():
         utool.memory_profile()
 
     print('exiting dev')
+
+
+def ggr_random_name_splits():
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_graph2 ggr_random_name_splits --show
+
+    Ignore:
+        sshfs -o idmap=user lev:/ ~/lev
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> ggr_random_name_splits()
+    """
+    import guitool_ibeis as gt
+    gt.ensure_qtapp()
+    #nid_list = ibs.get_valid_nids(filter_empty=True)
+    import ibeis
+    dbdir = '/media/danger/GGR/GGR-IBEIS'
+    dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+
+    import datetime
+    day1 = datetime.date(2016, 1, 30)
+    day2 = datetime.date(2016, 1, 31)
+
+    orig_filter_kw = {
+        'multiple': None,
+        #'view': ['right'],
+        #'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    orig_aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        orig_filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    )
+    orig_all_annots = ibs.annots(orig_aids)
+    orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
+    # Ensure we get everything
+    orig_grouped_annots = [ibs.annots(aids_)
+                           for aids_ in ibs.get_name_aids(orig_unique_nids)]
+
+    # pip install quantumrandom
+    if False:
+        import quantumrandom
+        data = quantumrandom.uint16()
+        seed = data.sum()
+        print('seed = %r' % (seed,))
+        #import Crypto.Random
+        #from Crypto import Random
+        #quantumrandom.get_data()
+        #StrongRandom = Crypto.Random.random.StrongRandom
+        #aes.reseed(3340258)
+        #chars = [str(chr(x)) for x in data.view(np.uint8)]
+        #aes_seed = str('').join(chars)
+        #aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()
+        #aes.reseed(aes_seed)
+        #aes.pseudo_random_data(10)
+
+    orig_rand_idxs = ut.random_indexes(len(orig_grouped_annots), seed=3340258)
+    orig_sample_size = 75
+    random_annot_groups = ut.take(orig_grouped_annots, orig_rand_idxs)
+    orig_annot_sample = random_annot_groups[:orig_sample_size]
+
+    # OOOPS MADE ERROR REDO ----
+
+    filter_kw = {
+        'multiple': None,
+        'view': ['right'],
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    filter_kw_ = ut.dict_union(
+        filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)
+                         for annot in orig_annot_sample]
+    is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
+    ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
+    ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
+
+    # Now compute real sample
+    aids = ibs.filter_annots_general(filter_kw=filter_kw_)
+    all_annots = ibs.annots(aids)
+    unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
+    grouped_annots = grouped_annots_
+    # Ensure we get everything
+    #grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+
+    pop = len(grouped_annots)
+    pername_list = ut.lmap(len, grouped_annots)
+    groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
+    match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
+    tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
+    print('name_pop = %r' % (pop,))
+    print('Annots per Multiton Name' + ut.repr3(
+        ut.get_stats(pername_list, use_median=True)))
+    print('Name Tag Hist ' + ut.repr3(tag_case_hist))
+    print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
+    print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
+
+    # Remove the ok part from this sample
+    remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
+    remain_grouped_annots = [ibs.annots(aids_) for aids_ in
+                             ibs.get_name_aids(remain_unique_nids)]
+
+    sample_size = 75
+    import vtool_ibeis as vt
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
+
+    remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
+    remain_sample_size = sample_size - len(ok_part_orig_nids)
+    remain_random_annot_groups = ut.take(remain_grouped_annots, remain_rand_idxs)
+    remain_annot_sample = remain_random_annot_groups[:remain_sample_size]
+
+    annot_sample_nofilter = ok_part_orig_sample + remain_annot_sample
+    # Filter out all bad parts
+    annot_sample_filter = [
+        ibs.annots(ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_))
+        for annot in annot_sample_nofilter
+    ]
+    annot_sample = annot_sample_filter
+
+    win = None
+    from ibeis.viz import viz_graph2
+    for annots in ut.InteractiveIter(annot_sample):
+        if win is not None:
+            win.close()
+        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids,
+                                                 init_mode='rereview')
+        print(win)
+
+    sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
+
+    flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.match_tags]
+
+    print('Using Split and Photobomb')
+    is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only Photobomb')
+    is_positive = ['photobomb' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only SplitCase')
+    is_positive = ['splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    #gt.qtapp_loop(qwin=win)
 
 
 if __name__ == '__main__':
@@ -849,12 +942,12 @@ CurrentExperiments:
     ./dev.py -t \
             custom \
             custom:rotation_invariance=True,affine_invariance=False \
-            custom:rotation_invariance=True,augment_queryside_hack=True \
+            custom:rotation_invariance=True,query_rotation_heuristic=True \
             --db PZ_Master0 --controlled --print-rankhist  --print-bestcfg
 
     ./dev.py -t \
             custom:rotation_invariance=True,affine_invariance=False \
-            custom:rotation_invariance=True,augment_queryside_hack=True \
+            custom:rotation_invariance=True,query_rotation_heuristic=True \
             --db NNP_Master3 --controlled --print-rankhist  --print-bestcfg
 
 

@@ -11,21 +11,18 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function
-import functools  # NOQA
-import six  # NOQA
-from six.moves import map, range, zip  # NOQA
+from six.moves import zip
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
-from ibeis.control import accessor_decors  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_gar]')
+from ibeis.control import accessor_decors
+print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
@@ -38,12 +35,10 @@ def testdata_ibs(defaultdb='testdb1'):
 GAR_ROWID        = 'gar_rowid'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
 ANNOT_ROWID      = 'annot_rowid'
-CONFIG_ROWID     = 'config_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['GET'])
+# @register_api('/api/gar/', methods=['GET'])
 def _get_all_gar_rowids(ibs):
     """ all_gar_rowids <- gar.get_all_rowids()
 
@@ -66,7 +61,7 @@ def _get_all_gar_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['POST'])
+# @register_api('/api/gar/', methods=['POST'])
 def add_gar(ibs, annotgroup_rowid_list, aid_list):
     """
     Returns:
@@ -94,7 +89,7 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['DELETE'])
+# @register_api('/api/gar/', methods=['DELETE'])
 def delete_gar(ibs, gar_rowid_list, config2_=None):
     """ gar.delete(gar_rowid_list)
 
@@ -136,7 +131,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/gar/annot_rowid/', methods=['GET'])
+# @register_api('/api/gar/annot/rowid/', methods=['GET'])
 def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
     """ aid_list <- gar.aid[gar_rowid_list]
 
@@ -171,7 +166,7 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/gar/annotgroup_rowid/', methods=['GET'])
+# @register_api('/api/gar/annotgroup/rowid/', methods=['GET'])
 def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
     """ annotgroup_rowid_list <- gar.annotgroup_rowid[gar_rowid_list]
 
@@ -222,7 +217,7 @@ def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True
     # FIXME: col_rowid is not correct
     params_iter = zip(annotgroup_rowid_list, aid_list)
     andwhere_colnames = [ANNOTGROUP_ROWID, ANNOT_ROWID]
-    gar_rowid_list = ibs.db.get_where2(
+    gar_rowid_list = ibs.db.get_where_eq(
         const.GA_RELATION_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return gar_rowid_list
 

@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.viz import viz_helpers as vh
 from ibeis.algo.detect import randomforest
 from os.path import splitext
-from plottool import viz_image2
-import plottool as pt
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[viz_hough]', DEBUG=False)
+from plottool_ibeis import viz_image2
+import plottool_ibeis as pt
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
@@ -18,7 +17,8 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     print(title)
 
     if species is None:
-        species = ibs.cfg.detect_cfg.species_text
+        species = ibs.get_
+        #.cfg.detect_cfg.species_text
     src_gpath_list = ibs.get_image_detectpaths([gid])
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
     hough_gpath_list = [gpath + '_' + species + '_hough.png' for gpath in dst_gpath_list]
@@ -33,7 +33,8 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     print('This image is computed as needed and not cached to disk.')
     print('')
     print('-' * 80)
-    results_list = list(randomforest.detect_gpath_list_with_species(ibs, src_gpath_list, species, **config))  # NOQA
+    results_list = list(randomforest.detect_gpath_list_with_species(  # NOQA
+        ibs, src_gpath_list, species, **config))
     # Get path
     hough_gpath = hough_gpath_list[0]
     img = vt.imread(hough_gpath)

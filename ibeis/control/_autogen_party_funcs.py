@@ -18,15 +18,13 @@ from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_party]')
+print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
@@ -39,8 +37,6 @@ def testdata_ibs(defaultdb='testdb1'):
     return ibs, qreq_
 
 # AUTOGENED CONSTANTS:
-CONFIG_ROWID     = 'config_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 PARTY_ROWID      = 'party_rowid'
 PARTY_TAG        = 'party_tag'
 
@@ -68,7 +64,7 @@ def _get_all_party_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/autogen/', methods=['POST'])
+# @register_api('/api/autogen/', methods=['POST'])
 def add_party(ibs, party_tag_list):
     r"""
     Returns:
@@ -96,7 +92,7 @@ def add_party(ibs, party_tag_list):
 
 
 @register_ibs_method
-@register_api('/api/autogen/party_rowid_from_superkey/', methods=['GET'])
+# @register_api('/api/autogen/party/rowid/superkey/', methods=['GET'])
 def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     r"""
     party_rowid_list <- party[party_tag_list]
@@ -119,13 +115,13 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     # FIXME: col_rowid is not correct
     params_iter = zip(party_tag_list)
     andwhere_colnames = (PARTY_TAG, )
-    party_rowid_list = ibs.db.get_where2(
+    party_rowid_list = ibs.db.get_where_eq(
         const.PARTY_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return party_rowid_list
 
 
 @register_ibs_method
-@register_api('/api/autogen/party_tag/', methods=['GET'])
+# @register_api('/api/autogen/party/tag/', methods=['GET'])
 def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
     r"""
     party_tag_list <- party.party_tag[party_rowid_list]
@@ -145,7 +141,7 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
 
     RESTful:
         Method: GET
-        URL:    /api/autogen/party_tag/
+        URL:    /api/autogen/party/tag/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -168,10 +164,6 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.control._autogen_party_funcs
         python -m ibeis.control._autogen_party_funcs --allexamples
-
-    RESTful:
-        Method: GET
-        URL:    /api/autogen/party_tag/
     """
     import multiprocessing
     multiprocessing.freeze_support()

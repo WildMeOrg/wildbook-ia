@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import plottool.draw_func2 as df2
+import plottool_ibeis.draw_func2 as df2
 import numpy as np
 from ibeis.other import ibsfuncs
-from plottool import plot_helpers as ph
-import plottool as pt
+from plottool_ibeis import plot_helpers as ph
+import plottool_ibeis as pt
 import utool as ut
 from ibeis.viz import viz_chip
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz]', DEBUG=False)
@@ -85,6 +85,10 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         >>> from ibeis.viz.viz_name import *  # NOQA
         >>> import ibeis
         >>> ibs, aid_list, in_image = testdata_multichips()
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> fnum = 0
         >>> sel_aids = []
         >>> subtitle = ''
@@ -172,7 +176,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             # References:
             # http://stackoverflow.com/questions/17543359/drawing-lines-between-two-plots-in-matplotlib
             import matplotlib as mpl
-            import vtool as vt
+            import vtool_ibeis as vt
             # !!!
             #http://matplotlib.org/users/transforms_tutorial.html
 

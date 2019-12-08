@@ -1,29 +1,32 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
-import plottool.plot_helpers as ph
+import plottool_ibeis as pt
+import plottool_ibeis.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
-(print, rrr, profile) = ut.inject2(__name__, '[viz_matches]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
     kpts1 = kwargs.get('kpts1', None)
     kpts2 = kwargs.get('kpts2', None)
+    as_fpath = kwargs.get('as_fpath', False)
     kpts2_list = None if kpts2 is None else [kpts2]
     rchip1, kpts1 = get_query_annot_pair_info(ibs, aid1, qreq_, draw_fmatches,
-                                              kpts1=kpts1)
+                                              kpts1=kpts1, as_fpath=as_fpath)
     annot2_data_list = get_data_annot_pair_info(ibs, [aid2], qreq_,
                                                 draw_fmatches,
+                                                as_fpath=as_fpath,
                                                 kpts2_list=kpts2_list)
     rchip2, kpts2 = ut.get_list_column(annot2_data_list , 0)
     return rchip1, rchip2, kpts1, kpts2
 
 
-def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
+def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None,
+                              as_fpath=False):
     #print('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = (None if qreq_ is None
-                      else qreq_.get_external_query_config2())
+                      else qreq_.extern_query_config2)
     tblhack = getattr(qreq_, 'tablename', None)
     #print('!!! query_config2_ = %r' % (query_config2_,))
     if (not tblhack or tblhack == 'BC_DTW') and getattr(qreq_, '_isnewreq', None):
@@ -34,7 +37,8 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
             rchip1 = ibs.depc_annot.get_property('chips', qaid, 'img', config=query_config2_)
             draw_fmatches = False
     else:
-        rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
+        rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_,
+                              as_fpath=as_fpath)[0]
     if draw_fmatches:
         if kpts1 is None:
             kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
@@ -44,9 +48,9 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
 
 
 def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
-                             scale_down=False, kpts2_list=None):
+                             scale_down=False, kpts2_list=None, as_fpath=False):
     data_config2_ = (None if qreq_ is None else
-                     qreq_.get_external_data_config2())
+                     qreq_.extern_data_config2)
     #print('!!! data_config2_ = %r' % (data_config2_,))
     #print('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
@@ -60,7 +64,8 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
             draw_fmatches = False
         #vh.get_chips(ibs, aid_list, config2_=data_config2_)
     else:
-        rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
+        rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_,
+                                   as_fpath=as_fpath)
     if draw_fmatches:
         if kpts2_list is None:
             kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
@@ -105,7 +110,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> from ibeis.viz.viz_matches import *  # NOQA
         >>> from ibeis.algo.hots import chip_match
         >>> from ibeis.algo.hots import name_scoring
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch.show_single_namematch
@@ -116,7 +121,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> print(ut.indent(setup, '>>> '))
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> dnid = ibs.get_annot_nids(cm.qaid)
         >>> # +--- COPIED SECTION
         >>> locals_ = locals()
@@ -140,6 +145,32 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list,
                                                        qreq_, draw_fmatches)
+
+    heatmask = kwargs.pop('heatmask', False)
+    if heatmask:
+        from vtool_ibeis.coverage_kpts import make_kpts_heatmask
+        import numpy as np
+        import vtool_ibeis as vt
+
+        wh1 = vt.get_size(rchip1)
+        fx1 = np.unique(np.hstack([fm.T[0] for fm in name_fm_list]))
+        heatmask1 = make_kpts_heatmask(kpts1[fx1], wh1)
+        rchip1 = vt.overlay_alpha_images(heatmask1, rchip1)
+        # Hack cast back to uint8
+        rchip1 = (rchip1 * 255).astype(np.uint8)
+
+        rchip2_list_ = rchip2_list
+        rchip2_list = []
+
+        for rchip2, kpts2, fm in zip(rchip2_list_, kpts2_list, name_fm_list):
+            fx2 = fm.T[1]
+            wh2 = vt.get_size(rchip2)
+            heatmask2 = make_kpts_heatmask(kpts2[fx2], wh2)
+            rchip2 = vt.overlay_alpha_images(heatmask2, rchip2)
+            # Hack cast back to uint8
+            rchip2 = (rchip2 * 255).astype(np.uint8)
+            rchip2_list.append(rchip2)
+    #
     fm_list = name_fm_list
     fs_list = name_fs_list
     featflag_list = name_featflag_list
@@ -186,7 +217,9 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
 
-    pt.set_xlabel(xlabel)
+    noshow_truth = ut.get_argflag('--noshow_truth')
+    if not noshow_truth:
+        pt.set_xlabel(xlabel)
     return ax
 
 
@@ -242,13 +275,14 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     #truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
     truth = get_multitruth(ibs, aid_list)
     if any(ibs.is_aid_unknown(aid_list[1:])) or ibs.is_aid_unknown(aid_list[0]):
-        truth = ibs.const.TRUTH_UNKNOWN
+        truth = ibs.const.EVIDENCE_DECISION.UNKNOWN
     truth_color = vh.get_truth_color(truth)
 
     name_annot_scores = kwargs.get('name_annot_scores', None)
     if len(aid_list) == 2:
         # HACK; generalize to multple annots
-        title = vh.get_query_text(ibs, None, aid_list[1], truth, qaid=aid_list[0], **kwargs)
+        title = vh.get_query_text(ibs, None, aid_list[1], truth,
+                                  qaid=aid_list[0], **kwargs)
         if not notitle:
             pt.set_title(title, ax)
 
@@ -278,7 +312,6 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
         lbl_list = [' : '.join(lbls) for lbls in lbls_list]
     else:
         lbl_list = [None] * len(aid_list)
-    #pt.set_title(title, ax)
     # Plot annotations over images
     if in_image:
         in_image_bbox_list = vh.get_bboxes(ibs, aid_list, offset_list)
@@ -294,36 +327,19 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
             pass
     else:
         xy, w, h = pt.get_axis_xy_width_height(ax)
-        #theta2 = 0
-
-        #if xywh2 is None:
-        #    #xywh2 = (xy[0], xy[1], w, h)
-        #    # weird when sidebyside is off y seems to be inverted
-        #    xywh2 = (0,  0, w, h)
-
-        #if not show_query and xywh1 is None:
-        #    data_config2 = None if qreq_ is None else
-        #    qreq_.get_external_data_config2()
-        #    kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
-        #    #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
-        #    # Draw any selected matches
-        #    #sm_kw = dict(rect=True, colors=pt.BLUE)
-        #    pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
-        #if draw_border:
-        #    pt.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_border:
             pt.draw_border(ax, color=truth_color, lw=4)
         if draw_lbl:
             # Custom user lbl for chips 1 and 2
-            #if show_query:
-            #    (x1, y1, w1, h1) = xywh1
-            #    pt.absolute_lbl(x1 + w1, y1, lbl1)
             for bbox, lbl in zip(bbox_list, lbl_list):
                 (x, y, w, h) = bbox
                 pt.absolute_lbl(x + w, y, lbl)
     # No matches draw a red box
     if True:
-        no_matches = name_fm_list is None or all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
+        no_matches = (
+            name_fm_list is None or
+            all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
+        )
         if no_matches:
             xy, w, h = pt.get_axis_xy_width_height(ax)
             #axes_bbox = (xy[0], xy[1], w, h)
@@ -413,7 +429,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
 
             if not show_query and xywh1 is None:
                 data_config2 = (None if qreq_ is None else
-                                qreq_.get_external_data_config2())
+                                qreq_.extern_data_config2)
                 # FIXME, pass data in
                 kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
                 #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
@@ -458,9 +474,6 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py':
         interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
         ----------------------
-        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/vsone_pipeline.py':
-        vsone_pipeline.py : 1339 |    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,
-        ----------------------
         Found 2 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py':
         chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,
         chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2
@@ -477,7 +490,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST', default_qaids=[18])
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> daid = cm.get_top_aids()[0]
         >>> cm.show_single_annotmatch(qreq_, daid)
         >>> ut.show_if_requested()
@@ -505,10 +518,9 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     # Draws the chips and keypoint matches
     try:
         ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
-                                               fs=fs, fm_norm=fm_norm,
-                                               H1=H1, H2=H2, lbl1=lbl1,
-                                              lbl2=lbl2, sel_fm=sel_fm,
-                                              **kwargs)
+                                              fs=fs, fm_norm=fm_norm, H1=H1,
+                                              H2=H2, lbl1=lbl1, lbl2=lbl2,
+                                              sel_fm=sel_fm, **kwargs)
     except Exception as ex:
         ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
@@ -568,14 +580,15 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     target_wh = None
 
     """
-    import vtool.image as gtool
-    import plottool as pt
+    import vtool_ibeis.image as gtool
+    import plottool_ibeis as pt
     import numpy as np
-    import vtool as vt
+    import vtool_ibeis as vt
     kwargs = kwargs.copy()
 
     colorbar_ = kwargs.pop('colorbar_', True)
     stack_larger = kwargs.pop('stack_larger', False)
+    stack_side = kwargs.pop('stack_side', False)
     # mode for features disabled by name scoring
     NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
 
@@ -617,11 +630,14 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     #use_larger = True
     #vert = kwargs.get('fastmode', False)
 
-    match_img, offset_list, sf_list = vt.stack_image_list_special(rchip1_,
-                                                                  rchip2_list_,
-                                                                  num=num,
-                                                                  vert=vert,
-                                                                  **stackkw)
+    if stack_side:
+        # hack to stack all database images vertically
+        num = 0
+
+    # TODO: heatmask
+
+    match_img, offset_list, sf_list = vt.stack_image_list_special(
+        rchip1_, rchip2_list_, num=num, vert=vert, **stackkw)
     wh_list = np.array(ut.flatten([[wh1], wh2_list])) * sf_list
 
     offset1 = offset_list[0]

@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  th.no-items
+  {
+    text-align: center;
+    padding: 25px 0px !important;
+    font-size: 20px;
+    font-weight: 200;
+    font-style: italic;
+  }
+  .form-control-custom
+  {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+    height: 20px;
+  }
+</style>
+{% endblock %}
+{% block content %}
+  <div class="row marketing">
+    <div class="col-lg-12">
+      <table class="table table-striped table-fixed">
+        <thead>
+          <tr>
+            <th>UUID</th>
+            <th>ImagesetIDs</th>
+            <th>Status</th>
+            <th>nAnnots</th>
+            <th>nReviews</th>
+            <th>Turk</th>
+            <th>Sync</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if num_graphs == 0 %}
+            <tr>
+              <th class="no-items" colspan="99">Sorry, no graph UUIDs to display</th>
+            </tr>
+          {% else %}
+            {% for (graph_uuid, imageset_rowids, graph_status, graph_exception, num_aids, num_edges, graph_uuid_str, phase, state) in graph_list %}
+            <tr {% if state == 1 %}class="success"{% endif %} {% if state == -1 %}class="danger"{% endif %}>
+              <th scope="row">{{ graph_uuid }}</th>
+              <th scope="row">{{ imageset_rowids }}</th>
+              <th scope="row">
+                {{ graph_status }}
+                <br/>
+                {{ phase }}
+              </th>
+              <td>{{ num_aids }}</td>
+              <td>{{ num_edges }}</td>
+              <td><a href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}">Review</a></td>
+              <td><a href="{{ url_for('sync_query_chips_graph_v2') }}?{{ graph_uuid_str }}" style="color: #eea236;">Sync</a></td>
+              <td><a href="{{ url_for('delete_query_chips_graph_v2_refer') }}?{{ graph_uuid_str }}" style="color: #d9534f;">Delete</a></td>
+            </tr>
+            {% if graph_exception %}
+              <tr>
+                <th scope="row" colspan="6"><pre>{{ graph_exception }}</pre></th>
+              </tr>
+            {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if num_graphs > 1 %}
+            <tr>
+              <th scope="row">Hogwild</th>
+              <th scope="row"></th>
+              <th scope="row"></th>
+              <td></td>
+              <td></td>
+              <td><a href="{{ url_for('turk_identification_graph') }}?hogwild=true">Review</a></td>
+              <td><a href="{{ url_for('view_graphs') }}?sync=true" style="color: #eea236;">Sync</a></td>
+              <td></td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}

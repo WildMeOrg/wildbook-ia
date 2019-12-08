@@ -11,20 +11,20 @@ import functools
 import six  # NOQA
 from six.moves import range, zip, map  # NOQA
 #import numpy as np
-#import vtool as vt
+#import vtool_ibeis as vt
 import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__, '[manual_species]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+
 
 SPECIES_ROWID   = 'species_rowid'
 SPECIES_UUID    = 'species_uuid'
@@ -37,6 +37,7 @@ SPECIES_ENABLED = 'species_toggle_enabled'
 
 @register_ibs_method
 @accessor_decors.ider
+@register_api('/api/species/', methods=['GET'], __api_plural_check__=False)
 def _get_all_species_rowids(ibs):
     r"""
     Returns:
@@ -104,7 +105,7 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> # execute function
         >>> species_text_list_ = sanitize_species_texts(ibs, species_text_list)
         >>> # verify results
-        >>> result = ut.list_str(species_text_list_, nl=False)
+        >>> result = ut.repr2(species_text_list_, nl=False)
         >>> print(result)
         ['foo', 'bar', 'zebra_plains']
     """
@@ -159,7 +160,7 @@ def _convert_species_nice_to_code(species_nice_list):
 
 @register_ibs_method
 @accessor_decors.adder
-@register_api('/api/species/', methods=['POST'])
+@register_api('/api/species/', methods=['POST'], __api_plural_check__=False)
 def add_species(ibs, species_nice_list, species_text_list=None,
                 species_code_list=None, species_uuid_list=None,
                 species_note_list=None, skip_cleaning=False):
@@ -186,15 +187,15 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
         ...     '____', 'zebra_grevys', 'bear_polar']
         >>> species_rowid_list = ibs.add_species(species_text_list)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result =  ut.list_str(species_text, nl=False) + '\n'
-        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
+        >>> result =  ut.repr2(species_text, nl=False) + '\n'
+        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
@@ -244,7 +245,12 @@ def add_species(ibs, species_nice_list, species_text_list=None,
 
     # Clean species
     if not skip_cleaning:
-        ibs._clean_species()
+        species_mapping_dict = ibs._clean_species()
+        if species_mapping_dict is not None:
+            species_rowid_list = [
+                species_mapping_dict.get(species_rowid, species_rowid)
+                for species_rowid in species_rowid_list
+            ]
 
     return species_rowid_list
     #value_list = ibs.sanitize_species_texts(species_text_list)
@@ -252,14 +258,14 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
     #species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)
     ##species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
-    ##                      rowid for rowid in species_rowid_list]
+    #                      rowid for rowid in species_rowid_list]
     #return species_rowid_list
 
 
 @register_ibs_method
 @accessor_decors.deleter
 #@cache_invalidator(const.SPECIES_TABLE)
-@register_api('/api/species/', methods=['DELETE'])
+@register_api('/api/species/', methods=['DELETE'], __api_plural_check__=False)
 def delete_species(ibs, species_rowid_list):
     r"""
     deletes species from the database
@@ -278,9 +284,24 @@ def delete_species(ibs, species_rowid_list):
 
 
 @register_ibs_method
+@accessor_decors.deleter
+def delete_empty_species(ibs):
+    r"""
+    deletes empty species from the database
+    """
+    species_text_set = set(ibs.get_all_species_texts())
+    aid_list = ibs.get_valid_aids()
+    used_species_text_set = set(ibs.get_annot_species_texts(aid_list))
+    unused_species_text_set = species_text_set - used_species_text_set
+    unused_species_text_list = list(unused_species_text_set)
+    unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
+    ibs.delete_species(unused_species_rowid_list)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/rowids_from_text/', methods=['GET'])
-def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
+@register_api('/api/species/rowid/text/', methods=['GET'], __api_plural_check__=False)
+def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
     r"""
     Returns:
         species_rowid_list (list): Creates one if it doesnt exist
@@ -291,7 +312,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
     RESTful:
         Method: GET
-        URL:    /api/species/rowids_from_text/
+        URL:    /api/species/rowid/text/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -304,18 +325,18 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         ...     '____', u'zebra_grevys', u'bear_polar']
         >>> ensure = False
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ensure = True
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result = ut.list_str(species_text, nl=False) + '\n'
-        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
+        >>> result = ut.repr2(species_text, nl=False) + '\n'
+        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
@@ -339,13 +360,13 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
     """
     if ensure:
-        species_rowid_list = ibs.add_species(species_text_list)
+        species_rowid_list = ibs.add_species(species_text_list, **kwargs)
     else:
         species_text_list_ = ibs.sanitize_species_texts(species_text_list)
         #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
         #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)
         #species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)
-        ## Ugg species and names need their own table
+        # Ugg species and names need their own table
         #species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
         #                      rowid for rowid in species_rowid_list]
         species_rowid_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_ROWID,), species_text_list_, id_colname=SPECIES_TEXT)
@@ -357,7 +378,29 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/uuids/', methods=['GET'])
+@register_api('/api/species/rowid/uuid/', methods=['GET'], __api_plural_check__=False)
+def get_species_rowids_from_uuids(ibs, species_uuid_list):
+    r"""
+    Returns:
+        species_rowid_list (list): Creates one if it doesnt exist
+
+    CommandLine:
+        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
+        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/rowid/uuid/
+    """
+    species_rowid_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_ROWID,), species_uuid_list, id_colname=SPECIES_UUID)
+    species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if text is None or text == const.UNKNOWN else rowid
+                           for rowid, text in zip(species_rowid_list, species_uuid_list)]
+    return species_rowid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/species/uuid/', methods=['GET'], __api_plural_check__=False)
 def get_species_uuids(ibs, species_rowid_list):
     r"""
     Returns:
@@ -365,7 +408,7 @@ def get_species_uuids(ibs, species_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/species/uuids/
+        URL:    /api/species/uuid/
     """
     uuids_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_UUID,), species_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -375,7 +418,7 @@ def get_species_uuids(ibs, species_rowid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.SPECIES_TABLE, SPECIES_TEXT)
-@register_api('/api/species/texts/', methods=['GET'])
+@register_api('/api/species/text/', methods=['GET'], __api_plural_check__=False)
 def get_species_texts(ibs, species_rowid_list):
     r"""
     Returns:
@@ -386,7 +429,7 @@ def get_species_texts(ibs, species_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/species/texts/
+        URL:    /api/species/text/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -395,8 +438,9 @@ def get_species_texts(ibs, species_rowid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_texts(ibs, species_rowid_list)
+        >>> result = ut.repr2(result)
         >>> print(result)
-        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
+        ['zebra_plains', 'zebra_grevys', 'bear_polar']
     """
     # FIXME: use standalone species table
     #species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -404,14 +448,14 @@ def get_species_texts(ibs, species_rowid_list):
     species_text_list = [const.UNKNOWN
                          if rowid == const.UNKNOWN_SPECIES_ROWID else species_text
                          for species_text, rowid in zip(species_text_list, species_rowid_list)]
-    species_text_list = [ const.UNKNOWN if code is None else code for code in species_text_list ]
+    species_text_list = [const.UNKNOWN if code is None else code for code in species_text_list ]
     return species_text_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.SPECIES_TABLE, SPECIES_NICE)
-@register_api('/api/species/nice/', methods=['GET'])
+@register_api('/api/species/nice/', methods=['GET'], __api_plural_check__=False)
 def get_species_nice(ibs, species_rowid_list):
     r"""
     Returns:
@@ -432,8 +476,9 @@ def get_species_nice(ibs, species_rowid_list):
         >>> ibs._clean_species()
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_nice(ibs, species_rowid_list)
+        >>> result = ut.repr2(result)
         >>> print(result)
-        [u'Zebra (Plains)', u"Zebra (Grevy's)", u'Polar Bear']
+        ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear']
     """
     # FIXME: use standalone species table
     #species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -448,7 +493,7 @@ def get_species_nice(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/codes/', methods=['GET'])
+@register_api('/api/species/code/', methods=['GET'], __api_plural_check__=False)
 def get_species_codes(ibs, species_rowid_list):
     r"""
     Returns:
@@ -456,7 +501,7 @@ def get_species_codes(ibs, species_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/species/codes/
+        URL:    /api/species/code/
     """
     species_code_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
     species_code_list = [ 'UNKNOWN' if code is None else code for code in species_code_list ]
@@ -465,7 +510,7 @@ def get_species_codes(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/notes/', methods=['GET'])
+@register_api('/api/species/note/', methods=['GET'], __api_plural_check__=False)
 def get_species_notes(ibs, species_rowid_list):
     r"""
     Returns:
@@ -473,7 +518,7 @@ def get_species_notes(ibs, species_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/species/notes/
+        URL:    /api/species/note/
     """
     notes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NOTE,), species_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -482,15 +527,11 @@ def get_species_notes(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/enabled/', methods=['GET'])
+# @register_api('/api/species/enabled/', methods=['GET'])
 def get_species_enabled(ibs, species_rowid_list):
     r"""
     Returns:
         list_ (list): "Species Enabled" flag, true if the species is enabled
-
-    RESTful:
-        Method: GET
-        URL:    /api/species/enabled/
     """
     enabled_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_ENABLED,), species_rowid_list)
     return enabled_list
@@ -531,14 +572,10 @@ def _set_species_code(ibs, species_rowid_list, species_code_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/species/enabled/', methods=['PUT'])
+# @register_api('/api/species/enabled/', methods=['PUT'])
 def set_species_enabled(ibs, species_rowid_list, enabled_list):
     r"""
     Sets the species all instances enabled bit
-
-    RESTful:
-        Method: PUT
-        URL:    /api/species/enabled/
     """
     id_iter = ((species_rowid,) for species_rowid in species_rowid_list)
     val_list = ((enabled,) for enabled in enabled_list)
@@ -551,10 +588,6 @@ if __name__ == '__main__':
         python -m ibeis.control.manual_species_funcs
         python -m ibeis.control.manual_species_funcs --allexamples
         python -m ibeis.control.manual_species_funcs --allexamples --noface --nosrc
-
-    RESTful:
-        Method: GET
-        URL:    /api/species/notes/
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -4,39 +4,94 @@
   <div class="alert alert-info text-center" role="alert">
     Congratulations, detection turking is completed.  Thank you!
     <br/>
-    <a href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}">Continue by turking viewpoints</a>
+    <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Continue by turking annotation metadata</a>
   </div>
   {% else %}
     <div class="row">
       <div class="col-lg-1"></div>
 
       <div class="col-lg-10">
+<!--
         {% if imgsetid %}
           <div class="alert alert-info" role="alert">
             Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
             <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
           </div>
         {% endif %}
-
+ -->
         {% if not REFER_DST_ENCODED %}
           <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            <div class="progress-bar {% if is_staged %}progress-bar-danger{% endif %}" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
               {{ progress }}%
             </div>
           </div>
         {% endif %}
 
-        Gid: {{ gid }}
-        <br/>
-        Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
-        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
-        <br/>
-        Path: {{ image_path }}
+        <div class="row">
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
+          {% if imgsetid %}
+            <!-- Imageset ID: {{ imgsetid }} -->
+            <div style="margin-right: 10px; display: inline;">
+              Imageset: {{ imagesettext }}
+            </div>
+          {% endif %}
+<!--           {% if is_staged %}
+            <div style="color: #aaa; display: inline;">
+              (Staged: {{ staged_progress }}%)
+            </div>
+          {% endif %}
+ -->          </div>
 
-      {% include 'turk/detection_insert.html' %}
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
+            Image ID{% if THROW_TEST_AOI_TURKING_AVAILABLE %}*{% endif %} (GID): {{ gid }}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <span class="glyphicon glyphicon-exclamation-sign pull-right" data-toggle="modal" data-target="#turk-new-features" style="font-size: 18px; color: #f0ad4e;"></span>
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px; margin-right: 8px; "></span>
+            <span class="glyphicon glyphicon-question-sign pull-right" data-toggle="modal" data-target="#turk-species-examples" style="font-size: 18px; margin-right: 8px; margin-left: 10px;"></span>
+            <span class="pull-right" style="color: #aaa;"><i>Hold <b>Ctrl</b> for hotkeys</i></span>
+          </div>
+        </div>
+
+        {% include 'turk/detection_insert.html' %}
+      </div>
+
+      <div class="col-lg-1"></div>
     </div>
 
-    <div class="col-lg-1"></div>
+  <div class="modal fade" id="species-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="part-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Part Type</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="part-add" class="form-control" placeholder="New part tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_part();">Add</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal -->
@@ -150,7 +205,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('detection_species_examples_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-detection_species_examples_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>
@@ -267,11 +322,291 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('detection_instructions_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-detection_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>
   </div>
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="turk-new-features" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">New Features for Detection Turking</h4>
+        </div>
+        <div class="modal-body">
+          Here are some of the new features in the redesigned detection interface:
+          <br/>
+          <br/>
+          <br/>
+
+          <div class="row" style="margin-bottom:10px;">
+            <div class="col-lg-12" style="text-align: center;">
+              <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-1"></div>
+            <div class="col-lg-10" style="margin-top: 20px;">
+              <div style="width:100%; text-align: center; margin-bottom:10px;">
+                <a href="#"><h4 style="margin-bottom:2px;">Annotation of Interest (AoI)</h4></a>
+              </div>
+              <p>
+                We want to capture a simple concept that can sometimes manifest itself in very complicated ways.  In particular, we ask the following question:
+
+                <div class="row">
+                  <div class="col-lg-2"></div>
+                  <div class="col-lg-8" style="color: #337ab7; font-size: 20px; text-align: center;line-height: 24px; margin-bottom: 10px;">
+                    <i><span style="font-size: 30px;">&ldquo;</span>Why did the photographer take this particular picture?<span style="font-size: 30px;">&rdquo;</span></i>
+                  </div>
+                  <div class="col-lg-2"></div>
+                </div>
+
+                This is not a question of artistic composition, however.  Pictures should be contributed to Wildbook for the purposes of identifying individual animals.  Therefore,
+                to answer the "why" question, the goal is to understand an image's semantic composition by marking the individual annotation(s) that are the <i>interest</i>, <i>subject(s)</i> or <i>focus</i> of the picture.  More specifically, the task is to mark all annotations that have (in general) the following properties:
+
+                <ul style="padding-right:30px;">
+                    <li>Is of a distinguishable individual (i.e. free-standing or clearly in the foreground of a heard) </li>
+                    <li>Is relatively large and has decent resolution</li>
+                    <li>Is commonly located near the center of the image</li>
+                    <li>Is in focus and not blurry</li>
+                </ul>
+
+                Conversely, the annotations that are <u><b>not</b></u> considered to be an AoI have (in general) the following opposite properties:
+
+                <ul style="padding-right:30px;">
+                    <li>Is a part of an overlapping herd or group of animals</li>
+                    <li>Is relatively small and/or contains few pixels</li>
+                    <li>Is out of focus and is blurry (from being too far from or too close to the camera relative to the plane that is in focus)</li>
+                    <li>Is located around the edges of the image</li>
+                    <li>Is significantly (greater than 25%) occluded by other animals or objects</li>
+                    <li>Is significantly (greater than 25%) off the edge of the frame of the image</li>
+                </ul>
+
+
+                These above properties (and counter properties) require that the annotation must not be viewed in isolation.  The decision that an annotation is an AoI must be made by weighing the entire context of the image and against any other annotations that may also be in the image.  Further, because these conditions are fairly strict, there are rarely more than a few AoIs in a particular image, and some images may have none.
+                <br/>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Note:</b> As a small (but important) aside, <b>all</b> individual animals (of the target species) in the image should have an annotated bounding box.  The intent is to have the same number of bounding boxes as the number of animals that can realistically and reliably be manually counted in the image.  If one can reasonably count 30 animals in the image, there should exist 30 corresponding bounding boxes.  This completeness assumption is crucial to the validity of the Annotation of Interest decision for a given image; any image that does not satisfy this condition should first be turked to obtain a complete set of annotations.
+                </div>
+
+                <br/>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #b32b27; padding-left: 1%">
+                    <b style="color: #a32723">Beware:</b> it is crucially important to not accidentally conflate this metric with other detection and identification concepts.  While the concepts below are related to and may be strong indicators of Annotation of Interest, they are not necessarily identical.  For example,
+
+                    <ul style="padding-right:30px;">
+                        <li>Annotation of Interest &ne; is identifiable by any particular algorithm</li>
+                        <li>Annotation of Interest &ne; is of a desired quality</li>
+                        <li>Annotation of Interest &ne; is of a desired species</li>
+                        <li>Annotation of Interest &ne; is of a desired viewpoint</li>
+                        <li>Annotation of Interest &ne; is free of photo-bombs</li>
+                    </ul>
+                </div>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                How well do these rules work on real-world examples?  Let's take a look at a few:
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 1</div>
+
+                First, there is the need to define the color scheme.  An annotation bounding box is marked with <span style="color: #F0AD4E"><b>orange</b></span> or <span style="color: #00e100"><b>green</b></span> unless it is an AoI, which is marked with the color <span style="color: #2E63FF"><b>blue</b></span>.
+                <br/>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Tip:</b> Use the hotkey <b>I</b> (for <b>i</b>nterest) to toggle a <i>hovered</i> box as an AoI
+                </div>
+                <br/>
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Tip:</b> Sometimes bounding boxes are very close together and overlapping.  If you experience difficulty hovering the desired bounding box, use the hotkey <b>B</b> (for <b>b</b>ackground) to send the hovered (undesired) annotation to the background.
+                </div>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                This first example (above) is straightforward.  There is only one annotation in this image, it is clearly lit, and has no occlusions.  A free-standing animal in a field, like in this example, can be considered an ideal AoI.  The annotation is therefore marked in blue to signify that it is an AoI.
+                <br/>
+                <br/>
+                Remember, not all images are guaranteed to have at least one annotation.  Furthermore, for an image with a single annotation, it is not guaranteed that the solo annotation should always be an AoI.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 2</div>
+
+                This second example gives multiple instances of what is considered to be an out-of-focus annotation.
+                <br/>
+                <br/>
+                The single AoI in this image (again, in blue) is smaller by area than in the first example.  The blue annotation is in focus and clearly distinguishable, which makes it an AoI for this image.  The four additional orange annotations near the top of the image are not AoIs: they are small and out of focus.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 3</div>
+
+                This example has 4 total annotations, two of which (in blue) are AoIs and two which are just normal annotations (in orange).  The two smaller annotations in the background do not qualify as AoIs because they are slightly out of focus, too small, and the left-most orange box has significant occlusion by another animal.  The two blue AoIs are both in focus and have no significant occlusions (the small amount of occlusion of the left AoI by the right AoI is not significant nor is the clipping end of the snout by the edge of the frame).
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                Looking at the AoIs from these first 3 examples, a pattern begins to emerge.  This pattern revolves around what can be called the <i>"focus plane"</i> and it helps to outline a simple procedure for deciding which annotations should be considered an AoI.
+
+                <ol style="padding-right:30px;">
+                    <li>Find the <i>single</i> <b>best AoI</b> in the image, if it exists.  It is important that the best AoI is in focus and has the <i>easiest</i> argument for being an AoI. (For example, the right of the two blue bounding boxes in Example 3 should be chosen as the best AoI because the zebra is more central in the image and it slightly occludes the zebra in the left blue bounding box.)  If no such AoI exists, continue to the next image without selecting any AoIs.</li>
+                    <li>Determine the <b>"focus plane"</b> that this best AoI lives within.  The focus plane can be decided based on the regions of sharpness and blurriness within the image.  This theoretical plane is the depth within the image that the best AoI occupies in 3D space.  For example, all other objects that are also within this plane should be all have the same focus and depth within the image as the best AoI.  Note that not all focus planes will be the same width; an image taken with a larger camera aperture opening will give a narrower depth of field.</li>
+                    <li>Any annotation within the focus plane should be considered as a <i>candidate</i> AoI and must be reviewed individually.  Any annotation that satisfies the AoI properties <i>and</i> is also within the focus plane of the best AoIs should also be marked as an AoI.</li>
+                    <li>Any annotation that is not within the focus plane should not be considered an AoI.</li>
+                </ol>
+
+                A caveat to the procedure above is when the focus plane is very wide (small aperture opening on the camera) and objects at different actual depths in the image can both appear to be similarly in focus and roughly within the same focus plane.  In this scenario, these annotations may be treated as if they were in the same focus plane and occupied the same 3D depth within the image.
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+                Let's apply the procedure above to the next example:
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 4</div>
+
+                In this fourth example, the concept of a "focus plane" is demonstrably clear.  Let's follow the decision steps just outlined:
+
+                    <ol style="padding-right:30px;">
+                        <li>Deciding the single, best AoI in this example is subjective.  The most in-focus and free-standing annotations are in the center of the image (marked in blue).  For the purpose of discussion, however, we can pick the blue annotation on the right as the best AoI because it is (slightly) more central to the image. </li>
+                        <li>With the best AoI selected, the depth the focus plane for this image can be decided.  This example image can be conceptually broken up into three distinct depth zones relative to the camera: in-front of the focus plane, the focus plane itself, and behind the focus plane.  Note that not every image has these three distinct depth zones and some images may only have one.  For this example, the bottom 1/3 of the image is in-front of the focus plane, the focus plane occupies the middle 1/3, and the top 1/3 is behind the focus plane.</li>
+                        <li>With the three focus zones defined, there are three annotations (the two blue and the cutoff orange annotation off the left border) that are within the focus plane.  Next, each box is individually checked against the AoI properties.  The left blue annotation is a good AoI, but the left-most orange annotation is largely cutoff and should not be considered as an AoI.</li>
+                        <li>The 4 annotations at the bottom of the image fall outside (in-front) of the focus plane and are therefore should not be considered as AoIs.  The 4 annotations at the top of the image also fall outside (behind) of the focus plane and should similarly not be considered as AoIs.</li>
+                    </ol>
+
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 5</div>
+
+               Example 5 shows a group of animals in a tight herd.  The herd itself is the primary feature of this image rather than any one individual.  There are no clearly distinguishable individuals apart from the herd and therefore no AoIs.  Also even though all of these annotations occupy roughly the same focus plane, the annotations are also too small to be considered AoIs.
+               <br/>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Note:</b> Herds dilute interest.  This example's scenario of smaller bounding boxes along with being of a herd is one of the most dangerous in terms of ambiguity and difficulty.  Usually these examples will produce no AoI's.
+                </div>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest6.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 6</div>
+
+                The image in Example 6 is striking because there are many annotations, but none should be considered AoIs.  This is primarily because the focus plane is clearly centered around the bird stuffed animal. The right-most (blurry) orange annotation would normally be the best AoI, but is ignored for being behind the focus plane.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest7.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 7</div>
+
+                Here is another example that shows many (small) annotations in a herd.  None of these annotations should be labeled as AoIs.
+               <br/>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Note:</b> Remember that it is crucial for an image to have annotation <i>completeness</i>.  To a reasonable effort, every discernible animal in the image should have a corresponding bounding box.
+                </div>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest8.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 8</div>
+
+                With this example we want to reiterate that the decision to label an annotation as an AoI should not be decided by or conflated with other metrics, like viewpoint and pose.  The focus plane is fairly wide in this image and also contains all three annotations.  The pose of the two lower annotations do not discount them as AoIs.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest9.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 9</div>
+
+                Finishing the instructions, there is an important scenario that needs special attention.  If an image contains closely overlapping annnotations of what are <b>clearly</b> a mother and a foal, then the two annotations should both be marked as AoIs, or both not marked as AoIs. This represents a circumstance where it is quite difficult to obtain clear photographs of each animal individually and also where the association between mother and foal annotations is important for later analysis.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest10.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 10</div>
+
+                This final example shows how complex a mother and foal pair of annotations scenario can present itself.  In this example, there are two foals and two corresponding mothers.  The two foals can be marked as AoIs and the two mother annotations should therefore be marked as well.
+
+                <div style="width: 100%; font-size: 20px; text-align: center; margin-bottom: 5px; margin-top: 15px;">
+                    <b>P.S.</b>
+                </div>
+
+                We have special instructions for sea turtles.  We relax the occlusion percentages from 25% to 50%.
+
+                <ul style="padding-right:30px;">
+                    <li>Is significantly (greater than 50%) occluded by other animals or objects</li>
+                    <li>Is significantly (greater than 50%) off the edge of the frame of the image</li>
+                </ul>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest11.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 11</div>
+
+                <img src="{{ url_for('static', filename='images/example-interest12.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 12</div>
+
+                Examples 11 and 12 shows an AoI of sea turtles.  The image of example 11 shows a clearly visible turtle and is not occluded where example 12 shows a turtle that is only partially occluded.  Since we can see at least 50% of either animal, we consider both to be AoIs.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest13.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 13</div>
+
+                The next image, example 13, shows a whale fluke that is too occluded to be considered an AoI as it only shows the head of the turtle.  The occlusion threshold for whale flukes should be relaxed to 50% compared to 25%.
+
+                <div style="width: 100%; font-size: 20px; text-align: center; margin-bottom: 5px; margin-top: 15px;">
+                    <b>P.S.S.</b>
+                </div>
+
+                We also have special instructions for whale flukes.  We relax the occlusion percentages from 25% to 50%.
+
+                <ul style="padding-right:30px;">
+                    <li>Is significantly (greater than 50%) occluded by other animals or objects</li>
+                    <li>Is significantly (greater than 50%) off the edge of the frame of the image</li>
+                </ul>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest14.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 14</div>
+
+                Example 14 shows an AoI of a whale fluke, where the body of the whale is completely occluded by the water but the fluke is not occluded and clearly visible.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest15.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 15</div>
+
+                The next image, example 15, shows a whale fluke that is too occluded to be considered an AoI.  The occlusion threshold for whale flukes should be relaxed to 50% compared to 25%.  We consider the starting point of the whale fluke to be where the forward part of the fin meets the main tail body.
+
+
+
+              </p>
+            </div>
+            <div class="col-lg-1"></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% endif %}
 {% endblock %}
 {% block content_custom_css %}

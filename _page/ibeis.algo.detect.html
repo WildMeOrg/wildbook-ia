@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.detect package &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.algo.detect package &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,9 +32,12 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="next" title="ibeis.algo.detect.background package" href="ibeis.algo.detect.background.html"/>
+        <link rel="next" title="ibeis.algo.detect.nms package" href="ibeis.algo.detect.nms.html"/>
         <link rel="prev" title="ibeis.algo package" href="ibeis.algo.html"/> 
 
   
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -82,7 +88,11 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a><ul class="current">
@@ -109,19 +119,19 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._ibeis_object">ibeis._ibeis_object module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annots">ibeis.annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_parts">ibeis.core_parts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.images">ibeis.images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -137,8 +147,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ibeis</a>
+        
       </nav>
 
 
@@ -151,23 +163,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
           <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
-      
+        
           <li><a href="ibeis.algo.html">ibeis.algo package</a> &raquo;</li>
-      
-    <li>ibeis.algo.detect package</li>
+        
+      <li>ibeis.algo.detect package</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/ibeis.algo.detect.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/ibeis.algo.detect.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -179,33 +208,10 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.background.html">ibeis.algo.detect.background package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#module-ibeis.algo.detect.background.extract_mini_48">ibeis.algo.detect.background.extract_mini_48 module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#module-ibeis.algo.detect.background">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.classifier.html">ibeis.algo.detect.classifier package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier.classifier">ibeis.algo.detect.classifier.classifier module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier.model">ibeis.algo.detect.classifier.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.labeler.html">ibeis.algo.detect.labeler package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler.labeler">ibeis.algo.detect.labeler.labeler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler.model">ibeis.algo.detect.labeler.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.orientation.html">ibeis.algo.detect.orientation package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.model">ibeis.algo.detect.orientation.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.orientation">ibeis.algo.detect.orientation.orientation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.tester">ibeis.algo.detect.orientation.tester module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.utils">ibeis.algo.detect.orientation.utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.nms.html">ibeis.algo.detect.nms package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.nms.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.nms.html#module-ibeis.algo.detect.nms.py_cpu_nms">ibeis.algo.detect.nms.py_cpu_nms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.nms.html#module-ibeis.algo.detect.nms">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -213,6 +219,292 @@
 </div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.algo.detect.azure">
+<span id="ibeis-algo-detect-azure-module"></span><h2>ibeis.algo.detect.azure module<a class="headerlink" href="#module-ibeis.algo.detect.azure" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Azure object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.azure.detect">
+<code class="descclassname">ibeis.algo.detect.azure.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>config_filepath</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/azure.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.azure.detect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect image filepaths with azure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Azure documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.azure.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.azure.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/azure.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.azure.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect gid_list with azure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Azure documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.darknet">
+<span id="ibeis-algo-detect-darknet-module"></span><h2>ibeis.algo.detect.darknet module<a class="headerlink" href="#module-ibeis.algo.detect.darknet" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.darknet.detect">
+<code class="descclassname">ibeis.algo.detect.darknet.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>config_filepath</em>, <em>weight_filepath</em>, <em>class_filepath</em>, <em>sensitivity</em>, <em>verbose=False</em>, <em>use_gpu=True</em>, <em>use_gpu_id=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/darknet.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.darknet.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Darknet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.darknet.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.darknet.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>downsample=True</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/darknet.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.darknet.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Darknet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.darknet detect_gid_list –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.darknet</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.fasterrcnn">
+<span id="ibeis-algo-detect-fasterrcnn-module"></span><h2>ibeis.algo.detect.fasterrcnn module<a class="headerlink" href="#module-ibeis.algo.detect.fasterrcnn" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Faster R-CNN object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.fasterrcnn.detect">
+<code class="descclassname">ibeis.algo.detect.fasterrcnn.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>config_filepath</em>, <em>weight_filepath</em>, <em>class_filepath</em>, <em>sensitivity</em>, <em>verbose=False</em>, <em>use_gpu=True</em>, <em>use_gpu_id=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/fasterrcnn.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.fasterrcnn.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.fasterrcnn.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.fasterrcnn.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>downsample=True</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/fasterrcnn.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.fasterrcnn.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.fasterrcnn detect_gid_list –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.fasterrcnn</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ibeis.algo.detect.grabmodels">
 <span id="ibeis-algo-detect-grabmodels-module"></span><h2>ibeis.algo.detect.grabmodels module<a class="headerlink" href="#module-ibeis.algo.detect.grabmodels" title="Permalink to this headline">¶</a></h2>
@@ -228,20 +520,20 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>modeldir</strong> (<em>str</em>) &#8211; </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>modeldir</strong> (<em>str</em>) – </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-ensure_models
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.grabmodels –test-ensure_models</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -254,8 +546,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>species</strong> &#8211; </li>
-<li><strong>modeldir</strong> (<em>str</em>) &#8211; </li>
+<li><strong>species</strong> – </li>
+<li><strong>modeldir</strong> (<em>str</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -268,13 +560,13 @@
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.grabmodels –test-get_species_trees_paths</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
@@ -283,7 +575,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">trees_path</span> <span class="o">=</span> <span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">trees_path</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -301,23 +593,89 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>modeldir</strong> (<em>str</em>) &#8211; (default = &#8216;default&#8217;)</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag(default = True)</li>
+<li><strong>modeldir</strong> (<em>str</em>) – (default = ‘default’)</li>
+<li><strong>verbose</strong> (<em>bool</em>) – verbosity flag(default = True)</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-redownload_models
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.grabmodels –test-redownload_models</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">redownload_models</span><span class="p">()</span>
 </pre></div>
 </div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.lightnet">
+<span id="ibeis-algo-detect-lightnet-module"></span><h2>ibeis.algo.detect.lightnet module<a class="headerlink" href="#module-ibeis.algo.detect.lightnet" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Lightnet object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.lightnet.detect">
+<code class="descclassname">ibeis.algo.detect.lightnet.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>config_filepath</em>, <em>weight_filepath</em>, <em>class_filepath</em>, <em>sensitivity</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/lightnet.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.lightnet.detect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect image filepaths with lightnet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Lightnet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.lightnet.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.lightnet.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/lightnet.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.lightnet.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect gid_list with lightnet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Lightnet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -332,8 +690,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</li>
-<li><strong>tree_path_list</strong> (<em>list of str</em>) &#8211; the list of trees to load for detection</li>
+<li><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</li>
+<li><strong>tree_path_list</strong> (<em>list of str</em>) – the list of trees to load for detection</li>
 </ul>
 </td>
 </tr>
@@ -358,9 +716,9 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
-<li><strong>tree_path_list</strong> (<em>list of str</em>) &#8211; the list of trees to load for detection</li>
-<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>tree_path_list</strong> (<em>list of str</em>) – the list of trees to load for detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
 sizes should be used; defaults to True</p>
 <p>True:  ibs.get_image_detectpaths() is used
 False: ibs.get_image_paths() is used</p>
@@ -389,10 +747,10 @@ False: ibs.get_image_paths() is used</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
-<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to select the pre-trained
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>species</strong> (<em>str</em>) – the species that should be used to select the pre-trained
 random forest model</li>
-<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
 sizes should be used; defaults to True</p>
 <p>True:  ibs.get_image_detectpaths() is used
 False: ibs.get_image_paths() is used</p>
@@ -411,25 +769,25 @@ False: ibs.get_image_paths() is used</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.randomforest –test-detect_gid_list_with_species</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="k">import</span> <span class="n">_get_models</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -442,10 +800,10 @@ False: ibs.get_image_paths() is used</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</li>
-<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to select the pre-trained
+<li><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</li>
+<li><strong>species</strong> (<em>str</em>) – the species that should be used to select the pre-trained
 random forest model</li>
-<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
 sizes should be used; defaults to True</p>
 <p>True:  ibs.get_image_detectpaths() is used
 False: ibs.get_image_paths() is used</p>
@@ -474,11 +832,11 @@ False: ibs.get_image_paths() is used</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
-<li><strong>trees_path</strong> (<em>str</em>) &#8211; the path that the trees will be saved into (along
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>trees_path</strong> (<em>str</em>) – the path that the trees will be saved into (along
 with temporary training inventory folders that are deleted once
 training is finished)</li>
-<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to assign to the newly
+<li><strong>species</strong> (<em>str</em>) – the species that should be used to assign to the newly
 trained trees</li>
 </ul>
 </td>
@@ -504,14 +862,14 @@ trained trees</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>train_pos_cpath_list</strong> (<em>list of str</em>) &#8211; the list of positive image paths
+<li><strong>train_pos_cpath_list</strong> (<em>list of str</em>) – the list of positive image paths
 for training</li>
-<li><strong>train_neg_cpath_list</strong> (<em>list of str</em>) &#8211; the list of negative image paths
+<li><strong>train_neg_cpath_list</strong> (<em>list of str</em>) – the list of negative image paths
 for training</li>
-<li><strong>trees_path</strong> (<em>str</em>) &#8211; the path that the trees will be saved into (along
+<li><strong>trees_path</strong> (<em>str</em>) – the path that the trees will be saved into (along
 with temporary training inventory folders that are deleted once
 training is finished)</li>
-<li><strong>species</strong> (<em>str, optional</em>) &#8211; the species that should be used to assign to
+<li><strong>species</strong> (<em>str</em><em>, </em><em>optional</em>) – the species that should be used to assign to
 the newly trained trees</li>
 </ul>
 </td>
@@ -530,17 +888,285 @@ the newly trained trees</li>
 </dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.algo.detect.rf">
+<span id="ibeis-algo-detect-rf-module"></span><h2>ibeis.algo.detect.rf module<a class="headerlink" href="#module-ibeis.algo.detect.rf" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.rf.classify">
+<code class="descclassname">ibeis.algo.detect.rf.</code><code class="descname">classify</code><span class="sig-paren">(</span><em>vector_list</em>, <em>weight_filepath</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/rf.html#classify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.rf.classify" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>thumbail_list</strong> (<em>list of str</em>) – the list of image thumbnails that need classifying</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.rf.classify_helper">
+<code class="descclassname">ibeis.algo.detect.rf.</code><code class="descname">classify_helper</code><span class="sig-paren">(</span><em>weight_filepath</em>, <em>vector_list</em>, <em>index_list=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/rf.html#classify_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.rf.classify_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.selectivesearch">
+<span id="ibeis-algo-detect-selectivesearch-module"></span><h2>ibeis.algo.detect.selectivesearch module<a class="headerlink" href="#module-ibeis.algo.detect.selectivesearch" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Selective Search object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.selectivesearch.detect">
+<code class="descclassname">ibeis.algo.detect.selectivesearch.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>matlab_command='selective_search'</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/selectivesearch.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.selectivesearch.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Selective Search documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.selectivesearch.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.selectivesearch.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>downsample=True</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/selectivesearch.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.selectivesearch.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the Selective Search documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.selectivesearch detect_gid_list –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.selectivesearch</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;matlab_command&#39;</span><span class="p">:</span> <span class="s1">&#39;selective_search&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;matlab_command&#39;</span><span class="p">:</span> <span class="s1">&#39;selective_search_rcnn&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.ssd">
+<span id="ibeis-algo-detect-ssd-module"></span><h2>ibeis.algo.detect.ssd module<a class="headerlink" href="#module-ibeis.algo.detect.ssd" title="Permalink to this headline">¶</a></h2>
+<p>Interface to SSD object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.ssd.detect">
+<code class="descclassname">ibeis.algo.detect.ssd.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>config_filepath</em>, <em>weight_filepath</em>, <em>class_filepath</em>, <em>sensitivity</em>, <em>verbose=False</em>, <em>use_gpu=True</em>, <em>use_gpu_id=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/ssd.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.ssd.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the SSD documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.ssd.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.ssd.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>downsample=True</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/ssd.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.ssd.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the SSD documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.ssd detect_gid_list –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.ssd</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.svm">
+<span id="ibeis-algo-detect-svm-module"></span><h2>ibeis.algo.detect.svm module<a class="headerlink" href="#module-ibeis.algo.detect.svm" title="Permalink to this headline">¶</a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.svm.classify">
+<code class="descclassname">ibeis.algo.detect.svm.</code><code class="descname">classify</code><span class="sig-paren">(</span><em>vector_list</em>, <em>weight_filepath</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/svm.html#classify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.svm.classify" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>thumbail_list</strong> (<em>list of str</em>) – the list of image thumbnails that need classifying</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.svm.classify_helper">
+<code class="descclassname">ibeis.algo.detect.svm.</code><code class="descname">classify_helper</code><span class="sig-paren">(</span><em>weight_filepath</em>, <em>vector_list</em>, <em>index_list=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/svm.html#classify_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.svm.classify_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.algo.detect.yolo">
 <span id="ibeis-algo-detect-yolo-module"></span><h2>ibeis.algo.detect.yolo module<a class="headerlink" href="#module-ibeis.algo.detect.yolo" title="Permalink to this headline">¶</a></h2>
 <p>Interface to pydarknet yolo object detection.</p>
 <dl class="function">
 <dt id="ibeis.algo.detect.yolo.detect">
-<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>detector=None</em>, <em>config_filepath=None</em>, <em>weight_filepath=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>detector=None</em>, <em>config_filepath=None</em>, <em>weights_filepath=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</td>
 </tr>
 </tbody>
 </table>
@@ -553,6 +1179,26 @@ the newly trained trees</li>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.yolo</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;WS_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span><span class="o">.</span><span class="n">_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dpath</span> <span class="o">=</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;detect.yolo.2.39000.weights&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;detect.yolo.2.cfg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">LocalizerConfig</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weights_filepath</span><span class="o">=</span><span class="n">weights_filepath</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">config_filepath</span><span class="o">=</span><span class="n">config_filepath</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;weights_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;thumbnail_cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -563,8 +1209,8 @@ the newly trained trees</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
-<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
 sizes should be used; defaults to True</p>
 <p>True:  ibs.get_image_detectpaths() is used
 False: ibs.get_image_paths() is used</p>
@@ -579,6 +1225,58 @@ False: ibs.get_image_paths() is used</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – image analysis api</li>
+<li><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool</em><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>detector, config_filepath, weights_filepath, verbose</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>tuple</em> – (gid, gpath, result_list)</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.detect.yolo detect_gid_list –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.yolo</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;WS_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span><span class="o">.</span><span class="n">_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">config</span> <span class="o">=</span> <span class="n">LocalizerConfig</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;weights_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;config_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exec</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="nb">globals</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#classes_fpath = &#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;(gid, gpath, result_list) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">((</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
 </tr>
 </tbody>
@@ -588,10 +1286,17 @@ False: ibs.get_image_paths() is used</p>
 </div>
 <div class="section" id="module-ibeis.algo.detect">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.algo.detect" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ibeis.algo.detect.IMPORT_TUPLES">
+<code class="descclassname">ibeis.algo.detect.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('grabmodels', None), ('randomforest', None), ('yolo', None)]</em><a class="headerlink" href="#ibeis.algo.detect.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Regen Command</em> – cd /Users/bluemellophone/code/ibeis/ibeis/algo/detect
+makeinit.py –modname=ibeis.algo.detect</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.algo.detect.reassign_submodule_attributes">
 <code class="descclassname">ibeis.algo.detect.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
-<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
 </dd></dl>
 
 <dl class="function">
@@ -611,15 +1316,18 @@ False: ibs.get_image_paths() is used</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.algo.detect.background.html" class="btn btn-neutral float-right" title="ibeis.algo.detect.background package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.algo.detect.nms.html" class="btn btn-neutral float-right" title="ibeis.algo.detect.nms package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ibeis.algo.html" class="btn btn-neutral" title="ibeis.algo package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ibeis.algo.html" class="btn btn-neutral" title="ibeis.algo package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -628,7 +1336,7 @@ False: ibs.get_image_paths() is used</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -650,10 +1358,11 @@ False: ibs.get_image_paths() is used</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

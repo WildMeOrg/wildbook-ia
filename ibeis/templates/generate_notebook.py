@@ -5,6 +5,36 @@ CommandLine:
     python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
 
     python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
+
+CommandLine:
+    # to connect to a notebook on a remote machine that does not have the
+    # appropriate port exposed you must start an SSH tunnel.
+    # Typically a jupyter-notebook runs on port 8888.
+    # Run this command on your local machine.
+    ssh -N -f -L localhost:<local_port>:localhost:<remote_port> <remote_user>@<remote_host>
+
+    E.G.
+    ssh -N -f -L localhost:8889:localhost:8888 joncrall@hyrule.cs.rpi.edu
+    # Now you can connect locally
+    firefox localhost:8889
+
+
+    # Running a server:
+    jupyter-notebook password
+    jupyter-notebook --no-browser --NotebookApp.iopub_data_rate_limit=100000000 --NotebookApp.token=
+
+
+    # To allow remote jupyter-noteobok connections
+    jupyter notebook --generate-config
+
+    # Really need to do jupyter hub
+
+    need to set
+    c.NotebookApp.port = 8888
+    c.NotebookApp.open_browser = False
+    c.NotebookApp.ip = '*'
+
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -17,28 +47,36 @@ def autogen_ipynb(ibs, launch=None, run=None):
     Autogenerates standard IBEIS Image Analysis IPython notebooks.
 
     CommandLine:
-        python -m ibeis --tf autogen_ipynb --run --db lynx
+        python -m ibeis autogen_ipynb --run --db lynx
+        python -m ibeis autogen_ipynb --run --db lynx
 
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -p :proot=smk,num_words=64000 default
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --asreport
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST
 
-        python -m ibeis --tf autogen_ipynb --db PZ_MTEST
+        python -m ibeis autogen_ipynb --ipynb --db STS_SandTigers
+
+        python -m ibeis autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
-        python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST
+        python -m ibeis autogen_ipynb --db ~/work/PZ_MTEST
 
-        python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+        python -m ibeis autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
         python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
 
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl --run
+        python -m ibeis autogen_ipynb --db PZ_Master1 --ipynb
+        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
+        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
+        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
+
+    Ignore:
+        python -m ibeis autogen_ipynb --db WS_ALL
 
     Example:
         >>> # SCRIPT
@@ -65,9 +103,11 @@ def autogen_ipynb(ibs, launch=None, run=None):
         output_fpath = ut.export_notebook(run_nb, fname)
         ut.startfile(output_fpath)
     elif launch:
-        ut.cmd('jupyter-notebook', nb_fpath, detatch=True)
-        #ut.cmd('ipython-notebook', nb_fpath)
-        #ut.startfile(nb_fpath)
+        command = ' '.join(['jupyter-notebook',
+                            '--NotebookApp.iopub_data_rate_limit=10000000',
+                            '--NotebookApp.token=',
+                            nb_fpath])
+        ut.cmd2(command, detatch=True, verbose=True)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
 
@@ -79,7 +119,7 @@ def get_default_cell_template_list(ibs):
 
     cells = notebook_cells
 
-    noexample = ut.get_argflag('--noexample')
+    noexample = not ut.get_argflag('--examples')
     asreport = ut.get_argflag('--asreport')
     withtags = ut.get_argflag('--withtags')
 
@@ -88,20 +128,22 @@ def get_default_cell_template_list(ibs):
     info_cells = [
         cells.pipe_config_info,
         cells.annot_config_info,
+        # cells.per_encounter_stats,
         cells.timestamp_distribution,
     ]
 
     dev_analysis = [
         cells.config_overlap,
         #cells.dbsize_expt,
-        None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
+        # None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
         cells.all_annot_scoresep,
         cells.success_annot_scoresep,
     ]
 
     cell_template_list += [
         cells.introduction if asreport else None,
-        cells.initialize,
+        cells.nb_init,
+        cells.db_init,
         None if ibs.get_dbname() != 'humpbacks' else cells.fluke_select,
     ]
 
@@ -121,6 +163,7 @@ def get_default_cell_template_list(ibs):
         cells.hard_success_cases,
         cells.failure_type1_cases,
         cells.failure_type2_cases,
+        cells.total_failure_cases,
         cells.timedelta_distribution,
     ]
 
@@ -142,6 +185,15 @@ def get_default_cell_template_list(ibs):
     ]
 
     cell_template_list = ut.filter_Nones(cell_template_list)
+
+    cell_template_list = ut.lmap(ut.normalize_cells, cell_template_list)
+
+    if not asreport:
+        # Remove all of the extra fluff
+        cell_template_list = [
+            (header.split('\n')[0], code, None)
+            for (header, code, footer) in cell_template_list
+        ]
 
     return cell_template_list
 
@@ -176,8 +228,10 @@ def make_ibeis_notebook(ibs):
 
 def make_ibeis_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
-    autogen_str = ut.make_autogen_str()
+    autogen_str = '# python -m ibeis autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
+    # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
+    dbdir = ibs.dbdir
     default_acfgstr = ut.get_argval('-a', type_=str, default='default:is_known=True')
 
     asreport = ut.get_argflag('--asreport')
@@ -195,14 +249,21 @@ def make_ibeis_cell_list(ibs):
         annotconfig_list_body = ut.codeblock(
             ut.repr2(default_acfgstr) + '\n' +
             ut.codeblock('''
-            # See ibeis/expt/annotation_configs.py for names of annot configuration options
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
+            #'default:is_known=True,minqual=good,require_timestamp=True,dcrossval_enc=1,view=left'
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',
-            #'timectrl:',
             #'unctrl:been_adjusted=True',
+            #'timectrl:',
+            #'timectrl:view=primary,minqual=good',
+
+            #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            #'default:minqual=ok,require_timestamp=True,view=left,dcrossval_enc=1,joinme=2',
+            #'default:minqual=ok,require_timestamp=True,view=right,dcrossval_enc=1,joinme=2',
+
             ''')
         )
         pipeline_list_body = ut.codeblock(

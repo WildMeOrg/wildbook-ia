@@ -11,7 +11,7 @@ http://www.linuxjournal.com/content/bash-brace-expansion
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-print, rrr, profile = ut.inject2(__name__, '[cfghelpers]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
@@ -150,7 +150,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>>                                      cfgtype, alias_keys, valid_keys,
         >>>                                      expand_nested, strict,
         >>>                                      special_join_dict)
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr2(cfg_combos_list, nl=2),))
         >>> print(ut.depth_profile(cfg_combos_list))
         >>> cfg_list = ut.flatten(cfg_combos_list)
         >>> cfg_list = ut.flatten([cfg if isinstance(cfg, list) else [cfg] for cfg in cfg_list])

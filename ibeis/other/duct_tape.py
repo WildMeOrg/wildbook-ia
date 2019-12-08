@@ -159,32 +159,4 @@ def fix_nulled_yaws(ibs):
     valid_list = [yaw == 0.0 for yaw in yaw_list]
     dirty_aid_list = ut.filter_items(aid_list, valid_list)
     print("[duct_tape] Nulling %d annotation yaws" % len(dirty_aid_list))
-    ibs.set_annot_yaws(dirty_aid_list, [None] * len(dirty_aid_list))
-
-
-def parse_and_update_image_exif_orientations(ibs, verbose=False):
-    from PIL import Image  # NOQA
-    from ibeis.algo.preproc.preproc_image import parse_exif
-    from os.path import exists
-
-    def _parse_orient(gpath):
-        if verbose:
-            print('[db_update (1.5.2)]     Parsing: %r' % (gpath, ))
-        pil_img = Image.open(gpath, 'r')  # NOQA
-        time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
-        return orient
-
-    # Get images without orientations and add to the database
-    gid_list_all = ibs.get_valid_gids()
-    gpath_list = ibs.get_image_paths(gid_list_all)
-    valid_list = [ exists(gpath) for gpath in gpath_list ]
-    gid_list = ut.filter_items(gid_list_all, valid_list)
-
-    orient_list = ibs.get_image_orientation(gid_list)
-    zipped = zip(gid_list, orient_list)
-    gid_list_ = [ gid for gid, orient in zipped if orient in [0, None] ]
-    args = (len(gid_list_), len(gid_list_all), valid_list.count(False))
-    print('[db_update (1.5.2)] Parsing Exif orientations for %d / %d images (skipping %d)' % args)
-    gpath_list_ = ibs.get_image_paths(gid_list_)
-    orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
-    ibs.set_image_orientation(gid_list_, orient_list_)
+    ibs.set_annot_viewpoints(dirty_aid_list, [None] * len(dirty_aid_list))

@@ -3,6 +3,8 @@
 Matplotlib interface for name interactions. Allows for relatively fine grained
 control of splitting and merging.
 
+DEPRICATE
+
 CommandLine:
     python -m ibeis.viz.interact.interact_name --test-ishow_name --show
     python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
@@ -14,16 +16,16 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 from six.moves import zip
-from plottool import interact_helpers as ih
+from plottool_ibeis import interact_helpers as ih
 import functools
-import plottool as pt
+import plottool_ibeis as pt
 from ibeis import viz
 from ibeis import constants as const
 from ibeis.viz import viz_helpers as vh
 from ibeis.other import ibsfuncs
 from ibeis.viz import viz_chip
-from plottool.abstract_interaction import AbstractInteraction
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_name]', DEBUG=False)
+from plottool_ibeis.abstract_interaction import AbstractInteraction
+(print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 
 
 #==========================
@@ -34,11 +36,12 @@ MAX_COLS = 3
 
 
 def build_name_context_options(ibs, nids):
+    print('build_name_context_options nids = %r' % (nids,))
     callback_list = []
-    from ibeis.viz import viz_graph
-    callback_list.append(
-        ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=nids)),
-    )
+    from ibeis.viz import viz_graph2
+    callback_list.extend([
+        ('New Split Interact (Name)', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
+    ])
     return callback_list
 
 
@@ -76,19 +79,17 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
     fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
-        print_('[inter] clicked name')
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
-            print_(' viztype=%r' % viztype)
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    import guitool
+                    import guitool_ibeis
                     from ibeis.viz.interact import interact_chip
                     height = fig.canvas.geometry().height()
-                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
                     refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
                     interact_chip.show_annot_context_menu(
                         ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
@@ -370,7 +371,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 except Exception as ex:
                     ut.printex(ex)
                     print('nid = %r' % (nid,))
-                    print('self.nid2_color = %s' % (ut.dict_str(self.nid2_color),))
+                    print('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
                     raise
                 px = colx + offset
                 ax = self.plot_chip(int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw)
@@ -385,9 +386,16 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         if fulldraw:
             self.show_hud()
-            #pt.adjust_subplots_safe(top=0.85, hspace=0.03)
             hspace = .05 if (self.nCols) > 1 else .1
-            pt.adjust_subplots_safe(top=0.85, hspace=hspace)
+            subplotspar = {
+                'left': .1,
+                'right': .9,
+                'top': .85,
+                'bottom': .1,
+                'wspace': .3,
+                'hspace': hspace,
+            }
+            pt.adjust_subplots(**subplotspar)
         self.draw()
         self.show()
         if bring_to_front:
@@ -432,7 +440,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     'enable_chip_title_prefix': enable_chip_title_prefix,
                     'show_name': True,
                     'show_aidstr': True,
-                    'show_yawtext': True,
+                    'show_viewcode': True,
                     'show_num_gt': True,
                     'show_quality_text': True,
                 }
@@ -495,7 +503,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             >>> result = self.show_hud()
             >>> # verify results
             >>> print(result)
-            >>> ut.quit_if_noshow():
+            >>> ut.quit_if_noshow()
             >>> self.show_page()
             >>> pt.show_if_requested()
         """
@@ -550,7 +558,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('review', callback=self.review, rect=next_rect2())
         self.append_button('reset', callback=self.reset_all_names, rect=next_rect2())
         self.dbname = ibs.get_dbname()
-        self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
+        self.vsstr = 'qaid%d-vs-aid%d' % (self.aid1, self.aid2)
         figtitle_fmt = '''
         Match Review Interface - {dbname}
         {match_text}:
@@ -603,7 +611,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def close_(self, event=None):
         # closing this gui with the button means you have reviewed the annotation.
-        self.ibs.set_annot_pair_as_reviewed(self.aid1, self.aid2)
+        #self.ibs.set_annot_pair_as_reviewed(self.aid1, self.aid2)
         self.close()
 
     def unname_all(self, event=None):
@@ -646,29 +654,27 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def on_key_press(self, event=None):
         if event.key == 'escape':
-            import guitool
-            if guitool.are_you_sure():
+            import guitool_ibeis
+            if guitool_ibeis.are_you_sure():
                 self.close()
 
     def figure_clicked(self, event=None):
-        #print_('[inter] clicked name')
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
-            print_(' viztype=%r' % viztype)
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
                 #print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    #import guitool
+                    #import guitool_ibeis
                     #height = self.fig.canvas.geometry().height()
-                    #qpoint = guitool.newQPoint(event.x, height - event.y)
+                    #qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
                     #ibs = self.ibs
                     #is_exemplar = ibs.get_annot_exemplar_flags(aid)
                     #def context_func():
                     #    ibs.set_annot_exemplar_flags(aid, not is_exemplar)
                     #    self.show_page()
-                    #guitool.popup_menu(self.fig.canvas, pt, [
+                    #guitool_ibeis.popup_menu(self.fig.canvas, pt, [
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     #])
                     # TODO USE ABSTRACT INTERACTION
@@ -678,7 +684,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
-                #print(ut.dict_str(event.__dict__))
+                #print(ut.repr2(event.__dict__))
             elif viztype == 'matches':
                 self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
 

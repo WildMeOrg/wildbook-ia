@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="jumbotron" style="text-align: center; width: 500px; margin-left: auto; margin-right: auto;">
+    <h1>Login</h1>
+
+    <form action="{{ url_for('submit_login') }}?refer={{ refer }}" method="post" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
+
+        <div class="form-group" style="margin: 20px 0px;">
+
+            <label for="organization">Organization</label>
+            <br/>
+            <select id="organization" class="form-control" name="organization"></select>
+
+            <div id="organization-new">
+              <br/>
+              <label for="new_name_first">New Organization Name</label>
+              <br/>
+              <input type="text" name="new_organization" class="form-control" placeholder="Enter Organization Name">
+            </div>
+
+            <hr style="width: 100%; color: #ccc; height: 1px; background-color: #ccc;" />
+
+            <label for="name">User</label>
+            <br/>
+            <select id="name" class="form-control" name="name"></select>
+
+            <div id="name-new">
+              <br/>
+              <label for="new_name_first">New First Name</label>
+              <br/>
+              <input type="text" name="new_name_first" class="form-control" placeholder="Enter First Name">
+
+              <br/>
+
+              <label for="new_name_last">New Last Name</label>
+              <br/>
+              <input type="text" name="new_name_last" class="form-control" placeholder="Enter Last Name">
+            </div>
+
+            <br/>
+            <button id="submit" type="submit" class="btn btn-default pull-left" disabled>Login</button>
+            <br/>
+            <br/>
+            <small id="submitHelp" class="form-text text-muted" style="color: #999;"><i>A password is not required</i></small>
+        </div>
+    </form>
+  </div>
+{% endblock %}
+
+{% block content_custom_javascript %}
+  <script type="text/javascript" ia-dependency="javascript">
+      var existing = JSON.parse('{{ organization_dict_json|safe }}');
+
+      function ready() {
+        var value1 = $('#organization').find("option:selected").val();
+        var value2 = $('#name').find("option:selected").val();
+
+        if(value1 == "") {
+          return false;
+        }
+        if(value2 == "") {
+          return false;
+        }
+        if(value1 == "_new_") {
+          var value3 = $('input[name=new_organization]').val();
+          if(value3 == "") {
+            return false;
+          }
+        }
+        if(value2 == "_new_") {
+          var value3 = $('input[name=new_name_first]').val();
+          var value4 = $('input[name=new_name_last]').val();
+          if(value3 == "") {
+            return false;
+          }
+          if(value4 == "") {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function check_ready() {
+        var submit = $('button#submit');
+
+        if( ready() ) {
+          submit.prop('disabled', false);
+          submit.removeClass('btn-default');
+          submit.addClass('btn-primary');
+        }
+        else {
+          $('button#submit').prop('disabled', true);
+          submit.removeClass('btn-primary');
+          submit.addClass('btn-default');
+        }
+      }
+
+      function update_names(org) {
+        $('#name').find('option').remove();
+
+        $('#name').append($('<option>', {
+            value: "",
+            text: "Select Name",
+        }));
+
+        if (org in existing) {
+          value = existing[org]
+          names = value[1]
+
+          names.sort()
+
+          console.log(names)
+          for(var index in names) {
+            name = names[index]
+            $('#name').append($('<option>', {
+                value: name,
+                text: name,
+            }));
+          }
+        }
+
+        $('#name').append($('<option>', {
+            value: "_new_",
+            text: "New Name",
+        }));
+      }
+
+      function update_new(id) {
+        var value = $('#' + id).find("option:selected").val();
+        var element = $('#' + id + '-new')
+
+        if (value == '_new_') {
+          element.show();
+        }
+        else {
+          element.hide();
+        }
+      }
+
+      $(document).ready(function() {
+
+        $('#organization').append($('<option>', {
+            value: "",
+            text: "Select Organization",
+        }));
+
+        orgs = Object.keys(existing);
+        orgs.sort();
+
+        for(var index in orgs) {
+          var org = orgs[index]
+          var value = existing[org]
+          var nice = value[0]
+          var names = value[1]
+
+          $('#organization').append($('<option>', {
+              value: org,
+              text: nice,
+          }));
+        }
+
+        $('#organization').append($('<option>', {
+            value: "_new_",
+            text: "New Organization",
+        }));
+
+        $("select").change(function(e)
+        {
+          update_new('organization');
+          update_new('name');
+          check_ready();
+        });
+
+        $("select#organization").change(function(e)
+        {
+          var value = $(this).find("option:selected").val();
+          update_names(value);
+          update_new('name');
+        });
+
+        $("input").change(function(e)
+        {
+          check_ready();
+        });
+
+        $('#organization-new').hide();
+        $('#name-new').hide();
+        update_names(null);
+      });
+  </script>
+{% endblock %}

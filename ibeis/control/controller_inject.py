@@ -12,9 +12,10 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import sys
-import dtool
+import dtool_ibeis
 from datetime import timedelta
 from functools import update_wrapper
+import warnings
 from functools import wraps
 from os.path import abspath, join, dirname
 # import simplejson as json
@@ -29,20 +30,24 @@ import hmac
 from ibeis import constants as const
 import string
 import random
+import base64
 # <flask>
 # TODO: allow optional flask import
 try:
     import flask
-    from flask import request
+    from flask import session, request
     HAS_FLASK = True
 except Exception as ex:
     HAS_FLASK = False
-    ut.printex(ex, 'Missing flask', iswarning=True)
+    msg = ('Missing flask and/or Flask-session.\n'
+           'pip install Flask')
+    ut.printex(ex, msg, iswarning=True)
     if ut.STRICT:
         raise
 
 try:
-    from flask.ext.cors import CORS
+    #from flask.ext.cors import CORS
+    from flask_cors import CORS
     HAS_FLASK_CORS = True
 except Exception as ex:
     HAS_FLASK_CORS = False
@@ -52,12 +57,15 @@ except Exception as ex:
 
 
 try:
-    from flask.ext.cas import CAS
-    from flask.ext.cas import login_required
-    HAS_FLASK_CAS = True
+    from flask_cas import CAS
+    from flask_cas import login_required as login_required_cas
+    #from flask.ext.cas import CAS
+    #from flask.ext.cas import login_required
+    # HAS_FLASK_CAS = True
+    HAS_FLASK_CAS = False
 except Exception as ex:
     HAS_FLASK_CAS = False
-    login_required = ut.identity
+    login_required_cas = ut.identity
     msg = ('Missing flask.ext.cas.\n'
            'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
     ut.printex(ex, msg, iswarning=True)
@@ -66,7 +74,7 @@ except Exception as ex:
     if ut.SUPER_STRICT:
         raise
 # </flask>
-print, rrr, profile = ut.inject2(__name__, '[controller_inject]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #INJECTED_MODULES = []
@@ -76,7 +84,7 @@ UTOOL_AUTOGEN_SPHINX_RUNNING = not (
 GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
                       not ut.get_argflag('--no-flask') and HAS_FLASK)
 GLOBAL_APP_NAME = 'IBEIS'
-GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
+GLOBAL_APP_SECRET = os.urandom(64)
 
 GLOBAL_APP = None
 GLOBAL_CORS = None
@@ -91,7 +99,7 @@ REMOTE_PROXY_PORT = 5001
 CONTROLLER_CLASSNAME = 'IBEISController'
 
 
-def get_flask_app():
+def get_flask_app(templates_auto_reload=True):
     # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
@@ -116,6 +124,18 @@ def get_flask_app():
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
+
+        if ut.VERBOSE:
+            print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
+        GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
+
+        if templates_auto_reload:
+            GLOBAL_APP.config['TEMPLATES_AUTO_RELOAD'] = True
+        GLOBAL_APP.QUERY_OBJECT = None
+        GLOBAL_APP.QUERY_OBJECT_JOBID = None
+        GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []
+        GLOBAL_APP.GRAPH_CLIENT_DICT = {}
+
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
         if HAS_FLASK_CAS:
@@ -170,21 +190,69 @@ class WebMissingUUIDException(WebException):
         super(WebMissingUUIDException, self).__init__(message, rawreturn, code)
 
 
-class DuplicateUUIDException(WebException):
+class WebDuplicateUUIDException(WebException):
     def __init__(self, qdup_pos_map={}, ddup_pos_map={}):
         message = ('Some UUIDs are specified more than once at positions:\n'
                    'duplicate_data_uuids=%s\n'
                    'duplicate_query_uuids=%s\n') % (
                        ut.repr3(qdup_pos_map, nl=1),
                        ut.repr3(ddup_pos_map, nl=1))
-        qdup_pos_map_ = { str(k): v for k, v in qdup_pos_map.iteritems() }
-        ddup_pos_map_ = { str(k): v for k, v in ddup_pos_map.iteritems() }
+        qdup_pos_map_ = {str(k): v for k, v in qdup_pos_map.items()}
+        ddup_pos_map_ = {str(k): v for k, v in ddup_pos_map.items()}
         rawreturn = {
             'qdup_pos_map' : qdup_pos_map_,
             'ddup_pos_map' : ddup_pos_map_,
         }
         code = 601
-        super(DuplicateUUIDException, self).__init__(message, rawreturn, code)
+        super(WebDuplicateUUIDException, self).__init__(message, rawreturn, code)
+
+
+class WebUnknownUUIDException(WebException):
+    def __init__(self, unknown_uuid_type_list, unknown_uuid_list):
+        uuid_type_str = ', '.join(sorted(set(unknown_uuid_type_list)))
+        args = (uuid_type_str, len(unknown_uuid_list), )
+        message = 'Unknown %s UUIDs (%d)' % args
+        rawreturn = {
+            'unknown_uuid_type_list' : unknown_uuid_type_list,
+            'unknown_uuid_list' : unknown_uuid_list,
+        }
+        code = 602
+        super(WebUnknownUUIDException, self).__init__(message, rawreturn, code)
+
+
+class WebReviewNotReadyException(WebException):
+    def __init__(self, query_uuid):
+        args = (query_uuid, )
+        message = 'The query_uuid %r is not yet ready for review' % args
+        rawreturn = {
+            'query_uuid' : query_uuid,
+        }
+        code = 603
+        super(WebReviewNotReadyException, self).__init__(message, rawreturn, code)
+
+
+class WebUnavailableUUIDException(WebException):
+    def __init__(self, unavailable_annot_uuid_list, query_uuid):
+        self.query_uuid = query_uuid
+        args = (query_uuid, )
+        message = 'A running query %s is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.' % args
+        rawreturn = {
+            'unavailable_annot_uuid_list': unavailable_annot_uuid_list,
+            'query_uuid' : query_uuid,
+        }
+        code = 604
+        super(WebUnavailableUUIDException, self).__init__(message, rawreturn, code)
+
+
+class WebReviewFinishedException(WebException):
+    def __init__(self, query_uuid):
+        args = (query_uuid, )
+        message = 'The query_uuid %r has nothing more to review' % args
+        rawreturn = {
+            'query_uuid' : query_uuid,
+        }
+        code = 605
+        super(WebReviewFinishedException, self).__init__(message, rawreturn, code)
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
@@ -205,20 +273,30 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         },
         'response' : rawreturn
     }
-    response = ut.to_json(template)
+    try:
+        response = ut.to_json(template)
+    except:
+        ut.embed()
+
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
         response = '%s(%s)' % (jQuery_callback, response)
     return response
 
 
-def _process_input(multidict):
+def _process_input(multidict=None):
+    if multidict is None:
+        return {}
+    if isinstance(multidict, dict):
+        from werkzeug.datastructures import ImmutableMultiDict
+        multidict = ImmutableMultiDict([item for item in multidict.items()])
     kwargs2 = {}
-    for (arg, value) in multidict.iterlists():
+    for (arg, value) in multidict.lists():
         if len(value) > 1:
             raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
-        value = str(value[0])
-        if ',' in value and '[' not in value and ']' not in value:
+        # value = str(value[0])
+        value = value[0]
+        if ',' in value and '[' not in value and ']' not in value and '{' not in value and '}' not in value:
             value = '[%s]' % (value, )
         if value in ['True', 'False']:
             value = value.lower()
@@ -226,8 +304,13 @@ def _process_input(multidict):
             converted = ut.from_json(value)
         except Exception:
             # try making string and try again...
-            value = '"%s"' % (value, )
-            converted = ut.from_json(value)
+            try:
+                value_ = '"%s"' % (value, )
+                converted = ut.from_json(value_)
+            except Exception as ex:
+                print('FAILED TO JSON CONVERT: %s' % (ex, ))
+                print(ut.repr3(value))
+                converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
             if isinstance(converted, str) and ',' in converted:
                 converted = converted.strip().split(',')
@@ -263,7 +346,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.controller_inject import *  # NOQA
         >>> import ibeis
         >>> import time
@@ -289,7 +372,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             args = tuple()
             kwargs = dict()
     """
-    #print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
     print('[TRANSLATE] Calling: %s' % (funcstr,))
@@ -323,9 +406,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
 
 
 def authentication_challenge():
-    """
-    Sends a 401 response that enables basic auth
-    """
+    """Sends a 401 response that enables basic auth."""
     rawreturn = ''
     success = False
     code = 401
@@ -368,7 +449,25 @@ def create_key():
 
 
 def get_signature(key, message):
-    return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
+    def encode(x):
+        if not isinstance(x, bytes):
+            x = bytes(x, 'utf-8')
+        return x
+
+    def decode(x):
+        return x.decode('utf-8')
+
+    if six.PY3:
+        key = encode(key)
+        message = encode(message)
+
+    signature = hmac.new(key, message, sha1)
+    signature = signature.digest()
+    signature = base64.b64encode(signature)
+    signature = decode(signature)
+    signature = str(signature)
+    signature = signature.strip()
+    return signature
 
 
 def get_url_authorization(url):
@@ -489,18 +588,49 @@ def remote_api_wrapper(func):
     return remote_api_call
 
 
+API_SEEN_SET = set([])
+
+
 def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
-    """
-    For function calls that resolve to api calls and return json.
-    """
+    """For function calls that resolve to api calls and return json."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_api(rule, **options):
-            assert rule.endswith('/'), 'An api should always end in a forward-slash'
+        def register_api(rule, __api_plural_check__=True, **options):
+            global API_SEEN_SET
+            assert rule.endswith('/'), 'An API should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
-            # if '_' in rule:
-            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
+            rule_ = rule + ':'.join(options['methods'])
+            if rule_ in API_SEEN_SET:
+                msg = 'An API rule has been duplicated'
+                warnings.warn(msg + '. Ignoring duplicate (may break web)')
+                return ut.identity
+                # raise AssertionError(msg)
+            API_SEEN_SET.add(rule_)
+            try:
+                assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
+                assert 'imgset' not in rule, 'An API should use "imageset" instead of imgset(s)"'
+                assert '_' not in rule, 'An API should never contain an underscore'
+                assert '-' not in rule, 'An API should never contain a hyphen'
+                if __api_plural_check__:
+                    assert 's/' not in rule, 'Use singular (non-plural) URL routes'
+                check_list = [
+                    'annotgroup',
+                    'autogen',
+                    'chip',
+                    'config',
+                    #'contributor',
+                    'gar',
+                    'metadata',
+                ]
+                for check in check_list:
+                    assert '/api/%s/' % (check, ) not in rule, 'failed check=%r' % (check,)
+            except:
+                iswarning = not ut.SUPER_STRICT
+                ut.printex('CONSIDER RENAMING API RULE: %r' % (rule, ),
+                           iswarning=iswarning, tb=True)
+                if not iswarning:
+                    raise
 
             # accpet args to flask.route
             def regsiter_closure(func):
@@ -526,8 +656,14 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
+                        try:
+                            # kwargs4 = _process_input(flask.request.get_json())
+                            kwargs4 = ut.from_json(flask.request.data)
+                        except:
+                            kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
+                        kwargs.update(kwargs4)
                         jQuery_callback = None
                         if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
                             jQuery_callback = str(kwargs.pop('callback', None))
@@ -619,18 +755,72 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
         return ut.dummy_args_decor
 
 
+def authenticated():
+    return get_user(username=None) is not None
+
+
+def authenticate(username, **kwargs):
+    get_user(username=username, **kwargs)
+
+
+def deauthenticate():
+    get_user(username=False)
+
+
+def get_user(username=None, name=None, organization=None):
+    USER_KEY = '_USER_'
+
+    if USER_KEY not in session:
+        session[USER_KEY] = None
+
+    if username is not None:
+        if username in [False]:
+            # De-authenticate
+            session[USER_KEY] = None
+        else:
+            # Authenticate
+            assert isinstance(username, six.string_types), 'user must be a string'
+            username = username.lower()
+            session[USER_KEY] = {
+                'username'     : username,
+                'name'         : name,
+                'organization' : organization,
+            }
+
+    return session[USER_KEY]
+
+
+def login_required_session(function):
+    @wraps(function)
+    def wrap(*args, **kwargs):
+        if not authenticated():
+            from ibeis.web import appfuncs as appf
+            refer = flask.request.url.replace(flask.request.url_root, '')
+            refer = appf.encode_refer_url(refer)
+            return flask.redirect(flask.url_for('login', refer=refer))
+        else:
+            return function(*args, **kwargs)
+    return wrap
+
+
 def get_ibeis_flask_route(__name__):
-    """
-    For function calls that resolve to webpages and return html
-    """
+    """For function calls that resolve to webpages and return html."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_route(rule, __api_prefix_check__=True, **options):
-            if __api_prefix_check__:
+        def register_route(rule,
+                           __route_prefix_check__=True,
+                           __route_postfix_check__=True,
+                           __route_authenticate__=True,
+                           **options):
+            if __route_prefix_check__:
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
-            assert rule.endswith('/'), 'A route should always end in a forward-slash'
+            else:
+                __route_authenticate__ = False
+            if __route_postfix_check__:
+                assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert 'methods' in options, 'A route should always have a specified methods list'
+
             # if '_' in rule:
             #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
             # accpet args to flask.route
@@ -638,14 +828,39 @@ def get_ibeis_flask_route(__name__):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
+
+                login_required = login_required_cas if HAS_FLASK_CAS else login_required_session
+
+                if not __route_authenticate__:
+                    login_required = ut.identity
+
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')
                 # @authentication_user_only
-                # @login_required  # FLASK CAS Authentication
+                @login_required
                 @wraps(func)
                 def translated_call(**kwargs):
                     #debug = {'kwargs': kwargs}
                     try:
+                        # Pipe web input into Python web call
+                        kwargs2 = _process_input(flask.request.args)
+                        kwargs3 = _process_input(flask.request.form)
+                        try:
+                            # kwargs4 = _process_input(flask.request.get_json())
+                            kwargs4 = ut.from_json(flask.request.data)
+                        except:
+                            kwargs4 = {}
+                        kwargs.update(kwargs2)
+                        kwargs.update(kwargs3)
+                        kwargs.update(kwargs4)
+                        jQuery_callback = None
+                        if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
+                            jQuery_callback = str(kwargs.pop('callback', None))
+                            kwargs.pop('_', None)
+
+                        args = ()
+                        print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+
                         result = func(**kwargs)
                     except Exception as ex:
                         rawreturn = str(traceback.format_exc())
@@ -700,8 +915,8 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
     print('[REMOTE] \tMethod:  %r' % (remote_api_method, ))
     if ut.DEBUG2 or ut.VERBOSE:
-        print('[REMOTE] \tHeaders: %s' % (ut.dict_str(headers), ))
-        print('[REMOTE] \tKWArgs:  %s' % (ut.dict_str(kwargs), ))
+        print('[REMOTE] \tHeaders: %s' % (ut.repr2(headers), ))
+        print('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs), ))
 
     # Make request to server
     try:
@@ -760,11 +975,10 @@ def dev_autogen_explicit_injects():
         >>> dev_autogen_explicit_injects()
     """
     import ibeis  # NOQA
+    import ibeis.control.IBEISControl
     classname = CONTROLLER_CLASSNAME
     regen_command = (
-        'python -m ibeis.control.controller_inject '
-        '--exec-dev_autogen_explicit_injects')
-    import ibeis.control.IBEISControl
+        'python -m ibeis dev_autogen_explicit_injects')
     conditional_imports = [
         modname for modname in ibeis.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
         if isinstance(modname, tuple)
@@ -773,13 +987,11 @@ def dev_autogen_explicit_injects():
         classname, regen_command, conditional_imports)
     dpath = ut.get_module_dir(ibeis.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
-    ut.writeto(fpath, source_block)
+    ut.writeto(fpath, source_block, verbose=2)
 
 
 def make_ibs_register_decorator(modname):
-    """
-    builds variables and functions that controller injectable modules need
-    """
+    """builds variables and functions that controller injectable modules need."""
     if __name__ == '__main__':
         print('WARNING: cannot register controller functions as main')
     CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)
@@ -799,16 +1011,19 @@ def make_ibs_register_decorator(modname):
         return func
     return CLASS_INJECT_KEY, register_ibs_method
 
-_decors_annot = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-_decors_image = dtool.make_depcache_decors(const.IMAGE_TABLE)
+_decors_image = dtool_ibeis.make_depcache_decors(const.IMAGE_TABLE)
+_decors_annot = dtool_ibeis.make_depcache_decors(const.ANNOTATION_TABLE)
+_decors_part  = dtool_ibeis.make_depcache_decors(const.PART_TABLE)
 
 register_preprocs = {
-    'annot' : _decors_annot['preproc'],
     'image' : _decors_image['preproc'],
+    'annot' : _decors_annot['preproc'],
+    'part'  : _decors_part['preproc'],
 }
 register_subprops = {
-    'annot' : _decors_annot['subprop'],
     'image' : _decors_image['subprop'],
+    'annot' : _decors_annot['subprop'],
+    'part'  : _decors_part['subprop'],
 }
 
 

@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init package &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.init package &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.other package" href="ibeis.other.html"/>
         <link rel="prev" title="ibeis.gui package" href="ibeis.gui.html"/> 
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -82,7 +88,11 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
@@ -90,13 +100,11 @@
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.init package</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ibeis.init package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ibeis-init-grave-module">ibeis.init._grave module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init.filter_annots">ibeis.init.filter_annots module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init.main_commands">ibeis.init.main_commands module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init.main_helpers">ibeis.init.main_helpers module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init.old_main_helpers">ibeis.init.old_main_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init.sysres">ibeis.init.sysres module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.init">Module contents</a></li>
 </ul>
@@ -113,19 +121,19 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._ibeis_object">ibeis._ibeis_object module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annots">ibeis.annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_parts">ibeis.core_parts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.images">ibeis.images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -141,8 +149,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ibeis</a>
+        
       </nav>
 
 
@@ -155,21 +165,38 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
           <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
-      
-    <li>ibeis.init package</li>
+        
+      <li>ibeis.init package</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/ibeis.init.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/ibeis.init.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -180,19 +207,113 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ibeis-init-grave-module">
-<h2>ibeis.init._grave module<a class="headerlink" href="#ibeis-init-grave-module" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-ibeis.init.filter_annots">
 <span id="ibeis-init-filter-annots-module"></span><h2>ibeis.init.filter_annots module<a class="headerlink" href="#module-ibeis.init.filter_annots" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.init.filter_annots.annot_crossval">
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">annot_crossval</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>n_qaids_per_name=1</em>, <em>n_daids_per_name=1</em>, <em>rng=None</em>, <em>debug=True</em>, <em>n_splits=None</em>, <em>confusors=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#annot_crossval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.annot_crossval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stratified sampling per name size</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n_splits</strong> (<em>int</em>) – number of query/database splits to create.
+note, some names may not be big enough to split this many times.</td>
+</tr>
+</tbody>
+</table>
 <dl class="docutils">
-<dt>TODO:</dt>
-<dd><ul class="first last simple">
-<li>cross validation</li>
-<li>encounter vs database (time filtering)</li>
-</ul>
-</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.filter_annots annot_crossval</dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_qaids_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_daids_per_name</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_splits</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">annot_crossval</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">n_qaids_per_name</span><span class="p">,</span> <span class="n">n_daids_per_name</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">n_splits</span><span class="p">,</span> <span class="n">confusors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;expanded_aids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.init.filter_annots.crossval_helper">
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">crossval_helper</code><span class="sig-paren">(</span><em>nid_to_sample_pool</em>, <em>perquery</em>, <em>perdatab</em>, <em>n_need</em>, <em>n_splits=None</em>, <em>rng=None</em>, <em>rebalance=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#crossval_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.crossval_helper" title="Permalink to this definition">¶</a></dt>
+<dd><p>does sampling based on some grouping (or no grouping) of annots</p>
+<p>perquery = 2
+perdatab = 2</p>
+<dl class="docutils">
+<dt>nid_to_sample_pool = {</dt>
+<dd>1: [1, 2, 3, 4],
+2: [6, 7, 8, 9],</dd>
+</dl>
+<p>}</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.init.filter_annots.encounter_crossval">
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">encounter_crossval</code><span class="sig-paren">(</span><em>ibs</em>, <em>aids</em>, <em>qenc_per_name=1</em>, <em>denc_per_name=1</em>, <em>enc_labels=None</em>, <em>confusors=True</em>, <em>rng=None</em>, <em>annots_per_enc=None</em>, <em>rebalance=True</em>, <em>n_splits=None</em>, <em>early=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#encounter_crossval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.encounter_crossval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a list of [ (qaids, daids) ] where there are <cite>qenc_per_name</cite> and
+<cite>denc_per_name</cite> for each individual in the datasets respectively.
+<cite>enc_labels</cite> specifies custom encounter labels.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.filter_annots encounter_crossval</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs, aids = ibeis.testdata_aids(</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    defaultdb=&#39;WWF_Lynx_Copy&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    a=&#39;default:minqual=good,require_timestamp=True,view=left&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                <span class="n">a</span><span class="o">=</span><span class="s1">&#39;default:require_timestamp=True&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qenc_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">denc_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">confusors</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;denc_per_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">denc_per_name</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qenc_per_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qenc_per_name</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_splits</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">encounter_crossval</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">qenc_per_name</span><span class="o">=</span><span class="n">qenc_per_name</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">denc_per_name</span><span class="o">=</span><span class="n">denc_per_name</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">confusors</span><span class="o">=</span><span class="n">confusors</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ensure stats agree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">per_vp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">per_multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">combo_dists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>               <span class="n">per_name</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_hist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">stats</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">del</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;confusor_daid_stats&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strkeys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">denc_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;matchable_daid_stats&#39;</span><span class="p">][</span><span class="s1">&#39;denc_per_name&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">qenc_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;qaid_stats&#39;</span><span class="p">][</span><span class="s1">&#39;qenc_per_name&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">denc_per_name</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">qenc_per_name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restore state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">unmonkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#qaids, daids = expanded_aids[0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.init.filter_annots.ensure_flatiterable">
 <code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">ensure_flatiterable</code><span class="sig-paren">(</span><em>input_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#ensure_flatiterable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.ensure_flatiterable" title="Permalink to this definition">¶</a></dt>
@@ -214,17 +335,21 @@ built from command line argumetns</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>aidcfg</strong> (<em>dict</em>) &#8211; configuration of the annotation filter</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag(default = False)</li>
-<li><strong>use_cache</strong> (<em>bool</em>) &#8211; turns on disk based caching(default = None)</li>
-<li><strong>hack_exclude_keys</strong> (<em>None</em>) &#8211; (default = None)</li>
-<li><strong>initial_aids</strong> (<em>None</em>) &#8211; (default = None)</li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>aidcfg</strong> (<em>dict</em>) – configuration of the annotation filter</li>
+<li><strong>verbose</strong> (<em>bool</em>) – verbosity flag(default = False)</li>
+<li><strong>use_cache</strong> (<em>bool</em>) – turns on disk based caching(default = None)</li>
+<li><strong>hack_exclude_keys</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>initial_aids</strong> (<em>None</em>) – (default = None)</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">expanded_aids=(qaid_list, daid_list) - expanded list of aids
-that meet the criteria of the aidcfg filter</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>expanded_aids=(qaid_list, daid_list) - expanded list of aids</dt>
+<dd><p class="first last">that meet the criteria of the aidcfg filter</p>
+</dd>
+</dl>
+</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
@@ -233,86 +358,42 @@ that meet the criteria of the aidcfg filter</p>
 </tbody>
 </table>
 <dl class="docutils">
-<dt>TODO:</dt>
-<dd><p class="first">The database should be created first in most circumstances, then
-the queries should be filtered to meet the database restrictions?
-I&#8217;m not sure Sometimes you need to set the query aids constant, but
-sometimes you need to set the data aids constant. Seems to depend.</p>
-<p>This function very much needs the idea of filter chains</p>
-<dl class="last docutils">
-<dt>OkNewIdea:</dt>
-<dd><dl class="first last docutils">
-<dt>3 filters:</dt>
-<dd><ul class="first last simple">
-<li>Common sampling - takes care of things like min time delta,</li>
-<li>species, quality viewpoint etc.</li>
-<li>query sampling</li>
-<li>database sampling</li>
-</ul>
-</dd>
-<dt>Basic idea is</dt>
-<dd><ul class="first last simple">
-<li>Sample large pool</li>
-<li>Partition pool into query and database</li>
-</ul>
-</dd>
-<dt>Requires:</dt>
-<dd><ul class="first last simple">
-<li>base sampling params</li>
-<li>partition1 params</li>
-<li>partition2 params</li>
-<li>inter partition params?</li>
-</ul>
-</dd>
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis.dev -e print_acfg  -a timectrl:qsize=10,dsize=10  –db PZ_MTEST –veryverbtd –nocache-aid
+python -m ibeis.dev -e print_acfg  -a timectrl:qminqual=good,qsize=10,dsize=10  –db PZ_MTEST –veryverbtd –nocache-aid</p>
+<p>python -m ibeis.dev -e print_acfg  -a timectrl –db PZ_MTEST –verbtd –nocache-aid
+python -m ibeis.dev -e print_acfg  -a timectrl –db PZ_Master1 –verbtd –nocache-aid
+python -m ibeis.dev -e print_acfg  -a timequalctrl –db PZ_Master1 –verbtd –nocache-aid</p>
+<p>python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=10,dper_name=2 -t default –db PZ_MTEST
+python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=20,dper_name=2 -t default –db PZ_MTEST
+python -m ibeis.dev -e print      -a controlled:qsize=10,dsize=10             -t default –db PZ_MTEST –verbtd –nocache-aid</p>
+<p>python -m ibeis.dev -e latexsum -t candinvar -a viewpoint_compare  –db NNP_Master3 –acfginfo
+utprof.py -m ibeis.dev -e print -t candk -a varysize  –db PZ_MTEST –acfginfo
+utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  –db PZ_Master0 –acfginfo</p>
+<p>python -m ibeis –tf get_annotcfg_list:0 –db NNP_Master3 -a viewpoint_compare –nocache-aid –verbtd</p>
+<dl class="docutils">
+<dt>python -m ibeis –tf get_annotcfg_list  –db PZ_Master1 </dt>
+<dd>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) –acfginfo –veryverbtd  –veryverbtd</dd>
+<dt>python -m ibeis –tf draw_rank_cmc –db PZ_Master1 –show -t best </dt>
+<dd>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) –acfginfo –veryverbtd</dd>
 </dl>
+<p class="last">python -m ibeis –tf get_annotcfg_list  –db Oxford -a default:qhas_any=(query,),dpername=2,exclude_reference=True –acfginfo –verbtd  –veryverbtd –nocache-aid</p>
 </dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.filter_annots –exec-expand_acfgs –show</dd>
 </dl>
-</dd>
-</dl>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dev -e print_acfg  -a timectrl:qsize<span class="o">=</span>10,dsize<span class="o">=</span><span class="m">10</span>  --db PZ_MTEST --veryverbtd --nocache-aid
-python -m ibeis.dev -e print_acfg  -a timectrl:qminqual<span class="o">=</span>good,qsize<span class="o">=</span>10,dsize<span class="o">=</span><span class="m">10</span>  --db PZ_MTEST --veryverbtd --nocache-aid
-
-python -m ibeis.dev -e print_acfg  -a timectrl --db PZ_MTEST --verbtd --nocache-aid
-python -m ibeis.dev -e print_acfg  -a timectrl --db PZ_Master1 --verbtd --nocache-aid
-python -m ibeis.dev -e print_acfg  -a timequalctrl --db PZ_Master1 --verbtd --nocache-aid
-
-python -m ibeis.dev -e rank_cdf   -a controlled:qsize<span class="o">=</span>10,dsize<span class="o">=</span>10,dper_name<span class="o">=</span><span class="m">2</span> -t default --db PZ_MTEST
-python -m ibeis.dev -e rank_cdf   -a controlled:qsize<span class="o">=</span>10,dsize<span class="o">=</span>20,dper_name<span class="o">=</span><span class="m">2</span> -t default --db PZ_MTEST
-python -m ibeis.dev -e print      -a controlled:qsize<span class="o">=</span>10,dsize<span class="o">=</span><span class="m">10</span>             -t default --db PZ_MTEST --verbtd --nocache-aid
-
-python -m ibeis.dev -e latexsum -t candinvar -a viewpoint_compare  --db NNP_Master3 --acfginfo
-utprof.py -m ibeis.dev -e print -t candk -a varysize  --db PZ_MTEST --acfginfo
-utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo
-
-python -m ibeis --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-
-python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 <span class="se">\</span>
-    -a timectrl:qhas_any<span class="o">=</span><span class="se">\(</span>needswork,correctable,mildviewpoint<span class="se">\)</span>,qhas_none<span class="o">=</span><span class="se">\(</span>viewpoint,photobomb,error:viewpoint,quality<span class="se">\)</span> <span class="se">\</span>
-    --acfginfo --veryverbtd  --veryverbtd
-python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best <span class="se">\</span>
-    -a timectrl:qhas_any<span class="o">=</span><span class="se">\(</span>needswork,correctable,mildviewpoint<span class="se">\)</span>,qhas_none<span class="o">=</span><span class="se">\(</span>viewpoint,photobomb,error:viewpoint,quality<span class="se">\)</span> <span class="se">\</span>
-    --acfginfo --veryverbtd
-
-python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any<span class="o">=</span><span class="se">\(</span>query,<span class="se">\)</span>,dpername<span class="o">=</span>2,exclude_reference<span class="o">=</span>True --acfginfo --verbtd  --veryverbtd --nocache-aid
-</pre></div>
-</div>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.filter_annots --exec-expand_acfgs --show
-</pre></div>
-</div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;qcfg&#39;</span><span class="p">][</span><span class="s1">&#39;species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;primary&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[1, 2, 3, 4, 5, 6],</span>
 <span class="go">[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],</span>
 </pre></div>
@@ -321,18 +402,43 @@ python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any<span cla
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.expand_acfgs_consistently">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">expand_acfgs_consistently</code><span class="sig-paren">(</span><em>ibs</em>, <em>acfg_combo</em>, <em>initial_aids=None</em>, <em>use_cache=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#expand_acfgs_consistently"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.expand_acfgs_consistently" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">expand_acfgs_consistently</code><span class="sig-paren">(</span><em>ibs</em>, <em>acfg_combo</em>, <em>initial_aids=None</em>, <em>use_cache=None</em>, <em>verbose=None</em>, <em>base=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#expand_acfgs_consistently"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.expand_acfgs_consistently" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expands a set of configurations such that they are comparable</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf parse_acfg_combo_list                  -a varysize
-ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
-<span class="c1">#ibeis --tf get_annotcfg_list --db lynx -a default:hack_imageset=True</span>
-ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize<span class="o">=</span>None
-ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
-ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
-ibeis --tf get_annotcfg_list --db PZ_Master0 --verbtd                 --nofilter-dups -a varysize
-ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare                 --verbtd --nofilter-dups
-ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd                 --nofilter-dups
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis –tf parse_acfg_combo_list                  -a varysize
+ibeis –tf get_annotcfg_list –db PZ_Master1 -a varysize
+#ibeis –tf get_annotcfg_list –db lynx -a default:hack_imageset=True
+ibeis –tf get_annotcfg_list –db PZ_Master1 -a varysize:qsize=None
+ibeis –tf get_annotcfg_list –db PZ_Master0 –nofilter-dups  -a varysize
+ibeis –tf get_annotcfg_list –db PZ_MTEST -a varysize –nofilter-dups
+ibeis –tf get_annotcfg_list –db PZ_Master0 –verbtd                 –nofilter-dups -a varysize
+ibeis –tf get_annotcfg_list –db PZ_Master1 -a viewpoint_compare                 –verbtd –nofilter-dups
+ibeis –tf get_annotcfg_list -a timectrl –db GZ_Master1 –verbtd                 –nofilter-dups</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt.experiment_helpers</span> <span class="k">import</span> <span class="n">parse_acfg_combo_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#acfg_name_list = [&#39;timectrl:dpername=[1,2]&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default:crossval_enc=True,require_timestamp=True&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="n">parse_acfg_combo_list</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_combo</span> <span class="o">=</span> <span class="n">acfg_combo_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids_combo_list</span> <span class="o">=</span> <span class="n">expand_acfgs_consistently</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_combo</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restore state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">unmonkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids_combo_list</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -356,9 +462,9 @@ ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd               
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
-<li><strong>filter_kw</strong> &#8211; </li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>aid_list</strong> (<em>list</em>) – list of annotation rowids</li>
+<li><strong>filter_kw</strong> – </li>
 </ul>
 </td>
 </tr>
@@ -375,37 +481,37 @@ any_startswith_annotmatch, been_adjusted, any_endswith_annot,
 require_viewpoint, logic, has_any_annot, min_num_annotmatch, min_num,
 min_num_annot, has_all_annot, has_none, min_pername,
 any_endswith_annotmatch, any_endswith, require_timestamp, none_match,
-contrib_contains, has_all_annotmatch, logic_annotmatch, min_numfeat,
+contributor_contains, has_all_annotmatch, logic_annotmatch, min_numfeat,
 none_match_annot, view_ext1, view_ext2, max_num, has_none_annot,
 minqual, view</dd>
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis –tf filter_annots_general
+python -m ibeis –tf filter_annots_general –db PZ_Master1 </p>
+<blockquote>
+<div>–has_any=[needswork,correctable,mildviewpoint] –has_none=[viewpoint,photobomb,error:viewpoint,quality] –show</div></blockquote>
+<dl class="last docutils">
+<dt>python -m ibeis –tf filter_annots_general –db=GZ_Master1  </dt>
+<dd>–max-numfeat=300 –show –minqual=junk –species=None</dd>
+<dt>python -m ibeis –tf filter_annots_general –db=lynx </dt>
+<dd>–been_adjusted=True</dd>
 </dl>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf filter_annots_general
-python -m ibeis --tf filter_annots_general --db PZ_Master1 <span class="se">\</span>
-        --has_any<span class="o">=[</span>needswork,correctable,mildviewpoint<span class="o">]</span> <span class="se">\</span>
-        --has_none<span class="o">=[</span>viewpoint,photobomb,error:viewpoint,quality<span class="o">]</span> --show
-
-python -m ibeis --tf filter_annots_general --db<span class="o">=</span>GZ_Master1  <span class="se">\</span>
-        --max-numfeat<span class="o">=</span><span class="m">300</span> --show --minqual<span class="o">=</span>junk --species<span class="o">=</span>None
-python -m ibeis --tf filter_annots_general --db<span class="o">=</span>lynx <span class="se">\</span>
-        --been_adjusted<span class="o">=</span>True
-</pre></div>
-</div>
+</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">get_default_annot_filter_form</span><span class="p">(),</span>
 <span class="gp">&gt;&gt;&gt; </span>                             <span class="n">type_hint</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                                                <span class="n">has_none</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                                                <span class="n">logic</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;filter_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;filter_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#filter_kw = dict(is_known=True, min_num=1, has_any=&#39;viewpoint&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#filter_kw = dict(is_known=True, min_num=1, any_match=&#39;.*error.*&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">filter_annots_general</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(aid_list_) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(aid_list_) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">all_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_all_tags</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filtered_tag_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">all_tags</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">filtered_tag_hist</span><span class="p">,</span> <span class="n">key_order_metric</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
@@ -420,19 +526,19 @@ python -m ibeis --tf filter_annots_general --db<span class="o">=</span>lynx <spa
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.filter_annots_independent">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">filter_annots_independent</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=u''</em>, <em>verbose=False</em>, <em>withpre=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#filter_annots_independent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.filter_annots_independent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filtering that doesn&#8217;t have to do with a reference set of aids</p>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">filter_annots_independent</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=''</em>, <em>verbose=False</em>, <em>withpre=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#filter_annots_independent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.filter_annots_independent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filtering that doesn’t have to do with a reference set of aids</p>
 <p>TODO make filterflags version</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>avail_aids</strong> (<em>list</em>) &#8211; </li>
-<li><strong>aidcfg</strong> (<em>dict</em>) &#8211; </li>
-<li><strong>prefix</strong> (<em>str</em>) &#8211; (default = &#8216;&#8217;)</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag(default = False)</li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>avail_aids</strong> (<em>list</em>) – </li>
+<li><strong>aidcfg</strong> (<em>dict</em>) – </li>
+<li><strong>prefix</strong> (<em>str</em>) – (default = ‘’)</li>
+<li><strong>verbose</strong> (<em>bool</em>) – verbosity flag(default = False)</li>
 </ul>
 </td>
 </tr>
@@ -444,46 +550,56 @@ python -m ibeis --tf filter_annots_general --db<span class="o">=</span>lynx <spa
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf filter_annots_independent --veryverbtd
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis –tf filter_annots_independent –veryverbtd</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">input_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;dcfg&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_quality&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;is_known&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_quality&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;is_known&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                                       <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;avail_aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd><p class="first"># Testing tag features
+python -m ibeis –tf draw_rank_cmc –db PZ_Master1 –show -t best </p>
+<blockquote class="last">
+<div>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) —acfginfo –veryverbtd</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.filter_annots_intragroup">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">filter_annots_intragroup</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=u''</em>, <em>verbose=False</em>, <em>withpre=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#filter_annots_intragroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.filter_annots_intragroup" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">filter_annots_intragroup</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=''</em>, <em>verbose=False</em>, <em>withpre=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#filter_annots_intragroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.filter_annots_intragroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>This filters annots using information about the relationships
-between the annotations in the <code class="docutils literal"><span class="pre">avail_aids</span></code> group. This function is not
+between the annotations in the <code class="docutils literal notranslate"><span class="pre">avail_aids</span></code> group. This function is not
 independent and a second consecutive call may yield new results.
 Thus, the order in which this filter is applied matters.</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>ibeis --tf get_annotcfg_list <span class="se">\</span>
-        -a default:qsame_imageset<span class="o">=</span>True,been_adjusted<span class="o">=</span>True,excluderef<span class="o">=</span>True <span class="se">\</span>
-        --db lynx --veryverbtd --nocache-aid
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><dl class="first last docutils">
+<dt>ibeis –tf get_annotcfg_list </dt>
+<dd>-a default:qsame_imageset=True,been_adjusted=True,excluderef=True –db lynx –veryverbtd –nocache-aid</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
 </pre></div>
 </div>
@@ -497,25 +613,23 @@ Thus, the order in which this filter is applied matters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>aid_list</strong> (<em>list</em>) – list of annotation rowids</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf filterannots_by_tags
-utprof.py -m ibeis --tf filterannots_by_tags
-</pre></div>
-</div>
 <dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis –tf filterannots_by_tags
+utprof.py -m ibeis –tf filterannots_by_tags</dd>
 <dt>SeeAlso:</dt>
 <dd>filter_annotmatch_by_tags</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
@@ -524,7 +638,7 @@ utprof.py -m ibeis --tf filterannots_by_tags
 <span class="gp">&gt;&gt;&gt; </span><span class="n">min_num</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--min_num&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">has_any</span><span class="o">=</span><span class="n">has_any</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">filterannots_by_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid_list_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list_</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid_list_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list_</span><span class="p">,))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># TODO: show special annot group in GUI</span>
@@ -548,16 +662,16 @@ utprof.py -m ibeis --tf filterannots_by_tags
 <dt id="ibeis.init.filter_annots.get_default_annot_filter_form">
 <code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">get_default_annot_filter_form</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#get_default_annot_filter_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.get_default_annot_filter_form" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns dictionary containing defaults for all valid filter parameters</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf get_default_annot_filter_form
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis –tf get_default_annot_filter_form</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="n">get_default_annot_filter_form</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filter_kw</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filter_kw</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -585,20 +699,20 @@ utprof.py -m ibeis --tf filterannots_by_tags
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.sample_annots">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">sample_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=u''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#sample_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.sample_annots" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">sample_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>prefix=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#sample_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.sample_annots" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sampling preserves input sample structure and thust does not always return
 exact values</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf sample_annots --veryverbtd
-
-python -m ibeis --tf get_annotcfg_list --db seaturtles             -a default:qhas_any<span class="o">=</span><span class="se">\(</span>left,right<span class="se">\)</span>,sample_occur<span class="o">=</span>True,exclude_reference<span class="o">=</span>True,sample_offset<span class="o">=</span>0,num_names<span class="o">=</span><span class="m">1</span> --acfginfo
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis –tf sample_annots –veryverbtd</p>
+<p class="last">python -m ibeis –tf get_annotcfg_list –db seaturtles             -a default:qhas_any=(left,right),sample_occur=True,exclude_reference=True,sample_offset=0,num_names=1 –acfginfo</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">input_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;dcfg&#39;</span><span class="p">])</span>
@@ -606,34 +720,34 @@ python -m ibeis --tf get_annotcfg_list --db seaturtles             -a default:qh
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                                       <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                           <span class="n">prefix</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;avail_aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span> <span class="o">=</span> <span class="s1">&#39;seaturtles&#39;</span>  <span class="c1"># &#39;testdb1&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">)[</span><span class="s1">&#39;qcfg&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_occur&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_occur&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">withpre</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">withpre</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">initial_aids</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;has_any&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]},</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">initial_aids</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref_aids</span> <span class="o">=</span> <span class="n">qaids</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dcfg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exclude_reference</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sample_occur</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dcfg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exclude_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample_occur</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">sample_annots_wrt_ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">initial_aids</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">enc_per_name</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">enc_per_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -646,14 +760,26 @@ python -m ibeis --tf get_annotcfg_list --db seaturtles             -a default:qh
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.sample_annots_wrt_ref">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">sample_annots_wrt_ref</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>ref_aids</em>, <em>prefix=u''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#sample_annots_wrt_ref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.sample_annots_wrt_ref" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">sample_annots_wrt_ref</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>ref_aids</em>, <em>prefix=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#sample_annots_wrt_ref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.sample_annots_wrt_ref" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sampling when a reference set is given</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.filter_annots.subindex_annots">
-<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">subindex_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>ref_aids=None</em>, <em>prefix=u''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#subindex_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.subindex_annots" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">subindex_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>avail_aids</em>, <em>aidcfg</em>, <em>ref_aids=None</em>, <em>prefix=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#subindex_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.subindex_annots" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns exact subindex of annotations</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.init.filter_annots.time_filter_annots">
+<code class="descclassname">ibeis.init.filter_annots.</code><code class="descname">time_filter_annots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/filter_annots.html#time_filter_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.filter_annots.time_filter_annots" title="Permalink to this definition">¶</a></dt>
+<dd><p>python -m ibeis.init.filter_annots time_filter_annots             –db PZ_Master1 -a ctrl:qmingt=2 –profile</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">time_filter_annots</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -671,20 +797,14 @@ python -m ibeis --tf get_annotcfg_list --db seaturtles             -a default:qh
 <dt id="ibeis.init.main_commands.postload_commands">
 <code class="descclassname">ibeis.init.main_commands.</code><code class="descname">postload_commands</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_commands.html#postload_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_commands.postload_commands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Postload commands deal with a specific ibeis database</p>
-<p>ibeis &#8211;db PZ_MTEST &#8211;occur &#8220;<a href="#id1"><span class="problematic" id="id2">*</span></a>All Images&#8221; &#8211;query 1
-ibeis &#8211;db PZ_MTEST &#8211;occur &#8220;<a href="#id3"><span class="problematic" id="id4">*</span></a>All Images&#8221; &#8211;query-intra</p>
+<p>ibeis –db PZ_MTEST –occur “<a href="#id1"><span class="problematic" id="id2">*</span></a>All Images” –query 1
+ibeis –db PZ_MTEST –occur “<a href="#id3"><span class="problematic" id="id4">*</span></a>All Images” –query-intra</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.main_commands.preload_commands">
 <code class="descclassname">ibeis.init.main_commands.</code><code class="descname">preload_commands</code><span class="sig-paren">(</span><em>dbdir</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_commands.html#preload_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_commands.preload_commands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Preload commands work with command line arguments and global caches</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.main_commands.preload_convert_hsdb">
-<code class="descclassname">ibeis.init.main_commands.</code><code class="descname">preload_convert_hsdb</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_commands.html#preload_convert_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_commands.preload_convert_hsdb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the database before loading (A bit hacky)</p>
 </dd></dl>
 
 <dl class="function">
@@ -713,48 +833,73 @@ functions. These functions give a rich command line interface to specifically
 select subsets of annotations, pipeline configurations, and other filters.</p>
 <p>TODO: standardize function signatures</p>
 <dl class="function">
+<dt id="ibeis.init.main_helpers.monkeypatch_encounters">
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">monkeypatch_encounters</code><span class="sig-paren">(</span><em>ibs</em>, <em>aids</em>, <em>cache=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#monkeypatch_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.monkeypatch_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hacks in a temporary custom definition of encounters for this controller</p>
+<p>50 days for PZ_MTEST
+kwargs = dict(days=50)</p>
+<dl class="docutils">
+<dt>if False:</dt>
+<dd><p class="first">name_mindeltas = []
+for name in annots.group_items(annots.nids).values():</p>
+<blockquote>
+<div><p>times = name.image_unixtimes_asfloat
+deltas = [ut.unixtime_to_timedelta(np.abs(t1 - t2))</p>
+<blockquote>
+<div>for t1, t2 in ut.combinations(times, 2)]</div></blockquote>
+<dl class="docutils">
+<dt>if deltas:</dt>
+<dd>name_mindeltas.append(min(deltas))</dd>
+</dl>
+</div></blockquote>
+<dl class="last docutils">
+<dt>print(ut.repr3(ut.lmap(ut.get_timedelta_str,</dt>
+<dd>sorted(name_mindeltas))))</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_aids">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_aids</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>a=None</em>, <em>adefault=u'default'</em>, <em>ibs=None</em>, <em>return_acfg=False</em>, <em>verbose=None</em>, <em>default_aids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_aids" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_aids</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>a=None</em>, <em>adefault='default'</em>, <em>ibs=None</em>, <em>return_acfg=False</em>, <em>verbose=None</em>, <em>default_aids=None</em>, <em>default_set='qcfg'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_aids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Grabs default testdata for functions, but is command line overrideable</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
-python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a <span class="nv">is_known</span><span class="o">=</span>True,view_pername<span class="o">=</span><span class="s1">&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
-python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="s1">&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
-python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:species<span class="o">=</span>primary,minqual<span class="o">=</span>ok --verbtd
-</pre></div>
-</div>
-<p>python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --exec-testdata_aids --show
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis testdata_aids –verbtd –db PZ_ViewPoints
+python -m ibeis testdata_aids –verbtd –db NNP_Master3 -a is_known=True,view_pername=’#primary&gt;0&amp;#primary1&gt;=1’
+python -m ibeis testdata_aids –verbtd –db PZ_Master1 -a default:is_known=True,view_pername=’#primary&gt;0&amp;#primary1&gt;=1’
+python -m ibeis testdata_aids –verbtd –db PZ_Master1 -a default:species=primary,minqual=ok –verbtd
+python -m ibeis.other.dbinfo –test-latex_dbstats –dblist
+python -m ibeis testdata_aids –show</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs = ibeis.opendb(defaultdb=&#39;PZ_ViewPoints&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">adefault</span> <span class="o">=</span> <span class="s1">&#39;default:is_known=True&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="n">adefault</span><span class="p">,</span> <span class="n">return_acfg</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> RESULT:&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">per_name_vpedge</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="n">adefault</span><span class="p">,</span> <span class="n">return_acfg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> RESULT:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">per_name_vpedge</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_cm">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_cm</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>default_qaids=None</em>, <em>t=None</em>, <em>p=None</em>, <em>a=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_cm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_cm" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --test-testdata_cm
-python -m ibeis.init.main_helpers --test-testdata_cm --show
-</pre></div>
-</div>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_cm</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>default_qaids=None</em>, <em>default_daids=None</em>, <em>t=None</em>, <em>p=None</em>, <em>a=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_cm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_cm" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.main_helpers –test-testdata_cm
+python -m ibeis.init.main_helpers –test-testdata_cm –show</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_cm</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="o">.</span><span class="n">print_csv</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
@@ -766,7 +911,7 @@ python -m ibeis.init.main_helpers --test-testdata_cm --show
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_cmlist">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_cmlist</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>default_qaids=None</em>, <em>t=None</em>, <em>p=None</em>, <em>a=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_cmlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_cmlist" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_cmlist</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>default_qaids=None</em>, <em>default_daids=None</em>, <em>t=None</em>, <em>p=None</em>, <em>a=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_cmlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_cmlist" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -781,18 +926,18 @@ python -m ibeis.init.main_helpers --test-testdata_cm --show
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_expanded_aids">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_expanded_aids</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>a=None</em>, <em>ibs=None</em>, <em>default_qaids=None</em>, <em>default_daids=None</em>, <em>qaid_override=None</em>, <em>daid_override=None</em>, <em>return_annot_info=False</em>, <em>verbose=False</em>, <em>use_cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_expanded_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_expanded_aids" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_expanded_aids</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>a=None</em>, <em>ibs=None</em>, <em>default_qaids=None</em>, <em>default_daids=None</em>, <em>qaid_override=None</em>, <em>daid_override=None</em>, <em>return_annot_info=False</em>, <em>verbose=None</em>, <em>use_cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_expanded_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_expanded_aids" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>default_qaids</strong> (<em>list</em>) &#8211; (default = [1])</li>
-<li><strong>default_daids</strong> (<em>str</em>) &#8211; (default = &#8216;all&#8217;)</li>
-<li><strong>defaultdb</strong> (<em>str</em>) &#8211; (default = &#8216;testdb1&#8217;)</li>
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object(default = None)</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag(default = False)</li>
-<li><strong>return_annot_info</strong> (<em>bool</em>) &#8211; (default = False)</li>
+<li><strong>default_qaids</strong> (<em>list</em>) – (default = [1])</li>
+<li><strong>default_daids</strong> (<em>str</em>) – (default = ‘all’)</li>
+<li><strong>defaultdb</strong> (<em>str</em>) – (default = ‘testdb1’)</li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object(default = None)</li>
+<li><strong>verbose</strong> (<em>bool</em>) – verbosity flag(default = False)</li>
+<li><strong>return_annot_info</strong> (<em>bool</em>) – (default = False)</li>
 </ul>
 </td>
 </tr>
@@ -804,48 +949,50 @@ python -m ibeis.init.main_helpers --test-testdata_cm --show
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --exec-testdata_expanded_aids
-python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:index<span class="o">=</span>0:25 --verbose-testdata
-python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --qaid 3
-python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.main_helpers testdata_expanded_aids
+python -m ibeis.init.main_helpers testdata_expanded_aids –db PZ_MTEST –acfg default:index=0:25 –verbose-testdata
+python -m ibeis.init.main_helpers testdata_expanded_aids –db PZ_MTEST –qaid 3
+python -m ibeis.init.main_helpers testdata_expanded_aids –db GZ_ALL –acfg ctrl –verbose-testdata</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">return_annot_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Printing annot config&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="k">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">return_annot_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Printing annot config&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Printing annotconfig stats&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(&#39;qaid_list = %r&#39; % (np.array(qaid_list),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Printing annotconfig stats&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Combined annotconfig stats&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">qaid_list</span> <span class="o">+</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;qaid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Combined annotconfig stats&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">qaid_list</span> <span class="o">+</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">viewcode_isect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qaid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,))</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_expts">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_expts</code><span class="sig-paren">(</span><em>defaultdb=u'testdb1', default_acfgstr_name_list=[u'default:qindex=0:10:4,dindex=0:20'], default_test_cfg_name_list=[u'default'], a=None, t=None, p=None, qaid_override=None, daid_override=None, initial_aids=None, use_cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_expts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_expts" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_expts</code><span class="sig-paren">(</span><em>defaultdb='testdb1', default_acfgstr_name_list=['default:qindex=0:10:4,dindex=0:20'], default_test_cfg_name_list=['default'], a=None, t=None, p=None, qaid_override=None, daid_override=None, initial_aids=None, use_cache=None, dbdir=None, ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_expts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_expts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use this if you want data from an experiment.
 Command line interface to quickly get testdata for test_results.</p>
 <p>Command line flags can be used to specify db, aidcfg, pipecfg, qaid
 override, daid override (and maybe initial aids).</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers testdata_expts
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.main_helpers testdata_expts</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expts</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s1">&#39;timectrl:qsize=2&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="s1">&#39;invar:AI=[False],RI=False&#39;</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;testres = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testres</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expts</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;pz_mtest&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">a</span><span class="o">=</span><span class="s1">&#39;timectrl:qsize=2&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">t</span><span class="o">=</span><span class="s1">&#39;invar:ai=[false],ri=false&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">use_cache</span><span class="o">=</span><span class="n">false</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;testres = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testres</span><span class="p">,))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -857,7 +1004,7 @@ override, daid override (and maybe initial aids).</p>
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_pipecfg">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_pipecfg</code><span class="sig-paren">(</span><em>p=None</em>, <em>t=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_pipecfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_pipecfg" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_pipecfg</code><span class="sig-paren">(</span><em>p=None</em>, <em>t=None</em>, <em>ibs=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_pipecfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_pipecfg" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -868,35 +1015,49 @@ override, daid override (and maybe initial aids).</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --exec-testdata_pipecfg
-python -m ibeis.init.main_helpers --exec-testdata_pipecfg -t default:AI<span class="o">=</span>False
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis testdata_pipecfg
+python -m ibeis testdata_pipecfg -t default:AI=False</dd>
+<dt>Ignore:</dt>
+<dd>from jedi.evaluate import docstrings
+script = jedi.Script(ut.readfrom(main_helpers.__file__))
+mod = script._get_module()
+func = mod.names_dict[‘testdata_pipecfg’][0].parent
+docstrings.find_return_types(script._evaluator, func)</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">testdata_pipecfg</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;pcfgdict = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">pcfgdict</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;pcfgdict = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">pcfgdict</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.testdata_qreq_">
-<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_qreq_</code><span class="sig-paren">(</span><em>p=None</em>, <em>a=None</em>, <em>t=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_qreq_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_qreq_" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">testdata_qreq_</code><span class="sig-paren">(</span><em>p=None</em>, <em>a=None</em>, <em>t=None</em>, <em>default_qaids=None</em>, <em>default_daids=None</em>, <em>custom_nid_lookup=None</em>, <em>verbose=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#testdata_qreq_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.testdata_qreq_" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> (<em>None</em>) &#8211; (default = None)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>a</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>t</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>default_qaids</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>default_daids</strong> (<em>None</em>) – (default = None)</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 <dl class="docutils">
 <dt>Kwargs:</dt>
-<dd>default_qaids, a, defaultdb, ibs, verbose, return_annot_info</dd>
+<dd>defaultdb, ibs, qaid_override, daid_override, return_annot_info,
+verbose, use_cache</dd>
 </dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -908,186 +1069,26 @@ python -m ibeis.init.main_helpers --exec-testdata_pipecfg -t default:AI<span cla
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis <a href="#id9"><span class="problematic" id="id10">testdata_qreq_</span></a> –show –qaid 3</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;qreq_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">),))</span>
 </pre></div>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="module-ibeis.init.old_main_helpers">
-<span id="ibeis-init-old-main-helpers-module"></span><h2>ibeis.init.old_main_helpers module<a class="headerlink" href="#module-ibeis.init.old_main_helpers" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Rename to ibeis/init/commands.py</p>
-<p>The AID configuration selection is getting a mjor update right now</p>
 <dl class="function">
-<dt id="ibeis.init.old_main_helpers.define_named_aid_cfgs">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">define_named_aid_cfgs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#define_named_aid_cfgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.define_named_aid_cfgs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Definitions for common aid configurations
-TODO: potentially move to experiment configs</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.old_main_helpers.ensure_flatiterable">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">ensure_flatiterable</code><span class="sig-paren">(</span><em>input_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#ensure_flatiterable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.ensure_flatiterable" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.init.main_helpers.unmonkeypatch_encounters">
+<code class="descclassname">ibeis.init.main_helpers.</code><code class="descname">unmonkeypatch_encounters</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#unmonkeypatch_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.unmonkeypatch_encounters" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.old_main_helpers.ensure_flatlistlike">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">ensure_flatlistlike</code><span class="sig-paren">(</span><em>input_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#ensure_flatlistlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.ensure_flatlistlike" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.old_main_helpers.get_commandline_aidcfg">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">get_commandline_aidcfg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#get_commandline_aidcfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.get_commandline_aidcfg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse the command line for &#8220;THE NEW AND IMPROVED&#8221; cannonical annotation
-configuration dictionaries</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default:shuffle<span class="o">=</span>True,index<span class="o">=</span>0:25 --dcfg default
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default --dcfg default
-
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg controlled --dcfg controlled
-
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled
-
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg varydbsize
-
-python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled:qindex<span class="o">=</span>0:10
-
-
---aidcfg<span class="o">=</span><span class="nv">controlled</span><span class="o">=</span>True,species<span class="o">=</span>primary
---aidcfg<span class="o">=</span><span class="nv">controlled</span><span class="o">=</span>True,species<span class="o">=</span>primary,annot_per_name<span class="o">=</span>2
---aidcfg<span class="o">=</span><span class="nv">controlled</span><span class="o">=</span>True,species<span class="o">=</span>primary,annot_per_name<span class="o">=</span>3
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">get_commandline_aidcfg</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;aidcfg = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.old_main_helpers.get_test_daids">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">get_test_daids</code><span class="sig-paren">(</span><em>ibs</em>, <em>default_daids='all'</em>, <em>qaid_list=None</em>, <em>return_annot_info=False</em>, <em>aidcfg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets database annot_rowids based on command line arguments</p>
-<p>DEPRICATE</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python dev.py --db PZ_MTEST -t best --exclude-query --qaid <span class="m">72</span> -r <span class="m">0</span> -c <span class="m">0</span> --show --va --vf --dump-extra
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>default_daids</strong> (<em>str</em>) &#8211; (default = &#8216;all&#8217;)</li>
-<li><strong>qaid_list</strong> (<em>list</em>) &#8211; list of chosen qaids that may affect daids (default = None)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">available_daids</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --test-get_test_daids
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST  --verbmhelp
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --exclude-query
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --daid-exclude <span class="m">2</span> <span class="m">3</span> 4
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --species<span class="o">=</span>zebra_grevys
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_Master0 --species<span class="o">=</span>zebra_grevys
-python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_Master0 --controlled --verbmhelp
-python -m ibeis.init.main_helpers --exec-get_test_daids --controlled --db PZ_Master0 --exec-mode
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">default_daids</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">available_daids</span> <span class="o">=</span> <span class="n">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_daids</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;available_daids = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(available_daids) </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">available_daids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.old_main_helpers.get_test_qaids">
-<code class="descclassname">ibeis.init.old_main_helpers.</code><code class="descname">get_test_qaids</code><span class="sig-paren">(</span><em>ibs</em>, <em>default_qaids=None</em>, <em>return_annot_info=False</em>, <em>aidcfg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/old_main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.old_main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets test annot_rowids based on command line arguments</p>
-<p>DEPRICATE</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>default_qaids</strong> (<em>None</em>) &#8211; if list then used only if no other aids are available (default = [1])
-as a string it mimics the command line</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">available_qaids</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.main_helpers --test-get_test_qaids
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0 --qaid 1
-python -m ibeis.init.main_helpers --test-get_test_qaids --allgt --db PZ_MTEST
-python -m ibeis.init.main_helpers --test-get_test_qaids --qaid <span class="m">4</span> <span class="m">5</span> <span class="m">8</span>  --verbmhelp
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST --qaid <span class="m">2</span> --verbmhelp
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST --qaid 2
-python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0 --qindex 0:10 --verbmhelp
-python -m ibeis.init.main_helpers --exec-get_test_qaids --controlled --db PZ_Master0 --exec-mode
-python -m ibeis.init.main_helpers --exec-get_test_qaids --db testdb1 --allgt --qindex 0:256
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">default_qaids</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">available_qaids</span> <span class="o">=</span> <span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;available_qaids = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(available_qaids) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">available_qaids = [1]</span>
-</pre></div>
-</div>
-</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.init.sysres">
@@ -1102,7 +1103,7 @@ but without the need for an actual IBEIS Controller</p>
 
 <dl class="function">
 <dt id="ibeis.init.sysres.db_to_dbdir">
-<code class="descclassname">ibeis.init.sysres.</code><code class="descname">db_to_dbdir</code><span class="sig-paren">(</span><em>db</em>, <em>allow_newdir=False</em>, <em>extra_workdirs=[]</em>, <em>use_sync=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#db_to_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.db_to_dbdir" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">db_to_dbdir</code><span class="sig-paren">(</span><em>db</em>, <em>allow_newdir=False</em>, <em>extra_workdirs=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#db_to_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.db_to_dbdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
 </dd></dl>
 
@@ -1122,14 +1123,17 @@ but without the need for an actual IBEIS Controller</p>
 <dt id="ibeis.init.sysres.ensure_pz_mtest">
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_pz_mtest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_pz_mtest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_pz_mtest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ensures that you have the PZ_MTEST dataset</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --exec-ensure_pz_mtest
-python -m ibeis --tf ensure_pz_mtest
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –exec-ensure_pz_mtest
+python -m ibeis –tf ensure_pz_mtest</dd>
+<dt>Ignore:</dt>
+<dd>from ibeis.tests.reset_testdbs import delete_dbdir
+delete_dbdir(‘PZ_MTEST’)</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1138,15 +1142,15 @@ python -m ibeis --tf ensure_pz_mtest
 <dl class="function">
 <dt id="ibeis.init.sysres.ensure_pz_mtest_batchworkflow_test">
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_pz_mtest_batchworkflow_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_pz_mtest_batchworkflow_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_pz_mtest_batchworkflow_test" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
-python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
-python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
-</pre></div>
-</div>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –test-ensure_pz_mtest_batchworkflow_test
+python -m ibeis.init.sysres –test-ensure_pz_mtest_batchworkflow_test –reset
+python -m ibeis.init.sysres –test-ensure_pz_mtest_batchworkflow_test –reset</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest_batchworkflow_test</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1156,13 +1160,13 @@ python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
 <dt id="ibeis.init.sysres.ensure_pz_mtest_mergesplit_test">
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_pz_mtest_mergesplit_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_pz_mtest_mergesplit_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_pz_mtest_mergesplit_test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a test database for MERGE and SPLIT cases</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –test-ensure_pz_mtest_mergesplit_test</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest_mergesplit_test</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1171,20 +1175,39 @@ python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
 <dl class="function">
 <dt id="ibeis.init.sysres.ensure_testdb2">
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_testdb2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_testdb2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_testdb2" title="Permalink to this definition">¶</a></dt>
-<dd><p>SeeAlso ibeis.init.sysres</p>
-</dd></dl>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.init.sysres.ensure_testdb_curvrank">
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_testdb_curvrank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_testdb_curvrank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_testdb_curvrank" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.sysres.ensure_wd_peter2">
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">ensure_wd_peter2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_wd_peter2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_wd_peter2" title="Permalink to this definition">¶</a></dt>
 <dd><p>publish to lev:Leviathan:/media/hdd/PUBLIC/databases</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --exec-ensure_wd_peter2
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># publish wd_peter2 to lev</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/work/wd_peter2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;_ibsdb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fpath_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fpath_list</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">ibsdb_dpath</span><span class="p">,</span> <span class="s1">&#39;*sqlite*&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fpath_list</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_dpath</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">archive_name</span> <span class="o">=</span> <span class="n">dbname</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span><span class="n">archive_name</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">rsync</span><span class="p">(</span><span class="n">archive_name</span><span class="p">,</span> <span class="s1">&#39;joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –exec-ensure_wd_peter2</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_wd_peter2</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1198,11 +1221,48 @@ python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
 
 <dl class="function">
 <dt id="ibeis.init.sysres.get_args_dbdir">
-<code class="descclassname">ibeis.init.sysres.</code><code class="descname">get_args_dbdir</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>dbdir=None</em>, <em>cache_priority=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_args_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_args_dbdir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Machinery for finding a database directory</p>
-<p>such a hacky function with bad coding.
-Needs to just return a database dir and use the following priority
-dbdir, db, cache, something like that...</p>
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">get_args_dbdir</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>dbdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_args_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_args_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Machinery for finding a database directory using the following priorities.
+The function first defaults to the specified function arguments.  If those
+are not specified, then command line arguments are used.  In all other
+circumstances the defaultdb is used. If defaultdb=’cache’ then the most
+recently used database directory is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>defaultdb</strong> (<em>None</em>) – database return if none other is specified</li>
+<li><strong>allow_newdir</strong> (<em>bool</em>) – raises error if True and directory not found</li>
+<li><strong>db</strong> (<em>None</em>) – specification using workdir priority</li>
+<li><strong>dbdir</strong> (<em>None</em>) – specification using normal directory priority</li>
+<li><strong>cache_priority</strong> (<em>bool</em>) – (default = False)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dbdir</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres get_args_dbdir</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir1</span> <span class="o">=</span> <span class="n">get_args_dbdir</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir2</span> <span class="o">=</span> <span class="n">get_args_dbdir</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dir1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">get_args_dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir3 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir2</span><span class="p">,))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1213,7 +1273,7 @@ dbdir, db, cache, something like that...</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) &#8211; </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) – </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">ibsdb_list -  ibeis controller object</td>
 </tr>
@@ -1221,17 +1281,17 @@ dbdir, db, cache, something like that...</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-get_ibsdb_list
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –test-get_ibsdb_list</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1264,7 +1324,7 @@ dbdir, db, cache, something like that...</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) &#8211; </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) – </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">ibsdb_list -  ibeis controller object</td>
 </tr>
@@ -1272,24 +1332,24 @@ dbdir, db, cache, something like that...</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-get_ibsdb_list
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –test-get_ibsdb_list</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.init.sysres.get_logdir">
-<code class="descclassname">ibeis.init.sysres.</code><code class="descname">get_logdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_logdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_logdir" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.init.sysres.get_logdir_global">
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">get_logdir_global</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_logdir_global"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_logdir_global" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1303,12 +1363,12 @@ dbdir, db, cache, something like that...</p>
 <code class="descclassname">ibeis.init.sysres.</code><code class="descname">get_workdir</code><span class="sig-paren">(</span><em>allow_gui=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_workdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the work directory set for this computer.  If allow_gui is true,
 a dialog will ask a user to specify the workdir if it does not exist.</p>
-<p>python -c &#8220;import ibeis; print(ibeis.get_workdir())&#8221;</p>
+<p>python -c “import ibeis; print(ibeis.get_workdir())”</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>allow_gui</strong> (<em>bool</em>) &#8211; (default = True)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>allow_gui</strong> (<em>bool</em>) – (default = True)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">work_dir</td>
 </tr>
@@ -1316,36 +1376,17 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --exec-get_workdir
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –exec-get_workdir</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="bp">True</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">work_dir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">allow_gui</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;work_dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">work_dir</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.init.sysres.grab_example_smart_xml_fpath">
-<code class="descclassname">ibeis.init.sysres.</code><code class="descname">grab_example_smart_xml_fpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#grab_example_smart_xml_fpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.grab_example_smart_xml_fpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets smart example xml</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-grab_example_smart_xml_fpath
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">smart_xml_fpath</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">grab_example_smart_xml_fpath</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;gvim &#39;</span> <span class="o">+</span> <span class="n">smart_xml_fpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ut.editfile(smart_xml_fpath)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1370,7 +1411,7 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) &#8211; </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) – </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">ibsdb_list -  ibeis controller object</td>
 </tr>
@@ -1378,56 +1419,39 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --test-get_ibsdb_list
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres –test-get_ibsdb_list</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.init.sysres.resolve_dbdir2">
-<code class="descclassname">ibeis.init.sysres.</code><code class="descname">resolve_dbdir2</code><span class="sig-paren">(</span><em>defaultdb=None</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>dbdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#resolve_dbdir2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.resolve_dbdir2" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --exec-resolve_dbdir2 --db PZ_MTEST
-python -m ibeis.init.sysres --exec-resolve_dbdir2 --db None
-python -m ibeis.init.sysres --exec-resolve_dbdir2 --dbdir None
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>defaultdb</strong> (<em>None</em>) &#8211; (default = None)</li>
-<li><strong>allow_newdir</strong> (<em>bool</em>) &#8211; (default = False)</li>
-<li><strong>db</strong> (<em>None</em>) &#8211; (default = None)</li>
-<li><strong>dbdir</strong> (<em>None</em>) &#8211; (default = None)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.init.sysres --exec-resolve_dbdir2
-</pre></div>
-</div>
+<dt id="ibeis.init.sysres.lookup_dbdir">
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">lookup_dbdir</code><span class="sig-paren">(</span><em>db</em>, <em>allow_newdir=False</em>, <em>extra_workdirs=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.init.sysres.lookup_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.init.sysres.reset_mtest_graph">
+<code class="descclassname">ibeis.init.sysres.</code><code class="descname">reset_mtest_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/init/sysres.html#reset_mtest_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.reset_mtest_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the annotmatch and stating table</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis reset_mtest_graph</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;cache&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_newdir</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir_</span> <span class="o">=</span> <span class="n">resolve_dbdir2</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dbdir_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbdir_</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reset_mtest_graph</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1451,26 +1475,26 @@ python -m ibeis.init.sysres --exec-resolve_dbdir2 --dbdir None
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>work_dir</strong> (<em>None</em>) &#8211; (default = None)</li>
-<li><strong>allow_gui</strong> (<em>bool</em>) &#8211; (default = True)</li>
+<li><strong>work_dir</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>allow_gui</strong> (<em>bool</em>) – (default = True)</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -c <span class="s2">&quot;import ibeis; ibeis.sysres.set_workdir(&#39;/raid/work2&#39;)&quot;</span>
-python -c <span class="s2">&quot;import ibeis; ibeis.sysres.set_workdir(&#39;/raid/work&#39;)&quot;</span>
-
-python -m ibeis.init.sysres --exec-set_workdir --workdir
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -c “import ibeis; ibeis.sysres.set_workdir(‘/raid/work2’)”
+python -c “import ibeis; ibeis.sysres.set_workdir(‘/raid/work’)”</p>
+<p class="last">python -m ibeis.init.sysres –exec-set_workdir –workdir</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;current_work_dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_workdir</span><span class="p">(</span><span class="bp">False</span><span class="p">)),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">work_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--workdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="bp">True</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;current_work_dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_workdir</span><span class="p">(</span><span class="kc">False</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">work_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--workdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">set_workdir</span><span class="p">(</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">allow_gui</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1484,15 +1508,18 @@ python -m ibeis.init.sysres --exec-set_workdir --workdir
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.other.html" class="btn btn-neutral float-right" title="ibeis.other package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.other.html" class="btn btn-neutral float-right" title="ibeis.other package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ibeis.gui.html" class="btn btn-neutral" title="ibeis.gui package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ibeis.gui.html" class="btn btn-neutral" title="ibeis.gui package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1501,7 +1528,7 @@ python -m ibeis.init.sysres --exec-set_workdir --workdir
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -1523,10 +1550,11 @@ python -m ibeis.init.sysres --exec-set_workdir --workdir
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

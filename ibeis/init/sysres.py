@@ -3,24 +3,22 @@
 sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
-
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function  # , unicode_literals
 import os
 from os.path import exists, join, realpath
 import utool as ut
 from six.moves import input, zip, map
-from utool import util_cache, util_list
 from ibeis import constants as const
 from ibeis import params
-
-# Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[sysres]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 LOGDIR_CACHEID = ut.logdir_cacheid
 __APPNAME__ = 'ibeis'
+
+ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def get_ibeis_resource_dir():
@@ -28,28 +26,25 @@ def get_ibeis_resource_dir():
 
 
 def _ibeis_cache_dump():
-    util_cache.global_cache_dump(appname=__APPNAME__)
+    ut.global_cache_dump(appname=__APPNAME__)
 
 
 def _ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache
-
     TODO: Use text based config file
     """
     print('[sysres] set %s=%r' % (key, val))
-    util_cache.global_cache_write(key, val, appname=__APPNAME__)
+    ut.global_cache_write(key, val, appname=__APPNAME__)
 
 
 def _ibeis_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return util_cache.global_cache_read(key, appname=__APPNAME__, **kwargs)
+    return ut.global_cache_read(key, appname=__APPNAME__, **kwargs)
 
 
 # Specific cache getters / setters
 
 def set_default_dbdir(dbdir):
-    """
-    """
     if ut.DEBUG2:
         print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
@@ -76,7 +71,7 @@ def get_workdir(allow_gui=True):
         str: work_dir
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-get_workdir
+        python -m ibeis.init.sysres get_workdir
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -87,15 +82,12 @@ def get_workdir(allow_gui=True):
         >>> print(result)
     """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
-    if work_dir is not '.' and exists(work_dir):
+    if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
         work_dir = set_workdir()
         return get_workdir(allow_gui=False)
     return None
-
-
-ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
@@ -109,10 +101,10 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
 
-        python -m ibeis.init.sysres --exec-set_workdir --workdir
+        python -m ibeis.init.sysres set_workdir
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
         >>> print('current_work_dir = %s' % (str(get_workdir(False)),))
         >>> work_dir = ut.get_argval('--workdir', type_=str, default=None)
@@ -141,7 +133,7 @@ def set_logdir(log_dir):
     ut.start_logging(appname=__APPNAME__)
 
 
-def get_logdir():
+def get_logdir_global():
     return _ibeis_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='ibeis'))
 
 
@@ -154,14 +146,14 @@ def get_rawdir():
 
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
-    import guitool
-    guitool.ensure_qtapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qtapp()
     # Gui selection
-    work_dir = guitool.select_directory('Select a work directory')
+    work_dir = guitool_ibeis.select_directory('Select a work directory')
 
     # Make sure selection is ok
     if not exists(work_dir):
-        try_again = guitool.user_option(
+        try_again = guitool_ibeis.user_option(
             paremt=None,
             msg='Directory %r does not exist.' % work_dir,
             title='get work dir failed',
@@ -173,6 +165,7 @@ def guiselect_workdir():
 
 
 def get_dbalias_dict():
+    # HACK: DEPRICATE
     dbalias_dict = {}
     if ut.is_developer():
         # For jon's convinience
@@ -209,10 +202,15 @@ def get_dbalias_dict():
     return dbalias_dict
 
 
-def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
-    """ Implicitly gets dbdir. Searches for db inside of workdir """
+def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
+    """
+    Implicitly gets dbdir. Searches for db inside of workdir
+    """
     if ut.VERBOSE:
         print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
+
+    if db is None:
+        raise ValueError('db is None')
 
     work_dir = get_workdir()
     dbalias_dict = get_dbalias_dict()
@@ -221,11 +219,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     for extra_dir in extra_workdirs:
         if exists(extra_dir):
             workdir_list.append(extra_dir)
-    if use_sync:
-        sync_dir = join(work_dir, '../sync')
-        if exists(sync_dir):
-            workdir_list.append(sync_dir)
-    workdir_list.append(work_dir)  # TODO: Allow multiple workdirs
+    workdir_list.append(work_dir)  # TODO: Allow multiple workdirs?
 
     # Check all of your work directories for the database
     for _dir in workdir_list:
@@ -248,7 +242,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
               (db, work_dir))
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
-        index = util_list.listfind(lower_list, db.lower())
+        index = ut.listfind(lower_list, db.lower())
         if index is not None:
             print('[sysres] WARNING: db capitalization seems to be off')
             if not ut.STRICT:
@@ -272,21 +266,41 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
-                   cache_priority=False):
-    """ Machinery for finding a database directory
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
+    r"""
+    Machinery for finding a database directory using the following priorities.
+    The function first defaults to the specified function arguments.  If those
+    are not specified, then command line arguments are used.  In all other
+    circumstances the defaultdb is used. If defaultdb='cache' then the most
+    recently used database directory is returned.
 
-    such a hacky function with bad coding.
-    Needs to just return a database dir and use the following priority
-    dbdir, db, cache, something like that...
+    Args:
+        defaultdb (None): database return if none other is specified
+        allow_newdir (bool): raises error if True and directory not found
+        db (None): specification using workdir priority
+        dbdir (None): specification using normal directory priority
+        cache_priority (bool): (default = False)
+
+    Returns:
+        str: dbdir
+
+    CommandLine:
+        python -m ibeis.init.sysres get_args_dbdir
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> dir1 = get_args_dbdir(None, False, 'testdb1', None)
+        >>> print('dir1 = %r' % (dir1,))
+        >>> dir2 = get_args_dbdir(None, False, dir1, None)
+        >>> print('dir2 = %r' % (dir2,))
+        >>> ut.assert_raises(ValueError, get_args_dbdir)
+        >>> print('dir3 = %r' % (dir2,))
     """
     if not ut.QUIET and ut.VERBOSE:
         print('[sysres] get_args_dbdir: parsing commandline for dbdir')
-        print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
+        print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
-
-    if ut.get_argflag('--nodbcache'):
-        return dbdir
 
     def _db_arg_priorty(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
@@ -302,80 +316,32 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
             return db_to_dbdir(db_, allow_newdir=allow_newdir)
         return None
 
-    if not cache_priority:
-        # Check function's passed args
-        dbdir = _db_arg_priorty(dbdir, db)
-        if dbdir is not None:
-            return dbdir
-        # Get command line args
-        dbdir = params.args.dbdir
-        db = params.args.db
-        # TODO; use these instead of params
-        #ut.get_argval('--dbdir', return_was_specified=True))
-        #ut.get_argval('--db', return_was_specified=True)
-        # Check command line passed args
-        dbdir = _db_arg_priorty(dbdir, db)
-        if dbdir is not None:
-            return dbdir
+    # Check function arguments
+    dbdir1 = _db_arg_priorty(dbdir, db)
+    if dbdir1 is not None:
+        return dbdir1
+
+    # Check command line arguments
+    dbdir_arg = params.args.dbdir
+    db_arg = params.args.db
+    # TODO: use these instead of params
+    #ut.get_argval('--dbdir', return_was_specified=True))
+    #ut.get_argval('--db', return_was_specified=True)
+    # Check command line passed args
+    dbdir2 = _db_arg_priorty(dbdir_arg, db_arg)
+    if dbdir2 is not None:
+        return dbdir2
+
     # Return cached database directory
-    if defaultdb == 'cache':
+    if defaultdb is None:
+        raise ValueError('Must specify at least db, dbdir, or defaultdb')
+    elif defaultdb == 'cache':
         return get_default_dbdir()
     else:
         return db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
 
 
-def resolve_dbdir2(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
-    r"""
-
-    CommandLine:
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db PZ_MTEST
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db None
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --dbdir None
-
-    Args:
-        defaultdb (None): (default = None)
-        allow_newdir (bool): (default = False)
-        db (None): (default = None)
-        dbdir (None): (default = None)
-
-    CommandLine:
-        python -m ibeis.init.sysres --exec-resolve_dbdir2
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> defaultdb = 'cache'
-        >>> allow_newdir = False
-        >>> dbdir_ = resolve_dbdir2(defaultdb)
-        >>> result = ('dbdir_ = %r' % (dbdir_,))
-        >>> print(result)
-    """
-    invalid = ['', ' ', '.', 'None']
-    if db in invalid:
-        db = None
-    if dbdir in invalid:
-        dbdir = None
-    db, db_specified = ut.get_argval(
-        '--db', type_=str, default=db, return_was_specified=True)
-    dbdir, dbdir_specified = ut.get_argval(
-        '--dbdir', type_=str, default=dbdir, return_was_specified=True)
-
-    dbdir_flag = dbdir_specified or dbdir is not None
-    db_flag = db_specified or db is not None
-
-    if dbdir_flag:
-        # Priority 1
-        dbdir_ = realpath(dbdir)
-    elif db_flag:
-        # Priority 2
-        dbdir_ = db_to_dbdir(db, allow_newdir=allow_newdir)
-    else:
-        # Priority 3
-        if defaultdb == 'cache':
-            dbdir_ = get_default_dbdir()
-        else:
-            dbdir_ = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
-    return dbdir_
+lookup_dbdir = db_to_dbdir
 
 
 def is_ibeisdb(path):
@@ -444,7 +410,7 @@ def ensure_wd_peter2():
         >>> ensure_wd_peter2()
     """
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
-    ensure_db_from_url(zipped_db_url)
+    return ensure_db_from_url(zipped_db_url)
 
 
 def ensure_pz_mtest():
@@ -454,6 +420,10 @@ def ensure_pz_mtest():
     CommandLine:
         python -m ibeis.init.sysres --exec-ensure_pz_mtest
         python -m ibeis --tf ensure_pz_mtest
+
+    Ignore:
+        from ibeis.tests.reset_testdbs import delete_dbdir
+        delete_dbdir('PZ_MTEST')
 
     Example:
         >>> # SCRIPT
@@ -501,26 +471,116 @@ def ensure_pz_mtest():
 
     # hack in some tags
     print('Hacking in some tags')
-    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74, 80, 83, 91, 97, 103, 107, 109, 119]
+    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74,
+                 80, 83, 91, 97, 103, 107, 109, 119]
     mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
 
+    # make part of the database complete and the other part semi-complete
+    # make staging ahead of annotmatch.
+    reset_mtest_graph()
+
+
+def reset_mtest_graph():
+    """
+    Resets the annotmatch and stating table
+
+    CommandLine:
+        python -m ibeis reset_mtest_graph
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> reset_mtest_graph()
+    """
+    if True:
+        # Delete the graph databases to and set them up for tests
+        import ibeis
+        ibs = ibeis.opendb('PZ_MTEST')
+        annotmatch = ibs.db['annotmatch']
+        staging = ibs.staging['reviews']
+        annotmatch.clear()
+        staging.clear()
+
+    # Make this CC connected using positive edges
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
+    from ibeis.algo.graph import nx_utils as nxu
+    import itertools as it
+
+    # Add some graph properties to MTEST
+    infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+    # Connect the names with meta decisions
+    infr.ensure_mst(meta_decision=SAME)
+
+    # big_ccs = [cc for cc in infr.positive_components() if len(cc) > 3]
+    small_ccs = [cc for cc in infr.positive_components() if len(cc) <= 3 and len(cc) > 1]
+    # single_ccs = [cc for cc in infr.positive_components() if len(cc) == 1]
+
+    cc = infr.pos_graph.connected_to(1)
+    for edge in nxu.edges_between(infr.graph, cc):
+        infr.add_feedback(edge, POSTV, user_id='user:setup1')
+
+    # Make all small PCCs k-negative-redundant
+    count = 0
+    for cc1, cc2 in it.combinations(small_ccs, 2):
+        count += 1
+        for edge in infr.find_neg_augment_edges(cc1, cc2, k=1):
+            if count > 10:
+                # So some with meta
+                infr.add_feedback(edge, meta_decision=DIFF, user_id='user:setup2')
+            else:
+                # So some with evidence
+                infr.add_feedback(edge, NEGTV, user_id='user:setup3')
+
+    # Make some small PCCs k-positive-redundant
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    cand = list(infr.find_pos_redun_candidate_edges())
+    for edge in cand[0:2]:
+        infr.add_feedback(edge, evidence_decision=POSTV, user_id='user:setup4')
+
+    assert infr.status()['nInconsistentCCs'] == 0
+
+    # Write consistent state to both annotmatch and staging
+    infr.write_ibeis_staging_feedback()
+    infr.write_ibeis_annotmatch_feedback()
+
+    # Add an 2 inconsistencies to the staging database ONLY
+    cand = list(infr.find_pos_redun_candidate_edges())
+    for edge in cand[0:2]:
+        infr.add_feedback(edge, evidence_decision=NEGTV, user_id='user:voldemort')
+
+    assert infr.status()['nInconsistentCCs'] == 2
+    infr.write_ibeis_staging_feedback()
+
+    infr.reset_feedback('annotmatch', apply=True)
+    assert infr.status()['nInconsistentCCs'] == 0
+
+    # print(ibs.staging['reviews'].as_pandas())
+
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):
-    # TODO; rectify with rsycn script
+    # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
     import ibeis
-    exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in ibeis.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']]
+    exclude_dirs_ = (ibeis.const.EXCLUDE_COPY_REL_DIRS +
+                     ['_hsdb', '.hs_internals'])
+    exclude_dirs = [ut.ensure_unixslash(normpath(rel))
+                    for rel in exclude_dirs_]
 
-    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=True, with_dirs=False, fullpath=False)
-    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=False, with_dirs=True, fullpath=False)
+    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
+                         recursive=True, with_files=True, with_dirs=False,
+                         fullpath=False)
+    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
+                              recursive=True, with_files=False, with_dirs=True,
+                              fullpath=False)
 
     src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
     dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
 
     # ensure directories exist
-    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs]
+    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_)
+                                      for dpath_ in rel_tocopy_dirs]
     for dpath in rel_tocopy_dirs:
         ut.ensuredir(dpath)
     # copy files
@@ -586,7 +646,7 @@ def ensure_pz_mtest_batchworkflow_test():
                 imageset_aids_list[imageset_idx].extend(chunk)
                 imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
 
-            #import vtool as vt
+            #import vtool_ibeis as vt
             #import networkx as netx
             #nodes = list(range(len(aids)))
             #edges_pairs = vt.pdist_argsort(hourdiffs)
@@ -598,11 +658,11 @@ def ensure_pz_mtest_batchworkflow_test():
             #components = ut.sortedby(components, list(map(len, components)), reverse=True)
             #print(components)
             #imageset_aids_list[0].extend(components[0])
-            #for compoment in components:
+            #for component in components:
 
             # TODO do max-nway cut
         #day_diffs = spdist.squareform(hourdiffs) / 24.0
-        #print(ut.numpy_str(day_diffs, precision=2, suppress_small=True))
+        #print(ut.repr2(day_diffs, precision=2, suppress_small=True))
         #import itertools
         #compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
         #print(len(aids))
@@ -712,23 +772,26 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    print('final_result = %s' % (ut.list_str(final_result),))
+    print('final_result = %s' % (ut.repr2(final_result),))
 
 
 def ensure_wilddogs():
     """ Ensures that you have the NAUT_test dataset """
-    ensure_db_from_url(const.ZIPPED_URLS.WDS)
+    return ensure_db_from_url(const.ZIPPED_URLS.WDS)
 
 
 def ensure_nauts():
     """ Ensures that you have the NAUT_test dataset """
-    ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
+    return ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
 
 
 def ensure_testdb2():
-    """ SeeAlso ibeis.init.sysres """
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
-    ensure_db_from_url(zipped_db_url)
+    return ensure_db_from_url(zipped_db_url)
+
+
+def ensure_testdb_curvrank():
+    return ensure_db_from_url(const.ZIPPED_URLS.DF_CURVRANK)
 
 
 def ensure_db_from_url(zipped_db_url):
@@ -737,9 +800,11 @@ def ensure_db_from_url(zipped_db_url):
     workdir = sysres.get_workdir()
     dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
+    return dbdir
 
 
 def get_global_distinctiveness_modeldir(ensure=True):
+    # DEPRICATE
     resource_dir = get_ibeis_resource_dir()
     global_distinctdir = join(resource_dir, const.PATH_NAMES.distinctdir)
     if ensure:
@@ -747,34 +812,10 @@ def get_global_distinctiveness_modeldir(ensure=True):
     return global_distinctdir
 
 
-def grab_example_smart_xml_fpath():
-    """ Gets smart example xml
-
-    CommandLine:
-        python -m ibeis.init.sysres --test-grab_example_smart_xml_fpath
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> import ibeis
-        >>> import os
-        >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
-        >>> os.system('gvim ' + smart_xml_fpath)
-        >>> #ut.editfile(smart_xml_fpath)
-
-    """
-    smart_xml_url = 'https://lev.cs.rpi.edu/public/data/LWC_000261.xml'
-    smart_sml_fpath = ut.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
-    return smart_sml_fpath
-
-
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.init.sysres
-        python -m ibeis.init.sysres --allexamples
-        python -m ibeis.init.sysres --allexamples --noface --nosrc
+        xdoctest -m ibeis.init.sysres
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

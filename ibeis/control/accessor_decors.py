@@ -4,26 +4,35 @@ import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
-print, rrr, profile = ut.inject2(__name__, '[decor]')
+print, rrr, profile = ut.inject2(__name__)
 
-DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
-DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
-DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
+DEBUG_ADDERS = False
+DEBUG_SETTERS = False
+DEBUG_GETTERS = False
+# DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
+# DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
+# DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
 VERB_CONTROL = ut.get_argflag(('--verb-control'))
 
-DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
+# DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
+# DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
+DEV_CACHE = False
+DEBUG_API_CACHE = False
 RELEASE_MODE = True
 
 if RELEASE_MODE:
     # API Cache is only for when you can gaurentee one instance of the
     # Controller will be running. This is not safe to use in production.  Use
     # only for local testing.
-    API_CACHE = ut.get_argflag('--api-cache')
-    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+    # API_CACHE = ut.get_argflag('--api-cache')
+    # ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+    API_CACHE = False
+    ASSERT_API_CACHE = False
 else:
-    API_CACHE = not ut.get_argflag('--no-api-cache')
-    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+    # API_CACHE = not ut.get_argflag('--no-api-cache')
+    # ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+    API_CACHE = False
+    ASSERT_API_CACHE = False
 
 
 if ut.VERBOSE:
@@ -42,6 +51,7 @@ if ut.VERBOSE:
 
 def default_decorator(input_):
     """
+    DEPRICATE
     This should be the first decorator applied to all Controller functions
     """
     func_ = input_
@@ -104,25 +114,25 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> rowid_list2 = rowid_list[::3]
         >>> rowid_list3 = rowid_list[1::2]
         >>> kwargs = {}
-        >>> getter_func = ibs.get_name_aids.im_func
+        >>> getter_func = ut.get_method_func(ibs.get_name_aids)
         >>> wrp_getter_cacher = cache_getter(tblname, colname, force=True, debug=False)(getter_func)
         >>> ### Test Getter (caches)
         >>> val_list1 = getter_func(ibs, rowid_list1)
         >>> val_list2 = wrp_getter_cacher(ibs, rowid_list1)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> val_list3 = wrp_getter_cacher(ibs, rowid_list1)
         >>> val_list4 = wrp_getter_cacher(ibs, rowid_list2)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> val_list5 = wrp_getter_cacher(ibs, rowid_list3)
         >>> val_list  = wrp_getter_cacher(ibs, rowid_list)
         >>> ut.assert_eq(val_list1, val_list2, 'run1')
         >>> ut.assert_eq(val_list1, val_list2, 'run2')
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> ### Test Setter (invalidates)
         >>> setter_func = ibs.set_name_texts
         >>> wrp_cache_invalidator = cache_invalidator(tblname, force=True)(lambda *a: None)
         >>> wrp_cache_invalidator(ibs, rowid_list1)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -136,7 +146,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> # Check that config2 actually gets you different vectors in the cache
         >>> qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={'affine_invariance': False})
-        >>> config2_ = qreq_.get_external_query_config2()
+        >>> config2_ = qreq_.extern_query_config2
         >>> kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None)
         >>> kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_)
         >>> kp1 = kpts_list1[0][0:1]
@@ -315,7 +325,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                 print('self = %r' % (self,))
                 print('args = %r' % (args,))
                 print('kwargs = %r' % (kwargs,))
-                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
 
             # Clear the cache of any specified colname
             # when the invalidator is called
@@ -337,7 +347,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             # Preform set/delete action
             if DEBUG_API_CACHE:
                 print('After:')
-                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
                 print('L__________')
 
             writer_result = writer_func(self, *args, **kwargs)

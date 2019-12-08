@@ -1,0 +1,17 @@
+ansi2html
+pygments
+autopep8
+pyfiglet
+
+tornado>=4.2.1
+flask
+flask-cors
+pynmea2>=1.5.3
+pygraphviz
+pydot
+pydot-ng
+
+Flask-CAS
+# -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
+
+Cython>=0.24

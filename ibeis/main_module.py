@@ -4,32 +4,34 @@ This module defines the entry point into the IBEIS system
 ibeis.opendb and ibeis.main are the main entry points
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import builtins
+#from six.moves import builtins
 import sys
 import multiprocessing
 
-PREINIT_MULTIPROCESSING_POOLS = '--preinit' in sys.argv
+#try:
+import utool as ut
+profile = ut.profile
+#profile = getattr(builtins, 'profile')
+#except AttributeError:
+#def profile(func):
+#    return func
+
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
-
-try:
-    profile = getattr(builtins, 'profile')
-except AttributeError:
-    def profile(func):
-        return func
 
 
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
     print('[ibeis.main_module] Caught ctrl+c in %s' % (proc_name,))
-    try:
-        _close_parallel()
-    except Exception as ex:
-        print('Something very bad happened' + repr(ex))
-    finally:
-        print('[ibeis.main_module] sys.exit(0)')
-        sys.exit(0)
+    sys.exit(0)
+    # try:
+    #     _close_parallel()
+    # except Exception as ex:
+    #     print('Something very bad happened' + repr(ex))
+    # finally:
+    #     print('[ibeis.main_module] sys.exit(0)')
+    #     sys.exit(0)
 
 #-----------------------
 # private init functions
@@ -50,18 +52,16 @@ def _parse_args():
     params.parse_args()
 
 
-#@profile
 def _init_matplotlib():
-    from plottool import __MPL_INIT__
+    from plottool_ibeis import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
 
 
-#@profile
 def _init_gui(activate=True):
-    import guitool
+    import guitool_ibeis
     if NOT_QUIET:
         print('[main] _init_gui()')
-    guitool.ensure_qtapp()
+    guitool_ibeis.ensure_qtapp()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
     #if USE_OLD_BACKEND:
     from ibeis.gui import guiback
@@ -70,11 +70,10 @@ def _init_gui(activate=True):
     #    from ibeis.gui import newgui
     #    back = newgui.IBEISGuiWidget()
     if activate:
-        guitool.activate_qwindow(back.mainwin)
+        guitool_ibeis.activate_qwindow(back.mainwin)
     return back
 
 
-#@profile
 def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     """
     Private function that calls code to create an ibeis controller
@@ -89,15 +88,15 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         ibs = None
-        ut.printWARN('[main!] WARNING args.dbdir is None')
+        print('[main!] WARNING: args.dbdir is None')
     else:
         kwargs = kwargs.copy()
         request_dbversion = kwargs.pop('request_dbversion', None)
-        asproxy = kwargs.pop('asproxy', None)
+        force_serial = kwargs.get('force_serial', None)
         ibs = IBEISControl.request_IBEISController(
             dbdir=dbdir, use_cache=use_cache,
             request_dbversion=request_dbversion,
-            asproxy=asproxy)
+            force_serial=force_serial)
         if web is None:
             web = ut.get_argflag(('--webapp', '--webapi', '--web', '--browser'),
                                  help_='automatically launch the web app / web api')
@@ -109,7 +108,12 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     return ibs
 
 
-def __import_parallel_modules():
+def _init_parallel():
+    import utool as ut
+    if ut.VERBOSE:
+        print('_init_parallel')
+    from utool import util_parallel
+    from ibeis import params
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
     #from utool import util_sysreq
@@ -120,30 +124,21 @@ def __import_parallel_modules():
     #import pyrf  # NOQA
     from ibeis import core_annots  # NOQA
     #.algo.preproc import preproc_chip  # NOQA
-
-
-def _init_parallel():
-    import utool as ut
-    if ut.VERBOSE:
-        print('_init_parallel')
-    from utool import util_parallel
-    from ibeis import params
-    __import_parallel_modules()
     util_parallel.set_num_procs(params.args.num_procs)
-    if PREINIT_MULTIPROCESSING_POOLS:
-        util_parallel.init_pool(params.args.num_procs)
+    #if PREINIT_MULTIPROCESSING_POOLS:
+    #    util_parallel.init_pool(params.args.num_procs)
 
 
-def _close_parallel():
-    #if ut.VERBOSE:
-    #    print('_close_parallel')
-    try:
-        from utool import util_parallel
-        util_parallel.close_pool(terminate=True)
-    except Exception as ex:
-        import utool as ut
-        ut.printex(ex, 'error closing parallel')
-        raise
+# def _close_parallel():
+#     #if ut.VERBOSE:
+#     #    print('_close_parallel')
+#     try:
+#         from utool import util_parallel
+#         util_parallel.close_pool(terminate=True)
+#     except Exception as ex:
+#         import utool as ut
+#         ut.printex(ex, 'error closing parallel')
+#         raise
 
 
 def _init_numpy():
@@ -178,14 +173,14 @@ def _init_numpy():
 
 
 def _guitool_loop(main_locals, ipy=False):
-    import guitool
+    import guitool_ibeis
     from ibeis import params
-    print('[main] guitool loop')
+    print('[main] guitool_ibeis loop')
     back = main_locals.get('back', None)
     if back is not None:
         loop_freq = params.args.loop_freq
         ipy = ipy or params.args.cmd
-        guitool.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False)
+        guitool_ibeis.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False)
         if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:
@@ -232,7 +227,6 @@ def set_newfile_permissions():
     #print('new_mask  = %o' % (mask,))
 
 
-#@profile
 def main(gui=True, dbdir=None, defaultdb='cache',
          allow_newdir=False, db=None,
          delete_ibsdir=False,
@@ -257,18 +251,13 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     from ibeis.init import main_commands
     from ibeis.init import sysres
     # Display a visible intro message
-    msg1 = '''
-    _____ ....... _______ _____ _______
-      |   |_____| |______   |   |______
-    ..|.. |.....| |______s__|__ ______|
-    '''
-    msg2 = '''
+    msg = '''
     _____ ______  _______ _____ _______
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
     '''
     if NOT_QUIET:
-        print(msg2 if '--myway' not in sys.argv else msg1)
+        print(msg)
     # Init the only two main system api handles
     ibs = None
     back = None
@@ -288,11 +277,18 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         print('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     if delete_ibsdir is True:
         from ibeis.other import ibsfuncs
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
+
+    #limit = sys.getrecursionlimit()
+    #if limit == 1000:
+    #    print('Setting Recursion Limit to 3000')
+    #    sys.setrecursionlimit(3000)
     # Execute preload commands
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:
@@ -302,7 +298,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
             back = _init_gui(activate=kwargs.get('activate', True))
             back.connect_ibeis_control(ibs)
     except Exception as ex:
-        print('[main()] IBEIS LOAD imageseted exception: %s %s' % (type(ex), ex))
+        print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
@@ -317,9 +313,11 @@ def opendb_in_background(*args, **kwargs):
     import time
     sec = kwargs.pop('wait', 0)
     if sec != 0:
+        raise AssertionError('wait is depricated')
         print('waiting %s seconds for startup' % (sec,))
     proc = ut.spawn_background_process(opendb, *args, **kwargs)
     if sec != 0:
+        raise AssertionError('wait is depricated')
         time.sleep(sec)  # wait for process to initialize
     return proc
 
@@ -329,10 +327,16 @@ def opendb_bg_web(*args, **kwargs):
     Wrapper around opendb_in_background, returns a nice web_ibs
     object to execute web calls using normal python-like syntax
 
-    Accespts domain and port as kwargs
+    Args:
+        *args: passed to opendb_in_background
+        **kwargs:
+            port (int):
+            domain (str): if specified assumes server is already running
+                somewhere otherwise kwargs is passed to opendb_in_background
+            start_job_queue (bool)
 
-    Kwargs:
-        port, domain
+    Returns:
+        web_ibs - this is a KillableProcess object with special functions
 
     CommandLine:
         python -m ibeis.main_module opendb_bg_web
@@ -340,6 +344,8 @@ def opendb_bg_web(*args, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.main_module import *  # NOQA
+        >>> args = tuple()
+        >>> kwargs = {}
         >>> print('Opening a web_ibs')
         >>> web_ibs = opendb_bg_web()
         >>> print('SUCESS Opened a web_ibs!')
@@ -348,9 +354,9 @@ def opendb_bg_web(*args, **kwargs):
         >>> web_ibs.terminate2()
     """
     import utool as ut
-    kwargs = kwargs.copy()
+    from ibeis.web import appfuncs
     domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
-    port = kwargs.pop('port', 5000)
+    port = kwargs.pop('port', appfuncs.DEFAULT_WEB_API_PORT)
 
     if 'wait' in kwargs:
         print('NOTE: No need to specify wait param anymore. '
@@ -375,6 +381,14 @@ def opendb_bg_web(*args, **kwargs):
     web_ibs.domain = domain
     web_ibs.port = port
     web_ibs.baseurl = baseurl
+
+    def get(suffix, **kwargs):
+        import requests
+        return requests.get(baseurl + suffix)
+
+    def post(suffix, **kwargs):
+        import requests
+        return requests.post(baseurl + suffix)
 
     def send_ibeis_request(suffix, type_='post', **kwargs):
         """
@@ -429,12 +443,14 @@ def opendb_bg_web(*args, **kwargs):
     web_ibs.wait_for_results = wait_for_results
     web_ibs.read_engine_results = read_engine_results
     web_ibs.send_request_and_wait = send_request_and_wait
+    web_ibs.get = get
+    web_ibs.post = post
 
     def wait_until_started():
         """ waits until the web server responds to a request """
         import requests
         for count in ut.delayed_retry_gen([1], timeout=15):
-            if ut.VERBOSE:
+            if True or ut.VERBOSE:
                 print('Waiting for server to be up. count=%r' % (count,))
             try:
                 web_ibs.send_ibeis_request('/api/test/heartbeat/', type_='get')
@@ -443,6 +459,28 @@ def opendb_bg_web(*args, **kwargs):
                 pass
     wait_until_started()
     return web_ibs
+
+
+def opendb_fg_web(*args, **kwargs):
+    """
+    Ignore:
+        >>> from ibeis.main_module import *  # NOQA
+        >>> kwargs = {'db': 'testdb1'}
+        >>> args = tuple()
+
+        >>> import ibeis
+        >>> ibs = ibeis.opendb_fg_web()
+
+    """
+    # Gives you context inside the web app for testing
+    kwargs['start_web_loop'] = False
+    kwargs['web'] = True
+    kwargs['browser'] = False
+    ibs = opendb(*args, **kwargs)
+    from ibeis.control import controller_inject
+    app = controller_inject.get_flask_app()
+    ibs.app = app
+    return ibs
 
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
@@ -486,8 +524,9 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
     """
     from ibeis.init import sysres
     from ibeis.other import ibsfuncs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir,
-                                  cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     if delete_ibsdir is True:
         assert allow_newdir, (
             'must be making new directory if you are deleting everything!')
@@ -502,17 +541,18 @@ def start(*args, **kwargs):
     return main(*args, **kwargs)
 
 
-def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
-              db=None):
+def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
+                db=None):
     """ alias for main() """  # + main.__doc__
     from ibeis.init import sysres
     _preload()
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     ibs = _init_ibeis(dbdir)
     return ibs
 
 
-#@profile
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool as ut
@@ -521,7 +561,7 @@ def _preload(mpl=True, par=True, logging=True):
     if  multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
-        print('[ibies] _preload')
+        print('[ibeis] _preload')
     _parse_args()
     # mpl backends
     if logging and not params.args.nologging:
@@ -544,7 +584,6 @@ def _preload(mpl=True, par=True, logging=True):
     #return params.args
 
 
-#@profile
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     Runs the qt loop if the GUI was initialized and returns an executable string
@@ -588,7 +627,7 @@ def main_close(main_locals=None):
     #import utool as ut
     #if ut.VERBOSE:
     #    print('main_close')
-    _close_parallel()
+    # _close_parallel()
     _reset_signals()
 
 

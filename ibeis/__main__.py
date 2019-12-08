@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Runs IBIES gui
@@ -12,17 +12,13 @@ import sys
 CMD = ut.get_argflag('--cmd')
 
 
-# For Pyinstaller
-#from ibeis.all_imports import *  # NOQA
-
-
 def dependencies_for_myprogram():
     """ Let pyintaller find these modules
 
     References:
         http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
     """
-    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
+    from guitool_ibeis.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
     from PyQt4 import QtCore, QtGui  # NOQA
     #from PyQt4 import QtCore, QtGui  # NOQA
     from scipy.sparse.csgraph import _validation  # NOQA
@@ -59,20 +55,11 @@ def run_ibeis():
         ut.embed()
     # Run the tests of other modules
     elif ut.get_argflag('--run-utool-tests'):
-        import utool.tests.run_tests
-        retcode = utool.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
-    elif ut.get_argflag('--run-vtool-tests'):
-        import vtool.tests.run_tests
-        retcode = vtool.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+        raise Exception('Deprecated functionality')
+    elif ut.get_argflag('--run-vtool_ibeis-tests'):
+        raise Exception('Deprecated functionality')
     elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
-        from ibeis.tests import run_tests
-        retcode = run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+        raise Exception('Deprecated functionality')
 
     if ut.get_argflag('-e'):
         """
@@ -88,13 +75,14 @@ def run_ibeis():
     # with the --tf flag
     import ibeis.tests.run_tests
     import ibeis.tests.reset_testdbs
+    import ibeis.scripts.thesis
     ignore_prefix = [
         #'ibeis.tests',
         'ibeis.control.__SQLITE3__',
         '_autogen_explicit_controller']
     ignore_suffix = ['_grave']
     func_to_module_dict = {
-        'demo_bayesnet': 'ibeis.algo.hots.demobayes',
+        'demo_bayesnet': 'ibeis.unstable.demobayes',
     }
     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
                             func_to_module_dict=func_to_module_dict)
@@ -120,7 +108,7 @@ def run_ibeis():
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
         """
         print('[ibeis] Testing module')
         mod_alias_list = {
@@ -138,7 +126,6 @@ def run_ibeis():
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>
     if 'back' in main_locals and CMD:
-        #from ibeis.all_imports import *  # NOQA
         back = main_locals['back']
         front = getattr(back, 'front', None)  # NOQA
         #front = back.front

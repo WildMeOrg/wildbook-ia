@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-This model provides the declarative interface to all of the api_*_models in
-guitool. Each different type of model/view has to register its iders, getters,
-and potentially setters (hopefully if guitool ever gets off the ground the
-delters as well)
+This model provides the declarative interface to all of the api_*_models
+in guitool_ibeis. Each different type of model/view has to register its iders,
+getters, and potentially setters (hopefully if guitool_ibeis ever gets off the
+ground the delters as well)
 
 Different columns can be hidden / shown by modifying this file
 
 TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
+import six
 from six.moves import zip, map, range
 from ibeis import constants as const
 import utool as ut
 from functools import partial
-#from ibeis.control import
-(print, rrr, profile) = ut.inject2(__name__, '[headers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 IMAGESET_TABLE  = const.IMAGESET_TABLE
 IMAGE_TABLE      = const.IMAGE_TABLE
@@ -34,7 +34,8 @@ THUMB_TABLE      = 'thumbs'
 
 def make_table_declarations(ibs):
     """
-    these used to be global variables, hopefully we can make them a little more configurable
+    these used to be global variables, hopefully we can make them a little more
+    configurable
     """
     # available tables
     TABLENAME_LIST = [
@@ -91,7 +92,7 @@ def make_table_declarations(ibs):
             'name',
             'exemplar',
             'species',  # <put back in
-            'yaw_text',
+            'viewpoint',
             'quality_text',
             'age_min',
             'age_max',
@@ -102,7 +103,6 @@ def make_table_declarations(ibs):
             'annotnotes',  # ## <put back in
             'tag_text',  # < Hack should have actual tag structure
             #'annot_visual_uuid',
-            #'annot_semantic_uuid',
             #'nFeats',
             #'bbox',
             #'theta',
@@ -140,20 +140,20 @@ def make_table_declarations(ibs):
             'nAids',
             'thumb',
             'nid',
-            'exemplar',
-            'nExAids',
+            # 'exemplar',
+            # 'nExAids',
             'aid',
-            'annot_gname',
-            'yaw_text',
-            'quality_text',
-            'age_min',
-            'age_max',
-            'sex_text',
-            'imagesettext_names',
-            'datetime',
-            'max_hourdiff',
-            'max_speed',
-            'namenotes',
+            # 'annot_gname',
+            # 'quality_text',
+            # 'age_min',
+            # 'age_max',
+            # 'sex_text',
+            # 'imagesettext_names',
+            # 'datetime',
+            # 'max_hourdiff',
+            # 'max_speed',
+            # 'has_split',
+            # 'namenotes',
         ],
 
         IMAGE_GRID     : [
@@ -183,6 +183,7 @@ def make_table_declarations(ibs):
             'imageset_start_datetime',
             # 'imageset_end_datetime',
             'imageset_duration',
+            'imageset_notes',
         ])
 
     if ibs.cfg.other_cfg.show_shipped_imagesets:
@@ -205,7 +206,7 @@ def make_table_declarations(ibs):
             'sex_text': 0,
             'exemplar': 1,
             'thumb': 1,
-            'yaw_text': 1,
+            'viewpoint': 1,
             'quality_text': 1,
             'age_min': 1,
             'age_max': 1,
@@ -215,19 +216,20 @@ def make_table_declarations(ibs):
             'datetime': 1,
             'max_hourdiff': 0,
             'max_speed': 0,
+            'has_split': 0,
         },
     }
 
     # the columns which are editable
     TABLE_EDITSET = {
-        IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text']),
+        IMAGE_TABLE      : set(['reviewed', 'imgnotes', 'gps']),
+        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'viewpoint', 'quality_text', 'age_min', 'age_max', 'sex_text', 'tag_text']),
         NAME_TABLE       : set(['name', 'namenotes']),
         QRES_TABLE       : set(['name']),
-        IMAGESET_TABLE  : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
+        IMAGESET_TABLE   : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
         IMAGE_GRID       : set([]),
         THUMB_TABLE      : set([]),
-        NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text']),
+        NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'viewpoint', 'quality_text', 'age_min', 'age_max', 'sex_text']),
     }
 
     if const.SIMPLIFY_INTERFACE:
@@ -246,7 +248,6 @@ def make_table_declarations(ibs):
 
     # Define the valid columns a table could have
     COL_DEF = dict([
-        ('annot_semantic_uuid',             (str,      'Annot Semantic UUID')),
         ('annot_visual_uuid',               (str,      'Annot Visual UUID')),
         ('image_uuid',                      (str,      'Image UUID')),
         ('gid',                             (int,      'Image ID')),
@@ -266,8 +267,7 @@ def make_table_declarations(ibs):
         ('rank',                            (str,      'Rank')),  # needs to be a string for !Query
         ('unixtime',                        (float,    'unixtime')),
         ('species',                         (str,      'Species')),
-        ('yaw',                             (str,      'Yaws')),
-        ('yaw_text',                        (str,      'Viewpoint')),
+        ('viewpoint',                       (str,      'Viewpoint')),
         ('img_gname',                       (str,      'Image Name')),
         ('annot_gname',                     (str,      'Source Image')),
         ('gdconf',                          (str,      'Detection Confidence')),
@@ -295,6 +295,7 @@ def make_table_declarations(ibs):
         ('imageset_start_datetime',         (str,      'Start Time')),
         ('imageset_end_datetime',           (str,      'End Time')),
         ('imageset_duration',               (str,      'Duration')),
+        ('imageset_notes',                  (str,      'Notes')),
         ('party_tag',                       (str,      'Party')),
         ('contributor_tag',                 (str,      'Contributor')),
         ('percent_imgs_reviewed_str',       (str,      '%Imgs Reviewed')),
@@ -303,50 +304,43 @@ def make_table_declarations(ibs):
         ('num_annotmatch_reviewed',         (str,      '#Matches Reviewed')),
         ('percent_names_with_exemplar_str', (str,      '%Names with Exemplar')),
         ('max_speed',                       (float,    'Max Speed km/h')),
+        ('has_split',                       (float,    'Needs Split')),
         ('max_hourdiff',                    (float,    'Max Hour Diff')),
         ('tag_text',                        (str,      'Tags')),
     ])
 
-    declare_tup = TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF
+    declare_tup = (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
+                   TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST,
+                   TABLE_STRIPE_LIST, COL_DEF)
     return declare_tup
 
 #----
-# Define the special metadata for annotation
 
 
-#def expand_special_colnames(annot_metadata):
-#    global COL_DEF
-#    for name, nice, valid in annot_metadata:
-#        #TABLE_COLNAMES[ANNOTATION_TABLE]
-#        if isinstance(valid, list):
-#            type_ = str
-#        else:
-#            type_ = valid
-#        COL_DEF[name] = (type_, nice)
-#expand_special_colnames(const.ROSEMARY_ANNOT_METADATA)
+def partial_imap_1to1(func, si_func):
+    import functools
+    @functools.wraps(si_func)
+    def wrapper(input_):
+        if not ut.isiterable(input_):
+            return func(si_func(input_))
+        else:
+            return list(map(func, si_func(input_)))
+    ut.set_funcname(wrapper, ut.get_callable_name(func) + '_mapper_' +
+                    ut.get_funcname(si_func))
+    return wrapper
 
-#-----
 
-
-#def get_redirects(ibs):
-#    """
-#        Allows one to specify a column in a particular table to redirect the view
-#        to a different view (like a link in HTML to a different page)
-#    """
-#    redirects = {}
-#    # Annotation redirects
-#    # redirects[ANNOTATION_TABLE] = {
-#    #     'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
-#    # }
-#    # Return the redirects dictionary
-#    return redirects
+def _tupstr(tuple_):
+    """ maps each item in tuple to a string and doesnt include parens """
+    return ', '.join(list(map(six.text_type, tuple_)))
 
 
 def make_ibeis_headers_dict(ibs):
     declare_tup = make_table_declarations(ibs)
-    TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF = declare_tup
+    (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
+     TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST,
+     TABLE_STRIPE_LIST, COL_DEF) = declare_tup
 
-    partial_imap_1to1 = ut.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
     iders = {}
@@ -357,17 +351,18 @@ def make_ibeis_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 if ut.VERBOSE:
-                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (tablename, colname,))
+                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (
+                        tablename, colname,))
                     #print('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:
-                    getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
+                    getters[tablename][colname] = getattr(
+                        ibs, 'get_' + shortname + '_' + colname)
                 except AttributeError:
                     # we have inconsistently put in column names
                     # try to "just make things work"
                     getters[tablename][colname] = getattr(ibs, 'get_' + colname)
     # +--------------------------
     # ImageSet Iders/Setters/Getters
-    #ibs.cfg.other_cfg.ensure_attr(show_shipped_imagesets, ut.is_developer())
     SHOW_SHIPPED_IMAGESETS = ibs.cfg.other_cfg.show_shipped_imagesets
     #SHOW_SHIPPED_IMAGESETS = True
     if SHOW_SHIPPED_IMAGESETS:
@@ -388,6 +383,7 @@ def make_ibeis_headers_dict(ibs):
         'imageset_start_time_posix' : ibs.get_imageset_start_time_posix,
         'imageset_end_time_posix'   : ibs.get_imageset_end_time_posix,
         'imageset_duration'         : ibs.get_imageset_duration,
+        'imageset_notes'            : ibs.get_imageset_note,
     }
     infer_unspecified_getters(IMAGESET_TABLE, 'imageset')
     setters[IMAGESET_TABLE] = {
@@ -402,26 +398,27 @@ def make_ibeis_headers_dict(ibs):
     # Image Iders/Setters/Getters
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
-        'gid'          : lambda gids: gids,
+        'gid'          : ut.identity,
         'imgsetid'     : ibs.get_image_imgsetids,
-        'imagesettext' : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
+        'imagesettext' : partial_imap_1to1(_tupstr, ibs.get_image_imagesettext),
         'reviewed'     : ibs.get_image_reviewed,
         'img_gname'    : ibs.get_image_gnames,
         'nAids'        : ibs.get_image_num_annotations,
         'unixtime'     : ibs.get_image_unixtime,
-        'datetime'     : ibs.get_image_datetime,
+        'datetime'     : ibs.get_image_datetime_str,
         'gdconf'       : ibs.get_image_detect_confidence,
         'imgnotes'     : ibs.get_image_notes,
         'image_uuid'   : ibs.get_image_uuids,
         'ext'          : ibs.get_image_exts,
         'thumb'        : ibs.get_image_thumbtup,
-        'gps'          : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
+        'gps'          : partial_imap_1to1(_tupstr, ibs.get_image_gps),
         'orientation'  : ibs.get_image_orientation_str,
     }
     infer_unspecified_getters(IMAGE_TABLE, 'image')
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
         'imgnotes'      : ibs.set_image_notes,
+        'gps'           : ibs.set_image_gps_str,
     }
     # +--------------------------
     # IMAGE GRID
@@ -437,11 +434,10 @@ def make_ibeis_headers_dict(ibs):
     # ANNOTATION Iders/Setters/Getters
     iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
-        'aid'                 : lambda aids: aids,
+        'aid'                 : ut.identity,
         'name'                : ibs.get_annot_names,
         'species'             : ibs.get_annot_species_texts,
-        'yaw'                 : ibs.get_annot_yaws,
-        'yaw_text'            : ibs.get_annot_yaw_texts,
+        'viewpoint'           : ibs.get_annot_viewpoints,
         'quality_text'        : ibs.get_annot_quality_texts,
         'imagesettext_names'  : ibs.get_annot_image_set_texts,
         'age_min'             : ibs.get_annot_age_months_est_min,
@@ -459,30 +455,30 @@ def make_ibeis_headers_dict(ibs):
         'thumb'               : ibs.get_annot_chip_thumbtup,
         'exemplar'            : ibs.get_annot_exemplar_flags,
         'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
-        'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
-        'datetime'            : ibs.get_annot_image_datetime,
+        'datetime'            : ibs.get_annot_image_datetime_str,
     }
     infer_unspecified_getters(ANNOTATION_TABLE, 'annot')
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
         'species'    : ibs.set_annot_species_and_notify,
-        'yaw'        : ibs.set_annot_yaws,
-        'yaw_text'   : ibs.set_annot_yaw_texts,
+        'viewpoint'  : ibs.set_annot_viewpoints,
         'age_min'    : ibs.set_annot_age_months_est_min,
         'age_max'    : ibs.set_annot_age_months_est_max,
         'sex_text'   : ibs.set_annot_sex_texts,
         'annotnotes' : ibs.set_annot_notes,
         'exemplar'   : ibs.set_annot_exemplar_flags,
         'quality_text'    : ibs.set_annot_quality_texts,
+        'tag_text': ibs.set_annot_tag_text,
     }
     # +--------------------------
     # Name Iders/Setters/Getters
     iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
-        'nid'        : lambda nids: nids,
+        'nid'        : ut.identity,
         'name'       : ibs.get_name_texts,
         'nAids'      : ibs.get_name_num_annotations,
         'namenotes'  : ibs.get_name_notes,
+        #'has_split'  : ibs.get_name_has_split,
     }
     setters[NAME_TABLE] = {
         'name'       : ibs.set_name_texts,
@@ -493,21 +489,21 @@ def make_ibeis_headers_dict(ibs):
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         # level 0
-        'nid'          : lambda nids: nids,
+        'nid'          : ut.identity,
         'name'         : ibs.get_name_texts,
         'nAids'        : ibs.get_name_num_annotations,
         'nExAids'      : ibs.get_name_num_exemplar_annotations,
         'namenotes'    : ibs.get_name_notes,
         'sex_text'     : ibs.get_name_sex_text,
         # level 1
-        'aid'          : lambda aids: aids,
+        'aid'          : ut.identity,
         'exemplar'     : ibs.get_annot_exemplar_flags,
         'thumb'        : ibs.get_annot_chip_thumbtup,
         'annot_gname'  : ibs.get_annot_image_names,
         'age_min'      : ibs.get_annot_age_months_est_min,
         'age_max'      : ibs.get_annot_age_months_est_max,
         'imagesettext_names' : ibs.get_annot_image_set_texts,
-        'yaw_text'     : getters[ANNOTATION_TABLE]['yaw_text'],
+        'viewpoint'    : getters[ANNOTATION_TABLE]['viewpoint'],
         'quality_text' : getters[ANNOTATION_TABLE]['quality_text'],
         'datetime'     : getters[ANNOTATION_TABLE]['datetime'],
     }
@@ -518,7 +514,7 @@ def make_ibeis_headers_dict(ibs):
         'age_min'      : ibs.set_annot_age_months_est_min,
         'age_max'      : ibs.set_annot_age_months_est_max,
         'exemplar'     : setters[ANNOTATION_TABLE]['exemplar'],
-        'yaw_text'     : setters[ANNOTATION_TABLE]['yaw_text'],
+        'viewpoint'    : setters[ANNOTATION_TABLE]['viewpoint'],
         'quality_text' : setters[ANNOTATION_TABLE]['quality_text'],
     }
     widths[NAMES_TREE] = {

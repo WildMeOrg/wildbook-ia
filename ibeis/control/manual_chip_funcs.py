@@ -1,29 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
-sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_chip_funcs
-sh Tgen.sh --key chip
-
-python -m utool.util_inspect --exec-check_module_usage --pat="manual_chip_funcs.py"
-"""
 from __future__ import absolute_import, division, print_function
-import numpy as np  # NOQA
+import six
+import utool as ut
 from six.moves import zip
-import six  # NOQA
 from os.path import join
 from ibeis import constants as const
-#from ibeis.control import accessor_decors
 from ibeis.control import accessor_decors, controller_inject
-import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__, '[manual_chips]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 ANNOT_ROWID   = 'annot_rowid'
@@ -42,9 +32,9 @@ NEW_DEPC = True
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/fpath/', methods=['GET'])
+# register_api('/api/chip/fpath/', methods=['GET'])
 def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
-                         check_external_storage=False, extra_tries=0):
+                         check_external_storage=False, num_retries=1):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -54,21 +44,15 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/fpath/
+        URL:    /api/chip/fpath/
     """
-    import dtool
-    try:
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
+    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
+                              ensure=ensure, read_extern=False)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/', methods=['GET'])
+# @register_api('/api/chip/', methods=['GET'])
 def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
@@ -82,12 +66,11 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chips
-        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_annot_chips\>'
+        python -m ibeis.control.manual_chip_funcs get_annot_chips
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/
+        URL:    /api/chip/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -97,8 +80,9 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> aid_list = ibs.get_valid_aids()[0:5]
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> chip_list = get_annot_chips(ibs, aid_list, config2_)
-        >>> chip_sum_list = list(map(np.sum, chip_list))
-        >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
+        >>> chip_sum_list = [chip.sum() for chip in chip_list]
+        >>> target = [96053500, 65152954, 67223241, 109358624, 73995960]
+        >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
     return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
@@ -108,7 +92,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 @register_ibs_method
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
-@register_api('/api/annot_chip/sizes/', methods=['GET'])
+# @register_api('/api/chip/sizes/', methods=['GET'])
 def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
     r"""
     Args:
@@ -120,11 +104,7 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         list: chipsz_list - the (width, height) of computed annotation chips.
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_sizes
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot_chip/sizes/
+        python -m ibeis.control.manual_chip_funcs get_annot_chip_sizes
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -146,7 +126,6 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
 
 
 @register_ibs_method
-@register_api('/api/annot_chip/dlensqrd/', methods=['GET'])
 def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
     r"""
     Args:
@@ -157,11 +136,11 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
         list: topx2_dlen_sqrd
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_dlensqrd
+        python -m ibeis.control.manual_chip_funcs get_annot_chip_dlensqrd
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/dlensqrd/
+        URL:    /api/chip/dlensqrd/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -184,7 +163,7 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/thumbpath/', methods=['GET'])
+# @register_api('/api/chip/thumbpath/', methods=['GET'])
 def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     just constructs the path. does not compute it. that is done by
@@ -192,26 +171,26 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/thumbpath/
+        URL:    /api/chip/thumbpath/
     """
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
+    thumbpath_list = [join(thumb_dpath, six.text_type(uuid) + thumb_suffix)
                       for uuid in annot_uuid_list]
     return thumbpath_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/thumbtup/', methods=['GET'])
+# @register_api('/api/chip/thumbtup/', methods=['GET'])
 def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     get chip thumb info
     The return type of this is interpreted and computed in
-    ~/code/guitool/guitool/api_thumb_delegate.py
+    ~/code/guitool_ibeis/guitool_ibeis/api_thumb_delegate.py
 
     Args:
         aid_list  (list):
@@ -225,14 +204,14 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/thumbtup/
+        URL:    /api/chip/thumbtup/
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
         >>> print(result)
@@ -251,7 +230,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     chip_paths = ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
-        (thumb_path, chip_path, chipsize, [], [])
+        (thumb_path, chip_path, chipsize, [], [], [])
         for (thumb_path, chip_path, chipsize) in
         zip(thumb_gpaths, chip_paths, chipsize_list,)
     ]
@@ -261,108 +240,110 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
+    r"""
+    get chip thumb info
+    The return type of this is interpreted and computed in
+    ~/code/guitool_ibeis/guitool_ibeis/api_thumb_delegate.py
+
+    Args:
+        aid_list  (list):
+        thumbsize (int):
+
+    Returns:
+        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+
+    RESTful:
+        Method: GET
+        URL:    /api/chip/thumbtup/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[1:2]
+        >>> thumbsize = 128
+        >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
+        >>> print(result)
+    """
+    if thumbsize is not None:
+        config = {} if config is None else config.copy()
+        config['thumbsize'] = thumbsize
+    imgpath_list = ibs.depc_annot.get('chipthumb', aid_list, 'img',
+                                      config=config, read_extern=False)
+    return imgpath_list
+
+
+@register_ibs_method
 @accessor_decors.deleter
-@register_api('/api/annot_chip/', methods=['DELETE'])
+# @register_api('/api/chip/', methods=['DELETE'])
 def delete_annot_chips(ibs, aid_list, config2_=None):
     r"""
     Clears annotation data (does not remove the annotation)
 
     RESTful:
         Method: DELETE
-        URL:    /api/annot_chip/
+        URL:    /api/chip/
     """
+    # FIXME: Should config2_ be passed down?
+    # Not sure why it isn't currently
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    print(thumbpath_list)
+    #print(thumbpath_list)
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.depc_annot.delete_property('chips', aid_list, config=config2_)
     return
 
 
-# ---------------------
-# NATIVE CHIP FUNCTIONS
-# ---------------------
+@register_ibs_method
+@accessor_decors.getter_1to1
+# @register_api('/api/pchip/', methods=['GET'])
+def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=False, eager=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        part_rowid_list (int):  list of part ids
+        ensure (bool):  eager evaluation if True
+        config2_ (QueryRequest):  query request object with hyper-parameters
+
+    Returns:
+        list: chip_list
 
 
-#@register_ibs_method
-#@accessor_decors.getter_1to1
-#@register_api('/api/chip/aids/', methods=['GET'])
-#def get_chip_aids(ibs, cid_list):
-#    r"""
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs get_part_chips
 
-#    RESTful:
-#        Method: GET
-#        URL:    /api/chip/aids/
+    RESTful:
+        Method: GET
+        URL:    /api/pchip/
 
-#    Args:
-#        ibs (IBEISController):  ibeis controller object
-#        cid_list (list):
-
-#    Returns:
-#        int: aid_list -  list of annotation ids
-
-#    CommandLine:
-#        python -m ibeis.control.manual_chip_funcs --test-get_chip_aids
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-#        >>> import ibeis
-#        >>> from ibeis.algo import Config
-#        >>> from ibeis.algo.hots import query_params
-#        >>> #chip_config2_ = Config.ChipConfig(dim_size=450)
-#        >>> #chip_config3_ = Config.ChipConfig(dim_size=200)
-#        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-#        >>> config2_ = query_params.QueryParams(cfgdict=dict(dim_size=450))
-#        >>> config3_ = query_params.QueryParams(cfgdict=dict(dim_size=200))
-#        >>> aid_list = ibs.get_valid_aids()[0:2]
-#        >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)
-#        >>> cid_list3 = ibs.get_annot_chip_rowids(aid_list, config2_=config3_)
-#        >>> aid_list2 = get_chip_aids(ibs, cid_list2)
-#        >>> aid_list3 = get_chip_aids(ibs, cid_list3)
-#        >>> assert aid_list2 == aid_list3
-#        >>> assert cid_list2 != cid_list3
-#        >>> result  = ('cid_list2 = %s\n' % (str(cid_list2),))
-#        >>> result += ('cid_list3 = %s' % (str(cid_list3),))
-#        >>> ibs.get_chip_config_rowid(config2_)
-#        >>> ibs.get_chip_config_rowid(config3_)
-#        >>> # Extra testing
-#        >>> # Delete the fpath and the annotations
-#        >>> cfpath_list2 = ibs.get_chip_fpath(cid_list2)
-#        >>> ut.remove_file_list(cfpath_list2)
-#        >>> ibs.delete_annot_feats(aid_list)
-#        >>> # Trying to get the vecs should fail because the chip is not there.
-#        >>> # But trying it again will work.
-#        >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
-#        >>> try:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
-#        >>> except controller_inject.ExternalStorageException:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
-#        >>> else:
-#        >>>     assert False, 'Should have gotten external storage execpetion'
-#        >>> print(result)
-#    """
-#    if NEW_DEPC:
-#        raise NotImplementedError('')
-#        #ibs.depc_annot['chips'].delete_rows('chips', cid_list)
-#    aid_list = ibs.dbcache.get(const.CHIP_TABLE, (ANNOT_ROWID,), cid_list)
-#    return aid_list
-
-
-#@register_ibs_method
-#@accessor_decors.getter_1to1
-#def check_chip_external_storage(ibs, cid_list):
-#    if NEW_DEPC:
-#        raise NotImplementedError('')
-#    chip_fpath_list = get_chip_fpath(ibs, cid_list, check_external_storage=False)
-#    notexists_flags = [not exists(cfpath) for cfpath in chip_fpath_list]
-#    if any(notexists_flags):
-#        invalid_cids = ut.compress(cid_list, notexists_flags)
-#        print('ERROR: %d CHIPS DO NOT EXIST' % (len(invalid_cids)))
-#        print('ATTEMPING TO FIX %d / %d non-existing chip paths' % (len(invalid_cids), len(cid_list)))
-#        ibs.delete_chips(invalid_cids)
-#        raise controller_inject.ExternalStorageException('NON-EXISTING EXTRENAL STORAGE ERROR. REQUIRES RECOMPUTE. TRY AGAIN')
-#    return chip_fpath_list
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = aid_list[:10]
+        >>> bbox_list = ibs.get_annot_bboxes(aid_list)
+        >>> bbox_list = [
+        >>>     (xtl + 100, ytl + 100, w - 100, h - 100)
+        >>>     for xtl, ytl, w, h in bbox_list
+        >>> ]
+        >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
+        >>> chip_list = get_part_chips(ibs, part_rowid_list, config2_)
+        >>> chip_sum_list = [chip.sum() for chip in chip_list]
+        >>> target = [86763970, 62020065, 61333964, 111418156, 63593594, 51404427, 139395045, 84060806, 41257586, 89658838]
+        >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
+        >>> print(chip_sum_list)
+    """
+    return ibs.depc_part.get('pchips', part_rowid_list, 'img', config=config2_,
+                              ensure=ensure)
 
 
 def testdata_ibs():

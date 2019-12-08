@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.algo import Config
 from ibeis.algo import detect
 from ibeis.algo import hots
+from ibeis.algo import smk
 from ibeis.algo import preproc
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.algo]')
@@ -74,6 +75,7 @@ IMPORT_TUPLES = [
     ('Config', None, False),
     ('detect', None, True),
     ('hots', None, True),
+    ('smk', None, True),
     ('preproc', None, True),
 ]
 """

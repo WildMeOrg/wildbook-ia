@@ -1,0 +1,462 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.verif.torch.netmath &mdash; ibeis 1.8.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.verif" href="../../verif.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">ibeis</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+        
+          <li><a href="../../../algo.html">ibeis.algo</a> &raquo;</li>
+        
+          <li><a href="../../verif.html">ibeis.algo.verif</a> &raquo;</li>
+        
+      <li>ibeis.algo.verif.torch.netmath</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.verif.torch.netmath</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="k">import</span> <span class="n">Variable</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># from pysseg import getLogger</span>
+<span class="c1"># logger = getLogger(__name__)</span>
+<span class="c1"># print = logger.info</span>
+
+
+<div class="viewcode-block" id="testdata_siam_desc"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.testdata_siam_desc">[docs]</a><span class="k">def</span> <span class="nf">testdata_siam_desc</span><span class="p">(</span><span class="n">num_data</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">desc_dim</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">network_output</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_data</span><span class="p">,</span> <span class="n">desc_dim</span><span class="p">))</span>
+    <span class="n">vecs1</span> <span class="o">=</span> <span class="n">network_output</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">vecs2</span> <span class="o">=</span> <span class="n">network_output</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># roll vecs2 so it is essentially translated</span>
+    <span class="n">vecs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">network_output</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecs2</span>
+    <span class="c1"># Every other pair is an imposter match</span>
+    <span class="n">network_output</span><span class="p">[::</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">desc_dim</span><span class="p">))</span>
+    <span class="c1">#data_per_label = 2</span>
+
+    <span class="n">vecs1</span> <span class="o">=</span> <span class="n">network_output</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">vecs2</span> <span class="o">=</span> <span class="n">network_output</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">true_dist_metric</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">):</span>
+        <span class="n">g1_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">L2</span><span class="p">(</span><span class="n">g1_</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dist</span>
+    <span class="c1">#l2dist = vt.L2(vecs1, vecs2)</span>
+    <span class="n">true_dist</span> <span class="o">=</span> <span class="n">true_dist_metric</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="p">(</span><span class="n">true_dist</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">vecs1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">vecs1</span><span class="p">)</span>
+    <span class="n">vecs2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">vecs2</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vecs1</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">,</span> <span class="n">label</span></div>
+
+
+<div class="viewcode-block" id="ContrastiveLoss"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.ContrastiveLoss">[docs]</a><span class="k">class</span> <span class="nc">ContrastiveLoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contrastive loss function.</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://github.com/delijati/pytorch-siamese/blob/master/contrastive.py</span>
+
+<span class="sd">    LaTeX:</span>
+<span class="sd">        $(y E)^2 + ((1 - y) max(m - E, 0)^2)$</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.verif.siamese import *</span>
+<span class="sd">        &gt;&gt;&gt; vecs1, vecs2, label = testdata_siam_desc()</span>
+<span class="sd">        &gt;&gt;&gt; self = ContrastiveLoss()</span>
+<span class="sd">        &gt;&gt;&gt; ut.exec_func_src(self.forward, globals())</span>
+<span class="sd">        &gt;&gt;&gt; func = self.forward</span>
+<span class="sd">        &gt;&gt;&gt; output = torch.nn.PairwiseDistance(p=2)(vecs1, vecs2)</span>
+<span class="sd">        &gt;&gt;&gt; loss2x, dist_l2 = ut.exec_func_src(self.forward, globals(), globals(), keys=[&#39;loss2x&#39;, &#39;dist_l2&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; loss2x, dist_l2, label = map(np.array, [loss, dist_l2, label])</span>
+<span class="sd">        &gt;&gt;&gt; label = label.astype(np.bool)</span>
+<span class="sd">        &gt;&gt;&gt; dist0_l2 = dist_l2[label]</span>
+<span class="sd">        &gt;&gt;&gt; dist1_l2 = dist_l2[~label]</span>
+<span class="sd">        &gt;&gt;&gt; loss0 = loss2x[label] / 2</span>
+<span class="sd">        &gt;&gt;&gt; loss1 = loss2x[~label] / 2</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot2(dist0_l2, loss0, &#39;x&#39;, color=pt.TRUE_BLUE, label=&#39;imposter_loss&#39;, y_label=&#39;loss&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot2(dist1_l2, loss1, &#39;x&#39;, color=pt.FALSE_RED, label=&#39;genuine_loss&#39;, y_label=&#39;loss&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.gca().set_xlabel(&#39;l2-dist&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.legend()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">super2</span><span class="p">(</span><span class="n">ContrastiveLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
+
+<div class="viewcode-block" id="ContrastiveLoss.forward"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.ContrastiveLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># euclidian distance</span>
+        <span class="c1"># diff = vecs1 - vecs2</span>
+        <span class="c1"># dist_sq = torch.sum(torch.pow(diff, 2), 1)</span>
+        <span class="c1"># dist_l2 = torch.sqrt(dist_sq)</span>
+
+        <span class="c1"># p1 = torch.nn.PairwiseDistance(p=1)(vecs1, vecs2)</span>
+        <span class="c1"># dist_l2 = torch.nn.PairwiseDistance(p=2)(vecs1, vecs2)</span>
+        <span class="n">dist_l2</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="n">dist_sq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">dist_l2</span> <span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">is_cuda</span><span class="p">:</span>
+            <span class="n">label_</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get_device</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label_</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)</span>
+
+        <span class="n">loss2x_genuine</span>  <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">label_</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">-</span> <span class="n">dist_l2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">loss2x_imposter</span> <span class="o">=</span> <span class="n">label_</span> <span class="o">*</span> <span class="n">dist_sq</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss2x_imposter</span> <span class="o">=</span> <span class="n">loss2x_imposter</span> <span class="o">*</span> <span class="n">weight</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">loss2x_genuine</span> <span class="o">=</span> <span class="n">loss2x_genuine</span> <span class="o">*</span> <span class="n">weight</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">loss2x</span> <span class="o">=</span> <span class="n">loss2x_genuine</span> <span class="o">+</span> <span class="n">loss2x_imposter</span>
+        <span class="n">ave_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">loss2x</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">label</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">ave_loss</span>
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="NetMathParams"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.NetMathParams">[docs]</a><span class="k">class</span> <span class="nc">NetMathParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NetMathParams.lookup"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.NetMathParams.lookup">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key_or_scheduler</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Accepts either a string that encodes a known scheduler or a</span>
+<span class="sd">        custom callable that is returned as-is.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key_or_scheduler (str or func): scheduler name or the func itself</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_or_scheduler</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">key_or_scheduler</span>
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="n">key_or_scheduler</span>
+        <span class="k">return</span> <span class="n">scheduler</span></div></div>
+
+
+<div class="viewcode-block" id="LRSchedules"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.LRSchedules">[docs]</a><span class="k">class</span> <span class="nc">LRSchedules</span><span class="p">(</span><span class="n">NetMathParams</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A collection of standard and custom learning rate schedulers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LRSchedules.exp"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.LRSchedules.exp">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">exp</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">init_lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">lr_decay_epoch</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs.&quot;&quot;&quot;</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="n">init_lr</span>
+        <span class="c1"># epoch += 1</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="n">lr_decay_epoch</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lr</span> <span class="o">*=</span> <span class="mf">0.1</span>
+
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="n">lr_decay_epoch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LR is set to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lr</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
+            <span class="n">param_group</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lr</span>
+
+        <span class="k">return</span> <span class="n">lr</span></div></div>
+
+
+<div class="viewcode-block" id="Criterions"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.Criterions">[docs]</a><span class="k">class</span> <span class="nc">Criterions</span><span class="p">(</span><span class="n">NetMathParams</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A collection of standard and custom loss criterion</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Criterions.cross_entropy2d"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.Criterions.cross_entropy2d">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cross_entropy2d</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size_average</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        https://github.com/ycszen/pytorch-seg/blob/master/loss.py</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+
+        <span class="n">log_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">log_p</span> <span class="o">=</span> <span class="n">log_p</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+
+        <span class="c1"># TODO: ignore any negative label</span>
+        <span class="c1"># for ignore in ignore_labels:</span>
+        <span class="c1">#     label[label == ignore] = -1</span>
+
+        <span class="c1"># Flatten Predictions</span>
+        <span class="n">log_p</span> <span class="o">=</span> <span class="n">log_p</span><span class="p">[</span><span class="n">label</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+
+        <span class="c1"># Flatten Labels</span>
+        <span class="n">target_mask</span> <span class="o">=</span> <span class="n">label</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">label</span><span class="p">[</span><span class="n">target_mask</span><span class="p">]</span>
+
+        <span class="c1"># from pysseg import metrics</span>
+        <span class="c1"># confusion_matrix()</span>
+        <span class="c1"># loss = torch.nn.functional.nll_loss(log_p, target, weight=weight, size_average=False)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">log_p</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">size_average</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">size_average</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">/=</span> <span class="n">target_mask</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+    <span class="n">ContrastiveLoss</span> <span class="o">=</span> <span class="n">ContrastiveLoss</span></div>
+
+
+<div class="viewcode-block" id="Optimizers"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.Optimizers">[docs]</a><span class="k">class</span> <span class="nc">Optimizers</span><span class="p">(</span><span class="n">NetMathParams</span><span class="p">):</span>
+    <span class="n">Adam</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span>
+    <span class="n">SGD</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span></div>
+
+
+<div class="viewcode-block" id="Metrics"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.Metrics">[docs]</a><span class="k">class</span> <span class="nc">Metrics</span><span class="p">(</span><span class="n">NetMathParams</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Metrics.tpr"><a class="viewcode-back" href="../../../../../ibeis.algo.verif.torch.html#ibeis.algo.verif.torch.netmath.Metrics.tpr">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">tpr</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; true positive rate &quot;&quot;&quot;</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">true</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="n">is_tp</span> <span class="o">=</span> <span class="n">pred</span> <span class="o">==</span> <span class="n">true</span>
+        <span class="n">tpr</span> <span class="o">=</span> <span class="n">is_tp</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">is_tp</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">return</span> <span class="n">tpr</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_siamese_metrics</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+        <span class="n">l2_dist_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="n">label_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+
+        <span class="c1"># Distance</span>
+        <span class="n">is_pos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ByteTensor</span><span class="p">()</span>
+        <span class="n">POS_LABEL</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">NEG_LABEL</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">label_tensor</span><span class="p">,</span> <span class="n">POS_LABEL</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">is_pos</span><span class="p">)</span>  <span class="c1"># y==1</span>
+        <span class="n">pos_dist</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2_dist_tensor</span><span class="p">[</span><span class="n">is_pos</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">l2_dist_tensor</span><span class="p">[</span><span class="n">is_pos</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">neg_dist</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2_dist_tensor</span><span class="p">[</span><span class="o">~</span><span class="n">is_pos</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">l2_dist_tensor</span><span class="p">[</span><span class="o">~</span><span class="n">is_pos</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="c1"># print(&#39;same dis : diff dis  {} : {}&#39;.format(l2_dist_tensor[is_pos == 0].mean(), l2_dist_tensor[is_pos].mean()))</span>
+
+        <span class="c1"># accuracy</span>
+        <span class="n">pred_pos_flags</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ByteTensor</span><span class="p">()</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">le</span><span class="p">(</span><span class="n">l2_dist_tensor</span><span class="p">,</span> <span class="n">margin</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">pred_pos_flags</span><span class="p">)</span>  <span class="c1"># y==1&#39;s idx</span>
+
+        <span class="n">cur_score</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">cur_score</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="n">NEG_LABEL</span><span class="p">)</span>
+        <span class="n">cur_score</span><span class="p">[</span><span class="n">pred_pos_flags</span><span class="p">]</span> <span class="o">=</span> <span class="n">POS_LABEL</span>
+
+        <span class="n">label_tensor_</span> <span class="o">=</span> <span class="n">label_tensor</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">cur_score</span><span class="p">,</span> <span class="n">label_tensor_</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">label_tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;accuracy&#39;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+            <span class="s1">&#39;pos_dist&#39;</span><span class="p">:</span> <span class="n">pos_dist</span><span class="p">,</span>
+            <span class="s1">&#39;neg_dist&#39;</span><span class="p">:</span> <span class="n">neg_dist</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">metrics</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Wild Me.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-#from ibeis import constants as const
-from six.moves import zip
-import plottool.draw_func2 as df2
-from plottool import plot_helpers as ph
 import utool as ut
-import vtool.keypoint as ktool
+import vtool_ibeis.keypoint as ktool
+import plottool_ibeis.draw_func2 as df2
+from six.moves import zip, map
+from plottool_ibeis import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_helpers]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
@@ -54,12 +53,18 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
 
 
 @getter_vector_output
-def get_chips(ibs, aid_list, in_image=False, config2_=None):
+def get_chips(ibs, aid_list, in_image=False, config2_=None, as_fpath=False):
     #print('config2_ = %r' % (config2_,))
-    if in_image:
-        return ibs.get_annot_images(aid_list)
+    if as_fpath:
+        if in_image:
+            return ibs.get_annot_image_paths(aid_list)
+        else:
+            return ibs.get_annot_chip_fpath(aid_list, config2_=config2_)
     else:
-        return ibs.get_annot_chips(aid_list, config2_=config2_)
+        if in_image:
+            return ibs.get_annot_images(aid_list)
+        else:
+            return ibs.get_annot_chips(aid_list, config2_=config2_)
 
 
 @getter_vector_output
@@ -103,7 +108,7 @@ def get_nidstrs(nid_list, **kwargs):
 
 
 def get_vsstr(qaid, aid):
-    return ibsfuncs.vsstr(qaid, aid)
+    return 'qaid%d-vs-aid%d' % (qaid, aid)
 
 
 def get_bbox_centers(bbox_list):
@@ -118,24 +123,15 @@ def is_unknown(ibs, nid_list):
     return [ not isinstance(nid, ut.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
 
 
-def get_truth_text(ibs, truth):
-    truth_texts = [
-        #'FALSE',
-        #'TRUE',
-        #'???'
-        'Imposter',
-        'Genuine',
-        'Unknown',
-    ]
-    return truth_texts[truth]
-
-
 def get_truth_color(truth, base255=False, lighten_amount=None):
-    truth_colors = [
-        df2.FALSE_RED,
-        df2.TRUE_GREEN,
-        df2.UNKNOWN_PURP,
-    ]
+    import ibeis.constants as const
+    truth_colors = {
+        const.EVIDENCE_DECISION.NEGATIVE: df2.FALSE_RED,
+        const.EVIDENCE_DECISION.POSITIVE: df2.TRUE_BLUE,
+        const.EVIDENCE_DECISION.INCOMPARABLE: df2.YELLOW,
+        const.EVIDENCE_DECISION.UNKNOWN: df2.UNKNOWN_PURP,
+        const.EVIDENCE_DECISION.UNREVIEWED: df2.UNKNOWN_PURP,
+    }
     color = truth_colors[truth]
     if lighten_amount is not None:
         #print('color = %r, lighten_amount=%r' % (color, lighten_amount))
@@ -163,17 +159,14 @@ def get_timedelta_str(ibs, aid1, aid2):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_helpers import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1 = 1
-        >>> aid2 = 8
-        >>> # execute function
+        >>> aid1, aid2 = 1, 8
         >>> timedelta_str = get_timedelta_str(ibs, aid1, aid2)
-        >>> # verify results
         >>> result = str(timedelta_str)
         >>> print(result)
-        td(+2:28:22)
+        td(2 hours 28 minutes 22 seconds)
 
+        td(+2:28:22)
         td(02:28:22)
     """
     gid1, gid2 = ibs.get_annot_gids([aid1, aid2])
@@ -217,14 +210,14 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         >>> # execute function
         >>> annotation_text_list = get_annot_texts(ibs, aid_list, kwargs_proxy=kwargs_proxy)
         >>> # verify results
-        >>> result = ut.list_str(annotation_text_list)
+        >>> result = ut.repr2(annotation_text_list, nl=1)
         >>> print(result)
         [
-            'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
-            'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
-            'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
-            'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
-            'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, view=left',
+            'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, view=left',
+            'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, view=unknown',
+            'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, view=left',
+            'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, view=unknown',
         ]
     """
     # HACK FOR TEST
@@ -261,11 +254,11 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     if kwargs.get('show_quality_text', False):
         qualtext_list = ibs.get_annot_quality_texts(aid_list)
         texts_list.append(list(map(lambda text: 'quality=%s' % text, qualtext_list)))
-    if kwargs.get('show_yawtext', False):
+    if kwargs.get('show_viewcode', False):
         # FIXME: This should be num_groundtruth with respect to the currently
         # allowed annotations
-        yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
+        viewcode_list = ibs.get_annot_viewpoint_code(aid_list)
+        texts_list.append(list(map(lambda text: 'view=%s' % text, viewcode_list)))
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]
@@ -317,10 +310,9 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_helpers import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> cm = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
-        >>> aid2 = '?'
-        >>> truth = '?'
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> aid2 = cm.get_top_aids()[0]
+        >>> truth = 1
         >>> query_text = get_query_text(ibs, cm, aid2, truth)
         >>> result = ('query_text = %s' % (str(query_text),))
         >>> print(result)
@@ -328,20 +320,20 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
     text_list = []
     if cm is not None:
         qaid = cm.qaid
-        score = cm.get_aid_scores([aid2])[0]
-        rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
-        aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
+        score = cm.get_annot_scores([aid2])[0]
+        rawscore = cm.get_annot_scores([aid2])[0]
+        aid2_raw_rank = cm.get_annot_ranks([aid2])[0]
     else:
         qaid          = kwargs.get('qaid', None)
         score         = kwargs.get('score', None)
         rawscore      = kwargs.get('rawscore', None)
         aid2_raw_rank = kwargs.get('aid2_raw_rank', None)
     if kwargs.get('show_truth', False):
-        truth_str = '*%s*' % get_truth_text(ibs, truth)
+        truth_str = '*%s*' % ibs.const.EVIDENCE_DECISION.INT_TO_NICE.get(truth, None)
         text_list.append(truth_str)
     if kwargs.get('show_rank', aid2_raw_rank is not None or cm is not None):
         try:
-            #aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
+            #aid2_raw_rank = cm.get_annot_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
@@ -350,13 +342,11 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
             raise
         text_list.append(rank_str)
     if kwargs.get('show_rawscore', rawscore is not None or cm is not None):
-        #rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
         rawscore_str = ('rawscore=' + ut.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
     if kwargs.get('show_score', score is not None or cm is not None):
-        #score = cm.get_aid_scores([aid2])[0]
         score_str = ('score=' + ut.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str
@@ -396,8 +386,10 @@ def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None, conf
     rchip = ibs.get_annot_chips(aid, config2_=config2_)
     kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
     sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
-    df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
-                                            mode='vec', fnum=fnum, pnum=pnum)
+    fig = df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
+                                                  mode='vec', fnum=fnum, pnum=pnum)
+    fig.canvas.draw()
+    fig.show()
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
 
 

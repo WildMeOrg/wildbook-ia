@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 """
 Converts a hotspostter database to IBEIS
 """
@@ -12,7 +12,7 @@ from six.moves import zip, map
 import utool as ut
 import re
 import csv
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[ingest_hsbd]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
@@ -121,88 +121,76 @@ def testdata_ensure_unconverted_hsdb():
     return hsdb_dir
 
 
-def test_open_to_convert():
+def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     r"""
-    CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
-
-    Example:
-        >>> # VERY_UNSTABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
-        >>> result = test_open_to_convert()
-        >>> print(result)
-    """
-    import ibeis
-    hsdb_dir = testdata_ensure_unconverted_hsdb()
-    ibs = ibeis.opendb(dbdir=hsdb_dir)
-    ibs.print_cachestats_str()
-
-
-def convert_hsdb_to_ibeis(hsdb_dir, **kwargs):
-    r"""
-    Args:
-        hsdb_dir (str):
+    Args
+        hsdir (str): Directory to folder *containing* _hsdb
+        dbdir (str): Output directory (defaults to same as  hsdb)
 
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db ~/work/Frogs
+        python -m ibeis convert_hsdb_to_ibeis --dbdir ~/work/Frogs
+        python -m ibeis convert_hsdb_to_ibeis --hsdir "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
+
+    Ignore:
+        from ibeis.dbio.ingest_hsdb import *  # NOQA
+        hsdir = "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
+        dbdir = "~/work/RotanTurtles"
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
-        >>> hsdb_dir = ut.get_argval('--dbdir', type_=str, default=None)
-        >>> result = convert_hsdb_to_ibeis(hsdb_dir)
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=None)
+        >>> hsdir = ut.get_argval('--hsdir', type_=str, default=dbdir)
+        >>> result = convert_hsdb_to_ibeis(hsdir)
         >>> print(result)
     """
     from ibeis.control import IBEISControl
     import utool as ut
-    assert is_hsdb(hsdb_dir), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
-    assert not is_succesful_convert(hsdb_dir), 'hsdb_dir=%r is already converted' % (hsdb_dir,)
-    #print('FORCE DELETE: %r' % (hsdb_dir,))
-    #ibsfuncs.delete_ibeis_database(hsdb_dir)
-    print('[ingest] Ingesting hsdb: %r' % hsdb_dir)
-    imgdir = join(hsdb_dir, 'images')
+    if dbdir is None:
+        dbdir = hsdir
+    print('[ingest] Ingesting hsdb: %r -> %r' % (hsdir, dbdir))
 
-    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir, **kwargs)
+    assert is_hsdb(hsdir), 'not a hotspotter database. cannot even force convert: hsdir=%r' % (hsdir,)
+    assert not is_succesful_convert(dbdir), 'hsdir=%r is already converted' % (hsdir,)
+    #print('FORCE DELETE: %r' % (hsdir,))
+    #ibsfuncs.delete_ibeis_database(hsdir)
+    imgdir = join(hsdir, 'images')
+
+    internal_dir = get_hsinternal(hsdir)
+    nametbl_fpath = join(internal_dir, 'name_table.csv')
+    imgtbl_fpath = join(internal_dir, 'image_table.csv')
+    chiptbl_fpath = join(internal_dir, 'chip_table.csv')
 
     # READ NAME TABLE
-    names_name_list = ['____']
-    name_nid_list   = [0]
-
-    internal_dir = get_hsinternal(hsdb_dir)
-
-    with open(join(internal_dir, 'name_table.csv'), 'rb') as nametbl_file:
+    name_text_list = ['____']
+    name_hs_nid_list = [0]
+    with open(nametbl_fpath, 'rb') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
         for ix, row in enumerate(name_reader):
             #if ix >= 3:
             if len(row) == 0 or row[0].strip().startswith('#'):
                 continue
             else:
-                nid = int(row[0])
+                hs_nid = int(row[0])
                 name = row[1].strip()
-                names_name_list.append(name)
-                name_nid_list.append(nid)
+                name_text_list.append(name)
+                name_hs_nid_list.append(hs_nid)
 
-    # ADD NAMES TABLE
-    nid_list = ibs.add_names(names_name_list)
-    #print(names_name_list)
-    #print(nid_list)
-
-    assert len(nid_list) == len(names_name_list), 'bad name adder'
-
-    image_gid_list   = []
+    # READ IMAGE TABLE
+    iamge_hs_gid_list   = []
     image_gname_list = []
     image_reviewed_list   = []
-    with open(join(internal_dir, 'image_table.csv'), 'rb') as imgtb_file:
+    with open(imgtbl_fpath, 'rb') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
-            #if ix >= 3:
             if len(row) == 0 or row[0].strip().startswith('#'):
                 continue
             else:
-                gid = int(row[0])
+                hs_gid = int(row[0])
                 gname_ = row[1].strip()
-                reviewed = bool(row[2])  # aif in hotspotter is equivilant to reviewed in IBEIS
-                image_gid_list.append(gid)
+                # aif in hotspotter is equivilant to reviewed in IBEIS
+                reviewed = bool(row[2])
+                iamge_hs_gid_list.append(hs_gid)
                 image_gname_list.append(gname_)
                 image_reviewed_list.append(reviewed)
 
@@ -210,81 +198,185 @@ def convert_hsdb_to_ibeis(hsdb_dir, **kwargs):
 
     ut.debug_duplicate_items(image_gpath_list)
     #print(image_gpath_list)
-    flags = list(map(exists, image_gpath_list))
-    for image_gpath, flag in zip(image_gpath_list, flags):
+    image_exist_flags = list(map(exists, image_gpath_list))
+    missing_images = []
+    for image_gpath, flag in zip(image_gpath_list, image_exist_flags):
         if not flag:
+            missing_images.append(image_gpath)
             print('Image does not exist: %s' % image_gpath)
 
-    assert all(flags), 'some images dont exist'
+    if not all(image_exist_flags):
+        print('Only %d / %d image exist' % (sum(image_exist_flags), len(image_exist_flags)))
 
-    # Add Images Table
-    gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
-    assert len(gid_list) == len(image_gpath_list), 'bad image adder'
-    # Build mappings to new indexes
-    names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in zip(name_nid_list, nid_list)}
-    names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
-    images_gid_to_gid = {images_gid: gid for (images_gid, gid) in zip(image_gid_list, gid_list)}
+    SEARCH_FOR_IMAGES = False
+    if SEARCH_FOR_IMAGES:
+        # Hack to try and find the missing images
+        from os.path import basename
+        subfiles = ut.glob(hsdir, '*',  recursive=True, fullpath=True, with_files=True)
+        basename_to_existing = ut.group_items(subfiles, ut.lmap(basename, subfiles))
 
-    #get annotations from chip_table
+        can_copy_list = []
+        for gpath in missing_images:
+            gname = basename(gpath)
+            if gname not in basename_to_existing:
+                print('gname = %r' % (gname,))
+                pass
+            else:
+                existing = basename_to_existing[gname]
+                can_choose = True
+                if len(existing) > 1:
+                    if not ut.allsame(ut.lmap(ut.get_file_uuid, existing)):
+                        can_choose = False
+                if can_choose:
+                    found = existing[0]
+                    can_copy_list.append((found, gpath))
+                else:
+                    print(existing)
+
+        src, dst = ut.listT(can_copy_list)
+        ut.copy_list(src, dst)
+
+    # READ CHIP TABLE
     chip_bbox_list   = []
     chip_theta_list  = []
-    chip_nid_list    = []
-    chip_gid_list    = []
+    chip_hs_nid_list = []
+    chip_hs_gid_list = []
     chip_note_list   = []
-    with open(join(internal_dir, 'chip_table.csv'), 'rb') as chiptbl_file:
+    with open(chiptbl_fpath, 'rb') as chiptbl_file:
         chip_reader = csv.reader(chiptbl_file)
         for ix, row in enumerate(chip_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
                 continue
             else:
-                images_gid = int(row[1])
-                names_nid = int(row[2])
+                hs_gid = int(row[1])
+                hs_nid = int(row[2])
                 bbox_text = row[3]
                 theta = float(row[4])
                 notes = '<COMMA>'.join([item.strip() for item in row[5:]])
-                try:
-                    nid = names_nid_to_nid[names_nid]
-                except KeyError:
-                    print(names_nid_to_nid)
-                    print('Error no names_nid: %r' % names_nid)
-                    raise
-                gid = images_gid_to_gid[images_gid]
+
                 bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
                 bbox_text = re.sub('  *', ' ', bbox_text)
                 bbox_strlist = bbox_text.split(' ')
                 bbox = tuple(map(int, bbox_strlist))
-                if gid is None:
-                    print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
-                    continue
                 #bbox = [int(item) for item in bbox_strlist]
-                chip_nid_list.append(nid)
-                chip_gid_list.append(gid)
+                chip_hs_nid_list.append(hs_nid)
+                chip_hs_gid_list.append(hs_gid)
                 chip_bbox_list.append(bbox)
                 chip_theta_list.append(theta)
                 chip_note_list.append(notes)
 
-    # Add Chips Table
-    ibs.add_annots(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+    names = ut.ColumnLists({
+        'hs_nid': name_hs_nid_list,
+        'text': name_text_list,
+    })
 
-    # Set all injested RIDS as exemplars
-    aid_list = ibs.get_valid_aids()
-    flag_list = [True] * len(aid_list)
-    ibs.set_annot_exemplar_flags(aid_list, flag_list)
-    assert(all(ibs.get_annot_exemplar_flags(aid_list))), 'exemplars not set correctly'
+    images = ut.ColumnLists({
+        'hs_gid': iamge_hs_gid_list,
+        'gpath': image_gpath_list,
+        'reviewed': image_reviewed_list,
+        'exists': image_exist_flags,
+    })
+
+    chips = ut.ColumnLists({
+        'hs_gid': chip_hs_gid_list,
+        'hs_nid': chip_hs_nid_list,
+        'bbox': chip_bbox_list,
+        'theta': chip_theta_list,
+        'note': chip_note_list,
+    })
+
+    IGNORE_MISSING_IMAGES = False
+    if IGNORE_MISSING_IMAGES:
+        # Ignore missing information
+        print('pre')
+        print('chips = %r' % (chips,))
+        print('images = %r' % (images,))
+        print('names = %r' % (names,))
+        missing_gxs = ut.where(ut.not_list(images['exists']))
+        missing_gids = ut.take(images['hs_gid'], missing_gxs)
+        gid_to_cxs = ut.dzip(*chips.group_indicies('hs_gid'))
+        missing_cxs = ut.flatten(ut.take(gid_to_cxs, missing_gids))
+        # Remove missing images and dependant chips
+        images = images.remove(missing_gxs)
+        chips = chips.remove(missing_cxs)
+        valid_nids = set(chips['hs_nid'] + [0])
+        isvalid = [nid in valid_nids for nid in names['hs_nid']]
+        names = names.compress(isvalid)
+        print('post')
+        print('chips = %r' % (chips,))
+        print('images = %r' % (images,))
+        print('names = %r' % (names,))
+
+    assert all(images['exists']), 'some images dont exist'
+
+    # if gid is None:
+    #     print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
+    #     # continue
+    # # Build mappings to new indexes
+    # names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in zip(hs_nid_list, nid_list)}
+    # names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
+    # images_gid_to_gid = {images_gid: gid for (images_gid, gid) in zip(hs_gid_list, gid_list)}
+
+    ibs = IBEISControl.request_IBEISController(
+        dbdir=dbdir, check_hsdb=False, **kwargs)
+    assert len(ibs.get_valid_gids()) == 0, 'target database is not empty'
+
+    # Add names, images, and annotations
+    names['ibs_nid'] = ibs.add_names(names['text'])
+    images['ibs_gid'] = ibs.add_images(images['gpath'])  # any failed gids will be None
+
+    if True:
+        # Remove corrupted images
+        print('pre')
+        print('chips = %r' % (chips,))
+        print('images = %r' % (images,))
+        print('names = %r' % (names,))
+        missing_gxs = ut.where(ut.flag_None_items(images['ibs_gid']))
+        missing_gids = ut.take(images['hs_gid'], missing_gxs)
+        gid_to_cxs = ut.dzip(*chips.group_indicies('hs_gid'))
+        missing_cxs = ut.flatten(ut.take(gid_to_cxs, missing_gids))
+        # Remove missing images and dependant chips
+        chips = chips.remove(missing_cxs)
+        images = images.remove(missing_gxs)
+        print('post')
+        print('chips = %r' % (chips,))
+        print('images = %r' % (images,))
+        print('names = %r' % (names,))
+
+    # Index chips using new ibs rowids
+    ibs_gid_lookup = ut.dzip(images['hs_gid'], images['ibs_gid'])
+    ibs_nid_lookup = ut.dzip(names['hs_nid'], names['ibs_nid'])
+    try:
+        chips['ibs_gid'] = ut.take(ibs_gid_lookup, chips['hs_gid'])
+    except KeyError:
+        chips['ibs_gid'] = [
+            ibs_gid_lookup.get(index, None)
+            for index in chips['hs_gid']
+        ]
+    try:
+        chips['ibs_nid'] = ut.take(ibs_nid_lookup, chips['hs_nid'])
+    except KeyError:
+        chips['ibs_nid'] = [
+            ibs_nid_lookup.get(index, None)
+            for index in chips['hs_nid']
+        ]
+
+    ibs.add_annots(chips['ibs_gid'], bbox_list=chips['bbox'],
+                   theta_list=chips['theta'], nid_list=chips['ibs_nid'],
+                   notes_list=chips['note'])
+
+    # aid_list = ibs.get_valid_aids()
+    # flag_list = [True] * len(aid_list)
+    # ibs.set_annot_exemplar_flags(aid_list, flag_list)
+    # assert(all(ibs.get_annot_exemplar_flags(aid_list))), 'exemplars not set correctly'
 
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
-        file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
+        file_.write('Successfully converted hsdir=%r' % (hsdir,))
     print('finished ingest')
     return ibs
 
 
-#if __name__ == '__main__':
-#    import multiprocessing
-#    multiprocessing.freeze_support()  # win32
-#    db = ut.get_argval('--db', type_=str, default=None)
-#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
-#    convert_hsdb_to_ibeis(dbdir)
 if __name__ == '__main__':
     """
     CommandLine:

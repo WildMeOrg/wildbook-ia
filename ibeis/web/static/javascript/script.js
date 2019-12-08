@@ -2,10 +2,10 @@ function submit_cookie(name, value) {
   $.ajax({
       url: "/ajax/cookie?name=" + name + "&value=" + value,
       success: function(response){
-        console.log("COOKIE: " + response);
+        // console.log("COOKIE: " + response);
       },
       error: function(response){
-        console.log("COOKIE: " + response);
+        // console.log("COOKIE: " + response);
       }
   });
 }
@@ -88,6 +88,19 @@ function reorder(obj){
         keys.push(key);
     keys.sort();
     for(var index in keys)
-        temp[keys[index]] = reorder(obj[keys[index]]);       
+        temp[keys[index]] = reorder(obj[keys[index]]);
     return temp;
 }
+
+
+function add_part() {
+    value = $('input[name="part-add"]').val()
+
+    $('#ia-detection-part-class')
+        .append($("<option></option>")
+            .attr("value", value)
+            .text(value));
+    $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
+    $('.ia-detection-form-part-value').trigger('change');
+}
+

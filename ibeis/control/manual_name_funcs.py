@@ -14,18 +14,18 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__, '[manual_name]')
+import os
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 ANNOT_ROWID         = 'annot_rowid'
@@ -164,22 +164,21 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         Method: DELETE
         URL:    /api/name/
 
-
-    Example:
-        >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
-        >>> gid_list = ibs.add_images(gpath_list)
-        >>> bbox_list = [(0, 0, 100, 100)]*len(gid_list)
-        >>> name_list = ['a', 'b', 'a', 'd']
-        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
-        >>> assert len(aid_list) != 0, "No annotations added"
-        >>> nid_list = ibs.get_valid_nids()
-        >>> assert len(nid_list) != 0, "No names added"
-        >>> nid = nid_list[0]
-        >>> assert nid is not None, "nid is None"
-        >>> ibs.delete_names(nid)
-        >>> all_nids = ibs.get_valid_nids()
-        >>> assert nid not in all_nids, "NID not deleted"
+    # Ignore:
+    #     >>> # UNPORTED_DOCTEST
+    #     >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    #     >>> gid_list = ibs.add_images(gpath_list)
+    #     >>> bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    #     >>> name_list = ['a', 'b', 'a', 'd']
+    #     >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
+    #     >>> assert len(aid_list) != 0, "No annotations added"
+    #     >>> nid_list = ibs.get_valid_nids()
+    #     >>> assert len(nid_list) != 0, "No names added"
+    #     >>> nid = nid_list[0]
+    #     >>> assert nid is not None, "nid is None"
+    #     >>> ibs.delete_names(nid)
+    #     >>> all_nids = ibs.get_valid_nids()
+    #     >>> assert nid not in all_nids, "NID not deleted"
 
     """
     if verbose:
@@ -188,8 +187,14 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         aids_list = ibs.get_name_aids(name_rowid_list)
         aid_list = ut.flatten(aids_list)
         if strict:
-            assert len(aid_list) == 0, 'should not be any annots belonging to a deleted name'
-        ibs.delete_annot_nids(aid_list)
+            assert len(aid_list) == 0, (
+                'should not be any annots belonging to a deleted name')
+        else:
+            if verbose:
+                print('[ibs] deleting %d annots that belonged to those names' %
+                      len(aid_list))
+            if len(aid_list) > 0:
+                ibs.delete_annot_nids(aid_list)
     ibs.db.delete_rowids(const.NAME_TABLE, name_rowid_list)
     #return len(name_rowid_list)
     #ibs.delete_lblannots(nid_list)
@@ -197,8 +202,8 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
 
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/name/empty_nids/', methods=['GET'])
-def get_empty_nids(ibs):
+# @register_api('/api/name/nids/empty/', methods=['GET'])
+def get_empty_nids(ibs, _nid_list=None):
     r"""
     get name rowids that do not have any annotations (not including UNKONWN)
 
@@ -208,10 +213,6 @@ def get_empty_nids(ibs):
 
     CommandLine:
         python -m ibeis.control.manual_name_funcs --test-get_empty_nids
-
-    RESTful:
-        Method: GET
-        URL:    /api/name/empty_nids/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -229,26 +230,53 @@ def get_empty_nids(ibs):
         >>> print(result)
         []
     """
-    _nid_list = ibs._get_all_known_name_rowids()
+    recursive = _nid_list is not None
+    recstr = '\t\t' if recursive else '\t'
+    if _nid_list is None:
+        _nid_list = ibs._get_all_known_name_rowids()
+    if len(_nid_list) == 0:
+        return []
+    args = (len(_nid_list), )
+    if recursive:
+        print('\tCHECKING %d NIDS FOR EMPTY (RECURSIVE)' % args)
+    else:
+        print('CHECKING %d NIDS FOR EMPTY' % args)
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
-    nid_list = list(ut.iter_compress(_nid_list, isempty_list))
+    empty_nid_list = list(ut.iter_compress(_nid_list, isempty_list))
     # Filter names with aliases (TODO: use transitivity to determine validity)
-    hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
-    nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
-    return nid_list
+    alias_text_list = ibs.get_name_alias_texts(empty_nid_list)
+    hasalias_list = [alias_text is not None for alias_text in alias_text_list]
+    # Find nids with aliases and without alias
+    alias_nid_list = list(ut.ifilter_items(empty_nid_list, hasalias_list))
+    no_alias_nid_list = list(ut.ifilterfalse_items(empty_nid_list, hasalias_list))
+    # Find name texts and then nids of the original nids that have valid aliases
+    alias_text_list = ibs.get_name_alias_texts(alias_nid_list)
+    alias_nid_list = ibs.get_name_rowids_from_text(alias_text_list)
+    # Find the empty aliases, recursively
+    print('%sFound %d empty NIDs' % (recstr, len(empty_nid_list), ))
+    print('%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list), ))
+    message = ' checking these recursively' if len(alias_nid_list) > 0 else ''
+    print('%sFound %d empty NIDs with an alias...%s' % (recstr, len(alias_nid_list), message, ))
+    empty_alias_nid_list = ibs.get_empty_nids(_nid_list=alias_nid_list)
+    # Compile the full list of nids without any associated annotations
+    empty_nid_list = empty_nid_list + no_alias_nid_list + empty_alias_nid_list
+    if not recursive:
+        print('\tFound %d empty NIDs with an alias that is recursively empty' % (len(empty_alias_nid_list), ))
+    empty_nid_list = list(set(empty_nid_list))
+    # Sanity check
+    nRois_list = ibs.get_name_num_annotations(empty_nid_list)
+    isempty_list = [nRois <= 0 for nRois in nRois_list]
+    assert isempty_list.count(True) == len(empty_nid_list)
+    return empty_nid_list
 
 
 @register_ibs_method
-@register_api('/api/name/empty_nids/', methods=['DELETE'])
+# @register_api('/api/name/nids/empty/', methods=['DELETE'])
 def delete_empty_nids(ibs):
     r"""
     Removes names that have no Rois from the database
-
-    RESTful:
-        Method: DELETE
-        URL:    /api/name/empty_nids/
     """
     print('[ibs] deleting empty nids')
     invalid_nids = ibs.get_empty_nids()
@@ -258,8 +286,9 @@ def delete_empty_nids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/name/aids/', methods=['GET'])
-def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
+@register_api('/api/name/annot/rowid/', methods=['GET'])
+@profile
+def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     r"""
     # TODO: Rename to get_anot_rowids_from_name_rowid
 
@@ -268,7 +297,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
 
     RESTful:
         Method: GET
-        URL:    /api/name/aids/
+        URL:    /api/name/annot/rowid/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -287,7 +316,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         >>> passed_list = list(passed_iter)
         >>> assert all(passed_list), 'problem in get_name_aids'
         >>> # Print gropued items
-        >>> print(ut.dict_str(groupid2_items, newlines=False))
+        >>> print(ut.repr2(groupid2_items, newlines=False))
 
     Ignore;
         from ibeis.control.manual_name_funcs import *  # NOQA
@@ -405,7 +434,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     ORDER BY name_rowid ASC
 
 
-    import vtool as vt
+    import vtool_ibeis as vt
     vt
     vt.aid_list[0]
 
@@ -435,8 +464,23 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     # TODO: should a query of the UNKNOWN_NAME_ROWID return anything?
     # TODO: don't even run negative aids as queries
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
+
+    NEW_INDEX_HACK = True
     USE_GROUPING_HACK = False
-    if USE_GROUPING_HACK:
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        #print(len(nid_list_))
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
+            ''').fetchall()
+        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                               nid_list_, id_colname=NAME_ROWID,
+                               unpack_scalars=False)
+        #%timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+        # The index maxes the following query very efficient
+    elif USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
         input_str = ', '.join(list(map(str, input_list)))
@@ -500,12 +544,28 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
                      for nid, aids in zip(nid_list, aids_list)]
         #aids_list = [[-nid] if nid < 0 else aids
         #             for nid, aids in zip(nid_list, aids_list)]
+    aids_list = [
+        ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+        for aid_list_ in aids_list
+    ]
     return aids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/name/exemplar_aids/', methods=['GET'])
+@register_api('/api/name/annot/uuid/', methods=['GET'])
+def get_name_annot_uuids(ibs, nid_list, **kwargs):
+    aids_list = ibs.get_name_aids(nid_list, **kwargs)
+    annot_uuids_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/name/annot/rowid/exemplar/', methods=['GET'])
 def get_name_exemplar_aids(ibs, nid_list):
     r"""
     Returns:
@@ -517,7 +577,7 @@ def get_name_exemplar_aids(ibs, nid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/exemplar_aids/
+        URL:    /api/name/annot/rowid/examplar/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -542,7 +602,19 @@ def get_name_exemplar_aids(ibs, nid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/name/gids/', methods=['GET'])
+@register_api('/api/name/annot/uuid/exemplar/', methods=['GET'])
+def get_name_exemplar_name_uuids(ibs, nid_list, **kwargs):
+    aids_list = ibs.get_name_exemplar_aids(nid_list, **kwargs)
+    annot_uuids_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/name/image/rowid/', methods=['GET'])
 def get_name_gids(ibs, nid_list):
     r"""
     Returns:
@@ -550,7 +622,7 @@ def get_name_gids(ibs, nid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/gids/
+        URL:    /api/name/image/rowid/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -570,8 +642,31 @@ def get_name_gids(ibs, nid_list):
 
 
 @register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/name/image/uuid/', methods=['GET'])
+def get_name_image_uuids(ibs, nid_list):
+    r"""
+    DEPRICATE
+
+    Returns:
+        list_ (list): the image ids associated with name ids
+
+    RESTful:
+        Method: GET
+        URL:    /api/name/image/uuid/
+    """
+    # TODO: Optimize
+    gids_list = ibs.get_name_gids(nid_list)
+    image_uuids_list = [
+        ibs.get_image_uuids(gid_list)
+        for gid_list in gids_list
+    ]
+    return image_uuids_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/uuids/', methods=['GET'])
+@register_api('/api/name/uuid/', methods=['GET'])
 def get_name_uuids(ibs, nid_list):
     r"""
     Returns:
@@ -579,7 +674,7 @@ def get_name_uuids(ibs, nid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/uuids/
+        URL:    /api/name/uuid/
     """
     uuids_list = ibs.db.get(const.NAME_TABLE, (NAME_UUID,), nid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -588,7 +683,7 @@ def get_name_uuids(ibs, nid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/notes/', methods=['GET'])
+@register_api('/api/name/note/', methods=['GET'])
 def get_name_notes(ibs, name_rowid_list):
     r"""
     Returns:
@@ -596,7 +691,7 @@ def get_name_notes(ibs, name_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/notes/
+        URL:    /api/name/note/
     """
     notes_list = ibs.db.get(const.NAME_TABLE, (NAME_NOTE,), name_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -605,7 +700,30 @@ def get_name_notes(ibs, name_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/num_annotations/', methods=['GET'])
+@register_api('/api/name/metadata/', methods=['GET'])
+def get_name_metadata(ibs, name_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): name metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/name/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.NAME_TABLE, ('name_metadata_json',), name_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/name/num/annot/', methods=['GET'])
 def get_name_num_annotations(ibs, nid_list):
     r"""
     Returns:
@@ -616,7 +734,7 @@ def get_name_num_annotations(ibs, nid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/num_annotations/
+        URL:    /api/name/num/annot/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -634,7 +752,7 @@ def get_name_num_annotations(ibs, nid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/num_exemplar_annotations/', methods=['GET'])
+@register_api('/api/name/num/annot/exemplar/', methods=['GET'])
 def get_name_num_exemplar_annotations(ibs, nid_list):
     r"""
     Returns:
@@ -642,13 +760,13 @@ def get_name_num_exemplar_annotations(ibs, nid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/num_exemplar_annotations/
+        URL:    /api/name/num/annot/exemplar/
     """
     return list(map(len, ibs.get_name_exemplar_aids(nid_list)))
 
 
 @register_ibs_method
-@register_api('/api/name/temp_flag/', methods=['GET'])
+@register_api('/api/name/temp/', methods=['GET'])
 def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
     r"""
     name_temp_flag_list <- name.name_temp_flag[name_rowid_list]
@@ -671,7 +789,7 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
 
     RESTful:
         Method: GET
-        URL:    /api/name/temp_flag/
+        URL:    /api/name/temp/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -690,7 +808,7 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@register_api('/api/name/temp_flag/', methods=['PUT'])
+@register_api('/api/name/temp/', methods=['PUT'])
 def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_behavior='error'):
     r"""
     name_temp_flag_list -> name.name_temp_flag[name_rowid_list]
@@ -706,7 +824,7 @@ def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_beha
 
     RESTful:
         Method: PUT
-        URL:    /api/name/temp_flag/
+        URL:    /api/name/temp/
     """
     id_iter = name_rowid_list
     colnames = (NAME_TEMP_FLAG,)
@@ -716,7 +834,7 @@ def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_beha
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/alias_texts/', methods=['GET'])
+@register_api('/api/name/alias/text/', methods=['GET'], __api_plural_check__=False)
 def get_name_alias_texts(ibs, name_rowid_list):
     r"""
     Returns:
@@ -730,7 +848,7 @@ def get_name_alias_texts(ibs, name_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/name/alias_texts/
+        URL:    /api/name/alias/text/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -753,7 +871,7 @@ def get_name_alias_texts(ibs, name_rowid_list):
 @register_ibs_method
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=None)
 @accessor_decors.setter
-@register_api('/api/name/alias_texts/', methods=['PUT'])
+@register_api('/api/name/alias/text/', methods=['PUT'], __api_plural_check__=False)
 def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     r"""
     Returns:
@@ -764,7 +882,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
 
     RESTful:
         Method: PUT
-        URL:    /api/name/alias_texts/
+        URL:    /api/name/alias/text/
     """
     #ibsfuncs.assert_valid_names(name_alias_text_list)
     val_list = ((value,) for value in name_alias_text_list)
@@ -774,7 +892,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/texts/', methods=['GET'])
+@register_api('/api/name/text/', methods=['GET'])
 def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     r"""
     Returns:
@@ -785,7 +903,7 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
 
     RESTful:
         Method: GET
-        URL:    /api/name/texts/
+        URL:    /api/name/text/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -794,9 +912,9 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_rowid_list = ibs._get_all_known_name_rowids()
         >>> name_text_list = get_name_texts(ibs, name_rowid_list)
-        >>> result = str(name_text_list)
+        >>> result = ut.repr2(name_text_list)
         >>> print(result)
-        [u'easy', u'hard', u'jeff', u'lena', u'occl', u'polar', u'zebra']
+        ['easy', 'hard', 'jeff', 'lena', 'occl', 'polar', 'zebra']
     """
     # FIXME: Use standalone name table
     # TODO:
@@ -806,25 +924,22 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
     if apply_fix:
-        name_text_list = [const.UNKNOWN
-                          if rowid == const.UNKNOWN_NAME_ROWID or name_text is None
-                          else name_text
-                          for name_text, rowid in zip(name_text_list, name_rowid_list)]
+        name_text_list = [
+            const.UNKNOWN
+            if rowid == const.UNKNOWN_NAME_ROWID or name_text is None
+            else name_text
+            for name_text, rowid in zip(name_text_list, name_rowid_list)
+        ]
     return name_text_list
 
 
 @register_ibs_method
-@register_api('/api/name/num/', methods=['GET'])
 def get_num_names(ibs, **kwargs):
     r"""
     Number of valid names
 
     CommandLine:
         python -m ibeis.control.manual_name_funcs --test-get_num_names
-
-    RESTful:
-        Method: GET
-        URL:    /api/name/num/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -841,7 +956,7 @@ def get_num_names(ibs, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/rowids_from_text/', methods=['GET'])
+@register_api('/api/name/rowid/text/', methods=['GET'])
 def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
     r"""
     Args:
@@ -861,7 +976,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
 
     RESTful:
         Method: GET
-        URL:    /api/name/rowids_from_text/
+        URL:    /api/name/rowid/text/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -872,10 +987,10 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> name_text_list = [u'Fred', u'Sue', '____', u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
         >>> ensure = True
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
         >>> ibs.print_name_table()
         >>> result = str(name_rowid_list) + '\n'
         >>> typo_rowids = ibs.get_name_rowids_from_text(['TYPO', 'Fred', 'Sue', 'zebra_grevys'])
@@ -931,7 +1046,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/nids_from_uuid/', methods=['GET'])
+@register_api('/api/name/rowid/uuid/', methods=['GET'])
 def get_name_rowids_from_uuid(ibs, uuid_list, nid_hack=False, ensure=True):
     r"""
     Args:
@@ -952,7 +1067,7 @@ def get_name_rowids_from_uuid(ibs, uuid_list, nid_hack=False, ensure=True):
 
 
 @register_ibs_method
-@register_api('/api/name/nids_with_gids/', methods=['GET'])
+@register_api('/api/name/dict/', methods=['GET'])
 def get_name_nids_with_gids(ibs, nid_list=None):
     if nid_list is None:
         nid_list = sorted(ibs.get_valid_nids())
@@ -1000,14 +1115,14 @@ def get_valid_nids(ibs, imgsetid=None, filter_empty=False, min_pername=None):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/name/notes/', methods=['PUT'])
+@register_api('/api/name/note/', methods=['PUT'])
 def set_name_notes(ibs, name_rowid_list, notes_list):
     r"""
     Sets a note for each name (multiple annotations)
 
     RESTful:
         Method: PUT
-        URL:    /api/name/notes/
+        URL:    /api/name/note/
     """
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     #ibs.set_lblannot_notes(nid_list, notes_list)
@@ -1017,8 +1132,31 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/name/texts/', methods=['PUT'])
-def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
+@register_api('/api/name/metadata/', methods=['PUT'])
+def set_name_metadata(ibs, name_rowid_list, metadata_dict_list):
+    r"""
+    Sets the name's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/name/metadata/
+
+    """
+    id_iter = ((gid,) for gid in name_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.NAME_TABLE, ('name_metadata_json',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/name/text/', methods=['PUT'])
+def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
+                   notify_wildbook=False, assert_wildbook=False,
+                   update_json_log=True):
     r"""
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -1028,7 +1166,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
 
     RESTful:
         Method: PUT
-        URL:    /api/name/texts/
+        URL:    /api/name/text/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1037,17 +1175,66 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs.get_valid_nids()[0:2]
         >>> name_list = ibs.get_name_texts(nid_list)
-        >>> # result = set_name_texts(ibs, nid_list, name_list)
+        >>> result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
+    import ibeis
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
+    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
+        print('[ibs] notifying WildBook of name text changes')
+        status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
+
+        wb_signaled = status_list is not None
+        if assert_wildbook and wb_signaled:
+            assert status_list, 'The request to WB failed'
+            failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
+            args = (len(failed_nid_list), failed_nid_list, )
+            msg = 'Failed to update %d WB names, nid_list = %r' % args
+            assert len(failed_nid_list) == 0, msg
     ibsfuncs.assert_valid_names(name_text_list)
+    old_name_text_list = ibs.get_name_texts(name_rowid_list)
     #sanitize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     #ibs.set_lblannot_values(nid_list, name_list)
     val_list = ((value,) for value in name_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_TEXT,), val_list, name_rowid_list)
+    # Database updated, log name changes
+    if update_json_log:
+        import time
+        json_log_path = ibs.get_logdir_local()
+        json_log_filename = 'names.updates.json'
+        json_log_filepath = os.path.join(json_log_path, json_log_filename)
+        print('Logging name changes to: %r' % (json_log_filepath, ))
+        # Log has never been made, create one
+        if not os.path.exists(json_log_filepath):
+            json_dict = {
+                'updates': [],
+            }
+            json_str = ut.to_json(json_dict, pretty=True)
+            with open(json_log_filepath, 'w') as json_log_file:
+                json_log_file.write(json_str)
+        # Get current log state
+        with open(json_log_filepath, 'r') as json_log_file:
+            json_str = json_log_file.read()
+        json_dict = ut.from_json(json_str)
+        db_name = ibs.get_db_name()
+        db_init_uuid = ibs.get_db_init_uuid()
+        # Zip all the updates together and write to updates list in dictionary
+        zipped = zip(name_rowid_list, old_name_text_list, name_text_list)
+        for name_rowid, old_name_text, new_name_text in zipped:
+            json_dict['updates'].append({
+                'time_unixtime': time.time(),
+                'db_name': db_name,
+                'db_init_uuid': db_init_uuid,
+                'name_rowid': name_rowid,
+                'name_old_text': old_name_text,
+                'name_new_text': new_name_text,
+            })
+        # Write new log state
+        json_str = ut.to_json(json_dict, pretty=True)
+        with open(json_log_filepath, 'w') as json_log_file:
+            json_log_file.write(json_str)
 
 
 @register_ibs_method
@@ -1117,13 +1304,13 @@ def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/name/sex_text/', methods=['GET'])
+@register_api('/api/name/sex/text/', methods=['GET'])
 def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/name/sex_text/
+        URL:    /api/name/sex/text/
     """
     name_sex_list = ibs.get_name_sex(name_rowid_list, eager=eager, nInput=nInput)
     name_sex_text_list = ut.dict_take(const.SEX_INT_TO_TEXT, name_sex_list)
@@ -1132,26 +1319,26 @@ def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/name/sex_text/', methods=['PUT'])
+@register_api('/api/name/sex/text/', methods=['PUT'])
 def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
     r"""
 
     RESTful:
         Method: PUT
-        URL:    /api/name/sex_text/
+        URL:    /api/name/sex/text/
     """
     name_sex_list = ut.dict_take(const.SEX_TEXT_TO_INT, name_sex_text_list)
     return ibs.set_name_sex(name_rowid_list, name_sex_list)
 
 
 @register_ibs_method
-@register_api('/api/name/age_months_est_min/', methods=['GET'])
+@register_api('/api/name/age/months/min/', methods=['GET'], __api_plural_check__=False)
 def get_name_age_months_est_min(ibs, name_rowid_list):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/name/age_months_est_min/
+        URL:    /api/name/age/months/min/
     """
     aids_list = ibs.get_name_aids(name_rowid_list)
     age_list = [ ibs.get_annot_age_months_est_min(aid_list) for aid_list in aids_list ]
@@ -1159,13 +1346,13 @@ def get_name_age_months_est_min(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@register_api('/api/name/age_months_est_max/', methods=['GET'])
+@register_api('/api/name/age/months/max/', methods=['GET'], __api_plural_check__=False)
 def get_name_age_months_est_max(ibs, name_rowid_list):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/name/age_months_est_max/
+        URL:    /api/name/age/months/max/
     """
     aids_list = ibs.get_name_aids(name_rowid_list)
     age_list = [ ibs.get_annot_age_months_est_max(aid_list) for aid_list in aids_list ]
@@ -1173,13 +1360,13 @@ def get_name_age_months_est_max(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@register_api('/api/name/imgsetids/', methods=['GET'])
+@register_api('/api/name/imageset/rowid/', methods=['GET'])
 def get_name_imgsetids(ibs, nid_list):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/name/imgsetids/
+        URL:    /api/name/imageset/rowid/
     """
     import utool as ut
     name_aids_list = ibs.get_name_aids(nid_list)
@@ -1191,7 +1378,178 @@ def get_name_imgsetids(ibs, nid_list):
     return name_imgsetids
 
 
+@register_ibs_method
+@register_api('/api/name/imageset/uuid/', methods=['GET'])
+def get_name_imgset_uuids(ibs, nid_list):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/name/imageset/uuid/
+    """
+    name_imgsetids = ibs.get_name_imgsetids(nid_list)
+    name_uuids_list = [
+        ibs.get_imageset_uuids(name_imgsetid)
+        for name_imgsetid in name_imgsetids
+    ]
+    return name_uuids_list
+
+
 #def get_imageset_nids(ibs,
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_has_split(ibs, nid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> splits_list = ibs.get_name_has_split(nid_list)
+        >>> result = str(splits_list)
+        >>> print(result)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    def get_valid_aids_clique_annotmatch_rowids(aids):
+        import itertools
+        aid_pairs = list(itertools.combinations(aids, 2))
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        am_ids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        am_ids = ut.filter_Nones(am_ids)
+        return am_ids
+    amids_list = [get_valid_aids_clique_annotmatch_rowids(aids) for aids in aids_list_]
+    flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'SplitCase'), amids_list)
+    has_splits = list(map(any, flags_list))
+    return has_splits
+
+
+@register_ibs_method
+def get_name_speeds(ibs, nid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> speeds_list = get_name_speeds(ibs, nid_list)
+        >>> result = str(speeds_list)
+        >>> print(result)
+    """
+    aids_list = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    #aids_list = [(aids) for aids in aids_list_]
+    #speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    speeds_list = ibs.get_unflat_annots_speeds_list2(aids_list)
+    return speeds_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_hourdiffs(ibs, nid_list):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+        >>> result = hourdiffs_list
+        >>> print(hourdiffs_list)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    # HACK FILTERING SHOULD NOT OCCUR HERE
+    aids_list = [(aids) for aids in aids_list_]
+    hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
+    return hourdiffs_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_max_hourdiff(ibs, nid_list):
+    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+    maxhourdiff_list_ = np.array([vt.safe_max(hourdiff, nans=False) for hourdiff in hourdiffs_list])
+    maxhourdiff_list = np.array(maxhourdiff_list_)
+    return maxhourdiff_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_max_speed(ibs, nid_list):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
+        >>> result = maxspeed_list
+        >>> print(maxspeed_list)
+    """
+    speeds_list = ibs.get_name_speeds(nid_list)
+    maxspeed_list = np.array([vt.safe_max(speeds, nans=False) for speeds in speeds_list])
+    return maxspeed_list
+
+
+@register_ibs_method
+def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> #ibs = ibeis.opendb('PZ_Master0')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #nid_list = ibs.get_valid_nids()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
+        >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
+        >>> ut.compress(nid_list, nonempty_list)
+        >>> ut.compress(gps_track_list, nonempty_list)
+        >>> ut.compress(aid_track_list, nonempty_list)
+        >>> result = str(aid_track_list)
+        >>> print(result)
+        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
+    """
+    assert aid_list is None or nid_list is None, 'only specify one please'
+    if aid_list is None:
+        aids_list_ = ibs.get_name_aids(nid_list)
+    else:
+        aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
+    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
+    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
+    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
+
+    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
+                     for gpss in gpss_list]
+    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
+                      zip(gpss_list, isvalids_list)]
+    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
+                       zip(aids_list, isvalids_list)]
+    return nid_list, gps_track_list, aid_track_list
 
 
 if __name__ == '__main__':
@@ -1201,10 +1559,6 @@ if __name__ == '__main__':
         python -m ibeis.control.manual_name_funcs --allexamples
 
         python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc
-
-    RESTful:
-        Method: GET
-        URL:    /api/name/imgsetids/
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

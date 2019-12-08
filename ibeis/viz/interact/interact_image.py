@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from plottool import draw_func2 as df2
-from plottool import interact_helpers as ih
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis import interact_helpers as ih
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__,
                                                        '[interact_img]',
                                                        DEBUG=False)
@@ -31,7 +31,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             viz.show_image(ibs, gid, sel_aids=sel_aids, fnum=self.fnum, **_kwargs)
             df2.set_figtitle('Image View')
         except TypeError as ex:
-            ut.printex(ex, ut.dict_str(_kwargs))
+            ut.printex(ex, ut.repr2(_kwargs))
             raise
 
     # Create callback wrapper
@@ -53,7 +53,8 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             x, y = event.xdata, event.ydata
             # Find ANNOTATION center nearest to the clicked point
             aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
-            centx, _dist = ut.nearest_point(x, y, annotation_centers)
+            import vtool_ibeis as vt
+            centx, _dist = vt.nearest_point(x, y, annotation_centers)
             aid = aid_list[centx]
             print(' ...clicked aid=%r' % aid)
             if select_callback is not None:

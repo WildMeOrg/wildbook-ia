@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
+        <canvas id="canvasBar" height="150" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Histogram for number of sightings per name
+        </div>
+        <a id="linkBar" href="#" download="sightings-histogram-linear.png">Download Chart</a>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+{% endblock %}
+
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var dataBar = {
+    {% autoescape false %}
+    labels: {{ bar_label_list[:20] }},
+    {% endautoescape %}
+    datasets: [
+      {
+          label: "GZGC",
+          backgroundColor: "rgba(253,180,92,0.5)",
+          borderColor: "rgba(253,180,92,0.8)",
+          hoverBackgroundColor: "rgba(253,180,92,0.75)",
+          hoverBorderColor: "rgba(253,180,92,1)",
+          data: {{ bar_values_dict['GZGC'][:20] }}
+      },
+      {
+          label: "GGR",
+          backgroundColor: "rgba(247,70,74,0.5)",
+          borderColor: "rgba(247,70,74,0.8)",
+          hoverBackgroundColor: "rgba(247,70,74,0.75)",
+          hoverBorderColor: "rgba(247,70,74,1)",
+          data: {{ bar_values_dict['GGR'][:20] }}
+      },
+    ]
+  };
+
+  window.onload = function()
+  {
+    Chart.defaults.global.defaultFontSize = 30;
+
+    var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    var linkBar = document.getElementById("linkBar");
+    var chartBar = new Chart(ctxBar, {
+      type: 'bar',
+      data: dataBar,
+      options: {
+        responsive: true,
+        // animation: false,
+        showTooltips: false,
+        // scales: {
+        //     yAxes: [{
+        //         stacked: true
+        //     }]
+        // },
+
+        legend:{display: true,labels:{fontSize:30}},
+        animation: {
+          onComplete: function(animationItem) {
+
+            // var ctx = this.chart.ctx;
+            // ctx.font = this.scale.font;
+            // ctx.fillStyle = this.scale.textColor
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "bottom";
+
+            // this.datasets.forEach(function (dataset) {
+            //     dataset.bars.forEach(function (bar) {
+            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //     });
+            // })
+
+            ctx = animationItem.chartInstance
+            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
+      }
+    });
+  };
+
+</script>
+{% endblock %}

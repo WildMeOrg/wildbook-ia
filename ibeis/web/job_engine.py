@@ -38,59 +38,45 @@ Notes:
     We are essentially goint to be spawning two processes.
     We can test these simultaniously using
 
-        python -m ibeis.web.job_engine test_job_engine
+        python -m ibeis.web.job_engine job_engine_tester
 
     We can test these separately by first starting the background server
-        python -m ibeis.web.job_engine test_job_engine --bg
+        python -m ibeis.web.job_engine job_engine_tester --bg
 
         Alternative:
-            python -m ibeis.web.job_engine test_job_engine --bg --no-engine
-            python -m ibeis.web.job_engine test_job_engine --bg --only-engine --fg-engine
+            python -m ibeis.web.job_engine job_engine_tester --bg --no-engine
+            python -m ibeis.web.job_engine job_engine_tester --bg --only-engine --fg-engine
 
     And then running the forground process
-        python -m ibeis.web.job_engine test_job_engine --fg
+        python -m ibeis.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 #if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
-import six
 import utool as ut
 import time
 import zmq
 import uuid  # NOQA
-import itertools
 import numpy as np
-import functools
 import shelve
+import random
 from os.path import join
 from functools import partial
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__, '[job_engine]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
-
 ctx = zmq.Context.instance()
 
-
 # FIXME: needs to use correct number of ports
-url = 'tcp://127.0.0.1'
-_portgen = functools.partial(six.next, itertools.count(51381))
-engine_url1 = url + ':' + six.text_type(_portgen())
-engine_url2 = url + ':' + six.text_type(_portgen())
-collect_url1 = url + ':' + six.text_type(_portgen())
-collect_url2 = url + ':' + six.text_type(_portgen())
-collect_pushpull_url = url + ':' + six.text_type(_portgen())
-
-
-NUM_JOBS = 2
+URL = 'tcp://127.0.0.1'
 NUM_ENGINES = 1
-
-VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg')
+VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 
 
 def update_proctitle(procname):
@@ -134,12 +120,15 @@ def initialize_job_manager(ibs):
         >>> print('Closing success.')
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> import requests
         >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
-        >>> baseurl = 'http://127.0.1.1:5000'
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not running on any expected port')
+        >>> baseurl = 'http://127.0.1.1:%s' % (web_port, )
         >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
         >>> payload = ut.map_dict_vals(ut.to_json, _payload)
         >>> resp1 = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
@@ -151,12 +140,22 @@ def initialize_job_manager(ibs):
         >>> #print(text)
     """
     ibs.job_manager = ut.DynStruct()
-    ibs.job_manager.jobiface = JobInterface(id_=0)
 
-    if not ut.get_argflag('--fg'):
-        ibs.job_manager.reciever = JobBackend()
-        ibs.job_manager.reciever.initialize_background_processes(dbdir=ibs.get_dbdir())
+    use_static_ports = False
 
+    if ut.get_argflag('--web-deterministic-ports'):
+        use_static_ports = True
+
+    if ut.get_argflag('--fg'):
+        ibs.job_manager.reciever = JobBackend(use_static_ports=True)
+    else:
+        ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
+        ibs.job_manager.reciever.initialize_background_processes(
+            dbdir=ibs.get_dbdir(),
+            containerized=ibs.containerized
+        )
+
+    ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict)
     ibs.job_manager.jobiface.initialize_client_thread()
     # Wait until the collector becomes live
     while 0 and True:
@@ -165,24 +164,59 @@ def initialize_job_manager(ibs):
         if result['status'] == 'ok':
             break
 
-    #import ibeis
-    ##dbdir = '/media/raid/work/testdb1'
-    #ibs = ibeis.opendb('testdb1', asproxy=True)
-    #from ibeis.web import app
-    #proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=5000)
+    # import ibeis
+    # #dbdir = '/media/raid/work/testdb1'
+    # from ibeis.web import app
+    # web_port = ibs.get_web_port_via_scan()
+    # if web_port is None:
+    #     raise ValueError('IA web server is not running on any expected port')
+    # proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=web_port)
 
 
 @register_ibs_method
 def close_job_manager(ibs):
     # if hasattr(ibs, 'job_manager') and ibs.job_manager is not None:
     #     pass
-    del ibs.job_manager.jobiface
     del ibs.job_manager.reciever
+    del ibs.job_manager.jobiface
     ibs.job_manager = None
 
 
 @register_ibs_method
-@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
+@register_api('/api/engine/job/', methods=['GET', 'POST'], __api_plural_check__=False)
+def get_job_id_list(ibs):
+    """
+    Web call that returns the list of job ids
+
+    CommandLine:
+        # Run Everything together
+        python -m ibeis.web.job_engine --exec-get_job_status
+
+        # Start job queue in its own process
+        python -m ibeis.web.job_engine job_engine_tester --bg
+        # Start web server in its own process
+        ./main.py --web --fg
+        pass
+        # Run foreground process
+        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--web)
+        >>> from ibeis.web.job_engine import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> # Test get status of a job id that does not exist
+        >>> response = web_ibs.send_ibeis_request('/api/engine/job/', jobid='badjob')
+        >>> web_ibs.terminate2()
+
+    """
+    status = ibs.job_manager.jobiface.get_job_id_list()
+    jobid_list = status['jobid_list']
+    return jobid_list
+
+
+@register_ibs_method
+@register_api('/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False)
 def get_job_status(ibs, jobid):
     """
     Web call that returns the status of a job
@@ -192,7 +226,7 @@ def get_job_status(ibs, jobid):
         python -m ibeis.web.job_engine --exec-get_job_status
 
         # Start job queue in its own process
-        python -m ibeis.web.job_engine test_job_engine --bg
+        python -m ibeis.web.job_engine job_engine_tester --bg
         # Start web server in its own process
         ./main.py --web --fg
         pass
@@ -200,7 +234,7 @@ def get_job_status(ibs, jobid):
         python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -231,30 +265,38 @@ def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
     return result
 
 
-def test_job_engine():
+def _get_random_open_port():
+    port = random.randint(1024, 49151)
+    while not ut.is_local_port_open(port):
+        port = random.randint(1024, 49151)
+    assert ut.is_local_port_open(port)
+    return port
+
+
+def job_engine_tester():
     """
     CommandLine:
-        python -m ibeis.web.job_engine --exec-test_job_engine
-        python -b -m ibeis.web.job_engine --exec-test_job_engine
+        python -m ibeis.web.job_engine --exec-job_engine_tester
+        python -b -m ibeis.web.job_engine --exec-job_engine_tester
 
-        python -m ibeis.web.job_engine test_job_engine
-        python -m ibeis.web.job_engine test_job_engine --bg
-        python -m ibeis.web.job_engine test_job_engine --fg
+        python -m ibeis.web.job_engine job_engine_tester
+        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m ibeis.web.job_engine job_engine_tester --fg
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.web.job_engine import *  # NOQA
-        >>> test_job_engine()
+        >>> job_engine_tester()
     """
     _init_signals()
     # now start a few clients, and fire off some requests
     client_id = np.random.randint(1000)
-    jobiface = JobInterface(client_id)
-    reciever = JobBackend()
+    reciever = JobBackend(use_static_ports=True)
+    jobiface = JobInterface(client_id, reciever.port_dict)
     from ibeis.init import sysres
     if ut.get_argflag('--bg'):
-        dbdir = sysres.get_args_dbdir('cache', False, None, None,
-                                      cache_priority=False)
+        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
+                                      db=None, dbdir=None)
         reciever.initialize_background_processes(dbdir)
         print('[testzmq] parent process is looping forever')
         while True:
@@ -262,8 +304,8 @@ def test_job_engine():
     elif ut.get_argflag('--fg'):
         jobiface.initialize_client_thread()
     else:
-        dbdir = sysres.get_args_dbdir('cache', False, None, None,
-                                      cache_priority=False)
+        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
+                                      db=None, dbdir=None)
         reciever.initialize_background_processes(dbdir)
         jobiface.initialize_client_thread()
 
@@ -295,7 +337,7 @@ def test_job_engine():
 
 
 class JobBackend(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         #self.num_engines = 3
         self.num_engines = NUM_ENGINES
         self.engine_queue_proc = None
@@ -308,6 +350,11 @@ class JobBackend(object):
         self.spawn_engine = not ut.get_argflag('--no-engine')
         self.fg_engine = ut.get_argflag('--fg-engine')
         self.spawn_queue = not only_engine
+        # Find ports
+        self.port_dict = None
+        self._initialize_job_ports(**kwargs)
+        print('JobBackend ports:')
+        ut.print_dict(self.port_dict)
 
     def __del__(self):
         if VERBOSE_JOBS:
@@ -324,35 +371,68 @@ class JobBackend(object):
         if VERBOSE_JOBS:
             print('Killed external procs')
 
-    def initialize_background_processes(self, dbdir=None, wait=0):
+    def _initialize_job_ports(self, use_static_ports=False, static_root=51381):
+        # _portgen = functools.partial(six.next, itertools.count(51381))
+        key_list = [
+            'engine_url1',
+            'engine_url2',
+            'collect_url1',
+            'collect_url2',
+            'collect_pushpull_url',
+        ]
+        # Get ports
+        if use_static_ports:
+            port_list = range(static_root, static_root + len(key_list))
+        else:
+            port_list = []
+            while len(port_list) < len(key_list):
+                port = _get_random_open_port()
+                if port not in port_list:
+                    port_list.append(port)
+            port_list = sorted(port_list)
+        # Assign ports
+        assert len(key_list) == len(port_list)
+        self.port_dict = {
+            key : '%s:%d' % (URL, port)
+            for key, port in list(zip(key_list, port_list))
+        }
+
+    def initialize_background_processes(self, dbdir=None, wait=0, containerized=False,
+                                        thread=True):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
-        #_spawner = ut.spawn_background_process
-        #_spawner = ut.spawn_background_daemon_thread
+
         def _spawner(func, *args, **kwargs):
+
+            if thread:
+                # mp.set_start_method('spawn')
+                _spawner_func_ = ut.spawn_background_daemon_thread
+            else:
+                _spawner_func_ = ut.spawn_background_process
+
             if wait != 0:
                 print('Waiting for background process (%s) to spin up' % (ut.get_funcname(func,)))
-            proc = ut.spawn_background_process(func, *args, **kwargs)
+            proc = _spawner_func_(func, *args, **kwargs)
             # time.sleep(wait)
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
 
         if self.spawn_queue:
-            self.engine_queue_proc = _spawner(engine_queue_loop)
-            self.collect_queue_proc = _spawner(collect_queue_loop)
+            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
+            self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
         if self.spawn_collector:
-            self.collect_proc = _spawner(collector_loop, dbdir)
+            self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir, containerized)
         if self.spawn_engine:
             if self.fg_engine:
                 print('ENGINE IS IN DEBUG FOREGROUND MODE')
                 # Spawn engine in foreground process
                 assert self.num_engines == 1, 'fg engine only works with one engine'
-                engine_loop(0, dbdir)
+                engine_loop(0, self.port_dict, dbdir)
                 assert False, 'should never see this'
             else:
                 # Normal case
-                self.engine_procs = [_spawner(engine_loop, i, dbdir)
+                self.engine_procs = [_spawner(engine_loop, i, self.port_dict, dbdir)
                                       for i in range(self.num_engines)]
         # wait for processes to spin up
         if self.spawn_queue:
@@ -368,9 +448,12 @@ class JobBackend(object):
 
 
 class JobInterface(object):
-    def __init__(jobiface, id_):
+    def __init__(jobiface, id_, port_dict):
         jobiface.id_ = id_
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
+        jobiface.port_dict = port_dict
+        print('JobInterface ports:')
+        ut.print_dict(jobiface.port_dict)
 
     # def init(jobiface):
     #     # Starts several new processes
@@ -389,17 +472,17 @@ class JobInterface(object):
         jobiface.engine_deal_sock.setsockopt_string(zmq.IDENTITY,
                                                     'client%s.engine.DEALER' %
                                                     (jobiface.id_,))
-        jobiface.engine_deal_sock.connect(engine_url1)
+        jobiface.engine_deal_sock.connect(jobiface.port_dict['engine_url1'])
         if jobiface.verbose:
-            print('connect engine_url1 = %r' % (engine_url1,))
+            print('connect engine_url1 = %r' % (jobiface.port_dict['engine_url1'],))
 
         jobiface.collect_deal_sock = ctx.socket(zmq.DEALER)
         jobiface.collect_deal_sock.setsockopt_string(zmq.IDENTITY,
                                                      'client%s.collect.DEALER'
                                                      % (jobiface.id_,))
-        jobiface.collect_deal_sock.connect(collect_url1)
+        jobiface.collect_deal_sock.connect(jobiface.port_dict['collect_url1'])
         if jobiface.verbose:
-            print('connect collect_url1 = %r' % (collect_url1,))
+            print('connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],))
 
     def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
         r"""
@@ -441,6 +524,22 @@ class JobInterface(object):
             jobid = reply_notify['jobid']
             return jobid
 
+    def get_job_id_list(jobiface):
+        with ut.Indenter('[client %d] ' % (jobiface.id_)):
+            print = partial(ut.colorprint, color='teal')
+            if jobiface.verbose >= 1:
+                print('----')
+                print('Request list of job ids')
+            pair_msg = dict(action='job_id_list')
+            # CALLS: collector_request_status
+            jobiface.collect_deal_sock.send_json(pair_msg)
+            if jobiface.verbose >= 3:
+                print('... waiting for collector reply')
+            reply = jobiface.collect_deal_sock.recv_json()
+            if jobiface.verbose >= 2:
+                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
+        return reply
+
     def get_job_status(jobiface, jobid):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             print = partial(ut.colorprint, color='teal')
@@ -481,6 +580,10 @@ class JobInterface(object):
         except TypeError as ex:
             ut.printex(ex, keys=['json_result'], iswarning=True)
             result = json_result
+        except Exception as ex:
+            ut.printex(ex, 'Failed to unpack result', keys=['json_result'])
+            result = reply['json_result']
+            # raise
             # raise
         #print('Job %r result = %s' % (jobid, ut.repr2(result, truncate=True),))
         return result
@@ -508,19 +611,18 @@ class JobInterface(object):
                 raise Exception('Timeout')
 
 
-def make_queue_loop(iface1, iface2, name=None):
+def make_queue_loop(name='collect'):
     """
     Standard queue loop
 
     Args:
-        iface1 (str): address for the client that deals
-        iface2 (str): address for the server that routes
         name (None): (default = None)
     """
     assert name is not None, 'must name queue'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
-    def queue_loop():
+    def queue_loop(port_dict):
+        iface1, iface2 = port_dict['collect_url1'], port_dict['collect_url2']
         print = partial(ut.colorprint, color='green')
         update_proctitle(queue_name)
 
@@ -532,7 +634,7 @@ def make_queue_loop(iface1, iface2, name=None):
             rout_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'ROUTER')
             rout_sock.bind(iface1)
             if VERBOSE_JOBS:
-                print('bind %s_url2 = %r' % (name, iface1,))
+                print('bind %s_url1 = %r' % (name, iface1,))
             # bind the server router to the queue dealer
             deal_sock = ctx.socket(zmq.DEALER)
             deal_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'DEALER')
@@ -571,10 +673,11 @@ def make_queue_loop(iface1, iface2, name=None):
     ut.set_funcname(queue_loop, loop_name)
     return queue_loop
 
-collect_queue_loop = make_queue_loop(collect_url1, collect_url2, name='collect')
+
+collect_queue_loop = make_queue_loop(name='collect')
 
 
-def engine_queue_loop():
+def engine_queue_loop(port_dict):
     """
     Specialized queue loop
     """
@@ -582,7 +685,7 @@ def engine_queue_loop():
     # NAME: engine_queue
     update_proctitle('engine_queue_loop')
 
-    iface1, iface2 = engine_url1, engine_url2
+    iface1, iface2 = port_dict['engine_url1'], port_dict['engine_url2']
     name = 'engine'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
@@ -604,9 +707,9 @@ def engine_queue_loop():
 
         collect_deal_sock = ctx.socket(zmq.DEALER)
         collect_deal_sock.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
-        collect_deal_sock.connect(collect_url1)
+        collect_deal_sock.connect(port_dict['collect_url1'])
         if VERBOSE_JOBS:
-            print('connect collect_url1 = %r' % (collect_url1,))
+            print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
         job_counter = 0
 
         # but this shows what is really going on:
@@ -657,7 +760,7 @@ def engine_queue_loop():
             print('Exiting %s queue' % (loop_name,))
 
 
-def engine_loop(id_, dbdir=None):
+def engine_loop(id_, port_dict, dbdir=None):
     r"""
     IBEIS:
         This will be part of a worker process with its own IBEISController
@@ -677,19 +780,19 @@ def engine_loop(id_, dbdir=None):
     with ut.Indenter('[engine %d] ' % (id_)):
         if VERBOSE_JOBS:
             print('Initializing engine')
-            print('connect engine_url2 = %r' % (engine_url2,))
+            print('connect engine_url2 = %r' % (port_dict['engine_url2'],))
         assert dbdir is not None
         #ibs = ibeis.opendb(dbname)
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
-        engine_rout_sock.connect(engine_url2)
+        engine_rout_sock.connect(port_dict['engine_url2'])
 
         collect_deal_sock = ctx.socket(zmq.DEALER)
         collect_deal_sock.setsockopt_string(zmq.IDENTITY, 'engine.collect.DEALER')
-        collect_deal_sock.connect(collect_url1)
+        collect_deal_sock.connect(port_dict['collect_url1'])
         if VERBOSE_JOBS:
-            print('connect collect_url1 = %r' % (collect_url1,))
+            print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
             print('engine is initialized')
 
         try:
@@ -758,7 +861,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
     return engine_result
 
 
-def collector_loop(dbdir):
+def collector_loop(port_dict, dbdir, containerized):
     """
     Service that stores completed algorithm results
     """
@@ -768,9 +871,9 @@ def collector_loop(dbdir):
     with ut.Indenter('[collect] '):
         collect_rout_sock = ctx.socket(zmq.ROUTER)
         collect_rout_sock.setsockopt_string(zmq.IDENTITY, 'collect.ROUTER')
-        collect_rout_sock.connect(collect_url2)
+        collect_rout_sock.connect(port_dict['collect_url2'])
         if VERBOSE_JOBS:
-            print('connect collect_url2  = %r' % (collect_url2,))
+            print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
         # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
@@ -790,7 +893,8 @@ def collector_loop(dbdir):
                 idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
                 try:
                     reply = on_collect_request(collect_request, collecter_data,
-                                               awaiting_data, shelve_path)
+                                               awaiting_data, shelve_path,
+                                               containerized=containerized)
                 except Exception as ex:
                     print(ut.repr3(collect_request))
                     ut.printex(ex, 'ERROR in collection')
@@ -801,7 +905,8 @@ def collector_loop(dbdir):
             print('Exiting collector')
 
 
-def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path):
+def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path,
+                       containerized=False):
     """ Run whenever the collector recieves a message """
     import requests
     reply = {}
@@ -821,6 +926,9 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
         callback_url = collect_request['callback_url']
         callback_method = collect_request['callback_method']
         jobid = engine_result['jobid']
+
+        if containerized:
+            callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
         # OLD METHOD
         # collecter_data[jobid] = engine_result
@@ -847,15 +955,22 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                 print('calling callback_url using callback_method')
             try:
                 # requests.get(callback_url)
+                data_dict = {'jobid': jobid}
                 if callback_method == 'post':
-                    requests.post(callback_url, data={'jobid': jobid})
+                    response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'get':
-                    requests.get(callback_url, params={'jobid': jobid})
+                    response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'put':
-                    requests.put(callback_url, data={'jobid': jobid})
+                    response = requests.put(callback_url, data=data_dict)
                 else:
                     raise ValueError('callback_method %r unsupported' %
                                      (callback_method, ))
+                try:
+                    text = response.text
+                except:
+                    text = None
+                args = (callback_url, callback_method, data_dict, response, text, )
+                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
             except Exception as ex:
                 msg = (('ERROR in collector. '
                         'Tried to call callback_url=%r with callback_method=%r')
@@ -877,6 +992,9 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
             reply['jobstatus'] = 'unknown'
         reply['status'] = 'ok'
         reply['jobid'] = jobid
+    elif action == 'job_id_list':
+        reply['status'] = 'ok'
+        reply['jobid_list'] = list(collecter_data.keys())
     elif action == 'job_result':
         # From a Client
         jobid = collect_request['jobid']

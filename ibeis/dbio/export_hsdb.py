@@ -1,15 +1,13 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Converts an IBEIS database to a hotspotter db
 """
-# TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 from os.path import join, relpath
-#import ibeis
 import utool as ut
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[export_hsdb]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def get_hsdb_image_gpaths(ibs, gid_list):
@@ -34,7 +32,7 @@ def get_hsdb_image_gpaths(ibs, gid_list):
         >>> # execute function
         >>> gpath_list = get_hsdb_image_gpaths(ibs, gid_list)
         >>> # verify results
-        >>> result = ut.list_str(gpath_list)
+        >>> result = ut.repr2(gpath_list, nl=1)
         >>> print(result)
         [
             '../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg',

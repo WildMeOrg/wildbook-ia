@@ -1,0 +1,205 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="width: 2000px;">
+        <canvas id="canvasBar"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Breakdown of images by filter category
+        </div>
+        <a id="linkBar" href="#" download="sightings-histogram-linear.png">Download Chart</a>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+{% endblock %}
+
+{% block content_custom_javascript %}
+<script type="text/javascript">
+
+  var dataBar = {
+    labels: ["GZGC", "GGR"],
+    datasets: [
+        {
+            label: "No Sightings or Bad Species",
+            backgroundColor: [
+                'rgba(77,83,96,0.5)',
+                'rgba(77,83,96,0.5)',
+            ],
+            borderColor: [
+                'rgba(77,83,96,0.8)',
+                'rgba(77,83,96,0.8)',
+            ],
+            borderWidth: 1,
+            data: {{ bar_value_list[0] }},
+        },
+        {
+            label: "Bad Viewpoint",
+            backgroundColor: [
+                'rgba(151,187,205,0.5)',
+                'rgba(151,187,205,0.5)',
+            ],
+            borderColor: [
+                'rgba(151,187,205,0.8)',
+                'rgba(151,187,205,0.8)',
+            ],
+            borderWidth: 1,
+            data: {{ bar_value_list[1] }},
+        },
+        {
+            label: "Bad Quality",
+            backgroundColor: [
+                'rgba(247,70,74,0.5)',
+                'rgba(247,70,74,0.5)',
+            ],
+            borderColor: [
+                'rgba(247,70,74,0.8)',
+                'rgba(247,70,74,0.8)',
+            ],
+            borderWidth: 1,
+            data: {{ bar_value_list[2] }},
+        },
+        {
+            label: "Invalid Date/GPS",
+            backgroundColor: [
+                'rgba(253,180,92,0.5)',
+                'rgba(253,180,92,0.5)',
+            ],
+            borderColor: [
+                'rgba(253,180,92,0.8)',
+                'rgba(253,180,92,0.8)',
+            ],
+            borderWidth: 1,
+            data: {{ bar_value_list[3] }},
+        },
+        {
+            label: "Used",
+            backgroundColor: [
+                'rgba(92,184,92,0.5)',
+                'rgba(92,184,92,0.5)',
+            ],
+            borderColor: [
+                'rgba(92,184,92,0.8)',
+                'rgba(92,184,92,0.8)',
+            ],
+            borderWidth: 1,
+            data: {{ bar_value_list[4] }},
+        }
+    ]
+  };
+
+  window.onload = function()
+  {
+    Chart.defaults.global.defaultFontSize = 35;
+    Chart.defaults.global.responsive = true;
+
+    var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    var linkBar = document.getElementById("linkBar");
+    var chartBar = new Chart(ctxBar, {
+      type: 'horizontalBar',
+      data: dataBar,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        // animation: false,
+        showAllTooltips: false,
+        scales: {
+            xAxes: [{
+                stacked: true
+            }],
+            yAxes: [{
+                stacked: true
+            }]
+        },
+        legend:{display: true,labels:{fontSize:24}},
+        animation: {
+          onComplete: function(animationItem) {
+
+            // var ctx = this.chart.ctx;
+            // ctx.font = this.scale.font;
+            // ctx.fillStyle = this.scale.textColor
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "bottom";
+
+            // this.datasets.forEach(function (dataset) {
+            //     dataset.bars.forEach(function (bar) {
+            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //     });
+            // })
+
+            ctx = animationItem.chartInstance
+            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        },
+        tooltips: {
+            titleFontSize: 8,
+            bodyFontSize: 0,
+            callbacks: {
+                title: function (tooltipItem, data) {
+                  tooltipItem = tooltipItem[0]
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  return amount;
+                },
+                label: function (tooltipItem, data) {
+                  return '';
+                },
+            }
+        },
+      }
+    });
+  };
+
+
+  Chart.pluginService.register({
+    beforeRender: function (chart) {
+        if (chart.config.options.showAllTooltips) {
+            // create an array of tooltips
+            // we can"t use the chart tooltip because there is only one tooltip per chart
+            chart.pluginTooltips = [];
+            chart.config.data.datasets.forEach(function (dataset, i) {
+                chart.getDatasetMeta(i).data.forEach(function (sector, j) {
+                    chart.pluginTooltips.push(new Chart.Tooltip({
+                        _chart: chart.chart,
+                        _chartInstance: chart,
+                        _data: chart.data,
+                        _options: chart.options.tooltips,
+                        _active: [sector]
+                    }, chart));
+                });
+            });
+
+            // turn off normal tooltips
+            chart.options.tooltips.enabled = false;
+        }
+    },
+    afterDraw: function (chart, easing) {
+        if (chart.config.options.showAllTooltips) {
+            // we don"t want the permanent tooltips to animate, so don"t do anything till the animation runs atleast once
+            if (!chart.allTooltipsOnce) {
+                if (easing !== 1)
+                    return;
+                chart.allTooltipsOnce = true;
+            }
+
+            // turn on tooltips
+            chart.options.tooltips.enabled = true;
+            Chart.helpers.each(chart.pluginTooltips, function (tooltip) {
+                tooltip.initialize();
+                tooltip.update();
+                // we don"t actually need this since we are not animating tooltips
+                tooltip.pivot();
+                tooltip.transition(easing).draw();
+            });
+            chart.options.tooltips.enabled = false;
+        }
+    }
+});
+
+</script>
+{% endblock %}

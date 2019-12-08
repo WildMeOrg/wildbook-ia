@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  img.ajax-image-load
+  {
+    height: auto;
+    max-height: 700px;
+    max-width: 100%;
+    width: auto;
+    border: none;
+  }
+
+  .stats
+  {
+    text-align: center;
+    position: absolute;
+    bottom: 5px;
+    right: 0px;
+    margin-right: 0px;
+    width: 100%;
+    font-weight: bold;
+  }
+
+  .stats .orange
+  {
+    color: #FF8000;
+  }
+
+  .stats .blue
+  {
+    color: #0080FF;
+  }
+
+  .message
+  {
+    text-align: center;
+    width: 100%;
+  }
+
+</style>
+{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col-lg-12">
+      <table class="table table-striped table-fixed">
+        <thead>
+          <tr>
+            <th>{{ dbdir1 }} </th>
+            <th style="width: 30%; position: relative;">
+              <div class="row stats" style="margin-bottom: 20px;">
+                <div class="col-lg-2">{{ stats_global['annot1'] }}</div>
+                <div class="col-lg-8">Total</div>
+                <div class="col-lg-2">{{ stats_global['annot2'] }}</div>
+              </div>
+              <div class="row stats">
+                <div class="col-lg-2 blue">{{ stats_global['disagree_interest1'] }}</div>
+                <div class="col-lg-8">Difference</div>
+                <div class="col-lg-2 blue">{{ stats_global['disagree_interest2'] }}</div>
+              </div>
+            </th>
+            <th style="text-align: right">{{ dbdir2 }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for (gid1, gid2, stats) in gid_pair_list %}
+          <tr {% if stats and stats['conflict'] %}class="danger"{% endif %}>
+            {% if gid1 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ dbtag1 }}-{{ gid1 }}" /></td>{% endif %}
+            <td style="width: 30%; position: relative;">
+              <div class="message">
+              {{ stats['message'] | safe }}
+              <br/>
+              <br/>
+              {{ gid1 }} - {{ gid2 }}
+              </div>
+              {% if stats %}
+                <div class="row stats">
+                  <div class="col-lg-2 blue">{{ stats['num_interest1'] }}</div>
+                  <div class="col-lg-2 orange">{{ stats['num_annot1'] - stats['num_interest1'] }}</div>
+                  <div class="col-lg-2" style="border-right: 1px solid #CCC">{{ stats['num_annot1'] }}</div>
+                  <div class="col-lg-2">{{ stats['num_annot2'] }}</div>
+                  <div class="col-lg-2 orange">{{ stats['num_annot2'] - stats['num_interest2'] }}</div>
+                  <div class="col-lg-2 blue">{{ stats['num_interest2'] }}</div>
+                </div>
+              {% endif %}
+            </td>
+            {% if gid2 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ dbtag2 }}-{{ gid2 }}" /></td>{% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 20;
+
+  function lazy_load_images()
+  {
+    while(loading.length > buffer)
+    {
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
+    }
+
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function load_image_src(element)
+  {
+    var gid = $(element).attr('gid');
+    if( ! contains(loading, gid) && loading.length <= buffer)
+    {
+      request = $.ajax( "/experiments/ajax/image/src/" + gid + "/")
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(gid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        console.log(gid);
+        console.log(loading);
+        console.log(requests);
+      });
+      loading.push(gid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $(window).scroll(function(){
+        lazy_load_images();
+      });
+
+      setInterval(function() {
+        lazy_load_images();
+      }, 500) ;
+
+      lazy_load_images();
+  });
+</script>
+{% endblock %}

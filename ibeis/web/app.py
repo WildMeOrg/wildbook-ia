@@ -11,15 +11,16 @@ from ibeis.control import controller_inject
 from ibeis.web import apis_engine
 from ibeis.web import job_engine
 from ibeis.web import appfuncs as appf
+from tornado.log import access_log
 import utool as ut
 
 
-def test_html_error():
+def tst_html_error():
     r"""
     This test will show what our current errors look like
 
     CommandLine:
-        python -m ibeis.web.app --exec-test_html_error
+        python -m ibeis.web.app --exec-tst_html_error
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -30,23 +31,43 @@ def test_html_error():
     pass
 
 
-def start_tornado(ibs, port=None, browser=None, url_suffix=None):
-    """
-        Initialize the web server
-    """
+class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
+
+    def _log(self, status_code, request):
+        if status_code < 400:
+            log_method = access_log.info
+        elif status_code < 500:
+            log_method = access_log.warning
+        else:
+            log_method = access_log.error
+
+        timestamp = ut.timestamp()
+        request_time = 1000.0 * request.request_time()
+        log_method(
+            "WALL=%s STATUS=%s METHOD=%s URL=%s IP=%s TIME=%.2fms",
+            timestamp,
+            status_code, request.method,
+            request.uri, request.remote_ip, request_time)
+
+
+def start_tornado(ibs, port=None, browser=None, url_suffix=None,
+                  start_web_loop=True, fallback=True):
+    """Initialize the web server"""
     if browser is None:
         browser = ut.get_argflag('--browser')
     if url_suffix is None:
-        url_suffix = ''
+        url_suffix = ut.get_argval('--url', default='')
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
         app.ibs = ibs_
         # Try to ascertain the socket's domain name
+        socket.setdefaulttimeout(0.1)
         try:
             app.server_domain = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
             app.server_domain = '127.0.0.1'
+        socket.setdefaulttimeout(None)
         app.server_port = port_
         # URL for the web instance
         app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
@@ -60,10 +81,31 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
         # WSGI is Python standard described in detail in PEP 3333
-        http_server = tornado.httpserver.HTTPServer(
-            tornado.wsgi.WSGIContainer(app))
-        http_server.listen(app.server_port)
-        tornado.ioloop.IOLoop.instance().start()
+        wsgi_container = TimedWSGIContainer(app)
+
+        # # Try wrapping with newrelic performance monitoring
+        # try:
+        #     import newrelic
+        #     wsgi_container = newrelic.agent.WSGIApplicationWrapper(wsgi_container)
+        # except (ImportError, AttributeError):
+        #     pass
+
+        http_server = tornado.httpserver.HTTPServer(wsgi_container)
+        try:
+            http_server.listen(app.server_port)
+        except socket.error:
+            fallback_port = ut.find_open_port(app.server_port)
+            if fallback:
+                print('Port %s is unavailable, using fallback_port = %r' % (port, fallback_port, ))
+                start_tornado(ibs, port=fallback_port, browser=browser,
+                              url_suffix=url_suffix, start_web_loop=start_web_loop,
+                              fallback=False)
+            else:
+                raise RuntimeError(
+                    (('The specified IBEIS web port %d is not available, '
+                      'but %d is') % (app.server_port, fallback_port)))
+        if start_web_loop:
+            tornado.ioloop.IOLoop.instance().start()
 
     # Set logging level
     logging.getLogger().setLevel(logging.INFO)
@@ -75,7 +117,8 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
 
 
 def start_from_ibeis(ibs, port=None, browser=None, precache=None,
-                     url_suffix=None, start_job_queue=True):
+                     url_suffix=None, start_job_queue=None,
+                     start_web_loop=True):
     """
     Parse command line options and start the server.
 
@@ -84,6 +127,13 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
         python -m ibeis --db PZ_MTEST --web --browser
     """
     print('[web] start_from_ibeis()')
+
+    if start_job_queue is None:
+        if ut.get_argflag('--noengine'):
+            start_job_queue = False
+        else:
+            start_job_queue = True
+
     if precache is None:
         precache = ut.get_argflag('--precache')
 
@@ -109,11 +159,12 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
 
     print('[web] starting tornado')
     try:
-        start_tornado(ibs, port, browser, url_suffix)
+        start_tornado(ibs, port, browser, url_suffix, start_web_loop)
     except KeyboardInterrupt:
         print('Caught ctrl+c in webserver. Gracefully exiting')
-    print('[web] closing job manager')
-    ibs.close_job_manager()
+    if start_web_loop:
+        print('[web] closing job manager')
+        ibs.close_job_manager()
 
 
 def start_web_annot_groupreview(ibs, aid_list):

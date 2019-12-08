@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import utool
+from __future__ import absolute_import, division, print_function, unicode_literals
+import utool as ut
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from plottool import interact_helpers as ih
-
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[interact_sver]', DEBUG=False)
+from plottool_ibeis import interact_helpers as ih
+(print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 
 
 def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None, **kwargs):
@@ -20,7 +18,6 @@ def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None,
         viz.show_sver(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, fnum=fnum, **kwargs)
 
     def _on_sv_click(event):
-        print_('[inter] clicked sv')
         ax = event.inaxes
         if ih.clicked_outside_axis(event):
             print('... out of axis')
@@ -30,7 +27,6 @@ def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None,
             _sv_view(**kwargs)
         else:
             viztype = vh.get_ibsdat(ax, 'viztype')
-            print_('[ic] viztype=%r' % viztype)
             if viztype in ['homogblend', 'affblend', 'source', 'dest']:
                 pass
             else:

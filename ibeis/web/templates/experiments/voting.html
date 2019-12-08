@@ -1,0 +1,495 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  #voting-count,#voting-image-count,.voting-variance {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+    color: #337ab7;
+  }
+
+  #loading {
+    opacity: 0.0;
+    text-align: right;
+  }
+
+  .loading {
+    height: 50px;
+  }
+
+  .btn-group {
+    background-color: #FAFAFA;
+  }
+
+  .row {
+    margin-bottom: 20px;
+  }
+
+  img.data {
+    width: 80%;
+    height: auto;
+  }
+
+  .row > img.data.loading {
+    height: 100px;
+    width: 100px;
+  }
+
+  .check-label {
+    font-size: 12px;
+    color: #999;
+  }
+
+</style>
+{% endblock %}
+{% block content %}
+  <div class="row" style="margin-bottom: 0px">
+    <div class="col-lg-9 col-md-9 col-sm-9">
+      Reviewers:
+
+      <div id="option" class="btn-group" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+          <input type="radio" name="option" class="config" id="inclusive" autocomplete="off"> At least
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="option" class="config" id="exclusive" autocomplete="off"> Exactly
+        </label>
+      </div>
+
+      <div id="method" class="btn-group" data-toggle="buttons">
+        <label class="btn btn-secondary">
+          <input type="radio" name="method" class="config" id="1" autocomplete="off"> 1
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="method" class="config" id="2" autocomplete="off"> 2
+        </label>
+        <label class="btn btn-secondary active">
+          <input type="radio" name="method" class="config" id="3" autocomplete="off"> 3
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="method" class="config" id="4" autocomplete="off"> 4
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="method" class="config" id="5" autocomplete="off"> 5
+        </label>
+      </div>
+      for AoI
+
+      <br/>
+      Species:
+
+      <div id="species" class="btn-group" data-toggle="buttons" style="margin-top: 5px; margin-left: 14px;">
+        <label class="btn btn-secondary active">
+          <input type="radio" name="species" class="config" id="all" autocomplete="off"> All
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="species" class="config" id="giraffe" autocomplete="off"> Giraffe
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="species" class="config" id="zebra" autocomplete="off"> Zebra
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="species" class="config" id="kenya" autocomplete="off"> Kenya
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="species" class="config" id="seaturtle" autocomplete="off"> Sea Turtle
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="species" class="config" id="whalefluke" autocomplete="off"> Whale Fluke
+        </label>
+      </div>
+    </div>
+
+    <div id="loading" class="col-lg-3 col-md-3 col-sm-3" style="height: 0">
+      <img class="loading" src="{{ url_for('static', filename='images/loading2.gif') }}">
+      <br/>
+      <i style="color:#AAA;">loading</i>
+    </div>
+  </div>
+
+  <div class="row"">
+    <div class="col-lg-6" style="text-align: center;">
+      <div id='voting-count'></div>
+      Total AoIs<br/>(<span id='voting-percentage'></span>)
+    </div>
+    <div class="col-lg-6" style="text-align: center;">
+      <div id='voting-image-count'></div>
+      AoIs per Image<br/>(<span id='voting-image-percentage'></span>)
+    </div>
+  </div>
+
+  Variances
+  <div class="row" style="padding: 10px; background-color: #FAFAFA">
+    <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: center;">
+      <div class="voting-variance" id='voting-variance-0'></div>
+      Team 1<br/>Princeton
+      <br/>
+      (Accuracy: <span class="voting-accuracy" id='voting-accuracy-0'></span>)
+      <br/>
+      <input type="checkbox" class="config" name="team1" id="team1" checked> <span class="check-label">Enabled</span>
+    </div>
+    <div class="col-lg-3 col-md-3 col-sm-3" style="text-align: center;">
+      <div class="voting-variance" id='voting-variance-1'></div>
+      Team 2<br/>Wildbook
+      <br/>
+      (Accuracy: <span class="voting-accuracy" id='voting-accuracy-1'></span>)
+      <br/>
+      <input type="checkbox" class="config" name="team2" id="team2" checked> <span class="check-label">Enabled</span>
+    </div>
+    <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: center;">
+      <div class="voting-variance" id='voting-variance-2'></div>
+      Team 3<br/>RPI
+      <br/>
+      (Accuracy: <span class="voting-accuracy" id='voting-accuracy-2'></span>)
+      <br/>
+      <input type="checkbox" class="config" name="team3" id="team3" checked> <span class="check-label">Enabled</span>
+    </div>
+    <div class="col-lg-3 col-md-3 col-sm-3" style="text-align: center;">
+      <div class="voting-variance" id='voting-variance-3'></div>
+      Team 4<br/>UIC
+      <br/>
+      (Accuracy: <span class="voting-accuracy" id='voting-accuracy-3'></span>)
+      <br/>
+      <input type="checkbox" class="config" name="team4" id="team4" checked> <span class="check-label">Enabled</span>
+    </div>
+    <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: center;">
+      <div class="voting-variance" id='voting-variance-4'></div>
+      Team 5<br/>Jason
+      <br/>
+      (Accuracy: <span class="voting-accuracy" id='voting-accuracy-4'></span>)
+      <br/>
+      <input type="checkbox" class="config" name="team5" id="team5" checked> <span class="check-label">Enabled</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
+      <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="centers-all" />
+      <br/>
+      All Bounding Box Centers<br/>(Maximum: <span id="centers-all-maximum"></span>)
+    </div>
+
+    <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
+      <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="centers-aoi" />
+      <br/>
+      AoI Bounding Box Centers<br/>(Maximum: <span id="centers-aoi-maximum"></span>)
+    </div>
+
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
+      <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="area-all" />
+      <br/>
+      All Bounding Box Area<br/>(Maximum: <span id="area-all-maximum"></span>)
+    </div>
+
+    <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
+      <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="area-aoi" />
+      <br/>
+      AoI Bounding Box Area<br/>(Maximum: <span id="area-aoi-maximum"></span>)
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12" style="text-align: center;">
+      <canvas id="canvasBar0" height="150"></canvas>
+      <br/>
+      All and AoI Width Distribution (<span class="histogram-bins"></span> bins)
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12" style="text-align: center;">
+      <canvas id="canvasBar1" height="150"></canvas>
+      <br/>
+      All and AoI Height Distribution (<span class="histogram-bins"></span> bins)
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12" style="text-align: center;">
+      <canvas id="canvasBar2" height="150"></canvas>
+      <br/>
+      All and AoI Area Distribution (<span class="histogram-bins"></span> bins)
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var loading = 0;
+
+  var dataBar = []
+  var ctxBar = []
+  var chartBar = []
+
+  for(var index=0; index < 3; index++) {
+    dataBar.push({
+      labels: [],
+      datasets: [
+        {
+            label: "All Bounding Boxes",
+            backgroundColor: "rgba(253,180,92,0.5)",
+            borderColor: "rgba(253,180,92,0.8)",
+            hoverBackgroundColor: "rgba(253,180,92,0.75)",
+            hoverBorderColor: "rgba(253,180,92,1)",
+            data: [],
+        },
+        {
+            label: "AoI Bounding Boxes",
+            backgroundColor: "rgba(247,70,74,0.5)",
+            borderColor: "rgba(247,70,74,0.8)",
+            hoverBackgroundColor: "rgba(247,70,74,0.75)",
+            hoverBorderColor: "rgba(247,70,74,1)",
+            data: [],
+        },
+      ]
+    });
+
+    ctxBar.push(document.getElementById("canvasBar" + index).getContext("2d"));
+
+    tempBar = new Chart(ctxBar[index], {
+      type: 'bar',
+      data: dataBar[index],
+      options: {
+        responsive: true,
+        // animation: false,
+        showTooltips: false,
+        legend:{display: true,labels:{fontSize:30}},
+      }
+    });
+    chartBar.push(tempBar);
+  }
+
+  function update_count(response) {
+    $('#voting-count').html(response[0]);
+    $('#voting-percentage').html(response[1] + "% out of " + response[2] + " Annotations");
+  }
+
+  function update_image_count(response) {
+    $('#voting-image-count').html(response[0] + " &plusmn; " + response[1]);
+    $('#voting-image-percentage').html(response[2] + "% of Annotations per Image");
+  }
+
+  function update_variance(response) {
+    $('#voting-variance-' + response[0]).html(response[1]);
+    $('#voting-accuracy-' + response[0]).html(response[2] + "%");
+  }
+
+  function disable_configuration() {
+    $("#loading").css('opacity', 1.0);
+    $('label.btn').each(function() {
+      $(this).addClass('disabled')
+    });
+  }
+
+  function enable_configuration(target) {
+    loading -= 1;
+
+    console.log("Loading: " + loading);
+    if(loading > 0) {
+      return
+    }
+
+    $("#loading").css('opacity', 0.0);
+    $('label.btn').each(function() {
+      $(this).removeClass('disabled')
+    });
+
+    $(target).addClass('active');
+  }
+
+  function get_configuration() {
+    var option  = $('#option.btn-group >  .btn.active > input').prop('id')
+    var method  = $('#method.btn-group >  .btn.active > input').prop('id')
+    var species = $('#species.btn-group > .btn.active > input').prop('id')
+    var team1   = $('input#team1').is(':checked')
+    var team2   = $('input#team2').is(':checked')
+    var team3   = $('input#team3').is(':checked')
+    var team4   = $('input#team4').is(':checked')
+    var team5   = $('input#team5').is(':checked')
+
+    var config = [option, method, species, team1, team2, team3, team4, team5]
+    console.log(config)
+    return config
+  }
+
+  function parse_response(response) {
+    response = $.parseJSON(response)
+    response = response.response
+    return response
+  }
+
+  function get_configuration_url(base) {
+    loading += 1;
+
+    var config = get_configuration()
+    return base +
+           "?option=" + config[0] +
+           "&method=" + config[1] +
+           "&species=" + config[2] +
+           "&team1=" + config[3] +
+           "&team2=" + config[4] +
+           "&team3=" + config[5] +
+           "&team4=" + config[6] +
+           "&team5=" + config[7];
+  }
+
+  function update_tier2(target) {
+    $(target).addClass('active');
+
+    // variances
+    for(var index=0; index < 5; index++) {
+      request = $.ajax(get_configuration_url("/experiments/ajax/voting/variance/") + "&team_index=" + index)
+      .done(function(response) {
+        response = parse_response(response);
+        update_variance(response);
+        enable_configuration(target);
+      }).fail(function(response) {
+        console.log('Failure: ' + response);
+      });
+    }
+
+    // centers (all)
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/center/src/") + "&aoi=false")
+    .done(function(response) {
+      response = parse_response(response);
+      $('span#centers-all-maximum').html(response[0]);
+      $('img#centers-all').attr('src', response[1]);
+      $('img#centers-all').removeClass('loading');
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+    });
+
+    // centers (aoi)
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/center/src/") + "&aoi=true")
+    .done(function(response) {
+      response = parse_response(response);
+      $('span#centers-aoi-maximum').html(response[0]);
+      $('img#centers-aoi').attr('src', response[1]);
+      $('img#centers-aoi').removeClass('loading');
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+    });
+
+    // area (all)
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/area/src/") + "&aoi=false")
+    .done(function(response) {
+      response = parse_response(response);
+      $('span#area-all-maximum').html(response[0]);
+      $('img#area-all').attr('src', response[1]);
+      $('img#area-all').removeClass('loading');
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+    });
+
+    // area (aoi)
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/area/src/") + "&aoi=true")
+    .done(function(response) {
+      response = parse_response(response);
+      $('span#area-aoi-maximum').html(response[0]);
+      $('img#area-aoi').attr('src', response[1]);
+      $('img#area-aoi').removeClass('loading');
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+    });
+
+    // bbox metrics
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/bbox/metrics/"))
+    .done(function(response) {
+      response = parse_response(response);
+
+      bins = response[0]
+      histgogram = response[1]
+
+      $('span.histogram-bins').html(bins);
+
+      var keys = ['width', 'height', 'area']
+      for(var index=0; index < 3; index++) {
+        key = keys[index];
+        dataBar[index].labels = histgogram['keys']
+        dataBar[index].datasets[0].data = histgogram[key][0]
+        dataBar[index].datasets[1].data = histgogram[key][1]
+        chartBar[index].update()
+      }
+
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+    });
+
+  }
+
+  function update_tier1(target) {
+    disable_configuration();
+    reset();
+
+    $(target).addClass('active')
+    request = $.ajax(get_configuration_url("/experiments/ajax/voting/count/"))
+    .done(function(response) {
+      response = parse_response(response);
+
+      update_count(response[0]);
+      update_image_count(response[1]);
+
+      update_tier2(target);
+      enable_configuration(target);
+    }).fail(function(response) {
+      console.log('Failure: ' + response);
+      enable_configuration(target);
+    });
+  }
+
+  function reset() {
+    $('#voting-count').html('...');
+    $('#voting-percentage').html('...');
+    $('#voting-image-count').html('...');
+    $('#voting-image-percentage').html('...');
+    $('.voting-variance').html('...');
+    $('.voting-accuracy').html('...');
+
+    $('#centers-all-maximum').html('...');
+    $('#centers-aoi-maximum').html('...');
+    $('#area-all-maximum').html('...');
+    $('#area-aoi-maximum').html('...');
+
+    $('img.data').attr('src', '{{ url_for('static', filename='images/loading2.gif') }}');
+    $('img.data').addClass('loading');
+
+    for(var index=0; index < 3; index++) {
+      dataBar[index].labels = []
+      dataBar[index].datasets[0].data = []
+      dataBar[index].datasets[1].data = []
+      chartBar[index].update()
+    }
+  }
+
+  $(document).ready(function() {
+    update_tier1();
+
+    $('input.config').change(function() {
+      var target = $(this).parent();
+      update_tier1(target);
+    });
+
+    $('a#consensus').click(function() {
+      var base = $('input#inclusive');
+      var target = $(base).parent();
+      target.addClass('active');
+
+      var base = $('input#3');
+      var target = $(base).parent();
+      target.addClass('active');
+
+      update_tier1(target);
+    });
+  });
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 downloads standard test datasets. can delete them as well
@@ -31,19 +31,19 @@ def testdb2_stuff():
     image_species_list = ut.get_list_column(
         ibs.unflat_map(ibs.get_annot_species_rowids, ibs.get_image_aids(gid_list)), 0)
 
-    new_contrib_rowid1 = ibs.add_new_temp_contributor(offset=len(ibs.get_valid_contrib_rowids()))
-    new_contrib_rowid2 = ibs.add_new_temp_contributor(offset=len(ibs.get_valid_contrib_rowids()))
+    new_contributor_rowid1 = ibs.add_new_temp_contributor(offset=len(ibs.get_valid_contributor_rowids()))
+    new_contributor_rowid2 = ibs.add_new_temp_contributor(offset=len(ibs.get_valid_contributor_rowids()))
 
     gids1, gids2 = list(ut.group_items(gid_list, image_species_list).values())
 
     party_rowids = ibs.add_party(['TestCar1', 'TestCar2'])
     partyid1, partyid2 = party_rowids
-    ibs.set_image_contributor_rowid(gids1, [new_contrib_rowid1] * len(gids1))
-    ibs.set_image_contributor_rowid(gids2, [new_contrib_rowid2] * len(gids2))
+    ibs.set_image_contributor_rowid(gids1, [new_contributor_rowid1] * len(gids1))
+    ibs.set_image_contributor_rowid(gids2, [new_contributor_rowid2] * len(gids2))
     ibs.set_image_party_rowids(gids1, [partyid1] * len(gids1))
     ibs.set_image_party_rowids(gids2, [partyid2] * len(gids2))
 
-    #image_contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
+    #image_contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list)
 
 
 def get_testdata_dir(ensure=True, key='testdb1'):
@@ -137,6 +137,8 @@ def ensure_smaller_testingdbs():
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
+    import ibeis
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
                     for key in six.iterkeys(TEST_DBNAMES_MAP)}
     default_args['reset_all'] = False

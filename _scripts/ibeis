@@ -1,4 +1,5 @@
 #!/bin/bash
+# DEPRICATE IN FAVOR OF ENTRYPOINTS
 # Win32 path hacks
 export CWD=$(pwd)
 
@@ -9,7 +10,7 @@ export SYSNAME="$(expr substr $(uname -s) 1 10)"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export PY=python
 else
-    export PY=python2.7
+    export PY=python
 fi
 
 #cd ~jonathan/code/ibeis

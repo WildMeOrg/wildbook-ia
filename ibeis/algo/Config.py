@@ -2,11 +2,11 @@
 """
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import copy
-#import dtool
+#import dtool_ibeis
 from os.path import join
 from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
@@ -32,12 +32,13 @@ def parse_config_items(cfg):
         >>> cfg = ibs.cfg.query_cfg
         >>> param_list = parse_config_items(cfg)
     """
-    import ibeis
+    # import ibeis
     param_list = []
     seen = set([])
     for item in cfg.items():
         key, val = item
-        if isinstance(val, ibeis.algo.Config.ConfigBase):
+        # if isinstance(val, ibeis.algo.Config.ConfigBase):
+        if isinstance(val, ConfigBase):
             child_cfg = val
             param_list.extend(parse_config_items(child_cfg))
             #print(key)
@@ -109,9 +110,9 @@ def make_config_metaclass():
                 item_list = parse_config_items(cfg)
                 assert item_list is not None
                 if ignore_keys is None:
-                    itemstr_list = [key + '=' + str(val) for key, val in item_list]
+                    itemstr_list = [key + '=' + six.text_type(val) for key, val in item_list]
                 else:
-                    itemstr_list = [key + '=' + str(val) for key, val in item_list if key not in ignore_keys]
+                    itemstr_list = [key + '=' + six.text_type(val) for key, val in item_list if key not in ignore_keys]
             except Exception as ex:
                 print(ignore_keys is None)
                 print(ignore_keys)
@@ -124,6 +125,7 @@ def make_config_metaclass():
         return cfgstr
 
     @_register
+    @profile
     def initialize_params(cfg):
         """ Initializes config class attributes based on params info list """
         for pi in cfg.get_param_info_list():
@@ -134,9 +136,13 @@ def make_config_metaclass():
         return parse_config_items(cfg)
 
     @_register
+    def keys(cfg, **kwargs):
+        return ut.take_column(cfg.parse_items(), 0)
+
+    @_register
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        class_str = str(cfg.__class__)
+        class_str = six.text_type(cfg.__class__)
         full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
         return config_name
@@ -149,6 +155,13 @@ def make_config_metaclass():
     @_register
     def get_cfgstr(cfg, **kwargs):
         return ''.join(cfg.get_cfgstr_list(**kwargs))
+
+    @_register
+    def lookup_paraminfo(cfg, key):
+        for pi in cfg.get_param_info_list():
+            if pi.varname == key:
+                return pi
+        raise KeyError('no such param info (in the old config)')
 
     class ConfigMetaclass(type):
         """
@@ -196,7 +209,7 @@ class NNConfig(ConfigBase):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
         >>> nn_cfg = NNConfig()
-        >>> nn_cfg = NNConfig(single_name_condition=True)
+        >>> nn_cfg = NNConfig(requery=True)
         >>> result = nn_cfg.get_cfgstr()
         >>> print(result)
         _NN(single,K=4,Kn=1,padk=False,cks800)
@@ -218,15 +231,16 @@ class NNConfig(ConfigBase):
         # number of annots before a new multi-indexer is built
         nn_cfg.min_reindex_thresh = 200
         # number of annots before a new multi-indexer is built
-        nn_cfg.max_subindexers = 2
-        nn_cfg.valid_index_methods = ['single', 'multi', 'name']
+        # nn_cfg.max_subindexers = 2
+        # nn_cfg.valid_index_methods = ['single', 'multi', 'name']
+        nn_cfg.valid_index_methods = ['single']
         nn_cfg.update(**kwargs)
 
     def make_feasible(nn_cfg):
         # normalizer rule depends on Knorm
         assert nn_cfg.index_method in nn_cfg.valid_index_methods
 
-    def get_param_info_list(rrvsone_cfg):
+    def get_param_info_list(nn_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
@@ -235,7 +249,8 @@ class NNConfig(ConfigBase):
                 ut.ParamInfo('K', 4, type_=int),
                 ut.ParamInfo('Knorm', 1, 'Kn='),
                 ut.ParamInfo('use_k_padding', False, 'padk='),
-                ut.ParamInfo('single_name_condition', False, 'nameknn', type_=bool, hideif=False),
+                ut.ParamInfo('requery', False, type_=bool, hideif=False),
+                # ut.ParamInfo('condrecover', True, type_=bool, hideif=False),
                 ut.ParamInfo('checks', 800, 'cks', type_=int),
                 #ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
             ],
@@ -254,11 +269,13 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.sv_on = True
         sv_cfg.xy_thresh = .01
         sv_cfg.scale_thresh = 2.0
-        sv_cfg.ori_thresh   = tau / 4.0
+        sv_cfg.ori_thresh = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.full_homog_checks = True
-        sv_cfg.nNameShortlistSVER = 50
-        sv_cfg.nAnnotPerNameSVER = 6
+        # sv_cfg.nNameShortlistSVER = 50
+        sv_cfg.nNameShortlistSVER = 40
+        # sv_cfg.nAnnotPerNameSVER = 6
+        sv_cfg.nAnnotPerNameSVER = 3
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
@@ -273,7 +290,7 @@ class SpatialVerifyConfig(ConfigBase):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = ut.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
+        thresh_str = ut.remove_chars(six.text_type(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr = [
             '_SV(',
             thresh_str,
@@ -303,19 +320,13 @@ class AggregateConfig(ConfigBase):
     """
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
-        # chipsum, namesum, placketluce
+        # chipsum, namesum,
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
-        agg_cfg.score_normalization = None
-        agg_cfg.normsum = False
-        #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
-            'borda': 'borda',
-            'placketluce': 'pl',
             'chipsum': 'csum',
             'namesum': 'nsum',
-            'coverage': 'coverage',
         }
         # For Placket-Luce
         agg_cfg.max_alts = 50
@@ -333,12 +344,6 @@ class AggregateConfig(ConfigBase):
         agg_cfgstr = []
         agg_cfgstr.append('_AGG(')
         agg_cfgstr.append(agg_cfg.score_method)
-        if agg_cfg.score_method  == 'pl':
-            agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
-        if agg_cfg.score_normalization:
-            agg_cfgstr.append(',norm')
-        if agg_cfg.normsum:
-            agg_cfgstr.append(',normsum')
         agg_cfgstr.append(')')
         return agg_cfgstr
 
@@ -366,6 +371,10 @@ class FlannConfig(ConfigBase):
         flann_cfg.centers_init = 'random'
         flann_cfg.cb_index = .4
         flann_cfg.branching = 64
+        # THESE CONFIGS DONT BELONG TO FLANN. THEY ARE INDEXER CONFIGS
+        flann_cfg.fgw_thresh = None
+        flann_cfg.minscale_thresh = None
+        flann_cfg.maxscale_thresh = None
         flann_cfg.update(**kwargs)
 
     def get_flann_params(flann_cfg):
@@ -391,151 +400,15 @@ class FlannConfig(ConfigBase):
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
+        if flann_cfg.fgw_thresh is not None and flann_cfg.fgw_thresh > 0:
+            # HACK FOR GGR
+            flann_cfgstrs += ['_fgwthrsh=%s' % flann_cfg.fgw_thresh]
+        if (flann_cfg.minscale_thresh is not None) or (flann_cfg.maxscale_thresh is not None):
+            # HACK FOR GGR
+            flann_cfgstrs += ['scalethrsh=%s,%s' % (flann_cfg.minscale_thresh, flann_cfg.maxscale_thresh)]
         #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
         flann_cfgstrs += [')']
         return flann_cfgstrs
-
-
-@six.add_metaclass(ConfigMetaclass)
-class SMKConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> smk_cfg = SMKConfig()
-        >>> result1 = smk_cfg.get_cfgstr()
-        >>> print(result1)
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
-        >>> smk_cfg.printme3()
-    """
-    def __init__(smk_cfg, **kwargs):
-        super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
-        smk_cfg.smk_thresh = 0.0  # tau in the paper
-        smk_cfg.smk_alpha  = 3.0
-        smk_cfg.smk_aggregate  = False
-        # TODO Separate into vocab config
-        smk_cfg._valid_vocab_weighting = ['idf', 'negentropy']
-        smk_cfg.vocab_weighting = 'idf'
-        smk_cfg.allow_self_match = False
-        smk_cfg.vocabtrain_cfg = VocabTrainConfig(**kwargs)
-        smk_cfg.vocabassign_cfg = VocabAssignConfig(**kwargs)
-        smk_cfg.update(**kwargs)
-
-    def make_feasible(smk_cfg):
-
-        hasvalid_weighting = any([
-            smk_cfg.vocab_weighting == x
-            for x in smk_cfg._valid_vocab_weighting])
-        assert hasvalid_weighting, (
-            'invalid vocab weighting %r' % smk_cfg.vocab_weighting)
-
-    def get_cfgstr_list(smk_cfg, **kwargs):
-        smk_cfgstr_list = [
-            '_SMK(',
-            'agg=', str(smk_cfg.smk_aggregate),
-            ',t=', str(smk_cfg.smk_thresh),
-            ',a=', str(smk_cfg.smk_alpha),
-            ',SelfOk' if smk_cfg.allow_self_match else '',
-            ',%s' % smk_cfg.vocab_weighting,
-            ')',
-        ]
-        smk_cfgstr_list.extend(smk_cfg.vocabassign_cfg.get_cfgstr_list())
-        smk_cfgstr_list.extend(smk_cfg.vocabtrain_cfg.get_cfgstr_list())
-        return smk_cfgstr_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class VocabTrainConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> vocabtrain_cfg = VocabTrainConfig()
-        >>> result = vocabtrain_cfg.get_cfgstr()
-        >>> print(result)
-
-    """
-    def __init__(vocabtrain_cfg, **kwargs):
-        super(VocabTrainConfig, vocabtrain_cfg).__init__(
-            name='vocabtrain_cfg')
-        vocabtrain_cfg.override_vocab = 'default'  # Vocab
-        vocabtrain_cfg.vocab_taids = 'all'  # Vocab
-        vocabtrain_cfg.nWords = int(8E3)  #
-        vocabtrain_cfg.vocab_init_method = 'akmeans++'
-        vocabtrain_cfg.vocab_nIters = 128
-        # TODO: easy flann params cfgstr
-        vocabtrain_cfg.vocab_flann_params = dict(cores=0)
-        vocabtrain_cfg.update(**kwargs)
-
-    def get_cfgstr_list(vocabtrain_cfg, **kwargs):
-        if vocabtrain_cfg.override_vocab == 'default':
-            if isinstance(vocabtrain_cfg.vocab_taids, six.string_types):
-                taids_cfgstr = 'taids=%s' % vocabtrain_cfg.vocab_taids
-            else:
-                taids_cfgstr = ut.hashstr_arr(vocabtrain_cfg.vocab_taids,
-                                              'taids', hashlen=8)
-            vocabtrain_cfg_list = [
-                '_VocabTrain(',
-                'nWords=%d' % (vocabtrain_cfg.nWords,),
-                ',init=', str(vocabtrain_cfg.vocab_init_method),
-                ',nIters=%d,' % int(vocabtrain_cfg.vocab_nIters),
-                taids_cfgstr,
-                ')',
-            ]
-        else:
-            vocabtrain_cfg_list = ['_VocabTrain(override=%s)' %
-                                   (vocabtrain_cfg.override_vocab,)]
-        return vocabtrain_cfg_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class VocabAssignConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> vocabassign_cfg = VocabAssignConfig()
-        >>> result = vocabassign_cfg.get_cfgstr()
-        >>> print(result)
-    """
-    def __init__(vocabassign_cfg, **kwargs):
-        super(VocabAssignConfig, vocabassign_cfg).__init__(
-            name='vocabassign_cfg')
-        vocabassign_cfg.nAssign = 10  # MultiAssignment
-        vocabassign_cfg.massign_equal_weights = True
-        vocabassign_cfg.massign_alpha = 1.2
-        vocabassign_cfg.massign_sigma = 80.0
-        vocabassign_cfg.update(**kwargs)
-
-    def make_feasible(vocabassign_cfg):
-        assert vocabassign_cfg.nAssign > 0, 'cannot assign to nothing'
-        if vocabassign_cfg.nAssign == 1:
-            # No point to multiassign weights if nAssign is 1
-            vocabassign_cfg.massign_equal_weights = True
-
-        if vocabassign_cfg.massign_equal_weights:
-            # massign sigma makes no difference if there are equal weights
-            vocabassign_cfg.massign_sigma = None
-
-    def get_cfgstr_list(vocabassign_cfg, **kwargs):
-        vocabassign_cfg_list = [
-            '_VocabAssign(',
-            'nAssign=', str(vocabassign_cfg.nAssign),
-            ',a=', str(vocabassign_cfg.massign_alpha),
-            ',s=', (str(vocabassign_cfg.massign_sigma)
-                    if vocabassign_cfg.massign_equal_weights else ''),
-            ',eqw=T' if vocabassign_cfg.massign_equal_weights else ',eqw=F',
-            ')',
-        ]
-        return vocabassign_cfg_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -560,11 +433,13 @@ class NNWeightConfig(ConfigBase):
         _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)
         _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)
     """
+    @profile
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
         nnweight_cfg.initialize_params()
         nnweight_cfg.update(**kwargs)
 
+    @profile
     def get_param_info_list(nnweight_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
@@ -573,11 +448,7 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
                 ut.ParamInfoBool('const_on', False,  hideif=False),
-                ut.ParamInfoBool('borda_on', False,  hideif=False),
                 ut.ParamInfoBool('lograt_on', False, hideif=False),
-                #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
-                #ut.ParamInfoBool('logdist_on', False,  hideif=False),
-                #ut.ParamInfoBool('dist_on', False,  hideif=False),
                 ut.ParamInfoBool('normonly_on', False,  hideif=False),
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
@@ -593,311 +464,10 @@ class NNWeightConfig(ConfigBase):
                                  hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename',
                                  hideif=True),
-                # Hacked in
-                #ut.ParamInfoBool('root_sift_on', False,  hideif=False),
                 ut.ParamInfoBool('sqrd_dist_on', False,  hideif=True),
-                #ut.ParamInfoBool('sqrd_dist_on', True,  hideif=True),
             ],
         ])
         return param_info_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class RerankVsOneConfig(ConfigBase):
-    """
-    CommandLine:
-        python -m ibeis.algo.Config --test-RerankVsOneConfig
-
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
-        >>> result = rrvsone_cfg.get_cfgstr()
-        >>> assert result.startswith('_RRVsOne(True,')
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
-        >>> result = rrvsone_cfg.get_cfgstr()
-        >>> print(result)
-        _RRVsOne(True,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,uncRat=0.8)
-
-    """
-    def __init__(rrvsone_cfg, **kwargs):
-        super(RerankVsOneConfig, rrvsone_cfg).__init__(name='rrvsone_cfg')
-        rrvsone_cfg.initialize_params()
-        rrvsone_cfg.update(**kwargs)
-
-    def get_config_name(rrvsone_cfg):
-        return 'RRVsOne'
-
-    def get_param_info_list(rrvsone_cfg):
-        from ibeis.algo.hots import distinctiveness_normalizer
-        from ibeis.algo.hots import vsone_pipeline
-        # new way to try and specify config options.
-        # not sure if i like it yet
-        param_info_list = ut.flatten([
-            [
-                ut.ParamInfo('rrvsone_on', False, ''),
-            ],
-            vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
-            vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
-            vsone_pipeline.COEFF_DEFAULTS.aslist(),
-            vsone_pipeline.UNC_DEFAULTS.aslist(),
-            vsone_pipeline.SCR_DEFAULTS.aslist(),
-            vsone_pipeline.COVKPTS_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
-            vsone_pipeline.COVGRID_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
-            distinctiveness_normalizer.DCVS_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['dcvs_on']),
-        ])
-        return param_info_list
-
-    def get_constraint_func():
-        # TODO:
-        def constraint_func(cfg):
-            if cfg['rrvsone_on']:
-                return False
-            if cfg['use_gridcov_scoring'] and cfg['use_kptscov_scoring']:
-                return False
-
-    def get_cfgstr_list(rrvsone_cfg, **kwargs):
-        if rrvsone_cfg.rrvsone_on:
-            rrvsone_cfg_list = rrvsone_cfg.meta_get_cfgstr_list(**kwargs)
-        else:
-            rrvsone_cfg_list = [
-                '_RRVsOne(',
-                str(rrvsone_cfg.rrvsone_on),
-                ')'
-            ]
-        return rrvsone_cfg_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class QueryConfig(ConfigBase):
-    """
-    query configuration parameters
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cfg = ibs.cfg.query_cfg
-        >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
-        >>> print(cfgstr)
-
-    """
-    def __init__(query_cfg, **kwargs):
-        super(QueryConfig, query_cfg).__init__(name='query_cfg')
-        query_cfg.nn_cfg         = NNConfig(**kwargs)
-        query_cfg.nnweight_cfg   = NNWeightConfig(**kwargs)
-        query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
-        query_cfg.agg_cfg        = AggregateConfig(**kwargs)
-        query_cfg.flann_cfg      = FlannConfig(**kwargs)
-        query_cfg.smk_cfg        = SMKConfig(**kwargs)
-        query_cfg.rrvsone_cfg    = RerankVsOneConfig(**kwargs)
-        # causes some bug in Preference widget if these don't have underscore
-        query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
-        query_cfg.use_cache = False
-        # Start of pipeline
-        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
-        query_cfg.pipeline_root = 'vsmany'
-        # <Hack Paramaters>
-        query_cfg.with_metadata = False
-        query_cfg.augment_queryside_hack = False
-        # for hacky distinctivness
-        query_cfg.return_expanded_nns = False
-        # for distinctivness model
-        query_cfg.use_external_distinctiveness = False
-        query_cfg.codename = 'None'
-        query_cfg.species_code = '____'  # TODO: make use of this
-        # </Hack Paramaters>
-        #if ut.is_developer():
-        #    query_cfg.pipeline_root = 'smk'
-        # Depends on feature config
-        query_cfg.update_query_cfg(**kwargs)
-        if ut.VERYVERBOSE:
-            print('[config] NEW QueryConfig')
-
-    def get_cfgstr_list(query_cfg, **kwargs):
-        # Ensure feasibility of the configuration
-        query_cfg.make_feasible()
-
-        # Build cfgstr
-        cfgstr_list = ['_' + query_cfg.pipeline_root ]
-        if str(query_cfg.pipeline_root) == 'smk':
-            # SMK Parameters
-            if kwargs.get('use_smk', True):
-                cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_sv', True):
-                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
-            # Naive Bayes Parameters
-            if kwargs.get('use_nn', True):
-                cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_nnweight', True):
-                cfgstr_list += query_cfg.nnweight_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_sv', True):
-                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_agg', True):
-                cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_flann', True):
-                cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_rrvsone', True):
-                cfgstr_list += query_cfg.rrvsone_cfg.get_cfgstr_list(**kwargs)
-        else:
-            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
-        if kwargs.get('use_featweight', True):
-            cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
-            # HACK: featweight_cfg used to include chip and feat
-            # but they arent working now due to new structures, so they are hacked in here
-            # This whole file will eventually be depricated
-            cfgstr_list += query_cfg._featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
-            cfgstr_list += query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr_list(**kwargs)
-
-        if query_cfg.augment_queryside_hack:
-            # HACK
-            cfgstr_list += ['_HACK(augment_queryside)']
-        return cfgstr_list
-
-    def update_query_cfg(query_cfg, **cfgdict):
-        # Each config paramater should be unique
-        # So updating them all should not cause conflicts
-        # FIXME: Should be able to infer all the children that need updates
-        #
-        # apply codename before updating subconfigs
-        query_cfg.apply_codename(cfgdict.get('codename', None))
-        # update subconfigs
-        query_cfg.nn_cfg.update(**cfgdict)
-        query_cfg.nnweight_cfg.update(**cfgdict)
-        query_cfg.sv_cfg.update(**cfgdict)
-        query_cfg.agg_cfg.update(**cfgdict)
-        query_cfg.flann_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
-        query_cfg.rrvsone_cfg.update(**cfgdict)
-        query_cfg._featweight_cfg.update(**cfgdict)
-        query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
-        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
-        query_cfg.update(**cfgdict)
-        # Ensure feasibility of the configuration
-        try:
-            query_cfg.make_feasible()
-        except AssertionError as ex:
-            print(ut.dict_str(cfgdict, sorted_=True))
-            ut.printex(ex)
-            raise
-
-    def apply_codename(query_cfg, codename=None):
-        """
-        codenames denote mass changes to configurations
-        it is a hacky solution to setting different parameter
-        values all at once.
-        """
-        if codename is None:
-            codename = query_cfg.codename
-
-        nnweight_cfg = query_cfg.nnweight_cfg
-        nn_cfg   = query_cfg.nn_cfg
-        agg_cfg = query_cfg.agg_cfg
-
-        if codename.startswith('csum') or codename.endswith('_csum'):
-            raise NotImplementedError('codename nsum')
-        if codename.startswith('nsum'):
-            raise NotImplementedError('codename nsum')
-        if codename.startswith('vsmany'):
-            query_cfg.pipeline_root = 'vsmany'
-        elif codename.startswith('vsone'):
-            query_cfg.pipeline_root = 'vsone'
-            nn_cfg.K = 1
-            nn_cfg.Knorm = 1
-            nnweight_cfg.lnbnn_on = False
-            #nnweight_cfg.ratio_thresh = 1.6
-            if codename.endswith('_dist') or '_dist_' in codename:
-                # no ratio use distance
-                nnweight_cfg.ratio_thresh = None
-                nnweight_cfg.dist_on = True
-            else:
-                nnweight_cfg.ratio_thresh = .625
-            if '_ratio' in codename:
-                nnweight_cfg.ratio_thresh = .625
-            if '_extern_distinctiveness' in codename:
-                query_cfg.use_external_distinctiveness = True
-            if codename.startswith('vsone_unnorm'):
-                agg_cfg.score_normalization = None
-            elif codename.startswith('vsone_norm'):
-                agg_cfg.score_normalization = 'vsone_default'
-        elif codename.startswith('asmk'):
-            query_cfg.pipeline_root = 'asmk'
-        elif codename.startswith('smk'):
-            query_cfg.pipeline_root = 'smk'
-        elif codename == 'None':
-            pass
-
-    def make_feasible(query_cfg):
-        try:
-            query_cfg.make_feasible_()
-        except AssertionError as ex:
-            if ut.NOT_QUIET:
-                query_cfg.printme3()
-            ut.printex(ex, 'failed ot make feasible')
-            raise
-
-    def make_feasible_(query_cfg):
-        """
-        removes invalid parameter settings over all cfgs (move to QueryConfig)
-        """
-        nnweight_cfg = query_cfg.nnweight_cfg
-        nn_cfg   = query_cfg.nn_cfg
-        featweight_cfg = query_cfg._featweight_cfg
-        #feat_cfg = query_cfg._featweight_cfg._feat_cfg
-        smk_cfg = query_cfg.smk_cfg
-        vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
-        agg_cfg = query_cfg.agg_cfg
-        #sv_cfg = query_cfg.sv_cfg
-
-        #assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be
-        # different yet.'
-
-        if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
-            assert agg_cfg.score_method == 'nsum'
-
-        if query_cfg.pipeline_root == 'asmk':
-            query_cfg.pipeline_root = 'smk'
-            smk_cfg.smk_aggregate = True
-
-        hasvalid_root = any([
-            query_cfg.pipeline_root == root
-            for root in query_cfg._valid_pipeline_roots])
-        try:
-            assert hasvalid_root, (
-                'invalid pipeline root %r' % query_cfg.pipeline_root)
-        except AssertionError as ex:
-            ut.printex(ex)
-            if ut.SUPER_STRICT:
-                raise
-            else:
-                query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
-                pass
-
-        # HACK
-        if nnweight_cfg.fg_on is not True:
-            featweight_cfg.featweight_enabled = False
-        if featweight_cfg.featweight_enabled is not True:
-            nnweight_cfg.fg_on = False
-
-        vocabassign_cfg.make_feasible()
-        smk_cfg.make_feasible()
-        #nnweight_cfg.make_feasible()
-        nn_cfg.make_feasible()
-
-    def deepcopy(query_cfg, **kwargs):
-        copy_ = copy.deepcopy(query_cfg)
-        copy_.update_query_cfg(**kwargs)
-        return copy_
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -921,48 +491,195 @@ class FeatureWeightConfig(ConfigBase):
 
     """
 
+    @profile
     def __init__(featweight_cfg, **kwargs):
         super(FeatureWeightConfig, featweight_cfg).__init__(
             name='featweight_cfg')
         # Featweights depend on features
         featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
         featweight_cfg.initialize_params()
-        # Feature weights depend on the detector, but we only need to mirror
-        # some parameters because featweight_cfg should not use the detect_cfg
-        # object
-        #featweight_cfg.featweight_enabled = False
-        #featweight_cfg.featweight_enabled = True
-        #featweight_cfg.featweight_species  = 'uselabel'
-        #featweight_cfg.fw_detector = 'rf'
-        #featweight_cfg.fw_detector = 'cnn'
         featweight_cfg.update(**kwargs)
-
-    def make_feasible(featweight_cfg):
-        #featweight_cfg.featweight_enabled = False
-        pass
 
     def get_param_info_list(self):
         from ibeis import core_annots
         return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
 
-    #def get_cfgstr_list(featweight_cfg, **kwargs):
-    #    featweight_cfg.make_feasible()
-    #    featweight_cfgstrs = []
-    #    if kwargs.get('use_featweight', True):
-    #        if featweight_cfg.featweight_enabled is not True:
-    #            if featweight_cfg.featweight_enabled == 'ERR':
-    #                featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
-    #            else:
-    #                featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
-    #        else:
-    #            featweight_cfgstrs.extend([
-    #                '_FEATWEIGHT(ON',
-    #                ',' + featweight_cfg.featweight_species,
-    #                ',' + featweight_cfg.fw_detector,
-    #                ')'])
-    #    _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
-    #    featweight_cfgstrs.extend(_cfgstrlist)
-    #    return featweight_cfgstrs
+
+@six.add_metaclass(ConfigMetaclass)
+class QueryConfig(ConfigBase):
+    """
+    LNBNN ranking query configuration parameters
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
+        >>> print(cfgstr)
+    """
+
+    # TODO: make this a dtool_ibeis Config
+    _todo_subconfig_list = [NNConfig, NNWeightConfig, SpatialVerifyConfig,
+                            FlannConfig, FeatureWeightConfig]
+
+    @profile
+    def __init__(query_cfg, **kwargs):
+        super(QueryConfig, query_cfg).__init__(name='query_cfg')
+        query_cfg.nn_cfg         = NNConfig(**kwargs)
+        query_cfg.nnweight_cfg   = NNWeightConfig(**kwargs)
+        query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
+        query_cfg.agg_cfg        = AggregateConfig(**kwargs)
+        query_cfg.flann_cfg      = FlannConfig(**kwargs)
+        # causes some bug in Preference widget if these don't have underscore
+        query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
+        query_cfg.use_cache = False
+        # Start of pipeline
+        query_cfg._valid_pipeline_roots = ['vsmany']
+        query_cfg.pipeline_root = 'vsmany'
+        # <Hack Paramaters>
+        # query_cfg.with_metadata = False
+        query_cfg.query_rotation_heuristic = False
+        # query_cfg.query_rotation_heuristic = True
+        query_cfg.codename = 'None'
+        query_cfg.species_code = '____'  # TODO: make use of this
+        # Depends on feature config
+        query_cfg.update_query_cfg(**kwargs)
+        if ut.VERYVERBOSE:
+            print('[config] NEW QueryConfig')
+
+    def get_cfgstr_list(query_cfg, **kwargs):
+        # Ensure feasibility of the configuration
+        query_cfg.make_feasible()
+
+        # Build cfgstr
+        cfgstr_list = ['_' + query_cfg.pipeline_root ]
+        #if six.text_type(query_cfg.pipeline_root) == 'smk':
+        #    # SMK Parameters
+        #    if kwargs.get('use_smk', True):
+        #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
+        #    if kwargs.get('use_sv', True):
+        #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+        if six.text_type(query_cfg.pipeline_root) == 'vsmany':
+            # Naive Bayes Parameters
+            if kwargs.get('use_nn', True):
+                cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_nnweight', True):
+                cfgstr_list += query_cfg.nnweight_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_sv', True):
+                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_agg', True):
+                cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_flann', True):
+                cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
+        else:
+            raise AssertionError('bad pipeline root: ' + six.text_type(query_cfg.pipeline_root))
+        if kwargs.get('use_featweight', True):
+            cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
+            # HACK: featweight_cfg used to include chip and feat
+            # but they arent working now due to new structures, so they are hacked in here
+            # This whole file will eventually be depricated
+            cfgstr_list += query_cfg._featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
+            cfgstr_list += query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr_list(**kwargs)
+
+        if query_cfg.query_rotation_heuristic:
+            # HACK
+            cfgstr_list += ['_HACK(augment_queryside)']
+        return cfgstr_list
+
+    def update_query_cfg(query_cfg, **cfgdict):
+        # Each config paramater should be unique
+        # So updating them all should not cause conflicts
+        # FIXME: Should be able to infer all the children that need updates
+        #
+        # apply codename before updating subconfigs
+        query_cfg.apply_codename(cfgdict.get('codename', None))
+        # update subconfigs
+        query_cfg.nn_cfg.update(**cfgdict)
+        query_cfg.nnweight_cfg.update(**cfgdict)
+        query_cfg.sv_cfg.update(**cfgdict)
+        query_cfg.agg_cfg.update(**cfgdict)
+        query_cfg.flann_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
+        query_cfg.update(**cfgdict)
+        # Ensure feasibility of the configuration
+        try:
+            query_cfg.make_feasible()
+        except AssertionError as ex:
+            print(ut.repr2(cfgdict, sorted_=True))
+            ut.printex(ex)
+            raise
+
+    def apply_codename(query_cfg, codename=None):
+        """
+        codenames denote mass changes to configurations
+        it is a hacky solution to setting different parameter
+        values all at once.
+        """
+        if codename is None:
+            codename = query_cfg.codename
+
+        # nnweight_cfg = query_cfg.nnweight_cfg
+        # nn_cfg   = query_cfg.nn_cfg
+        # agg_cfg = query_cfg.agg_cfg
+
+        if codename.startswith('csum') or codename.endswith('_csum'):
+            raise NotImplementedError('codename nsum')
+        if codename.startswith('nsum'):
+            raise NotImplementedError('codename nsum')
+        if codename.startswith('vsmany'):
+            query_cfg.pipeline_root = 'vsmany'
+        elif codename.startswith('vsone'):
+            assert False, 'no longer supporte'
+        elif codename == 'None':
+            pass
+
+    def make_feasible(query_cfg):
+        try:
+            query_cfg.make_feasible_()
+        except AssertionError as ex:
+            if ut.NOT_QUIET:
+                query_cfg.printme3()
+            ut.printex(ex, 'failed ot make feasible')
+            raise
+
+    def make_feasible_(query_cfg):
+        """
+        removes invalid parameter settings over all cfgs (move to QueryConfig)
+        """
+        nnweight_cfg = query_cfg.nnweight_cfg
+        nn_cfg   = query_cfg.nn_cfg
+        featweight_cfg = query_cfg._featweight_cfg
+        #feat_cfg = query_cfg._featweight_cfg._feat_cfg
+        #smk_cfg = query_cfg.smk_cfg
+        #vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+        # agg_cfg = query_cfg.agg_cfg
+        #sv_cfg = query_cfg.sv_cfg
+
+        hasvalid_root = any([
+            query_cfg.pipeline_root.lower() == root.lower()
+            for root in query_cfg._valid_pipeline_roots])
+        try:
+            assert hasvalid_root, (
+                'invalid pipeline root %r valid roots are %r' % (query_cfg.pipeline_root, query_cfg._valid_pipeline_roots))
+        except AssertionError as ex:
+            ut.printex(ex)
+            raise
+
+        # HACK
+        if nnweight_cfg.fg_on is not True:
+            featweight_cfg.featweight_enabled = False
+        if featweight_cfg.featweight_enabled is not True:
+            nnweight_cfg.fg_on = False
+
+        nn_cfg.make_feasible()
+
+    def deepcopy(query_cfg, **kwargs):
+        copy_ = copy.deepcopy(query_cfg)
+        copy_.update_query_cfg(**kwargs)
+        return copy_
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1094,10 +811,12 @@ class OccurrenceConfig(ConfigBase):
     def get_param_info_list(occur_cfg):
         param_info_list = [
             ut.ParamInfo('min_imgs_per_occurrence', 1, 'minper='),
-            ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative', 'meanshift']),
-            ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
-            ut.ParamInfo('seconds_thresh', 600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
-            ut.ParamInfo('use_gps', False, hideif=False),
+            #ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative', 'meanshift']),
+            ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative']),
+            #ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
+            ut.ParamInfo('seconds_thresh', 1600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
+            ut.ParamInfo('use_gps', True, hideif=False),
+            ut.ParamInfo('km_per_sec', .002)
         ]
         return param_info_list
 
@@ -1126,7 +845,7 @@ class OtherConfig(ConfigBase):
         #other_cfg.thumb_size      = 128
         other_cfg.thumb_size      = 221
         other_cfg.thumb_bare_size = 700
-        other_cfg.ranks_lt        = 2
+        other_cfg.ranks_top        = 2
         other_cfg.filter_reviewed = True
         other_cfg.auto_localize   = True
         # maximum number of exemplars per name
@@ -1185,6 +904,7 @@ def update_query_config(cfg, **kwargs):
     cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
+@profile
 def load_named_config(cfgname, dpath, use_config_cache=False,
                       verbose=ut.VERBOSE and ut.NOT_QUIET):
     """ hack 12-30-2014
@@ -1214,11 +934,11 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         >>> # execute function
         >>> cfg = load_named_config(cfgname, dpath, use_config_cache)
         >>> #
-        >>> keys1 = ut.get_list_column(cfg.parse_items(), 0)
-        >>> keys2 = ut.get_list_column(ibs.cfg.parse_items(), 0)
+        >>> keys1 = ut.take_column(cfg.parse_items(), 0)
+        >>> keys2 = ut.take_column(ibs.cfg.parse_items(), 0)
         >>> symdiff = set(keys1) ^ set(keys2)
         >>> # verify results
-        >>> result = str(cfg)
+        >>> result = six.text_type(cfg)
         >>> print(result)
     """
     if cfgname is None:
@@ -1236,11 +956,11 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         # Get current "schema"
         tmp = _default_config(cfg, cfgname, new=True)
         current_itemset = tmp.parse_items()
-        current_keyset = list(ut.get_list_column(current_itemset, 0))
+        current_keyset = list(ut.take_column(current_itemset, 0))
         # load saved preferences
         cfg.load()
         # Check if loaded schema has changed
-        loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
+        loaded_keyset = list(ut.take_column(cfg.parse_items(), 0))
         missing_keys = set(current_keyset) - set(loaded_keyset)
         if len(missing_keys) != 0:
             # Bring over new values into old structure
@@ -1271,6 +991,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
             ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
+        cfg.save()
     # Hack in cfgname
     if verbose:
         print('[Config] hack in z_cfgname=%r' % (cfgname,))
@@ -1278,6 +999,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
     return cfg
 
 
+@profile
 def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
     if ut.VERBOSE:
@@ -1300,6 +1022,7 @@ def _default_config(cfg, cfgname=None, new=True):
     return cfg
 
 
+@profile
 def _default_named_config(cfg, cfgname):
     """ hack 12-30-2014
 

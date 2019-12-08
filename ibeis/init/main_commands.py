@@ -12,7 +12,7 @@ from ibeis import params
 from ibeis.other import ibsfuncs
 from ibeis.init import sysres
 from os.path import join
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def vdq(dbdir):
@@ -32,17 +32,17 @@ def vwd():
     ut.util_cplat.view_directory(sysres.get_workdir())
 
 
-def preload_convert_hsdb(dbdir):
-    """ Convert the database before loading (A bit hacky) """
-    from ibeis.dbio import ingest_hsdb
-    ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
+# def preload_convert_hsdb(dbdir):
+#     """ Convert the database before loading (A bit hacky) """
+#     from ibeis.dbio import ingest_hsdb
+#     ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
 
 
 def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_argv:
-        print(ut.dict_str(vars(params.args), sorted_=False))
+        print(ut.repr2(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
         ut.global_cache_dump()  # debug command, dumps to stdout
     if params.args.set_workdir is not None:
@@ -52,9 +52,15 @@ def preload_commands(dbdir, **kwargs):
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
     if params.args.get_logdir:
-        print(' Current log dir = %s' % (sysres.get_logdir(),))
+        print(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
+        print(' Current global log dir = %s' % (sysres.get_logdir_global(),))
     if params.args.view_logdir:
-        ut.view_directory(sysres.get_logdir())
+        ut.view_directory(sysres.get_logdir_local())
+        ut.view_directory(sysres.get_logdir_global())
+    if params.args.view_logdir_local:
+        ut.view_directory(sysres.get_logdir_local())
+    if params.args.view_logdir_global:
+        ut.view_directory(sysres.get_logdir_local())
     if ut.get_argflag('--vwd'):
         vwd()
     if ut.get_argflag('--vdq'):
@@ -62,8 +68,6 @@ def preload_commands(dbdir, **kwargs):
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):
         ibsfuncs.delete_ibeis_database(dbdir)
-    if params.args.convert:
-        preload_convert_hsdb(dbdir)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
         sys.exit(0)
@@ -88,41 +92,33 @@ def postload_commands(ibs, back):
         # Set query parameters from command line using the --cfg flag
         cfgdict = ut.parse_cfgstr_list(params.args.update_query_cfg)
         print('Custom cfgdict specified')
-        print(ut.dict_str(cfgdict))
+        print(ut.repr2(cfgdict))
         ibs.update_query_cfg(**cfgdict)
-        #print(ibs.cfg.query_cfg.get_cfgstr())
     if params.args.edit_notes:
         ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:
         ibs.delete_cache()
     if params.args.delete_cache_complete:
-        ibs.delete_cache(delete_chips=True, delete_imagesets=True)
+        ibs.delete_cache(delete_imagesets=True)
     if params.args.delete_query_cache:
         ibs.delete_qres_cache()
     if params.args.set_all_species is not None:
         ibs._overwrite_all_annot_species_to(params.args.set_all_species)
     if params.args.dump_schema:
         ibs.db.print_schema()
-    # DEPRICATE
-    if params.args.set_notes is not None:
-        ibs.set_dbnotes(params.args.set_notes)
-    if params.args.set_aids_as_hard is not None:
-        aid_list = params.args.set_aids_as_hard
-        ibs.set_annot_is_hard(aid_list, [True] * len(aid_list))
-    #/DEPRICATE
 
     if ut.get_argflag('--ipynb'):
         back.launch_ipy_notebook()
 
-    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid', '--occur'), None)
+    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid', '--occur', '--gsid'), None)
     if select_imgsetid is not None:
-        print('\n+ --- CMD SELECT EID=%r ---' % (select_imgsetid,))
+        print('\n+ --- CMD SELECT IMGSETID=%r ---' % (select_imgsetid,))
         # Whoa: this doesnt work. weird.
         #back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
         #back.front._change_imageset(select_imgsetid)
         back.front.select_imageset_tab(select_imgsetid)
-        print('L ___ CMD SELECT EID=%r ___\n' % (select_imgsetid,))
+        print('L ___ CMD SELECT IMGSETID=%r ___\n' % (select_imgsetid,))
     # Send commands to GUIBack
     if params.args.select_aid is not None:
         if back is not None:
@@ -154,7 +150,7 @@ def postload_commands(ibs, back):
         if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
             qaid_list = list(qaid_list[0])
         daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
-        back.compute_queries(qaid_list=qaid_list, daids_mode=daids_mode, ranks_lt=10)
+        back.compute_queries(qaid_list=qaid_list, daids_mode=daids_mode, ranks_top=10)
 
     if ut.get_argflag('--inc-query'):
         back.incremental_query()
@@ -180,16 +176,27 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--start-web'):
         back.start_web_server_parallel()
 
+    if ut.get_argflag('--name-tab'):
+        from ibeis.gui.guiheaders import NAMES_TREE
+        back.front.set_table_tab(NAMES_TREE)
+        view = back.front.views[NAMES_TREE]
+        model = view.model()
+        view._set_sort(model.col_name_list.index('nAids'), col_sort_reverse=True)
+
+    if ut.get_argflag('--graph'):
+        back.make_qt_graph_interface()
+
     screengrab_fpath = ut.get_argval('--screengrab')
     if screengrab_fpath:
-        from guitool.__PYQT__.QtGui import QPixmap
+        from guitool_ibeis.__PYQT__.QtGui import QPixmap
         from PyQt4.QtTest import QTest
         from PyQt4.QtCore import Qt
         fpath = ut.truepath(screengrab_fpath)
-        import guitool
+        import guitool_ibeis
         #ut.embed()
-        timer2 = guitool.__PYQT__.QtCore.QTimer()
+        timer2 = guitool_ibeis.__PYQT__.QtCore.QTimer()
         done = [1000]
+
         def delayed_screenshot_func():
             if done[0] == 500:
                 #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
@@ -215,7 +222,7 @@ def postload_commands(ibs, back):
         timer2.timeout.connect(timer2.delayed_screenshot_func)
         timer2.start(1)
         back.mainwin.timer2 = timer2
-        guitool.activate_qwindow(back.mainwin)
+        guitool_ibeis.activate_qwindow(back.mainwin)
         #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
         #ut.startfile(fpath)
         #ut.embed()

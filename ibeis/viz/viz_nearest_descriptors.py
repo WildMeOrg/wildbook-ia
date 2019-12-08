@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import range
-from plottool import draw_func2 as df2
-from plottool.viz_featrow import draw_feat_row
+from plottool_ibeis import draw_func2 as df2
+from plottool_ibeis.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-import plottool as pt  # NOQA
+import plottool_ibeis as pt  # NOQA
 import six  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[viz_nndesc]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
@@ -99,13 +99,13 @@ def show_top_featmatches(qreq_, cm_list):
         >>>                                        a=['default:has_none=mother,size=30'])
         >>> show_top_featmatches(qreq_, cm_list)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     # for cm in cm_list:
-    #     cm.score_csum(qreq_)
+    #     cm.score_annot_csum(qreq_)
     import numpy as np
-    import vtool as vt
+    import vtool_ibeis as vt
     from functools import partial
     # Stack chipmatches
     ibs = qreq_.ibs
@@ -131,7 +131,7 @@ def show_top_featmatches(qreq_, cm_list):
     annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams)
               for aid in aids}
 
-    label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.TRUTH_MATCH
+    label_lists = ibs.get_match_truths(aid1s, aid2s) == ibs.const.EVIDENCE_DECISION.POSITIVE
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):
@@ -146,8 +146,8 @@ def show_top_featmatches(qreq_, cm_list):
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
-    import plottool as pt  # NOQA
-    pt.ensure_pylab_qt4()
+    import plottool_ibeis as pt  # NOQA
+    pt.ensureqt()
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
         label_lists, data_lists, flat_metadata_top, chunck_sizes=(2, 4),
@@ -177,14 +177,18 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
 
     SeeAlso:
-        plottool.viz_featrow
-        ~/code/plottool/plottool/viz_featrow.py
+        plottool_ibeis.viz_featrow
+        ~/code/plottool_ibeis/plottool_ibeis/viz_featrow.py
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
         >>> import ibeis
         >>> # build test data
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = qreq_.qaids[0]
@@ -202,7 +206,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    import plottool as pt  # NOQA
+    import plottool_ibeis as pt  # NOQA
     consecutive_distance_compare = True
     draw_chip     = kwargs.get('draw_chip', False)
     draw_desc     = kwargs.get('draw_desc', True)
@@ -246,7 +250,8 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                     #info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
                     info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
-                    info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    # info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    info += '\n$s=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
                 else:
                     info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
                     info += '\nLNBNN=%.3f' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
@@ -290,6 +295,9 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         )
         if ut.get_argflag('--texknormplot'):
             featrow_kw['ell_color'] = pt.ORANGE
+            featrow_kw['ell_linewidth'] = 1
+            featrow_kw['arm1_lw'] = .5
+            featrow_kw['stroke'] = 0
             pass
         for listx, tup in enumerate(extracted_list):
             (rchip, kp, sift, fx, aid, info, type_) = tup
@@ -309,7 +317,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
             if prevsift is None or consecutive_distance_compare:
                 prevsift = sift
 
-        df2.adjust_subplots_safe(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
+        # df2.adjust_subplots(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
 
     except Exception as ex:
         print('[viz] Error in show nearest descriptors')

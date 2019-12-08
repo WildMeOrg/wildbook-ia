@@ -1,7 +1,7 @@
 
 .header
 {
-  height: 40px;
+  height: 52px;
 }
 
 .content
@@ -31,6 +31,21 @@
   text-align: center;
 }
 
+.col-custom-span-2
+{
+  width: 100%;
+}
+
+.col-custom-span-2:first-child
+{
+  margin-left: -48%;
+}
+
+.col-custom-span-2:last-child
+{
+  margin-right: -47%;
+}
+
 .col-custom-span-3
 {
   width: 50%;
@@ -44,6 +59,21 @@
 .col-custom-span-3:last-child
 {
   margin-right: -24%;
+}
+
+.col-custom-span-4
+{
+  width: 33%;
+}
+
+.col-custom-span-4:first-child
+{
+  margin-left: -16.5%;
+}
+
+.col-custom-span-4:last-child
+{
+  margin-right: -16.5%;
 }
 
 .col-custom-span-5
@@ -61,6 +91,21 @@
   margin-right: -11%;
 }
 
+.col-custom-span-6
+{
+  width: 20.0%;
+}
+
+.col-custom-span-6:first-child
+{
+  margin-left: -9%;
+}
+
+.col-custom-span-6:last-child
+{
+  margin-right: -9%;
+}
+
 .col-custom-span-7
 {
   width: 16.66%;
@@ -74,6 +119,21 @@
 .col-custom-span-7:last-child
 {
   margin-right: -8%;
+}
+
+.col-custom-span-8
+{
+  width: 14.29%;
+}
+
+.col-custom-span-8:first-child
+{
+  margin-left: -7.5%;
+}
+
+.col-custom-span-8:last-child
+{
+  margin-right: -7.5%;
 }
 
 .col-custom-span-9
@@ -117,6 +177,10 @@
   left: 50%;
   top: 10px;
   margin-left: -3px;
+}
+
+.popover{
+    max-width: 80%;
 }
 
 .ui-icon, .ui-widget-content .ui-icon
@@ -269,16 +333,22 @@
   margin:0px auto;
 }
 
-#query-match-image-container
+#identification-score-container
+{
+  text-align: center;
+  margin-top: -15px;
+}
+
+#identification-image-container
 {
   position: relative;
   text-align: center;
 }
 
-.query-match-image
+.identification-image
 {
   max-width: 100%;
-  max-height: 1200px;
+  max-height: 600px;
   margin-bottom: 20px;
   position: absolute;
   top: 0;
@@ -288,15 +358,20 @@
   right: 0;
 }
 
-#query-match-image-clean:hover
+#identification-image-clean:hover
 {
   opacity: 0.01;
   filter: alpha(opacity=1);
 }
 
-#query-match-score
+#identification-score
 {
    font-size: 15px;
+}
+
+#identification-buttons .btn
+{
+  margin-bottom: 10px;
 }
 
 /*.ui-rotatable-handle, .ui-resizable-handle, .ia-label-text-box

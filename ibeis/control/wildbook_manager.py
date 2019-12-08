@@ -20,7 +20,7 @@ import re
 import time
 import os
 from os.path import dirname, join, basename, splitext
-print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #PREFERED_BROWSER = 'chrome'
@@ -84,7 +84,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         if ut.WIN32:
             dpath_list = ['C:/Program Files (x86)', 'C:/Program Files']
         elif ut.DARWIN:
-            dpath_list = ['/Library'] + dpath_list
+            dpath_list = ['/Library']  # + dpath_list
         else:
             dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
     return_path = ut.search_candidate_paths(
@@ -586,7 +586,10 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
         content = re.sub('IBEIS_image_path = .*',
                          'IBEIS_image_path = ' + ibs.get_imgdir(), content)
 
-    ia_hostport = 'http://localhost:5000'
+    web_port = ibs.get_web_port_via_scan()
+    if web_port is None:
+        raise ValueError('IA web server is not running on any expected port')
+    ia_hostport = 'http://localhost:%s' % (web_port, )
     ia_rest_prefix = ut.named_field('prefix', 'IBEISIARestUrl.*')
     host_port = ut.named_field('host_port', 'http://.*?:[0-9]+')
     content = re.sub(ia_rest_prefix + host_port, ut.bref_field('prefix') + ia_hostport, content)
@@ -696,7 +699,7 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
     return wb_url
 
 
-def test_wildbook_login():
+def tryout_wildbook_login():
     r"""
     Helper function to test wildbook login automagically
 
@@ -704,12 +707,12 @@ def test_wildbook_login():
         tuple: (wb_target, tomcat_dpath)
 
     CommandLine:
-        python -m ibeis test_wildbook_login
+        python -m ibeis tryout_wildbook_login
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.wildbook_manager import *  # NOQA
-        >>> test_wildbook_login()
+        >>> tryout_wildbook_login()
     """
     # Use selenimum to login to wildbook
     import ibeis

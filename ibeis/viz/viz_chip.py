@@ -1,11 +1,51 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
-from plottool import plot_helpers as ph
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
+
+
+def HARDCODE_SHOW_PB_PAIR():
+    """
+    python -m ibeis.viz.viz_chip HARDCODE_SHOW_PB_PAIR --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> HARDCODE_SHOW_PB_PAIR()
+        >>> pt.show_if_requested()
+    """
+    # TODO: generalize into testdata_annotmatches which filters ams propertly
+    # Then a function to show these ams
+    import ibeis
+    import ibeis.viz
+    has_any = ut.get_argval('--has_any', default=['photobomb'])
+    index = ut.get_argval('--index', default=0)
+
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ams = ibs._get_all_annotmatch_rowids()
+    tags = ibs.get_annotmatch_case_tags(ams)
+    flags = ut.filterflags_general_tags(tags, has_any=has_any)
+    selected_ams = ut.compress(ams, flags)
+    aid_pairs = ibs.get_annotmatch_aids(selected_ams)
+    aid1, aid2 = aid_pairs[index]
+    import plottool_ibeis as pt
+    fnum = 1
+    if ut.get_argflag('--match'):
+        request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])
+        res_list2 = request.execute()
+        match = res_list2[0]
+        match.show_single_annotmatch(qreq_=request, vert=False,
+                                     colorbar_=False, notitle=True,
+                                     draw_lbl=False, draw_border=False)
+    else:
+        chip1, chip2 = ibs.get_annot_chips([aid1, aid2])
+        pt.imshow(chip1, pnum=(1, 2, 1), fnum=fnum)
+        pt.imshow(chip2, pnum=(1, 2, 2), fnum=fnum)
 
 
 def testdata_showchip():
@@ -19,24 +59,24 @@ def testdata_showchip():
     kwargs = dict(ori=ut.get_argflag('--ori'), weight_label=weight_label, annote=annote)
     kwargs['notitle'] = ut.get_argflag('--notitle')
     kwargs['pts'] = ut.get_argflag('--drawpts')
-    kwargs['ell'] = ut.get_argflag('--drawell')
+    kwargs['ell'] = True or ut.get_argflag('--drawell')
     kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
-    ut.print_dict(kwargs)
+    kwargs['draw_lbls'] = ut.get_argval('--draw_lbls', default=True)
+    print('kwargs = ' + ut.repr4(kwargs, nl=True))
     default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
     print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
-    config2_ = ibs.new_query_params(cfgdict=cfgdict)
-    print('query_cfgstr = ' + config2_.query_cfgstr)
-    print('feat_cfgstr = ' + config2_.feat_cfgstr)
+    config2_ = cfgdict
     print('[viz_chip.testdata] aid_list = %r' % (aid_list,))
     return ibs, aid_list, kwargs, config2_
 
 
-def show_many_chips(ibs, aid_list, config2_=None):
+def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=True):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_many_chips
+        python -m ibeis.viz.viz_chip --test-show_many_chips --show
         python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
 
     Example:
@@ -53,9 +93,9 @@ def show_many_chips(ibs, aid_list, config2_=None):
         print('[viz] show_many_chips')
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
-    import vtool as vt
-    stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True)
-    pt.imshow(stacked_chips)
+    import vtool_ibeis as vt
+    stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True, vert=vert)
+    pt.imshow(stacked_chips, fnum=None, pnum=None)
 
 
 #@ut.indent_func
@@ -76,39 +116,48 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     Kwargs:
         enable_chip_title_prefix, nokpts, kpts_subset, kpts, text_color,
         notitle, draw_lbls, show_aidstr, show_gname, show_name, show_nid,
-        show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
+        show_exemplar, show_num_gt, show_quality_text, show_viewcode, fnum,
         title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
         darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
-        projection, use_gridspec, pts, ell
+        projection, pts, ell
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_chip --show --ecc
+        python -m ibeis.viz.viz_chip show_chip --show --ecc
         python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
 
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
+
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --ecc --draw_lbls=False --notitle --save=~/slides/lnbnn_query.jpg --dpi=300
 
     Example:
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> if ut.get_argflag('--ecc'):
         >>>     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
         >>>     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]
         >>>     kpts = ut.random_sample(kpts[weights > .9], 200, seed=0)
         >>>     ecc = vt.get_kpts_eccentricity(kpts)
         >>>     scale = 1 / vt.get_scales(kpts)
-        >>>     s = ecc if config2_.affine_invariance else scale
+        >>>     #s = ecc if config2_.affine_invariance else scale
+        >>>     s = scale
         >>>     colors = pt.scores_to_color(s, cmap_='jet')
         >>>     kwargs['color'] = colors
         >>>     kwargs['kpts'] = kpts
+        >>>     kwargs['ell_linewidth'] = 3
+        >>>     kwargs['ell_alpha'] = .7
         >>> show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)
         >>> pt.show_if_requested()
     """
@@ -148,13 +197,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         kpts_ = vh.get_kpts(ibs, aid, in_image, config2_=config2_,
                             kpts_subset=kwargs.get('kpts_subset', None),
-                            kpts=kwargs.get('kpts', None))
-        try:
-            del kwargs['kpts']
-        except KeyError:
-            pass
+                            kpts=kwargs.pop('kpts', None))
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
-        if not ut.get_argflag('--noaidlabel'):
+        if kwargs.get('draw_lbls', True):
             pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     use_title = not kwargs.get('notitle', False)
     if use_title:
@@ -171,7 +216,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         zoom_ = ut.get_argval('--zoom', type_=float, default=None)
         if zoom_ is not None:
-            import vtool as vt
+            import vtool_ibeis as vt
             # Zoom into the chip for some image context
             rotated_verts = ibs.get_annot_rotated_verts(aid)
             bbox = ibs.get_annot_bboxes(aid)

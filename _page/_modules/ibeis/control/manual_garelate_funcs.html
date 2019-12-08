@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_garelate_funcs &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.control.manual_garelate_funcs &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,23 +120,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
-      
+        
           <li><a href="../control.html">ibeis.control</a> &raquo;</li>
-      
-    <li>ibeis.control.manual_garelate_funcs</li>
+        
+      <li>ibeis.control.manual_garelate_funcs</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -143,40 +172,35 @@
 <span class="sd">    python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff</span>
 <span class="sd">    python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">functools</span>  <span class="c1"># NOQA</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>  <span class="c1"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[autogen_gar]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">accessor_decors</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Create dectorator to inject functions in this module into the IBEISController</span>
-<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
-<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
-    <span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c1"># qreq_.qparams</span>
-    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># qreq_.qparams</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
 
-<span class="c1"># AUTOGENED CONSTANTS:</span></div>
+<span class="c1"># AUTOGENED CONSTANTS:</span>
 <span class="n">GAR_ROWID</span>        <span class="o">=</span> <span class="s1">&#39;gar_rowid&#39;</span>
 <span class="n">ANNOTGROUP_ROWID</span> <span class="o">=</span> <span class="s1">&#39;annotgroup_rowid&#39;</span>
 <span class="n">ANNOT_ROWID</span>      <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
-<span class="n">CONFIG_ROWID</span>     <span class="o">=</span> <span class="s1">&#39;config_rowid&#39;</span>
-<span class="n">FEATWEIGHT_ROWID</span> <span class="o">=</span> <span class="s1">&#39;featweight_rowid&#39;</span>
 
 
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/gar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="c1"># @register_api(&#39;/api/gar/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">_get_all_gar_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; all_gar_rowids &lt;- gar.get_all_rowids()</span>
 
@@ -198,9 +222,9 @@
     <span class="k">return</span> <span class="n">all_gar_rowids</span>
 
 
-<span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/gar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="add_gar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.add_gar">[docs]</a><span class="k">def</span> <span class="nf">add_gar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="add_gar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.add_gar">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/gar/&#39;, methods=[&#39;POST&#39;])</span>
+<span class="k">def</span> <span class="nf">add_gar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        returns gar_rowid_list of added (or already existing gars)</span>
@@ -223,12 +247,12 @@
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gar_rowid_list</span>
+    <span class="k">return</span> <span class="n">gar_rowid_list</span></div>
 
-</div>
-<span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/gar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="delete_gar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.delete_gar">[docs]</a><span class="k">def</span> <span class="nf">delete_gar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="delete_gar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.delete_gar">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/gar/&#39;, methods=[&#39;DELETE&#39;])</span>
+<span class="k">def</span> <span class="nf">delete_gar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; gar.delete(gar_rowid_list)</span>
 
 <span class="sd">    delete gar rows</span>
@@ -254,7 +278,7 @@
     <span class="c1">#from ibeis.algo.preproc import preproc_gar</span>
     <span class="c1"># NO EXTERN IMPORT</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> gar rows&#39;</span> <span class="o">%</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> gar rows&#39;</span> <span class="o">%</span>
               <span class="nb">len</span><span class="p">(</span><span class="n">gar_rowid_list</span><span class="p">))</span>
     <span class="c1"># Prepare: Delete externally stored data (if any)</span>
     <span class="c1">#preproc_gar.on_delete(ibs, gar_rowid_list, config2_=config2_)</span>
@@ -264,13 +288,13 @@
         <span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">)</span>
     <span class="n">num_deleted</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gar_rowid_list</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">num_deleted</span>
+    <span class="k">return</span> <span class="n">num_deleted</span></div>
 
-</div>
-<span class="nd">@register_ibs_method</span>
-<span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/gar/annot_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_gar_aid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_aid">[docs]</a><span class="k">def</span> <span class="nf">get_gar_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_gar_aid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_aid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/gar/annot/rowid/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_gar_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; aid_list &lt;- gar.aid[gar_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;aid&quot; in the &quot;gar&quot; table</span>
@@ -299,13 +323,13 @@
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
                           <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">aid_list</span>
+    <span class="k">return</span> <span class="n">aid_list</span></div>
 
-</div>
-<span class="nd">@register_ibs_method</span>
-<span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/gar/annotgroup_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_gar_annotgroup_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_annotgroup_rowid">[docs]</a><span class="k">def</span> <span class="nf">get_gar_annotgroup_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_gar_annotgroup_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_annotgroup_rowid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/gar/annotgroup/rowid/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_gar_annotgroup_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; annotgroup_rowid_list &lt;- gar.annotgroup_rowid[gar_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotgroup_rowid&quot; in the &quot;gar&quot; table</span>
@@ -334,11 +358,11 @@
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOTGROUP_ROWID</span><span class="p">,)</span>
     <span class="n">annotgroup_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">annotgroup_rowid_list</span>
+    <span class="k">return</span> <span class="n">annotgroup_rowid_list</span></div>
 
-</div>
-<span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="get_gar_rowid_from_superkey"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_rowid_from_superkey">[docs]</a><span class="k">def</span> <span class="nf">get_gar_rowid_from_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_gar_rowid_from_superkey"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_garelate_funcs.get_gar_rowid_from_superkey">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_gar_rowid_from_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; gar_rowid_list &lt;- gar[annotgroup_rowid_list, aid_list]</span>
 
 <span class="sd">    Args:</span>
@@ -355,12 +379,12 @@
     <span class="c1"># FIXME: col_rowid is not correct</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">andwhere_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">ANNOTGROUP_ROWID</span><span class="p">,</span> <span class="n">ANNOT_ROWID</span><span class="p">]</span>
-    <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where2</span><span class="p">(</span>
+    <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">andwhere_colnames</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gar_rowid_list</span>
+    <span class="k">return</span> <span class="n">gar_rowid_list</span></div>
 
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_garelate_funcs</span>
@@ -368,10 +392,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -381,7 +408,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -403,10 +430,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>

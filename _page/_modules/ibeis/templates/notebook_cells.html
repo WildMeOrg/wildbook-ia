@@ -1,0 +1,1116 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.templates.notebook_cells &mdash; ibeis 1.8.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.templates" href="../templates.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+        
+          <li><a href="../templates.html">ibeis.templates</a> &raquo;</li>
+        
+      <li>ibeis.templates.notebook_cells</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.templates.notebook_cells</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ComamndLine:</span>
+<span class="sd">    python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --ipynb</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="n">COMMENT_SPACE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ### Comment space below:</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span>
+
+<span class="n">IGNOREAFTER</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ---</span>
+
+<span class="sd">    # Developer Diagnostics  (Safely Ignored)</span>
+<span class="sd">    # Safely Ignore the remainder of this document</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="n">introduction</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # Introduction: Testing IBEIS on a New Species</span>
+
+<span class="sd">    This document is an IPython Notebook that summarizes a preliminary test</span>
+<span class="sd">    of IBEIS on a new species. It includes steps (a) set up and configure</span>
+<span class="sd">    the IBEIS image analysis code for a new data set, (b) run the core of</span>
+<span class="sd">    this code, and (c) examine the results.</span>
+
+<span class="sd">    To set the stage for what we are testing here, let&#39;s jump ahead to think</span>
+<span class="sd">    about how IBEIS will work once we have built a database from initial</span>
+<span class="sd">    training images for a species of interest. Given this database, IBEIS</span>
+<span class="sd">    applies the following steps to each new set of images uploaded:</span>
+
+<span class="sd">    1.  Gather the images taken at the same time and location (when known)</span>
+<span class="sd">        to form what&#39;s known as an *occurrence*. Each image set is broken up</span>
+<span class="sd">        into one or more occurrences.</span>
+
+<span class="sd">    2.  Apply a *detection* process to each image to automatically find</span>
+<span class="sd">        animals, to draw a bounding box around each, to label the species,</span>
+<span class="sd">        and to determine the viewpoint on the animal. Together, this</span>
+<span class="sd">        information forms an *annotation*.</span>
+
+<span class="sd">    3.  Within each occurrence find all annotations that are the same</span>
+<span class="sd">        animal, creating what IBEIS calls an *encounter.* If there are</span>
+<span class="sd">        pictures of, say, five different animals in the occurrence then five</span>
+<span class="sd">        encounters should be formed. Sometimes, of course, when animals are</span>
+<span class="sd">        seen individually only one encounter will be formed.</span>
+
+<span class="sd">    4.  Assign a *name* to the animal in each encounter by matching the</span>
+<span class="sd">        annotations in the encounter against the database of animals. When</span>
+<span class="sd">        this determines that an animal is previously unknown, a new name</span>
+<span class="sd">        will be created and added to the database. Information about each</span>
+<span class="sd">        encounter is also added to the database.</span>
+
+<span class="sd">    Steps 3 and 4 are different applications of an underlying identification</span>
+<span class="sd">    process whose goal is to determine which annotations show the same</span>
+<span class="sd">    animal. The success of identification is the key to the success of</span>
+<span class="sd">    IBEIS&#39;s image analysis. Therefore, the experiments reported in this</span>
+<span class="sd">    IPython notebook are designed to study how well the current</span>
+<span class="sd">    identification algorithms work by simulating Step 4 of the image</span>
+<span class="sd">    analysis process – the hardest step. In addition to seeing how well the</span>
+<span class="sd">    current IBEIS algorithms work, these tests can also suggest ways to</span>
+<span class="sd">    improve the algorithms for the new species.</span>
+
+<span class="sd">    Please note that the first three sections below – with (Code) in their</span>
+<span class="sd">    title - can be safely skipped. They were generated by the IBEIS team to</span>
+<span class="sd">    run the results here.</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="n">nb_init</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Notebook Initialization (Code)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    {autogen_str}</span>
+<span class="sd">    # Matplotlib stuff</span>
+<span class="sd">    import matplotlib as mpl</span>
+<span class="sd">    %matplotlib inline</span>
+<span class="sd">    %load_ext autoreload</span>
+<span class="sd">    %reload_ext autoreload</span>
+<span class="sd">    %autoreload</span>
+<span class="sd">    import utool as ut</span>
+<span class="sd">    import plottool as pt</span>
+<span class="sd">    from ibeis.templates import notebook_helpers</span>
+<span class="sd">    notebook_helpers.custom_globals()</span>
+
+<span class="sd">    fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)</span>
+
+<span class="sd">    # NOTE: edit the draw_case_kw to change how results appear.</span>
+<span class="sd">    draw_case_kw = dict(show_in_notebook=True, annot_modes=[3])</span>
+<span class="sd">    # Use annot_modes [0,1] to see with and without matches</span>
+<span class="sd">    # See viz_qres for annotmode details</span>
+<span class="sd">    # draw_case_kw = dict(show_in_notebook=True, annot_modes=[0,1])</span>
+
+<span class="sd">    notebook_helpers.make_cells_wider()</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="n">db_init</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Database Configuration (Code)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    # Setup database specific parameter configurations</span>
+<span class="sd">    dbdir = &#39;{dbdir}&#39;</span>
+
+<span class="sd">    # Customize one or more of the following annotation configurations</span>
+<span class="sd">    # See ibeis/expt/annotation_configs.py for an enumeration of options</span>
+<span class="sd">    a = [</span>
+<span class="sd">        {annotconfig_list_body}</span>
+<span class="sd">    ]</span>
+
+<span class="sd">    # Specific query / database ids can override annotation configurations</span>
+<span class="sd">    qaid_override = None</span>
+<span class="sd">    daid_override = None</span>
+
+<span class="sd">    # Customize one ore more of the following pipeline configurations.</span>
+<span class="sd">    # See ibeis/algo/Config.py and ibeis/core_annots.py for config options</span>
+<span class="sd">    t = [</span>
+<span class="sd">        {pipeline_list_body}</span>
+<span class="sd">    ]</span>
+
+<span class="sd">    # TODO: programatic way of listing full set of configuration options</span>
+
+<span class="sd">    # Load database for this test run</span>
+<span class="sd">    import ibeis</span>
+<span class="sd">    ibeis.expt.harness.USE_BIG_TEST_CACHE = True</span>
+<span class="sd">    ibs = ibeis.opendb(dbdir=dbdir)</span>
+
+<span class="sd">    if False:</span>
+<span class="sd">        # Set to True to see some of the available LNBNN config settings</span>
+<span class="sd">        print(ut.repr3(ibs.new_query_request([], []).qparams.hack_lnbnn_config_trail()))</span>
+<span class="sd">        print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail(&#39;featweight&#39;, {{}})]))</span>
+
+<span class="sd">    if False:</span>
+<span class="sd">        # Valid Annot Sampling Params</span>
+<span class="sd">        from ibeis.expt import annotation_configs</span>
+<span class="sd">        print(ut.repr3(annotation_configs.DEFAULT_AIDCFG))</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="n">fluke_select</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Humpback Select&#39;</span><span class="p">,</span>  <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    # Tag annotations which have been given manual notch points</span>
+<span class="sd">    from ibeis_flukematch.plugin import *  # NOQA</span>
+<span class="sd">    ibs = ibeis.opendb(defaultdb=&#39;humpbacks&#39;)</span>
+<span class="sd">    all_aids = ibs.get_valid_aids()</span>
+<span class="sd">    isvalid = ibs.depc_annot.get_property(&#39;Has_Notch&#39;, all_aids, &#39;flag&#39;)</span>
+<span class="sd">    aid_list = ut.compress(all_aids, isvalid)</span>
+<span class="sd">    # Tag the appropriate annots</span>
+<span class="sd">    ibs.append_annot_case_tags(aid_list, [&#39;hasnotch&#39;] * len(aid_list))</span>
+<span class="sd">    #depc = ibs.depc_annot</span>
+<span class="sd">    #qaid_override = aid_list[0:5]</span>
+<span class="sd">    #daid_override = aid_list[0:7]</span>
+<span class="sd">    #print(qaid_override)</span>
+<span class="sd">    #print(daid_override)</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">annot_config_info</span> <span class="o">=</span>  <span class="p">(</span><span class="s1">&#39;# Annotation Config Info (Safely Ignored)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">        ibs, acfg_name_list=a, qaid_override=qaid_override,</span>
+<span class="sd">        daid_override=daid_override, verbose=0)</span>
+<span class="sd">    # Set use_hist=True to see specific breakdowns of properties</span>
+<span class="sd">    ibeis.expt.annotation_configs.print_acfg_list(</span>
+<span class="sd">        acfg_list, expanded_aids_list, ibs, per_qual=True, use_hist=False)</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="n">pipe_config_info</span> <span class="o">=</span>  <span class="p">(</span><span class="s1">&#39;# Pipeline Config Info (Safely Ignored)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    cfgdict_list, pipecfg_list = ibeis.expt.experiment_helpers.get_pipecfg_list(</span>
+<span class="sd">        test_cfg_name_list=t, ibs=ibs)</span>
+<span class="sd">    ibeis.expt.experiment_helpers.print_pipe_configs(cfgdict_list, pipecfg_list)</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="n">dbsize_expt</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Database Size Experiment &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    if True:</span>
+<span class="sd">        test_result = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;rank_surface&#39;,</span>
+<span class="sd">            dbdir=dbdir,</span>
+<span class="sd">            a=[&#39;varysize_td&#39;],</span>
+<span class="sd">            t=[&#39;candk&#39;])</span>
+<span class="sd">        #test_result.print_unique_annot_config_stats()</span>
+<span class="sd">        #test_result.print_acfg_info()</span>
+<span class="sd">        test_result.draw_func()</span>
+
+<span class="sd">    if True:</span>
+<span class="sd">        # This test requires a little bit of relaxation to get enough data</span>
+<span class="sd">        test_result = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;rank_surface&#39;,</span>
+<span class="sd">            dbdir=dbdir,</span>
+<span class="sd">            a=[&#39;varysize_tdqual:qmin_pername=3,dpername=[1,2]&#39;],</span>
+<span class="sd">            t=[&#39;candk&#39;])</span>
+<span class="sd">        #test_result.print_unique_annot_config_stats()</span>
+<span class="sd">        #test_result.print_acfg_info()</span>
+<span class="sd">        test_result.draw_func()</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="n">timedelta_distribution</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Result Timedelta Distribution (Safely Ignore)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    test_result = ibeis.run_experiment(</span>
+<span class="sd">        e=&#39;timedelta_hist&#39;,</span>
+<span class="sd">        dbdir=dbdir,</span>
+<span class="sd">        a=a,</span>
+<span class="sd">        t=t,</span>
+<span class="sd">        qaid_override=qaid_override, daid_override=daid_override,</span>
+<span class="sd">        truepos=True)</span>
+<span class="sd">    test_result.draw_func()</span>
+<span class="sd">    fix_figsize()</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="c1">#latex_stats = ibeis.other.dbinfo.latex_dbstats([ibs], table_position=&#39;[h]&#39;) + &#39;\n%--&#39;</span>
+<span class="c1">##print(latex_stats)</span>
+<span class="c1">#pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)</span>
+<span class="c1">#pdf_fpath = ut.tail(pdf_fpath, n=2)</span>
+<span class="c1">#print(pdf_fpath)</span>
+<span class="c1">#from IPython.display import HTML</span>
+<span class="c1">#HTML(&#39;&lt;iframe src=&quot;%s&quot; width=700 height=350&gt;&lt;/iframe&gt;&#39; % pdf_fpath)</span>
+<span class="c1">#_ = ibeis.other.dbinfo.get_dbinfo(ibs)</span>
+<span class="n">timestamp_distribution</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Timestamp Distribution</span>
+
+<span class="sd">        We can be confident that IBEIS will be successful if the</span>
+<span class="sd">          identification process works well on photos animals that were taken</span>
+<span class="sd">          weeks, months or years apart.</span>
+<span class="sd">        We’d like to be able to identify an animal even if we haven’t seen it</span>
+<span class="sd">          for a few years.</span>
+<span class="sd">        Therefore, our first analysis studies the time distribution of the</span>
+<span class="sd">          images.</span>
+<span class="sd">        The plot below shows the distribution of “Timestamps” for the images</span>
+<span class="sd">          we are testing on.</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        # Get images of those used in the tests</span>
+<span class="sd">        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">            ibs, acfg_name_list=a, qaid_override=qaid_override,</span>
+<span class="sd">            daid_override=daid_override, verbose=0)</span>
+
+<span class="sd">        aids = ut.unique(ut.total_flatten(expanded_aids_list))</span>
+<span class="sd">        gids = ut.unique(ibs.get_annot_gids(aids))</span>
+<span class="sd">        # Or just get time delta of all images</span>
+<span class="sd">        #gids = ibs.get_valid_gids()</span>
+
+<span class="sd">        ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">example_annotations</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Example Annotations / Detections</span>
+
+<span class="sd">        The detection process is not shown in this IPython notebook. This</span>
+<span class="sd">        process – Step 2 in the description of the introduction – is something</span>
+<span class="sd">        we usually do not apply to a new test suite of images, largely because</span>
+<span class="sd">        it requires a fair amount of training data to adapt to a new species.</span>
+<span class="sd">        Shown below are example annotations. Sometimes we have to draw them</span>
+<span class="sd">        ourselves, while other times they are given to us (along with the names</span>
+<span class="sd">        of the animals).</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        # Get a sample of images</span>
+<span class="sd">        #gids = ibs.get_valid_gids()</span>
+<span class="sd">        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">                    ibs, acfg_name_list=a, qaid_override=qaid_override,</span>
+<span class="sd">                    daid_override=daid_override, verbose=0)</span>
+<span class="sd">        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))</span>
+<span class="sd">        gids = ut.unique_ordered(ibs.get_annot_gids(aids))</span>
+<span class="sd">        # Or just get time delta of all images</span>
+<span class="sd">        #gids = ibs.get_valid_gids()</span>
+
+<span class="sd">        aids = ibs.get_image_aids(gids)</span>
+
+<span class="sd">        nAids_list = list(map(len, aids))</span>
+<span class="sd">        gids_sorted = ut.sortedby(gids, nAids_list)[::-1]</span>
+<span class="sd">        samplex = list(range(5))</span>
+<span class="sd">        print(samplex)</span>
+<span class="sd">        gids_sample = ut.take(gids_sorted, samplex)</span>
+
+<span class="sd">        import ibeis.viz</span>
+<span class="sd">        for gid in ut.ProgressIter(gids_sample, lbl=&#39;drawing image&#39;):</span>
+<span class="sd">            ibeis.viz.show_image(ibs, gid)</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="n">example_names</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Example Name Graph:</span>
+
+<span class="sd">        In a test where the names for each animal in each photo are provided, we</span>
+<span class="sd">        can link up the annotations for each animal into what we call a *name</span>
+<span class="sd">        graph.* (This is done without running the IBEIS image analysis code –</span>
+<span class="sd">        just from the information provided.) We can use the name graph to spot</span>
+<span class="sd">        potential problems and get an idea of how difficult the identification</span>
+<span class="sd">        problem might be. In particular, an animal whose name graph has fewer</span>
+<span class="sd">        annotations will be harder to identify. Similarly, when the name graph</span>
+<span class="sd">        includes only one annotation from a particular viewpoint – such as the</span>
+<span class="sd">        left flank – the animal will hard to identify if that annotation by</span>
+<span class="sd">        itself was the one we tried to use to identify the animal.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        from ibeis.viz import viz_graph</span>
+<span class="sd">        # TODO: use viz_graph2 instead</span>
+<span class="sd">        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">                    ibs, acfg_name_list=a, qaid_override=qaid_override,</span>
+<span class="sd">                    daid_override=daid_override, verbose=0)</span>
+<span class="sd">        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))</span>
+
+<span class="sd">        # Sample some annotations</span>
+<span class="sd">        aids = ibs.sample_annots_general(aids, filter_kw=dict(sample_size=20, min_pername=2), verbose=False)</span>
+<span class="sd">        # Visualize name graph</span>
+<span class="sd">        namegraph = viz_graph.make_name_graph_interaction(ibs, aids=aids, zoom=.4)</span>
+<span class="sd">        fix_figsize()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="c1">#######</span>
+<span class="c1"># CONFIG COMPARISONS</span>
+<span class="c1">#######</span>
+
+
+<span class="n">per_annotation_accuracy</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Annotation Identification Accuracy: (% correct annotations)</span>
+
+<span class="sd">        The first and toughest test of the IBEIS identification algorithm is to</span>
+<span class="sd">        take each annotation by itself and attempt to identify it. This is done</span>
+<span class="sd">        by forming a database from other the annotations in the test suite and</span>
+<span class="sd">        running the identification algorithm against this database. Other</span>
+<span class="sd">        annotations from the same encounter as this “query annotation” are</span>
+<span class="sd">        excluded. This is repeated for each annotation. This is the toughest</span>
+<span class="sd">        test of image analysis because each annotation must be matched on its</span>
+<span class="sd">        own, without any help from other annotations in the encounter. So, for</span>
+<span class="sd">        example, if the encounter includes annotations showing both the left and</span>
+<span class="sd">        right flank of the animal, but no other annotations in the test suite</span>
+<span class="sd">        show this animal’s right flank, there is no hope for success in</span>
+<span class="sd">        identifying the animal from just the right flank annotation.</span>
+
+<span class="sd">        Results are shown below in both textual form and in a bar graph. It is</span>
+<span class="sd">        probably best to skip to the bar graph. At this point, we should make</span>
+<span class="sd">        something clear: the identification algorithm is really a ranking</span>
+<span class="sd">        algorithm. In other words, when matching the annotation, a score is</span>
+<span class="sd">        generated for each named animal in the database and names (and scores)</span>
+<span class="sd">        are returned ordered by the scores. The goal is for the correct name to</span>
+<span class="sd">        always be ranked first, but if it is ranked near the top it is usually</span>
+<span class="sd">        ok too because the users of IBEIS make the final decisions about the</span>
+<span class="sd">        identifying (and therefore naming) the animals.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;rank_cmc&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)</span>
+<span class="sd">        #testres.print_unique_annot_config_stats()</span>
+<span class="sd">        _ = testres.draw_func(cdfzoom=True, draw_icon=True, labelsize=40,</span>
+<span class="sd">                              ticksize=30, figtitlesize=30, legendsize=30,</span>
+<span class="sd">                              linewidth=5, markersize=40)</span>
+<span class="sd">        fix_figsize()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+<span class="n">per_name_accuracy</span> <span class="o">=</span> <span class="p">(</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Encounter Identification Accuracy (% correct names)</span>
+
+<span class="sd">        The second test of the IBEIS identification algorithm – the most</span>
+<span class="sd">        important test from the user’s perspective – is to take all the</span>
+<span class="sd">        annotations in each encounter and together use them to determine the</span>
+<span class="sd">        identity of the animal shown in the encounter. Once again, this is done</span>
+<span class="sd">        by forming a database from the other annotations in the test suite. We</span>
+<span class="sd">        perform this test because IBEIS algorithms combine information from</span>
+<span class="sd">        matching for each annotation in an encounter to determine the final</span>
+<span class="sd">        score for each possible name and thereby the final name ranking.</span>
+
+<span class="sd">        Identifying an animal using all the annotations in an encounter almost</span>
+<span class="sd">        always improves the scoring and ranking results. This is one reason why</span>
+<span class="sd">        we strongly encourage users of the system to take and contribute several</span>
+<span class="sd">        different images of each animal they encounter and not try to choose the</span>
+<span class="sd">        “best” to contribute! This simplifies the user’s job and makes the IBEIS</span>
+<span class="sd">        software as effective as possible.</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;rank_cmc&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)</span>
+<span class="sd">        #testres.print_unique_annot_config_stats()</span>
+<span class="sd">        # _ = testres.draw_func()</span>
+<span class="sd">        # fix_figsize()</span>
+<span class="sd">        _ = testres.draw_func(cdfzoom=True, draw_icon=False, labelsize=16,</span>
+<span class="sd">                              ticksize=16, figtitlesize=20, legendsize=16,</span>
+<span class="sd">                              tickwidth=2, ticklength=5, gridlinewidth=1.5,</span>
+<span class="sd">                              gridlinestyle=&#39;-&#39;, linewidth=3, markersize=10,</span>
+<span class="sd">                              fontweight=&#39;normal&#39;, sep=&#39; &#39;)</span>
+
+<span class="sd">        import plottool as pt</span>
+<span class="sd">        ax = pt.gca()</span>
+<span class="sd">        ax.grid(True)</span>
+<span class="sd">        gridlines = ax.get_xgridlines() + ax.get_ygridlines()</span>
+
+<span class="sd">        ax.xaxis.set_tick_params(width=2, length=5)</span>
+<span class="sd">        ax.yaxis.set_tick_params(width=2, length=5)</span>
+
+<span class="sd">        for line in gridlines:</span>
+<span class="sd">            line.set_linestyle(&#39;-&#39;)</span>
+<span class="sd">            line.set_linewidth(1.5)</span>
+
+<span class="sd">        pt.set_figsize(w=12, h=8, dpi=128)</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="n">config_overlap</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Configuration Overlap (Safely Ignored)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    # How well do different configurations compliment each other?</span>
+<span class="sd">    testres.print_config_overlap(with_plot=True)</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<span class="p">))</span>
+
+
+<span class="n">config_disagree_cases</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Configuration Disagreements (Safely Ignored)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    # This shows individual examples where the tested configurations disagree.</span>
+<span class="sd">    # This only works if more than one configuration was specified.</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    testres = ibeis.run_experiment(</span>
+<span class="sd">        e=&#39;draw_cases&#39;,</span>
+<span class="sd">        dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">        f=[&#39;:disagree=True,index=0:3&#39;],</span>
+<span class="sd">        figsize=(30, 8),</span>
+<span class="sd">        **draw_case_kw)</span>
+
+<span class="sd">    _ = testres.draw_func()</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<span class="p">))</span>
+
+
+<span class="n">feat_score_sep</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# Feature Correspondence Score Separation (Safely Ignored)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    # STARTBLOCK</span>
+<span class="sd">    test_result = ibeis.run_experiment(</span>
+<span class="sd">        e=&#39;TestResult.draw_feat_scoresep&#39;,</span>
+<span class="sd">        dbdir=dbdir,</span>
+<span class="sd">        a=a,</span>
+<span class="sd">        t=t,</span>
+<span class="sd">        #disttype=[&#39;L2_sift&#39;]</span>
+<span class="sd">    )</span>
+<span class="sd">    #test_result.draw_feat_scoresep(f=&#39;&#39;, disttype=[&#39;L2_sift&#39;])</span>
+<span class="sd">    test_result.draw_feat_scoresep(f=&#39;&#39;, disttype=None)</span>
+<span class="sd">    fix_figsize()</span>
+<span class="sd">    # ENDBLOCK</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="n">success_annot_scoresep</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Scores of Success Cases (Safely Ignored)&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_annot_scoresep&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=False,min_gf_timedelta=None&#39;],</span>
+<span class="sd">        )</span>
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        fix_figsize()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">all_annot_scoresep</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# All Score Distribution (Safely Ignored)&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;scores&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            qaid_override=qaid_override, daid_override=daid_override,</span>
+<span class="sd">            f=[&#39;:fail=None,min_gf_timedelta=None&#39;]</span>
+<span class="sd">        )</span>
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        fix_figsize()</span>
+<span class="sd">        #testres.draw_taghist()()</span>
+<span class="sd">        #fix_figsize()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="n">view_intereseting_tags</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Interesting Tags&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        test_result = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir,</span>
+<span class="sd">            a=a,</span>
+<span class="sd">            t=t,</span>
+<span class="sd">            f=[&#39;:index=0:5,with_tag=interesting&#39;],</span>
+<span class="sd">            **draw_case_kw)</span>
+<span class="sd">        _ = test_result.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">easy_success_cases</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Examples of Top Scoring Successes:</span>
+
+<span class="sd">        The next four sections including this one show examples of Annotation</span>
+<span class="sd">        Identifications that are successes (top ranked) and failures (not top</span>
+<span class="sd">        ranked). In each case results are shown in rows of two side-by-side</span>
+<span class="sd">        blocks of annotations. Each block includes two, three or four</span>
+<span class="sd">        annotations. In a block the left or upper left is the “query</span>
+<span class="sd">        annotation”, i.e. the one IBEIS is trying to identify. This annotation</span>
+<span class="sd">        has a purple border around it. Next to it and (when there are four</span>
+<span class="sd">        annotations) below it are shown a set of “other” database annotations.</span>
+<span class="sd">        When the identification is correct, these other annotations are all from</span>
+<span class="sd">        the same name as the query annotation. These are framed in green. When</span>
+<span class="sd">        the identified name is incorrect these other database annotations – all</span>
+<span class="sd">        from the incorrect name - are framed in red.</span>
+
+<span class="sd">        For the top scoring successes, we show strong true positives in the</span>
+<span class="sd">        block on the left and the next best scoring true negative in the block</span>
+<span class="sd">        on the right. Two rows of blocks are shown for each result, with the top</span>
+<span class="sd">        row showing just the two blocks of annotations, and the blocks in the</span>
+<span class="sd">        bottom row show the annotations together with matching regions linked by</span>
+<span class="sd">        a line segment between annotations. The links go from the query</span>
+<span class="sd">        annotation to the database annotations. Usually the links are to</span>
+<span class="sd">        multiple database annotations (for the same animal) since information</span>
+<span class="sd">        from more than one annotation is used to make decisions. Showing these</span>
+<span class="sd">        matches allows us to understand what the image analysis algorithm used</span>
+<span class="sd">        to score the match.</span>
+
+<span class="sd">        (Notice that sometimes you will see matches between the background</span>
+<span class="sd">        regions of the annotations. These will be eliminated in the production</span>
+<span class="sd">        version of IBEIS for because IBEIS learns to figure out and ignore the</span>
+<span class="sd">        background through training examples.)</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=False,index=0:3,sortdsc=gtscore,max_pername=1&#39;],</span>
+<span class="sd">            # REM f=[&#39;:fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1&#39;],</span>
+<span class="sd">            # REM f=[&#39;:fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1&#39;],</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+<span class="n">hard_success_cases</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Examples of Challenging Successes:</span>
+
+<span class="sd">        This section shows Annotation Identification test cases where the top</span>
+<span class="sd">        scoring name is correct, but the score is low and close to the score of</span>
+<span class="sd">        the next best matching name.</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=False,index=0:3,sortasc=gtscore,max_pername=1,min_gtscore=.00001&#39;],  # hack min_gtscore for 0 scores marked as success</span>
+<span class="sd">            # REM f=[&#39;:fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1&#39;],</span>
+<span class="sd">            # REM f=[&#39;:fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1&#39;],</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="c1"># ================</span>
+<span class="c1"># Individual Cases</span>
+<span class="c1"># ================</span>
+
+
+<span class="c1">#&#39;# Cases: Failure (false neg)&#39;,</span>
+<span class="n">failure_type2_cases</span> <span class="o">=</span>  <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Examples of High-Scoring Failures:</span>
+
+<span class="sd">        This section shows Annotation Identification test examples where the</span>
+<span class="sd">        correct name is not the top scoring matching, but it scored reasonably</span>
+<span class="sd">        high. In each case, the annotations from the incorrect matching name are</span>
+<span class="sd">        shown in the block on the left (along with the query annotation), while</span>
+<span class="sd">        annotations from the correct matching name are shown in the block on the</span>
+<span class="sd">        right.</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=True,index=0:3,sortdsc=gtscore,max_pername=1&#39;],</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+<span class="n">failure_type1_cases</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Examples of Low-Scoring Failures:</span>
+
+<span class="sd">        This section shows Annotation Identification test examples where the</span>
+<span class="sd">        correct name is not the top scoring match, and the correct name scored</span>
+<span class="sd">        quite poorly. In each case, the annotations from the incorrect matching</span>
+<span class="sd">        name are shown in the block on the left (along with the query</span>
+<span class="sd">        annotation), while annotations from the failed but correct matching name</span>
+<span class="sd">        are shown in the block on the right. Such failures are most often due to</span>
+<span class="sd">        low quality annotations, occlusions, or the query annotation showing a</span>
+<span class="sd">        view of the animal that is not in any annotation in the database.</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=True,index=0:3,sortdsc=gfscore,max_pername=1&#39;],</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="n">total_failure_cases</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # Total Failures</span>
+
+<span class="sd">        Shows cases where the groundtruth was not in the top 5</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        testres = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir, a=a, t=t,</span>
+<span class="sd">            f=[&#39;:fail=True,index=0:3,sortasc=gtscore,max_pername=1&#39;],</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+<span class="sd">        _ = testres.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">),</span>
+    <span class="n">COMMENT_SPACE</span>
+<span class="p">)</span>
+
+
+<span class="n">investigate_specific_case</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Cases: Custom Investigation&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        test_result = ibeis.run_experiment(</span>
+<span class="sd">            e=&#39;draw_cases&#39;,</span>
+<span class="sd">            dbdir=dbdir,</span>
+<span class="sd">            a=[a[0] + &#39;,qsize=1&#39;],</span>
+<span class="sd">            #t=t,</span>
+<span class="sd">            t=[t[0], t[0] + &#39;:SV=False&#39;],</span>
+<span class="sd">            # qaid_override=[2604],  # CHOOSE A SPECIFIC ANNOTATION</span>
+<span class="sd">            figsize=(30, 8),</span>
+<span class="sd">            **draw_case_kw)</span>
+<span class="sd">        _ = test_result.draw_func()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="n">per_encounter_stats</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Combined Annot Per Encounter Info&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        # Load cross validation slices</span>
+<span class="sd">        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">            ibs, acfg_name_list=a, qaid_override=qaid_override,</span>
+<span class="sd">            daid_override=daid_override, verbose=0)</span>
+
+<span class="sd">        # For each slice, find how many annotations are in each encounter</span>
+<span class="sd">        qannots_per_enc = []</span>
+<span class="sd">        dannots_per_enc = []</span>
+<span class="sd">        for qaids, daids in expanded_aids_list:</span>
+<span class="sd">            qannots = ibs.annots(qaids)</span>
+<span class="sd">            dannots = ibs.annots(daids)</span>
+<span class="sd">            qannots_per_enc.extend(list(ut.dict_hist(qannots.encounter_text).values()))</span>
+<span class="sd">            dannots_per_enc.extend(list(ut.dict_hist(dannots.encounter_text).values()))</span>
+<span class="sd">        # Aggregate encounter sizes into a histogram over each slice</span>
+<span class="sd">        query_enc_size_hist = ut.dict_hist(qannots_per_enc)</span>
+<span class="sd">        data_enc_size_hist = ut.dict_hist(dannots_per_enc)</span>
+<span class="sd">        print(&#39;query_enc_size_hist = &#39; + ut.repr4(query_enc_size_hist))</span>
+<span class="sd">        print(&#39;data_enc_size_hist = &#39; + ut.repr4(data_enc_size_hist))</span>
+
+<span class="sd">        # For each slice, find how many annotations are in each encounter</span>
+<span class="sd">        qenc_per_name = []</span>
+<span class="sd">        denc_per_name = []</span>
+<span class="sd">        for column, list_ in enumerate([qenc_per_name, denc_per_name]):</span>
+<span class="sd">            for aids in ut.take_column(expanded_aids_list, column):</span>
+<span class="sd">                annots = ibs.annots(aids)</span>
+<span class="sd">                nid_to_encounters_ = ut.group_items(annots.encounter_text, annots.nids)</span>
+<span class="sd">                num_encounters_pername = list(ut.dict_hist(nid_to_encounters_).values())</span>
+<span class="sd">                list_.extend(num_encounters_pername)</span>
+<span class="sd">        query_enc_per_name_hist = ut.dict_hist(qenc_per_name)</span>
+<span class="sd">        data_enc_per_name_hist = ut.dict_hist(denc_per_name)</span>
+<span class="sd">        print(&#39;Mapping from #encounters to #names with that #of encounters&#39;)</span>
+<span class="sd">        print(&#39;query_enc_per_name_hist = &#39; + ut.repr4(query_enc_per_name_hist))</span>
+<span class="sd">        print(&#39;data_enc_per_name_hist = &#39; + ut.repr4(data_enc_per_name_hist))</span>
+
+<span class="sd">        # In general</span>
+<span class="sd">        # aids = ibs.get_valid_aids()</span>
+<span class="sd">        # # aids = list(set(ut.flatten(ut.flatten(expanded_aids_list))))</span>
+<span class="sd">        # annots = ibs.annots(aids)</span>
+<span class="sd">        # nid_to_encounters_ = ut.group_items(annots.encounter_text, annots.nids)</span>
+<span class="sd">        # nid_to_encounters = ut.map_vals(ut.unique, nid_to_encounters_)</span>
+<span class="sd">        # num_encounters_pername = map(len, nid_to_encounters.values())</span>
+<span class="sd">        # print(&#39;Database wide encounters per name histogram:&#39;)</span>
+<span class="sd">        # print(ut.dict_hist(num_encounters_pername))</span>
+<span class="sd">        # Now find out how many encounter per individual</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">per_encounter_stats</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Num Annots Per Name Histogram&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        a=&#39;default:is_known=True&#39;</span>
+<span class="sd">        aids = ibeis.testdata_aids(ibs=ibs, a=a)</span>
+<span class="sd">        annots = ibs.annots(aids)</span>
+<span class="sd">        nid_to_aids = ut.group_items(annots.aids, annots.nids)</span>
+<span class="sd">        nid_to_nAids = ut.map_vals(len, nid_to_aids)</span>
+<span class="sd">        nAids_per_name_hist = ut.dict_hist(nid_to_nAids.values())</span>
+
+<span class="sd">        import plottool as pt</span>
+<span class="sd">        xdata = list(nAids_per_name_hist.keys())</span>
+<span class="sd">        ydata = list(nAids_per_name_hist.values())</span>
+<span class="sd">        fig = pt.multi_plot(xdata, [ydata], kind=&#39;bar&#39;,</span>
+<span class="sd">                            xlabel=&#39;#annotations per individual&#39;,</span>
+<span class="sd">                            ylabel=&#39;#individuals&#39;,</span>
+<span class="sd">                            title=&#39;Annotations per individual\n&#39; + a)</span>
+
+<span class="sd">        encounters = annots.group(annots.encounter_text)[1]</span>
+<span class="sd">        encounter_names = [a_.nids[0] for a_ in encounters]</span>
+<span class="sd">        nid_to_encs = ut.group_items(encounters, encounter_names)</span>
+<span class="sd">        nid_to_nEncs = ut.map_vals(len, nid_to_encs)</span>
+<span class="sd">        nEncs_per_name_hist = ut.dict_hist(nid_to_nEncs.values())</span>
+
+<span class="sd">        import plottool as pt</span>
+<span class="sd">        xdata = list(nEncs_per_name_hist.keys())</span>
+<span class="sd">        ydata = list(nEncs_per_name_hist.values())</span>
+<span class="sd">        fig = pt.multi_plot(xdata, [ydata], kind=&#39;bar&#39;,</span>
+<span class="sd">                            xlabel=&#39;#encounters per individual&#39;,</span>
+<span class="sd">                            ylabel=&#39;#individuals&#39;,</span>
+<span class="sd">                            title=&#39;Encounters per individual\n&#39; + a)</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">))</span>
+
+
+<span class="c1"># HACK</span>
+<div class="viewcode-block" id="dataset_summary_stats_hacktest"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.notebook_cells.dataset_summary_stats_hacktest">[docs]</a><span class="k">def</span> <span class="nf">dataset_summary_stats_hacktest</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    import ibeis</span>
+<span class="sd">    ibs = ibeis.opendb(&#39;WWF_Lynx_Copy&#39;)</span>
+<span class="sd">    # import ibeis</span>
+<span class="sd">    # ibs = ibeis.opendb(&#39;WWF_Lynx&#39;)</span>
+<span class="sd">    a = [</span>
+<span class="sd">        &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1&#39;,</span>
+<span class="sd">        &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2&#39;,</span>
+<span class="sd">        &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3&#39;,</span>
+<span class="sd">        &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4&#39;,</span>
+
+<span class="sd">        # &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1&#39;,</span>
+<span class="sd">        # &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2&#39;,</span>
+<span class="sd">        # &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3&#39;,</span>
+<span class="sd">        # &#39;default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4&#39;,</span>
+<span class="sd">    ]</span>
+<span class="sd">    acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</span>
+<span class="sd">        ibs, acfg_name_list=a, verbose=0)</span>
+
+<span class="sd">    expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))</span>
+<span class="sd">    print(ut.repr2(ibs.get_annot_stats_dict(expt_aids, strkeys=True, nl=2, use_hist=True)))</span>
+
+<span class="sd">    # expt_qaids = sorted(set(ut.total_flatten(ut.take_column(expanded_aids_list, 0))))</span>
+<span class="sd">    # print(ut.repr2(ibs.get_annot_stats_dict(expt_qaids, strkeys=True, nl=2, use_hist=True)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="n">lynx_curration_stats</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;# Dataset Set Curation Info (lynx)&#39;</span><span class="p">,</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        all_aids = ibs.get_valid_aids()</span>
+<span class="sd">        all_n_images = len(ut.unique(ibs.annots(all_aids).gids))</span>
+<span class="sd">        all_n_names = len(ut.unique(ibs.annots(all_aids).nids))</span>
+
+<span class="sd">        a_image = [&#39;default:max_timestamp=now,require_timestamp=True&#39;]</span>
+<span class="sd">        _, imgfilt_aids = ibeis.expt.experiment_helpers.get_annotcfg_list(ibs, acfg_name_list=a_image)</span>
+<span class="sd">        imgs = ibs.images(set(ibs.annots(imgfilt_aids).gids))</span>
+<span class="sd">        single_aids = [x for x in imgs.aids if len(x) == 1]</span>
+<span class="sd">        imgfilt_aids = ut.flatten(single_aids)</span>
+<span class="sd">        imgfilt_n_images = len(ut.unique(ibs.annots(imgfilt_aids).gids))</span>
+<span class="sd">        imgfilt_n_names = len(ut.unique(ibs.annots(imgfilt_aids).nids))</span>
+
+<span class="sd">        img_removed = all_n_images - imgfilt_n_images</span>
+
+<span class="sd">        print(&#39;The original image set consists {} images taken of {} named animals.&#39;.format(</span>
+<span class="sd">          all_n_images, all_n_names))</span>
+<span class="sd">        print(&#39;Controlling for time and ambiguous annots removes, {} images ({}%) resulting in in {} images and {} names&#39;.format(</span>
+<span class="sd">            img_removed, img_removed / all_n_images, imgfilt_n_images, imgfilt_n_names</span>
+<span class="sd">        ))</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">))</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Wild Me.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

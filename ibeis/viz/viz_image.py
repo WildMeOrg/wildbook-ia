@@ -2,9 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import utool as ut
-import plottool as pt
-from plottool import plot_helpers as ph
-from plottool import viz_image2
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import viz_image2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
 (print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
@@ -77,8 +77,8 @@ def drive_test_script(ibs):
     print('Running with (image) gid_list = %r' % (gid_list))
     avuuid_list = ibs.get_annot_visual_uuids(aid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
-    print('Running with annot_visual_uuid_list = %s' % (ut.list_str(zip(aid_list, avuuid_list))))
-    print('Running with image_uuid_list = %s' % (ut.list_str(zip(gid_list, guuid_list))))
+    print('Running with annot_visual_uuid_list = %s' % (ut.repr2(zip(aid_list, avuuid_list))))
+    print('Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list))))
     for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
         print('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
         show_image(ibs, gid, annote=False, rich_title=True)

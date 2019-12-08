@@ -11,7 +11,7 @@ import requests
 # System variables
 APPLICATION_PROTOCOL   = 'http'
 APPLICATION_DOMAIN     = '127.0.0.1'
-APPLICATION_PORT       = '5000'
+APPLICATION_PORT       = None
 APPLICATION_NAME       = 'IBEIS'
 APPLICATION_SECRET_KEY = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
@@ -78,7 +78,7 @@ def run_test_api():
         python -m ibeis.web.test_api --test-run_test_api
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.test_api import *  # NOQA
         >>> response = run_test_api()
         >>> print('Server response: %r' % (response, ))
@@ -87,7 +87,18 @@ def run_test_api():
     """
     import ibeis
     import time
+    global APPLICATION_PORT
+
     web_instance = ibeis.opendb_in_background(db='testdb1', web=True, precache=False)
+
+    # Get the application port from the background process
+    if APPLICATION_PORT is None:
+        web_port = web_instance.get_web_port_via_scan()
+        if web_port is None:
+            raise ValueError('IA web server is not running on any expected port')
+        APPLICATION_PORT = '%s' % (web_port, )
+    assert APPLICATION_PORT is not None
+
     # let the webapi startup in the background
     time.sleep(.1)
     uri = '/api/core/dbname/'

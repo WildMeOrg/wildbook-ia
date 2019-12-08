@@ -1,4 +1,8 @@
-# IBEIS - Image Analysis
+![Logo](_installers/WildBook_logo_72dpi-03.png)
+
+This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
+
+# IBEIS - Image Analysis - 2.0.0
 
 ## I.B.E.I.S. = Image Based Ecological Information System
 
@@ -12,13 +16,13 @@ IBEIS program for the storage and management of images and derived data for
 use in computer vision algorithms. It aims to compute who an animal is, what
 species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.  This This repo Image Analysis image
-analyis module of IBEIS. It is both a python module and standalone program. 
+analysis module of IBEIS. It is both a python module and standalone program. 
 
 Currently the system is build around and SQLite database, a PyQt4 GUI, and
 matplotlib visualizations. Algorithms employed are: random forest species
 detection and localization, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
-Algorithms in development are SMK (selective match kernel) for identifiaction
+Algorithms in development are SMK (selective match kernel) for identification
 and deep neural networks for detection and localization. 
 
 The core of IBEIS is the IBEISController class. It provides an API into IBEIS
@@ -28,7 +32,7 @@ data management and algorithms. The IBEIS API Documentation can be found here:
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
-## Self Installing Executabes:
+## Self Installing Executables:
 
 Unfortunately we have not released self-installing-executables for IBEIS yet. 
 We plan to release these "soon". 
@@ -46,25 +50,26 @@ binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
 ### Spatial Verification
 ![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 ```bash
-python -m vtool.spatial_verification --test-spatially_verify_kpts
+python -m vtool.spatial_verification --test-spatially_verify_kpts --show
 ```
 
 ### Name Scoring
 ![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
 ```bash
-python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+python -m ibeis.algo.hots.chip_match show_single_namematch --qaid 1 --show
 ```
 
 ### Identification Ranking 
 ![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 ```bash
-python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+python -m ibeis.algo.hots.chip_match show_ranked_matches --show --qaid 86
 ```
 
 ### Inference
 ![alt text](http://i.imgur.com/RYeeENl.jpg "encgraph")
 ```bash
-python -m ibeis.model.preproc.preproc_encounter --exec-compute_encounter_groups --show
+# broken
+# python -m ibeis.algo.preproc.preproc_encounter compute_encounter_groups --show
 ```
 
 # Internal Modules
@@ -74,33 +79,28 @@ In the interest of modular code we are actively developing several different mod
 
 Erotemic's IBEIS Image Analysis module dependencies 
 
-* https://github.com/Erotemic/utool
+* https://github.com/WildbookOrg/utool
   docs: http://erotemic.github.io/utool
-* https://github.com/Erotemic/plottool
+* https://github.com/WildbookOrg/plottool
   docs: http://erotemic.github.io/plottool
-* https://github.com/Erotemic/vtool
+* https://github.com/WildbookOrg/vtool
   docs: http://erotemic.github.io/vtool
-* https://github.com/Erotemic/hesaff
+* https://github.com/WildbookOrg/hesaff
   docs: http://erotemic.github.io/hesaff
-* https://github.com/Erotemic/guitool
+* https://github.com/WildbookOrg/guitool
   docs: http://erotemic.github.io/guitool
 
 
 bluemellophone's IBEIS Image Analysis modules
 
-* https://github.com/bluemellophone/detecttools
-* https://github.com/bluemellophone/pyrf
+* https://github.com/WildbookOrg/detecttools
+* https://github.com/WildbookOrg/pyrf
   docs: http://bluemellophone.github.io/pyrf
-
-
-hjweide's IBEIS Image Analysis modules
-
-* https://github.com/hjweide/pygist
 
 
 The IBEIS module itself: 
 
-* https://github.com/Erotemic/ibeis
+* https://github.com/WildbookOrg/ibeis
 
 # IBEIS Development Environment Setup 
 
@@ -118,7 +118,7 @@ mkdir $CODE_DIR
 cd $CODE_DIR
 
 # Clone IBEIS
-git clone https://github.com/Erotemic/ibeis.git
+git clone https://github.com/WildbookOrg/ibeis.git
 cd ibeis
 
 # Generate the prereq install script (does not install anything)
@@ -127,6 +127,9 @@ cd ibeis
 or 
 ./super_setup.py --bootstrap
 
+# Ensure all python dependencies have been installed
+pip install -r requirements.txt
+pip install -r optional-requirements.txt
 
 # Run the prereq install script (installs prereq libraries)
 ./_scripts/__install_prereqs__.sh
@@ -137,19 +140,22 @@ or
 
 # Use super_setup.py to pull the latest and greatest from all the respos. 
 # This will clone any dependency repos that do not exist.
-./super_setup.py --pull
+./super_setup.py pull
+
+# Ensure you are using WildMe repos
+./super_setup.py move-wildme
 
 # Switch to current development branch
-./super_setup.py --checkout next 
+./super_setup.py checkout next 
 
 # Run super_setup to build and install ibeis modules in development mode
 # (the build flag builds any c++ files, and the develop flag installs a 
 #  python module as a symbolic link to python's site-packages)
-./super_setup.py --build --develop
+./super_setup.py build develop
 
 # Usually this needs to be run twice because super_setup often needs to
 # configure itself on the first run. (Either running it twice wont hurt)
-./super_setup.py --build --develop
+./super_setup.py build develop
 
 # Optional: set a workdir and download a test dataset
 ./dev.py --set-workdir ~/data/work --preload-exit
@@ -160,8 +166,6 @@ or
 
 # make sure everyhing is set up correctly
 ./assert_modules.sh
-
-
 ```
 
 
@@ -174,11 +178,6 @@ There are two testing scripts:
 
 run_tests.py
 
-and 
-
-shell_run_tests.sh
-
-
 run_tests.py performs only a subset of doctests which are not labeled as SLOW. 
 
 this allows for me to have a high confidence that I'm not breaking things
@@ -189,30 +188,22 @@ This means that the controller is not reloaded for each individual test.
 run_test.py --testall will test all enabled doctests including slow ones. This
 adds about a minute onto the runtime of the tests.
 
-
-shell_run_tests.sh is the old test script that I had written. By default it only
-runs non-slow doctests, but it creates a new python instance for each test.
-While this is slower it allows for system testing from another angle in case a
-tests was incidentally passing due to a cached local variable.
-
-shell_run_tests.sh --testall will run all tests including slow doctests and the
-original test scripts that we had written in June and July. 
-
 A text file records any test that fails as well as all test times.
 
 Tests can easily be run individually using documentation found in each module
 with doctests.
 
 The following examples runs the 1st doctest belonging to the function (or class)
-_query_chips4 in the module ibeis.control.IBEISControl:
+baseline_neighbor_filter in the module ibeis.algo.hots.pipeline:
 
-    python -m ibeis.control.IBEISControl --test-_query_chips4:0
+    python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter:0
+    
 
 # Code Sytle Guidelines
 
 For Python try to conform to pep8. 
-You should set up your prefered editor to use flake8 as linter.
-If using vim I recomend syntastic.
+You should set up your preferred editor to use flake8 as linter.
+If using vim I recommend syntastic.
 
 DISABLE THESE ERRORS 
 * 'E127', # continuation line over-indented for visual indent
@@ -234,7 +225,7 @@ DISABLE THESE ERRORS
 
 flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802,N803,N805,N806 ~/code/ibeis
 
-( Dev comment: my laptop seemst to report these flake8 errors while my desktops
+( Dev comment: my laptop seems to report these flake8 errors while my desktops
   don't. I'm going to list errors that might need to be explicitly enabled here:
 
 * 'F821',  # undefined name
@@ -261,53 +252,6 @@ git subtree push --prefix _page origin gh-pages
 ```
 
 ###
-
-
-#### OLD Environment Setup:
-```bash
-# Navigate to your code directory
-export CODE_DIR=~/code
-cd $CODE_DIR
-
-# Clone the IBEIS repositories 
-git clone https://github.com/Erotemic/utool.git
-git clone https://github.com/Erotemic/vtool.git
-git clone https://github.com/Erotemic/plottool.git
-git clone https://github.com/Erotemic/guitool.git
-git clone https://github.com/Erotemic/hesaff.git
-git clone https://github.com/Erotemic/ibeis.git
-#
-# Set the previous repos up for development by running
-#
-# > sudo python setup.py develop
-#
-# in each directory
-
-
-# e.g.
-sudo python $CODE_DIR/utool/setup.py develop
-sudo python $CODE_DIR/vtool/setup.py develop
-sudo python $CODE_DIR/hesaff/setup.py develop
-sudo python $CODE_DIR/plottool/setup.py develop
-sudo python $CODE_DIR/guitool/setup.py develop
-sudo python $CODE_DIR/ibeis/setup.py develop
-
-
-# Then clone these repos (these do not have setup.py files)
-git clone https://github.com/bluemellophone/detecttools.git
-git clone https://github.com/Erotemic/opencv.git
-git clone https://github.com/Erotemic/flann.git
-git clone https://github.com/bluemellophone/pyrf.git
-# For repos with C++ code use the unix/mingw build script in the repo:
-# e.g.
-sudo ~/code/opencv/unix_build.sh
-sudo ~/code/flann/unix_build.sh
-sudo ~/code/pyrf/unix_build.sh
-
-# If you want to train random forests with pyrf clone
-# https://github.com/bluemellophone/IBEIS2014.git
-# otherwise you dont need this
-```
 
 
 # Example usage
@@ -384,92 +328,29 @@ python dev.py --prequit --dump-argv
 # Dump Current SQL Schema to stdout 
 python dev.py --dump-schema --postquit
 
+
 #------------------
 # Convert a hotspotter database to IBEIS
 #------------------
-# Set this as your workdir
-python dev.py --db PZ_MTEST --setdb
-# If its in the same location as a hotspotter db, convert it
-python dev.py --convert --force-delete
-python dev.py --convert --force-delete --db Database_MasterGrevy_Elleni
-# Then interact with your new IBEIS database
-python dev.py --cmd --gui 
-> rid_list = ibs.get_valid_rids()
 
-# Convinience: Convert ALL hotspotter databases
-python dev.py -t convert_hsdbs --force-delete
+# NEW: You can simply open a hotspotter database and it will be converted to IBEIS
+python -m ibeis convert_hsdb_to_ibeis --dbdir <path_to_hsdb>
 
-
-python dev.py --convert --force-delete --db Frogs
-python dev.py --convert --force-delete --db GIR_Tanya
-python dev.py --convert --force-delete --db GZ_All
-python dev.py --convert --force-delete --db Rhinos_Stewart
-python dev.py --convert --force-delete --db WD_Siva
-python dev.py --convert --force-delete --db WY_Toads
-python dev.py --convert --force-delete --db WS_hard
-python dev.py --convert --force-delete --db Wildebeast
-python dev.py --convert --force-delete --db PZ_FlankHack
-python dev.py --convert --force-delete --db PZ_MTEST
-
-
-#--------------
-# Run Result Inspection
-#--------------
-python dev.py --convert --force-delete --db Mothers --setdb
-python dev.py --db Mothers --setdb
-python dev.py --cmd --allgt -t inspect
+# This script will exlicitly conver the hsdb
+python -m ibeis convert_hsdb_to_ibeis --hsdir <path_to_hsdb> --dbdir <path_to_newdb>
 
 
 #---------
 # Ingest examples
 #---------
 # Ingest raw images
-python ibeis/ingest/ingest_database.py --db JAG_Kieryn
-
-# Ingest an hsdb
-# OLD WAY: python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
-# New Way:
-python -m ibeis --db JAG_KELLY
-# OR 
-python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
+python -m ibeis.dbio.ingest_database --db JAG_Kieryn
 
 
 #---------
 # Run Tests
 #---------
-./testsuit/run_tests.sh
-
-
-#---------------
-# Technical Demo
-#---------------
-
-# FIXME THIS PART IS BROKEN
-
-python dev.py --db PZ_MTEST --setdb
-
-# See a list of tests
-python dev.py -t help
-
-# See a plot of scores
-python dev.py --allgt -t scores -w
-
-# Run the best configuration and print out the hard cases
-python dev.py --allgt -t best --echo-hardcase
-
-# Look at inspection widget
-python dev.py --allgt -t inspect -w
-
-
-#----------------
-# Profiling Code
-#----------------
-
-utprof.py dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t custom --db PZ_MTEST --allgt --noqcache
-utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
+./run_tests.py
 
 
 #----------------
@@ -498,338 +379,53 @@ utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
 
 
 # List all IBEIS databases
-./dev.py -t listdbs
-# List unconverted hotspotter databases in your workdir
-./dev.py -t listhsdbs
+python -m ibeis list_dbs
 # Delete cache
-./dev.py -t delete_cache
-
-# Plot of chip-to-chip scores
-./dev.py --allgt -t scores -w
-
-# Plot of keypoint-to-keypoint distances
-./dev.py --allgt -t dists -w
-
-# See how scores degrade as database size increases
-./dev.py --allgt -t upsize -w
+python -m ibeis delete_cache --db testdb1
 
 
-
-# Show Annotation Chips 1, 3, 5, and 11
-./dev.py -t show --qaid 1 3 5 11 -w
-# Query Annotation Chips 1, 3, 5, and 11
-./dev.py -t query --qaid 1 3 5 11 -w
-# Inspect spatial verification of annotations 1, 3, 5, and 11
-./dev.py -t sver --qaid 1 3 5 11 -w
-# Compare matching toggling the gravity vector
-./dev.py -t gv --qaid 1 11 -w
+# Show a single annotations
+python -m ibeis.viz.viz_chip show_chip --db PZ_MTEST --aid 1 --show
+# Show annotations 1, 3, 5, and 11
+python -m ibeis.viz.viz_chip show_many_chips --db PZ_MTEST --aids=1,3,5,11 --show
 
 
 # Database Stats for all our important datasets:
-./dev.py --allgt -t dbinfo --db PZ_RoseMary | grep -F "[dbinfo]"
 ./dev.py --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db PZ_FlankHack | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-80_nImg=555 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-224_nImg=222 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GZ_ALL | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GZ_Siva | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db MISC_Jan12 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GIR_Tanya | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_Bajo_bonito | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_WEST_POINT_OPTIMIZADAS | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_OPTIMIZADAS_NI_V_E | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Rhinos_Stewart | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Elephants_Stewart | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db WY_Toads | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Frogs | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Wildebeest | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Seals | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db JAG_Kelly | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db JAG_Kieryn | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db polar_bears | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db snails_drop1 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db WD_Siva | grep -F "[dbinfo]"
-
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Archetype_Appends_4GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Elleni_16GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Archetype_Laikipia_5GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_3D_Encounters_group1 -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_3D_Encounters_group2 -t dbinfo | grep -F "[dbinfo]"
-for i in $(/bin/ls /raid/work2/MBB_Grevys/GZ_EncounterGroups); do
-    python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_EncounterGroups/$i -t dbinfo | grep -F "[dbinfo]"
-done
-
-python dev.py --dbdir /raid/work2/DanPrinctonDrive/HSDB_pztest2 -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-march-2014 -t dbinfo | grep -F "[dbinfo]"
 
 # Some mass editing of metadata
 ./dev.py --db PZ_FlankHack --edit-notes
 ./dev.py --db GZ_Siva --edit-notes
 ./dev.py --db GIR_Tanya --edit-notes
-./dev.py --allgt -t dbinfo --db Elephants_Stewart --set-all-species elephant_savanna
-./dev.py --allgt -t dbinfo --db polar_bears --set-all-species bear_polar
 ./dev.py --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
-./dev.py --allgt -t dbinfo --db PZ_FlankHack --set-all-species zebra_plains
-./dev.py --allgt -t dbinfo --db GIR_Tanya --set-all-species giraffe
-./dev.py --allgt -t dbinfo --db LF_Bajo_bonito --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db LF_WEST_POINT_OPTIMIZADAS --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db LF_OPTIMIZADAS_NI_V_E --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db JAG_Kelly --set-all-species jaguar
-./dev.py --allgt -t dbinfo --db JAG_Kieryn --set-all-species jaguar
-./dev.py --allgt -t dbinfo --db Wildebeest --set-all-species wildebeest
 
 # Current Experiments:
 
-utprof.py dev.py -t upsize --allgt --quiet --noshow
-
-python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 -w
-
-
-dev.py -t upsize --allgt --quiet --noshow
-utprof.py dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
-python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
-python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
-
-%run dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
-python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
-python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:10:3 -w
-
-
-utprof.py dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
-./dev.py -t best --qaid 1:10 --db PZ_MTEST --nocache-big --nocache-query
-
-./main.py --db PZ_RoseMary --cmd
-
-
-# Cyth issue debug
-python dev.py --db testdb1 --delete-cache
-python dev.py --db testdb1 --query 1 --nocache-query --cyth --gui
-python dev.py --db testdb1 --query 1 --nocache-query --nocyth --gui
-
-# Rosemary Tests
-python dev.py --db PZ_RoseMary -t best --gt 1:20 --screen --cyth 
-python dev.py --db PZ_RoseMary -t best --allgt --screen --cyth 
-python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
-
-# Ensures the mtest dataset is in your workdir (by downloading it from dropbox)
-./dev.py -t mtest 
-./dev.py -t nauts 
-
-# Cyth timings (screen disables the backspaces in progress)
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --screen --cyth --quiet
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --screen --nocyth --quiet
-
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --cyth --quiet
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --nocyth --quiet
-
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --cyth 
-./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --nocyth
-
-./dev.py --db PZ_MTEST -t best --allgt --nocyth
- 
-# Correct output 
-python dev.py --db PZ_MTEST -t best --qaid 1:20
-python dev.py --db PZ_MTEST -t upsize --allgt --screen --cyth
-python dev.py --db PZ_Master0 -t upsize --allgt --screen --cyth
-
-# EXPERIMENT DATABASES
-python dev.py --db testdb1 --setdb 
-python dev.py --db PZ_MTEST --setdb 
-python dev.py --db PZ_RoseMary --setdb 
-# EXPERIMENT CLEANUP
-python dev.py --delete-cache --postload-exit
-# EXPERIMENT PARTIAL COMMANDS
-python dev.py -t best --qaids 27:110
-python dev.py -t best --allgt --qindex 20:100
-python dev.py -t best --allgt --echo-hardcase
-python dev.py -t best --allgt --qindex 24 39 44 45 --view-hard  --sf
-python dev.py -t best --allgt --view-hard --vdd
-# EXPERIMENT FULL COMMANDS
-python dev.py -t best --allgt --view-hard 
-python dev.py -t upsize --allgt 
-
-
-utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
-utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
-./dev.py -t smk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-./dev.py -t asmk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-
-dev.py -t smk_test --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-
-
-./dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query
-
-
-./dev.py -t smk1 --allgt --qindex 0:2 --db Oxford
+# Main experiments
+python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST -a default -t best --show
+python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
+# Show disagreement cases
+ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
+    -t default:K=[1,4] \
+    --filt :disagree=True,index=0:4 --show
 
 # SMK TESTS
 python dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --qindex 0:20
-
 python dev.py -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
-python dev.py -t smk2 --allgt --db PZ_Master0
-
-python -m memory_profiler dev.py -t smk2 --allgt --db PZ_MTEST --qindex 0
-
-python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --qindex 0 --nocache-query --nogui 
-
-python dev.py -t smk_64k --allgt --db PZ_Master0
-python dev.py -t smk_128k --allgt --db PZ_Master0
-
-python dev.py -t oxford --allgt --db Oxford --qindex 0:55
- 
 
 # Feature Tuning
 python dev.py -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
 
 python dev.py -t featparams -w --show --db PZ_MTEST --allgt
 python dev.py -t featparams_big -w --show --db PZ_MTEST --allgt
-python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
- --allgt --qindex 1:2
-
-# SETTING HARD CASES
-python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
-python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [copypaste from output]  # sorry about this step...
-# EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110  # Hard as of 2014-11-4
-# EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 44 49 50 51 53 54 66 69 89 97 110  # Hard as of 2014-11-6
-# EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 43 45 49 51 53 54 66 97  # FGWEIGHT Hard as of 2014-11-6
-# python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 43 44 45 49 50 51 53 54 66 97
-
-
-
-python dev.py -t best --db PZ_MTEST --allhard
-
-# View all hard cases
-python dev.py -t best --db PZ_MTEST --allhard --vh --va
-
-# 72 is a great testcase
-python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
-
-python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
-
-# VSONE TESTS
-python dev.py -t vsone_best --db PZ_MTEST --allgt --qindex 0:2 --print-all --va --verbose
-python dev.py -t vsone_best --db PZ_MTEST --allgt --verbose --qindex 0
-# FULL TEST
-python dev.py -t vsone_best --db PZ_MTEST --allgt 
-
-# VSMANY TESTS
-# FULL TEST
-python dev.py -t vsmany_best --db PZ_MTEST --allgt 
-
 
 # NEW DATABASE TEST
 python dev.py -t best --db seals2 --allgt
-python dev.py -t best --db seals2 --allgt --vh --vf
-python dev.py -t best --db seals2 --allgt
-
-
-# DEBUGGING
-# Make sure things are working on Naut_Dan
-python dev.py --allgt -t nsum vsmany vsone smk --print-all --db NAUT_Dan
-# Debug spatial verification
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
-
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
-python dev.py --db PZ_MTEST -t sver_new --allhard  --print-best-rankmat
-python dev.py --db PZ_MTEST -t sver_new best --allgt
-python dev.py --db GZ_ALL -t sver_new best --allgt
-
-
-# DELETE / CLEAN / CLEAR QUERY RESULT CACHE
-python dev.py --db PZ_MTEST --delete-qres-cache
-python dev.py --db PZ_Master0 --delete-qres-cache
-python dev.py --db GZ_ALL --delete-qres-cache
-python dev.py --db Oxford --delete-qres-cache
-
-# DELETE / CLEAN / CLEAR ALL CACHE
-python dev.py --db PZ_MTEST --delete-cache
-
-
-#RECENT DEBUGGING
-python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
-python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
-python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0:4 --print-all --verb-pipeline --debug-pipeline
-
-python dev.py -t nsum --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0 --print-all --verb-pipeline --debug-pipeline
- --vf --va
-
-# Runs some hard cases and some easy cases
-python dev.py --setdb --db PZ_MTEST
-python dev.py --setdb --db GZ_ALL
-python dev.py --setdb --db PZ_Master0
-python dev.py --allhard --qaid 1:10:2 --noqcache -t best
-
-python dev.py --allhard --qaid 1:10:2 -t custom
-python dev.py --allhard --qaid 1:10:2 -t best --cfg rrvsone_on=True 
-
-python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True
-python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
-
-
-python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
-
-python dev.py --allgt -t custom best --print-scorediff-mat-stats
-
-python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
-python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
-
-
-export PRINTFLAGS="--print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat"
-export CASEFLAGS="--qaids 1 2 3 4 5 45 49 50 51"
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True 
-python dev.py $CASEFLAGS $PRINTFLAGS -t custom 
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t custom custom:rrvsone_on=True \
- custom:rrvsone_on=True,grid_steps=4 custom:rrvsone_on=True,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=1.00,grid_steps=4\
- custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=4\
- custom:rrvsone_on=True,grid_scale_factor=0.01,grid_steps=1
-
-# Case failed because grid was too small. Fixed by clamping grid to min(1, ...)
-python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True,grid_scale_factor=.001,grid_steps=1
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t\
- custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=1\
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t\
- custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=3\
- custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=3\
- custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=3\
- custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=3\
- custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=3\
- custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=3\
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t\
- custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=7\
- custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=7\
- custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=7\
- custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=7\
- custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=7\
- custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=7\
-
-python dev.py $CASEFLAGS $PRINTFLAGS -t rrvsone_grid
-python dev.py --allgt $PRINTFLAGS -t rrvsone_grid
-
-python dev.py --allgt --print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat -t rrvsone_grid
-
 
 # Testing Distinctivness Parameters
-python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
-python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
-python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
-
-python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 5
-python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 1
+python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
+python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
+python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
 
 
 # 2D Gaussian Curves
@@ -845,48 +441,25 @@ python -m vtool.coverage_grid --test-sparse_grid_coverage --show
 python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
 
 # Test Spatially Constrained Scoring
-python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show
-python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
-python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2
+python -m ibeis.algo.hots.vsone_pipeline --test-compute_query_constrained_matches --show
+python -m ibeis.algo.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
 
 # Test VsMany ReRanking
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --db GZ_ALL
+python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show
+python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog
 
 # Problem cases with the back spot
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
+python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
+python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
 python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
 # Shows vsone results with some of the competing cases
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
-
+python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
 # More rerank vsone tests
 python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
 sh Tbig.sh -t custom:rrvsone_on=True custom 
 sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 
-
-# TODO: 
-# static lnbnn, normonly, and count test
-# combinme vsone and vsmany matches in vsone rr 
-
-# Sanity Check 
-# Make sure vsmany and onevsone are exactly the same
-python dev.py --setdb --db PZ_Master0
-python dev.py --setdb --db PZ_MTEST
-
-# These yeild the same results for vsmany and vsone reanking
-# notice that name scoring and feature scoring are turned off. 
-# also everything is reranked
-#----
-python dev.py --allgt -t \
-    custom:fg_on=False \
-    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_on=False \
-    --print-confusion-stats --print-gtscore --noqcache
-#----
 
 #----
 # Turning back on name scoring and feature scoring and restricting to rerank a subset
@@ -908,70 +481,15 @@ python dev.py --allgt -t \
     custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
 \
   --db PZ_MTEST
-
 #--print-confusion-stats --print-gtscore
 #----
 
-#----
-python dev.py --allgt -t \
-    custom \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
-   --db PZ_Master0 
-#----
-
-python dev.py --allgt -t \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0\
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5 \
-   --db PZ_Master0
-
-python dev.py --allgt -t custom --db PZ_Master0 --va --show
-
-
-
---noqcache
-
-python dev.py --allgt -t custom custom:rrvsone_on=True
-
 
 # Testing no affine invaraiance and rotation invariance
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --va --show
-
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --allgt
-
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
-
-
-python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt --index 0:10 --va --show
-
-
-# Test hack orientation
-python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose
-python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose --va --show
-
-python dev.py -t custom custom:augment_queryside_hack=True --db PZ_MTEST --allgt 
-python dev.py -t custom custom:augment_queryside_hack=True custom:scale_max=30 custom:affine_invariance=False custom:affine_invariance=False,scale_max=30 --db PZ_Master0 --qaid 82 117 118 154 213 243 250 299 336 351 368 392 415 430 434 441 495 616 629 664 679 682 685 695 835 915 1317 1327 1382 1455 1816 3050 3550 4067 4131 4141 4143 4191 4239 4242 4246 4251 4256 4257 4258 4301 4302 4439 4445 4447 4489 4632 4662 4706 4797 4800 4807 4809 4812 4813 4819 4828 4829 4831 4864 4865 4871 4877 4879 4885 4886 4891 4897 4899 4902 4904 4905 4909 4912 4933 4934 4936 4952 5053 5073 5248 5249 5367 5776 5999 6150 6699 6882 7197 7204 7225 7231 7235 7237 7247 7254 7263 7280 7298 7309 7359 7377 7385 7400 7424 7457 7470 7473 7478 7479 7480 7495 7507 7535 7537 7570 7578 7582 7589 7629 7666 7672 7720 7722 7734 7740 7741 7754 7760 7792 7796 7798 7807 7813 7829 7840 7846 7875 7876 7888 7889 7896 7899 7900 7901 7908 7909 7911 7916 7917 7925 7931 7934 7936 7938 7944 7947 7951 7953 7954 7961 7964 7965 7966 7978 7979 7981 7988 7992 7998 8019 8027 8037 8044 8045 8047 8051 8052 8057 8058 8059 8062 8063 8064 8066 8074 8075 8083 8088 8094 8095 8100 8101 8102 8103 8105 8111 8113 8116 8119 8120 8121 8123 8126 8128 8134 8144 8151 8152 8153 8155 8156 8157 8165 8170 8180 8183 8186 8187 8188 8189 8195 8198 8201 8206 8213 8216 8226 8227 8228 8231 8238 8258 8265 8268 8276 8281 8285 8287 8295 8297 8301 8305 8306 8308 8312 8318 8319 8329 8332 8351 8352 8355 8357 8359 8361 8365 8367 8372 8373 8381 8385 8386 8387 8388 8389 8392 8398 8399 8401 8402 8403 8406 8407 8412 8423 8424 8425 8426 8428 8429 8436 8439 8442 8444 8446 8447 8449 8450 8452 8456 8457 8461 8463 8464 8466 8467 8470 8471 8472 8481 8486 8489 8490 8494 8497 8499 8500 8501 8503 8506 8507 8508 8526 8535 8536 8537 8538 8539 8540 8541 8542 8544 8545 8550 8552 8553 8554 8555 8557 8558 8559 8562 8563 8564 8567 8574 8575 8582 8584 8587 8589 8592 8593 8596 8597 8600 8601 8603 8604 8605 8607 8608 8616 8617 8618 8619 8620 8621 8622 8623 8628 8629 8637 8639 8647 8662 8665 8666 8673 8674 8676 8689 8691 8693 8694 8699 8700 8702 8703 8712 8714 8715 8719 8724 8728 8729 8731 8733 8734 8736
-
-
-python dev.py -t custom custom:augment_queryside_hack=True custom:scale_max=30 custom:affine_invariance=False custom:affine_invariance=False,scale_max=30 --db PZ_Master0 --allgt
-
-
---noqcache --verbose --va --show
-
-
-python dev.py -t custom custom:augment_queryside_hack=True --db PZ_MTEST --allgt 
-
-
-python dev.py -t 
-
---va --show
+dev.py -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
 ```
 
 #---------------
 # Caveats / Things we are not currently doing
 
-* FIXED: No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
-* Feature weights are never recomputed unless the database cache is deleted or feature params are changed

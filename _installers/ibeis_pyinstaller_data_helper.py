@@ -88,14 +88,16 @@ def get_path_extensions():
     """
     module_repos = [
         'utool',
-        'vtool',
-        'guitool',
-        'guitool.__PYQT__',
-        'plottool',
+        'vtool_ibeis',
+        'guitool_ibeis',
+        'guitool_ibeis.__PYQT__',
+        'plottool_ibeis',
         'pyrf',
         'flann/src/python',
         #'pygist',
         'ibeis',
+        'ibeis_cnn',
+        'pydarknet',
         'hesaff',
         'detecttools'
     ]
@@ -116,7 +118,7 @@ def get_path_extensions():
 
 def get_hidden_imports():
     hiddenimports = [
-        'guitool.__PYQT__',
+        'guitool_ibeis.__PYQT__',
         'sklearn.utils.sparsetools._graph_validation',
         'sklearn.utils.sparsetools._graph_tools',
         'scipy.special._ufuncs_cxx',
@@ -129,6 +131,7 @@ def get_hidden_imports():
         'pandas',
         'pandas.hashtable',
         'statsmodels',
+        'theano',
     ]
     return hiddenimports
 
@@ -143,8 +146,8 @@ def get_data_list():
         >>> from ibeis_pyinstaller_data_helper import *  # NOQA
         >>> result = get_data_list()
         >>> DATATUP_LIST, BINARYTUP_LIST, iconfile = result
-        >>> print('DATATUP_LIST = ' + ut.list_str(DATATUP_LIST))
-        >>> print('BINARYTUP_LIST = ' + ut.list_str(BINARYTUP_LIST))
+        >>> print('DATATUP_LIST = ' + ut.repr2(DATATUP_LIST))
+        >>> print('BINARYTUP_LIST = ' + ut.repr2(BINARYTUP_LIST))
         >>> print(len(DATATUP_LIST))
         >>> print(len(BINARYTUP_LIST))
         >>> print(iconfile)
@@ -170,10 +173,15 @@ def get_data_list():
     libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
     DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
+    libpyrf_fname = 'libpydarknet' + LIB_EXT
+    libpyrf_src = realpath(join(root_dir, '..', 'pydarknet', 'pydarknet', libpyrf_fname))
+    libpyrf_dst = join(ibsbuild, 'pydarknet', 'lib', libpyrf_fname)
+    DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
+
     # FLANN
     libflann_fname = 'libflann' + LIB_EXT
     #try:
-    #    #import pyflann
+    #    #from vtool_ibeis._pyflann_backend import pyflann as pyflann
     #    #pyflann.__file__
     #    #join(dirname(dirname(pyflann.__file__)), 'build')
     #except ImportError as ex:
@@ -197,8 +205,8 @@ def get_data_list():
     vtool_libs = ['libsver']
     for libname in vtool_libs:
         lib_fname = libname + LIB_EXT
-        vtlib_src = realpath(join(root_dir, '..', 'vtool', 'vtool', lib_fname))
-        vtlib_dst = join(ibsbuild, 'vtool', lib_fname)
+        vtlib_src = realpath(join(root_dir, '..', 'vtool_ibeis', 'vtool_ibeis', lib_fname))
+        vtlib_dst = join(ibsbuild, 'vtool_ibeis', lib_fname)
         DATATUP_LIST.append((vtlib_dst, vtlib_src))
 
     linux_lib_dpaths = [
@@ -214,13 +222,14 @@ def get_data_list():
         libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
         libbsddb_dst = join(ibsbuild, '_bsddb.so')
         DATATUP_LIST.append((libbsddb_dst, libbsddb_src))
-        #libgomp_src = '/opt/local/lib/libgomp.dylib'
-        libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
+        # libgomp_src = '/opt/local/lib/libgomp.dylib'
+        # libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
+        libgomp_src = '/opt/local/lib/libgcc/libgomp.1.dylib'
         BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
 
         # very hack
-        libiomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
-        BINARYTUP_LIST.append(('libiomp5.dylib', libiomp_src, 'BINARY'))
+        # libiomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
+        # BINARYTUP_LIST.append(('libiomp5.dylib', libiomp_src, 'BINARY'))
 
     if LINUX:
         libgomp_src = ut.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
@@ -241,7 +250,7 @@ def get_data_list():
     #              'darwin': '.2.4.dylib',
     #              'linux2': '.so.2.4'}[PLATFORM]
 
-    target_cv_version = '3.0.0'
+    target_cv_version = '3.1.0'
 
     OPENCV_EXT = {'win32': target_cv_version.replace('.', '') + '.dll',
                   'darwin': '.' + target_cv_version + '.dylib',
@@ -308,7 +317,7 @@ def get_data_list():
         for (dst, src) in DATATUP_LIST:
             assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
-        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise
 
     # Web Assets
@@ -349,7 +358,7 @@ def get_data_list():
         for (dst, src) in DATATUP_LIST:
             assert ut.checkpath(src, verbose=False), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
-        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise
 
     return DATATUP_LIST, BINARYTUP_LIST, iconfile

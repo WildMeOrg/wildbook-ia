@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_matches &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.viz.viz_matches &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,23 +120,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
-      
+        
           <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
-      
-    <li>ibeis.viz.viz_matches</li>
+        
+      <li>ibeis.viz.viz_matches</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -132,81 +161,86 @@
             
   <h1>Source code for ibeis.viz.viz_matches</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="kn">import</span> <span class="nn">plottool.plot_helpers</span> <span class="kn">as</span> <span class="nn">ph</span>
-<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_matches]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="kn">import</span> <span class="nn">plottool.plot_helpers</span> <span class="k">as</span> <span class="nn">ph</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="k">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_get_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">kpts1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kpts1&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">kpts2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kpts2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">kpts2</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">kpts2</span><span class="p">]</span>
+    <span class="n">kpts1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kpts1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">kpts2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kpts2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">as_fpath</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;as_fpath&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">kpts2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">kpts2</span><span class="p">]</span>
     <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span> <span class="o">=</span> <span class="n">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span>
-                                              <span class="n">kpts1</span><span class="o">=</span><span class="n">kpts1</span><span class="p">)</span>
+                                              <span class="n">kpts1</span><span class="o">=</span><span class="n">kpts1</span><span class="p">,</span> <span class="n">as_fpath</span><span class="o">=</span><span class="n">as_fpath</span><span class="p">)</span>
     <span class="n">annot2_data_list</span> <span class="o">=</span> <span class="n">get_data_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid2</span><span class="p">],</span> <span class="n">qreq_</span><span class="p">,</span>
                                                 <span class="n">draw_fmatches</span><span class="p">,</span>
+                                                <span class="n">as_fpath</span><span class="o">=</span><span class="n">as_fpath</span><span class="p">,</span>
                                                 <span class="n">kpts2_list</span><span class="o">=</span><span class="n">kpts2_list</span><span class="p">)</span>
     <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">annot2_data_list</span> <span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span>
 
 
-<div class="viewcode-block" id="get_query_annot_pair_info"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_query_annot_pair_info">[docs]</a><span class="k">def</span> <span class="nf">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_query_annot_pair_info"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_query_annot_pair_info">[docs]</a><span class="k">def</span> <span class="nf">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">as_fpath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1">#print(&#39;!!! qqreq_ = %r&#39; % (qreq_,))</span>
-    <span class="n">query_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span>
-                      <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
-    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">query_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span>
+                      <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">)</span>
+    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="c1">#print(&#39;!!! query_config2_ = %r&#39; % (query_config2_,))</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s1">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;_isnewreq&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s1">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;_isnewreq&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span>  <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s1">&#39;hackoff&#39;</span><span class="p">:</span>
             <span class="n">rchip1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)</span>
-            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rchip1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)</span>
-            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">rchip1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rchip1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">,</span>
+                              <span class="n">as_fpath</span><span class="o">=</span><span class="n">as_fpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">draw_fmatches</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">kpts1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">kpts1</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">return</span> <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span>
+        <span class="n">kpts1</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span></div>
 
-</div>
+
 <div class="viewcode-block" id="get_data_annot_pair_info"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_data_annot_pair_info">[docs]</a><span class="k">def</span> <span class="nf">get_data_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span>
-                             <span class="n">scale_down</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="n">data_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
-                     <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">())</span>
+                             <span class="n">scale_down</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_fpath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">data_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                     <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">)</span>
     <span class="c1">#print(&#39;!!! data_config2_ = %r&#39; % (data_config2_,))</span>
     <span class="c1">#print(&#39;!!! dqreq_ = %r&#39; % (qreq_,))</span>
-    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s1">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;_isnewreq&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s1">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;_isnewreq&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s1">&#39;hackoff&#39;</span><span class="p">:</span>
             <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
             <span class="c1">#rchip2_list = ibs.depc_annot.get_property(&#39;chips&#39;, aid_list, &#39;img&#39;, config=data_config2_)</span>
-            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
-            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1">#vh.get_chips(ibs, aid_list, config2_=data_config2_)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
+        <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span>
+                                   <span class="n">as_fpath</span><span class="o">=</span><span class="n">as_fpath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">draw_fmatches</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">kpts2_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kpts2_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">kpts2_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">kpts2_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">scale_down</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="k">return</span> <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts2_list</span>
+    <span class="k">return</span> <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts2_list</span></div>
 
 
-<span class="c1">#@ut.tracefunc_xml</span></div>
+<span class="c1">#@ut.tracefunc_xml</span>
 <div class="viewcode-block" id="show_name_matches"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_name_matches">[docs]</a><span class="k">def</span> <span class="nf">show_name_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span> <span class="n">name_fs_list</span><span class="p">,</span>
-                      <span class="n">name_H1_list</span><span class="p">,</span> <span class="n">name_featflag_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                      <span class="n">name_H1_list</span><span class="p">,</span> <span class="n">name_featflag_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called from chip_match.py</span>
 
@@ -249,7 +283,7 @@
 <span class="sd">        &gt;&gt;&gt; print(ut.indent(setup, &#39;&gt;&gt;&gt; &#39;))</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=[1])</span>
 <span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
-<span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_name_nsum(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; dnid = ibs.get_annot_nids(cm.qaid)</span>
 <span class="sd">        &gt;&gt;&gt; # +--- COPIED SECTION</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = locals()</span>
@@ -268,11 +302,37 @@
     <span class="c1">#print(&quot;SHOW NAME MATCHES&quot;)</span>
     <span class="c1">#print(ut.repr2(kwargs, nl=True))</span>
     <span class="c1">#from ibeis import constants as const</span>
-    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
-    <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+    <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span> <span class="o">=</span> <span class="n">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">)</span>
     <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">get_data_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span>
                                                        <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">)</span>
+
+    <span class="n">heatmask</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;heatmask&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">heatmask</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">vtool.coverage_kpts</span> <span class="k">import</span> <span class="n">make_kpts_heatmask</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+        <span class="n">wh1</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip1</span><span class="p">)</span>
+        <span class="n">fx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">]))</span>
+        <span class="n">heatmask1</span> <span class="o">=</span> <span class="n">make_kpts_heatmask</span><span class="p">(</span><span class="n">kpts1</span><span class="p">[</span><span class="n">fx1</span><span class="p">],</span> <span class="n">wh1</span><span class="p">)</span>
+        <span class="n">rchip1</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">overlay_alpha_images</span><span class="p">(</span><span class="n">heatmask1</span><span class="p">,</span> <span class="n">rchip1</span><span class="p">)</span>
+        <span class="c1"># Hack cast back to uint8</span>
+        <span class="n">rchip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">rchip1</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+        <span class="n">rchip2_list_</span> <span class="o">=</span> <span class="n">rchip2_list</span>
+        <span class="n">rchip2_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rchip2_list_</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">):</span>
+            <span class="n">fx2</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">wh2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip2</span><span class="p">)</span>
+            <span class="n">heatmask2</span> <span class="o">=</span> <span class="n">make_kpts_heatmask</span><span class="p">(</span><span class="n">kpts2</span><span class="p">[</span><span class="n">fx2</span><span class="p">],</span> <span class="n">wh2</span><span class="p">)</span>
+            <span class="n">rchip2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">overlay_alpha_images</span><span class="p">(</span><span class="n">heatmask2</span><span class="p">,</span> <span class="n">rchip2</span><span class="p">)</span>
+            <span class="c1"># Hack cast back to uint8</span>
+            <span class="n">rchip2</span> <span class="o">=</span> <span class="p">(</span><span class="n">rchip2</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="n">rchip2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rchip2</span><span class="p">)</span>
+    <span class="c1">#</span>
     <span class="n">fm_list</span> <span class="o">=</span> <span class="n">name_fm_list</span>
     <span class="n">fs_list</span> <span class="o">=</span> <span class="n">name_fs_list</span>
     <span class="n">featflag_list</span> <span class="o">=</span> <span class="n">name_featflag_list</span>
@@ -283,9 +343,9 @@
                                                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">+</span> <span class="n">name_daid_list</span>
     <span class="n">annotate_matches3</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span>
-                      <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                      <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span>
                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
@@ -299,13 +359,13 @@
         <span class="n">tags_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">consolodate_annotmatch_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">)</span>
     <span class="n">tag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags_list</span><span class="p">))</span>
 
-    <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_rank&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">truth</span> <span class="o">=</span> <span class="n">get_multitruth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
 
     <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Correct ID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Incorrect ID&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Unknown ID&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Genuine&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Imposter&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
             <span class="c1">#xlabel = {1: &#39;True&#39;, 0: &#39;False&#39;, 2: &#39;Unknown&#39;}[truth]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -319,31 +379,33 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">xlabel</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
 
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ax</span>
+    <span class="n">noshow_truth</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noshow_truth&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">noshow_truth</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span></div>
 
-</div>
+
 <div class="viewcode-block" id="get_multitruth"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_multitruth">[docs]</a><span class="k">def</span> <span class="nf">get_multitruth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="k">return</span> <span class="mi">2</span>
     <span class="n">name_equality</span> <span class="o">=</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span>
                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])))</span>
     <span class="n">truth</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">name_equality</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mi">2</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">name_equality</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">truth</span>
+    <span class="k">return</span> <span class="n">truth</span></div>
 
-</div>
+
 <div class="viewcode-block" id="annotate_matches3"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.annotate_matches3">[docs]</a><span class="k">def</span> <span class="nf">annotate_matches3</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span>
-                      <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                      <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TODO: use this as the main function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO Use this function when you clean show_matches</span>
-    <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="c1">#show_query  = kwargs.get(&#39;show_query&#39;, True)</span>
-    <span class="n">draw_border</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_border&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">draw_lbl</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_lbl&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">notitle</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">draw_border</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_border&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">draw_lbl</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_lbl&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">notitle</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;notitle&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="c1"># List of annotation scores for each annot in the name</span>
 
     <span class="c1">#printDBG(&#39;[viz] annotate_matches3()&#39;)</span>
@@ -375,43 +437,43 @@
     <span class="c1">#truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)</span>
     <span class="n">truth</span> <span class="o">=</span> <span class="n">get_multitruth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span> <span class="ow">or</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TRUTH_UNKNOWN</span>
+        <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">UNKNOWN</span>
     <span class="n">truth_color</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_truth_color</span><span class="p">(</span><span class="n">truth</span><span class="p">)</span>
 
-    <span class="n">name_annot_scores</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_annot_scores&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">name_annot_scores</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_annot_scores&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="c1"># HACK; generalize to multple annots</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">truth</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">truth</span><span class="p">,</span>
+                                  <span class="n">qaid</span><span class="o">=</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">notitle</span><span class="p">:</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
         <span class="c1"># Build labels</span>
-        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">lbls_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">lbls</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lbls_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)):</span>
                 <span class="n">lbls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">((</span><span class="n">name</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_nid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_nid&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">lbls</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lbls_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)):</span>
                 <span class="c1"># only label the first two images with nids</span>
-                <span class="n">LABEL_ALL_NIDS</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">LABEL_ALL_NIDS</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">LABEL_ALL_NIDS</span><span class="p">:</span>
                     <span class="c1">#lbls.append(vh.get_nidstrs(nid))</span>
                     <span class="n">lbls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;q&#39;</span> <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">nid</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_aid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_aid&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">lbls</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lbls_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)):</span>
                 <span class="n">lbls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;q&#39;</span> <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_annot_score&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">and</span>
-              <span class="n">name_annot_scores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
-            <span class="n">max_digits</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score_precision&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_annot_score&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span>
+              <span class="n">name_annot_scores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">max_digits</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score_precision&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">lbls</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lbls_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">name_annot_scores</span><span class="p">):</span>
                 <span class="n">lbls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="n">max_digits</span><span class="p">))</span>
         <span class="n">lbl_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; : &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lbls</span><span class="p">)</span> <span class="k">for</span> <span class="n">lbls</span> <span class="ow">in</span> <span class="n">lbls_list</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">lbl_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="c1">#pt.set_title(title, ax)</span>
+        <span class="n">lbl_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="c1"># Plot annotations over images</span>
     <span class="k">if</span> <span class="n">in_image</span><span class="p">:</span>
         <span class="n">in_image_bbox_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_bboxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">)</span>
@@ -427,55 +489,38 @@
             <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
-        <span class="c1">#theta2 = 0</span>
-
-        <span class="c1">#if xywh2 is None:</span>
-        <span class="c1">#    #xywh2 = (xy[0], xy[1], w, h)</span>
-        <span class="c1">#    # weird when sidebyside is off y seems to be inverted</span>
-        <span class="c1">#    xywh2 = (0,  0, w, h)</span>
-
-        <span class="c1">#if not show_query and xywh1 is None:</span>
-        <span class="c1">#    data_config2 = None if qreq_ is None else</span>
-        <span class="c1">#    qreq_.get_external_data_config2()</span>
-        <span class="c1">#    kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]</span>
-        <span class="c1">#    #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))</span>
-        <span class="c1">#    # Draw any selected matches</span>
-        <span class="c1">#    #sm_kw = dict(rect=True, colors=pt.BLUE)</span>
-        <span class="c1">#    pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)</span>
-        <span class="c1">#if draw_border:</span>
-        <span class="c1">#    pt.draw_border(ax, truth_color, 4, offset=offset2)</span>
         <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">truth_color</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
             <span class="c1"># Custom user lbl for chips 1 and 2</span>
-            <span class="c1">#if show_query:</span>
-            <span class="c1">#    (x1, y1, w1, h1) = xywh1</span>
-            <span class="c1">#    pt.absolute_lbl(x1 + w1, y1, lbl1)</span>
             <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">lbl_list</span><span class="p">):</span>
                 <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">bbox</span>
                 <span class="n">pt</span><span class="o">.</span><span class="n">absolute_lbl</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
     <span class="c1"># No matches draw a red box</span>
-    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">no_matches</span> <span class="o">=</span> <span class="n">name_fm_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">([</span><span class="bp">True</span> <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">no_matches</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">name_fm_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+            <span class="nb">all</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">])</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">no_matches</span><span class="p">:</span>
             <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
             <span class="c1">#axes_bbox = (xy[0], xy[1], w, h)</span>
             <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
-                <span class="k">pass</span>
+                <span class="k">pass</span></div>
                 <span class="c1">#pt.draw_boxedX(axes_bbox, theta=0)</span>
 
-</div>
+
 <div class="viewcode-block" id="annotate_matches2"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.annotate_matches2">[docs]</a><span class="k">def</span> <span class="nf">annotate_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
                       <span class="n">offset1</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                       <span class="n">offset2</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-                      <span class="n">xywh2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>  <span class="c1"># (0, 0, 0, 0),</span>
-                      <span class="n">xywh1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>  <span class="c1"># (0, 0, 0, 0),</span>
-                      <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">xywh2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># (0, 0, 0, 0),</span>
+                      <span class="n">xywh1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># (0, 0, 0, 0),</span>
+                      <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TODO: use this as the main function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span>
         <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">]</span>
         <span class="n">offset_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset1</span><span class="p">,</span> <span class="n">offset2</span><span class="p">]</span>
@@ -484,16 +529,16 @@
         <span class="k">return</span> <span class="n">annotate_matches3</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span> <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># TODO: make sure all of this functionality is incorporated into annotate_matches3</span>
-        <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-        <span class="n">show_query</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-        <span class="n">draw_border</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_border&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-        <span class="n">draw_lbl</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_lbl&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-        <span class="n">notitle</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">show_query</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_query&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">draw_border</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_border&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">draw_lbl</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_lbl&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">notitle</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;notitle&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_truth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="n">truth_color</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_truth_color</span><span class="p">(</span><span class="n">truth</span><span class="p">)</span>
         <span class="c1"># Build title</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">aid1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">aid1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Build xlbl</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;matches&#39;</span><span class="p">)</span>
@@ -503,24 +548,24 @@
         <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
             <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
             <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span>
-                                                   <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                                                   <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="c1">#lbl1 = repr(name1)  + &#39; : &#39; + &#39;q&#39; + vh.get_aidstrs(aid1)</span>
             <span class="c1">#lbl2 = repr(name2)  + &#39; : &#39; +  vh.get_aidstrs(aid2)</span>
             <span class="n">lbl1_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">lbl2_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_aid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_aid&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
                 <span class="n">lbl1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;q&#39;</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid1</span><span class="p">))</span>
                 <span class="n">lbl2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid2</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
                 <span class="n">lbl1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">((</span><span class="n">name1</span><span class="p">)))</span>
                 <span class="n">lbl2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">((</span><span class="n">name2</span><span class="p">)))</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_nid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_nid&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
                 <span class="n">lbl1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">nid1</span><span class="p">))</span>
                 <span class="n">lbl2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">nid2</span><span class="p">))</span>
             <span class="n">lbl1</span> <span class="o">=</span> <span class="s1">&#39; : &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lbl1_list</span><span class="p">)</span>
             <span class="n">lbl2</span> <span class="o">=</span> <span class="s1">&#39; : &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lbl2_list</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">lbl1</span><span class="p">,</span> <span class="n">lbl2</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+            <span class="n">lbl1</span><span class="p">,</span> <span class="n">lbl2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">vh</span><span class="o">.</span><span class="n">NO_LBL_OVERRIDE</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">notitle</span><span class="p">:</span>
@@ -539,20 +584,20 @@
             <span class="n">bbox2</span> <span class="o">=</span> <span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
             <span class="n">theta2</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="k">if</span> <span class="n">xywh2</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xywh2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1">#xywh2 = (xy[0], xy[1], w, h)</span>
                 <span class="c1"># weird when sidebyside is off y seems to be inverted</span>
                 <span class="n">xywh2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">show_query</span> <span class="ow">and</span> <span class="n">xywh1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">data_config2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
-                                <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">show_query</span> <span class="ow">and</span> <span class="n">xywh1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data_config2</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                                <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">)</span>
                 <span class="c1"># FIXME, pass data in</span>
                 <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="c1">#pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))</span>
                 <span class="c1"># Draw any selected matches</span>
                 <span class="c1">#sm_kw = dict(rect=True, colors=pt.BLUE)</span>
-                <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
                 <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">truth_color</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset2</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
@@ -562,18 +607,18 @@
                     <span class="n">pt</span><span class="o">.</span><span class="n">absolute_lbl</span><span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">w1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">lbl1</span><span class="p">)</span>
                 <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">h2</span><span class="p">)</span> <span class="o">=</span> <span class="n">xywh2</span>
                 <span class="n">pt</span><span class="o">.</span><span class="n">absolute_lbl</span><span class="p">(</span><span class="n">x2</span> <span class="o">+</span> <span class="n">w2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">lbl2</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># No matches draw a red box</span>
-            <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
-                    <span class="k">pass</span>
+                    <span class="k">pass</span></div>
                     <span class="c1">#pt.draw_boxedX(bbox2, theta=theta2)</span>
 
 
 <span class="c1">#@ut.indent_func</span>
-<span class="c1">#@ut.tracefunc_xml</span></div>
-<div class="viewcode-block" id="show_matches2"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches2">[docs]</a><span class="k">def</span> <span class="nf">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span>
-                  <span class="n">H1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="c1">#@ut.tracefunc_xml</span>
+<div class="viewcode-block" id="show_matches2"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches2">[docs]</a><span class="k">def</span> <span class="nf">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span>
+                  <span class="n">H1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TODO: DEPRICATE and use special case of show_name_matches</span>
 <span class="sd">    Integrate ChipMatch</span>
@@ -591,9 +636,6 @@
 <span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py&#39;:</span>
 <span class="sd">        interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,</span>
 <span class="sd">        ----------------------</span>
-<span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/algo/hots/vsone_pipeline.py&#39;:</span>
-<span class="sd">        vsone_pipeline.py : 1339 |    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,</span>
-<span class="sd">        ----------------------</span>
 <span class="sd">        Found 2 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py&#39;:</span>
 <span class="sd">        chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,</span>
 <span class="sd">        chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2</span>
@@ -610,42 +652,41 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(defaultdb=&#39;PZ_MTEST&#39;, default_qaids=[18])</span>
-<span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_name_nsum(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; daid = cm.get_top_aids()[0]</span>
 <span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz_matches] WARNING: qreq_ is None&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_matches] WARNING: qreq_ is None&#39;</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">in_image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">in_image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="c1"># Read query and result info (chips, names, ...)</span>
     <span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">_get_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
                                                         <span class="n">draw_fmatches</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s1">&#39;kpts2&#39;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts2</span><span class="p">),</span> <span class="s1">&#39;keypoints should be in correspondence&#39;</span>
-        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
         <span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts1</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts1</span><span class="p">))))</span><span class="o">.</span><span class="n">T</span>
 
     <span class="c1"># Build annotation strings / colors</span>
     <span class="n">lbl1</span> <span class="o">=</span> <span class="s1">&#39;q&#39;</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
     <span class="n">lbl2</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">in_image</span><span class="p">:</span>  <span class="c1"># HACK!</span>
-        <span class="n">lbl1</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">lbl2</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">lbl1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">lbl2</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># Draws the chips and keypoint matches</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_chipmatch2</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span>
-                                               <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="n">fm_norm</span><span class="p">,</span>
-                                               <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="n">H2</span><span class="p">,</span> <span class="n">lbl1</span><span class="o">=</span><span class="n">lbl1</span><span class="p">,</span>
-                                              <span class="n">lbl2</span><span class="o">=</span><span class="n">lbl2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="n">sel_fm</span><span class="p">,</span>
-                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                                              <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="n">fm_norm</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span>
+                                              <span class="n">H2</span><span class="o">=</span><span class="n">H2</span><span class="p">,</span> <span class="n">lbl1</span><span class="o">=</span><span class="n">lbl1</span><span class="p">,</span> <span class="n">lbl2</span><span class="o">=</span><span class="n">lbl2</span><span class="p">,</span>
+                                              <span class="n">sel_fm</span><span class="o">=</span><span class="n">sel_fm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;consider qr.remove_corrupted_queries&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;[viz_matches]&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="c1"># Moved the code into show_chipmatch</span>
     <span class="c1">#if len(sel_fm) &gt; 0:</span>
@@ -658,14 +699,14 @@
     <span class="n">offset2</span> <span class="o">=</span> <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
     <span class="n">annotate_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">xywh2</span><span class="o">=</span><span class="n">xywh2</span><span class="p">,</span> <span class="n">xywh1</span><span class="o">=</span><span class="n">xywh1</span><span class="p">,</span>
                       <span class="n">offset1</span><span class="o">=</span><span class="n">offset1</span><span class="p">,</span> <span class="n">offset2</span><span class="o">=</span><span class="n">offset2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span>
+    <span class="k">return</span> <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span></div>
 
 
 <span class="c1"># OLD QRES BASED FUNCS STILL IN USE</span>
 
 
-<span class="c1">#@ut.indent_func</span></div>
-<div class="viewcode-block" id="show_matches"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches">[docs]</a><span class="k">def</span> <span class="nf">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="c1">#@ut.indent_func</span>
+<div class="viewcode-block" id="show_matches"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches">[docs]</a><span class="k">def</span> <span class="nf">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DEPRICATE</span>
 
@@ -687,12 +728,12 @@
     <span class="n">fm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">aid2_fm</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="p">[])</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">aid2_fs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="p">[])</span>
     <span class="n">aid1</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
-    <span class="k">return</span> <span class="n">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-</div>
-<span class="nd">@profile</span>
-<div class="viewcode-block" id="show_multichip_match"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_multichip_match">[docs]</a><span class="k">def</span> <span class="nf">show_multichip_match</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span>
-                         <span class="n">fs_list</span><span class="p">,</span> <span class="n">featflag_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="show_multichip_match"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_multichip_match">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">show_multichip_match</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span>
+                         <span class="n">fs_list</span><span class="p">,</span> <span class="n">featflag_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    move to df2</span>
@@ -701,42 +742,43 @@
 <span class="sd">    target_wh = None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
-    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="k">as</span> <span class="nn">gtool</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-    <span class="n">colorbar_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;colorbar_&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">stack_larger</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stack_larger&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">colorbar_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;colorbar_&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">stack_larger</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stack_larger&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">stack_side</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stack_side&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="c1"># mode for features disabled by name scoring</span>
     <span class="n">NONVOTE_MODE</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nonvote_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;filter&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">preprocess_chips</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">target_wh</span><span class="p">):</span>
-        <span class="n">rchip_</span> <span class="o">=</span> <span class="n">rchip</span> <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">warpHomog</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">target_wh</span><span class="p">)</span>
+        <span class="n">rchip_</span> <span class="o">=</span> <span class="n">rchip</span> <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">warpHomog</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">target_wh</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">rchip_</span>
 
-    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
 
-    <span class="n">target_wh1</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">H1</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">target_wh1</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">H1</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">rchip1_</span> <span class="o">=</span> <span class="n">preprocess_chips</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="n">target_wh1</span><span class="p">)</span>
     <span class="c1"># Hack to visually identify the query</span>
     <span class="n">rchip1_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span>
         <span class="n">rchip1_</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rchip1_</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
         <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
     <span class="n">wh1</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip1_</span><span class="p">)</span>
-    <span class="n">rchip2_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">preprocess_chips</span><span class="p">(</span><span class="n">rchip2</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">wh1</span><span class="p">)</span>
+    <span class="n">rchip2_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">preprocess_chips</span><span class="p">(</span><span class="n">rchip2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wh1</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">rchip2</span> <span class="ow">in</span> <span class="n">rchip2_list</span><span class="p">]</span>
     <span class="n">wh2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip2</span><span class="p">)</span> <span class="k">for</span> <span class="n">rchip2</span> <span class="ow">in</span> <span class="n">rchip2_list_</span><span class="p">]</span>
 
     <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rchip2_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="mi">1</span>
     <span class="c1">#vert = True if len(rchip2_list) &gt; 1 else False</span>
-    <span class="n">vert</span> <span class="o">=</span> <span class="bp">True</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rchip2_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="bp">None</span>
+    <span class="n">vert</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rchip2_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="c1">#num = 0</span>
 
-    <span class="k">if</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fastmode&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fastmode&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
         <span class="c1"># This doesn&#39;t actually help the speed very much</span>
         <span class="n">stackkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># Hack draw results faster Q</span>
@@ -750,11 +792,14 @@
     <span class="c1">#use_larger = True</span>
     <span class="c1">#vert = kwargs.get(&#39;fastmode&#39;, False)</span>
 
-    <span class="n">match_img</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">sf_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list_special</span><span class="p">(</span><span class="n">rchip1_</span><span class="p">,</span>
-                                                                  <span class="n">rchip2_list_</span><span class="p">,</span>
-                                                                  <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span>
-                                                                  <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
-                                                                  <span class="o">**</span><span class="n">stackkw</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stack_side</span><span class="p">:</span>
+        <span class="c1"># hack to stack all database images vertically</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># TODO: heatmask</span>
+
+    <span class="n">match_img</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">sf_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list_special</span><span class="p">(</span>
+        <span class="n">rchip1_</span><span class="p">,</span> <span class="n">rchip2_list_</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span> <span class="o">**</span><span class="n">stackkw</span><span class="p">)</span>
     <span class="n">wh_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([[</span><span class="n">wh1</span><span class="p">],</span> <span class="n">wh2_list</span><span class="p">]))</span> <span class="o">*</span> <span class="n">sf_list</span>
 
     <span class="n">offset1</span> <span class="o">=</span> <span class="n">offset_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -763,7 +808,7 @@
 
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">match_img</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_matches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_matches&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">fs_list</span><span class="p">)</span>
         <span class="c1">#ut.embed()</span>
         <span class="n">flat_fs</span><span class="p">,</span> <span class="n">cumlen_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invertible_flatten2</span><span class="p">(</span><span class="n">fs_list</span><span class="p">)</span>
@@ -775,7 +820,7 @@
             <span class="n">xywh1</span> <span class="o">=</span> <span class="p">(</span><span class="n">offset1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">offset1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">wh1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">xywh2</span> <span class="o">=</span> <span class="p">(</span><span class="n">offset2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">offset2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">wh2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="c1">#colors = pt.scores_to_color(fs2)</span>
-            <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">kpts2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kpts2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">NONVOTE_MODE</span> <span class="o">==</span> <span class="s1">&#39;filter&#39;</span><span class="p">:</span>
                     <span class="n">fm2</span> <span class="o">=</span> <span class="n">fm2_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">featflags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                     <span class="n">fs2</span> <span class="o">=</span> <span class="n">fs2_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">featflags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -787,16 +832,16 @@
                     <span class="n">fm2</span> <span class="o">=</span> <span class="n">fm2_</span>
                     <span class="n">fs2</span> <span class="o">=</span> <span class="n">fs2_</span>
                 <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span><span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm2</span><span class="p">,</span> <span class="n">fs2</span><span class="p">,</span>
-                               <span class="n">fm_norm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">fm_norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                <span class="n">scale_factor1</span><span class="o">=</span><span class="n">sf1</span><span class="p">,</span> <span class="n">scale_factor2</span><span class="o">=</span><span class="n">sf2</span><span class="p">,</span>
-                               <span class="n">colorbar_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                               <span class="n">colorbar_</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">colorbar_</span><span class="p">:</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">flat_fs</span><span class="p">,</span> <span class="n">flat_colors</span><span class="p">)</span>
     <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">offset_list</span><span class="p">,</span> <span class="n">wh_list</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">sf_list</span><span class="p">,</span> <span class="n">bbox_list</span>
+    <span class="k">return</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">sf_list</span><span class="p">,</span> <span class="n">bbox_list</span></div>
 
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_matches --test-show_matches --show</span>
@@ -807,10 +852,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -820,7 +868,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -842,10 +890,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>

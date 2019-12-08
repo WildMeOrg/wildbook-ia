@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.accessor_decors &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.control.accessor_decors &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,23 +120,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
-      
+        
           <li><a href="../control.html">ibeis.control</a> &raquo;</li>
-      
-    <li>ibeis.control.accessor_decors</li>
+        
+      <li>ibeis.control.accessor_decors</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -132,39 +161,48 @@
             
   <h1>Source code for ibeis.control.accessor_decors</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
-<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[decor]&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">builtins</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="k">import</span> <span class="n">get_funcname</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">DEBUG_ADDERS</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--debug-adders&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbadd&#39;</span><span class="p">))</span>
-<span class="n">DEBUG_SETTERS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--debug-setters&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbset&#39;</span><span class="p">))</span>
-<span class="n">DEBUG_GETTERS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--debug-getters&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbget&#39;</span><span class="p">))</span>
+<span class="n">DEBUG_ADDERS</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">DEBUG_SETTERS</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">DEBUG_GETTERS</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># DEBUG_ADDERS  = ut.get_argflag((&#39;--debug-adders&#39;, &#39;--verbadd&#39;))</span>
+<span class="c1"># DEBUG_SETTERS = ut.get_argflag((&#39;--debug-setters&#39;, &#39;--verbset&#39;))</span>
+<span class="c1"># DEBUG_GETTERS = ut.get_argflag((&#39;--debug-getters&#39;, &#39;--verbget&#39;))</span>
 <span class="n">VERB_CONTROL</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verb-control&#39;</span><span class="p">))</span>
 
-<span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--dev-cache&#39;</span><span class="p">,</span> <span class="s1">&#39;--devcache&#39;</span><span class="p">))</span>
-<span class="n">DEBUG_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--debug-api-cache&#39;</span><span class="p">)</span>
-<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="c1"># DEV_CACHE = ut.get_argflag((&#39;--dev-cache&#39;, &#39;--devcache&#39;))</span>
+<span class="c1"># DEBUG_API_CACHE = ut.get_argflag(&#39;--debug-api-cache&#39;)</span>
+<span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">DEBUG_API_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="k">if</span> <span class="n">RELEASE_MODE</span><span class="p">:</span>
     <span class="c1"># API Cache is only for when you can gaurentee one instance of the</span>
     <span class="c1"># Controller will be running. This is not safe to use in production.  Use</span>
     <span class="c1"># only for local testing.</span>
-    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--api-cache&#39;</span><span class="p">)</span>
-    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--noassert-api-cache&#39;</span><span class="p">,</span> <span class="s1">&#39;--naac&#39;</span><span class="p">))</span>
+    <span class="c1"># API_CACHE = ut.get_argflag(&#39;--api-cache&#39;)</span>
+    <span class="c1"># ASSERT_API_CACHE = not ut.get_argflag((&#39;--noassert-api-cache&#39;, &#39;--naac&#39;))</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-api-cache&#39;</span><span class="p">)</span>
-    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--assert-api-cache&#39;</span><span class="p">,</span> <span class="s1">&#39;--naac&#39;</span><span class="p">))</span>
+    <span class="c1"># API_CACHE = not ut.get_argflag(&#39;--no-api-cache&#39;)</span>
+    <span class="c1"># ASSERT_API_CACHE = ut.get_argflag((&#39;--assert-api-cache&#39;, &#39;--naac&#39;))</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
 
 
 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
 <span class="c1">#</span>
 <span class="c1">#-----------------</span>
 <span class="c1"># IBEIS DECORATORS</span>
@@ -175,19 +213,20 @@
 
 <div class="viewcode-block" id="default_decorator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.default_decorator">[docs]</a><span class="k">def</span> <span class="nf">default_decorator</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE</span>
 <span class="sd">    This should be the first decorator applied to all Controller functions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">input_</span>
     <span class="c1">#return profile(func_)</span>
     <span class="c1">#return ut.indent_func(profile(func_))</span>
-    <span class="k">return</span> <span class="n">func_</span>
+    <span class="k">return</span> <span class="n">func_</span></div>
 
 
 <span class="c1"># DECORATORS::ADDER</span>
 
-</div>
+
 <div class="viewcode-block" id="init_tablecache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.init_tablecache">[docs]</a><span class="k">def</span> <span class="nf">init_tablecache</span><span class="p">():</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">       defaultdict: tablecache</span>
 
@@ -203,10 +242,10 @@
     <span class="c1"># 4 levels of dictionaries</span>
     <span class="c1"># tablename, colname, kwargs, and then rowids</span>
     <span class="n">tablecache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="n">tablecache</span>
+    <span class="k">return</span> <span class="n">tablecache</span></div>
 
-</div>
-<div class="viewcode-block" id="cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_getter">[docs]</a><span class="k">def</span> <span class="nf">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_getter">[docs]</a><span class="k">def</span> <span class="nf">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a getter cacher</span>
 <span class="sd">    the class must have a table_cache property</span>
@@ -237,25 +276,25 @@
 <span class="sd">        &gt;&gt;&gt; rowid_list2 = rowid_list[::3]</span>
 <span class="sd">        &gt;&gt;&gt; rowid_list3 = rowid_list[1::2]</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
-<span class="sd">        &gt;&gt;&gt; getter_func = ibs.get_name_aids.im_func</span>
+<span class="sd">        &gt;&gt;&gt; getter_func = ut.get_method_func(ibs.get_name_aids)</span>
 <span class="sd">        &gt;&gt;&gt; wrp_getter_cacher = cache_getter(tblname, colname, force=True, debug=False)(getter_func)</span>
 <span class="sd">        &gt;&gt;&gt; ### Test Getter (caches)</span>
 <span class="sd">        &gt;&gt;&gt; val_list1 = getter_func(ibs, rowid_list1)</span>
 <span class="sd">        &gt;&gt;&gt; val_list2 = wrp_getter_cacher(ibs, rowid_list1)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ibs.table_cache))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(ibs.table_cache))</span>
 <span class="sd">        &gt;&gt;&gt; val_list3 = wrp_getter_cacher(ibs, rowid_list1)</span>
 <span class="sd">        &gt;&gt;&gt; val_list4 = wrp_getter_cacher(ibs, rowid_list2)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ibs.table_cache))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(ibs.table_cache))</span>
 <span class="sd">        &gt;&gt;&gt; val_list5 = wrp_getter_cacher(ibs, rowid_list3)</span>
 <span class="sd">        &gt;&gt;&gt; val_list  = wrp_getter_cacher(ibs, rowid_list)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(val_list1, val_list2, &#39;run1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(val_list1, val_list2, &#39;run2&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ibs.table_cache))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(ibs.table_cache))</span>
 <span class="sd">        &gt;&gt;&gt; ### Test Setter (invalidates)</span>
 <span class="sd">        &gt;&gt;&gt; setter_func = ibs.set_name_texts</span>
 <span class="sd">        &gt;&gt;&gt; wrp_cache_invalidator = cache_invalidator(tblname, force=True)(lambda *a: None)</span>
 <span class="sd">        &gt;&gt;&gt; wrp_cache_invalidator(ibs, rowid_list1)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ibs.table_cache))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(ibs.table_cache))</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -269,7 +308,7 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:1]</span>
 <span class="sd">        &gt;&gt;&gt; # Check that config2 actually gets you different vectors in the cache</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={&#39;affine_invariance&#39;: False})</span>
-<span class="sd">        &gt;&gt;&gt; config2_ = qreq_.get_external_query_config2()</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = qreq_.extern_query_config2</span>
 <span class="sd">        &gt;&gt;&gt; kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None)</span>
 <span class="sd">        &gt;&gt;&gt; kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_)</span>
 <span class="sd">        &gt;&gt;&gt; kp1 = kpts_list1[0][0:1]</span>
@@ -282,7 +321,7 @@
 <span class="sd">        %timeit getter_func(ibs, rowid_list)</span>
 <span class="sd">        %timeit wrp_getter_cacher(ibs, rowid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">colname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;must specify a single colname&#39;</span>
+    <span class="k">assert</span> <span class="n">colname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;must specify a single colname&#39;</span>
     <span class="k">def</span> <span class="nf">closure_getter_cacher</span><span class="p">(</span><span class="n">getter_func</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
             <span class="c1"># Turn of API Cache</span>
@@ -292,14 +331,14 @@
             <span class="n">num_miss</span>  <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
             <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)</span>
             <span class="n">num_hit</span>   <span class="o">=</span> <span class="n">num_total</span> <span class="o">-</span> <span class="n">num_miss</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[get] </span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> cache hits&#39;</span> <span class="o">%</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[get] </span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> cache hits&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">num_hit</span><span class="p">,</span> <span class="n">num_total</span><span class="p">))</span>
 
         <span class="k">def</span> <span class="nf">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">cached_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
             <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
             <span class="c1"># Load cached values for each rowid</span>
-            <span class="n">cache_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">cache_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">db_vals_list</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c1"># Assert everything is valid</span>
             <span class="n">msg_fmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
@@ -322,26 +361,26 @@
             <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ex</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cache_vals_list</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">db_vals_list</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cache_vals_list</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">db_vals_list</span><span class="p">))</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
                 <span class="k">raise</span>
 
-        <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
             <span class="c1">#@profile cannot profile this because it is alrady being profiled by</span>
             <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Wrapper function that caches rowid values in a dictionary</span>
 <span class="sd">                &quot;&quot;&quot;</span>
                 <span class="c1"># HACK TAKE OUT GETTING DEBUG OUT OF KWARGS</span>
-                <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1">#kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))</span>
-                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
+                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
                     <span class="c1">#ut.dict_take_list(kwargs, cfgkeys, None))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="c1">#+----------------------------</span>
                 <span class="c1"># There are 3 levels of caches</span>
                 <span class="c1">#+----------------------------</span>
@@ -356,9 +395,9 @@
 
                 <span class="c1"># Load cached values for each rowid</span>
                 <span class="c1">#vals_list = ut.dict_take_list(cache_, rowid_list, None)</span>
-                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
+                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
                 <span class="c1"># Mark rowids with cache misses</span>
-                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">debug_</span><span class="p">:</span>
                     <span class="n">debug_cache_hits</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
                     <span class="c1">#print(&#39;[cache_getter] &quot;debug_cache_hits&quot; turned off&#39;)</span>
@@ -396,28 +435,28 @@
                 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Wrapper function that caches rowid values in a dictionary</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
                 <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">None</span> <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
+                    <span class="kc">None</span> <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
                 <span class="p">)</span>
                 <span class="c1"># There are 3 levels of caches</span>
                 <span class="c1"># All caches for this table, caches for the this column, and caches for this kwargs configuration</span>
                 <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
                 <span class="c1"># Load cached values for each rowid</span>
-                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
+                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
                 <span class="c1"># Mark rowids with cache misses</span>
-                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
                 <span class="c1"># END HACK</span>
                 <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
                     <span class="n">handle_cache_misses</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">vals_list</span><span class="p">,</span> <span class="n">cache_</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">vals_list</span>
         <span class="n">wrp_getter_cacher</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter_cacher</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_getter_cacher</span>
-    <span class="k">return</span> <span class="n">closure_getter_cacher</span>
+    <span class="k">return</span> <span class="n">closure_getter_cacher</span></div>
 
-</div>
-<div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; cacher decorator</span>
 
 <span class="sd">    Args:</span>
@@ -439,20 +478,20 @@
         <span class="k">def</span> <span class="nf">wrp_cache_invalidator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c1"># the class must have a table_cache property</span>
             <span class="n">colscache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
-            <span class="n">colnames_</span> <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">colscache_</span><span class="p">))</span> <span class="k">if</span> <span class="n">colnames</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">colnames</span>
+            <span class="n">colnames_</span> <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">colscache_</span><span class="p">))</span> <span class="k">if</span> <span class="n">colnames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">colnames</span>
             <span class="k">if</span> <span class="n">DEBUG_API_CACHE</span><span class="p">:</span>
                 <span class="n">indenter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,))</span>
                 <span class="n">indenter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;INVALIDATING tblname=</span><span class="si">%r</span><span class="s1">, colnames=</span><span class="si">%r</span><span class="s1">, rowidx=</span><span class="si">%r</span><span class="s1">, force=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">rowidx</span><span class="p">,</span> <span class="n">force</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;kwargs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;colscache_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">colscache_</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INVALIDATING tblname=</span><span class="si">%r</span><span class="s1">, colnames=</span><span class="si">%r</span><span class="s1">, rowidx=</span><span class="si">%r</span><span class="s1">, force=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">rowidx</span><span class="p">,</span> <span class="n">force</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;kwargs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;colscache_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">colscache_</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
             <span class="c1"># Clear the cache of any specified colname</span>
             <span class="c1"># when the invalidator is called</span>
-            <span class="k">if</span> <span class="n">rowidx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowidx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span><span class="p">:</span>
                     <span class="n">kwargs_cache_</span> <span class="o">=</span> <span class="n">colscache_</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
                     <span class="c1"># We dont know the rowsids so clear everything</span>
@@ -469,9 +508,9 @@
 
             <span class="c1"># Preform set/delete action</span>
             <span class="k">if</span> <span class="n">DEBUG_API_CACHE</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;After:&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;colscache_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">colscache_</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L__________&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;After:&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;colscache_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">colscache_</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L__________&#39;</span><span class="p">)</span>
 
             <span class="n">writer_result</span> <span class="o">=</span> <span class="n">writer_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -480,53 +519,53 @@
             <span class="k">return</span> <span class="n">writer_result</span>
         <span class="n">wrp_cache_invalidator</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_cache_invalidator</span><span class="p">,</span> <span class="n">writer_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_cache_invalidator</span>
-    <span class="k">return</span> <span class="n">closure_cache_invalidator</span>
+    <span class="k">return</span> <span class="n">closure_cache_invalidator</span></div>
 
-</div>
+
 <div class="viewcode-block" id="dev_cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.dev_cache_getter">[docs]</a><span class="k">def</span> <span class="nf">dev_cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; cache getter for when the database is gaurenteed not to change &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">closure_dev_getter_cacher</span><span class="p">(</span><span class="n">getter_func</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">DEV_CACHE</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">getter_func</span>
         <span class="k">return</span> <span class="n">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)(</span><span class="n">getter_func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">closure_dev_getter_cacher</span>
+    <span class="k">return</span> <span class="n">closure_dev_getter_cacher</span></div>
 
 
-<span class="c1">#@decorator.decorator</span></div>
+<span class="c1">#@decorator.decorator</span>
 <div class="viewcode-block" id="adder"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.adder">[docs]</a><span class="k">def</span> <span class="nf">adder</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_scalar_input</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_adder</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">DEBUG_ADDERS</span> <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-            <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">builtins</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="c1">#wrp_adder = ut.on_exception_report_input(wrp_adder)</span>
-    <span class="k">return</span> <span class="n">wrp_adder</span>
+    <span class="k">return</span> <span class="n">wrp_adder</span></div>
 
 
 <span class="c1"># DECORATORS::DELETER</span>
 
-<span class="c1">#@decorator.decorator</span></div>
+<span class="c1">#@decorator.decorator</span>
 <div class="viewcode-block" id="deleter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.deleter">[docs]</a><span class="k">def</span> <span class="nf">deleter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_scalar_input</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_deleter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DELETE]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-            <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELETE]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">builtins</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_deleter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_deleter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">wrp_deleter</span>
+    <span class="k">return</span> <span class="n">wrp_deleter</span></div>
 
 
 <span class="c1"># DECORATORS::SETTER</span>
@@ -537,29 +576,29 @@
 <span class="c1">#    return func</span>
 
 
-<span class="c1">#@decorator.decorator</span></div>
+<span class="c1">#@decorator.decorator</span>
 <div class="viewcode-block" id="setter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.setter">[docs]</a><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">outer_wrapper</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_setter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">DEBUG_SETTERS</span> <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[SET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[SET]: called by: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
-            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SET]: called by: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
+            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
             <span class="c1">#builtins.print(&#39;\n&#39; + funccall_str + &#39;\n&#39;)</span>
         <span class="c1">#print(&#39;set: funcname=%r, args=%r, kwargs=%r&#39; % (get_funcname(func), args, kwargs))</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="c1">#wrp_setter = ut.on_exception_report_input(wrp_setter)</span>
-    <span class="k">return</span> <span class="n">wrp_setter</span>
+    <span class="k">return</span> <span class="n">wrp_setter</span></div>
 
 
 <span class="c1"># DECORATORS::GETTER</span>
-</div>
+
 <div class="viewcode-block" id="getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter">[docs]</a><span class="k">def</span> <span class="nf">getter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Getter decorator for functions which takes as the first input a unique id</span>
@@ -567,38 +606,38 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#func_ = func</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_scalar_input</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1">#if ut.DEBUG:</span>
         <span class="c1">#    print(&#39;[IN GETTER] args=%r&#39; % (args,))</span>
         <span class="c1">#    print(&#39;[IN GETTER] kwargs=%r&#39; % (kwargs,))</span>
         <span class="k">if</span> <span class="n">DEBUG_GETTERS</span>  <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[GET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+------&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[GET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L------&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="c1">#wrp_getter = ut.on_exception_report_input(wrp_getter)</span>
-    <span class="k">return</span> <span class="n">wrp_getter</span>
+    <span class="k">return</span> <span class="n">wrp_getter</span></div>
 
 
-<span class="c1">#@decorator.decorator</span></div>
+<span class="c1">#@decorator.decorator</span>
 <div class="viewcode-block" id="getter_vector_output"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter_vector_output">[docs]</a><span class="k">def</span> <span class="nf">getter_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Getter decorator for functions which takes as the first input a unique id</span>
 <span class="sd">    list and returns a homogenous list of values</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_scalar_input_vector_output</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input_vector_output</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">getter_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_vector_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">getter_vector_wrp</span>
-</div>
+    <span class="k">return</span> <span class="n">getter_vector_wrp</span></div>
+
 <span class="n">getter_1toM</span> <span class="o">=</span> <span class="n">getter_vector_output</span>
 <span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">getter</span>
 <span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">getter</span>
@@ -612,50 +651,53 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#getter_func = getter(func)</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_numpy</span>
-    <span class="nd">@ut.accepts_scalar_input</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">getter_numpy_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="c1">#getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)</span>
-    <span class="k">return</span> <span class="n">getter_numpy_wrp</span>
+    <span class="k">return</span> <span class="n">getter_numpy_wrp</span></div>
 
 
-<span class="c1">#@decorator.decorator</span></div>
+<span class="c1">#@decorator.decorator</span>
 <div class="viewcode-block" id="getter_numpy_vector_output"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter_numpy_vector_output">[docs]</a><span class="k">def</span> <span class="nf">getter_numpy_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Getter decorator for functions which takes as the first input a unique</span>
 <span class="sd">    id list and returns a heterogeous list of values &quot;&quot;&quot;</span>
     <span class="c1">#getter_func = getter_vector_output(func)</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@ut.accepts_numpy</span>
-    <span class="nd">@ut.accepts_scalar_input_vector_output</span>
-    <span class="nd">@ut.ignores_exc_tb</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input_vector_output</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">getter_numpy_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_numpy_vector_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">getter_numpy_vector_wrp</span>
+    <span class="k">return</span> <span class="n">getter_numpy_vector_wrp</span></div>
 
-</div>
+
 <div class="viewcode-block" id="ider"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.ider">[docs]</a><span class="k">def</span> <span class="nf">ider</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This function takes returns ids subject to conditions &quot;&quot;&quot;</span>
     <span class="n">ider_func</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="n">ider_func</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">ider_func</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ider_func</span>
+    <span class="k">return</span> <span class="n">ider_func</span></div>
 
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.accessor_decors</span>
 <span class="sd">        python -m ibeis.control.accessor_decors --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -665,7 +707,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -687,10 +729,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>

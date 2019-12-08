@@ -1,1222 +1,12 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Exports subset of an IBEIS database to a new IBEIS database
-
 """
 from __future__ import absolute_import, division, print_function
-import six  # NOQA
-from collections import namedtuple
 import utool as ut
-import datetime
-# import ibeis
-import inspect
-from ibeis.other import ibsfuncs  # NOQA
+from ibeis.other import ibsfuncs
 from ibeis import constants as const
-# from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,
-#                              CONTRIBUTOR_TABLE, GSG_RELATION_TABLE, IMAGESET_TABLE,
-#                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,
-#                              LBLIMAGE_TABLE, __STR__)
-# from vtool import geometry
-
-# Transfer data structures could become classes.
-# TODO: Remove the nesting of transfer datas
-# it should be a flat list
-TransferData = namedtuple(
-    'TransferData', (
-        'transfer_database_name',
-        'transfer_database_source',
-        'transfer_export_time',
-        'transfer_export_location_city',
-        'transfer_export_location_state',
-        'transfer_export_location_zip',
-        'transfer_export_location_country',
-        'contributor_td_list',
-        'name_td',
-        'species_td',
-    ))
-
-CONTRIBUTOR_TransferData = namedtuple(
-    'CONTRIBUTOR_TransferData', (
-        'contributor_uuid',
-        'contributor_tag',
-        'contributor_name_first',
-        'contributor_name_last',
-        'contributor_location_city',
-        'contributor_location_state',
-        'contributor_location_country',
-        'contributor_location_zip',
-        'contributor_note',
-        'config_td',
-        'imageset_td',
-        'image_td',
-    ))
-
-NAME_TransferData = namedtuple(
-    'NAME_TransferData', (
-        'name_uuid_list',
-        'name_text_list',
-        'name_note_list',
-    ))
-
-SPECIES_TransferData = namedtuple(
-    'SPECIES_TransferData', (
-        'species_uuid_list',
-        'species_nice_list',
-        'species_text_list',
-        'species_code_list',
-        'species_note_list',
-    ))
-
-CONFIG_TransferData = namedtuple(
-    'CONFIG_TransferData', (
-        'config_suffixes_list',
-    ))
-
-IMAGESET_TransferData = namedtuple(
-    'IMAGESET_TransferData', (
-        'config_INDEX_list',
-        'imageset_uuid_list',
-        'imageset_text_list',
-        'encoutner_note_list',
-    ))
-
-IMAGE_TransferData = namedtuple(
-    'IMAGE_TransferData', (
-        'imageset_INDEXs_list',
-        'image_path_list',
-        'image_uuid_list',
-        'image_ext_list',
-        'image_original_name_list',
-        'image_width_list',
-        'image_height_list',
-        'image_time_posix_list',
-        'image_gps_lat_list',
-        'image_gps_lon_list',
-        'image_toggle_enabled_list',
-        'image_toggle_reviewed_list',
-        'image_note_list',
-        'lblimage_td_list',
-        'annotation_td_list',
-    ))
-
-ANNOTATION_TransferData = namedtuple(
-    'ANNOTATION_TransferData', (
-        'annot_parent_INDEX_list',
-        'annot_uuid_list',
-        'annot_theta_list',
-        'annot_verts_list',
-        'annot_yaw_list',
-        'annot_detection_confidence_list',
-        'annot_exemplar_flag_list',
-        'annot_visual_uuid_list',
-        'annot_semantic_uuid_list',
-        'annot_note_list',
-        'annot_name_INDEX_list',
-        'annot_species_INDEX_list',
-        'lblannot_td_list',
-    ))
-
-LBLIMAGE_TransferData = namedtuple(
-    'LBLIMAGE_TransferData', (
-        'config_INDEX_list',
-        'glr_confidence_list',
-        'lblimage_uuid_list',
-        'lbltype_text_list',
-        'lblimage_value_list',
-        'lblimage_note_list',
-    ))
-
-LBLANNOT_TransferData = namedtuple(
-    'LBLANNOT_TransferData', (
-        'config_INDEX_list',
-        'alr_confidence_list',
-        'lblannot_uuid_list',
-        'lbltype_text_list',
-        'lblannot_value_list',
-        'lblannot_note_list',
-    ))
-
-
-#############################
-#############################
-#############################
-
-
-def tryindex(value, list_, warning=True):
-    if value in list_:
-        return list_.index(value)
-    else:
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        if warning:
-            print('[export_subset] WARNING: value (%r) not in list: %r (%r)' %
-                  (value, list_, calframe[1][3]))
-        return None
-
-
-#############################
-#############################
-#############################
-
-
-def export_transfer_data(ibs_src, gid_list=None):
-    """
-    STEP 1)
-
-    Packs all the data you are going to transfer from ibs_src
-    info the transfer_data named tuple.
-
-    CommandLine:
-        python -m ibeis.dbio.export_subset --test-export_transfer_data
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.dbio import export_subset    # NOQA
-        >>> #ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
-        >>> ibs_src = ibeis.opendb(db='testdb1')
-        >>> bulk_conflict_resolution = 'ignore'
-        >>> num = 5
-        >>> ibs_src.ensure_contributor_rowids(user_prompt=False)
-        >>> gid_list = ibs_src.get_valid_gids()[0:num]
-        >>> td = export_transfer_data(ibs_src, gid_list=gid_list)
-        >>> assert len(td.contributor_td_list) == 1, 'more than 1 contrib'
-        >>> contributor_td = td.contributor_td_list[0]
-        >>> image_td = contributor_td.image_td
-        >>> assert len(image_td.annotation_td_list) == num
-        >>> annotation_td = image_td.annotation_td_list[num - 1]
-        >>> annot_td_dict = annotation_td._asdict()
-        >>> # remove non-determenistic uuid
-        >>> del annot_td_dict['annot_uuid_list']
-        >>> result = ut.dict_str(annot_td_dict)
-        >>> print(result)
-        {
-            'annot_parent_INDEX_list': [None],
-            'annot_theta_list': [0.0],
-            'annot_verts_list': [((0, 0), (1072, 0), (1072, 804), (0, 804))],
-            'annot_yaw_list': [None],
-            'annot_detection_confidence_list': [0.0],
-            'annot_exemplar_flag_list': [1],
-            'annot_visual_uuid_list': [UUID('5a1a53ba-fd44-b113-7f8c-fcf248d7047f')],
-            'annot_semantic_uuid_list': [UUID('02a8b625-fd66-cf7f-8835-468043d0ed63')],
-            'annot_note_list': [u''],
-            'annot_name_INDEX_list': [1],
-            'annot_species_INDEX_list': [0],
-            'lblannot_td_list': [None],
-        }
-
-    print(ut.truncate_str(ibs.db.get_table_csv(const.IMAGE_TABLE, exclude_columns=['image_uuid', 'image_uri']), 10000))
-
-    """
-    if not ut.QUIET:
-        print('Exporting transfer from ibs_src.dbname = %r' %
-              (ibs_src.get_dbname()))
-    if gid_list is None:
-        gid_list = ibs_src.get_valid_gids()
-    if not ut.QUIET:
-        print('... with %d images' % (len(gid_list)))
-    nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
-    species_rowid_list = ibs_src._get_all_species_rowids()
-    # Create Name TransferData
-    name_td = export_name_transfer_data(ibs_src, nid_list)  # NOQA
-    # Create Species TranferData
-    species_td = export_species_transfer_data(ibs_src, species_rowid_list)   # NOQA
-    assert len(ibs_src.get_all_uncontributed_images()
-               ) == 0, 'images are still uncontributed'
-    # with ut.EmbedOnException():
-    if gid_list is not None:
-        contrib_rowid_list = list(
-            set(ibs_src.get_image_contributor_rowid(gid_list)))
-    assert len(
-        contrib_rowid_list) > 0, 'There must be at least one contributor to merge'
-    contributor_td_list = [
-        export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list,
-                                         species_rowid_list, valid_gid_list=gid_list)
-        for contrib_rowid in contrib_rowid_list
-    ]
-    # Geolocate and create database's TransferData object
-    success, location_city, location_state, location_country, location_zip = ut.geo_locate()
-    transfer_database_source = (
-        ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs_src.workdir)
-    transfer_export_time = '%s' % (datetime.datetime.now())
-
-    td = TransferData(
-        ibs_src.dbname,
-        transfer_database_source,
-        transfer_export_time,
-        location_city,
-        location_state,
-        location_zip,
-        location_country,
-        contributor_td_list,
-        name_td,
-        species_td
-    )
-    return td
-
-
-def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
-                                     species_rowid_list, valid_gid_list=None):
-    """
-
-    CommandLine:
-        python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> import ibeis
-        >>> from ibeis.dbio import export_subset    # NOQA
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
-        >>> bulk_conflict_resolution = 'ignore'
-        >>> gid_list = ibs_src.get_valid_gids()[::10]
-        >>> user_prompt = False
-        >>> nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
-        >>> species_rowid_list = ibs_src._get_all_species_rowids()
-        >>> contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
-        >>> valid_gid_list = gid_list
-        >>> contributor_rowid = contrib_rowid_list[0]
-        >>> contrib_td = export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list, valid_gid_list=valid_gid_list)
-
-    Dev::
-        ibs = ibs_src
-        configid_list = ibs.get_valid_configids()
-        config_suffix_list = ibs.get_config_suffixes(configid_list)
-        print(ut.list_str(list(zip(configid_list, config_suffix_list))))
-
-        imgsetid_list = ibs.get_valid_imgsetids()
-        imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
-        imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)
-        print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))
-
-    """
-    # Get configs
-    #config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)
-    # Hack around config-less imagesets
-    config_rowid_list = ibs_src.get_valid_configids()
-    config_td = export_config_transfer_data(ibs_src, config_rowid_list)
-    # Get imagesets
-    #imgsetid_list = ibs_src.get_valid_imgsetids()
-    imgsetid_list = ut.flatten(ibs_src.get_contributor_imgsetids(config_rowid_list))
-    imageset_td = export_imageset_transfer_data(
-        ibs_src, imgsetid_list, config_rowid_list)
-    # Get images
-    gid_list = ibs_src.get_contributor_gids(contributor_rowid)
-    if valid_gid_list is not None:
-        isvalid_list = [gid in valid_gid_list for gid in gid_list]
-        gid_list = ut.compress(gid_list, isvalid_list)
-    image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, imgsetid_list,
-                                          nid_list, species_rowid_list)
-    # Create Contributor TransferData
-    contributor_td = CONTRIBUTOR_TransferData(
-        ibs_src.get_contributor_uuid(contributor_rowid),
-        ibs_src.get_contributor_tag(contributor_rowid),
-        ibs_src.get_contributor_first_name(contributor_rowid),
-        ibs_src.get_contributor_last_name(contributor_rowid),
-        ibs_src.get_contributor_city(contributor_rowid),
-        ibs_src.get_contributor_state(contributor_rowid),
-        ibs_src.get_contributor_country(contributor_rowid),
-        ibs_src.get_contributor_zip(contributor_rowid),
-        ibs_src.get_contributor_note(contributor_rowid),
-        config_td,
-        imageset_td,
-        image_td
-    )
-    return contributor_td
-
-
-def export_name_transfer_data(ibs_src, nid_list):
-    # TODO: autogenerate getter dictionaries
-    # TODO: incorporate autogenerated getter dictionaries
-    # name_getters = {
-    #    'name_uuid'        : ibs_src.get_name_uuids,
-    #    'name_text'        : ibs_src.get_name_texts,
-    #    'name_notes'       : ibs_src.get_name_notes,
-    #    'name_temp_flag'   : ibs_src.get_name_temp_flag,
-    #    'name_alias_texts' : ibs_src.get_name_alias_texts,
-    #}
-    # Create Name TransferData
-    name_td = NAME_TransferData(
-        ibs_src.get_name_uuids(nid_list),
-        ibs_src.get_name_texts(nid_list),
-        ibs_src.get_name_notes(nid_list)
-    )
-    return name_td
-
-
-def export_species_transfer_data(ibs_src, species_rowid_list):
-    """
-    ibs_src.db.print_schema()
-    print(ibs.db.get_table_csv_header(ibeis.const.SPECIES_TABLE))
-    """
-    # Create Species TransferData
-    species_td = SPECIES_TransferData(
-        ibs_src.get_species_uuids(species_rowid_list),
-        ibs_src.get_species_nice(species_rowid_list),
-        ibs_src.get_species_texts(species_rowid_list),
-        ibs_src.get_species_codes(species_rowid_list),
-        ibs_src.get_species_notes(species_rowid_list)
-    )
-    return species_td
-
-
-def export_config_transfer_data(ibs_src, config_rowid_list):
-    if config_rowid_list is None or len(config_rowid_list) == 0:
-        return None
-    # Create Config TransferData
-    config_td = CONFIG_TransferData(
-        ibs_src.get_config_suffixes(config_rowid_list)
-    )
-    return config_td
-
-
-def export_imageset_transfer_data(ibs_src, imgsetid_list, config_rowid_list):
-    if imgsetid_list is None or len(imgsetid_list) == 0:
-        return None
-    # Get imageset data
-    config_INDEX_list = [
-        tryindex(ibs_src.get_imageset_configid(imgsetid), config_rowid_list)
-        for imgsetid in imgsetid_list]
-    # Create ImageSet TransferData
-    imageset_td = IMAGESET_TransferData(
-        config_INDEX_list,
-        ibs_src.get_imageset_uuid(imgsetid_list),
-        ibs_src.get_imageset_text(imgsetid_list),
-        ibs_src.get_imageset_note(imgsetid_list)
-    )
-    return imageset_td
-
-
-def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, imgsetid_list, nid_list,
-                               species_rowid_list):
-    """
-    builds transfer data for seleted image ids in ibs_src.
-    NOTE: gid_list, config_rowid_list and imgsetid_list do not correspond
-    """
-    if gid_list is None or len(gid_list) == 0:
-        return None
-    # Get image data
-    #image_size_list = ibs_src.get_image_sizes(gid_list)
-    #image_gps_list = ibs_src.get_image_gps(gid_list)
-    # Get imageset INDEXs
-    imgsetids_list = ibs_src.get_image_imgsetids(gid_list)
-    imageset_INDEXs_list = [
-        [tryindex(imgsetid, imgsetid_list) for imgsetid in imgsetid_list_]
-        for imgsetid_list_ in imgsetids_list
-    ]
-    # Get image-label relationships
-    glrids_list = ibs_src.get_image_glrids(gid_list)
-    lblimage_td_list = [
-        export_lblimage_transfer_data(ibs_src, glrid_list, config_rowid_list)
-        for glrid_list in glrids_list
-    ]
-    # Get annotations
-    aids_list = ibs_src.get_image_aids(gid_list)
-    annot_td_list = [
-        export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, nid_list,
-                                   species_rowid_list)
-        for aid_list in aids_list
-    ]
-    # Create Image TransferData
-    image_td = IMAGE_TransferData(
-        imageset_INDEXs_list,
-        ibs_src.get_image_paths(gid_list),
-        ibs_src.get_image_uuids(gid_list),
-        ibs_src.get_image_exts(gid_list),
-        ibs_src.get_image_gnames(gid_list),
-        ibs_src.get_image_widths(gid_list),
-        ibs_src.get_image_heights(gid_list),
-        #[size[0] for size in image_size_list],
-        #[size[1] for size in image_size_list],
-        ibs_src.get_image_unixtime(gid_list),
-        ibs_src.get_image_lat(gid_list),
-        ibs_src.get_image_lon(gid_list),
-        #[gps[0] for gps in image_gps_list],
-        #[gps[1] for gps in image_gps_list],
-        ibs_src.get_image_enabled(gid_list),
-        ibs_src.get_image_reviewed(gid_list),
-        ibs_src.get_image_notes(gid_list),
-        lblimage_td_list,
-        annot_td_list
-    )
-    return image_td
-
-
-def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, nid_list, species_rowid_list):
-    if aid_list is None or len(aid_list) == 0:
-        return None
-    # Get annotation parents
-    annot_parent_rowid_list = ibs_src.get_annot_parent_aid(aid_list)
-    # We can make this assumption because parts are not shared across an image.
-    annot_parent_INDEX_list = [
-        None if annot_parent_rowid is None else tryindex(
-            annot_parent_rowid, aid_list)
-        for annot_parent_rowid in annot_parent_rowid_list
-    ]
-    # Get annotation-label relationships
-    alrids_list = ibs_src.get_annot_alrids(aid_list)
-    lblannot_td_list = [
-        export_lblannot_transfer_data(ibs_src, alrid_list, config_rowid_list)
-        for alrid_list in alrids_list
-    ]
-    # Get names and species of annotations
-    annot_name_rowid_list = ibs_src.get_annot_name_rowids(
-        aid_list, distinguish_unknowns=False)
-    annot_name_INDEX_list = [tryindex(nid, nid_list) if nid != const.UNKNOWN_NAME_ROWID else None for nid in annot_name_rowid_list]  # NOQA
-    annot_species_rowid_list = ibs_src.get_annot_species_rowids(aid_list)
-    annot_species_INDEX_list = [  # NOQA
-        tryindex(species_rowid, species_rowid_list)
-        for species_rowid in annot_species_rowid_list
-    ]
-    # Create Annotation TransferData
-    annot_td = ANNOTATION_TransferData(
-        annot_parent_INDEX_list,
-        ibs_src.get_annot_uuids(aid_list),
-        ibs_src.get_annot_thetas(aid_list),
-        ibs_src.get_annot_verts(aid_list),
-        ibs_src.get_annot_yaws(aid_list),
-        ibs_src.get_annot_detect_confidence(aid_list),
-        ibs_src.get_annot_exemplar_flags(aid_list),
-        ibs_src.get_annot_visual_uuids(aid_list),
-        ibs_src.get_annot_semantic_uuids(aid_list),
-        ibs_src.get_annot_notes(aid_list),
-        annot_name_INDEX_list,
-        annot_species_INDEX_list,
-        lblannot_td_list
-    )
-    return annot_td
-
-
-def export_lblimage_transfer_data(ibs_src, glrid_list, config_rowid_list):
-    if glrid_list is None or len(glrid_list) == 0:
-        return None
-    # Get lblimage config
-    config_INDEX_list = [
-        tryindex(ibs_src.get_glr_config_rowid(glrid), config_rowid_list)
-        for glrid in glrid_list
-    ]
-    lblimage_rowid_list = ibs_src.get_glr_lblimage_rowids(glrid_list)
-    lbltypes_rowid_list = ibs_src.get_lblimage_lbltypes_rowids(
-        lblimage_rowid_list)
-    # Create Lblimage TransferData
-    lblimage_td = LBLIMAGE_TransferData(
-        config_INDEX_list,
-        ibs_src.get_glr_confidence(glrid_list),
-        ibs_src.get_lblimage_uuids(lblimage_rowid_list),
-        ibs_src.get_lbltype_text(lbltypes_rowid_list),
-        ibs_src.get_lblimage_values(lblimage_rowid_list),
-        ibs_src.get_lblimage_notes(lblimage_rowid_list)
-    )
-    return lblimage_td
-
-
-def export_lblannot_transfer_data(ibs_src, alrid_list, config_rowid_list):
-    if alrid_list is None or len(alrid_list) == 0:
-        return None
-    # Get lblannot config
-    config_INDEX_list = [
-        tryindex(ibs_src.get_alr_config_rowid(alrid), config_rowid_list)
-        for alrid in alrid_list
-    ]
-    lblannot_rowid_list = ibs_src.get_alr_lblannot_rowids(alrid_list)
-    lbltypes_rowid_list = ibs_src.get_lblannot_lbltypes_rowids(
-        lblannot_rowid_list)
-    # Create Lblannot TransferData
-    lblannot_td = LBLANNOT_TransferData(
-        config_INDEX_list,
-        ibs_src.get_alr_confidence(alrid_list),
-        ibs_src.get_lblannot_uuids(lblannot_rowid_list),
-        ibs_src.get_lbltype_text(lbltypes_rowid_list),
-        ibs_src.get_lblannot_values(lblannot_rowid_list),
-        ibs_src.get_lblannot_notes(lblannot_rowid_list)
-    )
-    return lblannot_td
-
-
-#############################
-#############################
-#############################
-
-
-def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
-    """
-    Imports transfer data from any ibeis database and moves it into ibs_dst
-    """
-    nid_list = import_name_transfer_data(ibs_dst, td.name_td)
-    species_rowid_list = import_species_transfer_data(ibs_dst, td.species_td)
-    # Import the contributors
-    added = []
-    rejected = []
-    for contributor_td in td.contributor_td_list:
-        contrib_uuid = contributor_td.contributor_uuid
-        success = import_contributor_transfer_data(
-            ibs_dst,
-            contributor_td,
-            nid_list,
-            species_rowid_list,
-            bulk_conflict_resolution=bulk_conflict_resolution
-        )
-        if success:
-            added.append(contrib_uuid)
-        else:
-            rejected.append(contrib_uuid)
-    print('[import_transfer_data] ----------------------')
-    print('[import_transfer_data] Database %r imported' %
-          (td.transfer_database_name,))
-    print('[import_transfer_data]   Contributors Accepted: %i' % (len(added),))
-    print('[import_transfer_data]   Contributors Rejected: %i' %
-          (len(rejected),))
-
-
-def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_rowid_list,
-                                     bulk_conflict_resolution='merge'):
-    print('[import_transfer_data] Import Contributor: %r' %
-          (contributor_td.contributor_uuid,))
-    # Find conflicts
-    contributor_rowid = ibs_dst.get_contributor_rowid_from_uuid(
-        [contributor_td.contributor_uuid])[0]
-    if contributor_rowid is not None:
-        # Resolve conflict
-        if bulk_conflict_resolution == 'replace':
-            print('[import_transfer_data]     Conflict Resolution - Replacing contributor: %r' %
-                  (contributor_td.contributor_uuid, ))
-            # Delete current contributor
-            ibs_dst.delete_contributors([contributor_rowid])
-        elif bulk_conflict_resolution == 'ignore':
-            print('[import_transfer_data]     Conflict Resolution - Ignoring contributor: %r' %
-                  (contributor_td.contributor_uuid, ))
-            return True
-        else:
-            print('[import_transfer_data]     Conflict Resolution - Merging contributor: %r' %
-                  (contributor_td.contributor_uuid, ))
-            # TODO: do a more sophisticated contributor merge
-            return False
-
-    contributor_rowid = ibs_dst.add_contributors(
-        [contributor_td.contributor_tag],
-        uuid_list=[contributor_td.contributor_uuid],
-        name_first_list=[contributor_td.contributor_name_first],
-        name_last_list=[contributor_td.contributor_name_last],
-        loc_city_list=[contributor_td.contributor_location_city],
-        loc_state_list=[contributor_td.contributor_location_state],
-        loc_country_list=[contributor_td.contributor_location_country],
-        loc_zip_list=[contributor_td.contributor_location_zip],
-        notes_list=[contributor_td.contributor_note]
-    )[0]
-    # Import configs
-    if contributor_td.config_td is not None:
-        if ut.VERBOSE:
-            print('[import_transfer_data]   Importing configs: %r' %
-                  (contributor_td.config_td.config_suffixes_list,))
-        else:
-            print('[import_transfer_data]   Importing configs')
-        config_rowid_list = import_config_transfer_data(
-            ibs_dst,
-            contributor_td.config_td,
-            contributor_rowid,
-            bulk_conflict_resolution=bulk_conflict_resolution
-        )
-        print('[import_transfer_data]   ...imported %i configs' %
-              (len(config_rowid_list),))
-    else:
-        config_rowid_list = []
-        print('[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)')
-    # Import imagesets
-    if contributor_td.imageset_td is not None:
-        if ut.VERBOSE:
-            print('[import_transfer_data]   Importing imagesets: %r' %
-                  (contributor_td.imageset_td.imageset_uuid_list,))
-        else:
-            print('[import_transfer_data]   Importing imagesets:')
-            imgsetid_list = import_imageset_transfer_data(
-                ibs_dst,
-                contributor_td.imageset_td,
-                config_rowid_list,
-                bulk_conflict_resolution=bulk_conflict_resolution
-            )
-        print('[import_transfer_data]   ...imported %i imagesets' %
-              (len(imgsetid_list),))
-    else:
-        imgsetid_list = []
-        print('[import_transfer_data]   NO IMAGESETS TO IMPORT')
-    # Import images
-    if contributor_td.image_td is not None:
-        if ut.VERBOSE:
-            print('[import_transfer_data]   Importing images: %r' %
-                  (contributor_td.image_td.image_uuid_list,))
-        else:
-            print('[import_transfer_data]   Importing images:')
-        gid_list = import_image_transfer_data(
-            ibs_dst,
-            contributor_td.image_td,
-            contributor_rowid,
-            imgsetid_list,
-            nid_list,
-            species_rowid_list,
-            config_rowid_list,
-            bulk_conflict_resolution=bulk_conflict_resolution
-        )
-        print('[import_transfer_data]   ...imported %i images' %
-              (len(gid_list),))
-    else:
-        print('[import_transfer_data]   NO IMAGES TO IMPORT')
-    # Finished importing contributor
-    print('[import_transfer_data] ...imported contributor: %s' %
-          (contributor_rowid,))
-    return True
-
-
-def import_name_transfer_data(ibs_dst, name_td):
-    # Import Name TransferData
-    name_rowid_list = ibs_dst.add_names(
-        name_td.name_text_list,
-        name_td.name_uuid_list,
-        name_td.name_note_list
-    )
-    return name_rowid_list
-
-
-def import_species_transfer_data(ibs_dst, species_td):
-    # Import Species TransferData
-    species_rowid_list = ibs_dst.add_species(
-        species_td.species_nice_list,
-        species_td.species_text_list,
-        species_td.species_code_list,
-        species_td.species_uuid_list,
-        species_td.species_note_list
-    )
-    return species_rowid_list
-
-
-def import_config_transfer_data(ibs_dst, config_td, contributor_rowid,
-                                bulk_conflict_resolution='merge'):
-    # Find conflicts
-    # Map input (because transfer objects are read-only)
-    config_suffixes_list = config_td.config_suffixes_list
-    # Find conflicts
-    known_config_rowid_list = ibs_dst.get_config_rowid_from_suffix(
-        config_suffixes_list)
-    valid_list = [
-        known_config_rowid is None for known_config_rowid in known_config_rowid_list]
-    if not all(valid_list):
-        # Resolve conflicts
-        invalid_config_rowid_list = ut.filterfalse_items(
-            known_config_rowid_list, valid_list)
-        # invalid_indices =
-        # ut.filterfalse_items(range(len(known_config_rowid_list)),
-        # valid_list) # TODO
-        if bulk_conflict_resolution == 'replace':
-            if ut.VERBOSE:
-                print('[import_transfer_data]     Conflict Resolution - Replacing configs: %r' %
-                      (invalid_config_rowid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Replacing %i configs...' %
-                      (len(invalid_config_rowid_list), ))
-            # Delete invalid configs
-            ibs_dst.delete_configs(invalid_config_rowid_list)
-        elif bulk_conflict_resolution == 'ignore':
-            if ut.VERBOSE:
-                print('[import_transfer_data]     Conflict Resolution - Ignoring configs: %r' %
-                      (invalid_config_rowid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Ignoring %i configs...' %
-                      (len(invalid_config_rowid_list), ))
-            config_suffixes_list = ut.filter_items(
-                config_td.config_suffixes_list, valid_list)
-        else:
-            if ut.VERBOSE:
-                print('[import_transfer_data]     Conflict Resolution - Merging configs: %r' %
-                      (invalid_config_rowid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Merging %i configs...' %
-                      (len(invalid_config_rowid_list), ))
-            # TODO: do a more sophisticated config merge
-    # Add configs
-    config_rowid_list = ibs_dst.add_config(
-        config_suffixes_list,
-        contrib_rowid_list=[contributor_rowid] * len(config_suffixes_list)
-    )
-    return config_rowid_list
-
-
-def import_imageset_transfer_data(ibs_dst, imageset_td, config_rowid_list,
-                                   bulk_conflict_resolution='merge'):
-    # Map input (because transfer objects are read-only)
-    config_INDEX_list = imageset_td.config_INDEX_list
-    imageset_uuid_list = imageset_td.imageset_uuid_list
-    imageset_text_list = imageset_td.imageset_text_list
-    encoutner_note_list = imageset_td.encoutner_note_list
-    # Find conflicts
-    known_imgsetid_list = ibs_dst.get_imageset_imgsetids_from_text(imageset_text_list)
-    valid_list = [known_imgsetid is None for known_imgsetid in known_imgsetid_list]
-    if not all(valid_list):
-        # Resolve conflicts
-        invalid_imgsetid_list = ut.filterfalse_items(known_imgsetid_list, valid_list)
-        # invalid_indices = ut.filterfalse_items(range(len(known_imgsetid_list)),
-        # valid_list)  # TODO
-        if bulk_conflict_resolution == 'replace':
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Replacing imagesets: %r' %
-                    (invalid_imgsetid_list, ))
-            else:
-                print('[import_transfer_data]   Conflict Resolution - Replacing %i imagesets...' %
-                      (len(invalid_imgsetid_list), ))
-            # Delete invalid gids
-            ibs_dst.delete_imagesets(invalid_imgsetid_list)
-        elif bulk_conflict_resolution == 'ignore':
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Ignoring imagesets: %r' %
-                    (invalid_imgsetid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Ignoring %i imagesets...' %
-                      (len(invalid_imgsetid_list), ))
-            config_INDEX_list = ut.filter_items(
-                config_INDEX_list,   valid_list)
-            imageset_uuid_list = ut.filter_items(
-                imageset_uuid_list, valid_list)
-            imageset_text_list = ut.filter_items(
-                imageset_text_list, valid_list)
-            encoutner_note_list = ut.filter_items(
-                encoutner_note_list, valid_list)
-        else:
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Merging imagesets: %r' %
-                    (invalid_imgsetid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Merging %i imagesets...' %
-                      (len(invalid_imgsetid_list), ))
-            # TODO: do a more sophisticated imageset merge
-    # Add imagesets
-    config_rowid_list_ = [config_rowid_list[i] for i in config_INDEX_list]
-    imgsetid_list = ibs_dst.add_imagesets(
-        imageset_text_list,
-        imageset_uuid_list=imageset_uuid_list,
-        config_rowid_list=config_rowid_list_,
-        notes_list=encoutner_note_list,
-    )
-    return imgsetid_list
-
-
-def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
-                               imgsetid_list, nid_list, species_rowid_list,
-                               config_rowid_list, bulk_conflict_resolution='merge'):
-    # Map input (because transfer objects are read-only)
-    imageset_INDEXs_list = image_td.imageset_INDEXs_list
-    image_path_list = image_td.image_path_list
-    image_uuid_list = image_td.image_uuid_list
-    image_ext_list = image_td.image_ext_list
-    image_original_name_list = image_td.image_original_name_list
-    image_width_list = image_td.image_width_list
-    image_height_list = image_td.image_height_list
-    image_time_posix_list = image_td.image_time_posix_list
-    image_gps_lat_list = image_td.image_gps_lat_list
-    image_gps_lon_list = image_td.image_gps_lon_list
-    image_toggle_enabled_list = image_td.image_toggle_enabled_list
-    image_toggle_reviewed_list = image_td.image_toggle_reviewed_list
-    image_note_list = image_td.image_note_list
-    lblimage_td_list = image_td.lblimage_td_list
-    annotation_td_list = image_td.annotation_td_list
-    # Find conflicts
-    known_gid_list = ibs_dst.get_image_gids_from_uuid(image_uuid_list)
-    valid_list = [known_gid is None for known_gid in known_gid_list]
-    if not all(valid_list):
-        # Resolve conflicts
-        invalid_gid_list = ut.filterfalse_items(known_gid_list, valid_list)
-        # invalid_indices = ut.filterfalse_items(range(len(known_gid_list)),
-        # valid_list)  # TODO
-        if bulk_conflict_resolution == 'replace':
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Replacing images: %r' %
-                    (invalid_gid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Replacing %i images...' %
-                      (len(invalid_gid_list), ))
-            # Delete invalid gids
-            ibs_dst.delete_images(invalid_gid_list)
-        elif bulk_conflict_resolution == 'ignore':
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Ignoring images: %r' %
-                    (invalid_gid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Ignoring %i images...' %
-                      (len(invalid_gid_list), ))
-            imageset_INDEXs_list = ut.filter_items(
-                imageset_INDEXs_list,      valid_list)
-            image_path_list = ut.filter_items(
-                image_path_list,            valid_list)
-            image_uuid_list = ut.filter_items(
-                image_uuid_list,            valid_list)
-            image_ext_list = ut.filter_items(
-                image_ext_list,             valid_list)
-            image_original_name_list = ut.filter_items(
-                image_original_name_list,   valid_list)
-            image_width_list = ut.filter_items(
-                image_width_list,           valid_list)
-            image_height_list = ut.filter_items(
-                image_height_list,          valid_list)
-            image_time_posix_list = ut.filter_items(
-                image_time_posix_list,      valid_list)
-            image_gps_lat_list = ut.filter_items(
-                image_gps_lat_list,         valid_list)
-            image_gps_lon_list = ut.filter_items(
-                image_gps_lon_list,         valid_list)
-            image_toggle_enabled_list = ut.filter_items(
-                image_toggle_enabled_list,  valid_list)
-            image_toggle_reviewed_list = ut.filter_items(
-                image_toggle_reviewed_list, valid_list)
-            image_note_list = ut.filter_items(
-                image_note_list,            valid_list)
-            lblimage_td_list = ut.filter_items(
-                lblimage_td_list,           valid_list)
-            annotation_td_list = ut.filter_items(
-                annotation_td_list,         valid_list)
-        else:
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     Conflict Resolution - Merging images: %r' %
-                    (invalid_gid_list, ))
-            else:
-                print('[import_transfer_data]     Conflict Resolution - Merging %i images...' %
-                      (len(invalid_gid_list), ))
-            print(
-                'IMAGE MERGING HAS NOT BEEN IMPLEMENTED, USE IGNORE OR REPLACE RESOLUTIONS FOR NOW')
-            raise
-
-    # Sanity Check
-    assert len(image_uuid_list) == len(
-        set(image_uuid_list)), 'Not unique images'
-    # Add images
-    params_list = zip(image_uuid_list, image_path_list,
-                      image_original_name_list, image_ext_list, image_width_list,
-                      image_height_list, image_time_posix_list, image_gps_lat_list,
-                      image_gps_lon_list, image_note_list)
-    gid_list = ibs_dst.add_images(
-        image_path_list,
-        params_list=params_list
-    )
-    # Add new contributor and set image reviewed and enabled bits
-    print(
-        '[import_transfer_data]     '
-        'Associating images with contributors and setting reviewed and enabled bits...')
-    contrib_rowid_list = [contributor_rowid] * len(gid_list)
-    ibs_dst.set_image_contributor_rowid(gid_list, contrib_rowid_list)
-    ibs_dst.set_image_reviewed(gid_list, image_toggle_reviewed_list)
-    ibs_dst.set_image_enabled(gid_list, image_toggle_enabled_list)
-    # Add images to appropriate imagesets
-    print(
-        '[import_transfer_data]     Associating images with new imagesets...')
-    for gid, imageset_INDEXs in zip(gid_list, imageset_INDEXs_list):
-        for imageset_INDEX in imageset_INDEXs:
-            if 0 <= imageset_INDEX and imageset_INDEX < len(imgsetid_list):
-                ibs_dst.set_image_imgsetids([gid], [imgsetid_list[imageset_INDEX]])
-    # Add lblimages
-    print('[import_transfer_data]     Importing lblimages...')
-    glrid_total = 0
-    for gid, lblimage_td in zip(gid_list, lblimage_td_list):
-        if lblimage_td is not None:
-            glrid_list = import_lblimage_transfer_data(
-                ibs_dst,
-                lblimage_td,
-                gid,
-                config_rowid_list
-            )
-            glrid_total += len(glrid_list)
-    print('[import_transfer_data]     ...imported %i lblimages' %
-          (glrid_total,))
-    # Add annotations
-    print('[import_transfer_data]     Importing annotations...')
-    aid_total = 0
-    for gid, annotation_td in zip(gid_list, annotation_td_list):
-        if annotation_td is not None:
-            if ut.VERBOSE:
-                print('[import_transfer_data]     Importing annotations for image %r: %r ' % (
-                    gid, annotation_td.annot_uuid_list,))
-            aid_list = import_annot_transfer_data(
-                ibs_dst,
-                annotation_td,
-                gid,
-                nid_list,
-                species_rowid_list,
-                config_rowid_list
-            )
-            aid_total += len(aid_list)
-            if ut.VERBOSE:
-                print(
-                    '[import_transfer_data]     ...imported %i annotations' % (len(aid_list),))
-        elif ut.VERBOSE:
-            print(
-                '[import_transfer_data]     NO ANNOTATIONS TO IMPORT FOR IMAGE %r' % (gid))
-    print('[import_transfer_data]     ...imported %i annotations' %
-          (aid_total,))
-    return gid_list
-
-
-def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
-                               species_rowid_list, config_rowid_list):
-    parent_gid_list = [parent_gid] * len(annot_td.annot_uuid_list)
-    name_rowid_list = [
-        const.UNKNOWN_NAME_ROWID
-        if annot_name_INDEX is None else
-        nid_list[annot_name_INDEX]
-        for annot_name_INDEX in annot_td.annot_name_INDEX_list
-    ]
-    species_rowid_list = [
-        const.UNKNOWN_SPECIES_ROWID
-        if annot_species_INDEX is None else
-        species_rowid_list[annot_species_INDEX]
-        for annot_species_INDEX in annot_td.annot_species_INDEX_list
-    ]
-    aid_list = ibs_dst.add_annots(
-        parent_gid_list,
-        theta_list=annot_td.annot_theta_list,
-        detect_confidence_list=annot_td.annot_detection_confidence_list,
-        notes_list=annot_td.annot_note_list,
-        vert_list=annot_td.annot_verts_list,
-        annot_uuid_list=annot_td.annot_uuid_list,
-        yaw_list=annot_td.annot_yaw_list,
-        annot_visual_uuid_list=annot_td.annot_visual_uuid_list,
-        annot_semantic_uuid_list=annot_td.annot_semantic_uuid_list,
-        nid_list=name_rowid_list,
-        species_rowid_list=species_rowid_list,
-        # Turns off thumbnail deletion print statements
-        quiet_delete_thumbs=True
-    )
-    if ut.VERBOSE:
-        print(
-            '[import_transfer_data]       Setting the annotation\'s parent and exemplar bits...')
-    # Adding parent rowids that come from the aid_list (only can come from this list because
-    # aid parent rowids cannot span across images)
-    for aid, annot_parent_INDEX in zip(aid_list, annot_td.annot_parent_INDEX_list):
-        if (annot_parent_INDEX is not None and
-           0 <= annot_parent_INDEX and
-           annot_parent_INDEX < len(aid_list)):
-            parent_aid = aid_list[annot_parent_INDEX]
-            ibs_dst.set_annot_parent_rowid([aid], [parent_aid])
-    ibs_dst.set_annot_exemplar_flags(
-        aid_list, annot_td.annot_exemplar_flag_list)
-    # Add lblannots
-    if ut.VERBOSE:
-        print('[import_transfer_data]       Importing lblannots...')
-    alrid_total = 0
-    for aid, lblannot_td in zip(aid_list, annot_td.lblannot_td_list):
-        if lblannot_td is not None:
-            alrid_list = import_lblannot_transfer_data(
-                ibs_dst,
-                lblannot_td,
-                aid,
-                config_rowid_list
-            )
-            alrid_total += len(alrid_list)
-    if ut.VERBOSE:
-        print('[import_transfer_data]       ...imported %i lblimages' %
-              (alrid_total,))
-    return aid_list
-
-
-def import_lblimage_transfer_data(ibs_dst, lblimage_td, gid, config_rowid_list):
-    # Add lblimages
-    lblimage_rowid_list = ibs_dst.add_lblimages(
-        ibs_dst.get_lbltype_rowid_from_text(lblimage_td.lbltype_text_list),
-        lblimage_td.lblimage_value_list,
-        note_list=lblimage_td.lblimage_note_list,
-        lblimage_uuid_list=lblimage_td.lblimage_uuid_list
-    )
-    # Add image-label relationships
-    valid_list = [
-        0 <= config_INDEX and config_INDEX < len(config_rowid_list)
-        for config_INDEX in lblimage_td.config_INDEX_list
-    ]
-    lblimage_rowid_list = ut.filter_items(lblimage_rowid_list, valid_list)
-    gid_list = [gid] * len(lblimage_rowid_list)
-    config_rowid_list = [
-        config_rowid_list[config_INDEX]
-        for config_INDEX, valid in zip(lblimage_td.config_INDEX_list, valid_list)
-        if valid
-    ]
-    glr_confidence_list = ut.filter_items(
-        lblimage_td.glr_confidence_list, valid_list)
-    glrid_list = ibs_dst.add_image_relationship(
-        gid_list,
-        lblimage_rowid_list,
-        config_rowid_list=config_rowid_list,
-        glr_confidence_list=glr_confidence_list,
-    )
-    return glrid_list
-
-
-def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
-    # Add lblannots
-    lblannot_rowid_list = ibs_dst.add_lblannots(
-        ibs_dst.get_lbltype_rowid_from_text(lblannot_td.lbltype_text_list),
-        lblannot_td.lblannot_value_list,
-        note_list=lblannot_td.lblannot_note_list,
-        lblannot_uuid_list=lblannot_td.lblannot_uuid_list
-    )
-    # Add annot-label relationships
-    valid_list = [
-        0 <= config_INDEX and config_INDEX < len(config_rowid_list)
-        for config_INDEX in lblannot_td.config_INDEX_list
-    ]
-    lblannot_rowid_list = ut.filter_items(lblannot_rowid_list, valid_list)
-    aid_list = [aid] * len(lblannot_rowid_list)
-    config_rowid_list = [
-        config_rowid_list[config_INDEX]
-        for config_INDEX, valid in zip(lblannot_td.config_INDEX_list, valid_list)
-        if valid
-    ]
-    alr_confidence_list = ut.filter_items(
-        lblannot_td.alr_confidence_list, valid_list)
-    alrid_list = ibs_dst.add_annot_relationship(
-        aid_list,
-        lblannot_rowid_list,
-        config_rowid_list=config_rowid_list,
-        alr_confidence_list=alr_confidence_list,
-    )
-    return alrid_list
-
-
-#############################
-#############################
-#############################
-
-
-def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None,
-                    user_prompt=False, bulk_conflict_resolution='ignore'):
-    """
-    STEP 0) MAIN DRIVER FUNCTION
-
-    Conflict resolutions are only between contributors, configs, imagesets and images.
-    Annotations, lblannots, lblimages, their respective relationships, and image-imageset
-    relationships all inherit the resolution from their associated image.
-
-    Args:
-        ibs_src (IBEISController): source controller
-
-        ibs_dst (IBEISController): destination controller (can be an empty database)
-
-        back (GUIBackend): optional gui to update
-
-        user_prompt (bool): prompt user for information
-
-        bulk_conflict_resolution (str): valid conflict_resolutions are::
-            +---
-            * 'replace' - delete original in ibs_dst and import new value
-            * 'ignore' - ignore imported value and keep original in ibs_dst
-            * 'merge' - (default) keep both values in both databases
-            +---
-            WARNING - this may cause near-duplicate information due to duplicate
-            detections, duplicate manual annotations from different
-            contributors.  Images and lblimages will not be duplicated.
-            WARNING - this will only keep the meta data for an image, annotation
-            from the source database (image_height, annotation_verts, etc.)
-            WARNING - this may cause an exception to be raised
-            +---
-
-    CommandLine:
-        python -m ibeis.dbio.export_subset --test-merge_databases
-        python -m ibeis.dbio.export_subset --test-merge_databases:1
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.dbio import export_subset
-        >>> ibs_src = ibeis.opendb(db='testdb1')
-        >>> bulk_conflict_resolution = 'ignore'
-        >>> #gid_list = None
-        >>> back = None
-        >>> user_prompt = False
-        >>> #ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
-        >>> print(ibs_src.get_infostr())
-        >>> #print(ibs_src2.get_infostr())
-        >>> # OPEN A CLEAN DATABASE
-        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=True)
-        >>> assert ibs_dst.get_num_names() == 0, 'dst database is not empty'
-        >>> assert ibs_dst.get_num_images() == 0, 'dst database is not empty'
-        >>> assert ibs_dst.get_num_annotations() == 0, 'dst database is not empty'
-        >>> #ibs_dst = ibs
-        >>> gid_list = ibs_src.get_valid_gids()
-        >>> print('Execute test func')
-        >>> export_subset.merge_databases(ibs_src, ibs_dst, gid_list,
-        ...                               bulk_conflict_resolution=bulk_conflict_resolution)
-        >>> #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
-        >>> result = ibs_dst.get_infostr()
-        >>> print('Result:')
-        >>> print(result)
-        dbname = 'testdb_dst'
-        num_images = 13
-        num_annotations = 13
-        num_names = 7
-
-    Example2:
-        >>> # SLOW_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.dbio import export_subset
-        >>> ibs_src = ibeis.opendb(db='PZ_MTEST')
-        >>> bulk_conflict_resolution = 'ignore'
-        >>> #gid_list = None
-        >>> back = None
-        >>> user_prompt = False
-        >>> #ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
-        >>> print(ibs_src.get_infostr())
-        >>> #print(ibs_src2.get_infostr())
-        >>> # OPEN A CLEAN DATABASE
-        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=False, delete_ibsdir=False)
-        >>> assert ibs_dst.get_num_names() > 0, 'dst database is empty'
-        >>> assert ibs_dst.get_num_images() > 0, 'dst database is empty'
-        >>> assert ibs_dst.get_num_annotations() > 0, 'dst database is empty'
-        >>> #ibs_dst = ibs
-        >>> gid_list = ibs_src.get_valid_gids()
-        >>> print('Execute test func')
-        >>> export_subset.merge_databases(ibs_src, ibs_dst, gid_list,
-        ...                               bulk_conflict_resolution=bulk_conflict_resolution)
-        >>> #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
-        >>> result = ibs_dst.get_infostr()
-        >>> print('Result:')
-        >>> print(result)
-        dbname = 'testdb_dst'
-        num_images = 128
-        num_annotations = 129
-        num_names = 48
-
-
-    """
-    # First ensure that the source and destionation have contributors
-    def DEBUG_UNCONTRIBUTED_IMAGES(ibs):
-        unassigned_gid_list = ibs.get_all_uncontributed_images()
-        print('There are %d/%d uncontributed images in %r' %
-              (len(unassigned_gid_list), len(ibs.get_valid_gids()), ibs.get_dbname()))
-        if len(unassigned_gid_list) > 0:
-            dpath = ibs.get_dbdir()
-            fname = '_debug_uncontributed_gids_' + ut.get_timestamp() + '.txt'
-            fpath = ut.unixjoin(dpath, fname)
-            ut.write_to(
-                fpath, 'unassigned_gid_list = ' + repr(unassigned_gid_list))
-    DEBUG_UNCONTRIBUTED_IMAGES(ibs_src)
-    DEBUG_UNCONTRIBUTED_IMAGES(ibs_dst)
-    # Check that destination database has a valid contributor
-    ibs_src.ensure_contributor_rowids(user_prompt=user_prompt)
-    ibs_dst.ensure_contributor_rowids(user_prompt=user_prompt)
-    # Export source database
-    td = export_transfer_data(ibs_src, gid_list=gid_list)
-    if ut.VERBOSE:
-        print('\n\n[merge_databases] -------------------\n\n')
-        print('[merge_databases] %s' % (td,))
-        print('\n\n[merge_databases] -------------------\n\n')
-    # Import tansfer data object into the destination database
-    # TODO: Implement db backup
-    import_transfer_data(
-        ibs_dst, td, bulk_conflict_resolution=bulk_conflict_resolution)
-    # TODO: Implement db restore or db deletion
-    ibs_dst.notify_observers()
 
 
 def check_merge(ibs_src, ibs_dst):
@@ -1253,7 +43,7 @@ def check_merge(ibs_src, ibs_dst):
     print('Merge seems ok...')
 
 
-def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
+def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     """
     New way of merging using the non-hacky sql table merge.
     However, its only workings due to major hacks.
@@ -1261,14 +51,16 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis merge_databases2
+        python -m ibeis --test-merge_databases
 
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 NNP_Master3 --db2 PZ_Master1
+        python -m ibeis merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
+        python -m ibeis merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
 
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 GZ_ALL --db2 GZ_Master1
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys --db2 GZ_Master1
+        python -m ibeis merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
+        python -m ibeis merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
+
+        python -m ibeis merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
+        python -m ibeis merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1288,8 +80,9 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         >>> assert db1 is not None or dbdir1 is not None
         >>> assert db2 is not None or dbdir2 is not None
         >>> ibs_src = ibeis.opendb(db=db1, dbdir=dbdir1)
-        >>> ibs_dst = ibeis.opendb(db=db2, dbdir=dbdir2, allow_newdir=True, delete_ibsdir=delete_ibsdir)
-        >>> merge_databases2(ibs_src, ibs_dst)
+        >>> ibs_dst = ibeis.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,
+        >>>                        delete_ibsdir=delete_ibsdir)
+        >>> merge_databases(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
         >>> ibs_dst.print_dbinfo()
     """
@@ -1312,15 +105,21 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
-    ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
-    ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship',
-                     'annotation_lblannot_relationship', 'keys']
+    if localize_images:
+        ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
+    ignore_tables = [
+        'lblannot', 'lblimage', 'image_lblimage_relationship',
+        'annotation_lblannot_relationship', 'keys'
+    ]
+    # ignore_tables += [
+    #     'contributors', 'party', 'configs'
+    # ]
     # TODO: Fix database merge to allow merging tables with more than one superkey
-    # and no primary superkey, which requires an extension of the depcache
+    # and no primary superkey.
     error_tables = [
         'imageset_image_relationship',
         'annotgroup_annotation_relationship',
-        'annotmatch',
+        # 'annotmatch',
     ]
     ignore_tables += error_tables
     ibs_dst.db.merge_databases_new(
@@ -1338,7 +137,7 @@ def make_new_dbpath(ibs, id_label, id_list):
     base_fmtstr = ibs.get_dbname() + '_' + id_label + 's=' + \
         tag_hash.replace('(', '_').replace(')', '_') + '_%d'
     dpath = ibeis.get_workdir()
-    new_dbpath = ut.get_nonconflicting_path_old(base_fmtstr, dpath)
+    new_dbpath = ut.non_existing_path(base_fmtstr, dpath)
     return new_dbpath
 
 
@@ -1374,14 +173,6 @@ def export_names(ibs, nid_list, new_dbpath=None):
     gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
 
     return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
-
-
-def export_images_temp(ibs):
-    gid_list = ibs.get_valid_gids()
-    reviewed_list = ibs.get_image_reviewed(gid_list)
-    gid_list_ = [gid for gid, reviewed in zip(
-        gid_list, reviewed_list) if reviewed == 1]
-    export_images(ibs, gid_list_, '/Datasets/PZ_Master1-Sub3')
 
 
 def find_gid_list(ibs, min_count=500, ensure_annots=False):
@@ -1450,11 +241,12 @@ def export_images(ibs, gid_list, new_dbpath=None):
 
 
 def export_annots(ibs, aid_list, new_dbpath=None):
-    """
+    r"""
     exports a subset of annotations and other required info
 
     TODO:
-        PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0
+        PZ_Master1 needs to backproject information back on to NNP_Master3 and
+        PZ_Master0
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1465,14 +257,22 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         str: new_dbpath
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --exec-export_annots
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.dbio.export_subset export_annots
+        python -m ibeis.dbio.export_subset export_annots --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
 
-        python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 \
+            --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
 
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db PZ_Master1 \
+            -a default:has_any=photobomb --acfginfo
 
     Example:
         >>> # SCRIPT
@@ -1483,11 +283,11 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=[''])
         >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
         >>> aid_list = expanded_aids_list[0][0]
-        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
+        >>> ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)
         >>> # Expand to get all annots in each chosen image
         >>> gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
+        >>> ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)
         >>> new_dbpath = ut.get_argval('--new-dbpath', default='PZ_ViewPoints')
         >>> new_dbpath = export_annots(ibs, aid_list, new_dbpath)
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
@@ -1496,10 +296,8 @@ def export_annots(ibs, aid_list, new_dbpath=None):
     print('Exporting annotations aid_list=%r' % (aid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
-
-    gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
-    nid_list = ut.unique_unordered(ibs.get_annot_nids(aid_list))
-
+    gid_list = ut.unique(ibs.get_annot_gids(aid_list))
+    nid_list = ut.unique(ibs.get_annot_nids(aid_list))
     return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
 
 
@@ -1525,116 +323,40 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     gsgrid_list = ut.unique_unordered(
         ut.flatten(ibs.get_image_gsgrids(gid_list)))
 
-    annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
+    # TODO: write SQL query to do this
+    am_rowids = ibs._get_all_annotmatch_rowids()
     flags1_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(annotmatch_rowid_list)]
+        aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(am_rowids)]
     flags2_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(annotmatch_rowid_list)]
+        aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(am_rowids)]
     flag_list = ut.and_lists(flags1_list, flags2_list)
-    annotmatch_rowid_list = ut.compress(annotmatch_rowid_list, flag_list)
-    #annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())
+    am_rowids = ut.compress(am_rowids, flag_list)
+    #am_rowids = ibs.get_valid_aids(ibs.get_valid_aids())
 
     rowid_subsets = {
         const.ANNOTATION_TABLE: aid_list,
         const.NAME_TABLE: nid_list,
         const.IMAGE_TABLE: gid_list,
-        const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
+        const.ANNOTMATCH_TABLE: am_rowids,
         const.GSG_RELATION_TABLE: gsgrid_list,
         const.IMAGESET_TABLE: imgsetid_list,
     }
     ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
-    merge_databases2(ibs, ibs_dst, rowid_subsets=rowid_subsets)
+    merge_databases(ibs, ibs_dst, rowid_subsets=rowid_subsets)
     print('Exported to %r' % (new_dbpath,))
     return new_dbpath
 
 
-# RELEVANT LEGACY CODE FOR IMAGE MERGING
-# def check_conflicts(ibs_src, ibs_dst, transfer_data):
-#     """
-#     Check to make sure the destination database does not have any conflicts
-#     with the incoming transfer.
-
-#     Currently only checks that images do not have conflicting annotations.
-
-#     Does not check label consistency.
-#     """
-
-# TODO: Check label consistency: ie check that labels with the
-# same (type, value) should also have the same UUID
-#     img_td      = transfer_data.img_td
-# annot_td    = transfer_data.annot_td
-# lblannot_td = transfer_data.lblannot_td
-# alr_td      = transfer_data.alr_td
-
-#     image_uuid_list1 = img_td.img_uuid_list
-#     sameimg_gid_list2_ = ibs_dst.get_image_gids_from_uuid(image_uuid_list1)
-#     issameimg = [gid is not None for gid in sameimg_gid_list2_]
-# Check if databases contain the same images
-#     if any(issameimg):
-#         sameimg_gid_list2 = ut.filter_items(sameimg_gid_list2_, issameimg)
-#         sameimg_image_uuids = ut.filter_items(image_uuid_list1, issameimg)
-#         print('! %d/%d images are duplicates' % (len(sameimg_gid_list2), len(image_uuid_list1)))
-# Check if sameimg images in dst has any annotations.
-#         sameimg_aids_list2 = ibs_dst.get_image_aids(sameimg_gid_list2)
-#         hasannots = [len(aids) > 0 for aids in sameimg_aids_list2]
-#         if any(hasannots):
-# TODO: Merge based on some merge stratagy parameter (like annotation timestamp)
-#             sameimg_gid_list1 = ibs_src.get_image_gids_from_uuid(sameimg_image_uuids)
-#             hasannot_gid_list2 = ut.filter_items(sameimg_gid_list2, hasannots)
-#             hasannot_gid_list1 = ut.filter_items(sameimg_gid_list1, hasannots)
-#             print('  !! %d/%d of those have annotations' %
-#             (len(hasannot_gid_list2), len(sameimg_gid_list2)))
-# They had better be the same annotations!
-#             assert_images_have_same_annnots(ibs_src, ibs_dst,
-#             hasannot_gid_list1, hasannot_gid_list2)
-#             print('  ...phew, all of the annotations were the same.')
-# raise AssertionError('dst dataset contains some of this data')
-
-
-# def assert_images_have_same_annnots(ibs_src, ibs_dst, hasannot_gid_list1, hasannot_gid_list2):
-#     """ Given a list of gids from each ibs, this function asserts that every
-#         annontation in gid1 is the same as every annontation in gid2
-#     """
-#     from ibeis.other.ibsfuncs import unflat_map
-#     hasannot_aids_list1 = ibs_src.get_image_aids(hasannot_gid_list1)
-#     hasannot_aids_list2 = ibs_dst.get_image_aids(hasannot_gid_list2)
-#     hasannot_auuids_list1 = unflat_map(ibs_src.get_annot_uuids, hasannot_aids_list1)
-#     hasannot_auuids_list2 = unflat_map(ibs_dst.get_annot_uuids, hasannot_aids_list2)
-#     hasannot_verts_list1 = unflat_map(ibs_src.get_annot_verts, hasannot_aids_list1)
-#     hasannot_verts_list2 = unflat_map(ibs_dst.get_annot_verts, hasannot_aids_list2)
-#     assert_same_annot_uuids(hasannot_auuids_list1, hasannot_auuids_list2)
-# assert_same_annot_verts(hasannot_verts_list1, hasannot_verts_list2)  #
-# hack, check verts as well
-
-
-# def assert_same_annot_uuids(hasannot_auuids_list1, hasannot_auuids_list2):
-#     uuids_pair_iter = zip(hasannot_auuids_list1, hasannot_auuids_list2)
-#     msg = ('The {count}-th image has inconsistent annotation:. '
-#            'auuids1={auuids1} auuids2={auuids2}')
-#     for count, (auuids1, auuids2) in enumerate(uuids_pair_iter):
-#         assert auuids1 == auuids2, msg.format(
-#             count=count, auuids1=auuids1, auuids2=auuids2,)
-
-
-# def assert_same_annot_verts(hasannot_verts_list1, hasannot_verts_list2):
-#     verts_pair_iter = zip(hasannot_verts_list1, hasannot_verts_list2)
-#     msg = ('The {count}-th image has inconsistent annotation:. '
-#            'averts1={averts1} averts2={averts2}')
-#     for count, (averts1, averts2) in enumerate(verts_pair_iter):
-#         assert averts1 == averts2, msg.format(
-#             count=count, averts1=averts1, averts2=averts2,)
-
-
-def test_merge():
+def slow_merge_test():
     r"""
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-test_merge
+        python -m ibeis.dbio.export_subset --test-slow_merge_test
 
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> result = test_merge()
+        >>> result = slow_merge_test()
         >>> print(result)
     """
     from ibeis.dbio import export_subset
@@ -1643,7 +365,7 @@ def test_merge():
     ibs1.fix_invalid_annotmatches()
     ibs_dst = ibeis.opendb(
         db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
-    export_subset.merge_databases2(ibs1, ibs_dst)
+    export_subset.merge_databases(ibs1, ibs_dst)
     #ibs_src = ibs1
     check_merge(ibs1, ibs_dst)
 
@@ -1654,12 +376,12 @@ def test_merge():
 
     ibs_dst.print_dbinfo()
 
-    export_subset.merge_databases2(ibs2, ibs_dst)
+    export_subset.merge_databases(ibs2, ibs_dst)
     #ibs_src = ibs2
     check_merge(ibs2, ibs_dst)
 
     ibs3 = ibeis.opendb('PZ_MTEST')
-    export_subset.merge_databases2(ibs3, ibs_dst)
+    export_subset.merge_databases(ibs3, ibs_dst)
     #ibs_src = ibs2
     check_merge(ibs3, ibs_dst)
 
@@ -1672,29 +394,585 @@ def test_merge():
     # ibs_dst.print_annotation_table()
 
 
+def fix_bidirectional_annotmatch(ibs):
+    import ibeis
+    infr = ibeis.AnnotInference(ibs=ibs, aids='all', verbose=5)
+    infr.initialize_graph()
+    annots = ibs.annots()
+    aid_to_nid = ut.dzip(annots.aids, annots.nids)
+
+    # Delete bidirectional annotmatches
+    annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+    df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+    # Find entires that have both directions
+    pairs1 = annotmatch[['annot_rowid1', 'annot_rowid2']].values
+    f_edges = {tuple(p) for p in pairs1}
+    b_edges = {tuple(p[::-1]) for p in pairs1}
+    isect_edges = {tuple(sorted(p)) for p in b_edges.intersection(f_edges)}
+    print('Found %d bidirectional edges' % len(isect_edges))
+    isect_edges1 = list(isect_edges)
+    isect_edges2 = [p[::-1] for p in isect_edges]
+
+    import pandas as pd
+    extra_ = {}
+    fixme_edges = []
+    d1 = df.loc[isect_edges1].reset_index(drop=False)
+    d2 = df.loc[isect_edges2].reset_index(drop=False)
+    flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
+    from ibeis.tag_funcs import _parse_tags
+    for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
+        v1, v2 = r1[1], r2[1]
+        aid1 = v1['annot_rowid1']
+        aid2 = v1['annot_rowid2']
+        truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
+                      if aid_to_nid[aid1] == aid_to_nid[aid2] else
+                      ibs.const.EVIDENCE_DECISION.NEGATIVE)
+        truth1 = v1['annotmatch_evidence_decision']
+        truth2 = v2['annotmatch_evidence_decision']
+        t1 = _parse_tags(v1['annotmatch_tag_text'])
+        t2 = _parse_tags(v2['annotmatch_tag_text'])
+        newtag = ut.union_ordered(t1, t2)
+        fixme_flag = False
+        if not pd.isnull(truth1):
+            if truth_real != truth1:
+                fixme_flag = True
+        if not pd.isnull(truth2):
+            if truth_real != truth2:
+                fixme_flag = True
+        if fixme_flag:
+            print('--')
+            print('t1, t2 = %r, %r' % (t1, t2))
+            print('newtag = %r' % (newtag,))
+            print('truth_real, truth1, truth2 = %r, %r, %r' % (
+                truth_real, truth1, truth2,))
+            print('aid1, aid2 = %r, %r' % (aid1, aid2))
+            fixme_edges.append(tuple(sorted((aid1, aid2))))
+        else:
+            extra_[(aid1, aid2)] = (truth_real, newtag)
+
+    if len(fixme_edges) > 0:
+        # need to manually fix these edges
+        fix_infr = ibeis.AnnotInference.from_pairs(fixme_edges, ibs=ibs, verbose=5)
+        feedback = fix_infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        infr = fix_infr
+
+        fix_infr.external_feedback = feedback
+        fix_infr.apply_feedback_edges()
+        fix_infr.start_qt_interface(loop=False)
+        # DELETE OLD EDGES TWICE
+        ams = ibs.get_annotmatch_rowid_from_edges(fixme_edges)
+        ibs.delete_annotmatch(ams)
+        ams = ibs.get_annotmatch_rowid_from_edges(fixme_edges)
+        ibs.delete_annotmatch(ams)
+
+        # MANUALLY CALL THIS ONCE FINISHED
+        # TO ONLY CHANGE ANNOTMATCH EDGES
+        infr.write_ibeis_staging_feedback()
+        infr.write_ibeis_annotmatch_feedback()
+
+    # extra_.update(custom_)
+    new_pairs = extra_.keys()
+    new_truths = ut.take_column(ut.dict_take(extra_, new_pairs), 0)
+    new_tags = ut.take_column(ut.dict_take(extra_, new_pairs), 1)
+    new_tag_texts = [';'.join(t) for t in new_tags]
+    aids1, aids2 = ut.listT(new_pairs)
+
+    # Delete the old
+    ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
+                           d2['annotmatch_rowid'].values.tolist()))
+
+    # Add the new
+    ams = ibs.add_annotmatch_undirected(aids1, aids2)
+    ibs.set_annotmatch_evidence_decision(ams, new_truths)
+    ibs.set_annotmatch_tag_text(ams, new_tag_texts)
+
+    if False:
+        import guitool_ibeis as gt
+        gt.ensure_qapp()
+        ut.qtensure()
+        from ibeis.gui import inspect_gui
+        inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+
+
+def fix_annotmatch_pzmaster1():
+    """
+    PZ_Master1 had annotmatch rowids that did not agree with the current name
+    labeling. Looking at the inconsistencies in the graph interface was too
+    cumbersome, because over 3000 annots were incorrectly grouped together.
+
+    This function deletes any annotmatch rowid that is not consistent with the
+    current labeling so we can go forward with using the new AnnotInference
+    object
+    """
+    import ibeis
+    ibs = ibeis.opendb('PZ_Master1')
+    infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(), verbose=5)
+    infr.initialize_graph()
+    annots = ibs.annots()
+    aid_to_nid = ut.dzip(annots.aids, annots.nids)
+
+    if False:
+        infr.reset_feedback()
+        infr.ensure_mst()
+        infr.apply_feedback_edges()
+        infr.relabel_using_reviews()
+        infr.start_qt_interface()
+
+    # Get annotmatch rowids that agree with current labeling
+    if False:
+        annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+        import pandas as pd
+        flags1 = pd.isnull(annotmatch['annotmatch_evidence_decision'])
+        flags2 = annotmatch['annotmatch_tag_text'] == ''
+        bad_part = annotmatch[flags1 & flags2]
+        rowids = bad_part.index.tolist()
+        ibs.delete_annotmatch(rowids)
+
+    if False:
+        # Delete bidirectional annotmatches
+        annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+        df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+        # Find entires that have both directions
+        pairs1 = annotmatch[['annot_rowid1', 'annot_rowid2']].values
+        f_edges = {tuple(p) for p in pairs1}
+        b_edges = {tuple(p[::-1]) for p in pairs1}
+        isect_edges = {tuple(sorted(p)) for p in b_edges.intersection(f_edges)}
+        isect_edges1 = list(isect_edges)
+        isect_edges2 = [p[::-1] for p in isect_edges]
+
+        # cols = ['annotmatch_evidence_decision', 'annotmatch_tag_text']
+        import pandas as pd
+
+        custom_ = {
+            (559, 4909): (False, ['photobomb']),
+            (7918, 8041): (False, ['photobomb']),
+            (6634, 6754): (False, ['photobomb']),
+            (3707, 3727): (False, ['photobomb']),
+            (86, 103): (False, ['photobomb']),
+        }
+        extra_ = {
+        }
+
+        fixme_edges = []
+
+        d1 = df.loc[isect_edges1].reset_index(drop=False)
+        d2 = df.loc[isect_edges2].reset_index(drop=False)
+        flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
+        from ibeis.tag_funcs import _parse_tags
+        for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
+            v1, v2 = r1[1], r2[1]
+            aid1 = v1['annot_rowid1']
+            aid2 = v1['annot_rowid2']
+            truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
+                          if aid_to_nid[aid1] == aid_to_nid[aid2] else
+                          ibs.const.EVIDENCE_DECISION.NEGATIVE)
+            truth1 = v1['annotmatch_evidence_decision']
+            truth2 = v2['annotmatch_evidence_decision']
+            t1 = _parse_tags(v1['annotmatch_tag_text'])
+            t2 = _parse_tags(v2['annotmatch_tag_text'])
+            newtag = ut.union_ordered(t1, t2)
+            if (aid1, aid2) in custom_:
+                continue
+            fixme_flag = False
+            if not pd.isnull(truth1):
+                if truth_real != truth1:
+                    fixme_flag = True
+            if not pd.isnull(truth2):
+                if truth_real != truth2:
+                    fixme_flag = True
+            if fixme_flag:
+                print('newtag = %r' % (newtag,))
+                print('truth_real = %r' % (truth_real,))
+                print('truth1 = %r' % (truth1,))
+                print('truth2 = %r' % (truth2,))
+                print('aid1 = %r' % (aid1,))
+                print('aid2 = %r' % (aid2,))
+                fixme_edges.append((aid1, aid2))
+            else:
+                extra_[(aid1, aid2)] = (truth_real, newtag)
+
+        extra_.update(custom_)
+        new_pairs = extra_.keys()
+        new_truths = ut.take_column(ut.dict_take(extra_, new_pairs), 0)
+        new_tags = ut.take_column(ut.dict_take(extra_, new_pairs), 1)
+        new_tag_texts = [';'.join(t) for t in new_tags]
+        aids1, aids2 = ut.listT(new_pairs)
+
+        # Delete the old
+        ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
+                               d2['annotmatch_rowid'].values.tolist()))
+
+        # Add the new
+        ams = ibs.add_annotmatch_undirected(aids1, aids2)
+        ibs.set_annotmatch_evidence_decision(ams, new_truths)
+        ibs.set_annotmatch_tag_text(ams, new_tag_texts)
+
+        if False:
+            import guitool_ibeis as gt
+            gt.ensure_qapp()
+            ut.qtensure()
+            from ibeis.gui import inspect_gui
+            inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+
+        # pairs2 = pairs1.T[::-1].T
+        # idx1, idx2 = ut.isect_indices(list(map(tuple, pairs1)),
+        #                               list(map(tuple, pairs2)))
+        # r_edges = list(set(map(tuple, map(sorted, pairs1[idx1]))))
+        # unique_pairs = list(set(map(tuple, map(sorted, pairs1[idx1]))))
+        # df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+    x = ut.ddict(list)
+    annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+    import ubelt as ub
+    _iter = annotmatch.iterrows()
+    prog = ub.ProgIter(_iter, length=len(annotmatch))
+    for k, m in prog:
+        aid1 = m['annot_rowid1']
+        aid2 = m['annot_rowid2']
+        if m['annotmatch_evidence_decision'] == ibs.const.EVIDENCE_DECISION.POSITIVE:
+            if aid_to_nid[aid1] == aid_to_nid[aid2]:
+                x['agree1'].append(k)
+            else:
+                x['disagree1'].append(k)
+        elif m['annotmatch_evidence_decision'] == ibs.const.EVIDENCE_DECISION.NEGATIVE:
+            if aid_to_nid[aid1] == aid_to_nid[aid2]:
+                x['disagree2'].append(k)
+            else:
+                x['agree2'].append(k)
+
+    ub.map_vals(len, x)
+    ut.dict_hist(annotmatch.loc[x['disagree1']]['annotmatch_tag_text'])
+
+    disagree1 = annotmatch.loc[x['disagree1']]
+    pb_disagree1 =  disagree1[disagree1['annotmatch_tag_text'] == 'photobomb']
+    aids1 = pb_disagree1['annot_rowid1'].values.tolist()
+    aids2 = pb_disagree1['annot_rowid2'].values.tolist()
+    aid_pairs = list(zip(aids1, aids2))
+    infr = ibeis.AnnotInference.from_pairs(aid_pairs, ibs=ibs, verbose=5)
+    if False:
+        feedback = infr.read_ibeis_annotmatch_feedback(edges=infr.edges())
+        infr.external_feedback = feedback
+        infr.apply_feedback_edges()
+        infr.start_qt_interface(loop=False)
+
+    # Delete these values
+    if False:
+        nonpb_disagree1 = disagree1[disagree1['annotmatch_tag_text'] != 'photobomb']
+        disagree2 = annotmatch.loc[x['disagree2']]
+        ibs.delete_annotmatch(nonpb_disagree1['annotmatch_rowid'])
+        ibs.delete_annotmatch(disagree2['annotmatch_rowid'])
+
+    # ut.dict_hist(disagree1['annotmatch_tag_text'])
+    import networkx as nx
+    graph = nx.Graph()
+    graph.add_edges_from(zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2']))
+    list(nx.connected_components(graph))
+
+    set(annotmatch.loc[x['disagree2']]['annotmatch_tag_text'])
+
+    # aid1, aid2 = 2585, 1875
+    # # pd.unique(annotmatch['annotmatch_evidence_decision'])
+    # from ibeis.gui import inspect_gui
+    # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+    # from vtool_ibeis import inspect_matches
+
+    # aid1, aid2 = 2108, 2040
+
+    # pd.unique(annotmatch['annotmatch_tag_text'])
+
+    # infr.reset_feedback()
+    # infr.relabel_using_reviews()
+
+
+def remerge_subset():
+    """
+    Assumes ibs1 is an updated subset of ibs2.
+    Re-merges ibs1 back into ibs2.
+
+    TODO: annotmatch table must have non-directional edges for this to work.
+    I.e. u < v
+
+    Ignore:
+
+        # Ensure annotmatch and names are up to date with staging
+
+        # Load graph
+        import ibei
+        ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+        infr = ibeis.AnnotInference(aids='all', ibs=ibs, verbose=3)
+        infr.reset_feedback('staging', apply=True)
+        infr.relabel_using_reviews()
+
+        # Check deltas
+        infr.ibeis_name_group_delta_info()
+        infr.ibeis_delta_info()
+
+        # Write if it looks good
+        infr.write_ibeis_annotmatch_feedback()
+        infr.write_ibeis_name_assignment()
+
+    Ignore:
+        import ibeis
+        ibs = ibeis.opendb('PZ_Master1')
+        infr = ibeis.AnnotInference(ibs, 'all')
+        infr.reset_feedback('annotmatch', apply=True)
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset remerge_subset
+    """
+    import ibeis
+    ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
+    ibs2 = ibeis.opendb('PZ_Master1')
+
+    gids1, gids2 = ibs1.images(), ibs2.images()
+    idxs1, idxs2 = ut.isect_indices(gids1.uuids, gids2.uuids)
+    isect_gids1, isect_gids2 = gids1.take(idxs1), gids2.take(idxs2)
+
+    assert all(
+        set.issubset(set(a1), set(a2))
+        for a1, a2 in zip(isect_gids1.annot_uuids, isect_gids2.annot_uuids)
+    )
+
+    annot_uuids = ut.flatten(isect_gids1.annot_uuids)
+    # aids1 = ibs1.annots(ibs1.get_annot_aids_from_uuid(annot_uuids), asarray=True)
+    # aids2 = ibs2.annots(ibs2.get_annot_aids_from_uuid(annot_uuids), asarray=True)
+    aids1 = ibs1.annots(uuids=annot_uuids, asarray=True)
+    aids2 = ibs2.annots(uuids=annot_uuids, asarray=True)
+    import numpy as np
+
+    to_aids2 = dict(zip(aids1, aids2))
+    # to_aids1 = dict(zip(aids2, aids1))
+
+    # Step 1) Update individual annot properties
+    # These annots need updates
+    # np.where(aids1.visual_uuids != aids2.visual_uuids)
+    # np.where(aids1.semantic_uuids != aids2.semantic_uuids)
+
+    annot_unary_props = [
+        # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
+        'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
+        'age_months_est_max', 'age_months_est_min',  # 'sex_texts'
+    ]
+    to_change = {}
+    for key in annot_unary_props:
+        prop1 = getattr(aids1, key)
+        prop2 = getattr(aids2, key)
+        diff_idxs = set(np.where(prop1 != prop2)[0])
+        if diff_idxs:
+            diff_prop1 = ut.take(prop1, diff_idxs)
+            diff_prop2 = ut.take(prop2, diff_idxs)
+            print('key = %r' % (key,))
+            print('diff_prop1 = %r' % (diff_prop1,))
+            print('diff_prop2 = %r' % (diff_prop2,))
+            to_change[key] = diff_idxs
+    if to_change:
+        changed_idxs = ut.unique(ut.flatten(to_change.values()))
+        print('Found %d annots that need updated properties' % len(changed_idxs))
+        print('changing unary attributes: %r' % (to_change,))
+        if False and ut.are_you_sure('apply change'):
+            for key, idxs in to_change.items():
+                subaids1 = aids1.take(idxs)
+                subaids2 = aids2.take(idxs)
+                prop1 = getattr(subaids1, key)
+                # prop2 = getattr(subaids2, key)
+                setattr(subaids2, key, prop1)
+    else:
+        print('Annot properties are in sync. Nothing to change')
+
+    # Step 2) Update annotmatch - pairwise relationships
+    infr1 = ibeis.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
+                                 autoinit=False)
+
+    # infr2 = ibeis.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
+    aids2 = ibs2.get_valid_aids(is_known=True)
+    infr2 = ibeis.AnnotInference(aids=aids2, ibs=ibs2, verbose=3)
+    infr2.reset_feedback('annotmatch', apply=True)
+
+    # map feedback from ibs1 onto ibs2 using ibs2 aids.
+    fb1 = infr1.read_ibeis_annotmatch_feedback()
+    fb1_t = {(to_aids2[u], to_aids2[v]): val for (u, v), val in fb1.items()}
+    fb1_df_t = infr2._pandas_feedback_format(fb1_t).drop('am_rowid', axis=1)
+
+    # Add transformed feedback into ibs2
+    infr2.add_feedback_from(fb1_df_t)
+
+    # Now ensure that dummy connectivity exists to preserve origninal names
+    # from ibeis.algo.graph import nx_utils
+    # for (u, v) in infr2.find_mst_edges('name_label'):
+    #     infr2.draw_aids((u, v))
+    #     cc1 = infr2.pos_graph.connected_to(u)
+    #     cc2 = infr2.pos_graph.connected_to(v)
+    #     print(nx_utils.edges_cross(infr2.graph, cc1, cc2))
+    #     infr2.neg_redundancy(cc1, cc2)
+    #     infr2.pos_redundancy(cc2)
+
+    infr2.relabel_using_reviews(rectify=True)
+    infr2.apply_nondynamic_update()
+
+    if False:
+        infr2.ibeis_delta_info()
+        infr2.ibeis_name_group_delta_info()
+
+    if len(list(infr2.inconsistent_components())) > 0:
+        raise NotImplementedError('need to fix inconsistencies first')
+        # Make it so it just loops until inconsistencies are resolved
+        infr2.prioritize()
+        infr2.qt_review_loop()
+    else:
+        infr2.write_ibeis_staging_feedback()
+        infr2.write_ibeis_annotmatch_feedback()
+        infr2.write_ibeis_name_assignment()
+
+    # if False:
+    #     # Fix any inconsistency
+    #     infr2.start_qt_interface(loop=False)
+    #     test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,
+    #                   5338, 2654]
+    #     import networkx as nx
+    #     nx.is_connected(infr2.graph.subgraph(test_nodes))
+    #     # infr = ibeis.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
+
+    #     # randomly sample some new labels to verify
+    #     import guitool_ibeis as gt
+    #     from ibeis.gui import inspect_gui
+    #     gt.ensure_qapp()
+    #     ut.qtensure()
+    #     old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
+    #     del old_groups['____']
+
+    #     new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
+
+    #     from ibeis.algo.hots import simulate
+    #     c = simulate.compare_groups(
+    #         list(new_groups.values()),
+    #         list(old_groups.values()),
+    #     )
+    #     ut.map_vals(len, c)
+    #     for aids in c['pred_splits']:
+    #         old_nids = ibs2.get_annot_nids(aids)
+    #         new_nids = ut.take_column(infr2.gen_node_attrs('name_label', aids), 1)
+    #         split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)
+    #         aid1, aid2 = split_aids[0:2]
+
+    #         if False:
+    #             inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)
+    #     infr2.start_qt_interface(loop=False)
+
+    # if False:
+    #     # import ibeis
+    #     ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
+    #     infr1 = ibeis.AnnotInference(aids='all', ibs=ibs1, verbose=3)
+    #     infr1.initialize_graph()
+    #     # infr1.reset_feedback('staging')
+    #     infr1.reset_feedback('annotmatch')
+    #     infr1.apply_feedback_edges()
+    #     infr1.relabel_using_reviews()
+    #     infr1.apply_review_inference()
+    #     infr1.start_qt_interface(loop=False)
+    # delta = infr2.match_state_delta()
+    # print('delta = %r' % (delta,))
+
+    # infr2.ensure_mst()
+    # infr2.relabel_using_reviews()
+    # infr2.apply_review_inference()
+
+    # mst_edges = infr2.find_mst_edges()
+    # set(infr2.graph.edges()).intersection(mst_edges)
+
+    return
+    """
+    TODO:
+        Task 2:
+            Build AnnotInfr for ibs2 then add all decision from
+            ibs1 to the internal feedback dict.
+
+            Ensure that all other (esp old name-id related) edges are correctly
+            placed, then overrite with new vals (
+                make sure implicit vals do not cuase conflicts with new
+                explicit vals, but old explicit vals should cause a conflict).
+            Then just commit to staging and then commit to annotmatch and
+            re-infer the names.
+    """
+
+    # Print some info about the delta
+    # def _to_tup(x):
+    #     return tuple(x) if isinstance(x, list) else x
+    # changetype_list = list(zip(
+    #     delta['old_decision'], delta['new_decision'],
+    #     map(_to_tup, delta['old_tags']),
+    #     map(_to_tup, delta['new_tags'])))
+    # changetype_hist = ut.dict_hist(changetype_list, ordered=True)
+    # print(ut.align(ut.repr4(changetype_hist), ':'))
+
+    # import pandas as pd
+    # pd.options.display.max_rows = 20
+    # pd.options.display.max_columns = 40
+    # pd.options.display.width = 160
+    # pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+    # a, b = 86,    6265
+    # c, d = to_aids1[a], to_aids1[b]
+    # inspect_gui.show_vsone_tuner(ibs2, a, b)
+    # inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])
+    # am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
+    #                                          [to_aids1[b]])
+    # am2 = ibs2.get_annotmatch_rowids_between([a], [b])
+    # print(ibs1.db.get_table_csv('annotmatch', rowids=am1))
+    # print(ibs2.db.get_table_csv('annotmatch', rowids=am2))
+
+    # inspect_gui.show_vsone_tuner(ibs2, 8, 242)
+    # inspect_gui.show_vsone_tuner(ibs2, 86, 103)
+    # inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
+
+
+def find_overlap_annots(ibs1, ibs2, method='annots'):
+    """
+    Finds the aids of annotations in ibs1 that are also in ibs2
+
+    ibs1 = ibeis.opendb('PZ_Master1')
+    ibs2 = ibeis.opendb('PZ_MTEST')
+    """
+    if method == 'images':
+        images1, images2 = ibs1.images(), ibs2.images()
+        idxs1, idxs2 = ut.isect_indices(images1.uuids, images2.uuids)
+        isect_images1 = images1.take(idxs1)
+        annot_uuids = ut.flatten(isect_images1.annot_uuids)
+        isect_annots1 = ibs1.annots(uuids=annot_uuids)
+    elif method == 'annots':
+        annots1, annots2 = ibs1.annots(), ibs2.annots()
+        idxs1, idxs2 = ut.isect_indices(annots1.uuids, annots2.uuids)
+        isect_annots1 = annots1.take(idxs1)
+    return isect_annots1.aids
+
+
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
         python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
         dev.py -t listdbs
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+        python -m ibeis.dbio.export_subset check_database_overlap
         --db PZ_MTEST --db2 PZ_MOTHERS
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+        python -m ibeis.dbio.export_subset check_database_overlap
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_PB_RF_TRAIN --db2=PZ_Master1
 
 
     Example:
         >>> # SCRIPT
+        >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
+        >>> import utool as ut
         >>> #ibs1 = ibeis.opendb(db='PZ_Master0')
         >>> #ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
         >>> db1 = ut.get_argval('--db1', str, default='PZ_MTEST')
@@ -1706,35 +984,39 @@ def check_database_overlap(ibs1, ibs2):
         >>> check_database_overlap(ibs1, ibs2)
     """
     import numpy as np
-    import vtool as vt
 
-    def print_intersection(uuids1, uuids2, lbl=''):
-        uuids1_ = set(uuids1)
-        uuids2_ = set(uuids2)
-        uuids_isect = uuids1_.intersection(uuids2_)
+    def print_isect(items1, items2, lbl=''):
+        set1_ = set(items1)
+        set2_ = set(items2)
+        items_isect = set1_.intersection(set2_)
+        fmtkw1 = dict(part=1, lbl=lbl, num=len(set1_),
+                      num_isect=len(items_isect),
+                      percent=100 * len(items_isect) / len(set1_))
+        fmtkw2 = dict(part=2, lbl=lbl, num=len(set2_),
+                      num_isect=len(items_isect),
+                      percent=100 * len(items_isect) / len(set2_))
+        fmt_a = '  * Num {lbl} {part}: {num_isect} / {num} = {percent:.2f}%'
+        # fmt_b = '  * Num {lbl} isect: {num}'
         print('Checking {lbl} intersection'.format(lbl=lbl))
-        fmtkw1 = dict(
-            lbl=lbl, num=len(uuids1_), percent=100 * len(uuids_isect) / len(uuids1_))
-        fmtkw2 = dict(
-            lbl=lbl, num=len(uuids2_), percent=100 * len(uuids_isect) / len(uuids2_))
-        print(
-            '  * Num {lbl} 1: {num}, Percentage {percent:.2f}%'.format(**fmtkw1))
-        print(
-            '  * Num {lbl} 2: {num}, Percentage {percent:.2f}%'.format(**fmtkw2))
-        print(
-            '  * Num {lbl} isect: {num}'.format(lbl=lbl, num=len(uuids_isect)))
-        x_list1 = ut.find_list_indexes(uuids1, uuids_isect)
-        x_list2 = ut.find_list_indexes(uuids2, uuids_isect)
+        print(fmt_a.format(**fmtkw1))
+        print(fmt_a.format(**fmtkw2))
+        # print(fmt_b.format(lbl=lbl, num=len(items_isect)))
+        # items = items_isect
+        # list_ = items1
+        x_list1 = ut.find_list_indexes(items1, items_isect)
+        x_list2 = ut.find_list_indexes(items2, items_isect)
         return x_list1, x_list2
 
-    gids1 = ibs1.get_valid_gids()
-    gids2 = ibs2.get_valid_gids()
-    image_uuids1 = ibs1.get_image_uuids(gids1)
-    image_uuids2 = ibs2.get_image_uuids(gids2)
-    gx_list1, gx_list2 = print_intersection(
-        image_uuids1, image_uuids2, 'images')
-    gids_isect1 = ut.take(gids1, gx_list1)
-    gids_isect2 = ut.take(gids2, gx_list2)
+    gids1 = ibs1.images()
+    gids2 = ibs2.images()
+
+    # Find common images
+    # items1, items2, lbl, = gids1.uuids, gids2.uuids, 'images'
+    gx_list1, gx_list2 = print_isect(gids1.uuids, gids2.uuids, 'images')
+    gids_isect1 = gids1.take(gx_list1)
+    gids_isect2 = gids2.take(gx_list2)
+    assert gids_isect2.uuids == gids_isect1.uuids, 'sequence must be aligned'
+
     SHOW_ISECT_GIDS = False
     if SHOW_ISECT_GIDS:
         if len(gx_list1) > 0:
@@ -1743,7 +1025,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool as pt
+                import plottool_ibeis as pt
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
@@ -1754,17 +1036,17 @@ def check_database_overlap(ibs1, ibs2):
                         ibeis.viz.show_image(
                             ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
-    aids1 = ibs1.get_valid_aids()
-    aids2 = ibs2.get_valid_aids()
-    if False:
-        ibs1.update_annot_visual_uuids(aids1)
-        ibs2.update_annot_visual_uuids(aids2)
-        ibs1.update_annot_semantic_uuids(aids1)
-        ibs2.update_annot_semantic_uuids(aids2)
+    # if False:
+    #     aids1 = ibs1.get_valid_aids()
+    #     aids2 = ibs2.get_valid_aids()
+    #     ibs1.update_annot_visual_uuids(aids1)
+    #     ibs2.update_annot_visual_uuids(aids2)
+    #     ibs1.update_annot_semantic_uuids(aids1)
+    #     ibs2.update_annot_semantic_uuids(aids2)
 
     # Check to see which intersecting images have different annotations
-    image_aids_isect1 = ibs1.get_image_aids(gids_isect1)
-    image_aids_isect2 = ibs2.get_image_aids(gids_isect2)
+    image_aids_isect1 = gids_isect1.aids
+    image_aids_isect2 = gids_isect2.aids
     image_avuuids_isect1 = np.array(
         ibs1.unflat_map(ibs1.get_annot_visual_uuids, image_aids_isect1))
     image_avuuids_isect2 = np.array(
@@ -1781,39 +1063,39 @@ def check_database_overlap(ibs1, ibs2):
         if SHOW_CHANGED_GIDS:
             print('gids_isect1 = %r' % (changed_gids2,))
             print('gids_isect2 = %r' % (changed_gids1,))
-            if False:
-                # Debug code
-                import ibeis.viz
-                import plottool as pt
-                gid_pairs = list(zip(changed_gids1, changed_gids2))
-                pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
-                for fnum, pairs in enumerate(pairs_iter, start=1):
-                    pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
-                    for gid1, gid2 in pairs:
-                        ibeis.viz.show_image(
-                            ibs1, gid1, pnum=pnum_(), fnum=fnum)
-                        ibeis.viz.show_image(
-                            ibs2, gid2, pnum=pnum_(), fnum=fnum)
+            # if False:
+            #     # Debug code
+            #     import ibeis.viz
+            #     import plottool_ibeis as pt
+            #     gid_pairs = list(zip(changed_gids1, changed_gids2))
+            #     pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
+            #     for fnum, pairs in enumerate(pairs_iter, start=1):
+            #         pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
+            #         for gid1, gid2 in pairs:
+            #             ibeis.viz.show_image(
+            #                 ibs1, gid1, pnum=pnum_(), fnum=fnum)
+            #             ibeis.viz.show_image(
+            #                 ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
     # Check for overlapping annotations (visual info only) in general
-    annot_vuuids1 = ibs1.get_annot_visual_uuids(aids1)
-    annot_vuuids2 = ibs2.get_annot_visual_uuids(aids2)
-    avx_list1, avx_list2 = print_intersection(
-        annot_vuuids1, annot_vuuids2, 'vuuids')
+    aids1 = ibs1.annots()
+    aids2 = ibs2.annots()
 
     # Check for overlapping annotations (visual + semantic info) in general
-    annot_suuids1 = ibs1.get_annot_semantic_uuids(aids1)
-    annot_suuids2 = ibs2.get_annot_semantic_uuids(aids2)
-    asx_list1, asx_list2 = print_intersection(
-        annot_suuids1, annot_suuids2, 'suuids')
+    aux_list1, aux_list2 = print_isect(
+        aids1.uuids, aids2.uuids, 'uuids')
+    avx_list1, avx_list2 = print_isect(
+        aids1.visual_uuids, aids2.visual_uuids, 'vuuids')
+    asx_list1, asx_list2 = print_isect(
+        aids1.semantic_uuids, aids2.semantic_uuids, 'suuids')
 
     # Check which images with the same visual uuids have different semantic
     # uuids
     changed_ax_list1 = ut.setdiff_ordered(avx_list1, asx_list1)
     changed_ax_list2 = ut.setdiff_ordered(avx_list2, asx_list2)
     assert len(changed_ax_list1) == len(changed_ax_list2)
-    assert ut.take(annot_vuuids1, changed_ax_list1) == ut.take(
-        annot_vuuids2, changed_ax_list2)
+    assert ut.take(aids1.visual_uuids, changed_ax_list1) == ut.take(
+        aids2.visual_uuids, changed_ax_list2)
 
     changed_aids1 = np.array(ut.take(aids1, changed_ax_list1))
     changed_aids2 = np.array(ut.take(aids2, changed_ax_list2))
@@ -1830,8 +1112,7 @@ def check_database_overlap(ibs1, ibs2):
         prop2_rowids = ut.map_dict_keys(
             changed_sinfo1._fields.__getitem__, colx2_rowids)
         print('changed_value_counts = ' +
-              ut.dict_str(ut.map_dict_vals(len, prop2_rowids)))
-        ut.embed()
+              ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
         yawx = changed_sinfo1._fields.index('yaw')
 
         # Show change in viewpoints
@@ -1851,8 +1132,8 @@ def check_database_overlap(ibs1, ibs2):
             print('There are %d significant viewpoint changes' %
                   (len(significant_aids2),))
             #vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
-            #zip(ibs1.get_annot_yaw_texts(significant_aids1),
-            #ibs2.get_annot_yaw_texts(significant_aids2))
+            #zip(ibs1.get_annot_viewpoint_code(significant_aids1),
+            #ibs2.get_annot_viewpoint_code(significant_aids2))
             # print('yawdiff = %r' % )
             # if False:
             # Hack: Apply fixes
@@ -1862,7 +1143,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool as pt
+                import plottool_ibeis as pt
                 #aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
                 pairs_iter = ut.ichunks(aid_pairs, chunksize=8)
@@ -1870,9 +1151,9 @@ def check_database_overlap(ibs1, ibs2):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for aid1, aid2 in pairs:
                         ibeis.viz.show_chip(
-                            ibs1, aid1, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+                            ibs1, aid1, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
                         ibeis.viz.show_chip(
-                            ibs2, aid2, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+                            ibs2, aid2, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
 
     #
     nAnnots_per_image1 = np.array(ibs1.get_image_num_annotations(gids1))
@@ -1884,36 +1165,6 @@ def check_database_overlap(ibs1, ibs2):
     print('images_without_annots2 = %r' % (images_without_annots2,))
 
     nAnnots_per_image1
-
-    class AlignedIndex(object):
-
-        def __init__(self):
-            self.iddict_ = {}
-
-        def make_aligned_arrays(self, id_lists, data_lists):
-            idx_lists = [vt.compute_unique_data_ids_(
-                id_list, iddict_=self.iddict_) for id_list in id_lists]
-            aligned_data = []
-            for idx_list, data_array in zip(idx_lists, data_lists):
-                array = np.full(len(self.iddict_), None)
-                array[idx_list] = data_array
-                aligned_data.append(array)
-            return aligned_data
-
-    # Try to figure out the conflicts
-    # TODO: finishme
-
-    self = AlignedIndex()
-    id_lists = (image_uuids1, image_uuids2)
-    data_lists = (nAnnots_per_image1, nAnnots_per_image2)
-    aligned_data = self.make_aligned_arrays(id_lists, data_lists)
-    nAnnots1_aligned, nAnnots2_aligned = aligned_data
-
-    nAnnots_difference = nAnnots1_aligned - nAnnots2_aligned
-    nAnnots_difference = np.nan_to_num(nAnnots_difference)
-    print('images_with_different_num_annnots = %r' %
-          (len(np.nonzero(nAnnots_difference)[0]),))
-
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
@@ -1928,10 +1179,10 @@ def MERGE_NNP_MASTER_SCRIPT():
     # Step 1
     ibs_src1 = ibeis.opendb('GZC')
     ibs_dst = ibeis.opendb('NNP_Master3', allow_newdir=True)
-    merge_databases2(ibs_src1, ibs_dst)
+    merge_databases(ibs_src1, ibs_dst)
 
     ibs_src2 = ibeis.opendb('NNP_initial')
-    merge_databases2(ibs_src2, ibs_dst)
+    merge_databases(ibs_src2, ibs_dst)
 
     ## Step 2
     #ibs_src = ibeis.opendb('GZC')

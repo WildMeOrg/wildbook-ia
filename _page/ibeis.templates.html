@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.templates package &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.templates package &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.tests package" href="ibeis.tests.html"/>
         <link rel="prev" title="ibeis.scripts package" href="ibeis.scripts.html"/> 
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -82,7 +88,11 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
@@ -93,10 +103,11 @@
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.templates package</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ibeis.templates package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.generate_notebook">ibeis.templates.generate_notebook module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.notebook_cells">ibeis.templates.notebook_cells module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.notebook_helpers">ibeis.templates.notebook_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates">Module contents</a></li>
 </ul>
 </li>
@@ -109,19 +120,19 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._ibeis_object">ibeis._ibeis_object module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annots">ibeis.annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_parts">ibeis.core_parts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.images">ibeis.images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -137,8 +148,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ibeis</a>
+        
       </nav>
 
 
@@ -151,21 +164,38 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
           <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
-      
-    <li>ibeis.templates package</li>
+        
+      <li>ibeis.templates package</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/ibeis.templates.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/ibeis.templates.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -178,49 +208,71 @@
 </div>
 <div class="section" id="module-ibeis.templates.generate_notebook">
 <span id="ibeis-templates-generate-notebook-module"></span><h2>ibeis.templates.generate_notebook module<a class="headerlink" href="#module-ibeis.templates.generate_notebook" title="Permalink to this headline">¶</a></h2>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Generate and start an IPython notebook</span>
-python -m ibeis --tf autogen_ipynb --ipynb --db &lt;dbname&gt; <span class="o">[</span>-a &lt;acfg&gt;<span class="o">]</span> <span class="o">[</span>-t &lt;pcfg&gt;<span class="o">]</span>
-
-python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any<span class="o">=</span><span class="se">\(</span>left,right<span class="se">\)</span>,sample_occur<span class="o">=</span>True,occur_offset<span class="o">=[</span>0,1,2<span class="o">]</span>,num_names<span class="o">=</span>1
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first"># Generate and start an IPython notebook
+python -m ibeis –tf autogen_ipynb –ipynb –db &lt;dbname&gt; [-a &lt;acfg&gt;] [-t &lt;pcfg&gt;]</p>
+<p class="last">python -m ibeis –tf autogen_ipynb –ipynb –db seaturtles -a default2:qhas_any=(left,right),sample_occur=True,occur_offset=[0,1,2],num_names=1</p>
+</dd>
+<dt>CommandLine:</dt>
+<dd><p class="first"># to connect to a notebook on a remote machine that does not have the
+# appropriate port exposed you must start an SSH tunnel.
+# Typically a jupyter-notebook runs on port 8888.
+# Run this command on your local machine.
+ssh -N -f -L localhost:&lt;local_port&gt;:localhost:&lt;remote_port&gt; &lt;remote_user&gt;&#64;&lt;remote_host&gt;</p>
+<p>E.G.
+ssh -N -f -L localhost:8889:localhost:8888 joncrall&#64;hyrule.cs.rpi.edu
+# Now you can connect locally
+firefox localhost:8889</p>
+<p># Running a server:
+jupyter-notebook password
+jupyter-notebook –no-browser –NotebookApp.iopub_data_rate_limit=100000000 –NotebookApp.token=</p>
+<p># To allow remote jupyter-noteobok connections
+jupyter notebook –generate-config</p>
+<p># Really need to do jupyter hub</p>
+<p class="last">need to set
+c.NotebookApp.port = 8888
+c.NotebookApp.open_browser = False
+c.NotebookApp.ip = ‘*’</p>
+</dd>
+</dl>
 <dl class="function">
 <dt id="ibeis.templates.generate_notebook.autogen_ipynb">
 <code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">autogen_ipynb</code><span class="sig-paren">(</span><em>ibs</em>, <em>launch=None</em>, <em>run=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#autogen_ipynb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.autogen_ipynb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Autogenerates standard IBEIS Image Analysis IPython notebooks.</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf autogen_ipynb --run --db lynx
-
-python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
-python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
-
-python -m ibeis --tf autogen_ipynb --db PZ_MTEST
-<span class="c1"># TODO: Add support for dbdir to be specified</span>
-python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST
-
-python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any<span class="o">=</span><span class="se">\(</span>query,<span class="se">\)</span>,dpername<span class="o">=</span>1,exclude_reference<span class="o">=</span>True,dminqual<span class="o">=</span>good
-python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer<span class="o">=[</span>None,normlnbnn-test<span class="o">]</span>
-
-python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
-
-python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
-python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex<span class="o">=</span>0:100 -t best best:normsum<span class="o">=</span>True --ipynb --noexample
-python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl --run
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis autogen_ipynb –run –db lynx
+python -m ibeis autogen_ipynb –run –db lynx</p>
+<p>python -m ibeis autogen_ipynb –ipynb –db PZ_MTEST -p :proot=smk,num_words=64000 default
+python -m ibeis autogen_ipynb –ipynb –db PZ_MTEST –asreport
+python -m ibeis autogen_ipynb –ipynb –db PZ_MTEST –noexample –withtags
+python -m ibeis autogen_ipynb –ipynb –db PZ_MTEST</p>
+<p>python -m ibeis autogen_ipynb –ipynb –db STS_SandTigers</p>
+<p>python -m ibeis autogen_ipynb –db PZ_MTEST
+# TODO: Add support for dbdir to be specified
+python -m ibeis autogen_ipynb –db ~/work/PZ_MTEST</p>
+<p>python -m ibeis autogen_ipynb –ipynb –db Oxford -a default:qhas_any=(query,),dpername=1,exclude_reference=True,dminqual=good
+python -m ibeis autogen_ipynb –ipynb –db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]</p>
+<p>python -m ibeis.templates.generate_notebook –exec-autogen_ipynb –db wd_peter_blinston –ipynb</p>
+<p>python -m ibeis autogen_ipynb –db PZ_Master1 –ipynb
+python -m ibeis autogen_ipynb –db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True –ipynb –noexample
+python -m ibeis autogen_ipynb –db PZ_Master1 -a timectrl –run
 jupyter-notebook Experiments-lynx.ipynb
-killall python
-
-python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot<span class="o">=</span>BC_DTW -a default:has_any<span class="o">=</span>hasnotch
-python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot<span class="o">=</span>BC_DTW default:proot<span class="o">=</span>vsmany -a default:has_any<span class="o">=</span>hasnotch,mingt<span class="o">=</span>2,qindex<span class="o">=</span>0:50 --noexample
-</pre></div>
-</div>
+killall python</p>
+<p class="last">python -m ibeis autogen_ipynb –db humpbacks –ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+python -m ibeis autogen_ipynb –db humpbacks –ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 –noexample</p>
+</dd>
+<dt>Ignore:</dt>
+<dd>python -m ibeis autogen_ipynb –db WS_ALL</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">autogen_ipynb</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -243,28 +295,28 @@ python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot<span 
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; ibeis controller object</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>ibeis.IBEISController</em>) – ibeis controller object</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston --asreport
-python -m ibeis --tf --exec-make_ibeis_notebook
-python -m ibeis --tf make_ibeis_notebook --db lynx
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.templates.generate_notebook –exec-make_ibeis_notebook –db wd_peter_blinston –asreport
+python -m ibeis –tf –exec-make_ibeis_notebook
+python -m ibeis –tf make_ibeis_notebook –db lynx
 jupyter-notebook tmp.ipynb
-runipy tmp.ipynb --html report.html
-runipy --pylab tmp.ipynb tmp2.ipynb
+runipy tmp.ipynb –html report.html
+runipy –pylab tmp.ipynb tmp2.ipynb
 sudo pip install runipy
-python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;</span>
-</pre></div>
-</div>
+python -c “import runipy; print(runipy.__version__)”</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">notebook_str</span> <span class="o">=</span> <span class="n">make_ibeis_notebook</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -274,15 +326,63 @@ python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;<
 <span id="ibeis-templates-notebook-cells-module"></span><h2>ibeis.templates.notebook_cells module<a class="headerlink" href="#module-ibeis.templates.notebook_cells" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>ComamndLine:</dt>
-<dd>python -m ibeis &#8211;tf autogen_ipynb &#8211;ipynb &#8211;db PZ_MTEST &#8211;ipynb</dd>
+<dd>python -m ibeis –tf autogen_ipynb –ipynb –db PZ_MTEST –ipynb</dd>
 </dl>
+<dl class="function">
+<dt id="ibeis.templates.notebook_cells.dataset_summary_stats_hacktest">
+<code class="descclassname">ibeis.templates.notebook_cells.</code><code class="descname">dataset_summary_stats_hacktest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/notebook_cells.html#dataset_summary_stats_hacktest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.notebook_cells.dataset_summary_stats_hacktest" title="Permalink to this definition">¶</a></dt>
+<dd><p>import ibeis
+ibs = ibeis.opendb(‘WWF_Lynx_Copy’)
+# import ibeis
+# ibs = ibeis.opendb(‘WWF_Lynx’)
+a = [</p>
+<blockquote>
+<div><p>‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1’,
+‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2’,
+‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3’,
+‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4’,</p>
+<p># ‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1’,
+# ‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2’,
+# ‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3’,
+# ‘default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4’,</p>
+</div></blockquote>
+<p>]
+acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(</p>
+<blockquote>
+<div>ibs, acfg_name_list=a, verbose=0)</div></blockquote>
+<p>expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+print(ut.repr2(ibs.get_annot_stats_dict(expt_aids, strkeys=True, nl=2, use_hist=True)))</p>
+<p># expt_qaids = sorted(set(ut.total_flatten(ut.take_column(expanded_aids_list, 0))))
+# print(ut.repr2(ibs.get_annot_stats_dict(expt_qaids, strkeys=True, nl=2, use_hist=True)))</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.templates.notebook_helpers">
+<span id="ibeis-templates-notebook-helpers-module"></span><h2>ibeis.templates.notebook_helpers module<a class="headerlink" href="#module-ibeis.templates.notebook_helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.templates.notebook_helpers.custom_globals">
+<code class="descclassname">ibeis.templates.notebook_helpers.</code><code class="descname">custom_globals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/notebook_helpers.html#custom_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.notebook_helpers.custom_globals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.notebook_helpers.make_cells_wider">
+<code class="descclassname">ibeis.templates.notebook_helpers.</code><code class="descname">make_cells_wider</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/notebook_helpers.html#make_cells_wider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.notebook_helpers.make_cells_wider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-ibeis.templates">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.templates" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ibeis.templates.IMPORT_TUPLES">
+<code class="descclassname">ibeis.templates.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('generate_notebook', None), ('notebook_cells', None)]</em><a class="headerlink" href="#ibeis.templates.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Regen Command</em> – cd /home/joncrall/code/ibeis/ibeis/templates
+makeinit.py –modname=ibeis.templates</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.templates.reassign_submodule_attributes">
 <code class="descclassname">ibeis.templates.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
-<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
 </dd></dl>
 
 <dl class="function">
@@ -302,15 +402,18 @@ python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;<
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.tests.html" class="btn btn-neutral float-right" title="ibeis.tests package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.tests.html" class="btn btn-neutral float-right" title="ibeis.tests package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ibeis.scripts.html" class="btn btn-neutral" title="ibeis.scripts package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ibeis.scripts.html" class="btn btn-neutral" title="ibeis.scripts package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -319,7 +422,7 @@ python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;<
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -341,10 +444,11 @@ python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;<
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

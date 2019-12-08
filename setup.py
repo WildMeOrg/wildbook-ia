@@ -1,175 +1,215 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import six
-from utool import util_setup
-from setuptools import setup
+from os.path import exists
+import sys
 
 
-CHMOD_PATTERNS = [
-    'run_tests.sh',
-    'test_*.py',
-    'ingest_*.py',
-]
+def parse_version(fpath):
+    """
+    Statically parse the version number from a python file
+    """
+    import ast
+    if not exists(fpath):
+        raise ValueError('fpath={!r} does not exist'.format(fpath))
+    with open(fpath, 'r') as file_:
+        sourcecode = file_.read()
+    pt = ast.parse(sourcecode)
+    class VersionVisitor(ast.NodeVisitor):
+        def visit_Assign(self, node):
+            for target in node.targets:
+                if getattr(target, 'id', None) == '__version__':
+                    self.version = node.value.s
+    visitor = VersionVisitor()
+    visitor.visit(pt)
+    return visitor.version
 
-# python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
-PROJECT_DIRS = ['.', 'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
-                'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
-                'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
-                'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
-                'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
-                'ibeis/viz/interact']
+
+def parse_description():
+    """
+    Parse the description in the README file
+
+    CommandLine:
+        pandoc --from=markdown --to=rst --output=README.rst README.md
+        python -c "import setup; print(setup.parse_description())"
+    """
+    from os.path import dirname, join, exists
+    readme_fpath = join(dirname(__file__), 'README.md')
+    # This breaks on pip install, so check that it exists.
+    if exists(readme_fpath):
+        with open(readme_fpath, 'r') as f:
+            text = f.read()
+        return text
+    return ''
 
 
-CLUTTER_PATTERNS = [
-    '\'',
-    '*.dump.txt',
-    '*.sqlite3',
-    '*.prof',
-    '*.prof.txt',
-    '*.lprof',
-    '*.ln.pkg',
-    'failed.txt',
-    'failed_doctests.txt',
-    'failed_shelltests.txt',
-    'test_pyflann_index.flann',
-    'test_pyflann_ptsdata.npz',
-    '_test_times.txt',
-    'test_times.txt',
-    'raw_profile.txt',
-    'Tgen.sh',
-    'IBEISApp.pkg',
-    'tempfile1.txt',
-    'tempfile2.txt',
-]
+def parse_requirements(fname='requirements.txt', with_version=False):
+    """
+    Parse the package dependencies listed in a requirements file but strips
+    specific versioning information.
 
-CLUTTER_DIRS = [
-    'logs/',
-    'dist/',
-    'ibeis/export',
-    'ibeis/ingest',
-    'ibeis/injest',
-    'ibeis/model',
-    'ibeis/io',
-    'ibeis/dev',
-    'testsuite',
-    'testdb_dst',
-    '__pycache__/',
-    # From pyinstaller
-    'vtool',
-    'utool',
-    'plottool',
-    'pyrf',
-    'pyhesaff',
-    'pyflann',
-    'webapps',
-    'static',
-    'templates',
-    'web',
-    'qt_menu.nib',
-]
+    Args:
+        fname (str): path to requirements file
+        with_version (bool, default=False): if true include version specs
 
-INSTALL_REQUIRES = [
-    'utool >= 1.0.0.dev1',
-    'vtool >= 1.0.0.dev1',
-    'pyhesaff >= 1.0.0.dev1',
-    'pyrf >= 1.0.0.dev1',
-    'guitool >= 1.0.0.dev1',
-    'plottool >= 1.0.0.dev1',
-    'scipy >= 0.13.2',
-    'Pillow >= 2.4.0',
-    'psutil',
-    'requests >= 0.8.2',
-    #'setproctitle >= 1.1.8',
-    'scikit-learn >= 0.15.2',
-    #'decorator',
-    'lockfile >= 0.10.2',
-    'apipkg',
-    'networkx >= 1.9.1',
-    #'objgraph',
-    #'pycallgraph',
-    #'gevent',
-    #'PyQt 4/5 >= 4.9.1', # cannot include because pyqt4 is not in pip
-]
+    Returns:
+        List[str]: list of requirements items
 
-NUMPY_VERSION_BUG = False
-if NUMPY_VERSION_BUG:
-    INSTALL_REQUIRES += [
-        'matplotlib',
-        'numpy',    # 1.10 has hard time in comparison
-    ]
+    CommandLine:
+        python -c "import setup; print(setup.parse_requirements())"
+        python -c "import setup; print(chr(10).join(setup.parse_requirements(with_version=True)))"
+    """
+    from os.path import exists
+    import re
+    require_fpath = fname
 
-else:
-    INSTALL_REQUIRES += [
-        'numpy >= 1.9.0',
-        'matplotlib >= 1.3.1',
-    ]
+    def parse_line(line):
+        """
+        Parse information from a line in a requirements text file
+        """
+        if line.startswith('-r '):
+            # Allow specifying requirements in other files
+            target = line.split(' ')[1]
+            for info in parse_require_file(target):
+                yield info
+        else:
+            info = {'line': line}
+            if line.startswith('-e '):
+                info['package'] = line.split('#egg=')[1]
+            else:
+                # Remove versioning from the package
+                pat = '(' + '|'.join(['>=', '==', '>']) + ')'
+                parts = re.split(pat, line, maxsplit=1)
+                parts = [p.strip() for p in parts]
 
-INSTALL_OPTIONAL = [
-    'tornado',
-    'flask',
-    'flask-cors',
-    'pynmea2',
-    'pygraphviz',
-    'pydot',
-    #'https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709', # pyparsing
-    #http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
-    #pip uninstall pydot
-    #pip uninstall pyparsing
-    #pip install -Iv https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709
-    #pip install pydot
-    #sudo apt-get  install libgraphviz4 libgraphviz-dev -y
-    #sudo apt-get install libgraphviz-dev
-    #pip install pygraphviz
-    #sudo pip3 install pygraphviz
-    #    --install-option="--include-path=/usr/include/graphviz"
-    #    --install-option="--library-path=/usr/lib/graphviz/"
-    #python -c "import pygraphviz; print(pygraphviz.__file__)"
-    #python3 -c "import pygraphviz; print(pygraphviz.__file__)"
-]
+                info['package'] = parts[0]
+                if len(parts) > 1:
+                    op, rest = parts[1:]
+                    if ';' in rest:
+                        # Handle platform specific dependencies
+                        # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
+                        version, platform_deps = map(str.strip, rest.split(';'))
+                        info['platform_deps'] = platform_deps
+                    else:
+                        version = rest  # NOQA
+                    info['version'] = (op, version)
+            yield info
 
-INSTALL_OPTIONAL_DEV = [
-    'ansi2html',
-    'pygments',
-    'autopep8',
-    'pyfiglet',
-]
+    def parse_require_file(fpath):
+        with open(fpath, 'r') as f:
+            for line in f.readlines():
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    for info in parse_line(line):
+                        yield info
 
-"""
-# Uninstall unimportant modules:
+    def gen_packages_items():
+        if exists(require_fpath):
+            for info in parse_require_file(require_fpath):
+                parts = [info['package']]
+                if with_version and 'version' in info:
+                    parts.extend(info['version'])
+                if not sys.version.startswith('3.4'):
+                    # apparently package_deps are broken in 3.4
+                    platform_deps = info.get('platform_deps')
+                    if platform_deps is not None:
+                        parts.append(';' + platform_deps)
+                item = ''.join(parts)
+                yield item
 
-    pip uninstall pylru
-    pip uninstall sphinx
-    pip uninstall pygments
-"""
+    packages = list(gen_packages_items())
+    return packages
 
-if six.PY2:
-    INSTALL_REQUIRES.append('requests >= 0.8.2')
 
-INSTALL_REQUIRES += INSTALL_OPTIONAL
+def native_mb_python_tag():
+    import sys
+    import platform
+    major = sys.version_info[0]
+    minor = sys.version_info[1]
+    ver = '{}{}'.format(major, minor)
+    if platform.python_implementation() == 'CPython':
+        # TODO: get if cp27m or cp27mu
+        impl = 'cp'
+        if ver == '27':
+            IS_27_BUILT_WITH_UNICODE = True  # how to determine this?
+            if IS_27_BUILT_WITH_UNICODE:
+                abi = 'mu'
+            else:
+                abi = 'm'
+        else:
+            abi = 'm'
+    else:
+        raise NotImplementedError(impl)
+    mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+    return mb_tag
 
+
+# @setman.register_command
+def autogen_explicit_imports():
+    """
+    Excpliticly generated injectable code in order to aid auto complete
+    programs like jedi as well as allow for a more transparent stack trace.
+
+    python -m ibeis dev_autogen_explicit_injects
+    """
+    import ibeis  # NOQA
+    from ibeis.control import controller_inject
+    controller_inject.dev_autogen_explicit_injects()
+
+
+NAME = 'ibeis'
+VERSION = parse_version('ibeis/__init__.py')  # must be global for git tags
 
 if __name__ == '__main__':
-    print('[setup] Entering IBEIS setup')
-    kwargs = util_setup.setuptools_setup(
-        setup_fpath=__file__,
-        name='ibeis',
+    extras_require = {
+        'all': parse_requirements('requirements.txt'),
+        'tests': parse_requirements('requirements/tests.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
+    }
+    install_requires = parse_requirements('requirements/runtime.txt')
+
+    try:
+        import ubelt as ub
+        print('install_requires = {}'.format(ub.repr2(install_requires, nl=1)))
+        # print('extras_require = {}'.format(ub.repr2(extras_require, nl=2)))
+    except ImportError:
+        pass
+
+    from setuptools import setup, find_packages
+    kwargs = dict(
+        name=NAME,
+        version=VERSION,
+        description='Image Based Ecological Information System',
+        long_description=parse_description(),
+        long_description_content_type='text/markdown',
         author='Jon Crall, Jason Parham',
         author_email='erotemic@gmail.com',
-        packages=util_setup.find_packages(),
-        version=util_setup.parse_package_for_version('ibeis'),
-        license=util_setup.read_license('LICENSE'),
-        long_description=util_setup.parse_readme('README.md'),
-        ext_modules=util_setup.find_ext_modules(),
-        cmdclass=util_setup.get_cmdclass(),
-        project_dirs=PROJECT_DIRS,
-        chmod_patterns=CHMOD_PATTERNS,
-        clutter_patterns=CLUTTER_PATTERNS,
-        clutter_dirs=CLUTTER_DIRS,
-        install_requires=INSTALL_REQUIRES,
-        scripts=[
-            '_scripts/ibeis'
-        ],
+        install_requires=install_requires,
+        # extras_require=extras_require,
+        # project_dirs=[
+        #     'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
+        #     'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
+        #     'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
+        #     'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
+        #     'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
+        #     'ibeis/viz/interact'
+        # ],
+        entry_points={
+            'console_scripts': [
+                # Register specific python functions as command line scripts
+                'ibeis=ibeis.__main__:run_ibeis',
+            ],
+        },
         #cython_files=CYTHON_FILES,
+        classifiers=[
+            # List of classifiers available at:
+            # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+            'Development Status :: 3 - Alpha',
+            # This should be interpreted as Apache License v2.0
+            'License :: OSI Approved :: Apache Software License',
+            # Supported Python versions
+            'Programming Language :: Python :: 3',
+        ],
+        packages=find_packages('ibeis*')
     )
     setup(**kwargs)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Very useful script to ensure you have all the modules you need
@@ -99,7 +99,7 @@ def checkinfo(target=None, pipname=None):
                 return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
             # Build status text
-            msg = ut.dict_str(infodict, strvals=True)
+            msg = ut.repr2(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
             # Check if passed
@@ -140,10 +140,12 @@ def reg_std_version_check(version, modname):
 
 
 reg_std_version_check('1.5.3', 'pynmea2')
-reg_std_version_check(None, 'wget')
-reg_std_version_check(None, 'pygco')
+#reg_std_version_check(None, 'wget')
+# reg_std_version_check(None, 'pygco')
 reg_std_version_check('6.0.8', 'pip')
 reg_std_version_check('1.1.1', 'utool')
+reg_std_version_check('0.12.3', 'skimage')
+reg_std_version_check('1.1.6', 'cachetools')
 
 
 # @checkinfo('1.1.1')
@@ -165,7 +167,7 @@ reg_std_version_check('1.1.1', 'utool')
 
 @checkinfo(None)
 def pyflann_version():
-    import pyflann
+    from vtool_ibeis._pyflann_backend import pyflann as pyflann
     if LIB_DEP:
         libdep = None
     else:
@@ -195,16 +197,16 @@ def pyrf_version():
 
 @checkinfo('1.0.1')
 def vtool_version():
-    import vtool
+    import vtool_ibeis
     libdep = None
     if LIB_DEP:
         libdep = None
     else:
         try:
-            libdep = ut.get_dynlib_dependencies(vtool.sver_c_wrapper.lib_fname)
+            libdep = ut.get_dynlib_dependencies(vtool_ibeis.sver_c_wrapper.lib_fname)
         except Exception:
             pass
-    return module_stdinfo_dict(vtool, libdep=libdep)
+    return module_stdinfo_dict(vtool_ibeis, libdep=libdep)
 
 
 #@checkinfo('1.1.7')
@@ -270,6 +272,7 @@ def lasagne_version():
 
 @checkinfo('4.9.1')  # 4.10.1 on windows
 def PyQt4_version():
+    # FIXME, pyqt5 is also ok
     from PyQt4 import QtCore
     return module_stdinfo_dict(QtCore, 'PYQT_VERSION_STR')
 
@@ -277,8 +280,7 @@ def PyQt4_version():
 @checkinfo('0.15.1')
 def pandas_version():
     import pandas
-    version = pandas.version.version
-    return module_stdinfo_dict(pandas, version=version)
+    return module_stdinfo_dict(pandas)
 
 
 @checkinfo('0.6.1')
@@ -296,8 +298,9 @@ def flask_version():
 
 @checkinfo('2.0.1')
 def flask_cors_version():
-    import flask.ext.cors
-    return module_stdinfo_dict(flask.ext.cors)
+    #import flask.ext.cors as flask_cors
+    import flask_cors
+    return module_stdinfo_dict(flask_cors)
 
 
 @checkinfo('4.0.2')
@@ -367,7 +370,7 @@ def assert_modules():
     machine_info_lines = []
 
     machine_info_lines.append('sys.version = %r ' % (sys.version))
-    machine_info_lines.append('PATH = ' + ut.list_str(ut.get_path_dirs()))
+    machine_info_lines.append('PATH = ' + ut.repr2(ut.get_path_dirs()))
     machine_info_lines.append('\n\n\n============================')
     machine_info_lines.append('Begining assert modules main')
     machine_info_lines.append('* MACHINE_NAME = %r' % MACHINE_NAME)

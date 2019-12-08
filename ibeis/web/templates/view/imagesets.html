@@ -9,6 +9,14 @@
     font-weight: 200;
     font-style: italic;
   }
+  .form-control-custom
+  {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+    height: 20px;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -27,7 +35,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Image Set Text</th>
+            <th>ImageSet Text</th>
             <th>nImages / Detect</th>
             <th>nAnnots / Vpt. / Qual.</th>
             <th>ImageSet Start</th>
@@ -42,26 +50,49 @@
               <th class="no-items" colspan="99">Sorry, no imagesets to display</th>
             </tr>
           {% else %}
-            {% for (imgsetid, imagesettext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in imageset_list %}
+            {% for (is_normal, imgsetid, imagesettext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in imageset_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
               <th scope="row">{{ imgsetid }}</th>
-              <td>{{ imagesettext }}</td>
+              <td>
+                {% if is_normal %}
+                  <input type="text" class="form-control-custom" placeholder="ImageSet Name" imgsetid="{{ imgsetid }}" value="{{ imagesettext }}">
+                {% else %}
+                  <span style="text-decoration: underline;">{{ imagesettext }}</span>
+                {% endif %}
+              </td>
               <td>{{ num_gids }} / {{ num_processed_gids }}</td>
               <td>{{ num_aids }} / {{ num_processed_viewpoint_aids }} / {{ num_processed_quality_aids }}</td>
               <td>{{ start }}</td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid }}">Review</a></td>
               <td><a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">Review</a></td>
-              <td><a href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Viewpoint</a> | <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}">Additional</a></td>
+              <td><a href="{{ url_for('turk_cameratrap') }}?imgsetid={{ imgsetid }}">Cameratrap</a> | <a href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Annotations</a> | <a href="{{ url_for('turk_demographics') }}?imgsetid={{ imgsetid }}">Demographics</a> | <a href="{{ url_for('turk_identification_graph_refer') }}?imgsetid={{ imgsetid }}">Graph</a></td>
             </tr>
             {% endfor %}
           {% endif %}
         </tbody>
       </table>
+      <i style="color: #999;">*ImageSets that are underlined are considered "special" and cannot be deleted or modified</i>
     </div>
   </div>
 
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
+  $( ".form-control-custom" ).change(function() {
+    imgsetid = $(this).attr('imgsetid')
+    imgset_text = $(this).val();
+    $.ajax({
+      url: '/api/imageset/text/',
+      type: 'PUT',
+      data: {
+        'imgsetid_list': imgsetid,
+        'imageset_text_list': imgset_text,
+      },
+      dataType: "json"
+    })
+    .fail(function() {
+      alert("Failed to set the ImageSet name, please refresh");
+    });
+  });
 </script>
 {% endblock %}

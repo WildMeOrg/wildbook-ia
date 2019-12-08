@@ -5,12 +5,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.algo.detect import grabmodels
 from ibeis.algo.detect import randomforest
 from ibeis.algo.detect import yolo
-from ibeis.algo.detect import background
-from ibeis.algo.detect import classifier
-from ibeis.algo.detect import labeler
-from ibeis.algo.detect import orientation
+# from ibeis.algo.detect import selectivesearch
+# from ibeis.algo.detect import ssd
+# from ibeis.algo.detect import fasterrcnn
+# from ibeis.algo.detect import darknet
 import utool
-print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 def reassign_submodule_attributes(verbose=True):
@@ -65,10 +65,10 @@ def reload_subs(verbose=True):
     get_rrr(grabmodels)(verbose=verbose)
     get_rrr(randomforest)(verbose=verbose)
     get_rrr(yolo)(verbose=verbose)
-    get_reload_subs(background)(verbose=verbose)
-    get_reload_subs(classifier)(verbose=verbose)
-    get_reload_subs(labeler)(verbose=verbose)
-    get_reload_subs(orientation)(verbose=verbose)
+    # get_rrr(selectivesearch)(verbose=verbose)
+    # get_rrr(ssd)(verbose=verbose)
+    # get_rrr(fasterrcnn)(verbose=verbose)
+    # get_rrr(darknet)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -81,10 +81,10 @@ IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
     ('yolo', None),
-    ('background', None, True),
-    ('classifier', None, True),
-    ('labeler', None, True),
-    ('orientation', None, True),
+    # ('selectivesearch', None),
+    # ('ssd', None),
+    # ('fasterrcnn', None),
+    # ('darknet', None),
 ]
 """
 Regen Command:

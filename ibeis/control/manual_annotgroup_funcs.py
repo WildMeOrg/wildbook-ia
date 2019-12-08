@@ -11,21 +11,18 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import functools  # NOQA
-import six  # NOQA
-from six.moves import map, range, zip  # NOQA
+from six.moves import zip
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_annotgroup]')
+print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
@@ -40,13 +37,11 @@ ANNOTGROUP_NOTE  = 'annotgroup_note'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
 ANNOTGROUP_TEXT  = 'annotgroup_text'
 ANNOTGROUP_UUID  = 'annotgroup_uuid'
-CONFIG_ROWID     = 'config_rowid'
 ANNOT_ROWID      = 'annot_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 @register_ibs_method
-@register_api('/api/annotgroup/', methods=['GET'])
+# @register_api('/api/annotgroup/', methods=['GET'])
 def _get_all_annotgroup_rowids(ibs):
     """ all_annotgroup_rowids <- annotgroup.get_all_rowids()
 
@@ -68,7 +63,7 @@ def _get_all_annotgroup_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/annotgroup/', methods=['POST'])
+# @register_api('/api/annotgroup/', methods=['POST'])
 def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list):
     """
     Returns:
@@ -95,7 +90,7 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
 
 
 @register_ibs_method
-@register_api('/api/annotgroup/', methods=['DELETE'])
+# @register_api('/api/annotgroup/', methods=['DELETE'])
 def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
     """ annotgroup.delete(annotgroup_rowid_list)
 
@@ -134,14 +129,14 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/annotgroup/gar_rowids/', methods=['GET'])
+# @register_api('/api/annotgroup/gar/rowids/', methods=['GET'])
 def get_annotgroup_gar_rowids(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     """
         Auto-docstr for 'get_annotgroup_gar_rowids'
 
         RESTful:
             Method: GET
-            URL:    /api/annotgroup/gar_rowids/
+            URL:    /api/annotgroup/gar/rowids/
     """
     colnames = (GAR_ROWID,)
     gar_rowid_list = ibs.db.get(const.GA_RELATION_TABLE, colnames, annotgroup_rowid_list,
@@ -151,7 +146,7 @@ def get_annotgroup_gar_rowids(ibs, annotgroup_rowid_list, eager=True, nInput=Non
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annotgroup/annotgroup_note/', methods=['GET'])
+# @register_api('/api/annotgroup/note/', methods=['GET'])
 def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     """ annotgroup_note_list <- annotgroup.annotgroup_note[annotgroup_rowid_list]
 
@@ -202,14 +197,14 @@ def get_annotgroup_rowid_from_superkey(ibs, annotgroup_text_list, eager=True, nI
     # FIXME: col_rowid is not correct
     params_iter = zip(annotgroup_text_list)
     andwhere_colnames = [ANNOTGROUP_TEXT]
-    annotgroup_rowid_list = ibs.db.get_where2(
+    annotgroup_rowid_list = ibs.db.get_where_eq(
         const.ANNOTGROUP_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return annotgroup_rowid_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annotgroup/annotgroup_text/', methods=['GET'])
+# @register_api('/api/annotgroup/text/', methods=['GET'])
 def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     """ annotgroup_text_list <- annotgroup.annotgroup_text[annotgroup_rowid_list]
 
@@ -244,7 +239,7 @@ def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annotgroup/annotgroup_uuid/', methods=['GET'])
+# @register_api('/api/annotgroup/uuid/', methods=['GET'])
 def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     """ annotgroup_uuid_list <- annotgroup.annotgroup_uuid[annotgroup_rowid_list]
 
@@ -279,7 +274,7 @@ def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/annotgroup/annotgroup_note/', methods=['PUT'])
+# @register_api('/api/annotgroup/note/', methods=['PUT'])
 def set_annotgroup_note(ibs, annotgroup_rowid_list, annotgroup_note_list, duplicate_behavior='error'):
     """ annotgroup_note_list -> annotgroup.annotgroup_note[annotgroup_rowid_list]
 
@@ -300,7 +295,7 @@ def set_annotgroup_note(ibs, annotgroup_rowid_list, annotgroup_note_list, duplic
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/annotgroup/annotgroup_uuid/', methods=['PUT'])
+# @register_api('/api/annotgroup/uuid/', methods=['PUT'])
 def set_annotgroup_uuid(ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplicate_behavior='error'):
     """ annotgroup_uuid_list -> annotgroup.annotgroup_uuid[annotgroup_rowid_list]
 

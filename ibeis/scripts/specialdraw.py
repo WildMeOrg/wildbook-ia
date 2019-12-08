@@ -1,6 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
+import numpy as np
+(print, rrr, profile) = ut.inject2(__name__)
+
+
+def nx_makenode(graph, name, **attrkw):
+    if 'size' in attrkw:
+        attrkw['width'], attrkw['height'] = attrkw.pop('size')
+    graph.add_node(name, **attrkw)
+    return name
 
 
 def multidb_montage():
@@ -14,45 +22,139 @@ def multidb_montage():
         >>> multidb_montage()
     """
     import ibeis
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     import numpy as np
-    pt.ensure_pylab_qt4()
-    ibs1 = ibeis.opendb('PZ_MTEST')
-    ibs2 = ibeis.opendb('GZ_ALL')
-    ibs3 = ibeis.opendb('GIRM_Master1')
+    pt.ensureqt()
+    dbnames = [
+        'PZ_Master1',
+        'GZ_Master1',
+        'humpbacks_fb',
+        'GIRM_Master1',
+    ]
+    ibs_list = [ibeis.opendb(dbname) for dbname in dbnames]
 
-    chip_lists = []
+    target_num = 1000
+    sample_size = target_num // len(ibs_list)
+
     aids_list = []
-
-    for ibs in [ibs1, ibs2, ibs3]:
-        aids = ibs.sample_annots_general(minqual='good', sample_size=400)
+    for ibs in ibs_list:
+        aids = ibs.sample_annots_general(
+            minqual='good', sample_size=sample_size)
         aids_list.append(aids)
 
     print(ut.depth_profile(aids_list))
 
-    for ibs, aids in zip([ibs1, ibs2, ibs3], aids_list):
-        chips = ibs.get_annot_chips(aids)
-        chip_lists.append(chips)
+    chip_lists = []
+    for ibs, aids in zip(ibs_list, aids_list):
+        annots = ibs.annots(aids)
+        chip_lists.append(annots.chips)
 
-    chip_list = ut.flatten(chip_lists)
-    np.random.shuffle(chip_list)
+    chips = ut.flatten(chip_lists)
+    np.random.shuffle(chips)
 
     widescreen_ratio = 16 / 9
     ratio = ut.PHI
     ratio = widescreen_ratio
 
-    fpath = pt.get_save_directions()
+    fpath = ut.get_argval('--save', type_=str, default='montage.jpg')
 
     #height = 6000
     width = 6000
     #width = int(height * ratio)
     height = int(width / ratio)
     dsize = (width, height)
-    dst = vt.montage(chip_list, dsize)
+    dst = vt.montage(chips, dsize)
     vt.imwrite(fpath, dst)
     if ut.get_argflag('--show'):
         pt.imshow(dst)
+
+
+def featweight_fig():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw featweight_fig --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> featweight_fig()
+        >>> ut.show_if_requested()
+    """
+    # ENABLE_DOCTEST
+    import ibeis
+    # import plottool_ibeis as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+    from ibeis.core_annots import gen_featweight_worker
+    #test_featweight_worker()
+
+    # ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    # aid = ut.get_argval('--aid', type_=list, default=2810)
+    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    aid = ut.get_argval('--aid', type_=int, default=1)
+    depc = ibs.depc
+    aids = [aid]
+
+    assert all(ibs.db.rows_exist('annotations', aids))
+
+    config = {'dim_size': 450, 'resize_dim': 'area', 'smooth_thresh': 30,
+              'smooth_ksize': 30}
+    probchip = depc.get('probchip', aids, 'img', config=config, recompute=True)[0]
+    chipsize = depc.get('chips', aids, ('width', 'height'), config=config)[0]
+    kpts = depc.get('feat', aids, 'kpts', config=config)[0]
+    tup = (kpts, probchip, chipsize)
+    weights = gen_featweight_worker(tup)
+    assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
+    chip = depc.get('chips', aids, 'img', config=config)[0]
+    ut.quit_if_noshow()
+    import plottool_ibeis as pt
+    fnum = 1
+    pnum_ = pt.make_pnum_nextgen(1, 3)
+    pt.figure(fnum=fnum, doclf=True)
+    pt.imshow(chip, pnum=pnum_(0), fnum=fnum)
+    pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
+    pt.imshow(chip, pnum=pnum_(1), fnum=fnum)
+    color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
+    color_list
+    # cb = pt.colorbar(weights, color_list)
+    # cb.set_label('featweights')
+
+
+def simple_vsone_matches():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw simple_vsone_matches --show \
+            --db GZ_Master1 --aids=2811,2810
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> simple_vsone_matches()
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    # import plottool_ibeis as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    aids = ut.get_argval('--aids', type_=list, default=[2811, 2810])
+    assert len(aids) == 2
+    assert all(ibs.db.rows_exist('annotations', aids))
+    aid1, aid2 = aids
+
+    infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+    edges = [(aid1, aid2)]
+    match = infr._exec_pairwise_match(edges)[0]
+
+    ut.quit_if_noshow()
+    import plottool_ibeis as pt
+    pt.figure(fnum=1, doclf=True)
+    match.show(heatmask=True, vert=False, modifysize=True, show_ell=False,
+               show_lines=False, show_ori=False)
 
 
 def double_depcache_graph():
@@ -71,13 +173,13 @@ def double_depcache_graph():
         >>> result = double_depcache_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
     import networkx as nx
-    import plottool as pt
-    pt.ensure_pylab_qt4()
+    import plottool_ibeis as pt
+    pt.ensureqt()
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
     reduced = True
@@ -89,9 +191,9 @@ def double_depcache_graph():
     nx.relabel_nodes(image_graph, {x: 'image_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
     #graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
-    # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
-    # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
-    userdecision = ut.nx_makenode(graph, 'User decision', shape='rect',
+    # userdecision = nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
+    # userdecision = nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
+    userdecision = nx_makenode(graph, 'User decision', shape='rect',
                                   #width=100, height=100,
                                   color=pt.YELLOW, style='diagonals')
     #longcat = True
@@ -196,7 +298,7 @@ def double_depcache_graph():
 
 
 def lighten_hex(hexcolor, amount):
-    import plottool as pt
+    import plottool_ibeis as pt
     import matplotlib.colors as colors
     return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
 
@@ -217,14 +319,14 @@ def general_identify_flow():
         >>> ut.show_if_requested()
     """
     import networkx as nx
-    import plottool as pt
-    pt.ensure_pylab_qt4()
+    import plottool_ibeis as pt
+    pt.ensureqt()
     # pt.plt.xkcd()
 
     graph = nx.DiGraph()
 
     def makecluster(name, num, **attrkw):
-        return [ut.nx_makenode(name + str(n), **attrkw) for n in range(num)]
+        return [nx_makenode(name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -243,7 +345,7 @@ def general_identify_flow():
 
     ns = 512
 
-    ut.inject_func_as_method(graph, ut.nx_makenode)
+    ut.inject_func_as_method(graph, nx_makenode)
 
     annot1_color = p_shade2
     annot2_color = s1_shade2
@@ -311,22 +413,23 @@ def general_identify_flow():
     #ut.nx_delete_node_attr(graph, 'regular')
     #ut.nx_delete_node_attr(graph, 'shape')
 
-    #graph.node[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
-    #graph.node[annot2]['label'] = ut.codeblock(
+    # node_dict = ut.nx_node_dict(graph)
+    #node_dict[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
+    #node_dict[annot2]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
-    #graph.node[annot1]['label'] = ut.codeblock(
+    #node_dict[annot1]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
 
-    #graph.node[annot1]['shape'] = 'none'
-    #graph.node[annot1]['margin'] = '0'
+    #node_dict[annot1]['shape'] = 'none'
+    #node_dict[annot1]['margin'] = '0'
 
     layoutkw = {
         'forcelabels': True,
@@ -368,6 +471,7 @@ def graphcut_flow():
         ?: name
 
     CommandLine:
+        python -m ibeis.scripts.specialdraw graphcut_flow --show
         python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
         python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
 
@@ -376,18 +480,18 @@ def graphcut_flow():
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> graphcut_flow()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import plottool as pt
-    pt.ensure_pylab_qt4()
+    import plottool_ibeis as pt
+    pt.ensureqt()
     import networkx as nx
     # pt.plt.xkcd()
 
     graph = nx.DiGraph()
 
     def makecluster(name, num, **attrkw):
-        return [ut.nx_makenode(graph, name + str(n), **attrkw) for n in range(num)]
+        return [nx_makenode(graph, name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -406,13 +510,13 @@ def graphcut_flow():
     # *** Complement color
     c_shade2 = '#E8B353'
 
-    annot1 = ut.nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
+    annot1 = nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
                             groupid='annot', color=p_shade2)
-    annot2 = ut.nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
+    annot2 = nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
                             groupid='annot', color=s1_shade2)
-    occurprob = ut.nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
-    cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
-    sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
+    occurprob = nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
+    cacheprob = nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
+    sparseprob = nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
 
     graph.add_edge(annot1, occurprob)
 
@@ -420,9 +524,9 @@ def graphcut_flow():
     graph.add_edge(annot2, sparseprob)
     graph.add_edge(annot2, cacheprob)
 
-    matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
-    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
-    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments', color=lighten_hex(s2_shade2, .3))
+    matchgraph = nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
+    cutalgo = nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
+    cc_names = nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected components', color=lighten_hex(s2_shade2, .3))
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)
@@ -463,10 +567,10 @@ def merge_viewpoint_graph():
         >>> result = merge_viewpoint_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import ibeis
     import networkx as nx
 
@@ -499,27 +603,27 @@ def merge_viewpoint_graph():
 
     #right_graph = right_graph.to_undirected().to_directed()
     #left_graph = left_graph.to_undirected().to_directed()
-    nx.set_node_attributes(right_graph, 'groupid', 'right')
-    nx.set_node_attributes(left_graph, 'groupid', 'left')
+    nx.set_node_attributes(right_graph, name='groupid', values='right')
+    nx.set_node_attributes(left_graph, name='groupid', values='left')
 
-    #nx.set_node_attributes(right_graph, 'scale', .2)
-    #nx.set_node_attributes(left_graph, 'scale', .2)
-    #back_graph.node[back[0]]['scale'] = 2.3
+    #nx.set_node_attributes(right_graph, name='scale', values=.2)
+    #nx.set_node_attributes(left_graph, name='scale', values=.2)
+    # node_dict[back[0]]['scale'] = 2.3
 
-    nx.set_node_attributes(back_graph, 'groupid', 'back')
+    nx.set_node_attributes(back_graph, name='groupid', values='back')
 
     view_graph = nx.compose_all([left_graph, back_graph, right_graph])
     view_graph.add_edges_from([
         [backright[0], right_aids[0]][::-1],
         [backleft[0], left_aids[0]][::-1],
     ])
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     graph = graph = view_graph  # NOQA
     #graph = graph.to_undirected()
 
-    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE[0:3])
-    #nx.set_edge_attributes(graph, 'color', pt.BLACK)
-    nx.set_edge_attributes(graph, 'color', {edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
+    nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE[0:3])
+    #nx.set_edge_attributes(graph, name='color', values=pt.BLACK)
+    nx.set_edge_attributes(graph, name='color', values={edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
 
     #pt.close_all_figures();
     from ibeis.viz import viz_graph
@@ -574,14 +678,14 @@ def setcover_example():
         >>> result = setcover_example()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     import networkx as nx
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='testdb2')
 
     if False:
@@ -594,13 +698,13 @@ def setcover_example():
         print(aids[-2])
     #aids = [78, 79, 80, 81, 88, 91]
     aids = [78, 79, 81, 88, 91]
-    qreq_ = ibs.depc.new_request('vsone', aids, aids, cfgdict={})
+    qreq_ = ibs.depc.new_request('vsone', aids, aids)
     cm_list = qreq_.execute()
-    from ibeis.algo.hots import graph_iden
-    infr = graph_iden.AnnotInference(cm_list)
+    from ibeis.algo.hots import orig_graph_iden
+    infr = orig_graph_iden.OrigAnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
-    print(ut.hz_str('prob_annots = ', ut.array2string2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
+    print(ut.hz_str('prob_annots = ', ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
     # ut.setcover_greedy(candidate_sets_dict)
     max_weight = 3
     prob_annots[np.diag_indices(len(prob_annots))] = np.inf
@@ -645,11 +749,11 @@ def setcover_example():
         temp_nids=[1] * len(aids))
     viz_graph.ensure_node_images(ibs, graph)
 
-    nx.set_node_attributes(graph, 'framewidth', False)
-    nx.set_node_attributes(graph, 'framewidth', {aid: 4.0 for aid in exemplars})
-    nx.set_edge_attributes(graph, 'color', pt.ORANGE)
-    nx.set_node_attributes(graph, 'color', pt.LIGHT_BLUE)
-    nx.set_node_attributes(graph, 'shape', 'rect')
+    nx.set_node_attributes(graph, name='framewidth', values=False)
+    nx.set_node_attributes(graph, name='framewidth', values={aid: 4.0 for aid in exemplars})
+    nx.set_edge_attributes(graph, name='color', values=pt.ORANGE)
+    nx.set_node_attributes(graph, name='color', values=pt.LIGHT_BLUE)
+    nx.set_node_attributes(graph, name='shape', values='rect')
 
     layoutkw = {
         'sep' : 1 / 10,
@@ -662,12 +766,382 @@ def setcover_example():
     pt.zoom_factory()
 
 
+def k_redun_demo():
+    r"""
+
+    python -m ibeis.scripts.specialdraw k_redun_demo --save=kredun.png
+    python -m ibeis.scripts.specialdraw k_redun_demo --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> k_redun_demo()
+        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool_ibeis as pt
+    from ibeis.viz import viz_graph
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+
+    # import networkx as nx
+    pt.ensureqt()
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    nid2_aid = {
+        6612: [7664, 7462, 7522],
+        6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        6630: [7586, 7377, 7464, 7478],
+    }
+    aids = ut.flatten(nid2_aid.values())
+    infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+
+    for name_aids in nid2_aid.values():
+        for edge in ut.itertwo(name_aids):
+            infr.add_feedback(edge, POSTV)
+    infr.add_feedback((7664, 7522), POSTV)
+    infr.add_feedback((7746, 7477), POSTV)
+    infr.add_feedback((7383, 7376), POSTV)
+
+    # infr.add_feedback((7664, 7383), NEGTV)
+    # infr.add_feedback((7462, 7746), NEGTV)
+
+    # infr.add_feedback((7464, 7376), NEGTV)
+
+    # Adjust between new and old variable names
+    infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
+
+    infr.initialize_visual_node_attrs()
+    infr.update_node_image_attribute(use_image=True)
+    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
+                             groupby='name_label',
+                             splines='spline',
+                             show_cand=False)
+    infr.set_edge_attrs('linewidth', 2)
+    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
+    # infr.set_edge_attrs('color', pt.BLACK)
+    infr.set_edge_attrs('alpha', .7)
+    viz_graph.ensure_node_images(ibs, infr.graph)
+    infr.show(use_image=True, update_attrs=False)
+
+
+def graph_iden_cut_demo():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --precut
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --postcut
+
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --precut --save=precut.png --clipwhite
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --postcut --save=postcut.png --clipwhite
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> graph_iden_cut_demo()
+        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool_ibeis as pt
+    from ibeis.viz import viz_graph
+    # import networkx as nx
+    pt.ensureqt()
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    nid2_aid = {
+        #4880: [3690, 3696, 3703, 3706, 3712, 3721],
+        4880: [3690, 3696, 3703],
+        6537: [3739],
+        # 6653: [7671],
+        6610: [7566, 7408],
+        #6612: [7664, 7462, 7522],
+        #6624: [7465, 7360],
+        #6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        6630: [7586, 7377, 7464, 7478],
+        #6677: [7500]
+    }
+
+    if False:
+        # Find extra example
+        annots = ibs.annots(ibs.filter_annots_general(view='right', require_timestamp=True, min_pername=2))
+        unique_nids = ut.unique(annots.nids)
+        nid_to_annots = ut.dzip(unique_nids, map(ibs.annots, ibs.get_name_aids(unique_nids)))
+        # nid_to_annots = annots.group_items(annots.nids)
+        right_nids = ut.argsort(ut.map_dict_vals(len, nid_to_annots))[::-1]
+        right_annots = nid_to_annots[right_nids[1]]
+        inter = pt.interact_multi_image.MultiImageInteraction(right_annots.chips)
+        inter.start()
+
+        inter = pt.interact_multi_image.MultiImageInteraction(ibs.annots([16228, 16257, 16273]).chips)
+        inter.start()
+        ut.take(right_annots.aids, [2, 6, 10])
+
+    nid2_aid.update({4429: [16228, 16257, 16273]})
+
+    aids = ut.flatten(nid2_aid.values())
+
+    postcut = ut.get_argflag('--postcut')
+    aids_list = ibs.group_annots_by_name(aids)[0]
+
+    infr = ibeis.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
+                                autoinit=True)
+    if postcut:
+        infr.init_test_mode2(enable_autoreview=False)
+
+        node_to_label = infr.get_node_attrs('orig_name_label')
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+        # cliques
+        new_edges = []
+        for label, nodes in label_to_nodes.items():
+            for edge in ut.combinations(nodes, 2):
+                if not infr.has_edge(edge):
+                    new_edges.append(infr.e_(*edge))
+        # negative edges
+        import random
+        rng = random.Random(0)
+        for aids1, aids2 in ut.combinations(nid2_aid.values(), 2):
+            aid1 = rng.choice(aids1)
+            aid2 = rng.choice(aids2)
+            new_edges.append(infr.e_(aid1, aid2))
+
+        infr.graph.add_edges_from(new_edges)
+        infr.apply_edge_truth(new_edges)
+        for edge in new_edges:
+            infr.queue.push(edge, -1)
+
+        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+
+        try:
+            while True:
+                edge, priority = infr.pop()
+                feedback = infr.request_user_review(edge)
+                infr.add_feedback(edge=edge, **feedback)
+        except StopIteration:
+            pass
+    else:
+        infr.ensure_full()
+
+    # Adjust between new and old variable names
+    infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
+
+    infr.initialize_visual_node_attrs()
+    infr.update_node_image_attribute(use_image=True)
+    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
+                             groupby='name_label', splines='spline',
+                             show_cand=not postcut)
+    infr.set_edge_attrs('linewidth', 2)
+    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
+    if not postcut:
+        infr.set_edge_attrs('color', pt.BLACK)
+    infr.set_edge_attrs('alpha', .7)
+    if not postcut:
+        infr.set_node_attrs('framewidth', 0)
+    viz_graph.ensure_node_images(ibs, infr.graph)
+    infr.show(use_image=True, update_attrs=False)
+
+
+def show_id_graph():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw show_id_graph --show
+        python -m ibeis.scripts.specialdraw show_id_graph --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> show_id_graph()
+        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool_ibeis as pt
+    # import networkx as nx
+    pt.ensureqt()
+    # ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+
+    parent_infr = ibeis.AnnotInference(ibs=ibs, aids='all')
+    parent_infr.reset_feedback('staging', apply=True)
+
+    edgecat = parent_infr.categorize_edges()
+
+    MAX_SIZE = 6
+    MAX_NUM = 6
+
+    pccs = []
+    infr = parent_infr
+    if ibs.dbname == 'PZ_Master1':
+        incomp_pcc = {5652, 5197, 4244}
+        force_incomp_edge = [(5652, 5197)]
+        pccs.append(incomp_pcc)
+    else:
+        pccs = []
+        force_incomp_edge = []
+        if len(pccs) == 0:
+            for (n1, n2), es in edgecat['notcomp'].items():
+                if n1 == n2:
+                    cc = parent_infr.pos_graph._ccs[n1]
+                    pccs.append(cc)
+                    break
+        if len(pccs) == 0:
+            for cc in parent_infr.positive_components():
+                a = ibs.annots(cc)
+                if any(t is not None and 'left' not in t for t in a.yaw_texts):
+                    # print(a.yaw_texts)
+                    if any(t is not None and 'left' in t for t in a.yaw_texts):
+                        if any(t is not None and 'right' in t for t in a.yaw_texts):
+                            print(a.yaw_texts)
+                            if len(cc) <= MAX_SIZE:
+                                pccs.append(cc)
+                        # break
+        if len(pccs) == 0:
+            for (n1, n2), es in edgecat['notcomp'].items():
+                cc1 = parent_infr.pos_graph._ccs[n1]
+                cc2 = parent_infr.pos_graph._ccs[n2]
+                # s1 = len(parent_infr.pos_graph._ccs[n1])
+                # s2 = len(parent_infr.pos_graph._ccs[n2])
+                # if s1 in {3} and s2 in {3}:
+                # print(annots1.yaw_texts)
+                # print(annots2.yaw_texts)
+                pccs.append(frozenset(cc1))
+                pccs.append(frozenset(cc2))
+                break
+
+    MAX_SIZE += len(pccs) - 1
+
+    for cc in parent_infr.positive_components():
+        cc = frozenset(cc)
+        if len(cc) < MAX_SIZE:
+            if cc not in pccs:
+                if len(cc) not in set(map(len, pccs)):
+                    pccs.append(cc)
+        if len(pccs) >= MAX_NUM:
+            break
+
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    subinfr = parent_infr.subgraph(ut.flatten(pccs))
+    subinfr._viz_image_config['thumbsize'] = 700
+    subinfr._viz_image_config['grow'] = True
+    infr = subinfr
+
+    infr.apply_nondynamic_update()
+    # infr.ensure_mst()
+    infr.ensure_mst(label='orig_name_label')
+    # infr.ensure_cliques(evidence_decision=POSTV)
+
+    # infr.show(pickable=True, use_image=True, groupby='name_label',
+    #              splines='spline')
+
+    infr.apply_nondynamic_update()
+    for edge in infr.find_neg_redun_candidate_edges(k=1):
+        infr.add_feedback(edge, evidence_decision=NEGTV)
+
+    import itertools as it
+    edges = list(it.combinations(infr.aids, 2))
+    n = 0
+    incomp_edges = ut.compress(edges, [not f for f in infr.is_comparable(edges)])
+    for e in ut.shuffle(incomp_edges, rng=3545115929):
+        infr.add_feedback(e, evidence_decision=INCMP)
+        n += 1
+        if n > 3:
+            break
+    for e in force_incomp_edge:
+        infr.add_feedback(e, evidence_decision=INCMP)
+
+    for edge in infr.find_neg_redun_candidate_edges(k=1):
+        infr.add_feedback(edge, evidence_decision=NEGTV)
+
+    savekw = dict(dpi=300, transparent=True, edgecolor='none')
+    showkw = dict(pickable=True, use_image=True, groupby='name_label',
+                  splines='spline', fnum=1)
+
+    infr.show(show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=False, **showkw)
+    fig = pt.gcf()
+    fig.savefig('id_graph1.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr.show(show_positive_edges=True, show_negative_edges=False,
+              show_incomparable_edges=False, **showkw)
+    fig = pt.gcf()
+    fig.savefig('id_graph2.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr.show(show_positive_edges=False, show_negative_edges=True,
+              show_incomparable_edges=False, **showkw)
+    fig = pt.gcf()
+    fig.savefig('id_graph3.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr.show(show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=True, **showkw)
+    fig = pt.gcf()
+    fig.savefig('id_graph4.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    import networkx as nx
+
+    infr.show(pin=True, **showkw)
+    nx.set_node_attributes(infr.graph, name='pin', values='true')
+    fig = pt.gcf()
+    fig.savefig('id_graph5.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr2 = infr.copy()
+    for edge in infr2.find_pos_redun_candidate_edges(k=2):
+        infr2.add_feedback(edge, evidence_decision=POSTV)
+    infr2.show(pickable=True, use_image=True,
+                 groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph6.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    for edge in infr2.find_neg_redun_candidate_edges(k=2):
+        infr2.add_feedback(edge, evidence_decision=NEGTV)
+    infr2.show(pickable=True, use_image=True,
+                 groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph7.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr3 = infr.copy()
+    for edge in infr3.find_pos_redun_candidate_edges(k=2):
+        infr3.add_feedback(edge, evidence_decision=POSTV)
+    for cc in infr3.non_pos_redundant_pccs(k=3):
+        for edge in infr3.find_pos_augment_edges(cc, k=3):
+            infr3.add_feedback(edge, evidence_decision=NEGTV)
+            break
+    infr3.show(pickable=True, use_image=True, show_between=False,
+               show_inconsistency=True,
+               groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph8.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+    infr4 = infr.copy()
+    for edge in infr4.edges():
+        infr4.add_feedback(edge, evidence_decision=UNREV)
+    infr4.refresh_candidate_edges()
+    infr4.show(show_cand=True, **showkw)
+    fig = pt.gcf()
+    fig.savefig('id_graph9.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+
+
 def intraoccurrence_connected():
     r"""
     CommandLine:
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller
+
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --precut --save=precut.jpg
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --postcut --save=postcut.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -675,14 +1149,14 @@ def intraoccurrence_connected():
         >>> result = intraoccurrence_connected()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     import networkx as nx
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
         #4880: [3690, 3696, 3703, 3706, 3712, 3721],
@@ -717,7 +1191,9 @@ def intraoccurrence_connected():
     temp_nids = [1] * len(aids)
     postcut = ut.get_argflag('--postcut')
     aids_list = ibs.group_annots_by_name(aids)[0]
+
     ensure_edges = 'all' if True or not postcut else None
+    unlabeled_graph = infr.graph
     unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(
         ibs, aids_list,
         #invis_edges=invis_edges,
@@ -725,7 +1201,7 @@ def intraoccurrence_connected():
     viz_graph.color_by_nids(unlabeled_graph, unique_nids=[1] *
                             len(list(unlabeled_graph.nodes())))
     viz_graph.ensure_node_images(ibs, unlabeled_graph)
-    nx.set_node_attributes(unlabeled_graph, 'shape', 'rect')
+    nx.set_node_attributes(unlabeled_graph, name='shape', values='rect')
     #unlabeled_graph = unlabeled_graph.to_undirected()
 
     # Find the "database exemplars for these annots"
@@ -751,11 +1227,11 @@ def intraoccurrence_connected():
     viz_graph.ensure_node_images(ibs, exemplars)
     viz_graph.color_by_nids(exemplars, ibs=ibs)
 
-    nx.set_node_attributes(unlabeled_graph, 'framewidth', False)
-    nx.set_node_attributes(exemplars,  'framewidth', 4.0)
+    nx.set_node_attributes(unlabeled_graph, name='framewidth', values=False)
+    nx.set_node_attributes(exemplars, name='framewidth', values=4.0)
 
-    nx.set_node_attributes(unlabeled_graph, 'group', 'unlab')
-    nx.set_node_attributes(exemplars,  'group', 'exemp')
+    nx.set_node_attributes(unlabeled_graph, name='group', values='unlab')
+    nx.set_node_attributes(exemplars, name='group', values='exemp')
 
     #big_graph = nx.compose_all([unlabeled_graph])
     big_graph = nx.compose_all([exemplars, unlabeled_graph])
@@ -782,7 +1258,7 @@ def intraoccurrence_connected():
             big_graph.add_edges_from(list(ut.product([aid_], exmatches)))
         pass
 
-    nx.set_node_attributes(big_graph, 'shape', 'rect')
+    nx.set_node_attributes(big_graph, name='shape', values='rect')
     #if False and postcut:
     #    ut.nx_delete_node_attr(big_graph, 'nid')
     #    ut.nx_delete_edge_attr(big_graph, 'color')
@@ -806,26 +1282,25 @@ def intraoccurrence_connected():
     graph = big_graph
     ut.nx_ensure_agraph_color(graph)
     if hacknode:
-        nx.set_edge_attributes(graph, 'taillabel', {e: str(e[0]) for e in graph.edges()})
-        nx.set_edge_attributes(graph, 'headlabel', {e: str(e[1]) for e in graph.edges()})
+        nx.set_edge_attributes(graph, name='taillabel', values={e: str(e[0]) for e in graph.edges()})
+        nx.set_edge_attributes(graph, name='headlabel', values={e: str(e[1]) for e in graph.edges()})
 
-    explicit_graph = pt.get_explicit_graph(graph)
-    _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
-                                         inplace=True, **layoutkw)
+    _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
+    node_dict = ut.nx_node_dict(graph)
     if ut.get_argflag('--smaller'):
-        graph.node[7660]['pos'] = np.array([550, 350])
-        graph.node[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
-        graph.node[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
-        nx.set_node_attributes(graph, 'pin', 'true')
+        node_dict[7660]['pos'] = np.array([550, 350])
+        node_dict[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
+        node_dict[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
+        nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)
     elif ut.get_argflag('--small'):
-        graph.node[7660]['pos'] = np.array([750, 350])
-        graph.node[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
-        graph.node[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
-        graph.node[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
-        nx.set_node_attributes(graph, 'pin', 'true')
+        node_dict[7660]['pos'] = np.array([750, 350])
+        node_dict[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
+        node_dict[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
+        node_dict[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
+        nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)
 
@@ -851,13 +1326,13 @@ def intraoccurrence_connected():
 
         #for key, vals in layout_info['node'].items():
         #    #print('[special] key = %r' % (key,))
-        #    nx.set_node_attributes(graph, key, vals)
+        #    nx.set_node_attributes(graph, name=key, values=vals)
 
         #for key, vals in layout_info['edge'].items():
         #    #print('[special] key = %r' % (key,))
-        #    nx.set_edge_attributes(graph, key, vals)
+        #    nx.set_edge_attributes(graph, name=key, values=vals)
 
-        #nx.set_edge_attributes(graph, 'alpha', .8)
+        #nx.set_edge_attributes(graph, name='alpha', values=.8)
         #graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'line'
@@ -885,7 +1360,7 @@ def intraoccurrence_connected():
 
         graph = cut_graph
         viz_graph.color_by_nids(cut_graph, ibs=ibs, nid2_color_=nid2_color_)
-        nx.set_node_attributes(cut_graph, 'framewidth', 4)
+        nx.set_node_attributes(cut_graph, name='framewidth', values=4)
 
         pt.show_nx(cut_graph, layout='custom', layoutkw=layoutkw,
                    as_directed=as_directed, hacknode=hacknode)
@@ -899,8 +1374,8 @@ def intraoccurrence_connected():
     #print(interact)
 
     # Groupid only works for dot
-    #nx.set_node_attributes(unlabeled_graph, 'groupid', 'unlabeled')
-    #nx.set_node_attributes(exemplars, 'groupid', 'exemplars')
+    #nx.set_node_attributes(unlabeled_graph, name='groupid', values='unlabeled')
+    #nx.set_node_attributes(exemplars, name='groupid', values='exemplars')
     #exemplars = exemplars.to_undirected()
     #add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))
     #layoutkw = {}
@@ -925,14 +1400,14 @@ def scalespace():
         >>> result = ('imgBGRA_warped = %s' % (ut.repr2(imgBGRA_warped),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import numpy as np
     # import matplotlib.pyplot as plt
     import cv2
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     pt.qt4ensure()
 
     #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
@@ -1049,8 +1524,8 @@ def event_space():
     venn3(subsets=subsets, set_labels=set_labels)
     plt.show()
 
-    import plottool as pt
-    pt.ensure_pylab_qt4()
+    import plottool_ibeis as pt
+    pt.ensureqt()
     from matplotlib_subsets import treesets_rectangles
     tree = (
         (120, 'Same', None), [
@@ -1134,6 +1609,352 @@ def event_space():
     #              r3, alpha=0.5, edgecolor=None,
     #              facecolor='red', linestyle=None,
     #              linewidth=0))
+
+
+def draw_inconsistent_pcc():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw draw_inconsistent_pcc --show
+    """
+    from ibeis.algo.graph import demo
+    import plottool_ibeis as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+    kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
+    infr = demo.demodata_infr(**kwargs)
+    infr.set_node_attrs('pos', {
+        1: (30, 40),
+        3: (70,  40),
+        4: ( 0,  0),
+        2: (100,  0),
+    })
+    fnum = 1
+    infr.set_node_attrs('pin', True)
+    # infr.set_node_attrs('fixed_size', False)
+    # infr.set_node_attrs('scale', .1)
+    # infr.set_node_attrs('width', 16)
+    infr.show(show_inconsistency=False, simple_labels=True, pickable=True,
+              pnum=(1, 2, 1), fnum=fnum)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    ax.set_aspect('equal')
+
+    infr.show(show_inconsistency=True, simple_labels=True, pickable=True,
+              pnum=(1, 2, 2), fnum=fnum)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    pt.append_phantom_legend_label('hypothesis', infr._error_color, ax=ax)
+    # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    # ax.set_aspect('equal')
+    ax.set_aspect('equal')
+    ut.show_if_requested()
+
+
+def draw_graph_id():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw draw_graph_id --show
+    """
+    from ibeis.algo.graph import demo
+    import plottool_ibeis as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+    kwargs = dict(num_pccs=5, p_incon=0, size=4, size_std=1,
+                  p_incomp=.2,
+                  p_pair_neg=.5, p_pair_incmp=.4)
+    infr = demo.demodata_infr(**kwargs)
+    infr.graph.graph['hpad'] = 50
+    infr.graph.graph['vpad'] = 10
+    infr.graph.graph['group_grid'] = True
+    infr.show(show_inconsistency=False,
+              simple_labels=True,
+              wavy=False, groupby='name_label', pickable=True)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    ax.set_aspect('equal')
+    ut.show_if_requested()
+
+
+def redun_demo2():
+    r"""
+    python -m ibeis.scripts.specialdraw redun_demo2 --show
+    """
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from ibeis.algo.graph import demo
+    # from ibeis.algo.graph import nx_utils
+    import plottool_ibeis as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    fnum = 1
+    showkw = dict(show_inconsistency=False, show_labels=True,
+                  simple_labels=True,
+                  show_recent_review=False, wavy=False,
+                  groupby='name_label',
+                  splines='spline',
+                  pickable=True, fnum=fnum)
+
+    graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    pnum_ = pt.make_pnum_nextgen(2, 3)
+
+    def show_redun(infr):
+        infr.graph.graph.update(graphkw)
+        infr.show(pnum=pnum_(), **showkw)
+        ax = pt.gca()
+        ax.set_aspect('equal')
+        ccs = list(infr.positive_components())
+        if len(ccs) == 1:
+            cc = ccs[0]
+            ax.set_xlabel(str(infr.pos_redundancy(cc)) + '-positive-redundant')
+        else:
+            cc1, cc2 = ccs
+            ax.set_xlabel(str(infr.neg_redundancy(cc1, cc2)) + '-negative-redundant')
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
+    infr.add_feedback((5, 6), evidence_decision=POSTV)
+    # infr.add_feedback((3, 4), evidence_decision='unreviewed')
+    show_redun(infr)
+
+    infr = infr.copy()
+    for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=2):
+        infr.add_feedback((u, v), evidence_decision=POSTV)
+    show_redun(infr)
+
+    infr = infr.copy()
+    for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=3):
+        infr.add_feedback((u, v), evidence_decision=POSTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
+    infr.add_feedback((2, 14), evidence_decision=NEGTV)
+    show_redun(infr)
+
+    fig = pt.gcf()
+    fig.set_size_inches(10, 5)
+
+    ut.show_if_requested()
+
+
+def redun_demo3():
+    r"""
+    python -m ibeis.scripts.specialdraw redun_demo3 --show
+    python -m ibeis.scripts.specialdraw redun_demo3 --saveparts=~/slides/incon_redun.jpg --dpi=300
+    """
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from ibeis.algo.graph import demo
+    from ibeis.algo.graph import nx_utils as nxu
+    import plottool_ibeis as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    fnum = 1
+    showkw = dict(show_inconsistency=False, show_labels=True,
+                  simple_labels=True,
+                  show_recent_review=False, wavy=False,
+                  groupby='name_label',
+                  splines='spline',
+                  show_all=True,
+                  pickable=True, fnum=fnum)
+
+    graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    pnum_ = pt.make_pnum_nextgen(2, 1)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
+    infr.add_feedback((5, 6), evidence_decision=POSTV)
+    for e in nxu.complement_edges(infr.graph):
+        infr.add_feedback(e, evidence_decision=INCMP)
+
+    infr.graph.graph.update(graphkw)
+    infr.show(pnum=pnum_(), **showkw)
+    ax = pt.gca()
+    ax.set_aspect('equal')
+
+    ccs = [(1, 2, 3, 4), (11, 12, 13, 14, 15)]
+    infr = demo.make_demo_infr(ccs=ccs)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
+    import networkx as nx
+    for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
+        print('e = %r' % (e,))
+        infr.add_feedback(e, evidence_decision=INCMP)
+    infr.graph.graph.update(graphkw)
+    infr.show(pnum=pnum_(), **showkw)
+    ax = pt.gca()
+    ax.set_aspect('equal')
+
+    fig = pt.gcf()
+    fig.set_size_inches(10 / 3, 5)
+
+    ut.show_if_requested()
+
+
+def system_diagram():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw system_diagram --show
+
+    """
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    from ibeis.algo.graph import demo
+    from ibeis.algo.graph import nx_utils as nxu  # NOQA
+    import plottool_ibeis as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    # fnum = 1
+    # showkw = dict(show_inconsistency=False, show_labels=True,
+    #               simple_labels=True,
+    #               show_recent_review=False, wavy=False,
+    #               groupby='name_label',
+    #               splines='spline',
+    #               show_all=True,
+    #               pickable=True, fnum=fnum)
+
+    # graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    # pnum_ = pt.make_pnum_nextgen(2, 1)
+
+    infr = demo.demodata_infr(ccs=[(1, 2, 3, 4), (5, 6, 7), (8, 9,), (10,)])
+    showkw = dict(
+        show_unreviewed_edges=True, show_inferred_same=False,
+        show_inferred_diff=False, show_labels=True, simple_labels=True,
+        show_recent_review=False, reposition=False, pickable=True,
+        outof=(len(infr.aids)),  # hack for colors
+    )
+    infr.clear_edges()
+
+    # ----------------------
+    # Step1: Find candidates
+    # ----------------------
+    infr.params['ranking.ntop'] = 4
+    infr.refresh_candidate_edges()
+
+    infr.update_visual_attrs(groupby='name_label')
+    infr.set_node_attrs('pin', 'true')
+    infr.set_node_attrs('shape', 'circle')
+
+    infr.clear_feedback()
+    infr.clear_name_labels()
+
+    # infr.ensure_edges_from([(10, 5), (10, 6)])
+    infr.ensure_prioritized(list(infr.edges()))
+    edge_overrides = {}
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 1), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # ---------------------------
+    # Step 2: Automatic decisions
+    # ---------------------------
+    infr.task_probs.pop('photobomb_state', None)
+    infr.params['autoreview.enabled'] = True
+    infr.params['autoreview.prioritize_nonpos'] = True
+    infr.task_thresh['match_state'][POSTV] = .8
+    infr.task_thresh['match_state'][NEGTV] = .54
+    infr.task_thresh['match_state'][INCMP] = .5
+
+    # infr.add_feedback((1, 2), POSTV)  # hack
+
+    infr.ensure_prioritized(infr.get_edges_where_eq('decision', UNREV))
+    gen = infr._inner_priority_gen()
+    next(gen)
+
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
+    infr.apply_nondynamic_update()
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 2), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # --------------
+    # Error recovery
+    # --------------
+    possible = list(infr.find_pos_redun_candidate_edges())
+    edge = possible[min(1, len(possible) - 1)]
+    infr.add_feedback(edge, NEGTV)
+
+    node_overrides = {
+        'label': {n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())}
+    }
+    # edge_overrides = {
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, node_overrides=node_overrides,
+              fnum=1, pnum=(1, 4, 3), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # Manual Decisions
+    infr.init_simulation(oracle_accuracy=1.0)
+    infr.params['redun.neg.only_auto'] = False
+    infr.main_loop()
+
+    # ISSUE:
+    # For some reason a incomparable edge (3, 10) is being manually reviewed
+    # again in the main loop even though it was already reviewed.
+    # Quick Fix: add feedback specifically for this example.
+    infr.add_feedback((3, 10), INCMP)
+
+    # ISSUE:
+    # When candidate edges are added within pos-redun CCs, the inferred state
+    # should be set (but currently it is not).
+    # EG: edge (1, 2) is added, but the CC is already pos-redun, but the
+    # inferred state on the edge is never set.
+    # Quick Fix: inference between newly added edges that were already
+    # pos-redun
+    infr.apply_nondynamic_update()
+
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 4), **showkw)
+    pt.gca().set_aspect('equal')
+
+    ut.show_if_requested()
 
 
 if __name__ == '__main__':

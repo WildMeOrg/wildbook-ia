@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This module lists known raw databases and how to ingest them.
@@ -6,22 +6,47 @@ This module lists known raw databases and how to ingest them.
 Specify arguments and run the following command to ingest a database
 
 python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
+python -m ibeis --tf ingest_rawdata --db PZ_OlPej2016 --imgdir /raid/raw/OlPejPZ_June_2016 --ingest-type=named_folders --species=zebra_plains
 
 # --- GET DATA ---
 rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
 # --- RUN INGEST SCRIPT ---
 python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+
+
+Example:
+    >>> # xdoctest: +SKIP
+    >>> # The scripts in this file essentiall do this:
+    >>> dbdir = '<your new database directory>'
+    >>> gpath_list = '<path to your images>'
+    >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
+    >>> # use whole images as annotations
+    >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
+    >>> # Extra stuff
+    >>> name_list = '<names that correspond to your annots>'
+    >>> ibs.set_annot_names(aid_list, name_list)
+    >>> occur_text_list = '<occurrence that images belongs to>'
+    >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
+    >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
 import os
-from os.path import relpath, dirname, exists, join, realpath, basename
+from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import parse
+
+"""
+New Lynx
+
+python -m ibeis --tf ingest_rawdata --db lynx2  --imgdir "/media/raid/raw/WildME-WWF-lynx-Sept-2016/CARPETAS CATALOGO INDIVIDUOS" --ingest-type=named_folders --species=lynx --dry
+
+"""
 
 
 class Ingestable(object):
@@ -30,7 +55,7 @@ class Ingestable(object):
     """
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None, zipfile=None,
-                 species=None, images_as_annots=True):
+                 species=None, images_as_annots=False):
         self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
@@ -43,7 +68,7 @@ class Ingestable(object):
         self.ensure_feasibility()
 
     def __str__(self):
-        return ut.dict_str(self.__dict__)
+        return ut.repr2(self.__dict__)
 
     def ensure_feasibility(self):
         rawdir  = ibeis.sysres.get_rawdir()
@@ -72,16 +97,18 @@ class Ingestable2(object):
         self.imgpath_list = imgpath_list
         self.postingest_func = postingest_func
 
-        import dtool
+        import dtool_ibeis
         # valid_species = None
         valid_species = ['____']
 
-        class IngestConfig(dtool.Config):
+        class IngestConfig(dtool_ibeis.Config):
             _param_info_list = [
                 ut.ParamInfo(
-                    'images_as_annots', True),
+                    'images_as_annots', False),
                 ut.ParamInfo(
-                    'ingest_type', 'unknown', valid_values=['unknown', 'named_folders', 'named_images']),
+                    'ingest_type', 'unknown', valid_values=['unknown',
+                                                            'named_folders',
+                                                            'named_images']),
                 ut.ParamInfo(
                     'species', '____',
                     hideif=lambda cfg: not cfg['images_as_annots'],
@@ -103,13 +130,16 @@ class Ingestable2(object):
 
         def extract_from_zipfiles(zipfile_list):
             ut.ensuredir(unzipped_file_base_dir)
+            gpath_list = []
             for zipfile in zipfile_list:
                 img_dir = unzipped_file_base_dir
-                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(img_dir))))
+                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile),
+                                                               realpath(img_dir))))
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpath_list.extend(gpaths)
             return gpath_list
 
         def list_images(img_dir):
@@ -219,21 +249,24 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> ingest_type = ut.get_argval('--ingest-type', type_=str, default='unknown')
         >>> fmtkey = ut.get_argval('--fmtkey', type_=str, default=None)
         >>> species = ut.get_argval('--species', type_=str, default=None)
+        >>> images_as_annots = ut.get_argval('--images-as-annots', type_=bool, default=None)
+        >>> if images_as_annots is None:
+        >>>     images_as_annots = ingest_type != 'unknown'
         >>> assert img_dir is not None, 'specify img dir'
         >>> assert dbname is not None, 'specify dbname'
         >>> ingestable = Ingestable(
         >>>     dbname, img_dir=img_dir, ingest_type=ingest_type,
-        >>>     fmtkey=fmtkey, species=species, images_as_annots=ingest_type != 'unknown',
+        >>>     fmtkey=fmtkey, species=species, images_as_annots=images_as_annots,
         >>>     adjust_percent=0.00)
         >>> from ibeis.control import IBEISControl
-        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
+        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True)
         >>> ut.ensuredir(dbdir, verbose=True)
         >>> if force_delete:
         >>>     ibsfuncs.delete_ibeis_database(dbdir)
         >>> ibs = IBEISControl.request_IBEISController(dbdir)
         >>> localize = False
-        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
-        >>> result = ('aid_list = %s' % (str(aid_list),))
+        >>> gid_list = ingest_rawdata(ibs, ingestable, localize)
+        >>> result = ('gid_list = %s' % (str(gid_list),))
         >>> print(result)
     """
     print('[ingest_rawdata] Ingestable' + str(ingestable))
@@ -256,6 +289,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     def extract_zipfile_images(ibs, ingestable):
         import utool as ut  # NOQA
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
+        gpath_list = []
         if len(zipfile_list) > 0:
             print('Found zipfile_list = %r' % (zipfile_list,))
             ut.ensuredir(unzipped_file_base_dir)
@@ -264,9 +298,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
-        else:
-            gpath_list = []
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpath_list.extend(gpaths)
         return gpath_list
 
     def list_images(img_dir):
@@ -325,6 +358,13 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Add Images
 
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+
+    if ut.get_argflag('--dry'):
+        print('Found %d names' % (len(set(name_list))))
+        print(set(name_list))
+        print('Dry Run')
+        return
+
     gid_list_ = ibs.add_images(gpath_list)
 
     # <DEBUG>
@@ -394,6 +434,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_lblannot_table()
     #ibs.print_image_table()
     #return aid_list
+    return gid_list
 
 
 def normalize_name(name):
@@ -563,7 +604,7 @@ def resolve_name_conflicts(gid_list, name_list):
 
 #
 #
-### <STANDARD DATABASES> ###
+# ## <STANDARD DATABASES> ###
 
 STANDARD_INGEST_FUNCS = {}
 
@@ -585,33 +626,35 @@ def ingest_testdb1(dbname):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> import utool as ut
-        >>> from vtool.tests import grabdata
+        >>> from ibeis import demodata
         >>> import ibeis
-        >>> grabdata.ensure_testdata()
+        >>> demodata.ensure_testdata()
         >>> # DELETE TESTDB1
         >>> TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), 'testdb1')
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from vtool.tests import grabdata   # TODO: remove and use utool appdir
+    from ibeis import demodata  # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
         from ibeis import constants as const
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
+
+        # gid_list = np.array(ibs.images()._rowids)
         gid_list = np.array(ibs.get_valid_gids())
         # Set image unixtimes
         unixtimes_even = (gid_list[0::2] + 100).tolist()
-        unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
+        unixtimes_odd = (gid_list[1::2] + 9001).tolist()
         unixtime_list = unixtimes_even + unixtimes_odd
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
         nid_list = ibs.get_annot_name_rowids(aid_list)
-        nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
+        nid_list = [(nid if nid > 0 else None) for nid in nid_list]
         unique_flag = ut.flag_unique_items(nid_list)
         unique_nids = ut.compress(nid_list, unique_flag)
-        none_nids = [ nid is not None for nid in nid_list]
+        none_nids = [nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
         flag_list = list(map(all, zip(plural_flag, unique_flag, none_nids)))
@@ -649,10 +692,15 @@ def ingest_testdb1(dbname):
             species_text_list[ix] = const.TEST_SPECIES.BEAR_POLAR
 
         ibs.set_annot_species(aid_list, species_text_list)
+        ibs.set_annot_viewpoint_code(aid_list[0:6], ['left'] * 6)
+        ibs.set_annot_viewpoint_code(aid_list[8:10], ['left'] * 2)
+        ibs.set_annot_viewpoint_code(aid_list[10:12], ['right'] * 2)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
         ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
         ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
         ibs.set_annot_notes(aid_list[7:8], ['standard test image'])
+        ibs.set_annot_reviewed(aid_list[::2], [True] * len(aid_list[::2]))
+        ibs.set_annot_multiple(aid_list[::2], [False] * len(aid_list[::2]))
 
         # Set some randomish gps flags that are within nnp
         unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -678,11 +726,12 @@ def ingest_testdb1(dbname):
             ibs.filter_annots_general(min_pername=2, verbose=True))[0]
         aid1_list = ut.take_column(aidgroups, 0)
         aid2_list = ut.take_column(aidgroups, 1)
-        annotmatch_rowids = ibs.add_annotmatch(aid1_list, aid2_list)
+        annotmatch_rowids = ibs.add_annotmatch_undirected(aid1_list, aid2_list)
 
-        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
-        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
-        ibs.set_annotmatch_prop('photobomb', annotmatch_rowids, [True] * len(annotmatch_rowids))
+        ibs.set_annotmatch_evidence_decision(annotmatch_rowids, [True] *
+                                             len(annotmatch_rowids))
+        ibs.set_annotmatch_prop('photobomb', annotmatch_rowids, [True] *
+                                len(annotmatch_rowids))
 
         for aids in aidgroups:
             pass
@@ -690,8 +739,9 @@ def ingest_testdb1(dbname):
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
-                      img_dir=grabdata.get_testdata_dir(),
+                      img_dir=demodata.get_testdata_dir(),
                       adjust_percent=0.00,
+                      images_as_annots=True,
                       postingest_func=postingest_tesdb1_func)
 
 
@@ -815,7 +865,7 @@ def ingest_standard_database(dbname, force_delete=False):
         dbname (str): database name
         force_delete (bool):
 
-    Example:
+    Ignore:
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> dbname = 'testdb1'
         >>> force_delete = False
@@ -825,14 +875,14 @@ def ingest_standard_database(dbname, force_delete=False):
     from ibeis.control import IBEISControl
     print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
     ingestable = get_standard_ingestable(dbname)
-    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True, use_sync=False)
+    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
     ut.ensuredir(dbdir, verbose=True)
     if force_delete:
         ibsfuncs.delete_ibeis_database(dbdir)
     ibs = IBEISControl.request_IBEISController(dbdir)
     ingest_rawdata(ibs, ingestable)
 
-### </STANDARD DATABASES> ###
+# ## </STANDARD DATABASES> ###
 #
 #
 
@@ -854,7 +904,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_oxford_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
 
     Ignore:
@@ -874,31 +924,40 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         name, num, quality = parse.parse(gt_format, gt_fname)
         return (name, num, quality)
 
+    @ut.memoize
+    def _tmpread(gt_fpath):
+        return ut.readfrom(gt_fpath)
+
     def _read_oxsty_gtfile(gt_fpath, name, quality, img_dpath, ignore_list):
         oxsty_annot_info_list = []
         # read the individual ground truth file
-        with open(gt_fpath, 'r') as file:
-            line_list = file.read().splitlines()
-            for line in line_list:
-                if line == '':
-                    continue
-                fields = line.split(' ')
-                gname = fields[0].replace('oxc1_', '') + '.jpg'
-                # >:( Because PARIS just cant keep paths consistent
-                if gname.find('paris_') >= 0:
-                    paris_hack = gname[6:gname.rfind('_')]
-                    gname = join(paris_hack, gname)
-                if gname in ignore_list:
-                    continue
-                if len(fields) > 1:  # if has bbox
-                    bbox =  [int(round(float(x))) for x in fields[1:]]
-                else:
-                    # Get annotation width / height
-                    gpath = join(img_dpath, gname)
-                    h, w, c = vt.imread(gpath, orient='auto').shape
-                    bbox = [0, 0, w, h]
-                oxsty_annot_info = (gname, bbox)
-                oxsty_annot_info_list.append(oxsty_annot_info)
+        line_list = _tmpread(gt_fpath).splitlines()
+        #line_list = file.read().splitlines()
+        for line in line_list:
+            if line == '':
+                continue
+            fields = line.split(' ')
+            gname = fields[0].replace('oxc1_', '') + '.jpg'
+            # >:( Because PARIS just cant keep paths consistent
+            if gname.find('paris_') >= 0:
+                paris_hack = gname[6:gname.rfind('_')]
+                gname = join(paris_hack, gname)
+            if gname in ignore_list:
+                continue
+            if len(fields) > 1:
+                # if has bbox
+                #x1, y1, w, h =  [int(round(float(x))) for x in fields[1:]]
+                x1, y1, x2, y2 =  [int(round(float(x))) for x in fields[1:]]
+                w = x2 - x1
+                h = y2 - y1
+                bbox = [x1, y1, w, h]
+            else:
+                # Get annotation width / height
+                gpath = join(img_dpath, gname)
+                h, w, c = vt.imread(gpath, orient='auto').shape
+                bbox = [0, 0, w, h]
+            oxsty_annot_info = (gname, bbox)
+            oxsty_annot_info_list.append(oxsty_annot_info)
         return oxsty_annot_info_list
 
     gt_dpath = ut.existing_subpath(dbdir,
@@ -954,7 +1013,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
     gname2_annots     = ut.ddict(list)
     multinamed_gname_list = []
-    for gname, val in gname2_annots_raw.iteritems():
+    for gname, val in gname2_annots_raw.items():
         val_repr = list(map(repr, val))
         unique_reprs = set(val_repr)
         unique_indexes = [val_repr.index(urep) for urep in unique_reprs]
@@ -982,11 +1041,10 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
 
     if not dryrun:
         ibs = ibeis.opendb(dbdir, allow_newdir=True)
-        ibs.cfg.other_cfg.auto_localize = False
         print('adding to table: ')
         # Add images to ibeis
         gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
-        gid_list = ibs.add_images(gpath_list)
+        gid_list = ibs.add_images(gpath_list, auto_localize=False)
 
         # 1) Add Query Annotations
         qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)
@@ -1049,6 +1107,411 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         """
         python -m ibeis --tf filter_annots_general --db Oxford --has_any=[query]
         """
+    if False:
+        """
+        dbname = 'Oxford'
+        """
+        import pandas as pd
+        columns = ['gt_fname', 'name', 'num', 'quality']
+        rows = [(gt_fname,) + _parse_oxsty_gtfname(gt_fname) for gt_fname in gt_fname_list]
+        df = pd.DataFrame(rows, columns=columns)
+        query_df = df[df['quality'] == 'query']
+        #query_df = query_df.assign(bbox=None)
+
+        query_annot_rows = []
+        for row in query_df.iterrows():
+            gt_fname, name, num, quality = row[1]._values
+            if gt_fname == 'corrupted_files.txt':
+                continue
+            #Get name, quality, and num from fname
+            gt_fpath = join(gt_dpath, gt_fname)
+            oxsty_annot_info_sublist = _read_oxsty_gtfile(
+                gt_fpath, name, quality, img_dpath, ignore_list)
+            for (gname, bbox) in oxsty_annot_info_sublist:
+                query_annot_rows.append((gname, bbox, name, num))
+
+        query_df2 = pd.DataFrame(query_annot_rows, columns=['gname', 'bbox', 'name', 'num'])
+
+        # Fix query bounding boxes
+        ibs = ibeis.opendb(dbdir)
+        qaids = ibs.filter_annots_general(has_any='query')
+        qannots = ibs.annots(qaids)
+
+        # Ensure query_df2 are aligned with database qannots
+        import numpy as np
+        qannot_basename = [basename(p) for p in ibs.get_image_uris_original(qannots.gids)]
+        imgname_to_idx = ut.make_index_lookup(qannot_basename)
+        sortx1 = ut.take(imgname_to_idx, query_df2['gname'].values)
+        query_df3 = query_df2.take(np.argsort(sortx1))
+
+        assert np.all(qannots.names == query_df3['name'].values)
+
+        # Sort by name
+        unique_names, groupxs = ut.group_indices(qannots.names)
+        sortx2 = ut.flatten(groupxs)
+        qannots4 = qannots.take(sortx2)
+        query_df4 = query_df3.take(sortx2)
+
+        old_bboxes = np.array(qannots4.bboxes, dtype=np.float)
+        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=np.float)
+        new_ar = new_bboxes.T[2] / new_bboxes.T[3]
+        old_ar = old_bboxes.T[2] / old_bboxes.T[3]
+        print(new_ar == old_ar)
+        print(new_ar)
+        print(old_ar)
+
+        ibs.set_annot_bboxes(qannots4.aids, new_bboxes)
+
+        ibs.images(qannots4.gids).append_to_imageset('Queries')
+
+
+# def ingest_pascal_voc_style_db(dbdir, dryrun=False):
+#     pass
+
+
+def ingest_coco_style_db(dbdir, dryrun=False):
+    """
+    Ingest a PASCAL VOC formatted datbase
+
+    Args:
+        dbdir (str):
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-ingest_coco_style_db --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> dbdir = '/Datasets/coco'
+        >>> dryrun = True
+        >>> ingest_coco_style_db(dbdir)
+        >>> ut.quit_if_noshow()
+        >>> import plottool_ibeis as pt
+        >>> ut.show_if_requested()
+    """
+    import simplejson as json
+    import datetime
+
+    print('Loading PASCAL VOC Style Images from: ' + dbdir)
+
+    annot_path = join(dbdir, 'annotations')
+    assert exists(annot_path)
+
+    dataset_name_list = [
+        'test2014',  # THIS SHOULD BE FIRST
+        'test2015',
+        'train2014',
+        'val2014',
+    ]
+
+    test2014_seen_set = set([])
+    cat_dict = {}
+    lic_dict = {}
+    image_dict = {}
+    for dataset_name in dataset_name_list:
+        print('Processing Dataset %r' % (dataset_name, ))
+        print('\tLoading Instances JSON...')
+        inst_filepath = join(annot_path, 'instances_%s.json' % (dataset_name, ))
+        if exists(inst_filepath):
+            with open(inst_filepath) as inst_file:
+                inst_dict = json.load(inst_file)
+        else:
+            inst_dict = {}
+
+        print('\tLoading Captions JSON...')
+        capt_filepath = join(annot_path, 'captions_%s.json' % (dataset_name, ))
+        if exists(capt_filepath):
+            with open(capt_filepath) as capt_file:
+                capt_dict = json.load(capt_file)
+        else:
+            capt_dict = {}
+
+        print('\tLoading Info JSON...')
+        info_filepath = join(annot_path, 'image_info_%s.json' % (dataset_name, ))
+        if exists(info_filepath):
+            with open(info_filepath) as info_file:
+                info_dict = json.load(info_file)
+        else:
+            info_dict = {}
+
+        if dataset_name == 'test2014':
+            print('\tAssociate Test 2014')
+            image_list = inst_dict.get('images', []) + \
+                         capt_dict.get('images', []) + \
+                         info_dict.get('images', [])
+            id_dict = {}
+            for image in image_list:
+                image_id = image['id']
+                test2014_seen_set.add(image_id)
+
+            # Skip remaining processing to prevent duplicates
+            continue
+
+        print('\tLoading Licenses JSON...')
+        lic_list = inst_dict.get('licenses', []) + \
+                   capt_dict.get('licenses', []) + \
+                   info_dict.get('licenses', [])
+        for lic in lic_list:
+            lic_name = lic['name']
+            lic_url = lic['url']
+            lic_id = lic['id']
+            lic_dict_ = {
+                'name':  lic_name,
+                'url': lic_url,
+            }
+            if lic_id in lic_dict:
+                assert lic_dict[lic_id] == lic_dict_
+            else:
+                lic_dict[lic_id] = lic_dict_
+
+        print('\tLoading Categories JSON...')
+        cat_list = inst_dict.get('categories', []) + \
+                   capt_dict.get('categories', []) + \
+                   info_dict.get('categories', [])
+        for cat in cat_list:
+            cat_name = cat['name']
+            cat_super = cat['supercategory']
+            cat_id = cat['id']
+            cat_dict_ = {
+                'name'  : cat_name,
+                'super' : cat_super,
+            }
+            if cat_id in cat_dict:
+                assert cat_dict[cat_id] == cat_dict_
+            else:
+                cat_dict[cat_id] = cat_dict_
+
+        print('\tLoading Images...')
+        image_path = join(dbdir, dataset_name)
+        assert exists(image_path)
+
+        image_filepath_list = ut.list_images(image_path, recursive=True, full=False)
+        for image_filepath in image_filepath_list:
+            if image_filepath not in image_dict:
+                image_dict[image_filepath] = {}
+
+        print('\tAssociate Images')
+        image_list = inst_dict.get('images', []) + \
+                     capt_dict.get('images', []) + \
+                     info_dict.get('images', [])
+        id_dict = {}
+        for image in image_list:
+            # Get file name
+            image_filename = image['file_name']
+            assert image_filename in image_dict
+            # Get file ID
+            image_id = image['id']
+            if image_id in id_dict:
+                assert id_dict[image_id] == image_filename
+            else:
+                id_dict[image_id] = image_filename
+            # Add dataset name
+            if 'datasets' not in image_dict[image_filename]:
+                image_dict[image_filename]['datasets'] = set([])
+            image_dict[image_filename]['datasets'].add(dataset_name)
+            # Add test2014, if needed
+            if dataset_name == 'test2015' and image_id in test2014_seen_set:
+                image_dict[image_filename]['datasets'].add('test2014')
+            # Get image's filepath
+            image_filepath = abspath(join(image_path, image_filename))
+            if 'filepath' in image_dict[image_filename]:
+                assert image_dict[image_filename]['filepath'] == image_filepath
+            else:
+                image_dict[image_filename]['filepath'] = image_filepath
+            # Get keys
+            key_list = [
+                'date_captured',
+                'id',
+                'coco_url',
+                'license',
+            ]
+            for key in key_list:
+                if key in image_dict[image_filename]:
+                    assert image_dict[image_filename][key] == image[key]
+                else:
+                    image_dict[image_filename][key] = image[key]
+
+        print('\tAssociate Captions')
+        for caption in capt_dict.get('annotations', []):
+            capt_id = caption['id']
+            capt_str = caption['caption']
+            image_id = caption['image_id']
+            assert image_id in id_dict
+            image_filename = id_dict[image_id]
+            assert image_filename in image_dict
+            if 'caption' not in image_dict[image_filename]:
+                image_dict[image_filename]['captions'] = []
+            image_dict[image_filename]['captions'].append({
+                'id'  : capt_id,
+                'str' : capt_str,
+            })
+
+        print('\tAssociate Annotations')
+        for annotation in inst_dict.get('annotations', []):
+            annot_id = annotation['id']
+            annot_bbox = annotation['bbox']
+            annot_seg_list = annotation['segmentation']
+            annot_verts_list = []
+            for index, annot_seg in enumerate(annot_seg_list):
+                annot_vert_list = []
+                for index in range(len(annot_seg) // 2):
+                    annot_vert_list.append(
+                        (annot_seg[index * 2], annot_seg[index * 2 + 1], )
+                    )
+
+                annot_verts_list.append(annot_vert_list)
+            annot_cat = annotation['category_id']
+            image_id = annotation['image_id']
+            annot_iscrowd = annotation['iscrowd'] == 1
+            assert image_id in id_dict
+            image_filename = id_dict[image_id]
+            assert image_filename in image_dict
+            if 'annotations' not in image_dict[image_filename]:
+                image_dict[image_filename]['annotations'] = []
+            image_dict[image_filename]['annotations'].append({
+                'id': annot_id,
+                'bbox': annot_bbox,
+                'segmentations': annot_verts_list,
+                'category': annot_cat,
+                'crowd': annot_iscrowd,
+            })
+
+    image_filename_list = sorted(image_dict.keys())
+    image_filepath_list = []
+    image_original_url_list = []
+    image_unixtime_list = []
+    image_metadata_list = []
+    image_imagesets_list = []
+    image_annot_bbox_list_list = []
+    image_annot_species_list_list = []
+    image_annot_metadata_list_list = []
+    for image_filename in image_filename_list:
+        print('Processing: %r' % (image_filename, ))
+        image = image_dict[image_filename]
+        image_filepath_list.append(image['filepath'])
+        image_original_url_list.append(image['coco_url'])
+        image_datetime = datetime.datetime.strptime(image['date_captured'], '%Y-%m-%d %H:%M:%S')
+        image_unixtime = int(image_datetime.strftime('%s'))
+        image_unixtime_list.append(image_unixtime)
+        image_dataset_list = sorted(list(image['datasets']))
+        image_metadata_dict = {
+            'coco': {
+                'dates'    : {'captured' : image['date_captured']},
+                'datasets' : image_dataset_list,
+                'license'  : lic_dict[image['license']],
+                'captions' : image.get('captions', None),
+                'flickr'   : {'url' : image.get('flickr_url', None)},
+                'url'      : image['coco_url'],
+                'id'       : image['id'],
+            },
+        }
+        image_metadata_list.append(image_metadata_dict)
+        # Get the Imagesets for the datasets
+        image_imageset_list = [
+            'DATASET: %s' % (image_dataset, )
+            for image_dataset in image_dataset_list
+        ]
+        if len(image_imageset_list) == 0:
+            image_imageset_list.append('DATASET: UNSPECIFIED')
+        # Get the Imagesets for the annotations
+        image_category_set = set([])
+        image_super_category_set = set([])
+        image_annot_bbox_list = []
+        image_annot_species_list = []
+        image_annot_metadata_list = []
+        for annotation in image.get('annotations', []):
+            cat = cat_dict[annotation['category']]
+            image_annot_bbox_list.append(annotation['bbox'])
+            image_annot_species_list.append(cat['name'])
+            image_annot_metadata_dict = {
+                'coco': {
+                    'id' : annotation['id'],
+                    'segmentations': annotation['segmentations'],
+                },
+            }
+            image_annot_metadata_list.append(image_annot_metadata_dict)
+            # Get categories
+            image_category_set.add(cat['name'])
+            if annotation['crowd']:
+                image_category_set.add('crowd')
+            image_super_category_set.add(cat['super'])
+
+        assert len(image_annot_bbox_list) == len(image_annot_species_list)
+        assert len(image_annot_species_list) == len(image_annot_metadata_list)
+        image_annot_bbox_list_list.append(image_annot_bbox_list)
+        image_annot_species_list_list.append(image_annot_species_list)
+        image_annot_metadata_list_list.append(image_annot_metadata_list)
+        # Add categories
+        image_imageset_list += [
+            'CATEGORY: %s' % (image_category, )
+            for image_category in sorted(list(image_category_set))
+        ]
+        image_imageset_list += [
+            'SUPER CATEGORY: %s' % (image_super_category, )
+            for image_super_category in sorted(list(image_super_category_set))
+        ]
+        image_imagesets_list.append(image_imageset_list)
+
+    if not dryrun:
+        ibs = ibeis.opendb(dbdir, allow_newdir=True)
+
+        # Add images to the database
+        gid_list = ibs.add_images(image_filepath_list)
+
+        seen_set = set([])
+        flag_list = []
+        for gid in gid_list:
+            flag_list.append(gid not in seen_set)
+            seen_set.add(gid)
+        print('Duplicates: %d' % (flag_list.count(False), ))
+        gid_list = ut.filter_items(gid_list, flag_list)
+
+        # Filter
+        image_filepath_list            = ut.filter_items(image_filepath_list, flag_list)
+        image_original_url_list        = ut.filter_items(image_original_url_list, flag_list)
+        image_unixtime_list            = ut.filter_items(image_unixtime_list, flag_list)
+        image_metadata_list            = ut.filter_items(image_metadata_list, flag_list)
+        image_imagesets_list           = ut.filter_items(image_imagesets_list, flag_list)
+        image_annot_bbox_list_list     = ut.filter_items(image_annot_bbox_list_list, flag_list)
+        image_annot_species_list_list  = ut.filter_items(image_annot_species_list_list, flag_list)
+        image_annot_metadata_list_list = ut.filter_items(image_annot_metadata_list_list, flag_list)
+
+        print('Adding Metadata')
+        # Set image metadata
+        ibs.set_image_uris_original(gid_list, image_original_url_list, overwrite=True)
+        ibs.set_image_unixtime(gid_list, image_unixtime_list)
+        ibs.set_image_metadata(gid_list, image_metadata_list)
+
+        # Add images to imagesets
+        print('Adding Imagesets')
+        len_list = map(len, image_imagesets_list)
+        gids_list = [ [gid] * len_ for gid, len_ in zip(gid_list, len_list)]
+        gid_list_ = ut.flatten(gids_list)
+        image_imageset_list = ut.flatten(image_imagesets_list)
+        ibs.set_image_imagesettext(gid_list_, image_imageset_list)
+
+        print('Adding Annotations')
+        len_list = map(len, image_annot_bbox_list_list)
+        gids_list = [ [gid] * len_ for gid, len_ in zip(gid_list, len_list)]
+        gid_list_ = ut.flatten(gids_list)
+
+        image_annot_bbox_list = ut.flatten(image_annot_bbox_list_list)
+        image_annot_species_list = ut.flatten(image_annot_species_list_list)
+        aid_list = ibs.add_annots(gid_list_, image_annot_bbox_list,
+                                  species_list=image_annot_species_list)
+
+        seen_set = set([])
+        flag_list = []
+        for aid in aid_list:
+            flag_list.append(aid not in seen_set)
+            seen_set.add(aid)
+        print('Duplicates: %d' % (flag_list.count(False), ))
+        aid_list = ut.filter_items(aid_list, flag_list)
+
+        print('Adding Metadata')
+        image_annot_metadata_list = ut.flatten(image_annot_metadata_list_list)
+        image_annot_metadata_list = ut.filter_items(image_annot_metadata_list, flag_list)
+        ibs.set_annot_metadata(aid_list, image_annot_metadata_list)
 
 
 def ingest_serengeti_mamal_cameratrap(species):
@@ -1128,7 +1591,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         import utool as ut
         csv_text = ut.read_from(csv_fpath)
         csv_lines = csv_text.split('\n')
-        print(ut.list_str(csv_lines[0:2]))
+        print(ut.repr2(csv_lines[0:2]))
         csv_data = [[field.strip('"').strip('\r') for field in line.split(',')]
                     for line in csv_lines if len(line) > 0]
         csv_header = csv_data[0]
@@ -1168,8 +1631,8 @@ def ingest_serengeti_mamal_cameratrap(species):
     # Find the zebra events
     serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
     print('serengeti_sepcies_hist = %s' %
-          ut.dict_str(ut.dict_hist(species_class_species_list), key_order_metric='val'))
-    #print('serengeti_sepcies_set = %s' % (ut.list_str(serengeti_sepcies_set),))
+          ut.repr2(ut.dict_hist(species_class_species_list), key_order_metric='val'))
+    #print('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
 
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(
@@ -1238,21 +1701,7 @@ def injest_main():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict  # NOQA
-
-
-        python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete
-        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
-        python ibeis/dbio/ingest_database.py --db snails_drop1
-        python ibeis/dbio/ingest_database.py --db testdb1
-        python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
-
+        xdoctest -m ibeis.dbio.ingest_database
     """
-    ut.inject_colored_exceptions()
-    if ut.doctest_was_requested():
-        ut.doctest_funcs()
-    else:
-        injest_main()
-    import multiprocessing
-    multiprocessing.freeze_support()  # win32
+    import xdoctest
+    xdoctest.doctest_module(__file__)

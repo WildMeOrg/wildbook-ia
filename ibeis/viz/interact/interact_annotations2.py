@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from plottool import interact_annotations
-import plottool as pt  # NOQA
+from plottool_ibeis import interact_annotations
+import plottool_ibeis as pt  # NOQA
 import utool as ut
-print, rrr, profile = ut.inject2(__name__, '[interact_annot2]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #DESTROY_OLD_WINDOW = True
@@ -64,7 +64,7 @@ class ANNOTATION_Interaction2(object):
             metadata['name']
         if True:
             interact_annotations.rrr()
-        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
+        self.interact_ANNOTATIONS = interact_annotations.AnnotationInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
@@ -80,7 +80,8 @@ class ANNOTATION_Interaction2(object):
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
         if dodraw:
-            pt.update()
+            self.interact_ANNOTATIONS.start()
+            #pt.update()
 
     def commit_callback(self, unchanged_indices, deleted_indices,
                         changed_indices, changed_annottups, new_annottups):

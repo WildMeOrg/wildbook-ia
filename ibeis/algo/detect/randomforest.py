@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists, join
 from ibeis.algo.detect import grabmodels
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from six.moves import zip, map
 import cv2
 import random
@@ -16,9 +16,9 @@ if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
     except ImportError as ex:
+        print('WARNING Failed to import pyrf. '
+              'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
-            print('WARNING Failed to import pyrf. '
-                  'Randomforest detection is unavailable')
             raise
 
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE

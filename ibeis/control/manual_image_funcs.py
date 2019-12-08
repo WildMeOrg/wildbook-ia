@@ -24,9 +24,10 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.web import routes_ajax
-print, rrr, profile = ut.inject2(__name__, '[manual_image]')
+import six
+print, rrr, profile = ut.inject2(__name__)
 
 
 DEBUG_THUMB = False
@@ -35,7 +36,6 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 IMAGE_TIME_POSIX      = 'image_time_posix'
@@ -43,6 +43,17 @@ IMAGE_LOCATION_CODE   = 'image_location_code'
 IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
 PARTY_ROWID           = 'party_rowid'
 CONTRIBUTOR_ROWID     = 'contributor_rowid'
+
+ANNOT_ROWID = 'annot_rowid'
+ANNOT_ROWIDS = 'annot_rowids'
+IMAGE_ROWID = 'image_rowid'
+
+IMAGE_COLNAMES = (
+    'image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
+    'image_ext', 'image_width', 'image_height',
+    'image_time_posix', 'image_gps_lat',
+    'image_gps_lon', 'image_orientation', 'image_note',
+)
 
 
 @register_ibs_method
@@ -89,7 +100,8 @@ def _get_all_image_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
-def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None, reviewed=None):
+def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
+                   require_gps=None, reviewed=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -130,7 +142,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
         gid_list = ibs.get_imageset_gids(imgsetid)
     if require_unixtime:
         # Remove images without timestamps
-        unixtime_list = ibs.get_image_unixtime(gid_list)
+        unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
         isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
         gid_list = ut.compress(gid_list, isvalid_list)
     if require_gps:
@@ -144,16 +156,16 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
 
 
 @register_ibs_method
-@register_api('/api/image/<gid>/', methods=['GET'])
-def image_base64_api(gid=None, thumbnail=False, fresh=False, **kwargs):
+@register_api('/api/image/<rowid>/', methods=['GET'])
+def image_base64_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
-    Returns the base64 encoded image of image <gid>
+    Returns the base64 encoded image of image <rowid>
 
     RESTful:
         Method: GET
-        URL:    /api/image/<gid>/
+        URL:    /api/image/<rowid>/
     """
-    return routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
+    return routes_ajax.image_src(rowid, thumbnail=thumbnail, fresh=fresh, **kwargs)
 
 
 @register_ibs_method
@@ -183,7 +195,7 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@register_api('/api/image/gids_with_aids/', methods=['GET'])
+@register_api('/api/image/dict/', methods=['GET'])
 def get_image_gids_with_aids(ibs, gid_list=None):
     if gid_list is None:
         gid_list = sorted(ibs.get_valid_gids())
@@ -195,38 +207,65 @@ def get_image_gids_with_aids(ibs, gid_list=None):
 
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/image/valid_rowids/', methods=['GET'])
+# @register_api('/api/image/rowid/valid/', methods=['GET'])
 def get_valid_image_rowids(ibs, imgsetid=None, require_unixtime=False, reviewed=None):
     r"""
     alias
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/valid_rowids/
     """
     return get_valid_gids(ibs, imgsetid, require_unixtime, reviewed)
 
 
 @register_ibs_method
-@register_api('/api/image/num/', methods=['GET'])
 def get_num_images(ibs, **kwargs):
     r"""
     Number of valid images
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/num/
     """
     gid_list = ibs.get_valid_gids(**kwargs)
     return len(gid_list)
 
 
 @register_ibs_method
+def _compute_image_uuids(ibs, gpath_list, sanitize=True, **kwargs):
+    from ibeis.algo.preproc import preproc_image
+    from ibeis.other import ibsfuncs
+
+    #print('[ibs] gpath_list = %r' % (gpath_list,))
+    # Processing an image might fail, yeilding a None instead of a tup
+    if sanitize:
+        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
+
+    # Create param_iter
+    # params_list = list(preproc_image.add_images_params_gen(gpath_list))
+    params_list = list(ut.generate2(
+        preproc_image.parse_imageinfo, zip(gpath_list),
+        nTasks=len(gpath_list), force_serial=ibs.force_serial))
+
+    # Error reporting
+    print('\n'.join(
+        [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
+         in zip(gpath_list, params_list) if not params_]))
+
+    return params_list
+
+
+@register_ibs_method
+@register_api('/api/image/uuid/', methods=['POST'])
+def compute_image_uuids(ibs, gpath_list, **kwargs):
+    params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+
+    uuid_colx = IMAGE_COLNAMES.index('image_uuid')
+    uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
+
+    return uuid_list
+
+
+@register_ibs_method
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
-@register_api('/api/image/path/', methods=['POST'])
-def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None,
-               sanitize=True, **kwargs):
+@register_api('/api/image/', methods=['POST'])
+def add_images(ibs, gpath_list, params_list=None, as_annots=False,
+               auto_localize=None, location_for_names=None,
+               **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -249,10 +288,12 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
     RESTful:
         Method: POST
-        URL:    /api/image/path
+        URL:    /api/image/
 
-    Example0:
-        >>> # ENABLE_DOCTEST
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-add_images
+
+    Doctest:
         >>> # Test returns None on fail to add
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
@@ -263,8 +304,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         >>> assert len(gid_list) == len(gpath_list)
         >>> assert gid_list[0] is None
 
-    Example1:
-        >>> # ENABLE_DOCTSET
+    Doctest:
         >>> # test double add
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
@@ -279,30 +319,23 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         >>> # Clean things up
         >>> ibs.delete_images(new_gids1)
     """
-    from ibeis.algo.preproc import preproc_image
-    from ibeis.other import ibsfuncs
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-    #print('[ibs] gpath_list = %r' % (gpath_list,))
-    # Processing an image might fail, yeilding a None instead of a tup
-    if sanitize:
-        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
+    if auto_localize is None:
+        # grab value from config
+        auto_localize = ibs.cfg.other_cfg.auto_localize
+
+    location_for_names = None
+    if location_for_names is None:
+        location_for_names = ibs.cfg.other_cfg.location_for_names
+
     if params_list is None:
-        # Create param_iter
-        params_list = list(preproc_image.add_images_params_gen(gpath_list))
-    # Error reporting
-    print('\n'.join(
-        [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
-         in zip(gpath_list, params_list) if not params_]))
-    # Add any unadded images
-    colnames = ('image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
-                'image_ext', 'image_width', 'image_height',
-                'image_time_posix', 'image_gps_lat',
-                'image_gps_lon', 'image_orientation', 'image_note',)
+        params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+
     # <DEBUG>
     debug = False
     if debug:
-        uuid_colx = colnames.index('image_uuid')
+        uuid_colx = IMAGE_COLNAMES.index('image_uuid')
         uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
@@ -310,12 +343,13 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         print('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
         print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
     # </DEBUG>
+
     # Execute SQL Add
     from distutils.version import LooseVersion
 
     if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
-        colnames = colnames + ('image_original_path', 'image_location_code')
-        params_list = [tuple(params) + (gpath, ibs.cfg.other_cfg.location_for_names)
+        colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
+        params_list = [tuple(params) + (gpath, location_for_names)
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
@@ -341,10 +375,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         print('[postadd] uuid / gid = ' + ut.indentjoin(zip(uuid_list, gid_list)))
         print('[postadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
 
-    #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
-    if auto_localize is None:
-        # grab value from config
-        auto_localize = ibs.cfg.other_cfg.auto_localize
     if auto_localize:
         # Move to ibeis database local cache
         ibs.localize_images(ut.filter_Nones(gid_list))
@@ -398,12 +428,18 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
-    from six.moves import urllib
+    import six
+    if six.PY2:
+        import urlparse
+        urlsplit = urlparse.urlsplit
+    else:
+        import urllib
+        urlsplit = urllib.parse.urlsplit
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
-    isnone_list = [gid is None for gid in gid_list_]
-    gid_list = ut.unique_ordered(ut.filterfalse_items(gid_list_, isnone_list))
+    isvalid_list = [gid is not None for gid in gid_list_]
+    gid_list = ut.unique(ut.compress(gid_list_, isvalid_list))
 
     #gpath_list = ibs.get_image_paths(gid_list)
     uri_list = ibs.get_image_uris(gid_list)
@@ -418,9 +454,6 @@ def localize_images(ibs, gid_list_=None):
     def islocal(uri):
         return not (isabs(uri) and isproto(uri, valid_protos))
 
-    abs_uri_list = [uri if islocal(uri) else
-                    join(ibs.imgdir, uri) for uri in uri_list]
-
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)
     # Build list of image names based on uuid in the ibeis imgdir
@@ -429,23 +462,31 @@ def localize_images(ibs, gid_list_=None):
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
-        if isproto(uri, s3_proto):
-            s3_dict = ut.s3_str_decode_to_dict(uri)
-            ut.grab_s3_contents(loc_gpath, **s3_dict)
-        if isproto(uri, url_protos):
-            urllib.request.urlretrieve(uri, filename=loc_gpath)
-    # Copy images to local directory
-    #needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
-    #                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]
-    needs_copy_flags = [not exists(gpath) for gpath in loc_gpath_list]
-    # ---
-    loc_gpath_list_ = ut.compress(loc_gpath_list, needs_copy_flags)
-    #loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)
-    gpath_list_     = ut.compress(abs_uri_list, needs_copy_flags)
-    gid_list_       = ut.compress(gid_list, needs_copy_flags)
-    ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
+        print('Localizing %r -> %r' % (uri, loc_gpath, ))
+        if isproto(uri, valid_protos):
+            if isproto(uri, s3_proto):
+                print('\tAWS S3 Fetch')
+                s3_dict = ut.s3_str_decode_to_dict(uri)
+                ut.grab_s3_contents(loc_gpath, **s3_dict)
+            elif isproto(uri, url_protos):
+                print('\tURL Download')
+                # Ensure that the Unicode string is properly encoded for web requests
+                uri_ = urlsplit(uri)
+                uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                uri_ = uri_._replace(path=uri_path)
+                uri = uri_.geturl()
+                six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
+            else:
+                raise ValueError('Sanity check failed')
+        else:
+            if not exists(loc_gpath):
+                print('\tIO Copy')
+                # Copy images to local directory
+                uri if islocal(uri) else join(ibs.imgdir, uri)
+                ut.copy_list([uri], [loc_gpath])
+            else:
+                print('\tSkipping (already localized)')
     # Update database uris
-    #ibs.set_image_uris(gid_list_, loc_gname_list_)
     ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
@@ -455,7 +496,7 @@ def localize_images(ibs, gid_list_=None):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/uris/', methods=['PUT'])
+@register_api('/api/image/uri/', methods=['PUT'])
 def set_image_uris(ibs, gid_list, new_gpath_list):
     r"""
     Sets the image URIs to a new local path.
@@ -465,7 +506,7 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
 
     RESTful:
         Method: PUT
-        URL:    /api/image/uris/
+        URL:    /api/image/uri/
     """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((new_gpath,) for new_gpath in new_gpath_list)
@@ -474,7 +515,7 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/uris_original/', methods=['PUT'])
+@register_api('/api/image/uri/original/', methods=['PUT'])
 def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
     r"""
     Sets the (original) image URIs to a new local path.
@@ -486,34 +527,40 @@ def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
 
     RESTful:
         Method: PUT
-        URL:    /api/image/uris_original/
+        URL:    /api/image/uri/original/
     """
-    def _invalid(uri_original):
-        return current is None or len(current) == 0
-
-    current_uri_original_list = ibs.get_image_uris_original(gid_list)
-    new_gpath_list_ = [
-        new if _invalid(current) or overwrite else current
-        for current, new in zip(current_uri_original_list, new_gpath_list)
-    ]
-    id_iter = ((gid,) for gid in gid_list)
+    if overwrite:
+        gid_list_ = gid_list
+        new_gpath_list_ = new_gpath_list
+    else:
+        current_uri_original_list = ibs.get_image_uris_original(gid_list)
+        valid_flags = [current is None or len(current) == 0
+                       for current in current_uri_original_list]
+        invalid_flags = ut.not_list(valid_flags)
+        nInvalid = sum(invalid_flags)
+        if nInvalid > 0:
+            print('[ibs] WARNING: Preventing overwrite of %d original uris' % (
+                nInvalid,))
+        new_gpath_list_ = ut.compress(new_gpath_list, valid_flags)
+        gid_list_ = ut.compress(gid_list, valid_flags)
+    #new_gpath_list_ = [
+    #    new if _invalid(current) or overwrite else current
+    #    for current, new in zip(current_uri_original_list, new_gpath_list)
+    #]
+    id_iter = ((gid,) for gid in gid_list_)
     val_list = ((new_gpath,) for new_gpath in new_gpath_list_)
     ibs.db.set(const.IMAGE_TABLE, ('image_uri_original',), val_list, id_iter)
 
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/contributor_rowid/', methods=['PUT'])
+@register_api('/api/image/contributor/rowid/', methods=['PUT'])
 def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     r"""
     Sets the image contributor rowid
-
-    RESTful:
-        Method: PUT
-        URL:    /api/image/contributor_rowid/
     """
     id_iter = ((gid,) for gid in gid_list)
-    val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
+    val_list = ((contributor_rowid,) for contributor_rowid in contributor_rowid_list)
     ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter, **kwargs)
 
 
@@ -536,14 +583,10 @@ def set_image_reviewed(ibs, gid_list, reviewed_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/enabled/', methods=['PUT'])
+# @register_api('/api/image/enabled/', methods=['PUT'])
 def set_image_enabled(ibs, gid_list, enabled_list):
     r"""
     Sets the image all instances found bit
-
-    RESTful:
-        Method: PUT
-        URL:    /api/image/enabled/
     """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((enabled,) for enabled in enabled_list)
@@ -552,18 +595,79 @@ def set_image_enabled(ibs, gid_list, enabled_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/notes/', methods=['PUT'])
+# @register_api('/api/image/enabled/', methods=['PUT'])
+def set_image_cameratrap(ibs, gid_list, cameratrap_list):
+    r"""
+    Sets the image all instances found bit
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    valid_set = set([False, True, None])
+    valid_list = [cameratrap in valid_set for cameratrap in cameratrap_list]
+    assert False not in valid_list
+    val_list = ((cameratrap,) for cameratrap in cameratrap_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_toggle_cameratrap',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/note/', methods=['PUT'])
 def set_image_notes(ibs, gid_list, notes_list):
     r"""
     Sets the image all instances found bit
 
     RESTful:
         Method: PUT
-        URL:    /api/image/notes/
+        URL:    /api/image/note/
     """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((notes,) for notes in notes_list)
     ibs.db.set(const.IMAGE_TABLE, ('image_note',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/metadata/', methods=['PUT'])
+def set_image_metadata(ibs, gid_list, metadata_dict_list):
+    r"""
+    Sets the image's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-set_image_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(metadata_dict_list))
+        >>> ibs.set_image_metadata(gid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_image_metadata(gid_list)
+        >>> print(ut.repr2(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.repr2(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_image_metadata(gid_list, return_raw=True)
+        >>> print(ut.repr2(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_metadata_json',), val_list, id_iter)
 
 
 @register_ibs_method
@@ -585,16 +689,16 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
 
 
 @register_ibs_method
-@register_api('/api/image/time_posix/', methods=['PUT'])
-def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate_behavior='error'):
+@register_api('/api/image/time/posix/', methods=['PUT'])
+def set_image_time_posix(ibs, gid_list, image_time_posix_list, duplicate_behavior='error'):
     r"""
-    image_time_posix_list -> image.image_time_posix[image_rowid_list]
+    image_time_posix_list -> image.image_time_posix[gid_list]
 
     SeeAlso:
         set_image_unixtime
 
     Args:
-        image_rowid_list
+        gid_list
         image_time_posix_list
 
     TemplateInfo:
@@ -604,9 +708,9 @@ def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate
 
     RESTful:
         Method: PUT
-        URL:    /api/image/time_posix/
+        URL:    /api/image/time/posix/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIME_POSIX,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_time_posix_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -614,14 +718,14 @@ def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/imagesettext/', methods=['PUT'])
+@register_api('/api/image/imageset/text/', methods=['PUT'])
 def set_image_imagesettext(ibs, gid_list, imagesettext_list):
     r"""
     Sets the encoutertext of each image
 
     RESTful:
         Method: PUT
-        URL:    /api/image/imagesettext/
+        URL:    /api/image/imageset/text/
     """
     # FIXME: Slow and weird
     if ut.VERBOSE:
@@ -632,24 +736,23 @@ def set_image_imagesettext(ibs, gid_list, imagesettext_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/imgsetids/', methods=['PUT'])
+@register_api('/api/image/imageset/rowid/', methods=['PUT'])
 def set_image_imgsetids(ibs, gid_list, imgsetid_list):
     r"""
     Sets the encoutertext of each image
 
     RESTful:
         Method: PUT
-        URL:    /api/image/imgsetids/
+        URL:    /api/image/imageset/rowid/
     """
     if ut.VERBOSE:
         print('[ibs] setting %r image imageset ids' % len(gid_list))
-    gsgrid_list = ibs.add_image_relationship(gid_list, imgsetid_list)
-    del gsgrid_list
+    ibs.add_image_relationship(gid_list, imgsetid_list)
 
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/gps/', methods=['PUT'])
+@register_api('/api/image/gps/', methods=['PUT'], __api_plural_check__=False)
 def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
     r"""
     see get_image_gps for how the gps_list should look.
@@ -672,6 +775,47 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/image/gps/str/', methods=['PUT'], __api_plural_check__=False)
+def set_image_gps_str(ibs, gid_list, gps_str_list):
+    r"""
+    see get_image_gps for how the gps_list should look.
+        lat and lon should be given in degrees
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/gps/
+    """
+    lat_list = []
+    lon_list = []
+    for gps_str in gps_str_list:
+        # Strip any tuple () and spaces
+        gps_str = gps_str.strip()
+        gps_str = gps_str.strip('(').strip(')')
+        # Replace any spaces with commas
+        gps_str = gps_str.replace(' ', ',')
+        # Split by commas and strip each component of spaces
+        gps_str_ = gps_str.split(',')
+        gps_str_ = [ _.strip() for _ in gps_str_ ]
+        # Filter out any values that are empty
+        gps_str_ = [ _ for _ in gps_str_ if len(_) > 0 ]
+        # Make sure that there are only 2
+        assert len(gps_str_) == 2
+        # Cast to floats
+        gps_str_ = [ float(_) for _ in gps_str_ ]
+        lat = gps_str_[0]
+        lon = gps_str_[1]
+        assert -90.0 <= lat and lat <= 90.0
+        assert -180.0 <= lon and lon <= 180.0
+        lat_list.append(lat)
+        lon_list.append(lon)
+    colnames = ('image_gps_lat', 'image_gps_lon',)
+    val_list = zip(lat_list, lon_list)
+    id_iter = ((gid,) for gid in gid_list)
+    ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
 def _set_image_sizes(ibs, gid_list, width_list, height_list):
     colnames = ('image_width', 'image_height',)
     val_list = zip(width_list, height_list)
@@ -682,29 +826,101 @@ def _set_image_sizes(ibs, gid_list, width_list, height_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/image/orientation/', methods=['PUT'])
-def set_image_orientation(ibs, gid_list, orientation_list):
+def _set_image_orientation(ibs, gid_list, orientation_list):
     r"""
     RESTful:
         Method: PUT
         URL:    /api/image/orientation/
     """
-    # # FIXME: is this correct?
-    # current_list = ibs.get_image_orientation(gid_list)
-    # zipped = zip(gid_list, current_list, orientation_list)
-    # for gid, current, orientation in zipped:
-    #     if current in [1] and orientation in [6, 8]:
-    #         # Fix orientation
-    #         width, height = ibs.get_image_sizes(gid)
-    #         ibs._set_image_sizes(gid, height, width)
-    #         aid_list = ibs.get_image_aids(gid)
-    #         bbox_list = ibs.get_annot_bboxes(aid_list)
-    #         bbox_list_ = ibs.fix_horizontal_bounding_boxes_to_orient(gid, bbox_list)
-    #         ibs.set_annot_bboxes(aid_list, bbox_list_)
     colnames = ('image_orientation',)
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
-    # ibs.depc_image.notify_root_changed(gid_list, 'img')
+    ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
+
+
+def update_image_rotate_90(ibs, gid_list, direction):
+    from vtool_ibeis.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
+                            ORIENTATION_UNDEFINED, ORIENTATION_000)
+
+    def _update_bounding_boxes(gid, val):
+        full_w, full_h = ibs.get_image_sizes(gid)
+        aid_list = ibs.get_image_aids(gid, is_staged=None)
+        if len(aid_list) == 0:
+            return
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        bbox_list_ = []
+        for bbox in bbox_list:
+            (xtl, ytl, width, height) = bbox
+            if val > 0:
+                xtl, ytl = full_w - ytl - height, xtl
+            else:
+                xtl, ytl = ytl, full_h - xtl - width
+            width, height = height, width
+            bbox_ = (xtl, ytl, width, height)
+            bbox_list_.append(bbox_)
+        ibs.set_annot_bboxes(aid_list, bbox_list_)
+
+    if isinstance(direction, six.string_types):
+        direction = direction.lower()
+
+    if direction in ['left', 'l', -1]:
+        val = -1
+    elif direction in ['right', 'r', 1]:
+        val = 1
+    else:
+        raise ValueError('Invalid direction supplied')
+
+    new_orient_list = []
+    orient_list = ibs.get_image_orientation(gid_list)
+    for orient in orient_list:
+        if orient == ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]:
+            orient = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
+        assert orient in ORIENTATION_ORDER_LIST, 'Unrecognized orientation = %r in %r' % (orient, ORIENTATION_ORDER_LIST, )
+
+        current_index = ORIENTATION_ORDER_LIST.index(orient)
+        new_index = int((current_index + val)) % len(ORIENTATION_ORDER_LIST)
+
+        new_orient = ORIENTATION_ORDER_LIST[new_index]
+        new_orient_list.append(new_orient)
+
+    print('Rotating images %r -> %r' % (orient_list, new_orient_list, ))
+    ibs._set_image_orientation(gid_list, new_orient_list)
+
+    # We've just rotated, invert the width, height values in the database for each image
+    # IMPORTANT: DO THIS AFTER FIXING THE BBOXES
+    image_list = ibs.get_images(gid_list)
+    shape_list = [image.shape[:2] for image in image_list]
+    height_list = [shape[0] for shape in shape_list]
+    width_list = [shape[1] for shape in shape_list]
+    ibs._set_image_sizes(gid_list, width_list, height_list)
+
+    # Update the bounding box locations
+    for gid in gid_list:
+        _update_bounding_boxes(gid, val)
+
+    # Update the bounding box thetas
+    aids_list = ibs.get_image_aids(gid_list, is_staged=None)
+    for aid_list in aids_list:
+        if len(aid_list) == 0:
+            continue
+        if val > 0:
+            ibs.update_annot_rotate_left_90(aid_list)
+        else:
+            ibs.update_annot_rotate_right_90(aid_list)
+
+
+@register_ibs_method
+@register_api('/api/image/rotate/left/', methods=['POST'])
+def update_image_rotate_left_90(ibs, gid_list):
+    return update_image_rotate_90(ibs, gid_list, 'left')
+
+
+@register_ibs_method
+@register_api('/api/image/rotate/right/', methods=['POST'])
+def update_image_rotate_right_90(ibs, gid_list):
+    return update_image_rotate_90(ibs, gid_list, 'right')
 
 
 #
@@ -713,7 +929,7 @@ def set_image_orientation(ibs, gid_list, orientation_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list, force_orient=False, **kwargs):
+def get_images(ibs, gid_list, force_orient=True, **kwargs):
     r"""
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
@@ -727,11 +943,6 @@ def get_images(ibs, gid_list, force_orient=False, **kwargs):
 
     CommandLine:
         python -m ibeis.control.manual_image_funcs --test-get_images
-
-    RESTful:
-        Returns the base64 encoded image of image <gid>  # Documented and routed in ibeis.web app.py
-        Method: GET
-        URL:    /api/image/<gid>
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -757,15 +968,18 @@ def get_images(ibs, gid_list, force_orient=False, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/thumbtup/', methods=['GET'])
+def get_image_imgdata(ibs, gid_list, force_orient=False, **kwargs):
+    """ alias for get_images with standardized name """
+    return get_images(ibs, gid_list, force_orient=force_orient, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+# @register_api('/api/image/thumbtup/', methods=['GET'])
 def get_image_thumbtup(ibs, gid_list, **kwargs):
     r"""
     Returns:
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/thumbtup/
     """
     if DEBUG_THUMB:
         print('{TUPPLE} get thumbtup kwargs = %r' % (kwargs,))
@@ -773,13 +987,14 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
+    interests_list = ibs.unflat_map(ibs.get_annot_interest, aids_list)
     thumb_gpaths = ibs.get_image_thumbpath(gid_list, **kwargs)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
     thumbtup_list = [
-        (thumb_path, img_path, img_size, bboxes, thetas)
-        for thumb_path, img_path, img_size, bboxes, thetas in
-        zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list)
+        (thumb_path, img_path, img_size, bboxes, thetas, interests)
+        for thumb_path, img_path, img_size, bboxes, thetas, interests in
+        zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list, interests_list)
     ]
     # if DEBUG_THUMB:
     #     print('{TUPPLE} get thumbtup_list = %r' % (thumbtup_list,))
@@ -788,15 +1003,11 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/thumbpath/', methods=['GET'])
+# @register_api('/api/image/thumbpath/', methods=['GET'])
 def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     r"""
     Returns:
         list_ (list): the thumbnail path of each gid
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/thumbpath/
     """
     if DEBUG_THUMB:
         print('[GET} get_image_thumbpath for %d gids' % (len(gid_list)))
@@ -817,8 +1028,8 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                               read_extern=False, ensure=ensure_paths,
                               hack_paths=not ensure_paths)
-    #except dtool.ExternalStorageException:
-    #    # TODO; this check might go in dtool itself
+    #except dtool_ibeis.ExternalStorageException:
+    #    # TODO; this check might go in dtool_ibeis itself
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
     if DEBUG_THUMB:
@@ -828,7 +1039,20 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/uuids/', methods=['GET'])
+# @register_api('/api/image/thumbpath/', methods=['GET'])
+def get_image_thumbnail(ibs, gid_list, **config):
+    r"""
+    Returns:
+        list_ (list): the thumbnail path of each gid
+    """
+    depc = ibs.depc_image
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config)
+    return thumbpath_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/uuid/', methods=['GET'])
 def get_image_uuids(ibs, gid_list):
     r"""
     Returns:
@@ -846,7 +1070,7 @@ def get_image_uuids(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/uuids/
+        URL:    /api/image/uuid/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -858,7 +1082,7 @@ def get_image_uuids(ibs, gid_list):
         >>> # execute function
         >>> image_uuid_list = ibs.get_image_uuids(gid_list)
         >>> # verify results
-        >>> result = ut.list_str(image_uuid_list)
+        >>> result = ut.repr2(image_uuid_list, nl=1)
         >>> print(result)
         [
             UUID('66ec193a-1619-b3b6-216d-1784b4833b61'),
@@ -875,14 +1099,14 @@ def get_image_uuids(ibs, gid_list):
             UUID('588bc218-83a5-d400-21aa-d499832632b0'),
             UUID('163a890c-36f2-981e-3529-c552b6d668a3'),
         ]
-        """
+    """
     image_uuid_list = ibs.db.get(const.IMAGE_TABLE, ('image_uuid',), gid_list)
     return image_uuid_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/uuids/valid/', methods=['GET'])
+# @register_api('/api/image/uuid/valid/', methods=['GET'])
 def get_valid_image_uuids(ibs):
     r"""
     Returns:
@@ -896,10 +1120,6 @@ def get_valid_image_uuids(ibs):
 
     CommandLine:
         python -m ibeis.control.manual_image_funcs --test-get_image_uuids
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/uuids/valid/
     """
     gid_list = ibs.get_valid_gids()
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -908,15 +1128,15 @@ def get_valid_image_uuids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/contributor_rowid/', methods=['GET'])
-def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
+@register_api('/api/image/contributor/rowid/', methods=['GET'])
+def get_image_contributor_rowid(ibs, gid_list, eager=True, nInput=None):
     r"""
-    contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
+    contributor_rowid_list <- image.contributor_rowid[gid_list]
 
     gets data from the "native" column "contributor_rowid" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: contributor_rowid_list - list of image contributor rowids by gid
@@ -926,20 +1146,16 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
         col = contributor_rowid
         tbl = image
 
-    RESTful:
-        Method: GET
-        URL:    /api/image/contributor_rowid/
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(contributor_rowid_list)
+        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(contributor_rowid_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (CONTRIBUTOR_ROWID,)
     contributor_rowid_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
@@ -948,15 +1164,11 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/exts/', methods=['GET'])
+# @register_api('/api/image/ext/', methods=['GET'])
 def get_image_exts(ibs, gid_list):
     r"""
     Returns:
         list_ (list): a list of image uuids by gid
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/exts/
     """
     image_uuid_list = ibs.db.get(const.IMAGE_TABLE, ('image_ext',), gid_list)
     return image_uuid_list
@@ -964,7 +1176,7 @@ def get_image_exts(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/uris/', methods=['GET'])
+@register_api('/api/image/uri/', methods=['GET'])
 def get_image_uris(ibs, gid_list):
     r"""
     Returns:
@@ -972,7 +1184,7 @@ def get_image_uris(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/uris/
+        URL:    /api/image/uri/
     """
     uri_list = ibs.db.get(const.IMAGE_TABLE, ('image_uri',), gid_list)
     return uri_list
@@ -980,7 +1192,7 @@ def get_image_uris(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/uris_original/', methods=['GET'])
+@register_api('/api/image/uri/original/', methods=['GET'])
 def get_image_uris_original(ibs, gid_list):
     r"""
     Returns:
@@ -988,7 +1200,7 @@ def get_image_uris_original(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/uris_original/
+        URL:    /api/image/uri/original/
     """
     uri_list = ibs.db.get(const.IMAGE_TABLE, ('image_uri_original',), gid_list)
     return uri_list
@@ -996,7 +1208,7 @@ def get_image_uris_original(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/gids_from_uuid/', methods=['GET'])
+@register_api('/api/image/rowid/uuid/', methods=['GET'])
 def get_image_gids_from_uuid(ibs, uuid_list):
     r"""
     Returns:
@@ -1004,7 +1216,7 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/gids_from_uuid/
+        URL:    /api/image/rowid/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     gid_list = ibs.db.get(const.IMAGE_TABLE, ('image_rowid',), uuid_list, id_colname='image_uuid')
@@ -1015,15 +1227,11 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/missing_uuid/', methods=['GET'])
+# @register_api('/api/image/uuid/missing/', methods=['GET'])
 def get_image_missing_uuid(ibs, uuid_list):
     r"""
     Returns:
         list_ (list): a list of missing image uuids
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/missing_uuid/
     """
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
     zipped = zip(gid_list, uuid_list)
@@ -1033,7 +1241,7 @@ def get_image_missing_uuid(ibs, uuid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/paths/', methods=['GET'])
+@register_api('/api/image/file/path/', methods=['GET'])
 def get_image_paths(ibs, gid_list):
     r"""
     Args:
@@ -1048,7 +1256,7 @@ def get_image_paths(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/paths/
+        URL:    /api/image/file/path/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1057,23 +1265,19 @@ def get_image_paths(ibs, gid_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> #gid_list = ibs.get_valid_gids()
-        >>> # execute function
         >>> #gpath_list = get_image_paths(ibs, gid_list)
         >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
         >>> gid_list = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, gid_list)
-        >>> # verify results
         >>> ut.assert_eq(new_gpath, new_gpath_list[0])
         >>> result = str(new_gpath_list)
-        >>> # clean up the database!
         >>> ibs.delete_images(gid_list)
-        >>> # ibs.delete_images(new_gids)
         >>> print(result)
-        """
+    """
     #ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
-    # If the uri is not absolute then it is infered to be relative to ibs.imgdir
+    # If the uri is not absolute then it is inferred to be relative to ibs.imgdir
     #ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
     # Note: join does not prepend anything if the uri is absolute
     gpath_list = [None if uri is None else join(ibs.imgdir, uri) for uri in uri_list]
@@ -1085,17 +1289,13 @@ def get_image_paths(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/detectpaths/', methods=['GET'])
+# @register_api('/api/image/detectpath/', methods=['GET'])
 def get_image_detectpaths(ibs, gid_list):
     r"""
     Returns:
         list_ (list): a list of image paths resized to a constant area for detection
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/detectpaths/
     """
-    import dtool
+    import dtool_ibeis
     depc = ibs.depc_image
     config = {
         'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
@@ -1104,17 +1304,17 @@ def get_image_detectpaths(ibs, gid_list):
     try:
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
+    except dtool_ibeis.ExternalStorageException:
+        # TODO; this check might go in dtool_ibeis itself
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-    print(thumbpath_list)
+    #print(thumbpath_list)
     return thumbpath_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/gnames/', methods=['GET'])
+@register_api('/api/image/file/name/', methods=['GET'])
 def get_image_gnames(ibs, gid_list):
     r"""
     Args:
@@ -1128,7 +1328,7 @@ def get_image_gnames(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/gnames/
+        URL:    /api/image/file/name/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1140,7 +1340,7 @@ def get_image_gnames(ibs, gid_list):
         >>> # execute function
         >>> gname_list = get_image_gnames(ibs, gid_list)
         >>> # verify results
-        >>> result = ut.list_str(gname_list)
+        >>> result = ut.repr2(gname_list, nl=1)
         >>> print(result)
         [
             'easy1.JPG',
@@ -1164,7 +1364,7 @@ def get_image_gnames(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/sizes/', methods=['GET'])
+@register_api('/api/image/size/', methods=['GET'])
 def get_image_sizes(ibs, gid_list):
     r"""
     Returns:
@@ -1172,7 +1372,7 @@ def get_image_sizes(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/sizes/
+        URL:    /api/image/size/
     """
     gsize_list = ibs.db.get(const.IMAGE_TABLE, ('image_width', 'image_height'), gid_list)
     return gsize_list
@@ -1180,7 +1380,7 @@ def get_image_sizes(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/widths/', methods=['GET'])
+@register_api('/api/image/width/', methods=['GET'])
 def get_image_widths(ibs, gid_list):
     r"""
     Returns:
@@ -1188,7 +1388,7 @@ def get_image_widths(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/widths/
+        URL:    /api/image/width/
     """
     gwidth_list = ibs.db.get(const.IMAGE_TABLE, ('image_width',), gid_list)
     return gwidth_list
@@ -1196,7 +1396,7 @@ def get_image_widths(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/heights/', methods=['GET'])
+@register_api('/api/image/height/', methods=['GET'])
 def get_image_heights(ibs, gid_list):
     r"""
     Returns:
@@ -1204,7 +1404,7 @@ def get_image_heights(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/heights/
+        URL:    /api/image/height/
     """
     gheight_list = ibs.db.get(const.IMAGE_TABLE, ('image_height',), gid_list)
     return gheight_list
@@ -1214,7 +1414,7 @@ def get_image_heights(ibs, gid_list):
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime/', methods=['GET'])
-def get_image_unixtime(ibs, gid_list):
+def get_image_unixtime(ibs, gid_list, timedelta_correction=True):
     r"""
     Returns:
         list_ (list): a list of times that the images were taken by gid.
@@ -1226,20 +1426,73 @@ def get_image_unixtime(ibs, gid_list):
         Method: GET
         URL:    /api/image/unixtime/
     """
-    return ibs.db.get(const.IMAGE_TABLE, ('image_time_posix',), gid_list)
+    unixtime_list = ibs.db.get(const.IMAGE_TABLE, ('image_time_posix',), gid_list)
+    unixtime_list = [
+        -1 if unixtime is None else unixtime
+        for unixtime in unixtime_list
+    ]
+
+    if timedelta_correction:
+        timedelta_list = ibs.get_image_timedelta_posix(gid_list)
+        timedelta_list = [
+            0 if timedelta is None else timedelta
+            for timedelta in timedelta_list
+        ]
+        unixtime_list = [
+            unixtime + timedelta
+            for unixtime, timedelta in zip(unixtime_list, timedelta_list)
+        ]
+    return unixtime_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
+def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
+    r"""
+    Returns:
+        list_ (list): a list of times that the images were taken by gid.
+
+    Returns:
+        list_ (list): np.nan if no timedata exists for a given gid
+    """
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
+    unixtime_list = np.array(unixtime_list, dtype=np.float)
+    # Fix problem in sql and make -1 be nans or nulls
+    unixtime_list[unixtime_list == -1] = np.nan
+    return unixtime_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
+@register_api('/api/image/unixtime2/', methods=['GET'])
+def get_image_unixtime2(ibs, gid_list, **kwargs):
+    """ alias for get_image_unixtime_asfloat """
+    return ibs.get_image_unixtime_asfloat(gid_list, **kwargs)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_datetime(ibs, gid_list):
-    unixtime_list = ibs.get_image_unixtime(gid_list)
-    datetime_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
+def get_image_datetime_str(ibs, gid_list, **kwargs):
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
+    datestr_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
+    return datestr_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_datetime(ibs, gid_list, **kwargs):
+    import datetime
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
+    datetime_list = [None if ts is None or ts == -1 else
+                     datetime.datetime.fromtimestamp(ts) for ts in unixtime_list]
     return datetime_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/gps/', methods=['GET'])
+@register_api('/api/image/gps/', methods=['GET'], __api_plural_check__=False)
 def get_image_gps(ibs, gid_list):
     r"""
     Returns:
@@ -1250,6 +1503,32 @@ def get_image_gps(ibs, gid_list):
         URL:    /api/image/gps/
     """
     gps_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #gps_list = [(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in gps_list]
+    return gps_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/gps2/', methods=['GET'], __api_plural_check__=False)
+def get_image_gps2(ibs, gid_list):
+    r"""
+    Like get_image_gps, but fixes the SQL problem where -1 indicates a nan value.
+
+    Returns:
+        gps_list (list): -1 if no timedata exists for a given gid
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/gps/
+    """
+    gps_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
+    gps_list = [(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+                for (lat, lon) in gps_list]
+    #gps_list = [
+    #    (np.nan, np.nan) if (lat == -1 and lon == -1) else (lat, lon)
+    #    for (lat, lon) in gps_list
+    #]
     return gps_list
 
 
@@ -1264,6 +1543,8 @@ def get_image_lat(ibs, gid_list):
         URL:    /api/image/lat/
     """
     lat_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat',), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #lat_list = [np.nan if lat == -1 else lat for lat in lat_list]
     return lat_list
 
 
@@ -1278,6 +1559,8 @@ def get_image_lon(ibs, gid_list):
         URL:    /api/image/lon/
     """
     lon_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lon',), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #lon_list = [np.nan if lon == -1 else lon for lon in lon_list]
     return lon_list
 
 
@@ -1297,15 +1580,15 @@ def get_image_orientation(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/orientation_str/', methods=['GET'])
+@register_api('/api/image/orientation/str/', methods=['GET'])
 def get_image_orientation_str(ibs, gid_list):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/image/orientation_str/
+        URL:    /api/image/orientation/str/
     """
-    from vtool.exif import ORIENTATION_DICT
+    from vtool_ibeis.exif import ORIENTATION_DICT
     orient_list = ibs.get_image_orientation(gid_list)
     orient_str = [ ORIENTATION_DICT[orient] for orient in orient_list ]
     return orient_str
@@ -1313,18 +1596,21 @@ def get_image_orientation_str(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/enabled/', methods=['GET'])
+# @register_api('/api/image/enabled/', methods=['GET'])
 def get_image_enabled(ibs, gid_list):
     r"""
     Returns:
         list_ (list): "Image Enabled" flag, true if the image is enabled
-
-    RESTful:
-        Method: GET
-        URL:    /api/image/enabled/
     """
     enabled_list = ibs.db.get(const.IMAGE_TABLE, ('image_toggle_enabled',), gid_list)
     return enabled_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_cameratrap(ibs, gid_list):
+    cameratrap_list = ibs.db.get(const.IMAGE_TABLE, ('image_toggle_cameratrap',), gid_list)
+    return cameratrap_list
 
 
 @register_ibs_method
@@ -1346,7 +1632,7 @@ def get_image_reviewed(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/detect_confidence/', methods=['GET'])
+@register_api('/api/image/detect/confidence/', methods=['GET'])
 def get_image_detect_confidence(ibs, gid_list):
     r"""
     Returns:
@@ -1354,7 +1640,7 @@ def get_image_detect_confidence(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/detect_confidence/
+        URL:    /api/image/detect/confidence/
     """
     aids_list = ibs.get_image_aids(gid_list)
     confs_list = ibs.unflat_map(ibs.get_annot_detect_confidence, aids_list)
@@ -1364,7 +1650,7 @@ def get_image_detect_confidence(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/notes/', methods=['GET'])
+@register_api('/api/image/note/', methods=['GET'])
 def get_image_notes(ibs, gid_list):
     r"""
     Returns:
@@ -1372,7 +1658,7 @@ def get_image_notes(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/notes/
+        URL:    /api/image/note/
     """
     notes_list = ibs.db.get(const.IMAGE_TABLE, ('image_note',), gid_list)
     return notes_list
@@ -1380,7 +1666,30 @@ def get_image_notes(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/nids/', methods=['GET'])
+@register_api('/api/image/metadata/', methods=['GET'])
+def get_image_metadata(ibs, gid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): image metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.IMAGE_TABLE, ('image_metadata_json',), gid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/name/rowid/', methods=['GET'])
 def get_image_nids(ibs, gid_list):
     r"""
 
@@ -1396,7 +1705,7 @@ def get_image_nids(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/nids/
+        URL:    /api/image/name/rowid/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1419,7 +1728,35 @@ def get_image_nids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/species_rowids/', methods=['GET'])
+@register_api('/api/image/name/uuid/', methods=['GET'])
+def get_image_name_uuids(ibs, gid_list):
+    r"""
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: name_uuids_list - the name uuids associated with an image id
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/name/uuid/
+    """
+    nids_list = ibs.get_image_nids(gid_list)
+    name_uuids_list = [
+        ibs.get_name_uuids(nid_list)
+        for nid_list in nids_list
+    ]
+    return name_uuids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/species/rowid/', methods=['GET'], __api_plural_check__=False)
 def get_image_species_rowids(ibs, gid_list):
     r"""
     Returns:
@@ -1427,7 +1764,7 @@ def get_image_species_rowids(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/species_rowids/
+        URL:    /api/image/species/rowid/
     """
     aids_list = ibs.get_image_aids(gid_list)
     species_rowid_list = ibs.get_annot_species_rowids(aids_list)
@@ -1435,8 +1772,29 @@ def get_image_species_rowids(ibs, gid_list):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/species/uuid/', methods=['GET'], __api_plural_check__=False)
+def get_image_species_uuids(ibs, gid_list):
+    r"""
+    Returns:
+        list_ (list): the name ids associated with an image id
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/species/uuid/
+    """
+    species_rowids_list = ibs.get_image_species_rowids(gid_list)
+    species_uuids_list = [
+        ibs.get_species_uuids(species_rowid_list)
+        for species_rowid_list in species_rowids_list
+    ]
+    return species_uuids_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/image/imgsetids/', methods=['GET'])
+@register_api('/api/image/imageset/rowid/', methods=['GET'])
+@profile
 def get_image_imgsetids(ibs, gid_list):
     r"""
     Returns:
@@ -1444,9 +1802,17 @@ def get_image_imgsetids(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/imgsetids/
+        URL:    /api/image/imageset/rowid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    NEW_INDEX_HACK = True
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gs_to_gids ON {GSG_RELATION_TABLE} ({IMAGE_ROWID});
+            '''.format(GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID)).fetchall()
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(const.GSG_RELATION_TABLE, colnames, gid_list,
                                 id_colname='image_rowid', unpack_scalars=False)
@@ -1455,7 +1821,19 @@ def get_image_imgsetids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/image/imagesettext/', methods=['GET'])
+@register_api('/api/image/imageset/uuid/', methods=['GET'])
+def get_image_imgset_uuids(ibs, gid_list):
+    imgsetids_list = ibs.get_image_imgsetids(gid_list)
+    imgset_uuids_list = [
+        ibs.get_imageset_uuids(imgsetid_list)
+        for imgsetid_list in imgsetids_list
+    ]
+    return imgset_uuids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/image/imageset/text/', methods=['GET'])
 def get_image_imagesettext(ibs, gid_list):
     r"""
     Returns:
@@ -1463,24 +1841,18 @@ def get_image_imagesettext(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/imagesettext/
+        URL:    /api/image/imageset/text/
     """
     imgsetids_list = ibs.get_image_imgsetids(gid_list)
     imagesettext_list = ibs.unflat_map(ibs.get_imageset_text, imgsetids_list)
     return imagesettext_list
 
 
-ANNOT_ROWID = 'annot_rowid'
-ANNOT_ROWIDS = 'annot_rowids'
-IMAGE_ROWID = 'image_rowid'
-
-
 @register_ibs_method
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
-#@profile
-@register_api('/api/image/aids/', methods=['GET'])
-def get_image_aids(ibs, gid_list):
+@register_api('/api/image/annot/rowid/', methods=['GET'])
+def get_image_aids(ibs, gid_list, is_staged=False):
     r"""
     Returns:
         list_ (list): a list of aids for each image by gid
@@ -1497,7 +1869,7 @@ def get_image_aids(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/aids/
+        URL:    /api/image/annot/rowid/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1523,12 +1895,36 @@ def get_image_aids(ibs, gid_list):
         print('len(gidscol) = %r' % (len(gidscol),))
         print('len(unique_gids) = %r' % (len(unique_gids),))
     """
+    from ibeis.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    NEW_INDEX_HACK = True
     USE_GROUPING_HACK = False
-    if USE_GROUPING_HACK:
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+            ''').fetchall()
+
+        # The index maxes the following query very efficient
+        params_iter = ((gid, is_staged) for gid in gid_list)
+        where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+        aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                        params_iter, where_colnames, unpack_scalars=False)
+        #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
+        #    '''
+        #    SELECT annot_rowid
+        #    FROM annotations
+        #    WHERE image_rowid = ?''', (gid,)).fetchall()
+        #]
+        #    for gid in gid_list]
+
+    elif USE_GROUPING_HACK:
         input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
         # This code doesn't work because it doesn't respect empty names
         input_str = ', '.join(list(map(str, input_list)))
@@ -1564,16 +1960,77 @@ def get_image_aids(ibs, gid_list):
             ]
         else:
             # SQL IMPL
-            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
-                                       id_colname=IMAGE_ROWID, unpack_scalars=False)
+            aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                   gid_list, id_colname=IMAGE_ROWID,
+                                   unpack_scalars=False)
+            #%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
+
+    if False:
+        #cur = ibs.db.connection.execute(' .indices annotations;')
+        #cur.fetchall()
+        #aid_list3 = ibs.db.connection.execute('''
+        #                               SELECT annot_rowid
+        #                               FROM annotations
+        #                               WHERE image_rowid IN
+        #                               ({input_str})
+        #                               GROUP BY image_rowid
+        #                               '''.format(input_str=', '.join(list(map(str, gid_list))))
+        #                              ).fetchall()
+        #%timeit ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid'''.format(input_str=', '.join(list(map(str, gid_list))))).fetchall()
+        #aids_list3 = []
+        """
+        cur = ibs.db.connection.execute(
+            '''
+            SELECT * FROM sqlite_master WHERE type = 'index'
+            ''')
+        cur.fetchall()
+
+        cur = ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+            ''').fetchall()
+
+        gid_list = ibs.get_valid_gids()
+        gid_list_ = gid_list[0:15]
+        gid_list_ = gid_list
+        aids_list1 = ibs.get_image_aids(gid_list_)
+        aids_list2 = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
+            '''
+            SELECT annot_rowid
+            FROM annotations
+            WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
+
+        %timeit ibs.get_image_aids(gid_list_)
+
+        %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
+        """
     #print('aids_list = %r' % (aids_list,))
+
+    # aids_list = [
+    #     ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+    #     for aid_list_ in aids_list
+    # ]
+
     return aids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1toM
+@register_api('/api/image/annot/uuid/', methods=['GET'])
+def get_image_annot_uuids(ibs, gid_list):
+    aids_list = ibs.get_image_aids(gid_list)
+    annot_uuid_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
-@register_api('/api/image/aids_of_species/', methods=['GET'])
+@register_api('/api/image/annot/rowid/species/', methods=['GET'], __api_plural_check__=False)
+@profile
 def get_image_aids_of_species(ibs, gid_list, species=None):
     r"""
     Returns:
@@ -1581,7 +2038,7 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
 
     RESTful:
         Method: GET
-        URL:    /api/image/aids_of_species/
+        URL:    /api/image/annot/rowid/species/
     """
     def _filter(aid_list):
         species_list = ibs.get_annot_species(aid_list)
@@ -1599,9 +2056,21 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/image/annot/uuid/species/', methods=['GET'], __api_plural_check__=False)
+def get_image_annot_uuids_of_species(ibs, gid_list, **kwargs):
+    aids_list = ibs.get_image_aids_of_species(gid_list, **kwargs)
+    annot_uuid_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuid_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 #@profile
-@register_api('/api/image/num_annotations/', methods=['GET'])
+@register_api('/api/image/num/annot/', methods=['GET'])
 def get_image_num_annotations(ibs, gid_list):
     r"""
     Returns:
@@ -1609,7 +2078,7 @@ def get_image_num_annotations(ibs, gid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/image/num_annotations/
+        URL:    /api/image/num/annot/
     """
     return list(map(len, ibs.get_image_aids(gid_list)))
 
@@ -1626,9 +2095,9 @@ def delete_images(ibs, gid_list, trash_images=True):
         Method: DELETE
         URL:    /api/image/
 
-    Example:
+    Ignore:
         >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gpath_list = ut.get_test_gpaths(ndata=None)[0:4]
         >>> gid_list = ibs.add_images(gpath_list)
         >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
         >>> name_list = ['a', 'b', 'a', 'd']
@@ -1661,7 +2130,7 @@ def delete_images(ibs, gid_list, trash_images=True):
         >>> assert not utool.checkpath(gthumbpath), "Thumbnail still exists"
         >>> assert not utool.checkpath(athumbpath), "ANNOTATION Thumbnail still exists"
     """
-    if ut.NOT_QUIET:
+    if ut.VERBOSE:
         print('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images
@@ -1674,10 +2143,10 @@ def delete_images(ibs, gid_list, trash_images=True):
         ut.ensuredir(trash_dir)
         gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
                        zip(gname_list, ext_list)]
-        ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True, lbl='Trashing Images')
-    else:
-        for gpath in gpath_list:
-            ut.delete(gpath)
+        ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True,
+                     lbl='Trashing Images')
+    for gpath in gpath_list:
+        ut.delete(gpath)
         # raise NotImplementedError('must trash images for now')
     #ut.view_directory(trash_dir)
 
@@ -1696,18 +2165,18 @@ def delete_images(ibs, gid_list, trash_images=True):
 
 @register_ibs_method
 @accessor_decors.deleter
-@register_api('/api/image/thumbs/', methods=['DELETE'])
+@register_api('/api/image/thumb/', methods=['DELETE'])
 def delete_image_thumbs(ibs, gid_list, **config2_):
     r"""
     Removes image thumbnails from disk
 
     RESTful:
         Method: DELETE
-        URL:    /api/image/thumbs/
+        URL:    /api/image/thumb/
 
-    Example:
+    Ignore:
         >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gpath_list = ut.get_test_gpaths(ndata=None)[0:4]
         >>> gid_list = ibs.add_images(gpath_list)
         >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
         >>> name_list = ['a', 'b', 'a', 'd']
@@ -1724,16 +2193,18 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         >>> for path in gpath_list:
         >>>     utool.assertpath(path)
     """
-    if ut.NOT_QUIET:
+    if ut.VERBOSE:
         print('[ibs] deleting %d image thumbnails' % len(gid_list))
         if DEBUG_THUMB:
             print('{THUMB DELETE} config2_ = %r' % (config2_,))
+
+    # TODO: delete all configs?
     num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
                                                  config=config2_)
 
     # HACK: Remove paths computed by QT and not the depcache.
     thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
-    print('thumbpath_list = %r' % (thumbpath_list,))
+    #print('thumbpath_list = %r' % (thumbpath_list,))
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=True,
                               lbl='image_thumbs')
@@ -1745,17 +2216,17 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
 
 @register_ibs_method
 #@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX)
-@register_api('/api/image/timedelta_posix/', methods=['GET'])
-def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
+@register_api('/api/image/timedelta/posix/', methods=['GET'])
+def get_image_timedelta_posix(ibs, gid_list, eager=True):
     r"""
-    image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
+    image_timedelta_posix_list <- image.image_timedelta_posix[gid_list]
 
     # TODO: INTEGRATE THIS FUNCTION. CURRENTLY OFFSETS ARE ENCODIED DIRECTLY IN UNIXTIME
 
     gets data from the "native" column "image_timedelta_posix" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: image_timedelta_posix_list
@@ -1767,18 +2238,18 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
 
     RESTful:
         Method: GET
-        URL:    /api/image/timedelta_posix/
+        URL:    /api/image/timedelta/posix/
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(image_timedelta_posix_list)
+        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(image_timedelta_posix_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIMEDELTA_POSIX,)
     image_timedelta_posix_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
@@ -1786,15 +2257,15 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
 
 
 @register_ibs_method
-@register_api('/api/image/timedelta_posix/', methods=['PUT'])
-def set_image_timedelta_posix(ibs, image_rowid_list,
+@register_api('/api/image/timedelta/posix/', methods=['PUT'])
+def set_image_timedelta_posix(ibs, gid_list,
                               image_timedelta_posix_list,
                               duplicate_behavior='error'):
     r"""
-    image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
+    image_timedelta_posix_list -> image.image_timedelta_posix[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         image_timedelta_posix_list
 
     TemplateInfo:
@@ -1804,9 +2275,9 @@ def set_image_timedelta_posix(ibs, image_rowid_list,
 
     RESTful:
         Method: PUT
-        URL:    /api/image/timedelta_posix/
+        URL:    /api/image/timedelta/posix/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIMEDELTA_POSIX,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -1814,15 +2285,15 @@ def set_image_timedelta_posix(ibs, image_rowid_list,
 
 @register_ibs_method
 #@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_LOCATION_CODE)
-@register_api('/api/image/location_codes/', methods=['GET'])
-def get_image_location_codes(ibs, image_rowid_list, eager=True):
+@register_api('/api/image/location/code/', methods=['GET'])
+def get_image_location_codes(ibs, gid_list, eager=True):
     r"""
-    image_location_code_list <- image.image_location_code[image_rowid_list]
+    image_location_code_list <- image.image_location_code[gid_list]
 
     gets data from the "native" column "image_location_code" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: image_location_code_list
@@ -1834,18 +2305,18 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
 
     RESTful:
         Method: GET
-        URL:    /api/image/location_codes/
+        URL:    /api/image/location/code/
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> image_location_code_list = ibs.get_image_location_codes(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(image_location_code_list)
+        >>> image_location_code_list = ibs.get_image_location_codes(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(image_location_code_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_LOCATION_CODE,)
     image_location_code_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
@@ -1853,14 +2324,14 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
 
 
 @register_ibs_method
-@register_api('/api/image/location_codes/', methods=['PUT'])
-def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
+@register_api('/api/image/location/code/', methods=['PUT'])
+def set_image_location_codes(ibs, gid_list, image_location_code_list,
                              duplicate_behavior='error'):
     r"""
-    image_location_code_list -> image.image_location_code[image_rowid_list]
+    image_location_code_list -> image.image_location_code[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         image_location_code_list
 
     TemplateInfo:
@@ -1870,9 +2341,9 @@ def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
 
     RESTful:
         Method: PUT
-        URL:    /api/image/location_codes/
+        URL:    /api/image/location/code/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_LOCATION_CODE,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -1880,15 +2351,15 @@ def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/party_rowids/', methods=['GET'])
-def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
+# @register_api('/api/image/party/rowid/', methods=['GET'])
+def get_image_party_rowids(ibs, gid_list, eager=True, nInput=None):
     r"""
-    party_rowid_list <- image.party_rowid[image_rowid_list]
+    party_rowid_list <- image.party_rowid[gid_list]
 
     gets data from the "native" column "party_rowid" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: party_rowid_list
@@ -1898,20 +2369,16 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
         col = party_rowid
         tbl = image
 
-    RESTful:
-        Method: GET
-        URL:    /api/image/party_rowids/
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> party_rowid_list = ibs.get_image_party_rowids(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(party_rowid_list)
+        >>> party_rowid_list = ibs.get_image_party_rowids(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(party_rowid_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (PARTY_ROWID,)
     party_rowid_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
@@ -1920,13 +2387,13 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/party_tag/', methods=['GET'])
-def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
+# @register_api('/api/image/party/tag/', methods=['GET'])
+def get_image_party_tag(ibs, gid_list, eager=True, nInput=None):
     r"""
-    party_tag_list <- image.party_tag[image_rowid_list]
+    party_tag_list <- image.party_tag[gid_list]
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: party_tag_list
@@ -1937,21 +2404,17 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
         externtbl = party
         externcol = party_tag
 
-    RESTful:
-        Method: GET
-        URL:    /api/image/party_tag/
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> party_tag_list = ibs.get_image_party_tag(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(party_tag_list)
+        >>> party_tag_list = ibs.get_image_party_tag(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(party_tag_list)
     """
     party_rowid_list = ibs.get_image_party_rowids(
-        image_rowid_list, eager=eager, nInput=nInput)
+        gid_list, eager=eager, nInput=nInput)
     party_tag_list = ibs.get_party_tag(
         party_rowid_list, eager=eager, nInput=nInput)
     return party_tag_list
@@ -1959,25 +2422,21 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/party_rowids/', methods=['PUT'])
-def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_behavior='error'):
+# @register_api('/api/image/party/rowid/', methods=['PUT'])
+def set_image_party_rowids(ibs, gid_list, party_rowid_list, duplicate_behavior='error'):
     r"""
-    party_rowid_list -> image.party_rowid[image_rowid_list]
+    party_rowid_list -> image.party_rowid[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         party_rowid_list
 
     TemplateInfo:
         Tsetter_native_column
         tbl = image
         col = party_rowid
-
-    RESTful:
-        Method: PUT
-        URL:    /api/image/party_rowids/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (PARTY_ROWID,)
     ibs.db.set(const.IMAGE_TABLE, colnames, party_rowid_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -1985,13 +2444,13 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/contributor_tag/', methods=['GET'])
-def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
+@register_api('/api/image/contributor/tag/', methods=['GET'])
+def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
     r"""
-    contributor_tag_list <- image.contributor_tag[image_rowid_list]
+    contributor_tag_list <- image.contributor_tag[gid_list]
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: contributor_tag_list
@@ -2002,21 +2461,17 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
         externtbl = contributor
         externcol = contributor_tag
 
-    RESTful:
-        Method: GET
-        URL:    /api/image/contributor_tag/
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> contributor_tag_list = ibs.get_image_contributor_tag(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(contributor_tag_list)
+        >>> contributor_tag_list = ibs.get_image_contributor_tag(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(contributor_tag_list)
     """
     contributor_rowid_list = ibs.get_image_contributor_rowid(
-        image_rowid_list, eager=eager, nInput=nInput)
+        gid_list, eager=eager, nInput=nInput)
     contributor_tag_list = ibs.get_contributor_tag(
         contributor_rowid_list, eager=eager, nInput=nInput)
     return contributor_tag_list

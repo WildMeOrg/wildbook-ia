@@ -31,8 +31,6 @@
 
       Aid: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
-      <br/>
-      Path: {{ image_path }}
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
         <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
@@ -312,7 +310,7 @@
           </ul>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('quality_instructions_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-quality_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>

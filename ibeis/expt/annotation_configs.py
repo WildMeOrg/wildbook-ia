@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -* coding: utf-8 -*-
 """
 Definitions for common aid configurations
 
@@ -7,7 +7,7 @@ Rename to annot_cfgdef
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[aidcfg]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 # easier to type names to alias some of these options
@@ -22,13 +22,58 @@ ALIAS_KEYS = {
     'excluderef': 'exclude_reference',
 }
 
+
+INDEPENDENT_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
+    ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
+                                                'good', 'excellent']),
+    ut.ParamInfo('multiple', None, valid_values=[True, False, None]),
+    ut.ParamInfo('species', None),
+    ut.ParamInfo('view', None),  # TODO: allow for lists
+    ut.ParamInfo('require_quality', None, valid_values=[True, False, None]),
+    ut.ParamInfo('require_viewpoint', None, valid_values=[True, False, None]),
+    ut.ParamInfo('is_exemplar', None, valid_values=[True, False, None]),
+    ut.ParamInfo('min_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at least this many global names'),
+    ut.ParamInfo('max_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at most this many global names'),
+    ut.ParamInfo('min_unixtime', None, type_=float, min_=0,
+                 help_='Remove anything before this timestamp'),
+    ut.ParamInfo('max_unixtime', None, type_=float, min_=0,
+                 help_='Remove anything after this timestamp'),
+    #ut.ParamInfo('view', None),
+]
+
+
+INTRAGROUP_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('min_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at least this number of aids within the group'),
+    ut.ParamInfo('max_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at most this number of aids within the group'),
+]
+
+SAMPLE_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('sample_per_name', None, type_=int, min_=0,
+                 help_='Take this many annots per name'),
+    ut.ParamInfo('sample_rule', 'random', valid_values=['random', 'mintime', 'maxtime', 'qual_and_view'],
+                 help_='Method of samping from names'),
+    ut.ParamInfo('sample_seed', 0, type_=int, none_ok=True,
+                 help_='Random seed for sampling from names'),
+]
+
+SUBINDEX_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('index', None),
+]
+
 OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
+    'crossval_enc'    : None,
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_imageset': None,
     # Hack out errors in test data
-    'hackerrors'    : True,
+    #'hackerrors'    : True,
+    'hackerrors'    : False,
     'joinme'    : None,
 }
 
@@ -36,18 +81,20 @@ OTHER_DEFAULTS = {
 # THese filters are orderless
 INDEPENDENT_DEFAULTS = {
     #'species'             : 'primary',  # specify the species
-    'species'             : None,
+    #'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
-    'contrib_contains'    : None,
+    'require_gps'         : None,
+    'max_timestamp'       : None,
+    'contributor_contains'    : None,
     # Quality Params
-    'require_quality'     : None,  # if True unknown qualities are removed
+    #'require_quality'     : None,  # if True unknown qualities are removed
     #'minqual'             : 'poor',
     'minqual'             : None,
     'been_adjusted'       : None,  # HACK PARAM
     # Viewpoint params
-    'require_viewpoint'   : None,
-    'view'                : None,
+    #'require_viewpoint'   : None,
+    #'view'                : None,
     'view_ext'            : 0,      # num viewpoints to extend in dir1 and dir2
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2
@@ -56,8 +103,9 @@ INDEPENDENT_DEFAULTS = {
     'min_numfeat'         : None,
     # minimum number of features detected by default config
     'max_numfeat'         : None,
+    'reviewed'            : None,
+    'multiple'            : None,
 }
-
 
 # HACK
 from ibeis import tag_funcs  # NOQA  #
@@ -66,6 +114,9 @@ filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
 for key in filter_keys:
     INDEPENDENT_DEFAULTS[key] = None
 
+for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
+    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
+
 
 INTRAGROUP_DEFAULTS = {
     # if True all annots must belong to the same imageset
@@ -73,35 +124,44 @@ INTRAGROUP_DEFAULTS = {
     'view_pername'        : None,  # formatted string filtering the viewpoints
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample
-    'min_pername'         : None,
-    'max_pername'         : None,
+    #'min_pername'         : None,
+    #'max_pername'         : None,
     'min_spacedelta'      : None,
     'min_spacetimedelta'  : None,
 }
+for pi in INTRAGROUP_DEFAULTS_PARAM_INFO:
+    INTRAGROUP_DEFAULTS[pi.varname] = pi.default
+
+# HACK
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
 SUBINDEX_DEFAULTS = {
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
-    'index'               : None,   # choose only a subset
+    #'index'               : None,   # choose only a subset
 }
+for pi in SUBINDEX_DEFAULTS_PARAM_INFO:
+    SUBINDEX_DEFAULTS[pi.varname] = pi.default
 
 SAMPLE_DEFAULTS = {
     'sample_size'         : None,
     'num_names'           : None,
     # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
-    'sample_per_name'     : None,  # Choos num_annots to sample from each name.
-    'sample_rule'         : 'random',
+    #'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    #'sample_rule'         : 'random',
     'sample_offset'       : None,  # UNUSED
     'occur_offset'        : None,  # UNUSED
     'name_offset'         : None,  # UNUSED
     'sample_occur'        : None,
 }
+for pi in SAMPLE_DEFAULTS_PARAM_INFO:
+    SAMPLE_DEFAULTS[pi.varname] = pi.default
 
 SAMPLE_REF_DEFAULTS = {
     # excludes any aids specified in a reference set (ie qaids)
     'exclude_reference'   : None,
+    'exclude_ref_contact' : None,
     'sample_rule_ref'     : 'random',
     # when sampling daids, choose this many correct matches per query
     'sample_per_ref_name' : None,
@@ -118,6 +178,9 @@ __default_aidcfg = DEFAULT_AIDCFG
 
 def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommon=[]):
     r"""
+    Idea is to add a third subconfig named `common` that is the intersection of
+    `qcfg` and `dcfg`.
+
     Args:
         acfg (dict):
 
@@ -133,7 +196,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> acfg = default
         >>> acfg = compress_aidcfg(acfg)
-        >>> result = ('acfg = %s' % (ut.dict_str(acfg),))
+        >>> result = ('acfg = %s' % (ut.repr2(acfg),))
         >>> print(default)
         >>> print(result)
     """
@@ -182,11 +245,11 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
         >>> from ibeis.expt.annotation_configs import *  # NOQA
 
     """
-    #print(ut.list_str(varied_acfg_list, nl=2))
+    #print(ut.repr2(varied_acfg_list, nl=2))
     for acfg in acfg_list:
-        assert acfg['qcfg'][mainkey] == acfg['dcfg'][mainkey], (
+        assert acfg['qcfg'].get(mainkey, '') == acfg['dcfg'].get(mainkey, ''), (
             'should be the same for now')
-    cfgname_list = [acfg['qcfg'][mainkey] for acfg in acfg_list]
+    cfgname_list = [acfg['qcfg'].get(mainkey, '') for acfg in acfg_list]
     if checkname and ut.allsame(cfgname_list):
         cfgname_list = [None] * len(cfgname_list)
 
@@ -265,13 +328,13 @@ def compress_acfg_list_for_printing(acfg_list):
     CommandLine:
         python -m ibeis --tf compress_acfg_list_for_printing
 
-    Example:
+    Ignore:
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
         >>> nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)
-        >>> result = ('varied_dicts = %s\n' % (ut.list_str(varied_dicts),))
-        >>> result += ('nonvaried_dict = %s' % (ut.dict_str(nonvaried_dict),))
+        >>> result = ('varied_dicts = %s\n' % (ut.repr2(varied_dicts),))
+        >>> result += ('nonvaried_dict = %s' % (ut.repr2(nonvaried_dict),))
         >>> print(result)
     """
     flat_acfg_list = flatten_acfg_list(acfg_list)
@@ -286,7 +349,7 @@ def compress_acfg_list_for_printing(acfg_list):
 
 
 def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
-                    combined=False, **kwargs):
+                    combined=False, only_summary=False, **kwargs):
     r"""
     Args:
         acfg_list (list):
@@ -295,28 +358,26 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         combined (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-print_acfg_list --show
+        python -m ibeis.expt.annotation_configs --exec-print_acfg_list
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> import ibeis
-        >>> acfg_list = '?'
-        >>> expanded_aids_list = None
-        >>> ibs = None
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> a = ['default']
+        >>> acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        >>>     ibs, acfg_name_list=a, verbose=0)
         >>> combined = False
         >>> result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
     """
     _tup = compress_acfg_list_for_printing(acfg_list)
     nonvaried_compressed_dict, varied_compressed_dict_list = _tup
 
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
-    print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
+    print('non-varied aidcfg = ' + ut.repr2(nonvaried_compressed_dict))
     seen_ = ut.ddict(list)
 
     # get default kwkeys for annot info
@@ -332,10 +393,11 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         title = ('q_cfgname=' + acfg['qcfg']['_cfgname'] +
                  ' d_cfgname=' + acfg['dcfg']['_cfgname'])
 
-        ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
-                      (acfgx + 1, len(acfg_list), title), 'lightgray')
-        print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx],
-                                      strvals=True))
+        if not only_summary:
+            ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
+                          (acfgx + 1, len(acfg_list), title), 'lightgray')
+            print('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx],
+                                       si=True))
 
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
@@ -344,27 +406,28 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
             if key not in seen_:
                 if ibs is not None:
                     seen_[key].append(acfgx)
-                    stats_, locals_ = ibs.get_annotconfig_stats(
+                    stats_ = ibs.get_annotconfig_stats(
                         qaids, daids, verbose=False, combined=combined,
                         **annotstats_kw)
                     hashids = (stats_['qaid_stats']['qhashid'],
                                stats_['daid_stats']['dhashid'])
                     hashid_list.append(hashids)
-                    stats_str2 = ut.dict_str(stats_, strvals=True,
-                                             newlines=True, explicit=False,
-                                             nobraces=False)
-                    print('annot_config_stats = ' + stats_str2)
+                    stats_str2 = ut.repr2(stats_, si=True, nl=True,
+                                          explicit=False, nobraces=False)
+                    if not only_summary:
+                        print('annot_config_stats = ' + stats_str2)
             else:
                 dupindex = seen_[key]
-                print('DUPLICATE of index %r' % (dupindex,))
                 dupdict = varied_compressed_dict_list[dupindex[0]]
-                print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
-    print('hashid summary = ' + ut.list_str(hashid_list, nl=1))
+                if not only_summary:
+                    print('DUPLICATE of index %r' % (dupindex,))
+                    print('DUP OF acfg = ' + ut.repr2(dupdict, si=True))
+    print('hashid summary = ' + ut.repr2(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
 def print_acfg(acfg, expanded_aids=None, ibs=None, **kwargs):
-    print('acfg = ' + ut.dict_str(compress_aidcfg(acfg)))
+    print('acfg = ' + ut.repr2(compress_aidcfg(acfg)))
     if expanded_aids is not None:
         ibs.print_annot_stats(expanded_aids, label='expanded_aids = ', **kwargs)
 
@@ -426,7 +489,7 @@ __controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
 
 single_default = __default_aidcfg
 
-exclude_vars = list(vars().keys())   # this line is before tests
+exclude_vars = list(locals().keys())   # this line is before tests
 exclude_vars.append('exclude_vars')
 
 default = {
@@ -568,7 +631,7 @@ varypername2_td = apply_timecontrol(varypername2)
 """
 ibeis -e print_acfg --db PZ_Master1 -a ctrl2
 ibeis -e print_acfg --db PZ_Master1 -a timectrl2
-ibeis -e rank_cdf --db PZ_Master1 -a timectrl2 -t invarbest
+ibeis -e rank_cmc --db PZ_Master1 -a timectrl2 -t invarbest
 """
 ctrl2 = {
     'qcfg': ut.augdict(
@@ -751,10 +814,33 @@ ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=T
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
+"""
+ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
+ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
+('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),
+
+ibeis draw_rank_cmc --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
+
+"""
+oxford = {
+    'qcfg': ut.augdict(default['qcfg'], {
+        'has_any': ('query',),
+        'exclude_reference': True,
+        'minqual': 'poor',
+        'require_quality': False,
+    }),
+    'dcfg': ut.augdict(default['dcfg'], {
+        # 'sample_per_name': 2,
+        'exclude_reference': True,
+        'minqual': 'poor',
+        'require_quality': False,
+    })
+}
+
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
-include_vars = list(vars().keys())  # this line is after tests
+include_vars = list(locals().keys())  # this line is after tests
 
 # List of all valid tests
 TEST_NAMES = set(include_vars) - set(exclude_vars)

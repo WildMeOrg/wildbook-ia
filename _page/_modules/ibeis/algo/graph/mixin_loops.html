@@ -1,0 +1,988 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.graph.mixin_loops &mdash; ibeis 1.8.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.graph" href="../graph.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ibeis</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+        
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+        
+          <li><a href="../graph.html">ibeis.algo.graph</a> &raquo;</li>
+        
+      <li>ibeis.algo.graph.mixin_loops</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.graph.mixin_loops</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.graph.refresh</span> <span class="k">import</span> <span class="n">RefreshCriteria</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="InfrLoops"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops">[docs]</a><span class="k">class</span> <span class="nc">InfrLoops</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Algorithm control flow loops</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="InfrLoops.main_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.main_gen">[docs]</a>    <span class="k">def</span> <span class="nf">main_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">max_loops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The main outer loop.</span>
+
+<span class="sd">        This function is designed as an iterator that will execute the graph</span>
+<span class="sd">        algorithm main loop as automatically as possible, but if user input is</span>
+<span class="sd">        needed, it will pause and yield the decision it needs help with. Once</span>
+<span class="sd">        feedback is given for this item, you can continue the main loop by</span>
+<span class="sd">        calling next. StopIteration is raised once the algorithm is complete.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            max_loops(int): maximum number of times to run the outer loop,</span>
+<span class="sd">                i.e. ranking is run at most this many times.</span>
+<span class="sd">            use_refresh(bool): allow the refresh criterion to stop the algo</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            Different phases of the main loop are implemented as subiterators</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.algo.graph.mixin_loops main_gen</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.graph.mixin_loops import *</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.graph.mixin_simulation import UserOracle</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; infr = ibeis.AnnotInference(&#39;testdb1&#39;, aids=&#39;all&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                             autoinit=&#39;staging&#39;, verbose=4)</span>
+<span class="sd">            &gt;&gt;&gt; infr.params[&#39;manual.n_peek&#39;] = 10</span>
+<span class="sd">            &gt;&gt;&gt; infr.params[&#39;ranking.ntop&#39;] = 1</span>
+<span class="sd">            &gt;&gt;&gt; infr.oracle = UserOracle(.99, rng=0)</span>
+<span class="sd">            &gt;&gt;&gt; infr.simulation_mode = False</span>
+<span class="sd">            &gt;&gt;&gt; infr.reset()</span>
+<span class="sd">            &gt;&gt;&gt; #infr.load_published()</span>
+<span class="sd">            &gt;&gt;&gt; gen = infr.main_gen()</span>
+<span class="sd">            &gt;&gt;&gt; while True:</span>
+<span class="sd">            &gt;&gt;&gt;     try:</span>
+<span class="sd">            &gt;&gt;&gt;         reviews = next(gen)</span>
+<span class="sd">            &gt;&gt;&gt;         edge, priority, data = reviews[0]</span>
+<span class="sd">            &gt;&gt;&gt;         feedback = infr.request_oracle_review(edge)</span>
+<span class="sd">            &gt;&gt;&gt;         infr.add_feedback(edge, **feedback)</span>
+<span class="sd">            &gt;&gt;&gt;     except StopIteration:</span>
+<span class="sd">            &gt;&gt;&gt;         break</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Starting main loop&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;infr.params = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">max_loops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_loops</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;algo.max_outer_loops&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">max_loops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">max_loops</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_mode</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------ </span><span class="si">{}</span><span class="s1"> -------------------&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="c1"># Initialize a refresh criteria</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">init_refresh</span><span class="p">()</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Phase 0.1: Ensure the user sees something immediately</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;algo.quickstart&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;quickstart_init&#39;</span>
+            <span class="c1"># quick startup. Yield a bunch of random edges</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;manual.n_peek&#39;</span><span class="p">]</span>
+            <span class="n">user_request</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_combinations</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">):</span>
+                <span class="n">user_request</span> <span class="o">+=</span> <span class="p">[</span><span class="n">infr</span><span class="o">.</span><span class="n">_make_review_tuple</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
+                <span class="k">yield</span> <span class="n">user_request</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;algo.hardcase&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;hardcase_init&#39;</span>
+            <span class="c1"># Check previously labeled edges that where the groundtruth and the</span>
+            <span class="c1"># verifier disagree.</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">hardcase_review_gen</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">_</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.enabled&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;incon_recover_init&#39;</span>
+            <span class="c1"># First, fix any inconsistencies</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">incon_recovery_gen</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">_</span>
+
+        <span class="c1"># Phase 0.2: Ensure positive redundancy (this is generally quick)</span>
+        <span class="c1"># so the user starts seeing real work after one random review is made</span>
+        <span class="c1"># unless the graph is already positive redundant.</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.enabled&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.enforce_pos&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;pos_redun_init&#39;</span>
+            <span class="c1"># Fix positive redundancy of anything within the loop</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_redun_gen</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">_</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;ranking.enabled&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+
+                <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Outer loop iter </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+
+                <span class="c1"># Phase 1: Try to merge PCCs by searching for LNBNN candidates</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;ranking_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">ranked_list_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">_</span>
+
+                <span class="n">terminate</span> <span class="o">=</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">num_meaningful</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Triggered break criteria&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+
+                <span class="c1"># Phase 2: Ensure positive redundancy.</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;posredun_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;redun.enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;redun.enforce_pos&#39;</span><span class="p">])):</span>
+                    <span class="c1"># Fix positive redundancy of anything within the loop</span>
+                    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_redun_gen</span><span class="p">():</span>
+                        <span class="k">yield</span> <span class="n">_</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;prob_any_remain = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">prob_any_remain</span><span class="p">(),))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;infr.refresh.num_meaningful = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">num_meaningful</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_loops</span><span class="p">:</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;early stop&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;break triggered&#39;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="c1"># Phase 0.3: Ensure positive redundancy (this is generally quick)</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;redun.enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;redun.enforce_neg&#39;</span><span class="p">])):</span>
+            <span class="c1"># Phase 3: Try to automatically acheive negative redundancy without</span>
+            <span class="c1"># asking the user to do anything but resolve inconsistency.</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Entering phase 3&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">loop_phase</span> <span class="o">=</span> <span class="s1">&#39;negredun&#39;</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">neg_redun_gen</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">_</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Terminate&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Exiting main loop&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.enabled&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">assert_consistency_invariant</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="InfrLoops.hardcase_review_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.hardcase_review_gen">[docs]</a>    <span class="k">def</span> <span class="nf">hardcase_review_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subiterator for hardcase review</span>
+
+<span class="sd">        Re-review non-confident edges that vsone did not classify correctly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;==============================&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;--- HARDCASE PRIORITY LOOP ---&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+        <span class="n">verifiers</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">learn_evaluation_verifiers</span><span class="p">()</span>
+        <span class="n">verif</span> <span class="o">=</span> <span class="n">verifiers</span><span class="p">[</span><span class="s1">&#39;match_state&#39;</span><span class="p">]</span>
+
+        <span class="n">edges_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">real_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">edge_decision_from</span><span class="p">(</span><span class="n">edges_</span><span class="p">))</span>
+        <span class="n">flags_</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="ow">in</span> <span class="p">{</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">}</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">real_</span><span class="p">]</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">real_</span><span class="p">,</span> <span class="n">flags_</span><span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edges_</span><span class="p">,</span> <span class="n">flags_</span><span class="p">)</span>
+
+        <span class="n">hardness</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">verif</span><span class="o">.</span><span class="n">easiness</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">real</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;edges&#39;</span><span class="p">:</span> <span class="n">edges</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span> <span class="n">real</span><span class="p">})</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;hardness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hardness</span>
+
+            <span class="n">pred</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;hardness&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;hardness analysis&#39;</span><span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;infr status: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
+
+        <span class="c1"># Don&#39;t re-review anything that was confidently reviewed</span>
+        <span class="c1"># CONFIDENCE = const.CONFIDENCE</span>
+        <span class="c1"># CODE_TO_INT = CONFIDENCE.CODE_TO_INT.copy()</span>
+        <span class="c1"># CODE_TO_INT[CONFIDENCE.CODE.UNKNOWN] = 0</span>
+        <span class="c1"># conf = ut.take(CODE_TO_INT, infr.gen_edge_values(</span>
+        <span class="c1">#     &#39;confidence&#39;, edges, on_missing=&#39;default&#39;,</span>
+        <span class="c1">#     default=CONFIDENCE.CODE.UNKNOWN))</span>
+
+        <span class="c1"># This should only be run with certain params</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.enabled&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;ranking.enabled&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.enabled&#39;</span><span class="p">]</span>
+        <span class="c1"># const.CONFIDENCE.CODE.PRETTY_SURE</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;queue.conf.thresh&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># != &#39;pretty_sure&#39;:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;WARNING: should queue.conf.thresh = &quot;pretty_sure&quot;?&#39;</span><span class="p">)</span>
+
+        <span class="c1"># work around add_candidate_edges</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">prioritize</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;hardness&#39;</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span>
+                        <span class="n">scores</span><span class="o">=</span><span class="n">hardness</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;hardness&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">hardness</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">_inner_priority_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">_</span></div>
+
+<div class="viewcode-block" id="InfrLoops.ranked_list_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.ranked_list_gen">[docs]</a>    <span class="k">def</span> <span class="nf">ranked_list_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subiterator for phase1 of the main algorithm</span>
+
+<span class="sd">        Calls the underlying ranking algorithm and prioritizes the results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;============================&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;--- RANKED LIST LOOP ---&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">n_prioritized</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">refresh_candidate_edges</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">n_prioritized</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;RANKING ALGO FOUND NO NEW EDGES&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">use_refresh</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">_inner_priority_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">_</span></div>
+
+<div class="viewcode-block" id="InfrLoops.incon_recovery_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.incon_recovery_gen">[docs]</a>    <span class="k">def</span> <span class="nf">incon_recovery_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subiterator for recovery mode of the mainm algorithm</span>
+
+<span class="sd">        Iterates until the graph is consistent</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            inconsistency recovery is implicitly handled by the main algorithm,</span>
+<span class="sd">            so other phases do not need to call this explicitly. This exists</span>
+<span class="sd">            for the case where the only mode we wish to run is inconsistency</span>
+<span class="sd">            recovery.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maybe_error_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">maybe_error_edges</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">maybe_error_edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;============================&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;--- INCON RECOVER LOOP ---&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">(</span><span class="n">maybe_error_edges</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">_inner_priority_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">_</span></div>
+
+<div class="viewcode-block" id="InfrLoops.pos_redun_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.pos_redun_gen">[docs]</a>    <span class="k">def</span> <span class="nf">pos_redun_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subiterator for phase2 of the main algorithm.</span>
+
+<span class="sd">        Searches for decisions that would commplete positive redundancy</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.graph.mixin_loops import *</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; infr = ibeis.AnnotInference(&#39;PZ_MTEST&#39;, aids=&#39;all&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                             autoinit=&#39;staging&#39;, verbose=4)</span>
+<span class="sd">            &gt;&gt;&gt; #infr.load_published()</span>
+<span class="sd">            &gt;&gt;&gt; gen = infr.pos_redun_gen()</span>
+<span class="sd">            &gt;&gt;&gt; feedback = next(gen)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;===========================&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;--- POSITIVE REDUN LOOP ---&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="c1"># FIXME: should prioritize inconsistentices first</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">def</span> <span class="nf">thread_gen</span><span class="p">():</span>
+            <span class="c1"># This is probably not safe</span>
+            <span class="n">new_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_pos_redun_candidate_edges</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">new_edges</span> <span class="ow">in</span> <span class="n">buffered_add_candidate_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">new_edges</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">new_edges</span>
+
+        <span class="k">def</span> <span class="nf">serial_gen</span><span class="p">():</span>
+            <span class="c1"># use this if threading does bad things</span>
+            <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">new_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">find_pos_redun_candidate_edges</span><span class="p">())</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="n">new_edges</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">new_edges</span> <span class="ow">in</span> <span class="n">ub</span><span class="o">.</span><span class="n">chunks</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">find_pos_redun_candidate_edges</span><span class="p">(),</span> <span class="mi">100</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+                        <span class="k">yield</span> <span class="n">new_edges</span>
+
+        <span class="k">def</span> <span class="nf">filtered_gen</span><span class="p">():</span>
+            <span class="c1"># Buffer one-vs-one scores in the background and present an edge to</span>
+            <span class="c1"># the user ASAP.</span>
+            <span class="c1"># if infr.test_mode:</span>
+            <span class="n">candgen</span> <span class="o">=</span> <span class="n">serial_gen</span><span class="p">()</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     candgen = thread_gen()</span>
+            <span class="k">for</span> <span class="n">new_edges</span> <span class="ow">in</span> <span class="n">candgen</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
+                    <span class="n">qual_edges</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_int</span><span class="p">,</span> <span class="n">new_edges</span><span class="p">)</span>
+                    <span class="n">valid_edges</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span> <span class="n">qual_edges</span><span class="p">):</span>
+                        <span class="c1"># Skip edges involving qualities less than ok</span>
+                        <span class="k">if</span> <span class="n">q1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">q1</span> <span class="o">&lt;</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">QUAL</span><span class="o">.</span><span class="n">OK</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="k">if</span> <span class="n">q2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">q2</span> <span class="o">&lt;</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">QUAL</span><span class="o">.</span><span class="n">OK</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="n">valid_edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">valid_edges</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">new_edges</span>
+
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;check pos-redun iter </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+            <span class="n">found_any</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">new_edges</span> <span class="ow">in</span> <span class="n">filtered_gen</span><span class="p">():</span>
+                <span class="n">found_any</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">gen</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_inner_priority_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">value</span>
+
+            <span class="c1"># print(&#39;found_any = {!r}&#39;.format(found_any))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found_any</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;not pos-reduntant yet.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+            <span class="s1">&#39;pos-redundancy achieved in </span><span class="si">{}</span><span class="s1"> iterations&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="InfrLoops.neg_redun_gen"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.neg_redun_gen">[docs]</a>    <span class="k">def</span> <span class="nf">neg_redun_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subiterator for phase3 of the main algorithm.</span>
+
+<span class="sd">        Searches for decisions that would commplete negative redundancy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;===========================&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;--- NEGATIVE REDUN LOOP ---&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="n">only_auto</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.neg.only_auto&#39;</span><span class="p">]</span>
+
+        <span class="c1"># TODO: outer loop that re-iterates until negative redundancy is</span>
+        <span class="c1"># accomplished.</span>
+        <span class="n">needs_neg_redun</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_neg_redun_candidate_edges</span><span class="p">()</span>
+        <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">500</span>
+        <span class="k">for</span> <span class="n">new_edges</span> <span class="ow">in</span> <span class="n">ub</span><span class="o">.</span><span class="n">chunks</span><span class="p">(</span><span class="n">needs_neg_redun</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;another neg redun chunk&#39;</span><span class="p">)</span>
+            <span class="c1"># Add chunks in a little at a time for faster response time</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+            <span class="n">gen</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_inner_priority_gen</span><span class="p">(</span><span class="n">use_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">only_auto</span><span class="o">=</span><span class="n">only_auto</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">_inner_priority_gen</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_auto</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function that implements the general inner priority loop.</span>
+
+<span class="sd">        Executes reviews until the queue is empty or needs refresh</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user_refresh (bool): if True enables the refresh criteria.</span>
+<span class="sd">                (set to True in Phase 1)</span>
+
+<span class="sd">            only_auto (bool) if True, then the user wont be prompted with</span>
+<span class="sd">                reviews unless the graph is inconsistent.</span>
+<span class="sd">                (set to True in Phase 3)</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            The caller is responsible for populating the priority queue.  This</span>
+<span class="sd">            will iterate until the queue is empty or the refresh critieron is</span>
+<span class="sd">            triggered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">use_refresh</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Start inner loop with </span><span class="si">{}</span><span class="s1"> items in the queue&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_recovering</span><span class="p">():</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Still recovering after </span><span class="si">%d</span><span class="s1"> iterations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,),</span>
+                           <span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Do not check for refresh if we are recovering</span>
+                <span class="k">if</span> <span class="n">use_refresh</span> <span class="ow">and</span> <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Triggered refresh criteria after </span><span class="si">%d</span><span class="s1"> iterations&#39;</span> <span class="o">%</span>
+                               <span class="p">(</span><span class="n">count</span><span class="p">,),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># If the queue is empty break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;No more edges after </span><span class="si">%d</span><span class="s1"> iterations, need refresh&#39;</span> <span class="o">%</span>
+                           <span class="p">(</span><span class="n">count</span><span class="p">,),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Try to automatically do the next review.</span>
+            <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;next_review. edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+
+            <span class="n">inconsistent</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_recovering</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+
+            <span class="n">feedback</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inconsistent</span><span class="p">:</span>
+                <span class="c1"># Try to autoreview if we aren&#39;t in an inconsistent state</span>
+                <span class="n">feedback</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">try_auto_review</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">feedback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Add feedback from the automated method</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="n">priority</span><span class="p">,</span> <span class="o">**</span><span class="n">feedback</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># We can&#39;t automatically review, ask for help</span>
+                <span class="k">if</span> <span class="n">only_auto</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inconsistent</span><span class="p">:</span>
+                    <span class="c1"># We are in auto only mode, skip manual review</span>
+                    <span class="c1"># unless there is an inconsistency</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">simulation_mode</span><span class="p">:</span>
+                        <span class="c1"># Use oracle feedback</span>
+                        <span class="n">feedback</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">request_oracle_review</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                        <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="n">priority</span><span class="p">,</span> <span class="o">**</span><span class="n">feedback</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Yield to the user if we need to pause</span>
+                        <span class="n">user_request</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">emit_manual_review</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">)</span>
+                        <span class="k">yield</span> <span class="n">user_request</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">metrics_list</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">_print_previous_loop_statistics</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InfrLoops.init_refresh"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.init_refresh">[docs]</a>    <span class="k">def</span> <span class="nf">init_refresh</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="n">refresh_params</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">subparams</span><span class="p">(</span><span class="s1">&#39;refresh&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">refresh</span> <span class="o">=</span> <span class="n">RefreshCriteria</span><span class="p">(</span><span class="o">**</span><span class="n">refresh_params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InfrLoops.start_id_review"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.start_id_review">[docs]</a>    <span class="k">def</span> <span class="nf">start_id_review</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">max_loops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">infr</span><span class="o">.</span><span class="n">_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;algo already running&#39;</span>
+        <span class="c1"># Just exhaust the main generator</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">_gen</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">main_gen</span><span class="p">(</span><span class="n">max_loops</span><span class="o">=</span><span class="n">max_loops</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="n">use_refresh</span><span class="p">)</span></div>
+        <span class="c1"># return infr._gen</span>
+
+<div class="viewcode-block" id="InfrLoops.main_loop"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrLoops.main_loop">[docs]</a>    <span class="k">def</span> <span class="nf">main_loop</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">max_loops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; DEPRICATED</span>
+
+<span class="sd">        use list(infr.main_gen) instead</span>
+<span class="sd">        or assert not any(infr.main_gen())</span>
+<span class="sd">        maybe this is fine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">start_id_review</span><span class="p">(</span><span class="n">max_loops</span><span class="o">=</span><span class="n">max_loops</span><span class="p">,</span> <span class="n">use_refresh</span><span class="o">=</span><span class="n">use_refresh</span><span class="p">)</span>
+        <span class="c1"># To automatically run through the loop just exhaust the generator</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">_gen</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;need user interaction. cannot auto loop&#39;</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">_gen</span> <span class="o">=</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="InfrReviewers"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers">[docs]</a><span class="k">class</span> <span class="nc">InfrReviewers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="InfrReviewers.try_auto_review"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.try_auto_review">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">try_auto_review</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+        <span class="n">review</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="s1">&#39;algo:auto_clf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">PRETTY_SURE</span><span class="p">,</span>
+            <span class="s1">&#39;evidence_decision&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;meta_decision&#39;</span><span class="p">:</span> <span class="n">NULL</span><span class="p">,</span>
+            <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_recovering</span><span class="p">():</span>
+            <span class="c1"># Do not autoreview if we are in an inconsistent state</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Must manually review inconsistent edge&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Determine if anything passes the match threshold</span>
+        <span class="n">primary_task</span> <span class="o">=</span> <span class="s1">&#39;match_state&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">decision_probs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_probs</span><span class="p">[</span><span class="n">primary_task</span><span class="p">][</span><span class="n">edge</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">primary_task</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="c1"># Compute probs if they haven&#39;t been done yet</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">ensure_priority_scores</span><span class="p">([</span><span class="n">edge</span><span class="p">])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">decision_probs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_probs</span><span class="p">[</span><span class="n">primary_task</span><span class="p">][</span><span class="n">edge</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">primary_thresh</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">[</span><span class="n">primary_task</span><span class="p">]</span>
+        <span class="n">decision_flags</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">decision_probs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">thresh</span>
+                          <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">thresh</span> <span class="ow">in</span> <span class="n">primary_thresh</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">hasone</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">decision_flags</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">auto_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">hasone</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Check to see if it might be confounded by a photobomb</span>
+                <span class="n">pb_probs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_probs</span><span class="p">[</span><span class="s1">&#39;photobomb_state&#39;</span><span class="p">][</span><span class="n">edge</span><span class="p">]</span>
+                <span class="c1"># pb_probs = infr.task_probs[&#39;photobomb_state&#39;].loc[edge]</span>
+                <span class="c1"># pb_probs = data[&#39;task_probs&#39;][&#39;photobomb_state&#39;]</span>
+                <span class="n">pb_thresh</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">[</span><span class="s1">&#39;photobomb_state&#39;</span><span class="p">][</span><span class="s1">&#39;pb&#39;</span><span class="p">]</span>
+                <span class="n">confounded</span> <span class="o">=</span> <span class="n">pb_probs</span><span class="p">[</span><span class="s1">&#39;pb&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">pb_thresh</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: confounding task probs not set (i.e. photobombs)&#39;</span><span class="p">)</span>
+                <span class="n">confounded</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">confounded</span><span class="p">:</span>
+                <span class="c1"># decision = decision_flags.argmax()</span>
+                <span class="n">evidence_decision</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">decision_probs</span><span class="p">)</span>
+                <span class="n">review</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evidence_decision</span>
+                <span class="n">truth</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">match_state_gt</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">review</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">truth</span><span class="p">:</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                        <span class="s1">&#39;AUTOMATIC ERROR edge=</span><span class="si">{}</span><span class="s1">, truth=</span><span class="si">{}</span><span class="s1">, decision=</span><span class="si">{}</span><span class="s1">, probs=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">edge</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="n">review</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">],</span> <span class="n">decision_probs</span><span class="p">),</span>
+                        <span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+                <span class="n">auto_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">auto_flag</span> <span class="ow">and</span> <span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Automatic review success&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">auto_flag</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">review</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.request_oracle_review"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.request_oracle_review">[docs]</a>    <span class="k">def</span> <span class="nf">request_oracle_review</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">truth</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">match_state_gt</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="n">feedback</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">oracle</span><span class="o">.</span><span class="n">review</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="n">infr</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">feedback</span></div>
+
+    <span class="k">def</span> <span class="nf">_make_review_tuple</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Makes tuple to be sent back to the user &quot;&quot;&quot;</span>
+        <span class="n">edge_data</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_nonvisual_edge_data</span><span class="p">(</span>
+            <span class="n">edge</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+        <span class="c1"># Extra information</span>
+        <span class="n">edge_data</span><span class="p">[</span><span class="s1">&#39;nid_edge&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">queue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">edge_data</span><span class="p">[</span><span class="s1">&#39;queue_len&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_data</span><span class="p">[</span><span class="s1">&#39;queue_len&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="p">)</span>
+        <span class="n">edge_data</span><span class="p">[</span><span class="s1">&#39;n_ccs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">edge_data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InfrReviewers.emit_manual_review"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.emit_manual_review">[docs]</a>    <span class="k">def</span> <span class="nf">emit_manual_review</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Emits a signal containing edges that need review. The callback should</span>
+<span class="sd">        present them to a user, get feedback, and then call on_accpet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;emit_manual_review&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="c1"># Emit a list of reviews that can be considered.</span>
+        <span class="c1"># The first is the most important</span>
+        <span class="n">user_request</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">user_request</span> <span class="o">+=</span> <span class="p">[</span><span class="n">infr</span><span class="o">.</span><span class="n">_make_review_tuple</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">)]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">edge_</span><span class="p">,</span> <span class="n">priority</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">peek_many</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;manual.n_peek&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">edge</span> <span class="o">==</span> <span class="n">edge_</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">user_request</span> <span class="o">+=</span> <span class="p">[</span><span class="n">infr</span><span class="o">.</span><span class="n">_make_review_tuple</span><span class="p">(</span><span class="n">edge_</span><span class="p">,</span> <span class="n">priority</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># If registered, send the request via a callback.</span>
+        <span class="n">request_review</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;request_review&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request_review</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Send these reviews to a user</span>
+            <span class="n">request_review</span><span class="p">(</span><span class="n">user_request</span><span class="p">)</span>
+        <span class="c1"># Otherwise the current process must handle the request by return value</span>
+        <span class="k">return</span> <span class="n">user_request</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.skip"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.skip">[docs]</a>    <span class="k">def</span> <span class="nf">skip</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;skipping edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.accept"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">feedback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when user has completed feedback from qt or web</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">annot1_state</span> <span class="o">=</span> <span class="n">feedback</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;annot1_state&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">annot2_state</span> <span class="o">=</span> <span class="n">feedback</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;annot2_state&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">annot1_state</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">add_node_feedback</span><span class="p">(</span><span class="o">**</span><span class="n">annot1_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">annot2_state</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">add_node_feedback</span><span class="p">(</span><span class="o">**</span><span class="n">annot2_state</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">(</span><span class="o">**</span><span class="n">feedback</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;manual.autosave&#39;</span><span class="p">]:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">write_ibeis_staging_feedback</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.continue_review"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.continue_review">[docs]</a>    <span class="k">def</span> <span class="nf">continue_review</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;continue_review&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user_request</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">_gen</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">review_finished</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;review_finished&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">review_finished</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">review_finished</span><span class="p">()</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">_gen</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">user_request</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">user_request</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.qt_edge_reviewer"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.qt_edge_reviewer">[docs]</a>    <span class="k">def</span> <span class="nf">qt_edge_reviewer</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+        <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="k">import</span> <span class="n">viz_graph2</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">manual_wgt</span> <span class="o">=</span> <span class="n">viz_graph2</span><span class="o">.</span><span class="n">AnnotPairDialog</span><span class="p">(</span>
+            <span class="n">edge</span><span class="o">=</span><span class="n">edge</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="n">infr</span><span class="p">,</span> <span class="n">standalone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">verifier_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># infr.emit_manual_review(edge, priority=None)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">manual_wgt</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># infr.manual_wgt.show()</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">manual_wgt</span></div>
+
+<div class="viewcode-block" id="InfrReviewers.qt_review_loop"><a class="viewcode-back" href="../../../../ibeis.algo.graph.html#ibeis.algo.graph.mixin_loops.InfrReviewers.qt_review_loop">[docs]</a>    <span class="k">def</span> <span class="nf">qt_review_loop</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO: The loop parts should be a non-mixin class</span>
+
+<span class="sd">        Qt review loop entry point</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.algo.graph.mixin_loops qt_review_loop --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">            &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; infr = ibeis.AnnotInference(ibs, &#39;all&#39;, autoinit=True)</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_mst()</span>
+<span class="sd">            &gt;&gt;&gt; # Add dummy priorities to each edge</span>
+<span class="sd">            &gt;&gt;&gt; infr.set_edge_attrs(&#39;prob_match&#39;, ut.dzip(infr.edges(), [1]))</span>
+<span class="sd">            &gt;&gt;&gt; infr.prioritize(&#39;prob_match&#39;, infr.edges(), reset=True)</span>
+<span class="sd">            &gt;&gt;&gt; infr.params[&#39;redun.enabled&#39;] = False</span>
+<span class="sd">            &gt;&gt;&gt; win = infr.qt_review_loop()</span>
+<span class="sd">            &gt;&gt;&gt; import guitool as gt</span>
+<span class="sd">            &gt;&gt;&gt; gt.qtapp_loop(qwin=win, freq=10)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">qt_edge_reviewer</span><span class="p">()</span>
+        <span class="c1"># infr.continue_review()</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">manual_wgt</span></div></div>
+
+
+<span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># Testing generating using threads</span>
+    <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+
+    <span class="n">_sentinel</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">_background_consumer</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Will fill the queue with content of the source in a separate thread.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.graph.mixin_loops import *</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; infr = ibeis.AnnotInference(&#39;PZ_MTEST&#39;, aids=&#39;all&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                             autoinit=&#39;staging&#39;, verbose=4)</span>
+<span class="sd">            &gt;&gt;&gt; infr.load_published()</span>
+<span class="sd">            &gt;&gt;&gt; gen = infr.find_pos_redun_candidate_edges()</span>
+<span class="sd">            &gt;&gt;&gt; parbuf = buffered_add_candidate_edges(infr, 3, gen)</span>
+<span class="sd">            &gt;&gt;&gt; next(parbuf)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infr</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+            <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">infr</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span> <span class="o">=</span> <span class="n">queue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">source</span>
+
+        <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="c1"># for edges in ub.chunks(self._source, 5):</span>
+            <span class="c1">#     print(&#39;edges = {!r}&#39;.format(edges))</span>
+            <span class="c1">#     # print(&#39;put item = {!r}&#39;.format(item))</span>
+            <span class="c1">#     # probably not thread safe</span>
+            <span class="c1">#     infr = self.infr</span>
+            <span class="c1">#     infr.add_candidate_edges(edges)</span>
+            <span class="c1">#     for item in edges:</span>
+            <span class="c1">#         self._queue.put(item)</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">):</span>
+                <span class="c1"># import threading</span>
+                <span class="c1"># import multiprocessing</span>
+                <span class="c1"># print(&#39;multiproc = &#39; + str(multiprocessing.current_process()))</span>
+                <span class="c1"># print(&#39;thread = &#39; + str(threading.current_thread()))</span>
+                <span class="c1"># print(&#39;_ = {!r}&#39;.format(_))</span>
+                <span class="c1"># print(&#39;item = {!r}&#39;.format(item))</span>
+                <span class="c1"># print(&#39;put item = {!r}&#39;.format(item))</span>
+                <span class="c1"># probably not thread safe</span>
+                <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">([</span><span class="n">item</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Signal the consumer we are done.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">_sentinel</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">buffered_add_candidate_edges</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Buffers content of an iterator polling the contents of the given</span>
+<span class="sd">        iterator in a separate thread.</span>
+<span class="sd">        When the consumer is faster than many producers, this kind of</span>
+<span class="sd">        concurrency and buffering makes sense.</span>
+
+<span class="sd">        The size parameter is the number of elements to buffer.</span>
+
+<span class="sd">        The source must be threadsafe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infr</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">Queue</span> <span class="k">import</span> <span class="n">Queue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Queue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_poller</span> <span class="o">=</span> <span class="n">_background_consumer</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_poller</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_poller</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="n">_sentinel</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">item</span>
+
+        <span class="nb">next</span> <span class="o">=</span> <span class="fm">__next__</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.graph.mixin_loops</span>
+<span class="sd">        python -m ibeis.algo.graph.mixin_loops --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Wild Me.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

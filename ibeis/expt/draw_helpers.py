@@ -4,7 +4,7 @@ from os.path import join, dirname, split, basename, splitext
 import re
 import utool as ut
 from six.moves import map, range
-print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 class IndividualResultsCopyTaskQueue(object):
@@ -72,7 +72,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
         label_str = cmdname
         if len(caption_prefix) == 0:
             caption_str = ut.escape_latex('Casetags: ' +
-                                          ut.list_str(labels, nl=False, strvals=True) +
+                                          ut.repr2(labels, nl=False, strvals=True) +
                                           ', db=' + ibs.get_dbname() + '. ')
         else:
             caption_str = ''

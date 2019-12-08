@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import plottool.draw_sv as draw_sv
+import plottool_ibeis.draw_sv as draw_sv
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)
 
 
@@ -9,12 +9,10 @@ WRITE_SV_DEBUG = ut.get_argflag('--write-sv-debug')
 
 
 def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=None):
-    """ Compiles IBEIS information into info suitable for plottool """
+    """ Compiles IBEIS information into info suitable for plottool_ibeis """
     chip1, chip2 = ibs.get_annot_chips([aid1, aid2], config2_=config2_)
     kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=config2_)
     aid2_fm = chipmatch_FILT.aid2_fm
-    #aid2_fs = chipmatch_FILT.aid2_fs
-    #aid2_fk = chipmatch_FILT.aid2_fk
     fm = aid2_fm[aid2]
     (homog_inliers, homog_err, H, aff_inliers, aff_err, Aff) = aid2_svtup[aid2]
     homog_tup = (homog_inliers, H)
@@ -24,13 +22,15 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, con
 
 
 def _compute_svvars(ibs, aid1):
-    """ If spatial-verfication dbginfo is not in we need to compute it """
+    """
+    DEPRICATE
+    If spatial-verfication dbginfo is not in we need to compute it
+    """
     from ibeis.algo.hots import _pipeline_helpers as plh
-    from ibeis.algo.hots import query_request
     daids = ibs.get_valid_aids()
     qaids = [aid1]
-    cfgdict = dict(with_metadata=True)
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
+    cfgdict = dict()
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
     qreq_.lazy_load()
@@ -45,7 +45,7 @@ def _compute_svvars(ibs, aid1):
 @ut.indent_func
 def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs):
     """
-    Compiles IBEIS information and sends it to plottool
+    Compiles IBEIS information and sends it to plottool_ibeis
 
     CommandLine:
         python -m ibeis.viz.viz_sver --test-show_sver --show
@@ -63,7 +63,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')

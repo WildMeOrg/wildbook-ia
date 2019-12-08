@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Example of interfacing with IBEIS getters
@@ -47,7 +47,7 @@ def run_example(ibs):
     gpath = ibs.get_image_paths(gid)  # Get an image path
 
     # Print locals to the screen
-    print('locals() = ' + utool.dict_str(locals()))
+    print('locals() = ' + utool.repr2(locals()))
     return locals()
 
 
