@@ -3,10 +3,8 @@ pygments
 autopep8
 pyfiglet
 
-tornado>=4.2.1
 flask
 flask-cors
-pynmea2>=1.5.3
 pygraphviz
 pydot
 pydot-ng

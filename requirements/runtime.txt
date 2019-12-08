@@ -39,6 +39,7 @@ dtool_ibeis >= 1.0.0
 plottool_ibeis >= 2.0.0
 guitool_ibeis >= 2.0.0
 
-pynmea2
-tornado
-PyQt5;python_version>"2.7"
+pyqt5>= 5.11.2;python_version>'2.7'  # 
+
+pynmea2>=1.5.3
+tornado>=4.2.1

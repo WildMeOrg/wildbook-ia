@@ -319,13 +319,6 @@ rrrr = reload_subs
 
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
-# __version__ = VERSION_CURRENT
-
-# __version__ = '1.6.0'
-# if __version__ != VERSION_CURRENT:
-#     raise AssertionError(
-#         'need to update version in __init__ file from %r to %r so setup.py can work nicely' % (
-#             __version__, VERSION_CURRENT))
 
 """
 Regen Command:
