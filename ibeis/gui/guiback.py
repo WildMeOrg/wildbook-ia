@@ -1276,7 +1276,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Table Click -> Image Table
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> print('''
             >>>           get_valid_gids
             >>>           ''')
@@ -1377,7 +1377,7 @@ class MainWindowBackend(GUIBACK_BASE):
             manual_annot_funcs.delete_annots
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
@@ -1690,7 +1690,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
@@ -1795,7 +1795,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback run_detection_step --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
@@ -1951,7 +1951,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback show_advanced_id_interface --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
@@ -2257,7 +2257,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
@@ -2363,7 +2363,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
@@ -2414,7 +2414,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback --test-run_merge_checks --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> result = back.run_merge_checks()
@@ -2680,7 +2680,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback commit_to_wb_step --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
@@ -2915,7 +2915,6 @@ class MainWindowBackend(GUIBACK_BASE):
     def dev_reload(back):
         """ Help -> Developer Reload"""
         print('[back] dev_reload')
-        #from ibeis.all_imports import reload_all
         back.ibs.rrr()
         #back.rrr()
         #reload_all()
@@ -3061,7 +3060,7 @@ class MainWindowBackend(GUIBACK_BASE):
             python -m ibeis.gui.guiback --test-open_database
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='testdb1')
             >>> testdb0 = sysres.db_to_dbdir('testdb0')
@@ -3129,7 +3128,7 @@ class MainWindowBackend(GUIBACK_BASE):
         File -> Import Images From File
 
         Example
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> print('[TEST] GET_TEST_IMAGE_PATHS')
             >>> # The test api returns a list of interesting chip indexes
             >>> mode = 'FILE'

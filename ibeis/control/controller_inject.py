@@ -346,7 +346,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.controller_inject import *  # NOQA
         >>> import ibeis
         >>> import time

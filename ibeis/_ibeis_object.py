@@ -228,7 +228,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             import re
             for k, v in closure_vars:
                 source = re.sub('\\b' + k + '\\b', ut.repr2(v), source)
-            source = re.sub('def .*\(self', 'def ' + funcname + '(self', source)
+            source = re.sub(r'def .*\(self', 'def ' + funcname + '(self', source)
             source = ut.indent(source.strip(), '    ') + '\n'
             return source
 

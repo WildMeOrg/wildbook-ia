@@ -847,7 +847,7 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
         python -m ibeis.gui.inspect_gui make_vsone_tuner --show
 
     Example:
-        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> gt.ensure_qapp()

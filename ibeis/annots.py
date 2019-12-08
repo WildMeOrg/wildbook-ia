@@ -117,7 +117,7 @@ ANNOT_SETTABLE_ATTRS = [
 
 class _AnnotPropInjector(BASE_TYPE):
     """
-    Example:
+    Ignore:
         >>> from ibeis import _ibeis_object
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

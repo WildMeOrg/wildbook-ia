@@ -72,7 +72,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         python -m ibeis.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -94,7 +94,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> print(result)
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import time
         >>> import ibeis
@@ -284,7 +284,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         python -m ibeis.web.apis_query review_graph_match_html --show --domain=localhost
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.apis_query import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -839,7 +839,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.apis_query import *
         >>> import ibeis
         >>> # Open local instance

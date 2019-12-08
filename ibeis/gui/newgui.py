@@ -848,7 +848,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Image, ImageGrid, Annotation, or Names table/tree
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
@@ -1069,7 +1069,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                text = '51e10019-968b-5f2e-2287-8432464d7547 '
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
@@ -1571,7 +1571,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             python -m ibeis.gui.newgui imagesDropped --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
             >>> url_list = [ut.grab_test_imgpath('carl.jpg'), ut.grab_test_imgpath('lena.png')]

@@ -278,7 +278,7 @@ def convert_tests_from_ibeis_to_nose(module_list):
         import re
         src = re.sub('# ENABLE_DOCTEST\n', '', src)
         src = re.sub('from [^*]* import \* *# NOQA\n', '', src)
-        src = re.sub('from [^*]* import \*\n', '', src)
+        src = re.sub(r'from [^*]* import \*\n', '', src)
 
         src = ut.str_between(src, None, 'ut.quit_if_noshow').rstrip('\n')
         src = ut.str_between(src, None, 'ut.show_if_requested').rstrip('\n')
@@ -304,22 +304,11 @@ def convert_tests_from_ibeis_to_nose(module_list):
     moddir = ut.get_module_dir(tests)
     ut.writeto(join(moddir, 'test_autogen_nose_tests.py'), autogen_test_src)
 
-#if __name__ == '__main__':
-#    """
-#    python -m ibeis --run-tests
-#    """
-#    import multiprocessing
-#    multiprocessing.freeze_support()
-#    run_tests()
-
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ibeis.tests.run_tests
-        python -m ibeis.tests.run_tests --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m ibeis.tests.run_tests
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

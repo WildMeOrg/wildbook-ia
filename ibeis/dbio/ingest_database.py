@@ -626,15 +626,15 @@ def ingest_testdb1(dbname):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> import utool as ut
-        >>> from vtool_ibeis.tests import grabdata
+        >>> from ibeis import demodata
         >>> import ibeis
-        >>> grabdata.ensure_testdata()
+        >>> demodata.ensure_testdata()
         >>> # DELETE TESTDB1
         >>> TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), 'testdb1')
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from vtool_ibeis.tests import grabdata   # TODO: remove and use utool appdir
+    from ibeis import demodata  # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
         from ibeis import constants as const
@@ -739,7 +739,7 @@ def ingest_testdb1(dbname):
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
-                      img_dir=grabdata.get_testdata_dir(),
+                      img_dir=demodata.get_testdata_dir(),
                       adjust_percent=0.00,
                       images_as_annots=True,
                       postingest_func=postingest_tesdb1_func)

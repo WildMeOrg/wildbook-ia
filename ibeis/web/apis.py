@@ -56,7 +56,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     Returns the image file of image <gid>
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
@@ -108,7 +108,7 @@ def image_src_api_json(uuid=None, **kwargs):
     Returns the image file of image <gid>
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
@@ -262,7 +262,7 @@ def hello_world(*args, **kwargs):
         python -m ibeis.web.apis --exec-hello_world:1
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
@@ -271,7 +271,7 @@ def hello_world(*args, **kwargs):
         >>> #web_ibs.terminate2()
 
     Example1:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> import requests

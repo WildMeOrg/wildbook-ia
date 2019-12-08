@@ -120,7 +120,7 @@ def initialize_job_manager(ibs):
         >>> print('Closing success.')
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> import requests
@@ -201,7 +201,7 @@ def get_job_id_list(ibs):
         python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -234,7 +234,7 @@ def get_job_status(ibs, jobid):
         python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')

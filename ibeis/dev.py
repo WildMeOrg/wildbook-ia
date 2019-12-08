@@ -132,6 +132,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    import vtool_ibeis as vt
     tuned_params = vt.tune_flann(vecs,
                                  target_precision=.98,
                                  build_weight=0.05,
@@ -297,7 +298,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 
     # Explicit (simple) test functions
     if intest('export'):
-        export(ibs)
+        raise NotImplementedError('export')
     if intest('dbinfo'):
         dbinfo.get_dbinfo(ibs)
     if intest('headers', 'schema'):
@@ -305,7 +306,8 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     if intest('info'):
         print(ibs.get_infostr())
     if intest('printcfg'):
-        printcfg(ibs)
+        raise NotImplementedError('printcfg')
+        # printcfg(ibs)
     if intest('tables'):
         ibs.print_tables()
     if intest('imgtbl'):

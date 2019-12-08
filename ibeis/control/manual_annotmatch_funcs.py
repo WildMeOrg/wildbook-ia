@@ -600,12 +600,9 @@ def set_annotmatch_count(ibs, annotmatch_rowid_list, annotmatch_count_list, dupl
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ibeis.control.manual_annotmatch_funcs
-        python -m ibeis.control.manual_annotmatch_funcs --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()
-    import utool as ut
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m ibeis.control.manual_annotmatch_funcs
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

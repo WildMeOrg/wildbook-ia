@@ -55,20 +55,11 @@ def run_ibeis():
         ut.embed()
     # Run the tests of other modules
     elif ut.get_argflag('--run-utool-tests'):
-        import utool.tests.run_tests
-        retcode = utool.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+        raise Exception('Deprecated functionality')
     elif ut.get_argflag('--run-vtool_ibeis-tests'):
-        import vtool_ibeis.tests.run_tests
-        retcode = vtool_ibeis.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+        raise Exception('Deprecated functionality')
     elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
-        from ibeis.tests import run_tests
-        retcode = run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+        raise Exception('Deprecated functionality')
 
     if ut.get_argflag('-e'):
         """
