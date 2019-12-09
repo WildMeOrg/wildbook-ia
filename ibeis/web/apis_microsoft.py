@@ -1023,7 +1023,7 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
         parameter = 'algorithm'
         assert isinstance(algorithm, str), 'Must specify the algorithm as a string'
         algorithm = algorithm.lower()
-        assert algorithm in ['hotspotter', 'curvrank', 'deepsense', 'finfindr'], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, or Finfindr'
+        assert algorithm in ['hotspotter', 'curvrank', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven'], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, Finfindr, Kaggle7'
 
         parameter = 'callback_url'
         assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
@@ -1051,6 +1051,10 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
     elif algorithm in ['finfindr']:
         query_config_dict = {
             'pipeline_root' : 'Finfindr',
+        }
+    elif algorithm in ['kaggle7', 'kaggleseven']:
+        query_config_dict = {
+            'pipeline_root' : 'KaggleSeven',
         }
 
     user_feedback = {

@@ -117,6 +117,11 @@ if ut.get_argflag('--finfindr'):
         (('--no-finfindr', '--nofinfindr'), 'ibeis_finfindr._plugin'),
     ]
 
+if ut.get_argflag('--kaggle7') or ut.get_argflag('--kaggleseven'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-kaggle7', '--nokaggle7', '--no-kaggleseven', '--nokaggleseven'), 'ibeis_kaggle7._plugin'),
+    ]
+
 
 """
 # Should import
