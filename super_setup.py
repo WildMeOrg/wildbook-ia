@@ -428,6 +428,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/WildbookOrg/ibeis-curvrank-module.git',
             'https://github.com/WildbookOrg/ibeis-deepsense-module.git',
             'https://github.com/WildbookOrg/ibeis-finfindr-module.git',
+            'https://github.com/WildbookOrg/ibeis-kaggle7-module.git',
             'https://github.com/WildbookOrg/pyrf.git',
         ])
 
