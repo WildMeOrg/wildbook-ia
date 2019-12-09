@@ -331,6 +331,7 @@ class ZIPPED_URLS(object):
     GZ_DISTINCTIVE = 'https://cthulhu.dyn.wildme.io/public/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
     DF_CURVRANK    = 'https://cthulhu.dyn.wildme.io/public/databases/testdb_curvrank.zip'
     ID_EXAMPLE     = 'https://cthulhu.dyn.wildme.io/public/databases/testdb_identification.zip'
+    K7_EXAMPLE     = 'https://cthulhu.dyn.wildme.io/public/databases/testdb_kaggle7.zip'
 
 
 # Turn off features at Lewa :(
