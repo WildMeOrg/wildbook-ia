@@ -1,18 +1,18 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 import utool as ut
 ut.noinject(__name__, '[guitool_ibeis.__init__]')
 
 
 #try:
-#    # try seeing if importing plottool before any guitool_ibeis things helps
-#    import plottool
+#    # try seeing if importing plottool_ibeis before any guitool_ibeis things helps
+#    import plottool_ibeis
 #except Exception as ex:
 #    import utool as ut
-#    ut.printex(ex, 'tried to import plottool to solve win crash')
+#    ut.printex(ex, 'tried to import plottool_ibeis to solve win crash')
 #    raise
 #    #pass
 

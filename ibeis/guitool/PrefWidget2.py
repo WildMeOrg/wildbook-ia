@@ -921,7 +921,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> config = ExampleConfig()
         >>> widget = EditConfigWidget(config=config, changed=changed)
         >>> widget.rootNode.print_tree()
-        >>> from plottool import fig_presenter
+        >>> from plottool_ibeis import fig_presenter
         >>> fig_presenter.register_qt4_win(widget)
         >>> widget.show()
         >>> ut.quit_if_noshow()

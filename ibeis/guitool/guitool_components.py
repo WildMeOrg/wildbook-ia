@@ -425,7 +425,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> app.processEvents()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     progress_changed_signal = QtCore.pyqtSignal(float, str)
@@ -1521,7 +1521,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         >>> self = dlg.widget
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> dlg.show()
         >>> guitool_ibeis.qtapp_loop(qwin=dlg)
         >>> updated_config = self.config  # NOQA
@@ -2114,13 +2114,13 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
     fmtdict = {}
     if bgcolor is not None:
         if isinstance(bgcolor, six.string_types):
-            import plottool as pt
+            import plottool_ibeis as pt
             bgcolor = getattr(pt, bgcolor.upper())[0:3] * 255
         style_list.append('background-color: rgb({bgcolor})')
         fmtdict['bgcolor'] = ','.join(map(str, bgcolor))
     if fgcolor is not None:
         if isinstance(fgcolor, six.string_types):
-            import plottool as pt
+            import plottool_ibeis as pt
             fgcolor = getattr(pt, fgcolor.upper())[0:3] * 255
         style_list.append('color: rgb({fgcolor})')
         fmtdict['fgcolor'] = ','.join(map(str, fgcolor))

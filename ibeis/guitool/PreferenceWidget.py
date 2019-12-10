@@ -380,7 +380,7 @@ def test_preference_gui():
         setattr(new_wrap, k, v)
     old.new = new_wrap
     epw = old.createQWidget()
-    from plottool import fig_presenter
+    from plottool_ibeis import fig_presenter
     fig_presenter.register_qt4_win(epw)
     #epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
     epw.show()

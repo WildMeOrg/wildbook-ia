@@ -455,7 +455,7 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> # build test data
         >>> img_path = ut.grab_test_imgpath('carl.jpg')
         >>> dsize = (32, 32)

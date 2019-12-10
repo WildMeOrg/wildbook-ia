@@ -35,7 +35,7 @@ class QtAbstractMplInteraction(BASE):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool_ibeis.mpl_embed import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> self = QtAbstractMplInteraction()
@@ -50,7 +50,7 @@ class QtAbstractMplInteraction(BASE):
         >>> print('Done')
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
         >>> guitool_ibeis.qtapp_loop(self, frequency=100, init_signals=True)
 

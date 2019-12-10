@@ -27,12 +27,12 @@ class MatplotlibWidget(gt.GuitoolWidget):
     pick_event_signal = QtCore.pyqtSignal(PickEvent)
 
     def initialize(self, pan_and_zoom=False):
-        from plottool.interactions import zoom_factory, pan_factory
-        from plottool import abstract_interaction
+        from plottool_ibeis.interactions import zoom_factory, pan_factory
+        from plottool_ibeis import abstract_interaction
 
         # Create unmanaged figure and a canvas
         self.fig = mpl.figure.Figure()
-        self.fig._no_raise_plottool = True
+        self.fig._no_raise_plottool_ibeis = True
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setParent(self)
         self.addWidget(self.canvas)
@@ -65,8 +65,8 @@ class MatplotlibWidget(gt.GuitoolWidget):
         self.reset_ax()
 
     def reset_ax(self):
-        # from plottool.interactions import zoom_factory, pan_factory
-        import plottool as pt
+        # from plottool_ibeis.interactions import zoom_factory, pan_factory
+        import plottool_ibeis as pt
         self.ax = self.fig.add_subplot(1, 1, 1)
         pt.adjust_subplots(left=0, right=1, top=1, bottom=0, fig=self.fig)
         # self.pan_events = pan_factory(self.ax)
@@ -74,7 +74,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
         return self.ax
 
     def _emit_button_press(self, event):
-        from plottool import interact_helpers as ih
+        from plottool_ibeis import interact_helpers as ih
         if ih.clicked_inside_axis(event):
             self.click_inside_signal.emit(event, event.inaxes)
 

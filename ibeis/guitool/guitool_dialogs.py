@@ -610,9 +610,9 @@ def popup_menu(widget, pos, context_options):
         >>> # DISABLE_DOCTEST
         >>> from guitool_ibeis.guitool_dialogs import *  # NOQA
         >>> import guitool_ibeis
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import functools
-        >>> from plottool import interact_helpers as ih
+        >>> from plottool_ibeis import interact_helpers as ih
         >>> fig = pt.figure()
         >>> def spam(x=''):
         ...    print('spam' + str(x))
@@ -644,8 +644,8 @@ def popup_menu(widget, pos, context_options):
         >>> # Hacky way to get a right click to span a context menu
         >>> def figure_clicked(event, fig=fig, context_options=context_options):
         ...     import guitool_ibeis
-        ...     import plottool as pt
-        ...     from plottool import interact_helpers as ih
+        ...     import plottool_ibeis as pt
+        ...     from plottool_ibeis import interact_helpers as ih
         ...     pos = guitool_ibeis.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
         ...     widget = fig.canvas
         ...     (selection, actions) = popup_menu(widget, pos, context_options)
