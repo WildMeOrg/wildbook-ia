@@ -3,7 +3,6 @@ autopep8
 pyfiglet
 
 flask-cors
-pygraphviz
 pydot
 pydot-ng
 
