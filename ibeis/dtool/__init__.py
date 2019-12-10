@@ -18,4 +18,4 @@ from dtool_ibeis.depcache_table import ExternalStorageException, ExternType
 from dtool_ibeis.base import *  # NOQA
 from dtool_ibeis.sql_control import SQLDatabaseController
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
