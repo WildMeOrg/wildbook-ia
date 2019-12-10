@@ -138,6 +138,24 @@ class PairwiseMatch(ub.NiceRepr):
 
         Optional annotation attributes:
             aid, nid, flann, rchip, dlen_sqrd, weight
+
+    Ignore:
+        >>> import vtool_ibeis as vt
+        >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
+        >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
+        >>> annot1 = {'rchip': imgR}
+        >>> annot2 = {'rchip': imgL}
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({'refine_method': 'affine', 'affine_invariance': False, 'rotation_invariance': False})
+        >>> dsize = imgR.shape[0:2][::-1]
+        >>> imgR_warp = vt.warpHomog(imgR, match.H_12, dsize)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
     """
     def __init__(match, annot1=None, annot2=None):
         if not isinstance(annot1, ut.LazyDict):

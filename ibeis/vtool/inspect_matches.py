@@ -28,7 +28,7 @@ def lazy_test_annot(key):
     return annot
 
 try:
-    import dtool as dt
+    import dtool_ibeis as dt
 
     MatchDisplayConfig = dt.from_param_info_list([
         ut.ParamInfo('overlay', True),
@@ -172,14 +172,14 @@ class MatchInspector(INSPECT_BASE):
 
     def _setup_configs(self, cfgdict=None):
         from vtool_ibeis import matching
-        import dtool
+        import dtool_ibeis
         # import pyhesaff
 
         # default_dict = pyhesaff.get_hesaff_default_params()
         # default_dict = vt.get_extract_features_default_params()
-        TmpFeatConfig = dtool.from_param_info_list(matching.VSONE_FEAT_CONFIG)
+        TmpFeatConfig = dtool_ibeis.from_param_info_list(matching.VSONE_FEAT_CONFIG)
 
-        TmpNChipConfig = dtool.from_param_info_list(matching.NORM_CHIP_CONFIG)
+        TmpNChipConfig = dtool_ibeis.from_param_info_list(matching.NORM_CHIP_CONFIG)
         # [
         #     ut.ParamInfo(key, val) for key, val in default_dict.items()
         #     # ut.ParamInfo('affine_invariance', True),
@@ -189,7 +189,7 @@ class MatchInspector(INSPECT_BASE):
         self.featconfig = TmpFeatConfig()
         self.chipconfig = TmpNChipConfig()
 
-        TmpVsOneConfig = dtool.from_param_info_list(
+        TmpVsOneConfig = dtool_ibeis.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
         self.config = TmpVsOneConfig()
         self.disp_config = MatchDisplayConfig()
