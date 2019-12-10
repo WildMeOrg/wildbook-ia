@@ -80,6 +80,7 @@ def compute_thumbnails(depc, gid_list, config=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--weird)
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'testdb1'

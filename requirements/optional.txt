@@ -1,9 +1,7 @@
 ansi2html
-pygments
 autopep8
 pyfiglet
 
-flask
 flask-cors
 pygraphviz
 pydot
