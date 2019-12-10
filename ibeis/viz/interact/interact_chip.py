@@ -83,6 +83,8 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
                                  with_interact_chip=True,
                                  with_interact_image=True, config2_=None):
     r"""
+    Build context options for things that select annotations in the IBEIS gui
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid (int):  annotation id
@@ -331,6 +333,21 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
                 assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit tags')
+                raise
+
+    def dev_set_annot_species():
+        text = ibs.get_annot_species([aid])[0]
+        resp = gt.user_input(title='edit species', msg=text, text=text)
+        if resp is not None:
+            try:
+                print('resp = %r' % (resp,))
+                print('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                ibs.set_annot_species(aid, resp)
+                new_text = ibs.get_annot_species_texts([aid])[0]
+                print('new_text = %r' % (new_text,))
+                assert new_text == resp, 'should have had text change'
+            except Exception as ex:
+                ut.printex(ex, 'error in dev edit species')
                 raise
 
     dev_callback_list += [

@@ -648,27 +648,27 @@ def make_netharn_registry():
         # The util libs
         CommonRepo(
             name='utool', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/utool.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/utool.git'},
         ),
-        CommonRepo(
-            name='vtool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/vtool_ibeis.git'},
-        ),
+        # CommonRepo(
+        #     name='vtool_ibeis', branch='master', remote='Erotemic',
+        #     remotes={'Erotemic': 'git@github.com:Erotemic/vtool.git'},
+        # ),
         CommonRepo(
             name='dtool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/dtool_ibeis.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/dtool.git'},
         ),
         CommonRepo(
             name='plottool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/plottool_ibeis.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/plottool.git'},
         ),
         CommonRepo(
             name='guitool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/guitool_ibeis.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/guitool.git'},
         ),
         CommonRepo(
             name='ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/ibeis.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/ibeis.git'},
         ),
     ]
     registery = RepoRegistry(repos)

@@ -3534,17 +3534,21 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def override_all_annotation_species(back):
-        aid_list = back.ibs.get_valid_aids()
-        species_text = back.get_selected_species()
-        print('override_all_annotation_species. species_text = %r' % (species_text,))
-        species_rowid = back.ibs.get_species_rowids_from_text(species_text)
-        use_msg = ('Are you sure you want to change %d annotations species to %r?'
-                   % (len(aid_list), species_text))
-        if back.are_you_sure(use_msg=use_msg):
-            print('performing override')
-            back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
-            # FIXME: api-cache is broken here too
-            back.ibs.reset_table_cache()
+        # aid_list = back.ibs.get_valid_aids()
+        # species_text = back.get_selected_species()
+        resp = gt.user_input(title='edit species', msg='', text='')
+        if resp is not None:
+            print('override_all_annotation_species. resp = %r' % (resp,))
+            # species_rowid = back.ibs.get_species_rowids_from_text(species_text)
+            aid_list = back.ibs.get_valid_aids()
+            use_msg = ('Are you sure you want to change %d annotations species to %r?'
+                       % (len(aid_list), resp))
+            species_rowid = back.ibs.add_species(resp)
+            if back.are_you_sure(use_msg=use_msg):
+                print('performing override')
+                back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
+                # FIXME: api-cache is broken here too
+                back.ibs.reset_table_cache()
 
     @blocking_slot()
     def update_species_nice_name(back):

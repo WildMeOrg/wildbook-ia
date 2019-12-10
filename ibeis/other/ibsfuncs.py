@@ -22,6 +22,7 @@ from os.path import split, join, exists
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
+import ubelt as ub
 from utool._internal.meta_util_six import get_funcname, set_funcname
 import itertools as it
 from ibeis import constants as const
@@ -93,7 +94,7 @@ def get_image_time_statstr(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     unixtime_list_ = ibs.get_image_unixtime(gid_list)
     utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.compress(unixtime_list_, utvalid_list)
+    unixtime_list  = list(ub.compress(unixtime_list_, utvalid_list))
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
     return unixtime_statstr
 
@@ -4628,6 +4629,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.annots().aids
+        >>> stats = ibs.get_annot_stats_dict(aids)
+        >>> import ubelt as ub
+        >>> print('annot_stats = {}'.format(ub.repr2(stats, nl=1)))
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibeis.testdata_aids(ibs=ibs)
         >>> prefix = ''
         >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
@@ -4639,7 +4650,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> old = ut.get_argval('--old', default=True)
         >>> use_hist = ut.get_argval('--use_hist', default=True)
         >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, use_hist=use_hist, old=old, **kwargs)
-        >>> result = ('aid_stats_dict = %s' % (ut.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
+        >>> result = ('aid_stats_dict = %s' % (ub.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
         >>> print(result)
     """
     kwargs = kwargs.copy()
