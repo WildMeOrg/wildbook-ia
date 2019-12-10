@@ -668,7 +668,7 @@ def make_netharn_registry():
         ),
         CommonRepo(
             name='ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/guitool_ibeis.git'},
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/ibeis.git'},
         ),
     ]
     registery = RepoRegistry(repos)
