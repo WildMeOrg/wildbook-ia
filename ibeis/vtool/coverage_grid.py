@@ -46,7 +46,7 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         >>> result = str(weightgrid)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(weightgrid)
         >>> ut.show_if_requested()
     """
@@ -154,7 +154,7 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
         >>> grid_sigma = 1.6
         >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin, grid_steps, grid_sigma)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> show_coverage_grid(*coverage_gridtup)
         >>> pt.show_if_requested()
     """
@@ -196,7 +196,7 @@ def show_coverage_grid(num_rows, num_cols, subbin_xy_arr,
     """
     visualizes the voting scheme on the grid. (not a mask, and no max)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import vtool_ibeis as vt
     import matplotlib as mpl
 
@@ -286,11 +286,11 @@ def gridsearch_coverage_grid():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.coverage_grid import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gridsearch_coverage_grid()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     fname = None  # 'easy1.png'
     kpts, chipsize, weights = coverage_kpts.testdata_coverage(fname)
     if len(kpts) > 100:
@@ -320,11 +320,11 @@ def gridsearch_coverage_grid_mask():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.coverage_grid import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gridsearch_coverage_grid_mask()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
     kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
     gridmask_list = [

@@ -116,7 +116,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> assert non_decreasing(arr), 'ensure nondecreasing failed2'
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed2'
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_increasing(arr_)
         >>> pt.plot2(domain, arr, 'b-', fnum=1, pnum=(3, 1, 2), equal_aspect=False)
@@ -167,7 +167,7 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> print(result)
         >>> assert strictly_decreasing(arr), 'ensure strict monotonic failed'
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_decreasing(arr_)
         >>> pt.plot2(domain, arr, 'b-', fnum=1, pnum=(3, 1, 2), equal_aspect=False)
@@ -409,7 +409,7 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True
         >>> result = str(arr)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
         >>> ut.show_if_requested()
@@ -457,7 +457,7 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         >>> result = str(arr)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (decreasing)', equal_aspect=False)
         >>> ut.show_if_requested()
@@ -562,7 +562,7 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
         array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
@@ -596,7 +596,7 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
         array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
@@ -622,7 +622,7 @@ def logistic_01(x):
         >>> x = np.linspace(0, 1)
         >>> y = logistic_01(x)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, y)
         >>> ut.show_if_requested()
     """
@@ -644,7 +644,7 @@ def logit(x):
 def beaton_tukey_loss(u, a=1):
     """
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
 
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
@@ -660,7 +660,7 @@ def beaton_tukey_loss(u, a=1):
 def beaton_tukey_weight(u, a=1):
     """
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight
 
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
@@ -675,8 +675,8 @@ def beaton_tukey_weight(u, a=1):
 
 def gauss_parzen_est(dist, L=1, sigma=.38):
     """
-    python -m plottool.draw_func2 --exec-plot_func --show --range=-.2,.2 --func=vt.gauss_parzen_est
-    python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func=vt.gauss_parzen_est
+    python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-.2,.2 --func=vt.gauss_parzen_est
+    python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,1 --func=vt.gauss_parzen_est
     """
     tau = np.pi * 2
     const_term = np.log(L * sigma * np.sqrt(tau))

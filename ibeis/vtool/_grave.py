@@ -48,7 +48,7 @@ class ScoreNormalizerUnsupervised(object):
             copy=False, assume_sorted=False)
 
     def visualize(encoder):
-        import plottool as pt
+        import plottool_ibeis as pt
         #is_timedata = False
         is_timedelta = True
         p_xdata = encoder.p_xdata

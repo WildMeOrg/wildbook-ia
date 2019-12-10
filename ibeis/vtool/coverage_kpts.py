@@ -33,7 +33,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> # xdoctest: +REQUIRES(module:plottool)
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> from vtool_ibeis.coverage_kpts import *  # NOQA
         >>> import vtool_ibeis as vt
         >>> import pyhesaff
@@ -46,7 +46,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
         >>> img1 = heatmask
         >>> img2 = chip
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qtensure()
         >>> img3 = vt.overlay_alpha_images(heatmask, chip)
         >>> pt.imshow(img3)
@@ -65,7 +65,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
                                    cov_scale_factor=cov_scale_factor,
                                    cov_blur_sigma=1.5,
                                    cov_blur_on=True)
-    import plottool as pt
+    import plottool_ibeis as pt
     # heatmask = np.ones(tuple(chipsize) + (4,)) * pt.RED
     heatmask = pt.plt.get_cmap(cmap)(mask)
     # conver to bgr
@@ -78,7 +78,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
 def make_heatmask(mask, cmap='plasma'):
     # import vtool_ibeis as vt
     # use a disk instead of a gaussian
-    import plottool as pt
+    import plottool_ibeis as pt
     import vtool_ibeis as vt
     assert len(mask.shape) == 2
     mask = vt.rectify_to_float01(mask)
@@ -123,10 +123,10 @@ def make_kpts_coverage_mask(
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> # xdoctest: +REQUIRES(module:plottool)
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> from vtool_ibeis.coverage_kpts import *  # NOQA
         >>> import vtool_ibeis as vt
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import pyhesaff
         >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
@@ -236,7 +236,7 @@ def warp_patch_onto_kpts(
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> mask = dstimg
         >>> show_coverage_map(chip, mask, patch, kpts)
         >>> pt.show_if_requested()
@@ -426,11 +426,11 @@ def gridsearch_kpts_coverage_mask():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.coverage_kpts import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> gridsearch_kpts_coverage_mask()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     cfgdict_list, cfglbl_list = get_coverage_kpts_gridsearch_configs()
     kpts, chipsize, weights = testdata_coverage('easy1.png')
     imgmask_list = [
@@ -476,7 +476,7 @@ def testdata_coverage(fname=None):
 def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
                       show_mask_kpts=False):
     """ testing function """
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     pnum_ = pt.get_pnum_func(nRows=2, nCols=2)

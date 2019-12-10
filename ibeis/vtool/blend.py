@@ -22,7 +22,7 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     """
     gridsearch for a function that produces a single image
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     cfgdict_list, cfglbl_list = param_info.get_gridsearch_input(defaultslice=slice(0, 10))
     fnum = pt.ensure_fnum(None)
     if show_func is None:
@@ -155,7 +155,7 @@ def blend_images_average(img1, img2, alpha=.5):
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
@@ -211,7 +211,7 @@ def blend_images_average_stack(images, alpha=None):
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
     """
@@ -255,7 +255,7 @@ def blend_images_mult_average(img1, img2, alpha=.5):
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_mult_average(img1, img2, alpha)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
@@ -314,7 +314,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_multiply(img1, img2, alpha)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 

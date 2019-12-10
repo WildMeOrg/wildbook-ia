@@ -718,7 +718,7 @@ class ConfusionMetrics(ub.NiceRepr):
         x_metric = 'thresholds'
         y_metric = 'fpr'
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         # pt.qtensure()
         # xdata = self.thresholds
         xdata = getattr(self, x_metric)
@@ -729,7 +729,7 @@ class ConfusionMetrics(ub.NiceRepr):
                       ylabel=y_metric, use_legend=True)
 
     def plot_metrics(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         metrics = [
             'mcc',
             'acc',
@@ -752,7 +752,7 @@ class ConfusionMetrics(ub.NiceRepr):
                       ylabel='metric', use_legend=True)
 
     def show_mcc(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.multi_plot(self.thresholds, [self.mcc], xlabel='threshold', marker='',
                       ylabel='MCC')
         pass
@@ -952,10 +952,10 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         >>> inter = ROCInteraction()
         >>> inter.show_page()
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    from plottool.abstract_interaction import AbstractInteraction
+    from plottool_ibeis.abstract_interaction import AbstractInteraction
 
     class ROCInteraction(AbstractInteraction):
         """
@@ -1044,7 +1044,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
         >>>   thresholds, color, show_operating_point)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import sklearn.metrics
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1142,7 +1142,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
 def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
                                 fnum=1, pnum=None,
                                 color=None):
-    import plottool as pt
+    import plottool_ibeis as pt
     if color is None:
         color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
     if recall_domain is None:

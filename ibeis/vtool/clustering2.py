@@ -452,7 +452,7 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     to the <num_pca_dims> principal components
     """
     # http://www.janeriksolem.net/2012/03/isomap-with-scikit-learn.html
-    from plottool import draw_func2 as df2
+    from plottool_ibeis import draw_func2 as df2
     data_dims = data.shape[1]
     show_dims = min(num_pca_dims, data_dims)
     if data_dims != show_dims:
@@ -554,7 +554,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
         >>> pts = uniform_sampe_hypersphere(num, ndim)
         >>> print(pts)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> if ndim == 2:
         >>>     pt.plot(pts.T[0], pts.T[1], 'gx')
         >>> elif ndim == 3:
@@ -632,7 +632,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> # SCRIPT
         >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> import networkx as nx
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> rng = np.random.RandomState(443284320)
         >>> pt.ensureqt()
         >>> #
@@ -715,7 +715,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     """
     import opengm
     import numpy as np
-    #import plottool as pt
+    #import plottool_ibeis as pt
     from itertools import product
     cost_matrix_ = cost_matrix - thresh
     num_vars = len(cost_matrix_)

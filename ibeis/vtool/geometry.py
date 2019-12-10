@@ -81,10 +81,10 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
         >>> color = (0, 128, 255)
         >>> thickness = 20
         >>> out = None
-        >>> # xdoctest: +REQUIRES(module:plottool)
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> img = draw_border(img_in, color, thickness, out)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
     """
@@ -122,7 +122,7 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> # ENABLE_DOCTEST
         >>> from vtool_ibeis.geometry import *  # NOQA
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
@@ -144,7 +144,7 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> # ENABLE_DOCTEST
         >>> from vtool_ibeis.geometry import *  # NOQA
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
@@ -218,7 +218,7 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> p_list = rng.rand(64, 2) * 20 + 5
         >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
@@ -286,7 +286,7 @@ def closest_point_on_line(p, e1, e2):
         >>>     close_pts.append(candidates[dists.argmin()])
         >>> close_pts = np.array(close_pts)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
@@ -561,7 +561,7 @@ def point_inside_bbox(point, bbox):
         >>> result = ('flag = %s' % (ub.repr2(flag),))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> verts = np.array(verts_from_bbox(bbox, close=True))
         >>> pt.plot(verts.T[0], verts.T[1], 'b-')
         >>> pt.plot(point[0][flag], point[1][flag], 'go')

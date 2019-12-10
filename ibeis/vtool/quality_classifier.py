@@ -23,8 +23,8 @@ def compute_average_contrast(img):
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> average_contrast, gradmag_sqrd = compute_average_contrast(img)
-        >>> # xdoctest: +REQUIRES(module:plottool)
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
+        >>> import plottool_ibeis as pt
         >>> # xdoctest: +REQUIRES(--show)
         >>> pt.figure(fnum=1)
         >>> pt.plt.imshow(gradmag_sqrd)
@@ -73,7 +73,7 @@ def test_average_contrast():
     img_fpath_list = [ut.grab_test_imgpath(key) for key in ut.get_valid_test_imgkeys()]
     img_list = [vt.imread(img, grayscale=True) for img in img_fpath_list]
     avecontrast_list = np.array([compute_average_contrast(img) for img in img_list])
-    import plottool as pt
+    import plottool_ibeis as pt
     nCols = len(img_list)
     fnum = None
     if fnum is None:
@@ -109,7 +109,7 @@ def fourier_devtest(img):
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> magnitude_spectrum = fourier_devtest(img)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     def pad_img(img):
         rows, cols = img.shape
         nrows = cv2.getOptimalDFTSize(rows)
@@ -163,7 +163,7 @@ def fourier_devtest(img):
     print('dft_shift.shape = %r' % (dft.shape,))
 
     if ut.show_was_requested():
-        #import plottool as pt
+        #import plottool_ibeis as pt
         next_pnum = pt.make_pnum_nextgen(nRows=3, nCols=2)
         pt.imshow(nimg, pnum=next_pnum(), title='nimg')
         pt.imshow(20 * get_fdomain_mag(dft), pnum=next_pnum(), title='mag(f)')

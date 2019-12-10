@@ -85,7 +85,7 @@ def demo_grabcut(bgr_img):
         >>> from vtool_ibeis.segmentation import *  # NOQA
         >>> # build test data
         >>> import utool as ut
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('easy1.png')
         >>> bgr_img = vt.imread(img_fpath)
@@ -97,8 +97,8 @@ def demo_grabcut(bgr_img):
         >>> ## xdoctest: +REQUIRES(--show)
         >>> pt.show_if_requested()
     """
-    import plottool as pt
-    from plottool import interact_impaint
+    import plottool_ibeis as pt
+    from plottool_ibeis import interact_impaint
     label_colors = [       255,           170,            50,          0]
     label_values = [cv2.GC_FGD, cv2.GC_PR_FGD, cv2.GC_PR_BGD, cv2.GC_BGD]
     h, w = bgr_img.shape[0:2]

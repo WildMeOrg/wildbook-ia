@@ -73,7 +73,7 @@ def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_hist_subbin_maxima(hist, centers)
         >>> pt.show_if_requested()
         (array([ 3.0318792]), array([ 37.19208239]))
@@ -194,7 +194,7 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> result = str((subextrema_x, subextrema_y))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
 
@@ -208,7 +208,7 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> result = str((subextrema_x, subextrema_y))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qtensure()
         >>> xdata = np.arange(len(ydata))
         >>> pt.figure(fnum=1, doclf=True)
@@ -298,8 +298,8 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
                 rel_subextrema_x[violates] = rel_argextrema[violates]
             rel_subextrema_y[violates] = ydata[rel_argextrema[violates]]
     else:
-        x123 = None  # for plottool
-        coeff_list = []  # for plottool
+        x123 = None  # for plottool_ibeis
+        coeff_list = []  # for plottool_ibeis
         rel_subextrema_x, rel_subextrema_y = [], []
 
     # Check left boundary
@@ -523,7 +523,7 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> result = ub.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.figure(fnum=pt.ensure_fnum(None))
         >>> pt.plot(centers, hist_, '-')
@@ -599,7 +599,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from vtool_ibeis.histogram import *  # NOQA
         >>> hist_ = np.array(list(map(float, ut.get_argval('--hist', type_=list, default=[1, 4, 2, 5, 3, 3]))))
         >>> edges = np.array(list(map(float, ut.get_argval('--edges', type_=list, default=[0, 1, 2, 3, 4, 5, 6]))))
@@ -608,7 +608,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
         >>> show_hist_submaxima(hist_, edges, centers, maxima_thresh)
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if centers is None:
         centers = hist_edges_to_centers(edges)
     bin_colors = pt.get_orientation_color(centers)
@@ -632,7 +632,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
     #    #ax.grid(True)
     #    #ax.set_title("Angle Colors", va='bottom')
     title = ut.get_argval('--title', default='')
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.set_figtitle(title)
 
 
@@ -966,7 +966,7 @@ def show_ori_image_ondisk():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.histogram import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> result = show_ori_image_ondisk()
         >>> pt.show_if_requested()
@@ -1006,7 +1006,7 @@ def show_ori_image_ondisk():
     #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
     show_ori_image(gori, weights, patch, gradx, grady, gauss)
     title = ut.get_argval('--title', default='')
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.set_figtitle(title)
 
 
@@ -1015,7 +1015,7 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     CommandLine:
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show --nocpp
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     print('gori.max = %r' % gori.max())

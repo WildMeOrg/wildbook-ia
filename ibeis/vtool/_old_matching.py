@@ -56,7 +56,7 @@
 #     Ignore:
 #         >>> from vtool_ibeis.matching import *  # NOQA
 #         >>> ut.qtensure()
-#         >>> import plottool as pt
+#         >>> import plottool_ibeis as pt
 #         >>> pt.imshow(rchip1)
 #         >>> pt.draw_kpts2(kpts1)
 #         >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)

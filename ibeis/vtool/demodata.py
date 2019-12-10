@@ -604,7 +604,7 @@ def testdata_dummy_matches():
         >>> matches_testtup = testdata_dummy_matches()
         >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs)
         >>> pt.set_figtitle('Dummy matches')
         >>> pt.show_if_requested()
@@ -668,7 +668,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> matches_testtup = testdata_ratio_matches(fname1, fname2, **kwargs)
         >>> (kpts1, kpts2, fm_RAT, fs_RAT, rchip1, rchip2) = matches_testtup
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm_RAT, fs_RAT, ori=True)
         >>> num_matches = len(fm_RAT)
         >>> score_sum = sum(fs_RAT)

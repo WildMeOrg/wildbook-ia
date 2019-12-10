@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import ubelt as ub
 try:
-    import guitool as gt
-    from guitool import mpl_widget
+    import guitool_ibeis as gt
+    from guitool_ibeis import mpl_widget
     INSPECT_BASE = gt.GuitoolWidget
     MatplotlibWidget = mpl_widget.MatplotlibWidget
 except ImportError:
@@ -125,8 +125,8 @@ class MatchInspector(INSPECT_BASE):
 
     def initialize(self, match=None, on_context=None, autoupdate=True,
                    info_text=None, cfgdict=None):
-        from plottool import abstract_interaction
-        from guitool.__PYQT__ import QtCore
+        from plottool_ibeis import abstract_interaction
+        from guitool_ibeis.__PYQT__ import QtCore
         self.set_match(match, on_context, info_text)
         self._setup_configs(cfgdict=cfgdict)
         self._setup_layout(autoupdate=autoupdate)
@@ -142,7 +142,7 @@ class MatchInspector(INSPECT_BASE):
         gt.popup_menu(self, qpoint, options)
 
     def screenshot(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         with pt.RenderingContext() as render:
             self.match.show(**self.disp_config)
         fpaths = gt.newFileDialog('.', mode='save', exec_=True)
@@ -159,14 +159,14 @@ class MatchInspector(INSPECT_BASE):
         utool.embed()
 
     def _new_config_widget(self, cfg, changed=None):
-        from guitool import PrefWidget2
+        from guitool_ibeis import PrefWidget2
         user_mode = 0
         cfg_widget = PrefWidget2.EditConfigWidget(
             config=cfg, user_mode=user_mode, parent=self, changed=changed)
         return cfg_widget
 
     def closeEvent(self, event):
-        from plottool import abstract_interaction
+        from plottool_ibeis import abstract_interaction
         abstract_interaction.unregister_interaction(self)
         super(MatchInspector, self).closeEvent(event)
 
@@ -212,7 +212,7 @@ class MatchInspector(INSPECT_BASE):
             self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self, autoupdate=True):
-        from guitool.__PYQT__ import QtWidgets
+        from guitool_ibeis.__PYQT__ import QtWidgets
         self.menubar = gt.newMenubar(self)
         self.menuFile = self.menubar.newMenu('Dev')
         self.menuFile.newAction(triggered=self.embed)
@@ -319,8 +319,8 @@ class MatchInspector(INSPECT_BASE):
 
 
 def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
-    import plottool.interact_matches
-    #import plottool as pt
+    import plottool_ibeis.interact_matches
+    #import plottool_ibeis as pt
     fm, fs = matches[type_][0:2]
     try:
         H1 = metadata['H_' + type_.split('+')[0]]
@@ -333,7 +333,7 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     rchip2, kpts2, vecs2 = ub.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     fsv = fs[:, None]
-    interact = plottool.interact_matches.MatchInteraction2(
+    interact = plottool_ibeis.interact_matches.MatchInteraction2(
         rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1,
         **kwargs)
     return interact

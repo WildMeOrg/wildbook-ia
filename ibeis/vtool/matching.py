@@ -140,6 +140,11 @@ class PairwiseMatch(ub.NiceRepr):
             aid, nid, flann, rchip, dlen_sqrd, weight
     """
     def __init__(match, annot1=None, annot2=None):
+        if not isinstance(annot1, ut.LazyDict):
+            annot1 = ut.LazyDict(annot1)
+        if not isinstance(annot2, ut.LazyDict):
+            annot2 = ut.LazyDict(annot2)
+
         match.annot1 = annot1
         match.annot2 = annot2
         match.fm = None
@@ -228,7 +233,7 @@ class PairwiseMatch(ub.NiceRepr):
         if match.verbose:
             print('[match] show')
 
-        import plottool as pt
+        import plottool_ibeis as pt
         annot1 = match.annot1
         annot2 = match.annot2
         try:
@@ -288,7 +293,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> # SCRIPT
             >>> from vtool_ibeis.matching import *  # NOQA
             >>> import vtool_ibeis as vt
-            >>> import guitool as gt
+            >>> import guitool_ibeis as gt
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
@@ -1481,6 +1486,7 @@ def ensure_metadata_flann(annot, cfgdict):
     """ setup lazy flann evaluation """
     import vtool_ibeis as vt
     flann_params = {'algorithm': 'kdtree', 'trees': 8}
+
     if 'flann' not in annot:
         def eval_flann():
             vecs = annot['vecs']

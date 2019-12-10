@@ -146,7 +146,7 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
         >>> # verify results
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(chipBGR)
         >>> pt.show_if_requested()
     """
@@ -208,7 +208,7 @@ def gridsearch_chipextract():
     ])
     show_func = None
     # Generalize
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.imshow(imgBGR)  # HACK
     cfgdict_list, cfglbl_list = param_info.get_gridsearch_input(defaultslice=slice(0, 10))
     fnum = pt.ensure_fnum(None)
@@ -356,7 +356,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         >>> # verify results
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> pt.imshow(vt.draw_verts(vt.imread(gfpath), vt.scaled_verts_from_bbox(bbox, theta, 1, 1)), pnum=(1, 2, 1))
         >>> pt.imshow(chipBGR, pnum=(1, 2, 2))
@@ -430,7 +430,7 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
 
 
 def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, mbbox_gs, margin_size):
-    import plottool as pt
+    import plottool_ibeis as pt
     import vtool_ibeis as vt
 
     imgBGR = vt.imread(gfpath)

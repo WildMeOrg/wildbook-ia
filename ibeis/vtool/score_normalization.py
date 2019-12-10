@@ -64,7 +64,7 @@ class ScoreNormVisualizeClass(object):
         return score_thresh, prob_thresh
 
     def _plot_score_support_hist(encoder, fnum, pnum=(1, 1, 1), **kwargs):
-        import plottool as pt
+        import plottool_ibeis as pt
         fnum = pt.ensure_fnum(fnum)
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
@@ -93,7 +93,7 @@ class ScoreNormVisualizeClass(object):
 
     def _plot_roc(encoder, fnum, pnum, **kwargs):
         import vtool_ibeis as vt
-        import plottool as pt  # NOQA
+        import plottool_ibeis as pt  # NOQA
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
 
@@ -333,7 +333,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> # xdoctest: +REQUIRES(--show)
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.ensureqt()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(closeness)
@@ -499,7 +499,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         if ut.get_argflag('--debug-scorethresh') and not getattr(encoder, 'block', False):
             encoder.block = True
             ut.exec_func_doctest(encoder.learn_threshold2,
-                                 start_sentinal='import plottool as pt',
+                                 start_sentinal='import plottool_ibeis as pt',
                                  end_sentinal='pt.show_if_requested()')
             encoder.block = False
         return score_thresh
@@ -750,7 +750,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> encoder.visualize(target_tpr=.95, **kwargs)
             >>> ut.show_if_requested()
         """
-        #import plottool as pt
+        #import plottool_ibeis as pt
         default_kw = dict(
             with_scores=False,
             with_roc=True,
@@ -1195,7 +1195,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         >>> result = ub.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(score_domain, p_tp_given_score, 'r-x', equal_aspect=False, label='learned probability')
         >>> pt.plot2(scores, prob, 'yo', equal_aspect=False, title='Normalized scores', pad=.2, label='query points')
         >>> pt.legend('upper left')
@@ -1261,12 +1261,12 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         >>> # Get a training sample
         >>> tp_support = randstate.normal(loc=6.5, size=(256,))
         >>> tn_support = randstate.normal(loc=3.5, size=(256,))
-        >>> # xdoctest: +REQUIRES(module:plottool)
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> test_score_normalization(tp_support, tn_support, verbose=verbose)
         >>> ut.show_if_requested()
 
     """
-    import plottool as pt  # NOQA
+    import plottool_ibeis as pt  # NOQA
 
     # Print raw score statistics
     print('tp_support')
@@ -1322,7 +1322,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
 
 def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
                       cfgstr='', fnum=None, pnum=(1, 1, 1), **kwargs):
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -1345,7 +1345,7 @@ def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
 def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
                        score_thresh=None, prob_thresh=None, cfgstr='',
                        fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -1378,11 +1378,11 @@ def inspect_pdfs(tn_support, tp_support,
         python -m vtool_ibeis.score_normalization --test-ScoreNormalizer --show
         python -m vtool_ibeis.score_normalization --exec-ScoreNormalizer.visualize --show
     """
-    import plottool as pt  # NOQA
-    from plottool.interactions import ExpandableInteraction
-    from plottool.abstract_interaction import AbstractInteraction
+    import plottool_ibeis as pt  # NOQA
+    from plottool_ibeis.interactions import ExpandableInteraction
+    from plottool_ibeis.abstract_interaction import AbstractInteraction
     import vtool_ibeis as vt
-    import plottool as pt  # NOQA
+    import plottool_ibeis as pt  # NOQA
 
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1401,7 +1401,7 @@ def inspect_pdfs(tn_support, tp_support,
                                      nSubplots=nSubplots)
 
     #print('Always interactive even if: interactive = %r' % (interactive,))
-    # Make a plottool interaction
+    # Make a plottool_ibeis interaction
     inter = ExpandableInteraction(fnum, _pnumiter)
 
     scores = np.hstack([tn_support, tp_support])
@@ -1621,7 +1621,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         >>> data = rng.randn(1000)
         >>> data_pdf = vt.estimate_pdf(data)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot(data_pdf.support[:-1], np.diff(data_pdf.cdf))
         >>> ut.show_if_requested()
     """

@@ -187,7 +187,7 @@ def get_grid_kpts(wh=(300, 300), wh_stride=None, scale=20, wh_num=None,
         >>> result = ('kpts = %s' % (ub.repr2(kpts.shape),))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_kpts(kpts)
         >>> pt.dark_background()
         >>> ut.show_if_requested()
@@ -772,7 +772,7 @@ def get_kpts_eccentricity(kpts):
         >>> result = 'ecc = %s' % (ub.repr2(ecc, precision=2))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> colors = pt.scores_to_color(ecc)
         >>> pt.draw_kpts2(kpts, color=colors, ell_linewidth=6)
         >>> extent = vt.get_kpts_image_extent(kpts)
@@ -819,7 +819,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> result = ut.repr3((kpts, kpts_ + 0.), precision=2, nobr=True, with_dtype=True)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_kpts2(kpts, color=pt.ORANGE, ell_linewidth=6)
         >>> pt.draw_kpts2(kpts_, color=pt.LIGHT_BLUE, ell_linewidth=4)
         >>> extent1 = np.array(vt.get_kpts_image_extent(kpts))
@@ -930,7 +930,7 @@ def transform_kpts_xys(H, kpts):
 
     Ignore::
         %pylab qt4
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.imshow(chip)
         pt.draw_kpts2(kpts)
         pt.update()
@@ -1490,7 +1490,7 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> # Scale down in y a bit
         >>> kpts2.T[1] += 100
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True,
         >>>              ori_color='green', rect=True)
         >>> # Redraw oriented to show difference
@@ -1813,7 +1813,7 @@ def get_kpts_wh(kpts, outer=True):
         >>> result = ub.repr2(xyexnts)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.cla()
         >>> pt.draw_kpts2(kpts, color='red', ell_linewidth=6, rect=True)
         >>> ax = pt.gca()
@@ -1907,7 +1907,7 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         >>> result = ub.repr2(np.array(extent), precision=2)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_kpts2(kpts, bbox=True)
         >>> ax = pt.gca()
         >>> pt.set_axis_extent(extent, ax)
@@ -2172,7 +2172,7 @@ def get_uneven_point_sample(kpts):
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ellipse_pts1 = get_uneven_point_sample(kpts)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_line_segments(ellipse_pts1)
         >>> pt.set_title('uneven sample points')
         >>> pt.show_if_requested()
@@ -2201,7 +2201,7 @@ def get_even_point_sample(kpts):
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ell_border_pts_list = get_even_point_sample(kpts)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_line_segments(ell_border_pts_list)
         >>> pt.set_title('even sample points')
         >>> pt.show_if_requested()

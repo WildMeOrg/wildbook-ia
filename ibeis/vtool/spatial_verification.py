@@ -269,7 +269,7 @@ def compute_affine(xy1_man, xy2_man):
         >>> from vtool_ibeis.spatial_verification import *  # NOQA
         >>> import vtool_ibeis.demodata as demodata
         >>> import vtool_ibeis.keypoint as ktool
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> xy1_man, xy2_man, rchip1, rchip2, T1, T2 = testdata_matching_affine_inliers_normalized()
         >>> A_prime = compute_affine(xy1_man, xy2_man)
         >>> A = npl.solve(T2, A_prime).dot(T1)
@@ -335,7 +335,7 @@ def compute_homog(xy1_mn, xy2_mn):
         >>> # ENABLE_DOCTEST
         >>> from vtool_ibeis.spatial_verification import *  # NOQA
         >>> import vtool_ibeis.keypoint as ktool
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> xy1_man, xy2_man, rchip1, rchip2, T1, T2 = testdata_matching_affine_inliers_normalized()
         >>> H_prime = compute_homog(xy1_man, xy2_man)
         >>> H = npl.solve(T2, H_prime).dot(T1)
@@ -693,7 +693,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> H = estimate_refined_transform(kpts1, kpts2, fm, aff_inliers)
         >>> scale_thresh, ori_thresh = 2.0, 1.57
@@ -707,7 +707,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     Example1:
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm_, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> H = estimate_refined_transform(kpts1, kpts2, fm_, aff_inliers)
         >>> scale_thresh, ori_thresh = 2.0, 1.57
@@ -869,7 +869,7 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> # DISABLE_DOCTEST
         >>> from vtool_ibeis.spatial_verification import *  # NOQA
         >>> import vtool_ibeis.keypoint as ktool
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> homog_tup1 = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> homog_tup = (homog_tup1[0], homog_tup1[2])
@@ -982,7 +982,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> #result = ub.repr2(svtup, precision=3)
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> homog_tup = (refined_inliers, H)
         >>> aff_tup = (aff_inliers, Aff)
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)

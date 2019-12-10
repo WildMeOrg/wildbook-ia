@@ -176,7 +176,7 @@ def font_demo():
         >>> import utool as ut
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     filename = '/usr/share/fonts/truetype/freefont/FreeMono.ttf'
@@ -210,7 +210,7 @@ def get_text_test_img(text):
         >>> result = ('text_img = %s' % (ub.repr2(text_img),))
         >>> print(result)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(text_img)
         >>> ut.show_if_requested()
     """

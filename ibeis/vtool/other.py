@@ -1624,7 +1624,7 @@ def grab_webcam_image():
         >>> import vtool_ibeis as vt
         >>> img = grab_webcam_image()
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> vt.imwrite('webcap.jpg', img)
         >>> ut.show_if_requested()
@@ -2219,7 +2219,7 @@ def find_elbow_point(curve):
         >>> print(result)
         >>> assert tradeoff_idx == 76
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import vtool_ibeis as vt
         >>> point = [tradeoff_idx, curve[tradeoff_idx]]
         >>> segment = np.array([[0, len(curve) - 1], [curve[0], curve[-1]]])

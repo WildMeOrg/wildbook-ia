@@ -56,7 +56,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> print(result)
         >>> # Show keypoints
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> #pt.figure(fnum=1, doclf=True, docla=True)
         >>> #pt.imshow(imgBGR)
         >>> #pt.draw_kpts2(kpts, ori=True)
@@ -220,7 +220,7 @@ def detect_opencv_keypoints():
 def test_mser():
     import cv2
     import vtool_ibeis as vt
-    import plottool as pt
+    import plottool_ibeis as pt
     import numpy as np
     pt.qt4ensure()
     class Keypoints(ut.NiceRepr):
@@ -299,9 +299,9 @@ def test_mser():
     #flags = self.scale < np.mean(self.scale)
     #flags = self.scale < np.median(self.scale)
     self = self.compress(flags)
-    import plottool as pt
+    import plottool_ibeis as pt
     #pt.interact_keypoints.ishow_keypoints(imgBGR, self.kparr, None, ell_alpha=.4, color='distinct', fnum=2)
-    #import plottool as pt
+    #import plottool_ibeis as pt
     vis = imgBGR.copy()
 
     for region in self.info['regions']:
