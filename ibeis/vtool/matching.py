@@ -140,6 +140,7 @@ class PairwiseMatch(ub.NiceRepr):
             aid, nid, flann, rchip, dlen_sqrd, weight
 
     Ignore:
+        >>> from vtool_ibeis.matching import *  # NOQA
         >>> import vtool_ibeis as vt
         >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
         >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
@@ -156,6 +157,31 @@ class PairwiseMatch(ub.NiceRepr):
         >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
         >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
         >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> import guitool_ibeis as gt
+        >>> gt.ensure_qapp()
+        >>> match.ishow()
+        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
+        >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
+        >>> annot1 = {'rchip': imgR}
+        >>> annot2 = {'rchip': imgL}
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({'refine_method': 'affine', 'affine_invariance': False, 'rotation_invariance': False})
+        >>> dsize = imgR.shape[0:2][::-1]
+        >>> imgR_warp = vt.warpHomog(imgR, match.H_12, dsize)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> import guitool_ibeis as gt
+        >>> gt.ensure_qapp()
+        >>> match.ishow()
     """
     def __init__(match, annot1=None, annot2=None):
         if not isinstance(annot1, ut.LazyDict):
@@ -315,6 +341,8 @@ class PairwiseMatch(ub.NiceRepr):
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
+            >>> self.disp_config['show_homog'] = True
+            >>> self.update()
             >>> # xdoctest: +REQUIRES(--show)
             >>> gt.qtapp_loop(qwin=self, freq=10)
         """

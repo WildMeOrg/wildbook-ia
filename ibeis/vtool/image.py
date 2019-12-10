@@ -708,7 +708,7 @@ def cvt_BGR2RGB(imgBGR):
     return imgRGB
 
 
-def warpAffine(img, Aff, dsize):
+def warpAffine(img, Aff, dsize, assume_float01=True):
     """
     dsize = (width, height) of return image
 
@@ -753,16 +753,27 @@ def warpAffine(img, Aff, dsize):
         CONCLUSION, cv2 transforms are better
 
     """
-
     warped_img = cv2.warpAffine(img, Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
+    if assume_float01 and img.dtype.kind == 'f':
+        # Ensure that image intensity doesnt go out of range
+        warped_img = warped_img.clip(0, 1)
     return warped_img
 
 
-def warpHomog(img, Homog, dsize):
+def warpHomog(img, Homog, dsize, assume_float01=True):
     """
     dsize = (width, height) of return image
+
+    Example:
+        >>> img = np.random.rand(224, 224)
+        >>> Homog = np.random.rand(3, 3)
+        >>> dsize = (128, 128)
+        >>> warped_img = warpHomog(img, Homog, dsize)
     """
     warped_img = cv2.warpPerspective(img, Homog, tuple(dsize), **CV2_WARP_KWARGS)
+    if assume_float01 and img.dtype.kind == 'f':
+        # Ensure that image intensity doesnt go out of range
+        warped_img = warped_img.clip(0, 1)
     return warped_img
 
 
