@@ -650,10 +650,10 @@ def make_netharn_registry():
             name='utool', branch='master', remote='Erotemic',
             remotes={'Erotemic': 'git@github.com:Erotemic/utool.git'},
         ),
-        # CommonRepo(
-        #     name='vtool_ibeis', branch='master', remote='Erotemic',
-        #     remotes={'Erotemic': 'git@github.com:Erotemic/vtool.git'},
-        # ),
+        CommonRepo(
+            name='vtool_ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@github.com:Erotemic/vtool.git'},
+        ),
         CommonRepo(
             name='dtool_ibeis', branch='master', remote='Erotemic',
             remotes={'Erotemic': 'git@github.com:Erotemic/dtool.git'},
