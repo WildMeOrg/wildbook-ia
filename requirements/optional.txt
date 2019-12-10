@@ -1,5 +1,4 @@
 ansi2html
-pygments
 autopep8
 pyfiglet
 
