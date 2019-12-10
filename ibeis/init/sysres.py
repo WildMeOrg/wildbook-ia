@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function  # , unicode_li
 import os
 from os.path import exists, join, realpath
 import utool as ut
+import ubelt as ub
 from six.moves import input, zip, map
 from ibeis import constants as const
 from ibeis import params
@@ -22,7 +23,7 @@ ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def get_ibeis_resource_dir():
-    return ut.ensure_app_resource_dir('ibeis')
+    return ub.ensure_app_cache_dir('ibeis')
 
 
 def _ibeis_cache_dump():
@@ -740,7 +741,7 @@ def ensure_pz_mtest_mergesplit_test():
 
     total_names = num_merge_names + num_split_names + num_combo_names
 
-    modify_aids = ut.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+    modify_aids = list(ub.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names]))
 
     merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
     merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')
@@ -772,7 +773,7 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    print('final_result = %s' % (ut.repr2(final_result),))
+    print('final_result = %s' % (ub.repr2(final_result),))
 
 
 def ensure_wilddogs():
