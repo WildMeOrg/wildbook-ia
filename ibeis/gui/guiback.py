@@ -25,6 +25,7 @@ import sys
 import functools
 import traceback  # NOQA
 import utool as ut
+import ubelt as ub
 import guitool_ibeis as gt
 from guitool_ibeis import slot_, signal_, cast_from_qt
 from guitool_ibeis.__PYQT__ import QtCore, QtGui, QtWidgets
@@ -3533,18 +3534,28 @@ class MainWindowBackend(GUIBACK_BASE):
         back.user_warning(msg="Contains special imagesets")
 
     @slot_()
-    def override_all_annotation_species(back):
-        aid_list = back.ibs.get_valid_aids()
-        species_text = back.get_selected_species()
-        print('override_all_annotation_species. species_text = %r' % (species_text,))
-        species_rowid = back.ibs.get_species_rowids_from_text(species_text)
-        use_msg = ('Are you sure you want to change %d annotations species to %r?'
-                   % (len(aid_list), species_text))
-        if back.are_you_sure(use_msg=use_msg):
-            print('performing override')
-            back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
-            # FIXME: api-cache is broken here too
-            back.ibs.reset_table_cache()
+    def override_all_annotation_species(back, aids=None, gids=None):
+        """
+        Give the user a dialog box asking to input a species
+        """
+        if aids is None:
+            if gids is not None:
+                aid_list = list(ub.flatten(back.ibs.images(gids=gids).aids))
+            else:
+                aid_list = back.ibs.get_valid_aids()
+        else:
+            aid_list = aids
+        resp = gt.user_input(title='edit species', msg='Override species for {} annots'.format(len(aid_list)), text='')
+        if resp is not None:
+            print('override_all_annotation_species. resp = %r' % (resp,))
+            species_rowid = back.ibs.add_species(resp)
+            use_msg = ('Are you sure you want to change %d annotations species to %r?'
+                       % (len(aid_list), resp))
+            if back.are_you_sure(use_msg=use_msg):
+                print('performing override')
+                back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
+                # FIXME: api-cache is broken here too
+                back.ibs.reset_table_cache()
 
     @blocking_slot()
     def update_species_nice_name(back):

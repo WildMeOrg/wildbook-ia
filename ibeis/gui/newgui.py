@@ -1259,6 +1259,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.show_annotation(aid, web=True)),
                     ('View image in Web',
                         lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
+                    ('Set annotation species',
+                        lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('----', lambda: None),
                     ('Remove annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
@@ -1275,6 +1277,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View annotations in Web',
                         lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
+                    ('Set annotation species',
+                        lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
                     ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
@@ -1429,6 +1433,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('----', lambda: None),
                     ('Delete image\'s annotations',
                         lambda: ibswgt.back.delete_image_annotations([gid])),
+                    ('Set image\'s annotations species',
+                        lambda: ibswgt.back.override_all_annotation_species(gids=[gid])),
                     ('Delete image',
                         lambda: ibswgt.back.delete_image(gid)),
                 ]
@@ -1437,6 +1443,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('----', lambda: None),
                     ('Delete images\' annotations',
                         lambda: ibswgt.back.delete_image_annotations(gid_list)),
+                    ('Set images\' annotations species',
+                        lambda: ibswgt.back.override_all_annotation_species(gids=gid_list)),
                     ('Delete images',
                         lambda: ibswgt.back.delete_image(gid_list)),
                 ]

@@ -4,4 +4,4 @@
 *.html linguist-detectable=false
 *.xml linguist-detectable=false
 *.ipynb linguist-detectable=false
-
+*.ipynb linguist-vendored
