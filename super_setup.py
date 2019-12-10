@@ -645,40 +645,30 @@ def make_netharn_registry():
     code_dpath = determine_code_dpath()
     CommonRepo = functools.partial(Repo, code_dpath=code_dpath)
     repos = [
-
         # The util libs
         CommonRepo(
-            name='kwarray', branch='dev/0.5.2', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/kwarray.git'},
+            name='utool', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/utool.git'},
         ),
         CommonRepo(
-            name='kwimage', branch='dev/0.5.3', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/kwimage.git'},
+            name='vtool_ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/vtool_ibeis.git'},
         ),
         CommonRepo(
-            name='kwannot', branch='dev/0.1.0', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/kwannot.git'},
+            name='dtool_ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/dtool_ibeis.git'},
         ),
         CommonRepo(
-            name='kwplot', branch='dev/0.4.2', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/kwplot.git'},
-        ),
-
-
-        # For example data and CLI
-        CommonRepo(
-            name='scriptconfig', branch='dev/0.5.2', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:utils/scriptconfig.git'},
+            name='plottool_ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/plottool_ibeis.git'},
         ),
         CommonRepo(
-            name='ndsampler', branch='dev/0.5.1', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/ndsampler.git'},
+            name='guitool_ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/guitool_ibeis.git'},
         ),
-
-        # netharn - training harness
         CommonRepo(
-            name='netharn', branch='dev/0.5.3', remote='public',
-            remotes={'public': 'git@gitlab.kitware.com:computer-vision/netharn.git'},
+            name='ibeis', branch='master', remote='Erotemic',
+            remotes={'Erotemic': 'git@gitlab.kitware.com:Erotemic/guitool_ibeis.git'},
         ),
     ]
     registery = RepoRegistry(repos)
