@@ -8,6 +8,8 @@ try:
     INSPECT_BASE = gt.GuitoolWidget
     MatplotlibWidget = mpl_widget.MatplotlibWidget
 except ImportError:
+    import warnings
+    warnings.warn('WARNING: guitool not available')
     MatplotlibWidget = object
     INSPECT_BASE = object
 
