@@ -404,6 +404,9 @@ def setup_developer_menu(mainwin, back):
         text='Set Work Directory',
         triggered=back.set_workdir)
     menu.newAction(
+        text='Download Demo Data',
+        triggered=back.ensure_demodata)
+    menu.newAction(
         text='Update Source Install',
         triggered=back.update_source_install)
     # TESTS

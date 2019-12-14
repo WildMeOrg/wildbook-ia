@@ -545,7 +545,7 @@ class _RedundancyAugmentation(object):
                 num += 1
                 yield edge
                 if num >= k:
-                    raise StopIteration()
+                    return
             # Check non-existing edges next
             seed = 2827295125
             try:
@@ -561,7 +561,7 @@ class _RedundancyAugmentation(object):
                     num += 1
                     yield edge
                     if num >= k:
-                        raise StopIteration()
+                        return
 
     def find_pos_augment_edges(infr, pcc, k=None):
         """

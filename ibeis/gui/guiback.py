@@ -3748,6 +3748,14 @@ class MainWindowBackend(GUIBACK_BASE):
         ibeis.sysres.set_workdir(work_dir=None, allow_gui=True)
 
     @slot_()
+    def ensure_demodata(back):
+        import ibeis
+        from ibeis import demodata
+        # inconsistent ways of getting test data
+        demodata.get_testdata_dir(key='testdb1')
+        ibeis.sysres.ensure_pz_mtest()
+
+    @slot_()
     def launch_ipy_notebook(back):
         from ibeis.templates import generate_notebook
         generate_notebook.autogen_ipynb(back.ibs, launch=True)
