@@ -385,6 +385,7 @@ def start_identify_annots_query(ibs,
                                 matching_state_list=[],
                                 query_config_dict={},
                                 echo_query_params=True,
+                                include_qaid_in_daids=True,
                                 callback_url=None,
                                 callback_method=None):
     r"""
@@ -531,6 +532,10 @@ def start_identify_annots_query(ibs,
         # Set names for database annotations
         dnid_list = ibs.add_names(dname_list)
         ibs.set_annot_name_rowids(daid_list, dnid_list)
+
+    # For caching reasons, let's add the qaids to the daids
+    if include_qaid_in_daids:
+        daid_list = daid_list + qaid_list
 
     # Convert annot UUIDs to aids for matching_state_list into user_feedback for query
     state_list = map(sanitize, ut.take_column(matching_state_list, 2))
