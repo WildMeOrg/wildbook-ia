@@ -490,6 +490,12 @@ def start_identify_annots_query(ibs,
             key = 'query_config_dict["curvrank_daily_tag"]'
             value = curvrank_daily_tag
             raise controller_inject.WebInvalidInput(message, key, value)
+    else:
+        print(ut.repr3(query_config_dict))
+        pop_key_list = ['curvrank_daily_tag']
+        for pop_key in pop_key_list:
+            print('Popping irrelevant key for config: %r' % (pop_key, ))
+            query_config_dict.pop(pop_key, None)
 
     # Check UUIDs
     if dname_list is not None:
@@ -536,6 +542,7 @@ def start_identify_annots_query(ibs,
     # For caching reasons, let's add the qaids to the daids
     if include_qaid_in_daids:
         daid_list = daid_list + qaid_list
+        daid_list = sorted(daid_list)
 
     # Convert annot UUIDs to aids for matching_state_list into user_feedback for query
     state_list = map(sanitize, ut.take_column(matching_state_list, 2))
