@@ -155,12 +155,12 @@ def setup_view_menu(mainwin, back):
         name='toggleOutput',
         text='Toggle Output Log',
         triggered=back.toggle_output_widget)
-    menu.newAction(
-        name='actionLayout_Figures',
-        text='Layout Figures',
-        tooltip='Organizes windows in a grid',
-        shortcut='Ctrl+L',
-        triggered=back.layout_figures)
+    # menu.newAction(
+    #     name='actionLayout_Figures',
+    #     text='Layout Figures',
+    #     tooltip='Organizes windows in a grid',
+    #     shortcut='Ctrl+L',
+    #     triggered=back.layout_figures)
     pass
 
 

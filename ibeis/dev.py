@@ -552,7 +552,7 @@ def run_dev(ibs):
 
 EXAMPLE_TEXT = '''
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
-python dev.py --t mtest
+python -m ibeis.dev --t mtest
 python dev.py --t nauts
 ./resetdbs.sh  # FIXME
 python ibeis/dbio/ingest_database.py  <- see module for usage
@@ -913,13 +913,6 @@ def ggr_random_name_splits():
     #gt.qtapp_loop(qwin=win)
 
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()  # for win32
-    # HACK to run tests without specifing ibs first
-    #run_devmain2()
-    devmain()
-
-
 r"""
 CurrentExperiments:
     # Full best settings run
@@ -1003,3 +996,9 @@ Guesses:
     2 4 4 4 1 1 1 2 2 2
     0 0 1 1 1 2 0 0 1
 """
+
+
+if __name__ == '__main__':
+    """
+    """
+    devmain()

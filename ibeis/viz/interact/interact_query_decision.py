@@ -2,19 +2,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
-from ibeis import constants as const  # NOQA
 from plottool_ibeis import interact_helpers as ih
 import plottool_ibeis as pt
-from ibeis.viz.interact import interact_matches  # NOQA
-# from ibeis.gui import guiback
 from functools import partial
-import guitool_ibeis
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from plottool_ibeis.abstract_interaction import AbstractInteraction
 ut.noinject(__name__, '[interact_query_decision]')
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
-#                                                       '[interact_query_decision]', DEBUG=False)
 
 
 #==========================
@@ -222,6 +216,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         # can cause freezes should be False
         INTERACT_EXAMINE = False
         if INTERACT_EXAMINE:
+            # from ibeis.viz.interact import interact_matches
             #fig = interact_matches.ishow_matches(self.ibs, self.cm, aid, figtitle=figtitle, fnum=fnum)
             fig = self.cm.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
             print('Finished interact')
@@ -327,6 +322,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             >>> # verify results
             >>> #print(result)
         """
+        import guitool_ibeis as gt
         print('[interact_query_decision] Confirming selected animals.')
 
         selected_aids = [aid for aid in self.comp_aids
@@ -358,8 +354,8 @@ class QueryVerificationInteraction(AbstractInteraction):
             options = selected_names
             parent = None
             title = 'Confirm Merge'
-            merge_name = guitool_ibeis.user_option(parent, msg=msg, title=title,
-                                             options=options)
+            merge_name = gt.user_option(parent, msg=msg, title=title,
+                                        options=options)
             if merge_name is None:
                 print('[interact_query_decision] cancelled merge')
                 self.update_callback()
@@ -386,6 +382,7 @@ class QueryVerificationInteraction(AbstractInteraction):
 
     def figure_clicked(self, event=None):
         from ibeis.viz import viz_helpers as vh
+        import guitool_ibeis as gt
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
@@ -394,9 +391,8 @@ class QueryVerificationInteraction(AbstractInteraction):
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     from ibeis.viz.interact import interact_chip
-                    import guitool_ibeis
                     height = self.fig.canvas.geometry().height()
-                    qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
+                    qpoint = gt.newQPoint(event.x, height - event.y)
                     if self.qreq_ is None:
                         config2_ = None
                     else:
@@ -406,7 +402,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                             config2_ = self.qreq_.data_config2_
                     callback_list = interact_chip.build_annot_context_options(
                         self.ibs, aid, refresh_func=self.show_page, config2_=config2_)
-                    guitool_ibeis.popup_menu(self.fig.canvas, qpoint, callback_list)
+                    gt.popup_menu(self.fig.canvas, qpoint, callback_list)
                     #interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #self.show_page()

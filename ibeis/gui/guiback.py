@@ -3749,11 +3749,8 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def ensure_demodata(back):
-        import ibeis
         from ibeis import demodata
-        # inconsistent ways of getting test data
-        demodata.get_testdata_dir(key='testdb1')
-        ibeis.sysres.ensure_pz_mtest()
+        demodata.ensure_demodata()
 
     @slot_()
     def launch_ipy_notebook(back):

@@ -169,8 +169,3 @@ def parse_args():
 if (os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON' and
      os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF'):
     parse_args()
-
-
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()

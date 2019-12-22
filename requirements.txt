@@ -1,3 +1,4 @@
--r requirements/optional.txt
+-r requirements/super_setup.txt
 -r requirements/runtime.txt
 -r requirements/tests.txt
+-r requirements/optional.txt

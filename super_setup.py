@@ -652,19 +652,19 @@ def make_netharn_registry():
         ),
         CommonRepo(
             name='vtool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@github.com:Erotemic/vtool.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/vtool_ibeis.git'},
         ),
         CommonRepo(
             name='dtool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@github.com:Erotemic/dtool.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/dtool_ibeis.git'},
         ),
         CommonRepo(
             name='plottool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@github.com:Erotemic/plottool.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/plottool_ibeis.git'},
         ),
         CommonRepo(
             name='guitool_ibeis', branch='master', remote='Erotemic',
-            remotes={'Erotemic': 'git@github.com:Erotemic/guitool.git'},
+            remotes={'Erotemic': 'git@github.com:Erotemic/guitool_ibeis.git'},
         ),
         CommonRepo(
             name='ibeis', branch='master', remote='Erotemic',

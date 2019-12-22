@@ -54,6 +54,17 @@ def ensure_testdata():
     get_testdata_dir(ensure=True)
 
 
+def ensure_demodata():
+    """
+    Ensures that you have testdb1 and PZ_MTEST demo databases.
+    """
+    import ibeis
+    from ibeis import demodata
+    # inconsistent ways of getting test data
+    demodata.get_testdata_dir(key='testdb1')
+    ibeis.sysres.ensure_pz_mtest()
+
+
 if __name__ == '__main__':
     testdata_dir = get_testdata_dir()
     print('testdata lives in: %r' % testdata_dir)

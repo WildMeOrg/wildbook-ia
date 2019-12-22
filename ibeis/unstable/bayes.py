@@ -13,7 +13,6 @@ import utool as ut
 import numpy as np
 from six.moves import zip
 from ibeis.algo.hots import pgm_ext
-from ibeis.algo.hots import pgm_viz
 
 print, rrr, profile = ut.inject2(__name__)
 
@@ -95,6 +94,7 @@ def temp_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                   soft_evidence=soft_evidence,
                   **query_results)
 
+    from ibeis.algo.hots import pgm_viz
     pgm_viz.show_model(model, **showkw)
     return (model, evidence, query_results)
     # pgm_ext.print_ascii_graph(model)
@@ -647,6 +647,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         >>>                               method=method)
         >>> print(ut.repr2(query_results['top_assignments'], nl=1))
         >>> ut.quit_if_noshow()
+        >>> from ibeis.algo.hots import pgm_viz
         >>> pgm_viz.show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
     """

@@ -123,11 +123,13 @@ In the interest of modular code we are actively developing several different mod
 Erotemic's IBEIS Image Analysis module dependencies 
 
 * https://github.com/Erotemic/utool
-* https://github.com/Erotemic/plottool
-* https://github.com/Erotemic/vtool
-* https://github.com/Erotemic/hesaff
-* https://github.com/Erotemic/guitool
+
+* https://github.com/Erotemic/plottool_ibeis
+* https://github.com/Erotemic/vtool_ibeis
+* https://github.com/Erotemic/guitool_ibeis
 * https://github.com/Erotemic/pyflann_ibeis
+
+* https://github.com/Erotemic/hesaff
 * https://github.com/Erotemic/futures_actors
 
 
@@ -154,62 +156,46 @@ NOTE: this section is outdated.
     # and try to figure it out. After running this you should have a code
     # directory with all of the above repos. 
 
-    # NOTE: IBEIS DEPENDS ON PYTHON 2.7. Unfortunately we are having problems moving to 3.
-
     # Navigate to your code directory
     export CODE_DIR=~/code
     mkdir $CODE_DIR
     cd $CODE_DIR
 
     # Clone IBEIS
-    git clone https://github.com/WildbookOrg/ibeis.git
+    git clone https://github.com/Erotemic/ibeis.git
     cd ibeis
 
-    # Generate the prereq install script (does not install anything)
-    # 
-    ./_scripts/bootstrap.py
-    or 
-    ./super_setup.py --bootstrap
+    # Install the requirements for super_setup
+    pip install -r requirements/super_setup.txt
 
-    # Ensure all python dependencies have been installed
-    pip install -r requirements.txt
-    pip install -r optional-requirements.txt
+    # Install the development requirements (note-these are now all on pypi, so
+    # this is not strictly necessary)
+    python super_setup.py ensure
 
-    # Run the prereq install script (installs prereq libraries)
-    ./_scripts/__install_prereqs__.sh
+    # NOTE: you can use super_setup to do several things
+    python super_setup.py --help
+    python super_setup.py versions
+    python super_setup.py status
+    python super_setup.py check
+    python super_setup.py pull
 
-    # Python repositories come with a standard setup.py script to help you install them
-    # Because IBEIS has several python repos, we created a super_setup script to help 
-    # you run the same command accross all IBIES repositories.
+    # Run the run_developer_setup.sh file in each development repo
+    python super_setup.py develop
 
-    # Use super_setup.py to pull the latest and greatest from all the respos. 
-    # This will clone any dependency repos that do not exist.
-    ./super_setup.py pull
-
-    # Ensure you are using WildMe repos
-    ./super_setup.py move-wildme
-
-    # Switch to current development branch
-    ./super_setup.py checkout next 
-
-    # Run super_setup to build and install ibeis modules in development mode
-    # (the build flag builds any c++ files, and the develop flag installs a 
-    #  python module as a symbolic link to python's site-packages)
-    ./super_setup.py build develop
-
-    # Usually this needs to be run twice because super_setup often needs to
-    # configure itself on the first run. (Either running it twice wont hurt)
-    ./super_setup.py build develop
+    # Or you can also just do to use pypi versions of dev repos:
+    python setup.py develop
 
     # Optional: set a workdir and download a test dataset
-    ./dev.py --set-workdir ~/data/work --preload-exit
-    ./dev.py -t mtest 
-    ./dev.py -t nauts 
+    .python -m ibeis.dev 
+    .python -m ibeis.dev -t mtest 
+    python -m ibeis.dev -t nauts 
     ./reset_dbs.py
 
+    python -m ibeis --set-workdir ~/data/work --preload-exit
+    python -m ibeis -e ensure_mtest
 
     # make sure everyhing is set up correctly
-    ./assert_modules.sh
+    python -m ibeis --db PZ_MTEST
 
 
 Running Tests
@@ -228,8 +214,8 @@ Example usage
     #--------------------
     # Main Commands
     #--------------------
-    python main.py <optional-arguments> [--help]
-    python dev.py <optional-arguments> [--help]
+    python -m ibeis.main <optional-arguments> [--help]
+    python -m ibeis.dev <optional-arguments> [--help]
     # main is the standard entry point to the program
     # dev is a more advanced developer entry point
 
@@ -261,14 +247,14 @@ Example usage
     ./main.py --set-workdir /raid/work --preload-exit
     ./main.py --set-logdir /raid/logs/ibeis --preload-exit
 
-    ./dev.py --set-workdir ~/data/work --preload-exit
+    python -m ibeis.dev --set-workdir ~/data/work --preload-exit
 
     # use --db to specify a database in your WorkDir
     # --setdb makes that directory your default directory
-    python dev.py --db <dbname> --setdb
+    python -m ibeis.dev --db <dbname> --setdb
 
     # Or just use the absolute path
-    python dev.py --dbdir <full-dbpath>
+    python -m ibeis.dev --dbdir <full-dbpath>
 
 
     #--------------------
@@ -277,22 +263,22 @@ Example usage
     #--------------------
     # Run the queries for each roi with groundtruth in the PZ_MTEST database
     # using the best known configuration of parameters
-    python dev.py --db PZ_MTEST --allgt -t best
-    python dev.py --db PZ_MTEST --allgt -t score
+    python -m ibeis.dev --db PZ_MTEST --allgt -t best
+    python -m ibeis.dev --db PZ_MTEST --allgt -t score
 
 
     # View work dir
-    python dev.py --vwd --prequit
+    python -m ibeis.dev --vwd --prequit
 
     # List known databases
-    python dev.py -t list_dbs
+    python -m ibeis.dev -t list_dbs
 
 
     # Dump/Print contents of params.args as a dict
-    python dev.py --prequit --dump-argv
+    python -m ibeis.dev --prequit --dump-argv
 
     # Dump Current SQL Schema to stdout 
-    python dev.py --dump-schema --postquit
+    python -m ibeis.dev --dump-schema --postquit
 
 
     #------------------
@@ -320,25 +306,25 @@ Example usage
     # Test Commands
     #----------------
     # Set a default DB First
-    ./dev.py --setdb --dbdir /path/to/your/DBDIR
-    ./dev.py --setdb --db YOURDB
-    ./dev.py --setdb --db PZ_MTEST
-    ./dev.py --setdb --db PZ_FlankHack
+    python -m ibeis.dev --setdb --dbdir /path/to/your/DBDIR
+    python -m ibeis.dev --setdb --db YOURDB
+    python -m ibeis.dev --setdb --db PZ_MTEST
+    python -m ibeis.dev --setdb --db PZ_FlankHack
 
     # List all available tests
-    ./dev.py -t help
+    python -m ibeis.dev -t help
     # Minimal Database Statistics
-    ./dev.py --allgt -t info
+    python -m ibeis.dev --allgt -t info
     # Richer Database statistics
-    ./dev.py --allgt -t dbinfo
+    python -m ibeis.dev --allgt -t dbinfo
     # Print algorithm configurations
-    ./dev.py -t printcfg
+    python -m ibeis.dev -t printcfg
     # Print database tables
-    ./dev.py -t tables
+    python -m ibeis.dev -t tables
     # Print only the image table
-    ./dev.py -t imgtbl
+    python -m ibeis.dev -t imgtbl
     # View data directory in explorer/finder/nautilus
-    ./dev.py -t vdd
+    python -m ibeis.dev -t vdd
 
     # List all IBEIS databases
     python -m ibeis list_dbs
@@ -353,13 +339,13 @@ Example usage
 
 
     # Database Stats for all our important datasets:
-    ./dev.py --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
+    python -m ibeis.dev --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
 
     # Some mass editing of metadata
-    ./dev.py --db PZ_FlankHack --edit-notes
-    ./dev.py --db GZ_Siva --edit-notes
-    ./dev.py --db GIR_Tanya --edit-notes
-    ./dev.py --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
+    python -m ibeis.dev --db PZ_FlankHack --edit-notes
+    python -m ibeis.dev --db GZ_Siva --edit-notes
+    python -m ibeis.dev --db GIR_Tanya --edit-notes
+    python -m ibeis.dev --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
 
     # Current Experiments:
 
@@ -372,17 +358,17 @@ Example usage
         --filt :disagree=True,index=0:4 --show
 
     # SMK TESTS
-    python dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-    python dev.py -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
+    python -m ibeis.dev -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
+    python -m ibeis.dev -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
 
     # Feature Tuning
-    python dev.py -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
+    python -m ibeis.dev -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
 
-    python dev.py -t featparams -w --show --db PZ_MTEST --allgt
-    python dev.py -t featparams_big -w --show --db PZ_MTEST --allgt
+    python -m ibeis.dev -t featparams -w --show --db PZ_MTEST --allgt
+    python -m ibeis.dev -t featparams_big -w --show --db PZ_MTEST --allgt
 
     # NEW DATABASE TEST
-    python dev.py -t best --db seals2 --allgt
+    python -m ibeis.dev -t best --db seals2 --allgt
 
     # Testing Distinctivness Parameters
     python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
@@ -412,7 +398,7 @@ Example usage
     # Problem cases with the back spot
     python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
     python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
-    python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
+    python -m ibeis.dev -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
     # Shows vsone results with some of the competing cases
     python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
@@ -424,7 +410,7 @@ Example usage
     #----
     # Turning back on name scoring and feature scoring and restricting to rerank a subset
     # This gives results that are closer to what we should actually expect
-    python dev.py --allgt -t custom \
+    python -m ibeis.dev --allgt -t custom \
         custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1 \
         custom:rrvsone_on=True,prior_coeff=0.5,unconstrained_coeff=0.5,fs_lnbnn_min=0,fs_lnbnn_max=1 \
         custom:rrvsone_on=True,prior_coeff=0.1,unconstrained_coeff=0.9,fs_lnbnn_min=0,fs_lnbnn_max=1 \
@@ -433,7 +419,7 @@ Example usage
 
     #----
     # VsOneRerank Tuning: Tune linar combination
-    python dev.py --allgt -t \
+    python -m ibeis.dev --allgt -t \
         custom:fg_weight=0.0 \
     \
         custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
@@ -445,7 +431,7 @@ Example usage
     #----
 
     # Testing no affine invaraiance and rotation invariance
-    dev.py -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
+    python -m ibeis.dev -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
 
 Caveats / Things we are not currently doing
 -------------------------------------------

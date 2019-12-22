@@ -39,6 +39,7 @@ import dtool_ibeis
 import atexit
 import weakref
 import utool as ut
+import ubelt as ub
 from six.moves import zip
 from os.path import join, split
 from ibeis.init import sysres
@@ -119,10 +120,12 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
         if ut.get_argflag(flag):
             continue
     try:
-        ut.import_modname(modname)
-    except ImportError as ex:
+        # ut.import_modname(modname)
+        ub.import_module_from_name(modname)
+    except ImportError:
         if 'ibeis_cnn' in modname:
-            ut.printex(ex, 'Unable to load plugin: %r' % (modname,), iswarning=True)
+            import warnings
+            warnings.warn('Unable to load plugin: {!r}'.format(modname))
         else:
             raise
 

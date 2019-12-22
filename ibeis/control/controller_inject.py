@@ -37,11 +37,11 @@ try:
     import flask
     from flask import session, request
     HAS_FLASK = True
-except Exception as ex:
+except Exception:
     HAS_FLASK = False
     msg = ('Missing flask and/or Flask-session.\n'
            'pip install Flask')
-    ut.printex(ex, msg, iswarning=True)
+    warnings.warn(msg)
     if ut.STRICT:
         raise
 
@@ -49,9 +49,9 @@ try:
     #from flask.ext.cors import CORS
     from flask_cors import CORS
     HAS_FLASK_CORS = True
-except Exception as ex:
+except Exception:
     HAS_FLASK_CORS = False
-    ut.printex(ex, 'Missing flask.ext.cors', iswarning=True)
+    warnings.warn('Missing flask.ext.cors')
     if ut.SUPER_STRICT:
         raise
 
@@ -63,12 +63,12 @@ try:
     #from flask.ext.cas import login_required
     # HAS_FLASK_CAS = True
     HAS_FLASK_CAS = False
-except Exception as ex:
+except Exception:
     HAS_FLASK_CAS = False
     login_required_cas = ut.identity
     msg = ('Missing flask.ext.cas.\n'
            'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
-    ut.printex(ex, msg, iswarning=True)
+    warnings.warn(msg)
     # sudo
     print('')
     if ut.SUPER_STRICT:
@@ -89,9 +89,7 @@ GLOBAL_APP_SECRET = os.urandom(64)
 GLOBAL_APP = None
 GLOBAL_CORS = None
 GLOBAL_CAS = None
-#JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
-# REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
 REMOTE_PROXY_URL = None
 REMOTE_PROXY_PORT = 5001
 
@@ -848,7 +846,7 @@ def get_ibeis_flask_route(__name__):
                         try:
                             # kwargs4 = _process_input(flask.request.get_json())
                             kwargs4 = ut.from_json(flask.request.data)
-                        except:
+                        except Exception:
                             kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
