@@ -3232,7 +3232,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         pts_color = color_list
     #else:
         #pts_color = [pts_color for _ in range(len(kpts))]
-    if ell_color == 'distinct':
+    if isinstance(ell_color, six.string_types) and ell_color == 'distinct':
         ell_color = distinct_colors(len(kpts))  # , randomize=True)
         #print(len(kpts))
 
