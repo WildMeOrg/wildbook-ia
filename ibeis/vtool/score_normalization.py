@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import utool as ut
 import ubelt as ub
-import six
 import scipy.interpolate
 from functools import partial
 
@@ -1252,7 +1251,10 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     CommandLine:
         python -m vtool_ibeis.score_normalization --test-test_score_normalization --show
 
-    Example:
+    CommandLine:
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/score_normalization.py test_score_normalization
+
+    Ignore:
         >>> # GUI_DOCTEST
         >>> # Shows how score normalization works with gaussian noise
         >>> from vtool_ibeis.score_normalization import *  # NOQA
@@ -1451,7 +1453,7 @@ def inspect_pdfs(tn_support, tp_support,
                 data_pdf.sel_mode = 'tp'
             else:
                 data_pdf.sel_mode = 'tn'
-            print('TOGGLE data_pdf.sel_mode = %r' % (self.sel_mode,))
+            print('TOGGLE data_pdf.sel_mode = %r' % (data_pdf.sel_mode,))
 
         @staticmethod
         def static_plot(fnum, pnum):
@@ -1482,7 +1484,7 @@ def inspect_pdfs(tn_support, tp_support,
             print('closest tp_index = %r, %r' % (tp_index, tp_dist))
             print('closest tn_index = %r, %r' % (tn_index, tn_dist))
             SEL_TP = data_pdf.sel_mode == 'tp'
-            print('data_pdf.sel_mode = %r' % (self.sel_mode,))
+            print('data_pdf.sel_mode = %r' % (data_pdf.sel_mode,))
             if SEL_TP:
                 tp_attrs = data_pdf.part_attrs[True]
                 if len(tp_attrs) == 0:
@@ -1664,7 +1666,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
                     # import scipy as sp
                     data_pdf.cdf = data_pdf.density.cumsum()
                     # data_pdf.cdf = sp.integrate.cumtrapz(data_pdf.density,
-                                                           # data_pdf.support)
+                    #                                        data_pdf.support)
 
                 def evaluate(data_pdf, scores):
                     return np.exp(data_pdf.kde.score_samples(scores[:, None]))
