@@ -36,7 +36,7 @@ Usage:
 
     echo "MB_PYTHON_TAG = $MB_PYTHON_TAG"
     MB_PYTHON_TAG=$MB_PYTHON_TAG ./run_multibuild.sh
-    DEPLOY_BRANCH=master DEPLOY_REMOTE=ibeis MB_PYTHON_TAG=$MB_PYTHON_TAG ./publish.sh yes
+    DEPLOY_BRANCH=master DEPLOY_REMOTE=ibeis ./publish.sh yes
 '''
 
 check_variable(){
