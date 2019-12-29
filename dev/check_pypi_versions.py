@@ -31,7 +31,10 @@ for modname in modnames:
     pypi_version = LooseVersion(modname_to_info[modname]['out'].strip().split(' ')[1])
     local_version = LooseVersion(module.__version__)
     print('modname = {!r}'.format(modname))
-    if local_version > pypi_version:
-        print("NEED TO PUBLISH {}".format(modname))
     print('pypi_version = {!r}'.format(pypi_version))
     print('local_version = {!r}'.format(local_version))
+    if local_version > pypi_version:
+        print('--------')
+        print("NEED TO PUBLISH {}".format(modname))
+        print('https://travis-ci.org/Erotemic/{}'.format(modname))
+        print('--------')
