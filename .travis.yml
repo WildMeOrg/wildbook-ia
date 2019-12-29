@@ -45,6 +45,7 @@ install:
   - mkdir -p ~/data/work
   - python -m ibeis --set-workdir ~/data/work --preload-exit
   - python -m ibeis --get-workdir --preload-exit
+  - python dev/reset_dbs.py
     
 script: 
   - travis_wait ./run_doctests.sh
