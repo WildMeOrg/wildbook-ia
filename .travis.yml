@@ -42,6 +42,7 @@ install:
       BDIST_WHEEL_PATH=$(ls dist/*-$VERSION-$MB_PYTHON_TAG*.whl)
       echo "BDIST_WHEEL_PATH = $BDIST_WHEEL_PATH"
   - pip install $BDIST_WHEEL_PATH
+  - mkdir -p ~/data/work
   - python -m ibeis --set-workdir ~/data/work --preload-exit
   - python -m ibeis --get-workdir --preload-exit
     
