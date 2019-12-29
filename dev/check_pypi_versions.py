@@ -8,33 +8,59 @@ pip install yolk3k
 from distutils.version import LooseVersion
 import ubelt as ub
 
-modnames = [
-    'utool',
-    'vtool_ibeis',
-    'guitool_ibeis',
-    'plottool_ibeis',
-    'pyhesaff',
-    'pyflann_ibeis',
-    'ibeis',
-]
-modname_to_info = {}
-for modname in modnames:
-    info = ub.cmd('yolk -V {}'.format(modname), verbose=3)
-    modname_to_info[modname] = info
 
-for modname in modnames:
-    module = ub.import_module_from_name(modname)
+def query_module_pypi_info(modname, verbose=0):
+    """
+    Determine the lastest version of a module on pypi and the current installed
+    version.
+    """
+    cmdinfo = ub.cmd('yolk -V {}'.format(modname), verbose=verbose, check=True)
+    pypi_version = LooseVersion(cmdinfo['out'].strip().split(' ')[1])
+    try:
+        module = ub.import_module_from_name(modname)
+    except ImportError:
+        local_version = None
+    else:
+        local_version = LooseVersion(module.__version__)
+    info = {
+        'modname': modname,
+        'pypi_version': pypi_version,
+        'local_version': local_version,
+    }
+    return info
 
 
-for modname in modnames:
-    module = ub.import_module_from_name(modname)
-    pypi_version = LooseVersion(modname_to_info[modname]['out'].strip().split(' ')[1])
-    local_version = LooseVersion(module.__version__)
-    print('modname = {!r}'.format(modname))
-    print('pypi_version = {!r}'.format(pypi_version))
-    print('local_version = {!r}'.format(local_version))
-    if local_version > pypi_version:
-        print('--------')
-        print("NEED TO PUBLISH {}".format(modname))
-        print('https://travis-ci.org/Erotemic/{}'.format(modname))
-        print('--------')
+def main():
+    modnames = [
+        'utool',
+        'vtool_ibeis',
+        'guitool_ibeis',
+        'plottool_ibeis',
+        'pyhesaff',
+        'pyflann_ibeis',
+        'ibeis',
+    ]
+
+    print('--- force module side effects --- ')
+
+    for modname in modnames:
+        ub.import_module_from_name(modname)
+
+    print('--- begin module query ---')
+
+    for modname in modnames:
+        info = query_module_pypi_info(modname)
+        print(ub.repr2(info))
+        if info['local_version'] > info['pypi_version']:
+            print('--------')
+            print("NEED TO PUBLISH {}".format(modname))
+            print('https://travis-ci.org/Erotemic/{}'.format(modname))
+            print('--------')
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ibeis/dev/check_pypi_versions.py
+    """
+    main()

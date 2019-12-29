@@ -1,3 +1,3 @@
 gitpython
 click
-ubelt
+ubelt >= 0.8.7
