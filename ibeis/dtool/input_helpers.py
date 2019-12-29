@@ -623,11 +623,15 @@ class TableInput(ut.NiceRepr):
         """
         This is basically the scheduler
 
+        TODO:
+            We need to verify the correctness of this logic. It seems to
+            not be deterministic between versions of python.
+
         CommandLine:
             python -m dtool_ibeis.input_helpers flat_compute_order
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--fixme)
             >>> from dtool_ibeis.input_helpers import *  # NOQA
             >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
