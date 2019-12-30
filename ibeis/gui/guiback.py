@@ -2058,6 +2058,7 @@ class MainWindowBackend(GUIBACK_BASE):
                         query_msg=None,
                         custom_qaid_list_title=None,
                         daid_list=None,
+                        partition_queries_by_species=False,
                         **kwargs):
         """
         MAIN QUERY FUNCTION
@@ -2139,7 +2140,20 @@ class MainWindowBackend(GUIBACK_BASE):
             imgsetid, daids_mode=daids_mode,
             use_prioritized_name_subset=use_prioritized_name_subset,
             use_visual_selection=use_visual_selection, qaid_list=qaid_list,
-            daid_list=daid_list, query_is_known=query_is_known)
+            daid_list=daid_list, query_is_known=query_is_known,
+            partition_queries_by_species=partition_queries_by_species,
+            remove_unknown_species=False)
+
+        if not partition_queries_by_species:
+            # hack: overwrite species2_expanded_aids to undo species partition
+            all_qaids = set()
+            all_daids = set()
+            for _qaids, _daids in species2_expanded_aids.values():
+                all_qaids.update(_qaids)
+                all_daids.update(_daids)
+            species2_expanded_aids = {
+                'all_species': (sorted(all_qaids), sorted(all_daids))
+            }
 
         if len(species2_expanded_aids) == 0:
             raise guiexcept.InvalidRequest(
@@ -2508,6 +2522,7 @@ class MainWindowBackend(GUIBACK_BASE):
                                   use_prioritized_name_subset=False,
                                   use_visual_selection=False, qaid_list=None,
                                   daid_list=None, query_is_known=None,
+                                  partition_queries_by_species=True,
                                   remove_unknown_species=None):
         """
         Get the query annotation ids to search and
@@ -2572,6 +2587,8 @@ class MainWindowBackend(GUIBACK_BASE):
             if daid_list is not None:
                 daids = daid_list
             else:
+                if not partition_queries_by_species:
+                    species = const.UNKNOWN
                 daids = back.get_selected_daids(imgsetid=imgsetid,
                                                 daids_mode=daids_mode,
                                                 qaid_list=qaids,
@@ -2588,7 +2605,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 print('WARNING: species = %r is an invalid query' % (species,))
 
         # Dont query unknown species
-        if not remove_unknown_species:
+        if remove_unknown_species:
             if ibs.const.UNKNOWN in species2_expanded_aids:
                 del species2_expanded_aids[ibs.const.UNKNOWN]
 
