@@ -736,6 +736,7 @@ def ingest_testdb1(dbname):
         for aids in aidgroups:
             pass
 
+        print('finish postingest_tesdb1_func')
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
