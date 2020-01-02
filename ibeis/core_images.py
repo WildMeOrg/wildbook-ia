@@ -933,7 +933,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 if config['nms_species_aware']:
                     nms_key_set = set(classes)
                     for nms_key in nms_key_set:
-                        print(nms_key)
+                        # print(nms_key)
                         flag_list = classes == nms_key
                         nms_values = {
                             'bboxes'  : np.compress(flag_list, bboxes,  axis=0),
