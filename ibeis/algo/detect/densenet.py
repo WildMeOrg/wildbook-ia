@@ -50,6 +50,8 @@ ARCHIVE_URL_DICT = {
     'spotted_dolphin_v1'        : 'https://cthulhu.dyn.wildme.io/public/models/labeler.dolphin_spotted.v1.zip',
     'spotted_skunk_v1'          : 'https://cthulhu.dyn.wildme.io/public/models/labeler.skunk_spotted.v1.zip',
 
+    'iot_v0'                    : 'https://cthulhu.dyn.wildme.io/public/models/labeler.iot.v0.zip',
+
     'flukebook_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/classifier2.flukebook.v1.zip',
 }
 
