@@ -1250,6 +1250,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('nms', True),
         ut.ParamInfo('nms_thresh', 0.2),
+        ut.ParamInfo('nms_species_aware', False, hideif=False),
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.5),
         ut.ParamInfo('boundary', True),
@@ -1335,39 +1336,110 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print('Filtered with sensitivity = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
+                    print('Filtered with sensitivity = %0.02f (%d -> %d)' % (config['sensitivity'], count_old, count_new, ))
 
         # Apply NMS
         if config['nms']:
             from ibeis.other import detectcore
             count_old = len(bboxes)
             if count_old > 0:
-                coord_list = []
-                for (xtl, ytl, width, height) in bboxes:
-                    xbr = xtl + width
-                    ybr = ytl + height
-                    coord_list.append([xtl, ytl, xbr, ybr])
-                coord_list = np.vstack(coord_list)
-                confs_list = np.array(confs)
 
-                nms_thresh = 1.0 - config['nms_thresh']
-                keep_indices_list = detectcore.nms(coord_list, confs_list, nms_thresh)
-                keep_list = np.array(keep_indices_list)
-
-                if len(keep_list) == 0:
-                    bboxes  = np.array([])
-                    thetas  = np.array([])
-                    confs   = np.array([])
-                    classes = np.array([])
+                nms_dict = {}
+                if config['nms_species_aware']:
+                    nms_key_set = set(classes)
+                    for nms_key in nms_key_set:
+                        # print(nms_key)
+                        flag_list = classes == nms_key
+                        nms_values = {
+                            'bboxes'  : np.compress(flag_list, bboxes,  axis=0),
+                            'thetas'  : np.compress(flag_list, thetas,  axis=0),
+                            'confs'   : np.compress(flag_list, confs,   axis=0),
+                            'classes' : np.compress(flag_list, classes, axis=0),
+                        }
+                        nms_dict[nms_key] = nms_values
+                        assert set(nms_dict[nms_key]['classes']) == set([nms_key])
                 else:
-                    bboxes  = bboxes[keep_list]
-                    thetas  = thetas[keep_list]
-                    confs   = confs[keep_list]
-                    classes = classes[keep_list]
+                    nms_dict['all'] = {
+                        'bboxes'  : bboxes,
+                        'thetas'  : thetas,
+                        'confs'   : confs,
+                        'classes' : classes,
+                    }
 
-                count_new = len(bboxes)
-                if VERBOSE:
-                    print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (nms_thresh, count_old, count_new, ))
+                for nms_key in nms_dict:
+                    nms_values = nms_dict[nms_key]
+
+                    nms_bboxes  = nms_values['bboxes']
+                    nms_thetas  = nms_values['thetas']
+                    nms_confs   = nms_values['confs']
+                    nms_classes = nms_values['classes']
+
+                    nms_count_old = len(nms_bboxes)
+                    assert nms_count_old > 0
+
+                    coord_list = []
+                    for (xtl, ytl, width, height) in nms_bboxes:
+                        xbr = xtl + width
+                        ybr = ytl + height
+                        coord_list.append([xtl, ytl, xbr, ybr])
+                    coord_list = np.vstack(coord_list)
+                    confs_list = np.array(nms_confs)
+
+                    nms_thresh = 1.0 - config['nms_thresh']
+                    keep_indices_list = detectcore.nms(coord_list, confs_list, nms_thresh)
+                    keep_list = np.array(keep_indices_list)
+
+                    if len(keep_list) == 0:
+                        nms_bboxes  = np.array([])
+                        nms_thetas  = np.array([])
+                        nms_confs   = np.array([])
+                        nms_classes = np.array([])
+                    else:
+                        nms_bboxes  = nms_bboxes[keep_list]
+                        nms_thetas  = nms_thetas[keep_list]
+                        nms_confs   = nms_confs[keep_list]
+                        nms_classes = nms_classes[keep_list]
+
+                    nms_values = {
+                        'bboxes'  : nms_bboxes,
+                        'thetas'  : nms_thetas,
+                        'confs'   : nms_confs,
+                        'classes' : nms_classes,
+                    }
+                    nms_dict[nms_key] = nms_values
+
+                    count_new = len(nms_bboxes)
+                    if VERBOSE:
+                        nms_args = (nms_key, nms_thresh, nms_count_old, count_new, )
+                        print('Filtered nms_key = %r with nms_thresh = %0.02f (%d -> %d)' % nms_args)
+
+                bboxes  = []
+                thetas  = []
+                confs   = []
+                classes = []
+
+                for nms_key in nms_dict:
+                    nms_values = nms_dict[nms_key]
+                    nms_bboxes  = nms_values['bboxes']
+                    nms_thetas  = nms_values['thetas']
+                    nms_confs   = nms_values['confs']
+                    nms_classes = nms_values['classes']
+
+                    if len(nms_bboxes) > 0:
+                        bboxes.append(nms_bboxes)
+                        thetas.append(nms_thetas)
+                        confs.append(nms_confs)
+                        classes.append(nms_classes)
+
+                bboxes  = np.vstack(bboxes)
+                thetas  = np.hstack(thetas)
+                confs   = np.hstack(confs)
+                classes = np.hstack(classes)
+
+            count_new = len(bboxes)
+            if VERBOSE:
+                nms_args = (nms_thresh, count_old, count_new, )
+                print('Filtered with nms_thresh = %0.02f (%d -> %d)' % nms_args)
 
         # Kill invalid images
         if config['invalid']:
