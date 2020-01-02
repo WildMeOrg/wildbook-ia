@@ -994,7 +994,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                     nms_dict[nms_key] = nms_values
 
                     count_new = len(nms_bboxes)
-                    if True or VERBOSE:
+                    if VERBOSE:
                         nms_args = (nms_key, nms_thresh, nms_count_old, count_new, )
                         print('Filtered nms_key = %r with nms_thresh = %0.02f (%d -> %d)' % nms_args)
 
@@ -1022,7 +1022,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 classes = np.hstack(classes)
 
             count_new = len(bboxes)
-            if True or VERBOSE:
+            if VERBOSE:
                 nms_args = (nms_thresh, count_old, count_new, )
                 print('Filtered with nms_thresh = %0.02f (%d -> %d)' % nms_args)
 
