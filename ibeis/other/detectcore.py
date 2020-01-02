@@ -863,10 +863,10 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         >>> from ibeis.other.detectcore import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
-        >>> dataset_path = '/Users/jason.parham/Downloads/VOC2007/'
-        >>> dataset_path = '/Users/jason.parham/Downloads/LearningData/'
-        >>> dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
-        >>> ibs.visualize_pascal_voc_dataset(dataset_path)
+        >>> dataset_path = '/Users/jason.parham/Downloads/VOC2019/'
+        >>> # dataset_path = '/Users/jason.parham/Downloads/LearningData/'
+        >>> # dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
+        >>> ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)
     """
     from detecttools.ibeisdata import IBEIS_Data
     import random
