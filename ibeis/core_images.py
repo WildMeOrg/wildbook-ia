@@ -837,7 +837,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('nms', True),
         ut.ParamInfo('nms_thresh', 0.2),
-        ut.ParamInfo('nms_species_aware', False, hideif=False),
+        ut.ParamInfo('nms_aware', None, hideif=None),
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.25),
         ut.ParamInfo('boundary', True),
@@ -930,26 +930,49 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
             if count_old > 0:
 
                 nms_dict = {}
-                if config['nms_species_aware']:
-                    nms_key_set = set(classes)
-                    for nms_key in nms_key_set:
-                        # print(nms_key)
-                        flag_list = classes == nms_key
-                        nms_values = {
-                            'bboxes'  : np.compress(flag_list, bboxes,  axis=0),
-                            'thetas'  : np.compress(flag_list, thetas,  axis=0),
-                            'confs'   : np.compress(flag_list, confs,   axis=0),
-                            'classes' : np.compress(flag_list, classes, axis=0),
-                        }
-                        nms_dict[nms_key] = nms_values
-                        assert set(nms_dict[nms_key]['classes']) == set([nms_key])
-                else:
-                    nms_dict['all'] = {
-                        'bboxes'  : bboxes,
-                        'thetas'  : thetas,
-                        'confs'   : confs,
-                        'classes' : classes,
+                nms_class_set = set(classes)
+                nms_aware = config['nms_aware']
+
+                for nms_class in nms_class_set:
+                    flag_list = classes == nms_class
+                    nms_values = {
+                        'bboxes'  : np.compress(flag_list, bboxes,  axis=0),
+                        'thetas'  : np.compress(flag_list, thetas,  axis=0),
+                        'confs'   : np.compress(flag_list, confs,   axis=0),
+                        'classes' : np.compress(flag_list, classes, axis=0),
                     }
+
+                    if nms_aware in ['class']:
+                        nms_key = nms_class
+                    elif nms_aware in ['parts']:
+                        nms_key = 'part' if '+' in nms_key else 'body'
+                    else:
+                        nms_key = None
+
+                    if nms_key not in nms_dict:
+                        nms_dict[nms_key] = {}
+
+                    for value_key in nms_values:
+                        nms_value = nms_values[value_key]
+                        if value_key not in nms_dict[nms_key]:
+                            nms_dict[nms_key][value_key] = []
+                        nms_dict[nms_key][value_key].append(nms_value)
+
+                for nms_key in nms_dict:
+                    nms_values = nms_dict[nms_key]
+
+                    nms_bboxes  = np.vstack(nms_values['bboxes'])
+                    nms_thetas  = np.hstack(nms_values['thetas'])
+                    nms_confs   = np.hstack(nms_values['confs'])
+                    nms_classes = np.hstack(nms_values['classes'])
+
+                    nms_values = {
+                        'bboxes'  : nms_bboxes,
+                        'thetas'  : nms_thetas,
+                        'confs'   : nms_confs,
+                        'classes' : nms_classes,
+                    }
+                    nms_dict[nms_key] = nms_values
 
                 for nms_key in nms_dict:
                     nms_values = nms_dict[nms_key]
