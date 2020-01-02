@@ -548,9 +548,13 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
+def imageset_train_test_split(ibs, train_split=0.8, is_tile=False,
+                              gid_list=None, **kwargs):
     from random import shuffle
-    gid_list = ibs.get_valid_gids(is_tile=is_tile)
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=is_tile)
+
     aids_list = ibs.get_image_aids(gid_list)
     distro_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):
@@ -687,10 +691,10 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         >>> from ibeis.other.detectcore import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
-        >>> dataset_path = '/Users/jason.parham/Downloads/VOC2007/'
-        >>> dataset_path = '/Users/jason.parham/Downloads/LearningData/'
-        >>> dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
-        >>> ibs.visualize_pascal_voc_dataset(dataset_path)
+        >>> dataset_path = '/Users/jason.parham/Downloads/VOC2019/'
+        >>> # dataset_path = '/Users/jason.parham/Downloads/LearningData/'
+        >>> # dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
+        >>> ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)
     """
     from detecttools.ibeisdata import IBEIS_Data
     import random
