@@ -43,7 +43,7 @@ def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id,
 @register_ibs_method
 def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_imageset_id,
                                          ensembles=3, **kwargs):
-    from ibeis.algo.detect.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
@@ -111,7 +111,7 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
     >>> # archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     >>> ibs.classifier2_precision_recall_algo_display(test_gid_list=gid_list, test_label_list=label_list)
     """
-    from ibeis.algo.detect.detectexport import get_cnn_classifier_multiclass_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_classifier_multiclass_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-multiclass')
@@ -202,7 +202,7 @@ def classifier_train(ibs, **kwargs):
 
 @register_ibs_method
 def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
-    from ibeis.algo.detect.detectexport import get_cnn_classifier_canonical_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_classifier_canonical_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     args = (species, )
@@ -245,7 +245,7 @@ def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, *
 
 @register_ibs_method
 def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
-    from ibeis.algo.detect.detectexport import get_cnn_localizer_canonical_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_localizer_canonical_training_images_pytorch
     from ibeis.algo.detect import canonical
 
     args = (species, )
@@ -527,7 +527,7 @@ def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpo
 
 @register_ibs_method
 def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, ensembles=3, **kwargs):
-    from ibeis.algo.detect.detectexport import get_cnn_labeler_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_labeler_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     species = '-'.join(species_list)
@@ -573,7 +573,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
 @register_ibs_method
 def orientation_train(ibs, category_list, ensembles=3, **kwargs):
-    from ibeis.algo.detect.detectexport import get_cnn_orientation_training_images_pytorch
+    from ibeis.other.detectexport import get_cnn_orientation_training_images_pytorch
     from ibeis.algo.detect import orientation
 
     species = '-'.join(species_list)
