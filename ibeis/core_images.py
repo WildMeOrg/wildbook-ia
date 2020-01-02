@@ -837,6 +837,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('nms', True),
         ut.ParamInfo('nms_thresh', 0.2),
+        ut.ParamInfo('nms_species_aware', False, hideif=False),
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.25),
         ut.ParamInfo('boundary', True),
@@ -920,13 +921,17 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print('Filtered with sensitivity = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
+                    print('Filtered with sensitivity = %0.02f (%d -> %d)' % (config['sensitivity'], count_old, count_new, ))
 
         # Apply NMS
         if config['nms']:
             from ibeis.other import detectcore
             count_old = len(bboxes)
             if count_old > 0:
+
+                import utool as ut
+                ut.embed()
+
                 coord_list = []
                 for (xtl, ytl, width, height) in bboxes:
                     xbr = xtl + width
