@@ -942,10 +942,10 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                         'classes' : np.compress(flag_list, classes, axis=0),
                     }
 
-                    if nms_aware in ['class']:
+                    if nms_aware in ['byclass']:
                         nms_key = nms_class
-                    elif nms_aware in ['parts']:
-                        nms_key = 'part' if '+' in nms_key else 'body'
+                    elif nms_aware in ['ispart']:
+                        nms_key = 'part' if '+' in nms_class else 'body'
                     else:
                         nms_key = None
 
