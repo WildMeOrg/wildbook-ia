@@ -818,6 +818,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
         'sensitivity' : 0.75,
         'nms'         : True,
         'nms_thresh'  : 0.4,
+        'nms_aware'   : None,
     }
 
     if model_tag is not None:
