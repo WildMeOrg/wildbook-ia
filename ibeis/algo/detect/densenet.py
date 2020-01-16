@@ -38,6 +38,8 @@ ARCHIVE_URL_DICT = {
     'spotted_dolphin_v0'        : 'https://cthulhu.dyn.wildme.io/public/models/labeler.dolphin_spotted.v0.zip',
     'spotted_skunk_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/labeler.skunk_spotted.v0.zip',
 
+    'humpback_dorsal'           : 'https://cthulhu.dyn.wildme.io/public/models/labeler.whale_humpback.dorsal.v0.zip',
+
     'seadragon_v0'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v0.zip',
     'seadragon_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v1.zip',
     'seadragon_v2'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v2.zip',
