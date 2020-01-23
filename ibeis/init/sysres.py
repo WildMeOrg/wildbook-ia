@@ -385,31 +385,7 @@ get_available_databases = get_ibsdb_list
 
 
 def ensure_wd_peter2():
-    """
-    publish to lev:Leviathan:/media/hdd/PUBLIC/databases
-
-    Ignore:
-        >>> # publish wd_peter2 to lev
-        >>> from os.path import join, basename
-        >>> dbdir = ut.truepath('~/work/wd_peter2')
-        >>> dbname = basename(dbdir)
-        >>> ibsdb_dpath = join(dbdir, '_ibsdb')
-        >>> fpath_list = []
-        >>> fpath_list += ut.glob(ibsdb_dpath, '*sqlite*')
-        >>> fpath_list += ut.ls(join(ibsdb_dpath, 'images'))
-        >>> archive_name = dbname + '.zip'
-        >>> ut.archive_files(archive_name, fpath_list, common_prefix=dbdir)
-        >>> ut.rsync(archive_name, 'joncrall@cthulhu.dyn.wildme.io:/media/hdd/PUBLIC/databases')
-
-    CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_wd_peter2
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> ensure_wd_peter2()
-    """
-    zipped_db_url = 'https://cthulhu.dyn.wildme.io/public/databases/wd_peter2.zip'
+    zipped_db_url = 'https://wildbookiarepository.blob.core.windows.net/databases/wd_peter2.zip'
     return ensure_db_from_url(zipped_db_url)
 
 
@@ -786,7 +762,7 @@ def ensure_nauts():
 
 
 def ensure_testdb2():
-    zipped_db_url = 'https://cthulhu.dyn.wildme.io/public/databases/testdb2.tar.gz'
+    zipped_db_url = 'https://wildbookiarepository.blob.core.windows.net/databases/testdb2.tar.gz'
     return ensure_db_from_url(zipped_db_url)
 
 

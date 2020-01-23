@@ -91,16 +91,14 @@ def rsync_ibsdb_main():
         mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
-        'hyrule': 'hyrule.cs.rpi.edu',
-        'pachy': 'pachy.cs.uic.edu',
-        'lewa': '41.203.223.178',
-        'lev': 'cthulhu.dyn.wildme.io',
+        'hyrule'  : 'hyrule.cs.rpi.edu',
+        'pachy'   : 'pachy.cs.uic.edu',
+        'lewa'    : '41.203.223.178',
     }
     remote_workdir_map = {
-        'hyrule': '/raid/work',
-        'pachy': '/home/shared_ibeis/data/work',
-        'lewa': '/data/ibeis',
-        'lev': '/media/hdd/work',
+        'hyrule'  : '/raid/work',
+        'pachy'   : '/home/shared_ibeis/data/work',
+        'lewa'    : '/data/ibeis',
     }
     if ':' in remote_key:
         remote_key_, remote_workdir = remote_key.split(':')
