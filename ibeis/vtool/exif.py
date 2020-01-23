@@ -303,7 +303,7 @@ def get_orientation(exif_dict, default=0, on_error='warn'):
         >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
+        >>> url = 'https://wildbookiarepository.blob.core.windows.net/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
@@ -343,7 +343,7 @@ def get_orientation_str(exif_dict, **kwargs):
         >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
+        >>> url = 'https://wildbookiarepository.blob.core.windows.net/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
