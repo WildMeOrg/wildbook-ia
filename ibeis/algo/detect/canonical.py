@@ -18,12 +18,12 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys_v1': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v1.zip',
-    'canonical_zebra_grevys_v2': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v2.zip',
-    'canonical_zebra_grevys_v3': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v3.zip',
-    'canonical_zebra_grevys_v4': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v4.zip',
-    'canonical_zebra_grevys_v5': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v5.zip',
-    'canonical_zebra_grevys_v6': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v6.zip',
+    'canonical_zebra_grevys_v1': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v1.zip',
+    'canonical_zebra_grevys_v2': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v2.zip',
+    'canonical_zebra_grevys_v3': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v3.zip',
+    'canonical_zebra_grevys_v4': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v4.zip',
+    'canonical_zebra_grevys_v5': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v5.zip',
+    'canonical_zebra_grevys_v6': 'https://wildbookiarepository.blob.core.windows.net/models/localizer.canonical.zebra_grevys.v6.zip',
 }
 
 

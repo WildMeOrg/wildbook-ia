@@ -22,7 +22,7 @@ class Deployer(object):
     meta_suffix = '.meta.json'
 
     publish_info = {
-        'remote': 'cthulhu.dyn.wildme.io',
+        # 'remote': 'cthulhu.dyn.wildme.io',
         'path': '/media/hdd/PUBLIC/models/pairclf',
     }
 

@@ -26,43 +26,44 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'hammerhead'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
-    'lynx'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
-    'manta'                      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
-    'seaturtle'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
-    'rightwhale'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.rightwhale.v1.py',
-    'rightwhale_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.rightwhale.v1.py',
-    'rightwhale_v2'              : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.rightwhale.v2.py',
-    'rightwhale_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.rightwhale.v3.py',
+    'hammerhead'                 : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.shark_hammerhead.py',
+    'lynx'                       : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.lynx.py',
+    'manta'                      : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.manta_ray_giant.py',
+    'seaturtle'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.sea_turtle.py',
+    'rightwhale'                 : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.rightwhale.v1.py',
+    'rightwhale_v1'              : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.rightwhale.v1.py',
+    'rightwhale_v2'              : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.rightwhale.v2.py',
+    'rightwhale_v3'              : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.rightwhale.v3.py',
 
-    'jaguar_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v1.py',
-    'jaguar_v2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v2.py',
-    'jaguar'                     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v2.py',
+    'jaguar_v1'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.jaguar.v1.py',
+    'jaguar_v2'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.jaguar.v2.py',
+    'jaguar'                     : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.jaguar.v2.py',
 
-    'giraffe_v1'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.giraffe.v1.py',
+    'giraffe_v1'                 : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.giraffe.v1.py',
 
-    'hendrik_elephant'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
-    'hendrik_elephant_ears'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
-    'hendrik_elephant_ears_left' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.left.py',
-    'hendrik_dorsal'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
-    'humpback_dorsal'            : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.whale_humpback.dorsal.v0.py',
+    'hendrik_elephant'           : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.hendrik.elephant.py',
+    'hendrik_elephant_ears'      : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.hendrik.elephant.ears.py',
+    'hendrik_elephant_ears_left' : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.hendrik.elephant.ears.left.py',
+    'hendrik_dorsal'             : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.hendrik.dorsal.py',
+    'humpback_dorsal'            : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.whale_humpback.dorsal.v0.py',
 
-    'nassau_grouper_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.grouper_nassau.v0.py',
-    'spotted_dolphin_v0'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.dolphin_spotted.v0.py',
-    'spotted_skunk_v0'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.skunk_spotted.v0.py',
+    'nassau_grouper_v0'          : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.grouper_nassau.v0.py',
+    'spotted_dolphin_v0'         : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.dolphin_spotted.v0.py',
+    'spotted_skunk_v0'           : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.skunk_spotted.v0.py',
 
-    'spotted_dolphin_v1'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.dolphin_spotted.v1.py',
+    'spotted_dolphin_v1'         : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.dolphin_spotted.v1.py',
 
-    'seadragon_v0'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.seadragon.v0.py',
-    'seadragon_v1'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.seadragon.v1.py',
+    'seadragon_v0'               : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.seadragon.v0.py',
+    'seadragon_v1'               : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.seadragon.v1.py',
 
-    'iot_v0'                     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.iot.v0.py',
+    'iot_v0'                     : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.iot.v0.py',
 
-    'candidacy'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
-    'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
+    'candidacy'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.candidacy.py',
+    'ggr2'                       : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.ggr2.py',
 
-    None                         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
-    'training_kit'               : 'https://cthulhu.dyn.wildme.io/public/data/lightnet-training-kit.zip',
+    None                         : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.candidacy.py',
+
+    'training_kit'               : 'https://wildbookiarepository.blob.core.windows.net/data/lightnet-training-kit.zip',
 }
 
 

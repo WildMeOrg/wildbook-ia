@@ -941,7 +941,7 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
 
     # Load the SVM
     model_fname = 'interim_svc_injur-shark-hog_12559_224x224x3_ldhhxnxo.cPkl'
-    model_url = 'https://cthulhu.dyn.wildme.io/public/models/{}'.format(model_fname)
+    model_url = 'https://wildbookiarepository.blob.core.windows.net/models/{}'.format(model_fname)
     model_fpath = ut.grab_file_url(model_url, check_hash=False)
     clf = ut.load_cPkl(model_fpath)
 
@@ -999,31 +999,31 @@ def shark_svm():
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
-    BUILD_RELEASE_MODEL = False
-    if BUILD_RELEASE_MODEL:
-        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17,
-                              class_weight='balanced',
-                              decision_function_shape='ovr',
-                              verbose=10)
-        clf.fit(ds.data, ds.target)
-        model_fname = 'interim_svc_{}.cPkl'.format(ds.dataset_id)
-        model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
-        model_fpath = join(model_dpath, model_fname)
-        ut.save_cPkl(model_fpath, clf)
-        """
-        TO PUBLISH
-        scp clf to lev:/media/hdd/PUBLIC/models
-        run script lev:/media/hdd/PUBLIC/hash.py to refresh hashes
-        """
-        user = ut.get_user_name()
-        host = 'cthulhu.dyn.wildme.io'
-        remote_path = '/media/hdd/PUBLIC/models/' + model_fname
-        remote_uri = user + '@' + host + ':' + remote_path
-        ut.rsync(model_fpath, remote_uri)
+    # BUILD_RELEASE_MODEL = False
+    # if BUILD_RELEASE_MODEL:
+    #     clf = sklearn.svm.SVC(kernel=str('linear'), C=.17,
+    #                           class_weight='balanced',
+    #                           decision_function_shape='ovr',
+    #                           verbose=10)
+    #     clf.fit(ds.data, ds.target)
+    #     model_fname = 'interim_svc_{}.cPkl'.format(ds.dataset_id)
+    #     model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
+    #     model_fpath = join(model_dpath, model_fname)
+    #     ut.save_cPkl(model_fpath, clf)
+    #     """
+    #     TO PUBLISH
+    #     scp clf to lev:/media/hdd/PUBLIC/models
+    #     run script lev:/media/hdd/PUBLIC/hash.py to refresh hashes
+    #     """
+    #     user = ut.get_user_name()
+    #     host = 'cthulhu.dyn.wildme.io'
+    #     remote_path = '/data/public/models/' + model_fname
+    #     remote_uri = user + '@' + host + ':' + remote_path
+    #     ut.rsync(model_fpath, remote_uri)
 
-        command = 'python /media/hdd/PUBLIC/hash.py'
-        ut.cmd('ssh {user}@{host} "{command}"'.format(user=user, host=host,
-                                                      command=command))
+    #     command = 'python /media/hdd/PUBLIC/hash.py'
+    #     ut.cmd('ssh {user}@{host} "{command}"'.format(user=user, host=host,
+    #                                                   command=command))
 
     model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
     #n_folds = 10

@@ -52,16 +52,16 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'pretrained-fast-vgg-pascal' : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    # 'pretrained-fast-vgg-pascal' : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
-    'pretrained-vgg-pascal'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    'pretrained-zf-pascal'       : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-pascal'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-zf-pascal'       : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
-    'pretrained-vgg-ilsvrc'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-    'pretrained-zf-ilsvrc'       : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-vgg-ilsvrc'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-zf-ilsvrc'       : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
 
-    'default'                    : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    None                         : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'default'                    : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    None                         : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 }
 
 
