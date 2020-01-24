@@ -58,6 +58,8 @@ CONFIG_URL_DICT = {
 
     'iot_v0'                     : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.iot.v0.py',
 
+    'kitsci_v0'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.kitsci.v0.py',
+
     'candidacy'                  : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.candidacy.py',
     'ggr2'                       : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.ggr2.py',
 
