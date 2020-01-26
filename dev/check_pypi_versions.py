@@ -9,6 +9,35 @@ from distutils.version import LooseVersion
 import ubelt as ub
 
 
+def pypi_info(package_name, version=None):
+    """
+    package_name = 'ibeis'
+    version = '2.0.0'
+    version = '2.0.1'
+    version = '2.0.2'
+    version = '2.2.1'
+    version = '2.2.2'
+    version = '2.2.3'
+
+    UNFINISHED
+
+    """
+    import requests
+    if version is None:
+        url = "https://pypi.python.org/pypi/{}/json".format(package_name)
+    else:
+        url = "https://pypi.python.org/pypi/{}/{}/json".format(package_name, version)
+
+    package = requests.get(url).json()
+
+    package_info = package['info']
+    requirements = package_info['requires_dist']
+
+    availble_versions = package["releases"].keys()
+
+    max_ver = max(package["releases"].keys())
+    latest_wheel_info_list = package['releases'][max_ver]
+
 def query_module_pypi_info(modname, verbose=0):
     """
     Determine the lastest version of a module on pypi and the current installed
