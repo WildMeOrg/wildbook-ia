@@ -27,7 +27,7 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 PART_NOTE               = 'part_note'
 PART_NUM_VERTS          = 'part_num_verts'
 PART_ROWID              = 'part_rowid'
-PART_TAG_TEXT           = 'part_tag_text'
+# PART_TAG_TEXT           = 'part_tag_text'
 PART_THETA              = 'part_theta'
 PART_VERTS              = 'part_verts'
 PART_UUID               = 'part_uuid'
@@ -707,7 +707,7 @@ def get_part_reviewed(ibs, part_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_part_tag_text(ibs, part_rowid_list, eager=True, nInput=None):
+def get_part_tag_text(ibs, part_rowid_list, **kwargs):
     r""" part_tags_list <- part.part_tags[part_rowid_list]
 
     gets data from the "native" column "part_tags" in the "part" table
@@ -727,11 +727,12 @@ def get_part_tag_text(ibs, part_rowid_list, eager=True, nInput=None):
         >>> part_tags_list = ibs.get_part_tag_text(part_rowid_list, eager=eager)
         >>> assert len(part_rowid_list) == len(part_tags_list)
     """
-    id_iter = part_rowid_list
-    colnames = (PART_TAG_TEXT,)
-    part_tags_list = ibs.db.get(
-        const.PART_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
-    return part_tags_list
+    part_type_list = ibs.get_part_type(part_rowid_list, **kwargs)
+    part_type_list = [
+        part_type.lower().strip().replace(' ', '_')
+        for part_type in part_type_list
+    ]
+    return part_type_list
 
 
 @register_ibs_method
@@ -953,21 +954,21 @@ def set_part_viewpoints(ibs, part_rowid_list, viewpoint_list):
     ibs.db.set(const.PART_TABLE, ('part_viewpoint',), val_iter, id_iter)
 
 
-@register_ibs_method
-@accessor_decors.setter
-def set_part_tag_text(ibs, part_rowid_list, part_tags_list, duplicate_behavior='error'):
-    r""" part_tags_list -> part.part_tags[part_rowid_list]
+# @register_ibs_method
+# @accessor_decors.setter
+# def set_part_tag_text(ibs, part_rowid_list, part_tags_list, duplicate_behavior='error'):
+#     r""" part_tags_list -> part.part_tags[part_rowid_list]
 
-    Args:
-        part_rowid_list
-        part_tags_list
+#     Args:
+#         part_rowid_list
+#         part_tags_list
 
-    """
-    #print('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
-    id_iter = part_rowid_list
-    colnames = (PART_TAG_TEXT,)
-    ibs.db.set(const.PART_TABLE, colnames, part_tags_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+#     """
+#     #print('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
+#     id_iter = part_rowid_list
+#     colnames = (PART_TAG_TEXT,)
+#     ibs.db.set(const.PART_TABLE, colnames, part_tags_list,
+#                id_iter, duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method

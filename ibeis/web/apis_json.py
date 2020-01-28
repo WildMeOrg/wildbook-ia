@@ -1850,10 +1850,10 @@ def set_part_types_json(ibs, part_uuid_list, type_text_list, **kwargs):
     return ibs.set_part_types(aid_list, type_text_list)
 
 
-@register_api('/api/part/tags/json/', methods=['PUT'], __api_plural_check__=False)
-def set_part_tag_text_json(ibs, part_uuid_list, part_tags_list, **kwargs):
-    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
-    return ibs.set_part_tag_text(aid_list, part_tags_list)
+# @register_api('/api/part/tags/json/', methods=['PUT'], __api_plural_check__=False)
+# def set_part_tag_text_json(ibs, part_uuid_list, part_tags_list, **kwargs):
+#     aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+#     return ibs.set_part_tag_text(aid_list, part_tags_list)
 
 
 @register_api('/api/match/decision/evidence/json/', methods=['PUT'])

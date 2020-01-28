@@ -444,6 +444,14 @@ def imageset_annot_quality_processed(ibs, aid_list):
     return annots_reviewed
 
 
+def imageset_part_type_processed(ibs, part_rowid_list, reviewed_flag_progress=True):
+    if reviewed_flag_progress:
+        parts_reviewed = [ reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list) ]
+    else:
+        parts_reviewed = [ reviewed is not None for reviewed in ibs.get_part_types(part_rowid_list) ]
+    return parts_reviewed
+
+
 def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress=True):
     if reviewed_flag_progress:
         parts_reviewed = [ reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list) ]
