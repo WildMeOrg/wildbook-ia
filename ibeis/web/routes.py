@@ -2905,7 +2905,7 @@ def turk_splits(aid=None, **kwargs):
                          callback_method='POST')
 
 
-@register_route('/turk/contour/', methods=['GET'])
+@register_route('/turk/part/contour/', methods=['GET'])
 def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     ibs = current_app.ibs
 
@@ -3096,6 +3096,130 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
                          species_extended_list=species_extended_list,
                          species_rowids_json=species_rowids_json,
                          example_species_list=example_species_list,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_CSS=None,
+                         EMBEDDED_JAVASCRIPT=None,
+                         review=review)
+
+
+@register_route('/turk/part/type/', methods=['GET'])
+def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, refresh=False, previous_part_types=None, **kwargs):
+    ibs = current_app.ibs
+
+    imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
+    part_rowid_list = list(set(part_rowid_list))
+
+    reviewed_list = appf.imageset_part_type_processed(ibs, part_rowid_list)
+
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(part_rowid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
+    part_rowid = request.args.get('part_rowid', '')
+    if len(part_rowid) > 0:
+        part_rowid = int(part_rowid)
+    else:
+        part_rowid_list_ = ut.filterfalse_items(part_rowid_list, reviewed_list)
+        if len(part_rowid_list_) == 0:
+            part_rowid = None
+        else:
+            part_rowid = random.choice(part_rowid_list_)
+
+    padding = 0.15
+    review = 'review' in request.args.keys()
+    finished = part_rowid is None
+    display_instructions = request.cookies.get('ia-part-type_instructions_seen', 1) == 0
+    if not finished:
+        aid       = ibs.get_part_aids(part_rowid)
+        gid       = ibs.get_annot_gids(aid)
+        image_src = routes_ajax.part_src(part_rowid, pad=padding)
+        part_type = ibs.get_part_types(part_rowid)
+    else:
+        aid       = None
+        gid       = None
+        image_src = None
+        part_type = None
+
+    imagesettext = ibs.get_imageset_text(imgsetid)
+
+    all_part_rowid_list = ibs._get_all_part_rowids()
+    all_part_types = sorted(set(ibs.get_part_types(all_part_rowid_list)))
+
+    if not refresh and previous_part_types is not None:
+        try:
+            for previous_part_type in previous_part_types:
+                assert previous_part_type in all_part_types
+
+            all_part_types = previous_part_types
+        except:
+            print('Error finding previous part_type in existing list')
+            previous_part_types = None
+
+    if previous_part_types is None:
+        refresh = True
+
+    current_part_types = ibs.get_part_types(all_part_rowid_list)
+
+    all_part_type_count = [
+        len(current_part_types) - current_part_types.count(all_part_type)
+        for all_part_type in all_part_types
+    ]
+    combined_list = list(zip(all_part_type_count, all_part_types))
+
+    if refresh:
+        print('REFRESHING!')
+        combined_list = sorted(combined_list)
+
+    part_type_count_list = [ combined[0] for combined in combined_list ]
+    part_type_list       = [ combined[1] for combined in combined_list ]
+
+    part_type_list_json = ut.to_json(part_type_list)
+
+    hotkey_list = [ index + 1 for index in range(len(part_type_list)) ]
+    part_type_selected_list = [ part_type == part_type_ for part_type_ in part_type_list ]
+    part_type_option_list = list(zip(hotkey_list, part_type_list, part_type_selected_list))
+    part_type_extended_list = []
+    other_selected = False
+
+    zipped = list(zip(part_type_count_list, part_type_list, part_type_selected_list))
+    for index, (part_type_count, part_type, part_type_selected) in enumerate(zipped):
+        if part_type_selected:
+            part_type += ' (default)'
+        args = (len(current_part_types) - part_type_count, part_type, )
+        if index >= hotkeys:
+            print('% 5d   : %s' % args)
+        else:
+            print('% 5d * : %s' % args)
+
+    if len(part_type_option_list) >= hotkeys:
+        part_type_extended_list = part_type_option_list[hotkeys:]
+        part_type_list = part_type_option_list[:hotkeys]
+        extended_flag_list = [_[3] for _ in part_type_extended_list]
+
+        if True in extended_flag_list:
+            other_selected = True
+
+    part_type_option_list = part_type_option_list + [ (len(all_part_types) + 1, 'Other', other_selected) ]
+
+    callback_url = url_for('submit_part_types')
+    return appf.template('turk', 'part_type',
+                         imgsetid=imgsetid,
+                         part_rowid=part_rowid,
+                         gid=gid,
+                         aid=aid,
+                         image_src=image_src,
+                         previous=previous,
+                         part_type_option_list=part_type_option_list,
+                         part_type_extended_list=part_type_extended_list,
+                         part_type_list_json=part_type_list_json,
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,

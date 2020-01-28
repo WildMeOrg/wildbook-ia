@@ -1082,6 +1082,54 @@ def submit_species(**kwargs):
                                 previous_species_rowids=previous_species_rowids))
 
 
+@register_route('/submit/part/type/', methods=['POST'])
+def submit_part_types(**kwargs):
+    ibs = current_app.ibs
+
+    method = request.form.get('ia-part-type-submit', '')
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    previous_part_types = request.form.get('ia-part-types', None)
+    print('Using previous_part_types = %r' % (previous_part_types, ))
+
+    part_rowid = int(request.form['ia-part-type-part-rowid'])
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
+
+    if method.lower() in u'refresh':
+        print('[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        redirection = request.referrer
+        if 'part_rowid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+            else:
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+        if '?' in redirection:
+            redirection = '%s&refresh=true' % (redirection, )
+        else:
+            redirection = '%s?refresh=true' % (redirection, )
+        return redirect(redirection)
+    else:
+        part_type_text = kwargs.get('ia-part-type-value', '')
+        if part_type_text in ['Other', '']:
+            part_type_text = const.UNKNOWN
+        ibs.set_part_types([part_rowid], [part_type_text])
+        ibs.set_part_reviewed([part_rowid], [1])
+
+        print('[web] user_id: %s, part_rowid: %d, type: %r'  % (user_id, part_rowid, part_type_text, ))
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_part_types', imgsetid=imgsetid, previous=part_rowid,
+                                previous_part_types=previous_part_types))
+
+
 @register_route('/submit/quality/', methods=['POST'])
 def submit_quality(**kwargs):
     ibs = current_app.ibs
@@ -1475,7 +1523,7 @@ def group_review_submit(**kwargs):
     return redirect(url_for(mode, src_ag=src_ag, dst_ag=dst_ag))
 
 
-@register_route('/submit/contour/', methods=['POST'])
+@register_route('/submit/part/contour/', methods=['POST'])
 def submit_contour(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('contour-submit', '')

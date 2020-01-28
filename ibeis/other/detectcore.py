@@ -202,7 +202,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 if include_parts and len(part_rowid_list) > 0:
                     part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
                     part_theta_list = ibs.get_part_thetas(part_rowid_list)
-                    part_name_list = ibs.get_part_tag_text(part_rowid_list)
+                    part_name_list = ibs.get_part_types(part_rowid_list)
                     part_zipped = zip(part_bbox_list, part_theta_list, part_name_list)
                     for part_bbox, part_theta, part_name in part_zipped:
                         _add_annotation(part_bbox, part_theta, species_name,
