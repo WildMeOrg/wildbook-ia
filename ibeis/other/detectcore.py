@@ -336,8 +336,9 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         category_dict[species] = index
 
     def _add_annotation(image_index, bbox, theta,
-                        species_name, viewpoint, interest, decrease,
-                        width, height, part_name=None):
+                        species_name, viewpoint, interest,
+                        annot_uuid, annot_name,
+                        decrease, width, height, part_name=None):
         R = vt.rotation_around_bbox_mat3x3(theta, bbox)
         verts = vt.verts_from_bbox(bbox, close=True)
         xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
@@ -363,6 +364,9 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         w_ *= decrease
         h_ *= decrease
 
+        if part_name is not None:
+            species_name = '%s+%s' % (species_name, part_name, )
+
         annot = {
             'bbox'              : [xtl_, ytl_, w_, h_],
             'theta'             : theta,
@@ -375,12 +379,12 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
             'image_id'          : image_index,
             'category_id'       : category_dict[species_name],
             'id'                : annot_index,
-            'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
-            'ibeis_annot_name'  : str(ibs.get_annot_name_texts(aid)),
+            'ibeis_annot_uuid'  : annot_uuid,
+            'ibeis_annot_name'  : annot_name,
             # 'individual_ids'    : individuals,
         }
 
-        return annot
+        return annot, area
 
     output_dict = {}
     for dataset in ['train', 'val', 'test']:
@@ -482,12 +486,14 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         species_name_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         interest_list = ibs.get_annot_interest(aid_list)
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+        annot_name_list = ibs.get_annot_name_texts(aid_list)
         part_rowids_list = ibs.get_annot_part_rowids(aid_list)
         nid_list = ibs.get_annot_nids(aid_list)
 
         seen = 0
-        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list, interest_list, part_rowids_list, nid_list)
-        for aid, bbox, theta, species_name, viewpoint, interest, part_rowid_list, nid in zipped:
+        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list, interest_list, annot_uuid_list, annot_name_list, part_rowids_list, nid_list)
+        for aid, bbox, theta, species_name, viewpoint, interest, annot_uuid, annot_name, part_rowid_list, nid in zipped:
             species_name = species_mapping.get(species_name, species_name)
 
             if species_name is None:
@@ -505,9 +511,12 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
             #     continue
 
             # Transformation matrix
-            annot = _add_annotation(image_index, bbox, theta,
-                                    species_name, viewpoint, interest, decrease,
-                                    width, height)
+            annot, area = _add_annotation(image_index, bbox, theta,
+                                          species_name, viewpoint, interest,
+                                          annot_uuid, annot_name,
+                                          decrease, width, height)
+
+            print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             if include_reviews:
                 # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
@@ -530,8 +539,6 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
 
             output_dict[dataset]['annotations'].append(annot)
             seen += 1
-
-            print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             aid_dict[aid] = annot_index
             annot_index += 1
