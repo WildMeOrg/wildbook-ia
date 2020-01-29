@@ -52,15 +52,15 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     from datetime import date
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
-    if species_mapping is not None:
-        print('Received species_mapping = %r' % (species_mapping, ))
-        print('Using species_list = %r' % (species_list, ))
+    print('Received species_mapping = %r' % (species_mapping, ))
 
-    def _add_annotation(bbox, theta, species_name, viewpoint, interest, decrease,
-                        part_name=None):
-        if species_name is not None:
-            if species_name not in species_list:
-                return
+    if species_list is None:
+        species_list = sorted(set(species_mapping.values()))
+
+    print('Using species_list = %r' % (species_list, ))
+
+    def _add_annotation(annotation, bbox, theta, species_name, viewpoint, interest,
+                        decrease, width, height, part_name=None):
         # Transformation matrix
         R = vt.rotation_around_bbox_mat3x3(theta, bbox)
         # Get verticies of the annotation polygon
@@ -192,21 +192,31 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             species_name_list = ibs.get_annot_species_texts(aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(aid_list)
             interest_list = ibs.get_annot_interest(aid_list)
+
             part_rowids_list = ibs.get_annot_part_rowids(aid_list)
             zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, interest_list, part_rowids_list)
             for bbox, theta, species_name, viewpoint, interest, part_rowid_list in zipped:
                 if species_mapping is not None:
                     species_name = species_mapping.get(species_name, species_name)
 
-                _add_annotation(bbox, theta, species_name, viewpoint, interest, decrease)
+                if species_name is not None and species_name not in species_list:
+                    continue
+
+                _add_annotation(annotation, bbox, theta, species_name, viewpoint, interest,
+                                decrease, width, height)
+
                 if include_parts and len(part_rowid_list) > 0:
                     part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
                     part_theta_list = ibs.get_part_thetas(part_rowid_list)
                     part_name_list = ibs.get_part_types(part_rowid_list)
                     part_zipped = zip(part_bbox_list, part_theta_list, part_name_list)
                     for part_bbox, part_theta, part_name in part_zipped:
-                        _add_annotation(part_bbox, part_theta, species_name,
-                                        viewpoint, None, decrease, part_name=part_name)
+                        part_viewpoint = viewpoint
+                        part_interest = None
+                        _add_annotation(annotation, part_bbox, part_theta,
+                                        species_name, part_viewpoint, part_interest,
+                                        decrease, width, height,
+                                        part_name=part_name)
 
             out_filename = '%s.xml' % (out_name, )
             dst_annot = join(annotdir, out_filename)
@@ -253,18 +263,25 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
 
 @register_ibs_method
-def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
-                   use_maximum_linear_dimension=True,
-                   use_existing_train_test=True, gid_list=None,
-                   include_reviews=False, require_named=True, output_images=True,
-                   **kwargs):
+def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
+                   target_size=2400, use_maximum_linear_dimension=True,
+                   use_existing_train_test=True, include_parts=False, gid_list=None,
+                   include_reviews=False, require_image_reviewed=False,
+                   require_named=False, output_images=True, **kwargs):
     """Create training COCO dataset for training models."""
+    ut.embed()
+
     from datetime import date
     import datetime
     import random
     import json
 
     print('Received species_mapping = %r' % (species_mapping, ))
+    print('Received viewpoint_mapping = %r' % (viewpoint_mapping, ))
+
+    if species_list is None:
+        species_list = sorted(set(species_mapping.values()))
+
     print('Using species_list = %r' % (species_list, ))
 
     current_year = int(date.today().year)
@@ -317,6 +334,53 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             'supercategory': 'animal',
         })
         category_dict[species] = index
+
+    def _add_annotation(image_index, bbox, theta,
+                        species_name, viewpoint, interest, decrease,
+                        width, height, part_name=None):
+        R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+        verts = vt.verts_from_bbox(bbox, close=True)
+        xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+        trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+
+        x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
+        y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
+        segmentation = ut.flatten(list(zip(x_points, y_points)))
+
+        xmin = max(min(x_points), 0)
+        ymin = max(min(y_points), 0)
+        xmax = min(max(x_points), width - 1)
+        ymax = min(max(y_points), height - 1)
+
+        w = xmax - xmin
+        h = ymax - ymin
+        area = w * h
+
+        xtl_, ytl_, w_, h_ = bbox
+        xtl_ *= decrease
+        ytl_ *= decrease
+        w_ *= decrease
+        h_ *= decrease
+
+        annot = {
+            'bbox'              : [xtl_, ytl_, w_, h_],
+            'theta'             : theta,
+            'viewpoint'         : viewpoint,
+            'segmentation'      : [segmentation],
+            'segmentation_bbox' : [xmin, ymin, w, h],
+            'area'              : area,
+            'iscrowd'           : 0,
+            'isinterest'        : int(interest),
+            'image_id'          : image_index,
+            'category_id'       : category_dict[species_name],
+            'id'                : annot_index,
+            'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
+            'ibeis_annot_name'  : str(ibs.get_annot_name_texts(aid)),
+            # 'individual_ids'    : individuals,
+        }
+
+        return annot
 
     output_dict = {}
     for dataset in ['train', 'val', 'test']:
@@ -417,11 +481,13 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         theta_list = ibs.get_annot_thetas(aid_list)
         species_name_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        interest_list = ibs.get_annot_interest(aid_list)
+        part_rowids_list = ibs.get_annot_part_rowids(aid_list)
         nid_list = ibs.get_annot_nids(aid_list)
 
         seen = 0
-        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list, nid_list)
-        for aid, bbox, theta, species_name, viewpoint, nid in zipped:
+        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list, interest_list, part_rowids_list, nid_list)
+        for aid, bbox, theta, species_name, viewpoint, interest, part_rowid_list, nid in zipped:
             species_name = species_mapping.get(species_name, species_name)
 
             if species_name is None:
@@ -433,65 +499,33 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             if require_named and nid < 0:
                 continue
 
+            viewpoint = viewpoint_mapping.get(species_name, {}).get(viewpoint, viewpoint)
+
+            # if viewpoint is None:
+            #     continue
+
             # Transformation matrix
-            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
-            verts = vt.verts_from_bbox(bbox, close=True)
-            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
-            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            annot = _add_annotation(image_index, bbox, theta,
+                                    species_name, viewpoint, interest, decrease,
+                                    width, height)
 
-            x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
-            y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
-            segmentation = ut.flatten(list(zip(x_points, y_points)))
-
-            xmin = max(min(x_points), 0)
-            ymin = max(min(y_points), 0)
-            xmax = min(max(x_points), width - 1)
-            ymax = min(max(y_points), height - 1)
-
-            w = xmax - xmin
-            h = ymax - ymin
-            area = w * h
-
-            # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
-            reviews = ibs.get_review_rowids_from_single([aid])[0]
-            user_list = ibs.get_review_identity(reviews)
-            aid_tuple_list = ibs.get_review_aid_tuple(reviews)
-            decision_list = ibs.get_review_decision_str(reviews)
-
-            ids = []
-            decisions = []
-            zipped = zip(user_list, aid_tuple_list, decision_list)
-            for user, aid_tuple, decision in zipped:
-                if 'user:web' not in user:
-                    continue
-                match = list(set(aid_tuple) - set([aid]))
-                assert len(match) == 1
-                ids.append(match[0])
-                decisions.append(decision.lower())
-
-            xtl_, ytl_, w_, h_ = bbox
-            xtl_ *= decrease
-            ytl_ *= decrease
-            w_ *= decrease
-            h_ *= decrease
-
-            annot = {
-                'bbox'              : [xtl_, ytl_, w_, h_],
-                'theta'             : theta,
-                'viewpoint'         : viewpoint,
-                'segmentation'      : [segmentation],
-                'segmentation_bbox' : [xmin, ymin, w, h],
-                'area'              : area,
-                'iscrowd'           : 0,
-                'image_id'          : image_index,
-                'category_id'       : category_dict[species_name],
-                'id'                : annot_index,
-                'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
-                'ibeis_annot_name'  : str(ibs.get_annot_name_texts(aid)),
-                # 'individual_ids'    : individuals,
-            }
             if include_reviews:
+                # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+                reviews = ibs.get_review_rowids_from_single([aid])[0]
+                user_list = ibs.get_review_identity(reviews)
+                aid_tuple_list = ibs.get_review_aid_tuple(reviews)
+                decision_list = ibs.get_review_decision_str(reviews)
+
+                ids = []
+                decisions = []
+                zipped = zip(user_list, aid_tuple_list, decision_list)
+                for user, aid_tuple, decision in zipped:
+                    if 'user:web' not in user:
+                        continue
+                    match = list(set(aid_tuple) - set([aid]))
+                    assert len(match) == 1
+                    ids.append(match[0])
+                    decisions.append(decision.lower())
                 annot['review_ids'] = list(zip(ids, decisions))
 
             output_dict[dataset]['annotations'].append(annot)
