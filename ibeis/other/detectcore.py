@@ -479,8 +479,8 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
 
         output_dict[dataset]['images'].append({
             'license'       : 3,
-            # 'file_name'     : image_filename,
-            'file_name'     : basename(ibs.get_image_uris_original(gid)),
+            'file_name'     : image_filename,
+            # 'file_name'     : basename(ibs.get_image_uris_original(gid)),
             'coco_url'      : None,
             'height'        : height,
             'width'         : width,
