@@ -4079,8 +4079,53 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
     elif ibs.dbname == 'NG_Feasability':
-        ut.embed()
-        return None
+        species = 'grouper_nassau'
+
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        image_reviewed_list = ibs.get_image_reviewed(gid_list)
+        gid_list = ut.compress(gid_list, image_reviewed_list)
+
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        species_list = ibs.get_annot_species(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+
+        bad_flag_list = [species_ == const.UNKNOWN for species_ in species_list]
+        bad_aid_list = ut.compress(aid_list, bad_flag_list)
+        if len(bad_aid_list) > 0:
+            ibs.set_annot_species(bad_aid_list, [species] * len(bad_aid_list))
+            species_list = ibs.get_annot_species(aid_list)
+
+        desired_species = set([
+            species,
+        ])
+
+        desired_viewpoints = set([
+            'left',
+            'frontleft',
+            'backleft',
+            'upleft',
+            'upfrontleft',
+            'upbackleft',
+            'downleft',
+            'downfrontleft',
+            'downbackleft',
+        ])
+
+        flag_list = []
+        for aid, species, viewpoint in zip(aid_list, species_list, viewpoint_list):
+            flag = True
+            if species not in desired_species:
+                flag = False
+            if viewpoint not in desired_viewpoints:
+                flag = False
+            flag_list.append(flag)
+
+        aid_list_ = ut.compress(aid_list, flag_list)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid])
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
 
