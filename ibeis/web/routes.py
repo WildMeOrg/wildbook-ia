@@ -4079,6 +4079,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
     elif ibs.dbname == 'NG_Feasability':
+        ut.embed()
         species = 'grouper_nassau'
 
         gid_list = ibs.get_imageset_gids(imgsetid)
