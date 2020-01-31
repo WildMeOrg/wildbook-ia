@@ -4120,6 +4120,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         species_list = ibs.get_annot_species(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        quality_list = ibs.get_annot_quality_texts(aid_list)
 
         bad_flag_list = [species_ == const.UNKNOWN for species_ in species_list]
         bad_aid_list = ut.compress(aid_list, bad_flag_list)
@@ -4127,28 +4128,14 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
             ibs.set_annot_species(bad_aid_list, [species] * len(bad_aid_list))
             species_list = ibs.get_annot_species(aid_list)
 
-        desired_species = set([
-            species,
-        ])
-
-        desired_viewpoints = set([
-            'left',
-            'frontleft',
-            'backleft',
-            'upleft',
-            'upfrontleft',
-            'upbackleft',
-            'downleft',
-            'downfrontleft',
-            'downbackleft',
-        ])
-
         flag_list = []
-        for aid, species, viewpoint in zip(aid_list, species_list, viewpoint_list):
+        for aid, species_, viewpoint, quality in zip(aid_list, species_list, viewpoint_list, quality_list):
             flag = True
-            if species not in desired_species:
+            if species_ != species:
                 flag = False
-            if viewpoint not in desired_viewpoints:
+            if viewpoint is None or 'left' not in viewpoint:
+                flag = False
+            if quality in ['junk', 'poor']:
                 flag = False
             flag_list.append(flag)
 
