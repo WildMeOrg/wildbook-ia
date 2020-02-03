@@ -24,8 +24,12 @@ ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys_v2' : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.canonical.zebra_grevys.v2.zip',
     'canonical_zebra_grevys_v3' : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.canonical.zebra_grevys.v3.zip',
     'canonical_zebra_grevys_v4' : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.canonical.zebra_grevys.v4.zip',
+
     'ryan_densenet_v1'          : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.cameratrap.ryan.densenet.v1.zip',
     'ryan_densenet_v2'          : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.cameratrap.ryan.densenet.v2.zip',
+
+    'megan_argentina_v1'        : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.cameratrap.megan.argentina.densenet.v1.zip',
+    'megan_kenya_v1'            : 'https://wildbookiarepository.blob.core.windows.net/models/classifier.cameratrap.megan.kenya.densenet.v1.zip',
 
     'zebra_v1'                  : 'https://wildbookiarepository.blob.core.windows.net/models/labeler.zebra_grevys-zebra_plains.v1.zip',
     'giraffe_v1'                : 'https://wildbookiarepository.blob.core.windows.net/models/labeler.giraffe.v1.zip',
