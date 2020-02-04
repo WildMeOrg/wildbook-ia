@@ -2162,8 +2162,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
 
 
 @register_ibs_method
-def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id,
-                                                        negative_imageset_id,
+def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id,
                                                         test_gid_list=None,
                                                         figsize=(20, 20),
                                                         config_list=None,
@@ -2187,6 +2186,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
             # {'label': 'Initial Model (10%) - DenseNet 0', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:0'},
             # {'label': 'Initial Model (10%) - DenseNet 1', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:1'},
             # {'label': 'Initial Model (10%) - DenseNet 2', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:2'},
+
             # {'label': 'Initial Model   (0%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.1'},
             # {'label': 'Retrained Model (1%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.2'},
             # {'label': 'Retrained Model (2%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.3'},
@@ -2201,8 +2201,6 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
             # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
             # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
         ]
-
-    # color_list = pt.distinct_colors(len(config_list), randomize=False)
     color_list = [(0, 0, 0)] * offset_black
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 

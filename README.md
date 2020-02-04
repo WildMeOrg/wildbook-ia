@@ -199,7 +199,7 @@ baseline_neighbor_filter in the module ibeis.algo.hots.pipeline:
     python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter:0
     
 
-# Code Sytle Guidelines
+# Code Style Guidelines
 
 For Python try to conform to pep8. 
 You should set up your preferred editor to use flake8 as linter.
