@@ -4148,7 +4148,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid])
-     elif option in ['rosemary']:
+    elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
 
         assert imgsetid == imgsetid_
