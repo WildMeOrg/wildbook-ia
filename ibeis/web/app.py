@@ -104,6 +104,11 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
 
+        if const.HTTPS:
+            app.config.update({
+                'PREFERRED_URL_SCHEME': 'https',
+            })
+
         if PROMETHEUS:
             # Add prometheus wsgi middleware to route /metrics requests
             print('LOADING PROMETHEUS')
@@ -115,11 +120,6 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             app_.server_url = app.server_url
             app_.ibs = app.ibs
             app = app_
-
-        if const.HTTPS:
-            app.config.update({
-                'PREFERRED_URL_SCHEME': 'https',
-            })
 
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
