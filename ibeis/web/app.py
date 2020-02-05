@@ -78,7 +78,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     if url_suffix is None:
         url_suffix = ut.get_argval('--url', default='')
 
-    # from ibeis import constants as const
+    from ibeis import constants as const
     # ibs.https = const.HTTPS
 
     def _start_tornado(ibs_, port_):
@@ -95,7 +95,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         socket.setdefaulttimeout(None)
         app.server_port = port_
         # URL for the web instance
-        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
+        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port, )
         print('[web] Tornado server starting at %s' % (app.server_url,))
         # Launch the web browser to view the web interface and API
         if browser:
@@ -115,6 +115,11 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             app_.server_url = app.server_url
             app_.ibs = app.ibs
             app = app_
+
+        if const.HTTPS:
+            app.config.update({
+                'PREFERRED_URL_SCHEME': 'https',
+            })
 
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface

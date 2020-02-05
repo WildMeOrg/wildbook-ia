@@ -3185,6 +3185,23 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
     all_part_rowid_list = ibs._get_all_part_rowids()
     all_part_types = sorted(set(ibs.get_part_types(all_part_rowid_list)))
 
+    if ibs.containerized:
+        hostname = const.CONTAINER_NAME
+    else:
+        hostname = None
+
+    if ibs.dbname == 'WD_Master' or hostname == 'wilddog':
+        all_part_types = all_part_types + [
+            'standard',
+            'short_black',
+            'long_black',
+            'double_black_brown',
+            'double_black_white',
+            'triple_black',
+            'long_white',
+        ]
+        all_part_types = sorted(list(set(all_part_types) - set([const.UNKNOWN])))
+
     if not refresh and previous_part_types is not None:
         try:
             for previous_part_type in previous_part_types:
@@ -3204,28 +3221,32 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
         len(current_part_types) - current_part_types.count(all_part_type)
         for all_part_type in all_part_types
     ]
-    combined_list = list(zip(all_part_type_count, all_part_types))
+    all_part_nices = [
+        const.PARTS_MAPPING.get(all_part_type, all_part_type)
+        for all_part_type in all_part_types
+    ]
+    combined_list = list(zip(all_part_type_count, all_part_nices, all_part_types))
 
     if refresh:
         print('REFRESHING!')
         combined_list = sorted(combined_list)
 
     part_type_count_list = [ combined[0] for combined in combined_list ]
-    part_type_list       = [ combined[1] for combined in combined_list ]
-
+    part_nice_list       = [ combined[1] for combined in combined_list ]
+    part_type_list       = [ combined[2] for combined in combined_list ]
     part_type_list_json = ut.to_json(part_type_list)
 
     hotkey_list = [ index + 1 for index in range(len(part_type_list)) ]
     part_type_selected_list = [ part_type == part_type_ for part_type_ in part_type_list ]
-    part_type_option_list = list(zip(hotkey_list, part_type_list, part_type_selected_list))
+    part_type_option_list = list(zip(hotkey_list, part_nice_list, part_type_list, part_type_selected_list))
     part_type_extended_list = []
     other_selected = False
 
-    zipped = list(zip(part_type_count_list, part_type_list, part_type_selected_list))
-    for index, (part_type_count, part_type, part_type_selected) in enumerate(zipped):
+    zipped = list(zip(part_type_count_list, part_nice_list, part_type_selected_list))
+    for index, (part_type_count, part_nice, part_type_selected) in enumerate(zipped):
         if part_type_selected:
-            part_type += ' (default)'
-        args = (len(current_part_types) - part_type_count, part_type, )
+            part_nice += ' (default)'
+        args = (len(current_part_types) - part_type_count, part_nice, )
         if index >= hotkeys:
             print('% 5d   : %s' % args)
         else:
@@ -3233,13 +3254,13 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
 
     if len(part_type_option_list) >= hotkeys:
         part_type_extended_list = part_type_option_list[hotkeys:]
-        part_type_list = part_type_option_list[:hotkeys]
+        part_type_option_list = part_type_option_list[:hotkeys]
         extended_flag_list = [_[3] for _ in part_type_extended_list]
 
         if True in extended_flag_list:
             other_selected = True
 
-    part_type_option_list = part_type_option_list + [ (len(all_part_types) + 1, 'Other', other_selected) ]
+    part_type_option_list = part_type_option_list + [ (len(part_type_option_list) + 1, 'Other', const.UNKNOWN, other_selected) ]
 
     callback_url = url_for('submit_part_types')
     return appf.template('turk', 'part_type',
