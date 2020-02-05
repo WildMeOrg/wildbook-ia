@@ -486,6 +486,18 @@ SPECIES_MAPPING = {
     UNKNOWN                  :     ('UNKNOWN', 'UNSPECIFIED'),
 }
 
+PARTS_MAPPING = {
+    'head'               : 'Head',
+    'standard'           : 'Standard Tail',
+    'short_black'        : 'Short Black Tail',
+    'long_black'         : 'Long Black Tail',
+    'double_black_brown' : 'Double Black Brown Tail',
+    'double_black_white' : 'Double Black White Tail',
+    'triple_black'       : 'Triple Black Tail',
+    'long_white'         : 'Long White Tail',
+    UNKNOWN              : 'UNSPECIFIED,'
+}
+
 
 class _ConstHelper(type):
     """

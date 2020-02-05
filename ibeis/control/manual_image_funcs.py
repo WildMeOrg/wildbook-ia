@@ -1037,7 +1037,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
     for gid in gid_list:
         _update_bounding_boxes(gid, val)
 
-    # Update the bounding box thetas
+    # Update the annotation bounding box thetas
     aids_list = ibs.get_image_aids(gid_list, is_staged=None)
     for aid_list in aids_list:
         if len(aid_list) == 0:
@@ -1046,6 +1046,17 @@ def update_image_rotate_90(ibs, gid_list, direction):
             ibs.update_annot_rotate_left_90(aid_list)
         else:
             ibs.update_annot_rotate_right_90(aid_list)
+
+    # Update the part bounding box thetas
+    aid_list = ut.flatten(aids_list)
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    for part_rowid_list in part_rowids_list:
+        if len(part_rowid_list) == 0:
+            continue
+        if val > 0:
+            ibs.update_part_rotate_left_90(part_rowid_list)
+        else:
+            ibs.update_part_rotate_right_90(part_rowid_list)
 
     ibs.delete_image_thumbs(gid_list)
 

@@ -58,13 +58,13 @@
           <input type="text" name="ia-part-type-value" value="" style="display: none;" readonly>
 
           <div class="row">
-            {% for part_type_index, part_type_text, part_type_selected in part_type_option_list %}
+            {% for part_type_index, part_nice_text, part_type_text, part_type_selected in part_type_option_list %}
               <div class="col-lg-3 col-md-3 col-sm-3" style="margin-bottom: 10px; text-align: center; {% if part_type_text == '____' %}padding-bottom: 20px;{% endif %}">
                 <div class="ia-part-type-button btn" id="ia-part-type-button-{{ part_type_index }}"  value="{{ part_type_text }}" style="position: relative;" {% if part_type_selected %}selected="selected"{% endif %}">
                   <div style="position: absolute; left: -8px; top: -8px; background: white; border: 1px solid #888; width: 17px; height: 17px; border-radius: 17px; font-size: 10px; z-index: 10; color: #888">
                     {{ part_type_index }}
                   </div>
-                  {{ part_type_text }}
+                  {{ part_nice_text }}
                 </div>
               </div>
             {% endfor %}
@@ -72,8 +72,8 @@
             <div id="ia-part-type-select-other" class="col-lg-3 col-md-3 col-sm-3" style="margin-bottom: 10px; text-align: center;">
               <div style="max-width: 200px; margin-left: auto; margin-right: auto;">
                 <select id="ia-part-type-new" class="form-control" name="ia-part-type-new" style="width: 100%;" autofocus="autofocus">
-                  {% for part_type_index, part_type_text, part_type_selected in part_type_extended_list %}
-                    <option value="{{ part_type_text }}" {% if part_type_selected %}selected{% endif %}>{{ part_type_text }}</option>
+                  {% for part_type_index, part_nice_text, part_type_text, part_type_selected in part_type_extended_list %}
+                    <option value="{{ part_type_text }}" {% if part_type_selected %}selected{% endif %}>{{ part_nice_text }}</option>
                   {% endfor %}
                 </select>
                 <span class="pull-left" data-toggle="modal" data-target="#part-type-add" style="color: #aaa; cursor: pointer;"><i>Add Part Type</i></span>
@@ -88,9 +88,12 @@
             <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_part_types') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}">Previous {{ previous }}</a>
           {% endif %}
           <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
+
           <br/>
           <br/>
 
+          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
           <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-refresh" class="btn btn-default pull-right" value="Refresh" style="margin-left: 20px; display: none">
 
         </form>

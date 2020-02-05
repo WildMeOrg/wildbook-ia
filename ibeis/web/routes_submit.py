@@ -1086,10 +1086,14 @@ def submit_species(**kwargs):
 def submit_part_types(**kwargs):
     ibs = current_app.ibs
 
+    import utool as ut
+    ut.embed()
+
     method = request.form.get('ia-part-type-submit', '')
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
+    # IF DECISION NOT IN previous_part_types, REFRESH = TRUE
     previous_part_types = request.form.get('ia-part-types', None)
     print('Using previous_part_types = %r' % (previous_part_types, ))
 
@@ -1099,6 +1103,7 @@ def submit_part_types(**kwargs):
         user = {}
     user_id = user.get('username', None)
 
+    refresh = False
     if method.lower() in u'refresh':
         print('[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
         redirection = request.referrer
@@ -1113,13 +1118,34 @@ def submit_part_types(**kwargs):
         else:
             redirection = '%s?refresh=true' % (redirection, )
         return redirect(redirection)
+    elif method.lower() == u'rotate left':
+        ibs.update_part_rotate_left_90([part_rowid])
+        print('[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        redirection = request.referrer
+        if 'part_rowid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+            else:
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+        return redirect(redirection)
+    elif method.lower() == u'rotate right':
+        ibs.update_part_rotate_right_90([part_rowid])
+        print('[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        redirection = request.referrer
+        if 'part_rowid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+            else:
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+        return redirect(redirection)
     else:
         part_type_text = kwargs.get('ia-part-type-value', '')
-        if part_type_text in ['Other', '']:
-            part_type_text = const.UNKNOWN
         ibs.set_part_types([part_rowid], [part_type_text])
         ibs.set_part_reviewed([part_rowid], [1])
 
+        refresh = part_type_text not in previous_part_types
         print('[web] user_id: %s, part_rowid: %d, type: %r'  % (user_id, part_rowid, part_type_text, ))
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1127,7 +1153,7 @@ def submit_part_types(**kwargs):
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(url_for('turk_part_types', imgsetid=imgsetid, previous=part_rowid,
-                                previous_part_types=previous_part_types))
+                                previous_part_types=previous_part_types, refresh=refresh))
 
 
 @register_route('/submit/quality/', methods=['POST'])

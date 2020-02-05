@@ -40,7 +40,7 @@ function update_buttons(clicked) {
   }
 
   other_select = $('#ia-part-type-select-other')
-  if (val == "Other") {
+  if (val == "____") {
     other_select.show()
     val = $("#ia-part-type-select-other :selected").val();
   } else {

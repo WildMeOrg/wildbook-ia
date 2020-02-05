@@ -849,6 +849,55 @@ def get_part_staged_metadata(ibs, part_rowid_list, return_raw=False):
 #### SETTERS ####  # NOQA
 
 
+def _update_part_rotate_fix_bbox(bbox):
+    (xtl, ytl, w, h) = bbox
+    diffx = int(round((w / 2.0) - (h / 2.0)))
+    diffy = int(round((h / 2.0) - (w / 2.0)))
+    xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+    bbox = (xtl, ytl, w, h)
+    return bbox
+
+
+def update_part_rotate_90(ibs, part_rowid_list, direction):
+    from ibeis.constants import PI, TAU
+
+    if isinstance(direction, six.string_types):
+        direction = direction.lower()
+
+    if direction in ['left', 'l', -1]:
+        val = 1.0
+    elif direction in ['right', 'r', 1]:
+        val = -1.0
+    else:
+        raise ValueError('Invalid direction supplied')
+
+    theta_list = ibs.get_part_thetas(part_rowid_list)
+    theta_list = [
+        (theta + (val * PI / 2)) % TAU
+        for theta in theta_list
+    ]
+    ibs.set_part_thetas(part_rowid_list, theta_list)
+
+    bbox_list = ibs.get_part_bboxes(part_rowid_list)
+    bbox_list = [
+        _update_part_rotate_fix_bbox(bbox)
+        for bbox in bbox_list
+    ]
+    ibs.set_part_bboxes(part_rowid_list, bbox_list)
+
+
+@register_ibs_method
+@register_api('/api/part/rotate/left/', methods=['POST'])
+def update_part_rotate_left_90(ibs, part_rowid_list):
+    return update_part_rotate_90(ibs, part_rowid_list, 'left')
+
+
+@register_ibs_method
+@register_api('/api/part/rotate/right/', methods=['POST'])
+def update_part_rotate_right_90(ibs, part_rowid_list):
+    return update_part_rotate_90(ibs, part_rowid_list, 'right')
+
+
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/part/annot/rowid/', methods=['PUT'])
