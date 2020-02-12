@@ -152,8 +152,20 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         # Add more verbose logging
         utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
         if utool_logfile_handler is not None:
-            logger_list = [
-                app.app.logger,
+            logger_list = []
+            try:
+                logger_list += [
+                    app.logger
+                ]
+            except AttributeError:
+                pass
+            try:
+                logger_list += [
+                    app.app.logger
+                ]
+            except AttributeError:
+                pass
+            logger_list += [
                 logging.getLogger('concurrent'),
                 logging.getLogger('concurrent.futures'),
                 logging.getLogger('flask_cors.core'),
