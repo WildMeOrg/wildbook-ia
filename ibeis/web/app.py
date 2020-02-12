@@ -17,7 +17,10 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 
 try:
-    from werkzeug.wsgi import DispatcherMiddleware
+    try:
+        from werkzeug.wsgi import DispatcherMiddleware
+    except:
+        from werkzeug.middleware.dispatcher import DispatcherMiddleware
     import prometheus_client
     from ibeis.web import prometheus  # NOQA
     PROMETHEUS = True
@@ -115,6 +118,8 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             app_.server_url = app.server_url
             app_.ibs = app.ibs
             app = app_
+        else:
+            print('SKIPPING PROMETHEUS')
 
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
@@ -147,8 +152,20 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         # Add more verbose logging
         utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
         if utool_logfile_handler is not None:
-            logger_list = [
-                app.app.logger,
+            logger_list = []
+            try:
+                logger_list += [
+                    app.logger,
+                ]
+            except AttributeError:
+                pass
+            try:
+                logger_list += [
+                    app.app.logger,
+                ]
+            except AttributeError:
+                pass
+            logger_list += [
                 logging.getLogger('concurrent'),
                 logging.getLogger('concurrent.futures'),
                 logging.getLogger('flask_cors.core'),
