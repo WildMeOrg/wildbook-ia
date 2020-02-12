@@ -78,7 +78,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     if url_suffix is None:
         url_suffix = ut.get_argval('--url', default='')
 
-    from ibeis import constants as const
+    # from ibeis import constants as const
     # ibs.https = const.HTTPS
 
     def _start_tornado(ibs_, port_):
@@ -95,7 +95,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         socket.setdefaulttimeout(None)
         app.server_port = port_
         # URL for the web instance
-        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port, )
+        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
         print('[web] Tornado server starting at %s' % (app.server_url,))
         # Launch the web browser to view the web interface and API
         if browser:
@@ -103,11 +103,6 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             import webbrowser
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
-
-        if const.HTTPS:
-            app.config.update({
-                'PREFERRED_URL_SCHEME': 'https',
-            })
 
         if PROMETHEUS:
             # Add prometheus wsgi middleware to route /metrics requests
@@ -152,20 +147,8 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         # Add more verbose logging
         utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
         if utool_logfile_handler is not None:
-            logger_list = []
-            try:
-                logger_list += [
-                    app.logger
-                ]
-            except AttributeError:
-                pass
-            try:
-                logger_list += [
-                    app.app.logger
-                ]
-            except AttributeError:
-                pass
-            logger_list += [
+            logger_list = [
+                app.app.logger,
                 logging.getLogger('concurrent'),
                 logging.getLogger('concurrent.futures'),
                 logging.getLogger('flask_cors.core'),
