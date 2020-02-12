@@ -4250,7 +4250,7 @@ def turk_identification_hardcase(*args, **kwargs):
     return turk_identification_graph(*args, **kwargs)
 
 
-@register_route('/turk/identification/graph/', methods=['GET'])
+@register_route('/turk/identification/graph/', methods=['GET', 'POST'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
                               view_orientation='vertical', view_version=1,
