@@ -50,6 +50,7 @@ CONFIG_URL_DICT = {
     'nassau_grouper_v0'          : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.grouper_nassau.v0.py',
     'spotted_dolphin_v0'         : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.dolphin_spotted.v0.py',
     'spotted_skunk_v0'           : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.skunk_spotted.v0.py',
+    'spotted_skunk_v1'           : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.skunk_spotted.v1.py',
 
     'spotted_dolphin_v1'         : 'https://wildbookiarepository.blob.core.windows.net/models/detect.lightnet.dolphin_spotted.v1.py',
 
