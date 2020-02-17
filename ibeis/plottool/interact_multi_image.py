@@ -36,7 +36,7 @@ class MultiImageInteraction(BASE_CLASS):
         >>> # ENABLE_DOCTEST
         >>> from plottool_ibeis.interact_multi_image import *  # NOQA
         >>> import utool as ut
-        >>> TEST_IMAGES_URL = 'https://wildbookiarepository.blob.core.windows.net/data/testdata.zip'
+        >>> TEST_IMAGES_URL = 'https://wildbookiarepository.azureedge.net/data/testdata.zip'
         >>> test_image_dir = ut.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
         >>> # test image paths
         >>> imgpaths       = ut.list_images(test_image_dir, fullpath=True, recursive=False)
