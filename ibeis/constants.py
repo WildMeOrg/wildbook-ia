@@ -324,15 +324,15 @@ WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT
 
 
 class ZIPPED_URLS(object):
-    PZ_DISTINCTIVE = 'https://wildbookiarepository.blob.core.windows.net/models/distinctivness_zebra_plains.zip'  # DEPRICATE
-    GZ_DISTINCTIVE = 'https://wildbookiarepository.blob.core.windows.net/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
+    PZ_DISTINCTIVE = 'https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_plains.zip'  # DEPRICATE
+    GZ_DISTINCTIVE = 'https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
 
-    PZ_MTEST       = 'https://wildbookiarepository.blob.core.windows.net/databases/PZ_MTEST.zip'
-    NAUTS          = 'https://wildbookiarepository.blob.core.windows.net/databases/NAUT_test.zip'
-    WDS            = 'https://wildbookiarepository.blob.core.windows.net/databases/wd_peter2.zip'
-    DF_CURVRANK    = 'https://wildbookiarepository.blob.core.windows.net/databases/testdb_curvrank.zip'
-    ID_EXAMPLE     = 'https://wildbookiarepository.blob.core.windows.net/databases/testdb_identification.zip'
-    K7_EXAMPLE     = 'https://wildbookiarepository.blob.core.windows.net/databases/testdb_kaggle7.zip'
+    PZ_MTEST       = 'https://wildbookiarepository.azureedge.net/databases/PZ_MTEST.zip'
+    NAUTS          = 'https://wildbookiarepository.azureedge.net/databases/NAUT_test.zip'
+    WDS            = 'https://wildbookiarepository.azureedge.net/databases/wd_peter2.zip'
+    DF_CURVRANK    = 'https://wildbookiarepository.azureedge.net/databases/testdb_curvrank.zip'
+    ID_EXAMPLE     = 'https://wildbookiarepository.azureedge.net/databases/testdb_identification.zip'
+    K7_EXAMPLE     = 'https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip'
 
 
 # Turn off features at Lewa :(
