@@ -7,7 +7,7 @@ from ibeis.scripts import classify_shark
 import numpy as np
 import vtool as vt
 
-modelStateLocation = "https://wildbookiarepository.blob.core.windows.net/models/classifier.lenet.whale_shark.pkl"
+modelStateLocation = "https://wildbookiarepository.azureedge.net/models/classifier.lenet.whale_shark.pkl"
 
 
 def classifyShark(ibs, gid_list):

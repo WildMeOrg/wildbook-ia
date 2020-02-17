@@ -941,7 +941,7 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
 
     # Load the SVM
     model_fname = 'interim_svc_injur-shark-hog_12559_224x224x3_ldhhxnxo.cPkl'
-    model_url = 'https://wildbookiarepository.blob.core.windows.net/models/{}'.format(model_fname)
+    model_url = 'https://wildbookiarepository.azureedge.net/models/{}'.format(model_fname)
     model_fpath = ut.grab_file_url(model_url, check_hash=False)
     clf = ut.load_cPkl(model_fpath)
 

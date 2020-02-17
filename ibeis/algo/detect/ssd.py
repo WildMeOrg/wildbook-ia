@@ -46,20 +46,20 @@ VERBOSE_SS = ut.get_argflag('--verbssd') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'pretrained-300-pascal'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.300.pascal.prototxt',
-    'pretrained-512-pascal'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.512.pascal.prototxt',
+    'pretrained-300-pascal'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.prototxt',
+    'pretrained-512-pascal'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.prototxt',
 
-    'pretrained-300-pascal-plus' : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.300.pascal.plus.prototxt',
-    'pretrained-512-pascal-plus' : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'pretrained-300-pascal-plus' : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.plus.prototxt',
+    'pretrained-512-pascal-plus' : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
 
-    'pretrained-300-coco'        : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.300.coco.prototxt',
-    'pretrained-512-coco'        : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.512.coco.prototxt',
+    'pretrained-300-coco'        : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.coco.prototxt',
+    'pretrained-512-coco'        : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.coco.prototxt',
 
-    'pretrained-300-ilsvrc'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.300.ilsvrc.prototxt',
-    'pretrained-500-ilsvrc'      : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.500.ilsvrc.prototxt',
+    'pretrained-300-ilsvrc'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.ilsvrc.prototxt',
+    'pretrained-500-ilsvrc'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.500.ilsvrc.prototxt',
 
-    'default'                    : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.512.pascal.plus.prototxt',
-    None                         : 'https://wildbookiarepository.blob.core.windows.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'default'                    : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    None                         : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
 }
 
 
