@@ -13,6 +13,7 @@ import utool as ut
 import uuid
 import requests
 import six
+import json
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -21,17 +22,19 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
 
-REMOTE_TESTING = False
+REMOTE_TESTING = True
 
 
-if REMOTE_TESTING:
+if not REMOTE_TESTING:
     REMOTE_DOMAIN = '127.0.0.1'
     REMOTE_PORT = '5555'
     REMOTE_UUID = None
 else:
-    REMOTE_DOMAIN = '35.161.135.191'
-    REMOTE_PORT = '5555'
-    REMOTE_UUID = 'e468d14b-3a39-4165-8f62-16f9e3deea39'
+    # info for flukebook background server
+    REMOTE_DOMAIN = 'kaiju.dyn.wildme.io'
+    REMOTE_PORT = '5015'
+    # https://kaiju.dyn.wildme.io:5015/api/core/db/uuid/init/
+    REMOTE_UUID = '511ab1d0-5af4-4808-b0a7-c8115240ab8e'
 
     remote_args = ut.get_arg_dict()
     REMOTE_DOMAIN = remote_args.get('sync-domain', REMOTE_DOMAIN)
@@ -55,7 +58,29 @@ def _construct_route_url(route_rule):
     return route_url
 
 
+@register_ibs_method
+def _construct_route_url_ibs(ibs, route_rule):
+    if not route_rule.startswith('/'):
+        route_rule = '/' + route_rule
+    if not route_rule.endswith('/'):
+        route_rule = route_rule + '/'
+    route_url = '%s%s' % (REMOTE_URL, route_rule, )
+    return route_url
+
+
 def _verify_response(response):
+    try:
+        response_dict = ut.from_json(response.text)
+    except ValueError:
+        raise AssertionError('Could not get valid JSON response from server')
+    status = response_dict.get('status', {})
+    assert status.get('success', False)
+    response = response_dict.get('response', None)
+    return response
+
+
+@register_ibs_method
+def _verify_response_ibs(ibs, response):
     try:
         response_dict = ut.from_json(response.text)
     except ValueError:
@@ -70,6 +95,13 @@ def _get(route_rule, **kwargs):
     route_url = _construct_route_url(route_rule)
     response = requests.get(route_url, **kwargs)
     return _verify_response(response)
+
+
+@register_ibs_method
+def _get_ibs(ibs, route_rule, **kwargs):
+    route_url = ibs._construct_route_url_ibs(route_rule)
+    response = requests.get(route_url, **kwargs)
+    return ibs._verify_response_ibs(response)
 
 
 def _assert_remote_online(ibs):
@@ -253,6 +285,131 @@ def _detect_remote_push_part_metadata(ibs, part_uuid_list):
                                      'part_tags_list',
                                      part_uuid_list,
                                      ibs.get_part_tag_text(part_rowid_list))
+
+
+@register_ibs_method
+def _sync_get_remote_info(ibs):
+    route_url = _construct_route_url('/api/core/db/info/')
+    response = requests.get(route_url)
+    _verify_response(response)
+    print(response.text)
+    return response
+
+
+@register_ibs_method
+def _sync_get_species_aids(ibs, species_name):
+    route_url = _construct_route_url('/api/annot/')
+    data_dict = {
+        'species': species_name,
+    }
+    response = requests.get(route_url, data=data_dict)
+    _verify_response(response)
+    return response.json()['response']
+
+
+# eubalaena_australis, eubalaena_glacialis
+@register_ibs_method
+def _sync_get_image(ibs, remote_image_rowid):
+    endpoint = "/api/image/%s/" % remote_image_rowid
+    return _get(endpoint)
+
+
+@register_ibs_method
+def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
+
+    aid_list   = ibs._sync_get_training_aids(species_name, **kwargs)
+    ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+    local_aids = []
+
+    # avoid re-downloading annots based on UUID
+    if not force_update:
+        local_ann_uuids  = set(ibs.get_valid_annot_uuids())
+        remote_ann_uuids = set(ann_uuids)
+        dupe_uuids = local_ann_uuids & remote_ann_uuids  # & is set-union
+        new_uuids  = remote_ann_uuids - dupe_uuids
+        local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
+        aid_list   = ibs._sync_get_aids_for_uuids(new_uuids)
+        ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+
+    # get needed info
+    viewpoints = ibs._sync_get_annot_endpoint('/api/annot/viewpoint/', aid_list)
+    bboxes     = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
+    thetas     = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
+    name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
+    name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
+    images     = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
+    gpaths     = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
+    specieses  = [species_name] * len(aid_list)
+
+    gid_list = ibs.add_images(gpaths)
+    nid_list = ibs.add_names(name_texts, name_uuids)
+
+    local_aids += ibs.add_annots(
+        gid_list,
+        bbox_list=bboxes,
+        theta_list=thetas,
+        species_list=specieses,
+        nid_list=nid_list,
+        annot_uuid_list=ann_uuids,
+        viewpoint_list=viewpoints
+    )
+
+    return local_aids
+
+
+@register_ibs_method
+def _sync_get_names(ibs, aid_list):
+    return ibs._sync_get_annot_endpoint('/api/annot/name/rowid/', aid_list)
+
+
+@register_ibs_method
+def _sync_get_annot_endpoint(ibs, endpoint, aid_list):
+    route_url = _construct_route_url(endpoint)
+    print('\tGetting info on %d aids from %s' % (len(aid_list), route_url, ))
+    data_dict = {
+        'aid_list': json.dumps(aid_list),
+    }
+    return _get(endpoint, data=data_dict)
+
+
+@register_ibs_method
+def _sync_get_aids_for_uuids(ibs, uuids):
+    data_dict = {
+        'uuid_list': ut.to_json(list(uuids)),
+    }
+    return ibs._get_ibs('/api/annot/rowid/uuid/', data=data_dict)
+
+
+@register_ibs_method
+def _sync_filter_only_multiple_sightings(ibs, aid_list):
+    r"""
+    Returns:
+        filtered_aids (list): the subset of aid_list such that every annot
+        has a name and each name appears at least 2x.
+    """
+    name_list = ibs._sync_get_names(aid_list)
+    name_hist = ut.dict_hist(name_list)
+    aid_names = zip(aid_list, name_list)
+    filtered_aids = [aid for (aid, name) in aid_names if name_hist[name] > 1]
+    filtered_aid_names = [name for (aid, name) in aid_names if name_hist[name] > 1]
+    return filtered_aids, filtered_aid_names
+
+
+@register_ibs_method
+def _sync_get_training_aids(ibs, species_name, limit=1000):
+    aid_list = ibs._sync_get_species_aids(species_name)
+    aid_list, name_list = ibs._sync_filter_only_multiple_sightings(aid_list)
+    # if limit is not None:
+    #     aid_list = ibs._sync_get_training_subset(aid_list, name_list, limit)
+    return aid_list[:limit]
+
+
+@register_ibs_method
+def _sync_get_training_subset(ibs, aid_list, name_list, limit):
+    min_aid_per_name = 2
+    max_aid_per_name = 5
+    name_to_aids = {}
+    pass
 
 
 @register_ibs_method

@@ -101,9 +101,19 @@ def parse_imageinfo(gpath):
                     uri_path = urlquote(uri_.path.encode('utf8'))
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
-                    # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
-                    response = requests.get(uri_, stream=True, allow_redirects=True)
-                    assert response.status_code == 200, '200 code not received on download'
+                    try:
+                        # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
+                        response = requests.get(uri_, stream=True, allow_redirects=True)
+                        assert response.status_code == 200, '200 code not received on download'
+                    except:
+                        scheme = urlsplit(uri_, allow_fragments=False).scheme
+                        uri_ = uri_.strip('%s://' % (scheme, ))
+                        uri_path = urlquote(uri_.encode('utf8'))
+                        uri_ = '%s://%s' % (scheme, uri_path, )
+                        # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
+                        response = requests.get(uri_, stream=True, allow_redirects=True)
+                        assert response.status_code == 200, '200 code not received on download'
+
                     # Save
                     with open(temp_filepath, 'wb') as temp_file_:
                         for chunk in response.iter_content(1024):

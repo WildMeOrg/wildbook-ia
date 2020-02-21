@@ -1706,7 +1706,6 @@ def get_annot_uuids(ibs, aid_list):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 # @register_api('/api/annot/uuid/valid/', methods=['GET'])
 def get_valid_annot_uuids(ibs):
     r"""
