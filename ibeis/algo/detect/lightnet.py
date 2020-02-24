@@ -46,7 +46,7 @@ CONFIG_URL_DICT = {
     'hendrik_elephant_ears_left' : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.ears.left.py',
     'hendrik_dorsal'             : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.dorsal.py',
     'humpback_dorsal'            : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_humpback.dorsal.v0.py',
-    'orca'                       : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_orca.v0.py',
+    'orca_v0'                    : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_orca.v0.py',
 
     'nassau_grouper_v0'          : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v0.py',
     'spotted_dolphin_v0'         : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.dolphin_spotted.v0.py',
