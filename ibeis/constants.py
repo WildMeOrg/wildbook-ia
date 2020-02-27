@@ -400,6 +400,10 @@ SPECIES_WITH_DETECTORS = (
     'stenella_frontalis',
     'stenella_frontalis+dorsal',
     'stenella_frontalis+fin_dorsal',
+    'whale_orca',
+    'whale_orca+fin_dorsal',
+    'orcinus_orca',
+    'orcinus_orca+fin_dorsal',
 )
 
 
