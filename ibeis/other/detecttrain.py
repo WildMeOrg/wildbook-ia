@@ -345,6 +345,7 @@ def _localizer_lightnet_template_replace(template_filepath, replace_dict, output
 def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
                              validate_with_accuracy=True, deploy_tag=None,
                              cleanup=True, cleanup_all=True, deploy=True,
+                             cache_species_str=None,
                              **kwargs):
     from ibeis.algo.detect import lightnet
     import subprocess
@@ -358,7 +359,8 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     _localizer_lightnet_validate_training_kit(lightnet_training_kit_url)
 
     hashstr = ut.random_nonce()[:16]
-    cache_species_str = '-'.join(species_list)
+    if cache_species_str is None:
+        cache_species_str = '-'.join(species_list)
 
     cache_path = join(ibs.cachedir, 'training', 'lightnet')
     ut.ensuredir(cache_path)
