@@ -4216,6 +4216,35 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid])
+    elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
+        imgsetid = 1
+
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        image_reviewed_list = ibs.get_image_reviewed(gid_list)
+        gid_list = ut.compress(gid_list, image_reviewed_list)
+
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        species_list = ibs.get_annot_species(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        quality_list = ibs.get_annot_quality_texts(aid_list)
+
+        flag_list = []
+        for aid, species_, viewpoint, quality in zip(aid_list, species_list, viewpoint_list, quality_list):
+            flag = True
+            if species_ is None or 'wild_dog' not in species_:
+                flag = False
+            if viewpoint is None or 'right' not in viewpoint:
+                flag = False
+            if quality in ['junk', 'poor']:
+                flag = False
+            flag_list.append(flag)
+
+        aid_list_ = ut.compress(aid_list, flag_list)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid])
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
