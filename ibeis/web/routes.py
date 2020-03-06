@@ -4184,6 +4184,22 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid])
+    elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
+        imgsetid = 1
+
+        ut.embed()
+
+        assert species in ['zebra_plains', 'zebra_grevys']
+        assert tier == 1
+
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        aid_list_ = _zebra_annot_filtering(ibs, current_aids=aid_list, desired_species=species)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid])
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
