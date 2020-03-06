@@ -1537,7 +1537,8 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
 @register_ibs_method
 def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(40, 9),
                                             target_recall=0.8, BEST_INDEX=None, offset_color=0,
-                                            write_images=False, plot_point=True, output_path=None, **kwargs):
+                                            write_images=False, plot_point=True, output_path=None, plot_iou_recall=True,
+                                            **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1608,54 +1609,55 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
 
     ######################################################################################
 
-    axes_ = plt.subplot(142)
-    axes_.set_autoscalex_on(False)
-    axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('IOU (Intersection / Union)')
-    axes_.set_ylabel('Recall')
-    axes_.set_xlim([0.0, 1.01])
-    axes_.set_ylim([0.0, 1.01])
+    if plot_iou_recall:
+        axes_ = plt.subplot(142)
+        axes_.set_autoscalex_on(False)
+        axes_.set_autoscaley_on(False)
+        axes_.set_xlabel('IOU (Intersection / Union)')
+        axes_.set_ylabel('Recall')
+        axes_.set_xlim([0.0, 1.01])
+        axes_.set_ylim([0.0, 1.01])
 
-    ret_list = [
-        localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
-        for color_, config_ in zip(color_list, config_list)
-    ]
+        ret_list = [
+            localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
+            for color_, config_ in zip(color_list, config_list)
+        ]
 
-    # area_list = [ ret[0] for ret in ret_list ]
-    # tup2_list = [ ret[3] for ret in ret_list ]
+        # area_list = [ ret[0] for ret in ret_list ]
+        # tup2_list = [ ret[3] for ret in ret_list ]
 
-    # best_index = None if BEST_INDEX is None else BEST_INDEX  # Match formatting of below, this is a silly conditional
+        # best_index = None if BEST_INDEX is None else BEST_INDEX  # Match formatting of below, this is a silly conditional
 
-    # best_y = 0.0
-    # best_index_ = None
-    # valid_best_index = []
-    # for index, tup2 in enumerate(tup2_list):
-    #     if tup2 is None:
-    #         continue
+        # best_y = 0.0
+        # best_index_ = None
+        # valid_best_index = []
+        # for index, tup2 in enumerate(tup2_list):
+        #     if tup2 is None:
+        #         continue
 
-    #     conf_list, x_list, y_list, length = tup2
-    #     y = y_list[0]
-    #     if best_y < y:
-    #         valid_best_index.append(index)
-    #         best_index_ = index
-    #         best_y = y
+        #     conf_list, x_list, y_list, length = tup2
+        #     y = y_list[0]
+        #     if best_y < y:
+        #         valid_best_index.append(index)
+        #         best_index_ = index
+        #         best_y = y
 
-    # # If user defined best_index is invalid, don't use it
-    # if best_index is None:
-    #     best_index = best_index_
-    # else:
-    #     if best_index not in valid_best_index:
-    #         best_index = None
+        # # If user defined best_index is invalid, don't use it
+        # if best_index is None:
+        #     best_index = best_index_
+        # else:
+        #     if best_index not in valid_best_index:
+        #         best_index = None
 
-    # if best_index is not None:
-    #     best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
-    #     color = 'xkcd:gold'
-    #     marker = 'D'
-    #     plt.plot(best_x_list, best_y_list, color=color, marker=marker)
+        # if best_index is not None:
+        #     best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
+        #     color = 'xkcd:gold'
+        #     marker = 'D'
+        #     plt.plot(best_x_list, best_y_list, color=color, marker=marker)
 
-    plt.title('Recall-IOU Curves', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+        plt.title('Recall-IOU Curves', y=1.19)
+        plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+                   borderaxespad=0.0)
 
     ######################################################################################
 
