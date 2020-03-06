@@ -727,7 +727,7 @@ def get_part_tag_text(ibs, part_rowid_list, **kwargs):
         >>> part_tags_list = ibs.get_part_tag_text(part_rowid_list, eager=eager)
         >>> assert len(part_rowid_list) == len(part_tags_list)
     """
-    part_type_list = ibs.get_part_type(part_rowid_list, **kwargs)
+    part_type_list = ibs.get_part_types(part_rowid_list, **kwargs)
     part_type_list = [
         part_type.lower().strip().replace(' ', '_')
         for part_type in part_type_list
