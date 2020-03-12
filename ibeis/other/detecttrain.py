@@ -421,7 +421,6 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     subprocess.call(call_str, shell=True)
     assert exists(backup_path)
 
-    import utool as ut
     ut.embed()
 
     # Call testing
