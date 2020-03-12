@@ -437,7 +437,6 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
     if len(line_list) < 10:
         print('VALIDATION ERROR!')
-        import utool as ut
         ut.embed()
 
     result_list = []
