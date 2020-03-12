@@ -46,7 +46,7 @@ def export_to_pascal(ibs, *args, **kwargs):
 def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, gid_list=None, output_path=None,
-                  min_annot_size=5, **kwargs):
+                  allow_empty_images=False, min_annot_size=5, **kwargs):
     """Create training XML for training models."""
     import random
     from datetime import date
@@ -158,7 +158,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
-        if len(aid_list) > -1:
+        if len(aid_list) > 0 or allow_empty_images:
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA

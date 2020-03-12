@@ -414,15 +414,18 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     subprocess.call(call_str, shell=True)
 
     # Call training
-    # Example: CUDA_VISIBLE_DEVICES=0 python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
+    # Example: CUDA_VISIBLE_DEVICES=X python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
     args = (cuda_str, python_exe, train_py_path, config_py_path, backup_path, weights_path)
     call_str = '%s%s %s -c -n %s -b %s %s' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(backup_path)
 
+    import utool as ut
+    ut.embed()
+
     # Call testing
-    # Example: CUDA_VISIBLE_DEVICE=0 python bin/test.py -c -n cfg/yolo.py
+    # Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py
     args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
     call_str = '%s%s %s -c -n %s --results %s %s/*' % args
     print(call_str)
@@ -433,8 +436,14 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     with open(results_path, 'r') as results_file:
         line_list = results_file.readlines()
 
+    if len(line_list) < 10:
+        print('VALIDATION ERROR!')
+        import utool as ut
+        ut.embed()
+
     result_list = []
     for line in line_list:
+        print(line)
         line = line.strip().split(',')
         if len(line) != 3:
             continue
@@ -446,6 +455,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
             result = (miss_rate, loss, model_path)
         else:
             result = (loss, miss_rate, model_path)
+        print('\t%r' % (result, ))
         result_list.append(result)
     result_list = sorted(result_list)
 
