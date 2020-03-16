@@ -61,6 +61,7 @@ CONFIG_URL_DICT = {
 
     'iot_v0'                     : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.iot.v0.py',
     'wilddog_v0'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.wild_dog.v0.py',
+    'leopard_v0'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard.v0.py',
 
     'kitsci_v0'                  : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.kitsci.v0.py',
 
