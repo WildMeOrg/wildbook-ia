@@ -423,6 +423,122 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
     ut.embed()
 
+    '''
+    x = (
+        'CUDA_VISIBLE_DEVICES=3 ',
+        '/home/jason.parham/virtualenv/wildme3.6/bin/python',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup',
+        True,
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/deploy',
+        True,
+        None,
+        False,
+        True,
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/data',
+        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/darknet19_448.conv.23.pt',
+        'wilddog'
+    )
+
+    cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x
+
+    call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py -c -n /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py --results /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup/*'
+     '''
+
+    # Call testing
+    # Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py
+    args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
+    call_str = '%s%s %s -c -n %s --results %s %s/*' % args
+    print(call_str)
+    subprocess.call(call_str, shell=True)
+    assert exists(results_path)
+
+    # Validate results
+    with open(results_path, 'r') as results_file:
+        line_list = results_file.readlines()
+
+    if len(line_list) < 10:
+        print('VALIDATION ERROR!')
+        ut.embed()
+
+    result_list = []
+    for line in line_list:
+        print(line)
+        line = line.strip().split(',')
+        if len(line) != 3:
+            continue
+        model_path, loss, accuracy = line
+        loss = float(loss)
+        accuracy = float(accuracy)
+        miss_rate = (100.0 - accuracy) / 100.0
+        if validate_with_accuracy:
+            result = (miss_rate, loss, model_path)
+        else:
+            result = (loss, miss_rate, model_path)
+        print('\t%r' % (result, ))
+        result_list.append(result)
+    result_list = sorted(result_list)
+
+    best_result = result_list[0]
+    best_model_filepath = best_result[-1]
+
+    # Copy best model, delete the rest
+    ut.ensuredir(deploy_path)
+    deploy_model_filepath = join(deploy_path, 'detect.lightnet.weights')
+    deploy_config_filepath = join(deploy_path, 'detect.lightnet.py')
+    ut.copy(best_model_filepath, deploy_model_filepath)
+    ut.copy(config_py_path, deploy_config_filepath)
+
+    # Cleanup
+    if cleanup:
+        ut.delete(backup_path)
+        ut.delete(results_path)
+
+        if cleanup_all:
+            ut.delete(bin_path)
+            ut.delete(cfg_path)
+            ut.delete(data_path)
+            ut.delete(weights_path)
+
+    # Deploy
+    final_path = join('/', 'data', 'public', 'models')
+    if deploy:
+        assert exists(final_path), 'Cannot deploy the model on this machine'
+        if deploy_tag is None:
+            deploy_tag = cache_species_str
+
+        counter = 0
+        while True:
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter, )
+            final_config_filename = '%s.py' % (final_config_prefix, )
+            final_config_filepath = join(final_path, final_config_filename)
+            if not exists(final_config_filepath):
+                break
+            counter += 1
+
+        final_model_filename = '%s.weights' % (final_config_prefix, )
+        final_model_filepath = join(final_path, final_model_filename)
+
+        assert not exists(final_model_filepath)
+        assert not exists(final_config_filepath)
+
+        ut.copy(deploy_model_filepath, final_model_filepath)
+        ut.copy(deploy_config_filepath, final_config_filepath)
+
+        retval = (final_model_filepath, final_config_filepath, )
+    else:
+        retval = (deploy_model_filepath, deploy_config_filepath, )
+
+    return retval
+
+
+def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str):
+    import subprocess
+
     # Call testing
     # Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py
     args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
@@ -581,50 +697,50 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
     return archive_path
 
 
-@register_ibs_method
-def orientation_train(ibs, category_list, ensembles=3, **kwargs):
-    from ibeis.other.detectexport import get_cnn_orientation_training_images_pytorch
-    from ibeis.algo.detect import orientation
+# @register_ibs_method
+# def orientation_train(ibs, category_list, ensembles=3, **kwargs):
+#     from ibeis.other.detectexport import get_cnn_orientation_training_images_pytorch
+#     from ibeis.algo.detect import orientation
 
-    species = '-'.join(species_list)
-    args = (species, )
-    data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
-    extracted_path = get_cnn_labeler_training_images_pytorch(
-        ibs,
-        category_list=species_list,
-        category_mapping=species_mapping,
-        viewpoint_mapping=viewpoint_mapping,
-        dest_path=data_path,
-        **kwargs
-    )
+#     species = '-'.join(species_list)
+#     args = (species, )
+#     data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
+#     extracted_path = get_cnn_labeler_training_images_pytorch(
+#         ibs,
+#         category_list=species_list,
+#         category_mapping=species_mapping,
+#         viewpoint_mapping=viewpoint_mapping,
+#         dest_path=data_path,
+#         **kwargs
+#     )
 
-    weights_path_list = []
-    for ensemble_num in range(ensembles):
-        args = (species, ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args)
-        if exists(output_path):
-            ut.delete(output_path)
-        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
-        weights_path_list.append(weights_path)
+#     weights_path_list = []
+#     for ensemble_num in range(ensembles):
+#         args = (species, ensemble_num, )
+#         output_path = join(ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args)
+#         if exists(output_path):
+#             ut.delete(output_path)
+#         weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
+#         weights_path_list.append(weights_path)
 
-    args = (species, )
-    output_name = 'labeler.%s' % args
-    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
-    ut.ensuredir(ensemble_path)
+#     args = (species, )
+#     output_name = 'labeler.%s' % args
+#     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+#     ut.ensuredir(ensemble_path)
 
-    archive_path = '%s.zip' % (ensemble_path)
-    ensemble_weights_path_list = []
+#     archive_path = '%s.zip' % (ensemble_path)
+#     ensemble_weights_path_list = []
 
-    for index, weights_path in enumerate(sorted(weights_path_list)):
-        assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index, ))
-        ut.copy(weights_path, ensemble_weights_path)
-        ensemble_weights_path_list.append(ensemble_weights_path)
+#     for index, weights_path in enumerate(sorted(weights_path_list)):
+#         assert exists(weights_path)
+#         ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index, ))
+#         ut.copy(weights_path, ensemble_weights_path)
+#         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+#     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+#     ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
 
-    return archive_path
+#     return archive_path
 
 
 # @register_ibs_method
