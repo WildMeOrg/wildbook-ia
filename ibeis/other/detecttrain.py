@@ -350,6 +350,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     from ibeis.algo.detect import lightnet
     import subprocess
     import datetime
+    import math
     import sys
 
     assert species_list is not None
@@ -467,17 +468,21 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
     result_list = []
     for line in line_list:
-        print(line)
+        # print(line)
         line = line.strip().split(',')
         if len(line) != 3:
             continue
         model_path, loss, accuracy = line
         loss = float(loss)
         accuracy = float(accuracy)
+        if math.isnan(accuracy):
+            continue
         miss_rate = (100.0 - accuracy) / 100.0
         if validate_with_accuracy:
+            assert not math.isnan(miss_rate)
             result = (miss_rate, loss, model_path)
         else:
+            assert not math.isnan(loss)
             result = (loss, miss_rate, model_path)
         print('\t%r' % (result, ))
         result_list.append(result)
