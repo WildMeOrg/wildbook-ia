@@ -389,6 +389,12 @@ SPECIES_WITH_DETECTORS = (
     'whale_orca',
     'whale_orca+fin_dorsal',
     'leopard',
+    'wild_dog',
+    'wild_dog_dark',
+    'wild_dog_light',
+    'wild_dog_puppy',
+    'wild_dog_standard',
+    'wild_dog_tan',
     # Latin (Flukebook)
     'chelonia_mydas',
     'chelonia_mydas+head',
@@ -420,6 +426,7 @@ SPECIES_WITH_DETECTORS = (
     'panthera_pardus',
     'panthera_onca',
     'acinonyx_jubatus',
+    'lycaon_pictus',
 )
 
 
