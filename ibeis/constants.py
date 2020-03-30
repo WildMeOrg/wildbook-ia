@@ -381,6 +381,7 @@ SPECIES_WITH_DETECTORS = (
     'turtle_oliveridley',
     'turtle_oliveridley+head',
     'turtle_sea',
+    'turtle_sea+head',
     'whale_fluke',
     'whale_humpback',
     'whale_humpback+fin_dorsal',
@@ -396,6 +397,8 @@ SPECIES_WITH_DETECTORS = (
     'wild_dog_standard',
     'wild_dog_tan',
     # Latin (Flukebook)
+    'chelonioidea',
+    'chelonioidea+head',
     'chelonia_mydas',
     'chelonia_mydas+head',
     'eretmochelys_imbricata',
