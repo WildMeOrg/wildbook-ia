@@ -1,6 +1,6 @@
 setuptools>=34.1.0
 Cython>=0.24
-Pillow==6.2.1
+Pillow==6.2.2
 Pygments>=2.1.3
 boto>=2.20.1
 cachetools>=1.1.6

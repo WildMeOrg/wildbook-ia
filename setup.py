@@ -83,7 +83,7 @@ INSTALL_REQUIRES = [
     'guitool >= 1.0.0.dev1',
     'plottool >= 1.0.0.dev1',
     'scipy >= 0.13.2',
-    'Pillow >= 6.2.1',
+    'Pillow >= 6.2.2',
     'psutil',
     'requests >= 0.8.2',
     #'setproctitle >= 1.1.8',
