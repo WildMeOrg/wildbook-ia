@@ -332,6 +332,7 @@ class ZIPPED_URLS(object):
     WDS            = 'https://wildbookiarepository.azureedge.net/databases/wd_peter2.zip'
     DF_CURVRANK    = 'https://wildbookiarepository.azureedge.net/databases/testdb_curvrank.zip'
     ID_EXAMPLE     = 'https://wildbookiarepository.azureedge.net/databases/testdb_identification.zip'
+    ORIENTATION    = 'https://wildbookiarepository.azureedge.net/databases/testdb_orientation.zip'
     K7_EXAMPLE     = 'https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip'
 
 
@@ -367,6 +368,7 @@ SPECIES_WITH_DETECTORS = (
     'giraffe_reticulated',
     'jaguar',
     'lynx',
+    'manta_ray',
     'manta_ray_giant',
     'right_whale_head',
     'seadragon_leafy',
@@ -483,6 +485,7 @@ SPECIES_MAPPING = {
     'lionfish'                  :          ('LF', 'Lionfish'),
     'lynx'                      :        ('LYNX', 'Lynx'),
     'manta_ray_giant'           :          ('MR', 'Manta Ray (Giant)'),
+    'manta_ray'                 :          (None, 'manta_ray_giant'),
     'morotcycle'                :       ('MBIKE', 'Motorcycle'),
     'nautilus'                  :        ('NAUT', 'Nautilus'),
     'ostrich'                   :        ('OST',  'Ostrich'),

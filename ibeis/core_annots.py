@@ -555,7 +555,7 @@ class AnnotMaskConfig(dtool.Config):
     colnames=['img', 'width', 'height'],
     coltypes=[('extern', vt.imread), int, int],
     configclass=AnnotMaskConfig,
-    fname='../maskcache2',
+    fname='maskcache2',
     # isinteractive=True,
 )
 def compute_annotmask(depc, aid_list, config=None):
