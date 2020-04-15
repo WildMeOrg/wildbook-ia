@@ -122,6 +122,11 @@ if ut.get_argflag('--kaggle7') or ut.get_argflag('--kaggleseven'):
         (('--no-kaggle7', '--nokaggle7', '--no-kaggleseven', '--nokaggleseven'), 'ibeis_kaggle7._plugin'),
     ]
 
+if ut.get_argflag('--orient2d'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-2d-orient', '--no2dorient'), 'ibeis_2d_orientation._plugin'),
+    ]
+
 
 """
 # Should import

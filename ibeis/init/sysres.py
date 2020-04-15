@@ -770,6 +770,10 @@ def ensure_testdb_curvrank():
     return ensure_db_from_url(const.ZIPPED_URLS.DF_CURVRANK)
 
 
+def ensure_testdb_orientation():
+    return ensure_db_from_url(const.ZIPPED_URLS.ORIENTATION)
+
+
 def ensure_testdb_identification_example():
     return ensure_db_from_url(const.ZIPPED_URLS.ID_EXAMPLE)
 
