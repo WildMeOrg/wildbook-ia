@@ -29,7 +29,9 @@ ARCHIVE_URL_DICT = {
     'ryan_densenet_v2'          : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.ryan.densenet.v2.zip',
 
     'megan_argentina_v1'        : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.argentina.densenet.v1.zip',
+
     'megan_kenya_v1'            : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v1.zip',
+    'megan_kenya_v2'            : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v2.zip',
 
     'zebra_v1'                  : 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_grevys-zebra_plains.v1.zip',
     'giraffe_v1'                : 'https://wildbookiarepository.azureedge.net/models/labeler.giraffe.v1.zip',
