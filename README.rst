@@ -37,10 +37,38 @@ to install the software. Then the command to run the GUI is:
     ibeis
 
 On Windows / OSX I recommend using a Linux virtual machine. However, if you are
-computer savy it is possible to build all of the requirements on from source.
+computer savvy it is possible to build all of the requirements on from source.
 The only tricky components are installing the packages with binary
 dependencies: ``pyhesaff`` and ``vtool_ibeis``. If you have these built then
 the rest of the dependencies can be installed from pypi even on OSX / Windows.
+
+
+Running the ``ibeis`` command will open the GUI:
+
+.. image:: https://i.imgur.com/xXF7w8P.png
+
+You can drag and drop images into the GUI to add them to the database.  Double
+clicking an image lets you add "annotations":
+
+.. image:: https://i.imgur.com/t0LQZot.png
+
+Once you have annotations, you can click one and press "q" to search for
+matches:
+
+
+.. image:: https://i.imgur.com/B0ilafa.png
+
+Right clicking and marking each match as "True" or "False" (or alternatively
+selecting a row and pressing "T" or "F") will mark images as the same or
+different individuals. Groups marked as the same individual will appear in the
+"Tree of Names".
+
+Note there are also batch identification methods in the "ID Encounters" "ID
+Exemplars" and "Advanced ID Interface" (my personal recommendation). Play
+around with different right-click menus (although note that some of these are
+buggy and will crash the program), but the main simple identification
+procedures are robust and should not crash.
+
 
 Program Description
 -------------------
@@ -51,8 +79,8 @@ species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.  This This repo Image Analysis image
 analysis module of IBEIS. It is both a python module and standalone program. 
 
-Currently the system is build around and SQLite database, a PyQt4 GUI, and
-matplotlib visualizations. Algorithms employed are: random forest species
+Currently the system is build around and SQLite database, a PyQt4 / PyQt5 GUI,
+and matplotlib visualizations. Algorithms employed are: random forest species
 detection and localization, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
 Algorithms in development are SMK (selective match kernel) for identification
@@ -65,10 +93,11 @@ data management and algorithms. The IBEIS API Documentation can be found here:
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
-## Self Installing Executables:
+Self Installing Executables
+---------------------------
 
 Unfortunately we have not released self-installing-executables for IBEIS yet. 
-We plan to release these "soon". 
+We ~plan~ hope to release these "soon". 
 
 However there are old HotSpotter (the software which IBEIS is based on)
 binaries available. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
