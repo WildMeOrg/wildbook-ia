@@ -14,6 +14,21 @@ I.B.E.I.S. = Image Based Ecological Information System
 .. image:: http://i.imgur.com/TNCiEBe.png
     :alt: "(Note: the rhino and wildebeest mathces may be dubious. Other species do work well though")
 
+
+Installation Instructions (updated 2020-May-03)
+-----------------------------------------------
+
+The IBEIS software is now available on `pypi
+<https://pypi.org/project/ibeis/>`_ for Linux systems. This means if you have
+`Python installed
+<https://xdoctest.readthedocs.io/en/latest/installing_python.html>`_. You can
+simply run ``pip install ibeis`` to install the software. Then the command to
+run the software is simply ``ibeis``.
+
+On Windows I recommend using a Linux virtual machine. However, if you are
+computer savy it is possible to build all of the requirements on Windows
+machines. The same is true for OSX machines.
+
 Program Description
 -------------------
 
