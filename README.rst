@@ -162,8 +162,6 @@ The IBEIS module itself:
 IBEIS Development Environment Setup 
 ------------------------------------
 
-NOTE: this section is outdated.
-
 .. code:: bash
 
     # The following install script install ibeis and all dependencies. 
@@ -222,7 +220,7 @@ The new way of running tests is with xdoctest, or using the "run_doctests.sh" sc
 Example usage
 --------------
 
-(Note: This list is far from complete)
+(Note: This list is far from complete, and some commands may be outdated)
 
 .. code:: bash
 
