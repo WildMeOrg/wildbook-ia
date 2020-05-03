@@ -22,12 +22,25 @@ The IBEIS software is now available on `pypi
 <https://pypi.org/project/ibeis/>`_ for Linux systems. This means if you have
 `Python installed
 <https://xdoctest.readthedocs.io/en/latest/installing_python.html>`_. You can
-simply run ``pip install ibeis`` to install the software. Then the command to
-run the software is simply ``ibeis``.
+simply run:
 
-On Windows I recommend using a Linux virtual machine. However, if you are
-computer savy it is possible to build all of the requirements on Windows
-machines. The same is true for OSX machines.
+
+.. code:: bash
+
+    pip install ibeis
+
+to install the software. Then the command to run the GUI is:
+
+
+.. code:: bash
+
+    ibeis
+
+On Windows / OSX I recommend using a Linux virtual machine. However, if you are
+computer savy it is possible to build all of the requirements on from source.
+The only tricky components are installing the packages with binary
+dependencies: ``pyhesaff`` and ``vtool_ibeis``. If you have these built then
+the rest of the dependencies can be installed from pypi even on OSX / Windows.
 
 Program Description
 -------------------
