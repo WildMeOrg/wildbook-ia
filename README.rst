@@ -52,8 +52,8 @@ clicking an image lets you add "annotations":
 
 .. image:: https://i.imgur.com/t0LQZot.png
 
-Once you have annotations, you can click one and press "q" to search for
-matches:
+Once you have annotations, you can click one and press "q" to query for matches
+in the database of other annotations:
 
 
 .. image:: https://i.imgur.com/B0ilafa.png
