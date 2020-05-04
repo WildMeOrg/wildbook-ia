@@ -3940,6 +3940,7 @@ def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
     imageset_rowid_list = ibs.get_valid_imgsetids()
     imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
 
+    years = []
     invalid_text_list = []
     valid_imageset_rowid_list = []
     for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
@@ -3950,6 +3951,7 @@ def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
         flag = False
         for accepted_year in accepted_years:
             if accepted_year in imageset_text:
+                years.append(accepted_year)
                 flag = True
         if not flag:
             invalid_text_list.append(imageset_text)
@@ -3975,6 +3977,24 @@ def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
 def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2019, **kwargs):
 
     valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
+
+    if tier in [0]:
+        candidate_aids_list = ibs.get_imageset_aids(valid_imageset_rowid_list)
+        candidate_aid_list = list(set(ut.flatten(candidate_aids_list)))
+        aids = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
+
+        config = {'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4'}
+        prediction_list = ibs.depc_annot.get_property('classifier', aids, 'class', config=config)
+        confidence_list = ibs.depc_annot.get_property('classifier', aids, 'score', config=config)
+        confidence_list = [
+            confidence if prediction == 'positive' else 1.0 - confidence
+            for prediction, confidence in zip(prediction_list, confidence_list)
+        ]
+        flag_list = [confidence >= 0.31 for confidence in confidence_list]
+
+        ca_aids = ut.compress(aids, flag_list)
+        new_aid_list  = sorted(list(set(ca_aids)))
+        return new_aid_list
 
     if tier in [6]:
         all_aid_list = ibs.get_valid_aids()
@@ -4087,10 +4107,11 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
-        from ibeis.algo.graph import mixin_loops
-        mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(desired_species='zebra', tier=4)
+        if tier not in [0]:
+            from ibeis.algo.graph import mixin_loops
+            mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(desired_species='zebra', tier=4)
 
-        assert imgsetid == 3925
+        assert imgsetid in [3925, 3926]
 
         assert species in ['zebra_plains', 'zebra_grevys']
         aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=tier, year=year)
