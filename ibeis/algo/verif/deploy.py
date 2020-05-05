@@ -23,7 +23,7 @@ class Deployer(object):
 
     publish_info = {
         # 'remote': 'cthulhu.dyn.wildme.io',
-        'path': '/media/hdd/PUBLIC/models/pairclf',
+        'path': '/data/public/models/pairclf',
     }
 
     published = {
@@ -32,7 +32,8 @@ class Deployer(object):
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',  # OLD PRE-TRAINED 0
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.kukigovqipdrjihg.ggr2.cPkl',  # GGR2 0
-            'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.qysrjnzuiziikxzp.kaia.cPkl',  # Kaia GZ CAs
         },
         'zebra_plains': {
             'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',  # OLD PRE-TRAINED
