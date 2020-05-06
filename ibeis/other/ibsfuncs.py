@@ -642,9 +642,11 @@ def check_image_loadable(ibs, gid_list=None):
 def check_image_loadable_worker(gpath, orient):
     loadable, exif = True, True
     try:
-        img = Image.open(gpath, 'r')
-        assert img is not None
         img = cv2.imread(gpath)
+        assert img is not None
+        # Sanitize weird behavior
+        cv2.imwrite(gpath, img)
+        img = Image.open(gpath, 'r')
         assert img is not None
         img = io.imread(gpath)
         assert img is not None
