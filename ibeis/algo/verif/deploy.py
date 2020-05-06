@@ -22,8 +22,8 @@ class Deployer(object):
     meta_suffix = '.meta.json'
 
     publish_info = {
-        # 'remote': 'cthulhu.dyn.wildme.io',
-        'path': '/media/hdd/PUBLIC/models/pairclf',
+        'remote': 'cthulhu.dyn.wildme.io',
+        'path': '/data/public/models/pairclf',
     }
 
     published = {
@@ -32,7 +32,8 @@ class Deployer(object):
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',  # OLD PRE-TRAINED 0
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.kukigovqipdrjihg.ggr2.cPkl',  # GGR2 0
-            'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.qysrjnzuiziikxzp.kaia.cPkl',  # Kaia GZ CAs
         },
         'zebra_plains': {
             'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',  # OLD PRE-TRAINED
@@ -54,6 +55,7 @@ class Deployer(object):
         >>> species = 'zebra_plains'
         >>> task_key = 'match_state'
         """
+
         base_url = 'https://{remote}/public/models/pairclf'.format(
             **self.publish_info)
 
@@ -62,8 +64,8 @@ class Deployer(object):
 
         grabkw = dict(appname='ibeis', check_hash=False, verbose=0)
 
-        # meta_url = base_url + '/' + fname + self.meta_suffix
-        # meta_fpath = ut.grab_file_url(meta_url, **grabkw)
+        meta_url = base_url + '/' + fname + self.meta_suffix
+        meta_fpath = ut.grab_file_url(meta_url, **grabkw)  # NOQA
 
         deploy_url = base_url + '/' + fname
         deploy_fpath = ut.grab_file_url(deploy_url, **grabkw)
@@ -205,10 +207,12 @@ class Deployer(object):
 
     def load_published(self, ibs, species):
         task_fnames = self.published[species]
+        print('loading published: %r' % (task_fnames, ))
         classifiers = {
             task_key: self._load_published(ibs, species, task_key)
             for task_key in task_fnames.keys()
         }
+        print('loaded classifiers: %r' % (classifiers, ))
         return classifiers
 
     def find_pretrained(self):
