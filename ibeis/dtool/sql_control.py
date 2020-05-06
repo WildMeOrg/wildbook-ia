@@ -876,8 +876,9 @@ class SQLDatabaseController(object):
         params_iter_ = list(params_iter)
         params_length = len(params_iter_)
 
-        args = (tblname, params_length, )
-        print('Using sql_control.get_where_eq_set() for %r on %d params' % args)
+        if params_length > 0:
+            args = (tblname, params_length, )
+            print('Using sql_control.get_where_eq_set() for %r on %d params' % args)
 
         if params_length == 0:
             return []
