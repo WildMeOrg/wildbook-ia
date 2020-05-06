@@ -1136,8 +1136,12 @@ def compute_feats(depc, cid_list, config=None):
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
         featgen = ut.generate2(
-            gen_feat_worker, arg_list, nTasks=nInput, ordered=True,
-            force_serial=ibs.force_serial, progkw={'freq': 1},
+            gen_feat_worker,
+            arg_list,
+            nTasks=nInput,
+            ordered=True,
+            force_serial=ibs.force_serial,
+            progkw={'freq': 1},
             futures_threaded=True,
         )
     elif feat_type == 'hesaff+siam128':
@@ -1261,7 +1265,10 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     # Force grayscale reading of chips
     arg_iter = zip(kpts_list, probchip_list, chipsize_list)
     featweight_gen = ut.generate2(
-        gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True,
+        gen_featweight_worker,
+        arg_iter,
+        nTasks=nTasks,
+        ordered=True,
         force_serial=ibs.force_serial,
         progkw={'freq': 1},
         futures_threaded=True,
