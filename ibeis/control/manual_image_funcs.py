@@ -236,9 +236,16 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
 
     # Create param_iter
     # params_list = list(preproc_image.add_images_params_gen(gpath_list))
-    params_list = list(ut.generate2(
-        preproc_image.parse_imageinfo, zip(gpath_list),
-        nTasks=len(gpath_list), force_serial=ibs.force_serial))
+    params_list = list(
+        ut.generate2(
+            preproc_image.parse_imageinfo,
+            list(zip(gpath_list)),
+            nTasks=len(gpath_list),
+            ordered=True,
+            force_serial=ibs.force_serial,
+            futures_threaded=True,
+        )
+    )
 
     # Error reporting
     failed_list = [
