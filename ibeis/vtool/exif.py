@@ -225,7 +225,7 @@ def get_unixtime_gps(exif_dict, default=-1):
 
                 unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
                 return unixtime
-            except:
+            except Exception:
                 pass
 
     return default
