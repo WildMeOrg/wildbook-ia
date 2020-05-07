@@ -181,6 +181,7 @@ class WebException(ut.NiceRepr, Exception):
 
         from ibeis.web.app import PROMETHEUS
         if PROMETHEUS:
+            ibs = flask.current_app.ibs
             tag = '%s' % (self.code, )
             ibs.prometheus_increment_exception(tag)
 
