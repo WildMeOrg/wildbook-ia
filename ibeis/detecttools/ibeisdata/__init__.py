@@ -80,12 +80,12 @@ class IBEIS_Data(object):  # NOQA
             try:
                 images = int(images)
                 images = '% 5d' % (images, )
-            except:
+            except Exception:
                 pass
             try:
                 rois = int(rois)
                 rois = '% 5d' % (rois, )
-            except:
+            except Exception:
                 pass
             print("%s%s\t%s" % (category + " " * (spacing - len(category)),
                                     images, rois))
