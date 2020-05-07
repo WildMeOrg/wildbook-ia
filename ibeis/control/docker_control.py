@@ -9,7 +9,7 @@ try:
     import docker
     DOCKER_CLIENT = docker.from_env()
     assert DOCKER_CLIENT is not None
-except:
+except Exception:
     print('Local docker client is not available')
     DOCKER_CLIENT = None
     raise RuntimeError('Failed to connect to Docker for Deepsense Plugin')

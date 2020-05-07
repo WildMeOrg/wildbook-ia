@@ -854,7 +854,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                             view_orientation=view_orientation,
                             draw_matches=True,
                             draw_heatmask=False)
-                    except:
+                    except Exception:
                         filepath_matches = None
                         extern_flag = 'error'
                     try:
@@ -863,7 +863,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                             view_orientation=view_orientation,
                             draw_matches=False,
                             draw_heatmask=True)
-                    except:
+                    except Exception:
                         filepath_heatmask = None
                         extern_flag = 'error'
                     try:
@@ -872,7 +872,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                             view_orientation=view_orientation,
                             draw_matches=False,
                             draw_heatmask=False)
-                    except:
+                    except Exception:
                         filepath_clean = None
                         extern_flag = 'error'
 

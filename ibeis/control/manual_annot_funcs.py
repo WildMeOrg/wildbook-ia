@@ -2159,13 +2159,13 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
         update_aid_list = ut.compress(aid_list, flag_list)
         try:
             ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
-        except:
+        except Exception:
             message = 'Could not purge CurvRankDorsal cache for viewpoint'
             # raise RuntimeError(message)
             print(message)
         try:
             ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankFinfindrHybridDorsal')
-        except:
+        except Exception:
             message = 'Could not purge CurvRankFinfindrHybridDorsal cache for viewpoint'
             # raise RuntimeError(message)
             print(message)

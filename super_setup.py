@@ -316,7 +316,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
     else:
         try:
             ans = input('Enter y to continue. Anything else to exit...\n')
-        except:
+        except Exception:
             ans = raw_input('Enter y to continue. Anything else to exit...\n')  # NOQA
     if ans != 'y':
         print('Please install utool to continue')
@@ -992,7 +992,7 @@ def move_wildme(ibeis_rman, fmt):
                     gitorigin = gitrepo.remote('origin')
                     print('  * Change origin url to %r' % (wildme_url,))
                     gitorigin.set_url(wildme_url)
-            except:
+            except Exception:
                 print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
 
         repo.change_url_format(fmt)

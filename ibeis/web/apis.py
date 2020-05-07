@@ -211,7 +211,7 @@ def image_src_api_json(uuid=None, **kwargs):
     try:
         if isinstance(uuid, six.string_types):
             uuid = uuid_module.UUID(uuid)
-    except:
+    except Exception:
         from ibeis.control.controller_inject import translate_ibeis_webreturn
         return translate_ibeis_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')
@@ -259,7 +259,7 @@ def image_conv_feature_api_json(uuid=None, model='resnet50', **kwargs):
         if isinstance(uuid, six.string_types):
             uuid = uuid_module.UUID(uuid)
         assert uuid is not None
-    except:
+    except Exception:
         from ibeis.control.controller_inject import translate_ibeis_webreturn
         return translate_ibeis_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')

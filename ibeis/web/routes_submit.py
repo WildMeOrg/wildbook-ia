@@ -229,7 +229,7 @@ def submit_detection(**kwargs):
                             assert data['percent']['top']    is not None
                             assert data['percent']['width']  is not None
                             assert data['percent']['height'] is not None
-                        except:
+                        except Exception:
                             continue
 
                         parent_index = data['parent']

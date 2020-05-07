@@ -19,7 +19,7 @@ import utool as ut
 try:
     try:
         from werkzeug.wsgi import DispatcherMiddleware
-    except:
+    except Exception:
         from werkzeug.middleware.dispatcher import DispatcherMiddleware
     import prometheus_client
     from ibeis.web import prometheus  # NOQA

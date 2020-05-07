@@ -652,12 +652,12 @@ def check_image_loadable_worker(gpath, orient):
         assert img is not None
         img = vt.imread(gpath, orient=orient)
         assert img is not None
-    except:
+    except Exception:
         loadable = False
     try:
         img = vt.imread(gpath, orient='auto', on_error='fail')
         assert img is not None
-    except:
+    except Exception:
         exif = False
     return loadable, exif
 
@@ -6299,7 +6299,7 @@ def parse_ggr_name(ibs, imageset_text, verbose=False, allow_short=False, require
 
     try:
         dataset, number, letter = imageset_text_
-    except:
+    except Exception:
         assert allow_short or require_short
         dataset, number = imageset_text_
         letter = None
@@ -6361,7 +6361,7 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
 
                 match = True
                 print('\t\tPassed!')
-            except:
+            except Exception:
                 pass
                 print('\t\tFailed!')
 
@@ -7406,7 +7406,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
                 segment_list = merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict,
                                                                 aid_list, index_list,
                                                                 min_overlap=min_overlap)
-        except:
+        except Exception:
             print('\tInvalid GID')
             broken_gid_list.append(gid)
             continue
@@ -8301,7 +8301,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['c'] = tempc
-        except:
+        except Exception:
             pass
         try:
             assert len(tempf) > 0
@@ -8309,7 +8309,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['f'] = tempf
-        except:
+        except Exception:
             pass
         try:
             date = date.strip().replace('/', '')
@@ -8321,7 +8321,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             day   = int(day)
             year  = int(year)
             value_dict['date'] = (year, month, day, )
-        except:
+        except Exception:
             month, day, year = None, None, None
             pass
         try:
@@ -8336,21 +8336,21 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             minute = int(minute)
             second = int(second)
             value_dict['time'] = (hour, minute, second, )
-        except:
+        except Exception:
             hour, minute, second = None, None, None
             pass
         try:
             assert None not in [month, day, year, hour, minute, second]
             value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
-        except:
+        except Exception:
             pass
         try:
             assert len(sequence) == 4
             sequence = int(sequence)
             value_dict['sequence'] = sequence
-        except:
+        except Exception:
             pass
-    except:
+    except Exception:
         pass
 
     return value_dict

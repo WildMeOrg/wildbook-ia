@@ -179,6 +179,11 @@ class WebException(ut.NiceRepr, Exception):
         self.message = message
         self.rawreturn = rawreturn
 
+        from ibeis.web.app import PROMETHEUS
+        if PROMETHEUS:
+            tag = '%s' % (self.code, )
+            ibs.prometheus_increment_exception(tag)
+
     def get_rawreturn(self, debug_stack_trace=False):
         if self.rawreturn is None:
             if debug_stack_trace:
@@ -506,7 +511,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                         message_ = 'length %d with unique %d of %s%s' % (length1, length2, values[:length3], mod, )
                 else:
                     message_ = '%s' % (values, )
-            except:
+            except Exception:
                 type_ = 'UNKNOWN'
                 message_ = 'ERROR IN PARSING'
 
@@ -526,7 +531,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                     print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_, ))
                 except UnicodeEncodeError:
                     print('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
-    except:
+    except Exception:
         print('[TRANSLATE] ERROR IN KWARGS PARSING')
 
     try:
@@ -809,7 +814,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                 ]
                 for check in check_list:
                     assert '/api/%s/' % (check, ) not in rule, 'failed check=%r' % (check,)
-            except:
+            except Exception:
                 iswarning = not ut.SUPER_STRICT
                 ut.printex('CONSIDER RENAMING API RULE: %r' % (rule, ),
                            iswarning=iswarning, tb=True)
@@ -843,7 +848,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         try:
                             # kwargs4 = _process_input(flask.request.get_json())
                             kwargs4 = ut.from_json(flask.request.data)
-                        except:
+                        except Exception:
                             kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
@@ -865,6 +870,12 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             __format__ = str(__format__).lower()
                             ignore_cookie_set = __format__ in ['onetime', 'true']
                             __format__ = __format__ in ['true', 'enabled', 'enable']
+
+                        from ibeis.web.app import PROMETHEUS
+                        if PROMETHEUS:
+                            ibs = flask.current_app.ibs
+                            tag = request.url_rule.rule
+                            ibs.prometheus_increment_api(tag)
 
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
@@ -1057,7 +1068,7 @@ def get_ibeis_flask_route(__name__):
                         try:
                             # kwargs4 = _process_input(flask.request.get_json())
                             kwargs4 = ut.from_json(flask.request.data)
-                        except:
+                        except Exception:
                             kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
@@ -1069,6 +1080,12 @@ def get_ibeis_flask_route(__name__):
 
                         args = ()
                         print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+
+                        from ibeis.web.app import PROMETHEUS
+                        if PROMETHEUS:
+                            ibs = flask.current_app.ibs
+                            tag = request.url_rule.rule
+                            ibs.prometheus_increment_route(tag)
 
                         result = func(**kwargs)
                     except Exception as ex:

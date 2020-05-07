@@ -573,7 +573,7 @@ def get_shelve_value(shelve_filepath, key):
     try:
         with shelve.open(shelve_filepath, 'r') as shelf:
             value = shelf.get(key)
-    except:
+    except Exception:
         pass
     delete_shelve_lock_file(shelve_filepath)
     return value
@@ -589,7 +589,7 @@ def set_shelve_value(shelve_filepath, key, value):
         with shelve.open(shelve_filepath) as shelf:
             shelf[key] = value
         flag = True
-    except:
+    except Exception:
         pass
     delete_shelve_lock_file(shelve_filepath)
     return flag
@@ -714,7 +714,7 @@ class JobInterface(object):
                                 archive_elapsed = calculate_timedelta(completed_timestamp, archive_timestamp)
                                 job_age = archive_elapsed[-1]
                                 archive_flag = job_age > 0
-                            except:
+                            except Exception:
                                 args = (completed_timestamp, archive_timestamp, )
                                 print('[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r' % args)
 
@@ -1353,14 +1353,14 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 try:
                     import torch
                     torch.cuda.empty_cache()
-                except:
+                except Exception:
                     pass
 
                 # Explicitly release Python memory
                 try:
                     import gc
                     gc.collect()
-                except:
+                except Exception:
                     pass
 
         except KeyboardInterrupt:
@@ -1455,7 +1455,7 @@ def collector_loop(port_dict, dbdir, containerized):
                 try:
                     import gc
                     gc.collect()
-                except:
+                except Exception:
                     pass
         except KeyboardInterrupt:
             print('Caught ctrl+c in collector loop. Gracefully exiting')
@@ -1683,12 +1683,12 @@ def on_collect_request(ibs, collect_request, collector_data,
                 # Check response
                 try:
                     text = unicode(response.text).encode('utf-8')
-                except:
+                except Exception:
                     text = None
 
                 args = (response, text, )
                 print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
-            except:
+            except Exception:
                 print('Callback FAILED!')
 
     elif action == 'job_status':

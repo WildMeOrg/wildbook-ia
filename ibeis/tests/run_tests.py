@@ -219,7 +219,7 @@ def run_tests():
             #             # if parsed[0] in ['sip']:
             #             #     print('skipping Qt module %r' % (parsed[0],))
             #             #     continue
-            #     except:
+            #     except Exception:
             #         pass
             if not ut.in_pyinstaller_package():
                 raise

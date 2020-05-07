@@ -236,13 +236,14 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
 
     # Create param_iter
     # params_list = list(preproc_image.add_images_params_gen(gpath_list))
+    force_serial = ibs.force_serial or ibs.production
     params_list = list(
         ut.generate2(
             preproc_image.parse_imageinfo,
             list(zip(gpath_list)),
             nTasks=len(gpath_list),
             ordered=True,
-            force_serial=ibs.force_serial,
+            force_serial=force_serial,
             futures_threaded=True,
         )
     )
@@ -551,7 +552,7 @@ def localize_images(ibs, gid_list_=None):
                     # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert response.status_code == 200, '200 code not received on download'
-                except:
+                except Exception:
                     scheme = urlsplit(uri_, allow_fragments=False).scheme
                     uri_ = uri_.strip('%s://' % (scheme, ))
                     uri_path = urlquote(uri_.encode('utf8'))

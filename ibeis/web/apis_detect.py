@@ -646,7 +646,7 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
             classes_filepath = ut.truepath(classes_filepath)
             line_list = parse_line_func(classes_filepath)
             model_dict[config_tag] = line_list
-        except:
+        except Exception:
             pass
 
     return model_dict
@@ -1045,7 +1045,7 @@ def log_detections(ibs, aid_list, fallback=True):
         json_str = ut.to_json(json_dict, pretty=True)
         with open(json_log_filepath, 'w') as json_log_file:
             json_log_file.write(json_str)
-    except:
+    except Exception:
         if fallback:
             print('WRITE DETECTION.JSON FAILED - ATTEMPTING FALLBACK')
             ut.delete(json_log_filepath)

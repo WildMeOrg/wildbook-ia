@@ -196,7 +196,7 @@ def get_image_info(**kwargs):
             party, contributor = note[:2]
             party_list.append(party)
             contributor_list.append(contributor)
-        except:
+        except Exception:
             party_list.append('UNKNOWN')
             contributor_list.append('UNKNOWN')
 
@@ -554,7 +554,7 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
                         name_old = ibs.get_name_texts(nid_old)
 
                     cross_database_match = not name.startswith(contrib_str)
-        except:
+        except Exception:
             print('ERROR WITH ABOVE')
             ut.embed()
 

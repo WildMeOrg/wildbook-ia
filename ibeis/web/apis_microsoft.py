@@ -277,7 +277,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
     """
     try:
         swag = swagger(current_app)
-    except:
+    except Exception:
         print(str(traceback.format_exc()))
         # ut.embed()
 
@@ -387,7 +387,7 @@ def microsoft_image_upload(ibs, *args, **kwargs):
         assert gid is not None
     except controller_inject.WebException:
         raise
-    except:
+    except Exception:
         raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
     return _image(ibs, gid)
 
@@ -724,7 +724,7 @@ def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
         # DEPRICATE
         #     # Do not commit results, return them outright
         #     aids_list = ibs.commit_localization_results(gid_list, results_list)
-    except:
+    except Exception:
         print(str(traceback.format_exc()))
         raise controller_inject.WebException('Detection process failed for an unknown reason')
 
@@ -821,7 +821,7 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
     try:
         images = [image]
         detections_list = microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold)
-    except:
+    except Exception:
         print(str(traceback.format_exc()))
         raise controller_inject.WebException('Detection process failed for an unknown reason')
 

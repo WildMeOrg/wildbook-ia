@@ -1229,7 +1229,7 @@ class FeatWeightConfig(dtool.Config):
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
     rm_extern_on_delete=True,
-    fname='featcache', chunksize=64 if const.PRODUCTION else 512,
+    fname='featcache', chunksize=64 if const.CONTAINERIZED else 512,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
@@ -1705,7 +1705,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='chipcache4',
-    chunksize=32 if const.PRODUCTION else 1024,
+    chunksize=32 if const.CONTAINERIZED else 1024,
 )
 def compute_classifications(depc, aid_list, config=None):
     r"""
@@ -1778,7 +1778,7 @@ class CanonicalConfig(dtool.Config):
     coltypes=[float, float, float, float],
     configclass=CanonicalConfig,
     fname='canonicalcache4',
-    chunksize=32 if const.PRODUCTION else 1024,
+    chunksize=32 if const.CONTAINERIZED else 1024,
 )
 def compute_canonical(depc, aid_list, config=None):
     r"""
@@ -1843,7 +1843,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
-    chunksize=8 if const.PRODUCTION else 128,
+    chunksize=8 if const.CONTAINERIZED else 128,
 )
 def compute_labels_annotations(depc, aid_list, config=None):
     r"""
@@ -1935,7 +1935,7 @@ class AoIConfig(dtool.Config):
     coltypes=[float, str],
     configclass=AoIConfig,
     fname='chipcache4',
-    chunksize=32 if const.PRODUCTION else 256,
+    chunksize=32 if const.CONTAINERIZED else 256,
 )
 def compute_aoi2(depc, aid_list, config=None):
     r"""
@@ -1999,7 +1999,7 @@ class OrienterConfig(dtool.Config):
     coltypes=[float, float, float, float, float],
     configclass=OrienterConfig,
     fname='detectcache',
-    chunksize=8 if const.PRODUCTION else 128,
+    chunksize=8 if const.CONTAINERIZED else 128,
 )
 def compute_orients_annotations(depc, aid_list, config=None):
     r"""
@@ -2070,7 +2070,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
 
                 result = (xtl, ytl, w, h, theta, )
                 result_gen.append(result)
-        except:
+        except Exception:
             raise RuntimeError('Deepsense orienter not working!')
     else:
         raise ValueError('specified orienter algo is not supported in config = %r' % (config, ))

@@ -346,7 +346,7 @@ def wildbook_get_existing_names(ibs, wb_target=None):
     try:
         wildbook_existing_name_list = [_['individualID'] for _ in response_json]
         wildbook_existing_name_list = list(set(wildbook_existing_name_list))
-    except:
+    except Exception:
         wildbook_existing_name_list = []
     return wildbook_existing_name_list
 
@@ -505,7 +505,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     try:
         ibs.update_special_imagesets()
         ibs.notify_observers()
-    except:
+    except Exception:
         pass
 
     return status_list
