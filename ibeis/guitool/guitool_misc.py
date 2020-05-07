@@ -149,7 +149,7 @@ class GUILoggingHandler(logging.StreamHandler):
             self.sender.write_.emit(msg)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
 
