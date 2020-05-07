@@ -1547,7 +1547,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         try:
             destination_index = imgsetid_list.index(destination_imgsetid)
-        except:
+        except Exception:
             # Default to the first value selected if the imgsetid doesn't exist in imgsetid_list
             print('[back] merge_imagesets cannot find index for %r' % (destination_imgsetid,))
             destination_index = 0

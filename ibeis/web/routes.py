@@ -63,7 +63,7 @@ def root(**kwargs):
     if ibs.containerized:
         hostname = const.CONTAINER_NAME
     else:
-        hostname = None
+        hostname = ibs.dbname
 
     embedded = dict(globals(), **locals())
     return appf.template(None, **embedded)
@@ -226,7 +226,7 @@ def view_advanced0(**kwargs):
             imgsetid = int(imgsetid)
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
-        except:
+        except Exception:
             print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return aid_list
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
@@ -243,7 +243,7 @@ def view_advanced0(**kwargs):
             imgsetid = int(imgsetid)
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
-        except:
+        except Exception:
             print('ERROR PARSING IMAGESET ID FOR IMAGE FILTERING')
             return gid_list
         imgsetids_list = ibs.get_image_imgsetids(gid_list)
@@ -260,7 +260,7 @@ def view_advanced0(**kwargs):
             imgsetid = int(imgsetid)
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
-        except:
+        except Exception:
             print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return nid_list
         aids_list = ibs.get_name_aids(nid_list)
@@ -932,7 +932,7 @@ def view_advanced2(**kwargs):
             imgsetid = int(imgsetid)
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
-        except:
+        except Exception:
             print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return aid_list
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
@@ -2701,7 +2701,7 @@ def turk_annotation(**kwargs):
         try:
             ibs.update_special_imagesets()
             ibs.notify_observers()
-        except:
+        except Exception:
             pass
         gid       = None
         image_src = None
@@ -3041,7 +3041,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
         try:
             ibs.update_special_imagesets()
             ibs.notify_observers()
-        except:
+        except Exception:
             pass
         gid       = None
         image_src = None
@@ -3056,7 +3056,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
                 assert previous_species_rowid in species_rowids
 
             species_rowids = previous_species_rowids
-        except:
+        except Exception:
             print('Error finding previous species rowid in existing list')
             previous_species_rowids = None
 
@@ -3188,7 +3188,7 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
     if ibs.containerized:
         hostname = const.CONTAINER_NAME
     else:
-        hostname = None
+        hostname = ibs.dbname
 
     if ibs.dbname == 'WD_Master' or hostname == 'wilddog':
         all_part_types = all_part_types + [
@@ -3208,7 +3208,7 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
                 assert previous_part_type in all_part_types
 
             all_part_types = previous_part_types
-        except:
+        except Exception:
             print('Error finding previous part_type in existing list')
             previous_part_types = None
 
@@ -4657,12 +4657,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     try:
         original_filename_1_str = os.path.split(ibs.get_image_uris_original(gid1))[1]
-    except:
+    except Exception:
         original_filename_1_str = 'UNKNOWN'
 
     try:
         original_filename_2_str = os.path.split(ibs.get_image_uris_original(gid2))[1]
-    except:
+    except Exception:
         original_filename_2_str = 'UNKNOWN'
 
     # sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
@@ -4741,7 +4741,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         review_rowid = review_rowid_list[-1]
         metadata_match = ibs.get_review_metadata(review_rowid)
         comment_match = metadata_match.get('turk', {}).get('match', {}).get('comment', '')
-    except:
+    except Exception:
         comment_match = ''
 
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
@@ -5087,7 +5087,7 @@ def dbinfo(**kwargs):
     try:
         ibs = current_app.ibs
         dbinfo_str = ibs.get_dbinfo_str()
-    except:
+    except Exception:
         dbinfo_str = ''
     dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str, )
     return dbinfo_str_formatted
@@ -5135,7 +5135,7 @@ def wb_counts(**kwargs):
 
         args = (num_aid, num_gid, num_nid, num_encounters, num_imgset, )
         counts_str = fmt_str % args
-    except:
+    except Exception:
         counts_str = ''
     return counts_str
 

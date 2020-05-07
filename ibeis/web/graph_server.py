@@ -225,7 +225,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         actor.infr.print('loading published models')
         try:
             actor.infr.load_published()
-        except:
+        except Exception:
             pass
 
         # Start actor.infr Main Loop
@@ -265,35 +265,35 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         infr_status = {}
         try:
             infr_status['phase'] = actor.infr.phase
-        except:
+        except Exception:
             pass
         try:
             infr_status['loop_phase'] = actor.infr.loop_phase
-        except:
+        except Exception:
             pass
         try:
             infr_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0
-        except:
+        except Exception:
             pass
         try:
             infr_status['is_converged'] = actor.infr.phase == 4
-        except:
+        except Exception:
             pass
         try:
             infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
-        except:
+        except Exception:
             pass
         try:
             infr_status['num_pccs'] = len(actor.infr.queue)
-        except:
+        except Exception:
             pass
         try:
             infr_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors)
-        except:
+        except Exception:
             pass
         try:
             infr_status['cc_status'] = actor.infr.connected_component_status()
-        except:
+        except Exception:
             pass
 
         return infr_status

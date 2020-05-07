@@ -145,7 +145,7 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
         try:
             index = imageset_tabwgt.imgsetid_list.index(imgsetid)
             imageset_tabwgt._close_tab(index)
-        except:
+        except Exception:
             pass
 
     def _add_imageset_tab(imageset_tabwgt, imgsetid, imagesettext):

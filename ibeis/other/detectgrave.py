@@ -272,7 +272,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                     chip = query_image[ytl: ybr, xtl: xbr, :]
                     chip = cv2.resize(chip, (192, 192), **warpkw)
                     chip_list.append(chip)
-                except:
+                except Exception:
                     pass
                 chip_list.append(np.zeros((192, 10, 3)))
 
@@ -320,7 +320,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                             color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
                             cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
                             chip_list.append(chip)
-                        except:
+                        except Exception:
                             pass
 
                 min_chips = 16

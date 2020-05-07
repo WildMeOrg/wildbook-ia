@@ -19,7 +19,7 @@ try:
     from ibeis.control import STAGING_SCHEMA_CURRENT
     UPDATE_CURRENT  = STAGING_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = STAGING_SCHEMA_CURRENT.VERSION_CURRENT
-except:
+except Exception:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO STAGING_SCHEMA_CURRENT AUTO-GENERATED!")

@@ -26,7 +26,7 @@ try:
     from ibeis.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = DB_SCHEMA_CURRENT.VERSION_CURRENT
-except:
+except Exception:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")

@@ -801,7 +801,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
         try:
             xx, yy = node_.attr["pos"].split(',')
             node_pos[n] = (float(xx), float(yy))
-        except:
+        except Exception:
             print("no position for node", n)
             node_pos[n] = (0.0, 0.0)
     return node_pos

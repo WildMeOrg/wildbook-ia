@@ -111,7 +111,7 @@ def _assert_remote_online(ibs):
         assert version == ibs.get_database_version()
         if REMOTE_UUID is not None:
             assert uuid == REMOTE_UUID
-    except:
+    except Exception:
         raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE_URL, ))
 
 
