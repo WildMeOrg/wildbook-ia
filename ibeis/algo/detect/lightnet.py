@@ -40,6 +40,7 @@ CONFIG_URL_DICT = {
     'jaguar'                     : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v2.py',
 
     'giraffe_v1'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.giraffe.v1.py',
+    'zebra_mountain_v0'          : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.zebra_mountain.v0.py',
 
     'hendrik_elephant'           : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.py',
     'hendrik_elephant_ears'      : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.ears.py',
@@ -62,6 +63,7 @@ CONFIG_URL_DICT = {
     'iot_v0'                     : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.iot.v0.py',
     'wilddog_v0'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.wild_dog.v0.py',
     'leopard_v0'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard.v0.py',
+    'cheetah_v1'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v1.py',
 
     'kitsci_v0'                  : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.kitsci.v0.py',
 

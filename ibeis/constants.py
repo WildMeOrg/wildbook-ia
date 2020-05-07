@@ -389,6 +389,7 @@ SPECIES_WITH_DETECTORS = (
     'whale_humpback+fin_dorsal',
     'zebra_grevys',
     'zebra_plains',
+    'zebra_mountain',
     'whale_orca',
     'whale_orca+fin_dorsal',
     'leopard',
@@ -411,6 +412,7 @@ SPECIES_WITH_DETECTORS = (
     'eubalaena_glacialis',
     'equus_quagga',
     'equus_grevyi',
+    'equus_zebra',
     'giraffa_tippelskirchi',
     'giraffa_camelopardalis_reticulata',
     'manta_birostris',
@@ -533,6 +535,7 @@ SPECIES_MAPPING = {
     'zebra_grevys'              :          ('GZ', 'Zebra (Grevy\'s)'),
     'zebra_hybrid'              :          ('HZ', 'Zebra (Hybrid)'),
     'zebra_plains'              :          ('PZ', 'Zebra (Plains)'),
+    'zebra_mountain'            :          ('MZ', 'Zebra (Mountain)'),
     UNKNOWN                     :     ('UNKNOWN', 'UNSPECIFIED'),
 }
 
