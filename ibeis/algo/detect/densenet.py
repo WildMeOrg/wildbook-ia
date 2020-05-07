@@ -34,6 +34,7 @@ ARCHIVE_URL_DICT = {
     'megan_kenya_v2'            : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v2.zip',
 
     'zebra_v1'                  : 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_grevys-zebra_plains.v1.zip',
+    'zebra_mountain_v0'         : 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_mountain.v0.zip',
     'giraffe_v1'                : 'https://wildbookiarepository.azureedge.net/models/labeler.giraffe.v1.zip',
     'jaguar_v3'                 : 'https://wildbookiarepository.azureedge.net/models/labeler.jaguar.v3.zip',
     'lynx_v3'                   : 'https://wildbookiarepository.azureedge.net/models/labeler.lynx.v3.zip',
@@ -53,6 +54,7 @@ ARCHIVE_URL_DICT = {
     'wilddog_v2'                : 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
 
     'leopard_v0'                : 'https://wildbookiarepository.azureedge.net/models/labeler.leopard.v0.zip',
+    'cheetah_v1'                : 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v1.zip',
 
     'seadragon_v0'              : 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v0.zip',
     'seadragon_v1'              : 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v1.zip',
