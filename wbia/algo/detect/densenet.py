@@ -430,7 +430,7 @@ def train(
     batch_size=48,
     class_weights={},
     multi=PARALLEL,
-    sample_multiplier=1.0,
+    sample_multiplier=2.0,
     **kwargs,
 ):
     # Detect if we have a GPU available
@@ -487,8 +487,8 @@ def train(
 
     logger.info('Print Examples of Training Augmentation...')
 
-    for phase in phases:
-        visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
+    # for phase in phases:
+    #    visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
 
     logger.info('Initializing Optimizer...')
 

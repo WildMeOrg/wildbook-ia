@@ -3144,6 +3144,8 @@ def labeler_tp_tn_fp_fn(
 
     value1_list = set(label_list)
     value2_list = set(probability_dict_list[0].keys())
+    print(value1_list)
+    print(value2_list)
     assert len(value1_list - value2_list) == 0
     assert len(value2_list - value1_list) == 0
 
