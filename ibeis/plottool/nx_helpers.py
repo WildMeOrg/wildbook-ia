@@ -1002,7 +1002,7 @@ def parse_point(ptstr):
     try:
         xx, yy = ptstr.strip('!').split(',')
         xy = np.array((float(xx), float(yy)))
-    except:
+    except Exception:
         xy = None
     return xy
 
@@ -1012,7 +1012,7 @@ def parse_anode_layout_attrs(anode):
     #try:
     xx, yy = anode.attr['pos'].strip('!').split(',')
     xy = np.array((float(xx), float(yy)))
-    #except:
+    #except Exception:
     #    xy = np.array((0.0, 0.0))
     adpi = 72.0
     width = float(anode.attr['width']) * adpi
