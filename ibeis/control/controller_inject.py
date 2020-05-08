@@ -874,9 +874,15 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
 
                         from ibeis.web.app import PROMETHEUS
                         if PROMETHEUS:
-                            ibs = flask.current_app.ibs
+                            exclude_tag_list = [
+                                '/api/test/heartbeat/',
+                                '/v0.1/wildbook/status/',
+                                '/v0.1/vulcan/status/',
+                            ]
                             tag = request.url_rule.rule
-                            ibs.prometheus_increment_api(tag)
+                            if tag not in exclude_tag_list:
+                                ibs = flask.current_app.ibs
+                                ibs.prometheus_increment_api(tag)
 
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
