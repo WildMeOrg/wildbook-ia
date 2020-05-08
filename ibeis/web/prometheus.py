@@ -161,12 +161,21 @@ def prometheus_update(ibs, *args, **kwargs):
                 pass
 
             try:
-                num_imageset_rowids = len(ibs._get_all_imageset_rowids())
-                num_gids = len(ibs._get_all_gids())
-                num_aids = len(ibs._get_all_aids())
-                num_pids = len(ibs._get_all_part_rowids())
-                num_nids = len(ibs._get_all_name_rowids())
-                num_species = len(ibs._get_all_species_rowids())
+                if ibs.production:
+                    num_imageset_rowids = 0
+                    num_gids = 0
+                    num_aids = 0
+                    num_pids = 0
+                    num_nids = 0
+                    num_species = 0
+                else:
+                    num_imageset_rowids = len(ibs._get_all_imageset_rowids())
+                    num_gids = len(ibs._get_all_gids())
+                    num_aids = len(ibs._get_all_aids())
+                    num_pids = len(ibs._get_all_part_rowids())
+                    num_nids = len(ibs._get_all_name_rowids())
+                    num_species = len(ibs._get_all_species_rowids())
+
                 PROMETHEUS_DATA['imagesets'].labels(name=container_name).set(num_imageset_rowids)
                 PROMETHEUS_DATA['images'].labels(name=container_name).set(num_gids)
                 PROMETHEUS_DATA['annotations'].labels(name=container_name).set(num_aids)
