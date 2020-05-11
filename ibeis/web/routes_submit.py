@@ -1010,11 +1010,15 @@ def submit_species(**kwargs):
     if user is None:
         user = {}
     user_id = user.get('username', None)
+
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == u'skip':
+        species_text = const.UNKNOWN
+        ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_reviewed([aid], [1])
         print('[web] (SKIP) user_id: %s' % (user_id, ))
         return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
                                 dst_ag=dst_ag, previous=aid,
