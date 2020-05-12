@@ -4438,7 +4438,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'redun.enforce_neg': True,
                     'redun.enforce_pos': False,
                     'redun.neg': 2,
-                    'redun.pos': 1,
+                    'redun.pos': 2,
                 }
             else:
                 print('[routes] Graph is not in hardcase-mode')
