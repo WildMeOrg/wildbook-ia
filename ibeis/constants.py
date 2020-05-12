@@ -416,6 +416,7 @@ SPECIES_WITH_DETECTORS = (
     'giraffa_tippelskirchi',
     'giraffa_camelopardalis_reticulata',
     'manta_birostris',
+    'mobula_alfredi',
     'lynx_pardinus',
     'phycodurus_eques',
     'phycodurus_eques+head',
