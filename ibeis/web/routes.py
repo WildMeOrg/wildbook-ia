@@ -4432,7 +4432,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 query_config_dict = {
                     'autoreview.enabled': True,
                     'autoreview.prioritize_nonpos': True,
-                    'inference.enabled': True,
+                    'inference.enabled': False,
                     'ranking.enabled': True,
                     'redun.enabled': True,
                     'redun.enforce_neg': True,
