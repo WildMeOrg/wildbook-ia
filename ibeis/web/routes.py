@@ -4119,7 +4119,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid], kaia=False)
+                                         creation_imageset_rowid_list=[imgsetid], kaia=True)
     elif ibs.dbname == 'NG_Feasability' or option in ['nassau']:
         species = 'grouper_nassau'
 
@@ -4330,9 +4330,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     """
     ibs = current_app.ibs
 
-    # if ibs.dbname == 'ZEBRA_Kaia':
-    #     kaia = True
-    #     view_orientation = 'horizontal'
+    if ibs.dbname == 'ZEBRA_Kaia':
+        kaia = True
+        view_orientation = 'horizontal'
 
     if hogwild_species == 'None':
         hogwild_species = None
