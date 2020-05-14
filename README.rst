@@ -47,6 +47,7 @@ Running the ``ibeis`` command will open the GUI:
 
 
 If you have already made a database, it will automatically open the most recently used database.
+
 .. image:: https://i.imgur.com/xXF7w8P.png
 
 If this is the first time you've run the program it will not have a database opened:
