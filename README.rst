@@ -45,15 +45,33 @@ the rest of the dependencies can be installed from pypi even on OSX / Windows.
 
 Running the ``ibeis`` command will open the GUI:
 
+
+If you have already made a database, it will automatically open the most recently used database.
 .. image:: https://i.imgur.com/xXF7w8P.png
+
+If this is the first time you've run the program it will not have a database opened:
+
+.. image:: https://i.imgur.com/Ey9Urcv.png
+
+Select new database, (which will first ask you to select a work directory where all of your databases will live).
+Then you will be asked to create a database name. Select one and then create the database in your work directory.
+
 
 You can drag and drop images into the GUI to add them to the database.  Double
 clicking an image lets you add "annotations":
 
+
 .. image:: https://i.imgur.com/t0LQZot.png
 
-Once you have annotations, you can click one and press "q" to query for matches
-in the database of other annotations:
+You can also right click one or more images and click "Add annotations from
+entire images" if your images are already localized to a single individual.
+
+It important than when you add an annotation, you set its species. You can
+right click multiple annotations and click "set annotation species". Change
+this to anything other than "____".
+
+Once you have annotations with species, you can click one and press "q" to
+query for matches in the database of other annotations:
 
 
 .. image:: https://i.imgur.com/B0ilafa.png

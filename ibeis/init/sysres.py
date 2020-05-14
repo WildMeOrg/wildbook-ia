@@ -83,6 +83,7 @@ def get_workdir(allow_gui=True):
         >>> print(result)
     """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
+    print('[ibeis.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
     if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
