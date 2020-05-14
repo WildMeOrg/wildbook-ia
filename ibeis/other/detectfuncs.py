@@ -239,8 +239,6 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                                   category_list, category_mapping,
                                   fig_, axes_, fuzzy_dict=None, conf=None,
                                   conf_list=None, size=10, **kwargs):
-    ut.embed()
-
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     suppressed_label = 'SUP'
