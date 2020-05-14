@@ -52,6 +52,7 @@ ARCHIVE_URL_DICT = {
     'wilddog_v0'                : 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
     'wilddog_v1'                : 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v1.zip',
     'wilddog_v2'                : 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
+    'wilddog_v3'                : 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v3.zip',
 
     'leopard_v0'                : 'https://wildbookiarepository.azureedge.net/models/labeler.leopard.v0.zip',
     'cheetah_v1'                : 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v1.zip',
