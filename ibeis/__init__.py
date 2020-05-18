@@ -341,9 +341,6 @@ Regen Command:
 if __name__ == '__main__':
     """
     Runs the unittests for the ibeis codebase
-
-    Commandline usage: python -m ibeis
-
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
