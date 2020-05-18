@@ -6,6 +6,9 @@ from hashlib import sha1
 import hmac
 import requests
 
+import utool as ut
+
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 # System variables
