@@ -679,7 +679,7 @@ def make_netharn_registry(remote):
         CommonRepo(
             name='detecttools_ibeis', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/detecttools.git',
+                'Wildbook': 'git@github.com:WildbookOrg/detecttools_ibeis.git',
             },
         ),
         CommonRepo(
