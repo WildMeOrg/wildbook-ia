@@ -511,6 +511,214 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     return status_list
 
 
+@register_ibs_method
+def get_flukebook_image_uuids(ibs):
+    from datetime import datetime
+    import uuid
+    import pytz
+
+    PST = pytz.timezone('US/Pacific')
+
+    url = 'https://www.flukebook.org/acmIdSync.jsp'
+
+    now = datetime.now(tz=PST)
+    timestamp = now.strftime('%Y-%m-%d-%H-00-00')
+    filename = 'flukebook.image.admid.%s.json' % (timestamp, )
+    filepath = ut.grab_file_url(url, appname='ibeis', fname=filename)
+
+    with open(filepath, 'r') as file:
+        file_content = file.read()
+        file_json = ut.from_json(file_content)
+    print('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json), ))
+
+    uuid_list = []
+    for uuid_str in file_json:
+        try:
+            uuid_ = uuid.UUID(uuid_str)
+            uuid_list.append(uuid_)
+        except ValueError:
+            continue
+
+    print('Validated %d Image UUIDs from Flukebook' % (len(uuid_list), ))
+    flukebook_image_uuid_list = list(set(uuid_list))
+    print('Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list), ))
+
+    return flukebook_image_uuid_list
+
+
+@register_ibs_method
+def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
+    flukebook_image_uuid_list = ibs.get_flukebook_image_uuids()
+
+    gid_list = ibs.get_valid_gids()
+    local_image_uuid_list = ibs.get_image_uuids(gid_list)
+
+    unknown_uuid_list = list(set(flukebook_image_uuid_list) - set(local_image_uuid_list))
+    candidate_uuid_list = list(set(local_image_uuid_list) - set(flukebook_image_uuid_list))
+
+    print('There are %d Image UUIDs in Flukebook that are not here' % (len(unknown_uuid_list), ))
+    print('There are %d Image UUIDs in here that are not in Flukebook' % (len(candidate_uuid_list), ))
+
+    if auto_delete and len(candidate_uuid_list) > 0:
+        candidate_gid_list = ibs.get_image_gids_from_uuid(candidate_uuid_list)
+        assert None not in candidate_gid_list
+        ibs.delete_images(candidate_gid_list)
+
+    return candidate_gid_list
+
+
+@register_ibs_method
+def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
+    from datetime import datetime
+    import uuid
+    import pytz
+
+    PST = pytz.timezone('US/Pacific')
+
+    url = 'https://www.flukebook.org/acmIdSync.jsp?annotations'
+
+    now = datetime.now(tz=PST)
+    timestamp = now.strftime('%Y-%m-%d-%H-00-00')
+    filename = 'flukebook.annot.admid.%s.json' % (timestamp, )
+    filepath = ut.grab_file_url(url, appname='ibeis', fname=filename)
+
+    with open(filepath, 'r') as file:
+        file_content = file.read()
+        file_json = ut.from_json(file_content)
+    print('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json), ))
+
+    uuid_list = []
+    species_list = []
+    for uuid_str in file_json:
+        content = file_json[uuid_str]
+        try:
+            uuid_ = uuid.UUID(uuid_str)
+        except ValueError:
+            continue
+
+        match = content.get('match', None)
+        species = content.get('species', None)
+        assert None not in [match, species]
+        assert len(match) == len(species)
+
+        if len(match) > 1:
+            match_ = set(match)
+            species_ = set(species)
+            if len(match_) == 1 and len(species_) == 1:
+                match = list(match_)
+                species = list(species_)
+                assert len(match) == len(species)
+
+        if len(match) > 1:
+            match_ = set(match)
+            species_ = set(species)
+            if len(species_) == 1:
+                match = [any(match_)]
+                species = list(species_)
+
+        if len(match) == 1 and len(species) == 1:
+            match = match[0]
+            species = species[0]
+
+            if filter_match_against_on is None or match == filter_match_against_on:
+                uuid_list.append(uuid_)
+                species_list.append(species)
+        else:
+            print(match, species)
+
+    assert len(uuid_list) == len(species_list)
+    assert len(uuid_list) == len(set(uuid_list))
+    print('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list), ))
+
+    flukebook_annot_uuid_list = uuid_list
+    flukebook_annot_species_list = species_list
+
+    return flukebook_annot_uuid_list, flukebook_annot_species_list
+
+
+@register_ibs_method
+def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
+    from ibeis import constants as const
+    flukebook_annot_uuid_list, flukebook_annot_species_list = ibs.get_flukebook_annot_uuids()
+
+    aid_list = ibs.get_valid_aids()
+    local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+    unknown_uuid_list = list(set(flukebook_annot_uuid_list) - set(local_annot_uuid_list))
+    candidate_uuid_list = list(set(local_annot_uuid_list) - set(flukebook_annot_uuid_list))
+
+    print('There are %d Annot UUIDs in Flukebook that are not here' % (len(unknown_uuid_list), ))
+    print('There are %d Annot UUIDs in here that are not in Flukebook' % (len(candidate_uuid_list), ))
+
+    if auto_delete and len(candidate_uuid_list) > 0:
+        candidate_aid_list = ibs.get_annot_aids_from_uuid(candidate_uuid_list)
+        assert None not in candidate_aid_list
+        ibs.delete_annots(candidate_aid_list)
+
+    # Update species
+    aid_list = ibs.get_valid_aids()
+    local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+    known_uuid_list = list(set(flukebook_annot_uuid_list) & set(local_annot_uuid_list))
+    known_aid_list = ibs.get_annot_aids_from_uuid(known_uuid_list)
+    assert None not in known_aid_list
+
+    flukebook_species_dict = dict(zip(flukebook_annot_uuid_list, flukebook_annot_species_list))
+    known_species_list = ibs.get_annot_species(known_aid_list)
+
+    flukebook_species_mapping = {
+        'humpback_whale' : 'megaptera_novaeangliae',
+        'tursiops_sp.'   : 'tursiops_sp',
+    }
+
+    update_dict = {}
+    update_aid_list = []
+    update_species_list = []
+    for known_aid, known_uuid, known_species in zip(known_aid_list, known_uuid_list, known_species_list):
+        flukebook_species = flukebook_species_dict.get(known_uuid, None)
+        if flukebook_species is None:
+            flukebook_species = const.UNKNOWN
+        assert flukebook_species is not None
+        flukebook_species = flukebook_species.lower()
+        flukebook_species = flukebook_species.replace(' ', '_')
+        flukebook_species = flukebook_species_mapping.get(flukebook_species, flukebook_species)
+
+        if known_species != flukebook_species:
+
+            if flukebook_species == const.UNKNOWN and known_species != const.UNKNOWN:
+                continue
+
+            update_aid_list.append(known_aid)
+            update_species_list.append(flukebook_species)
+
+            if known_species not in update_dict:
+                update_dict[known_species] = {}
+            if flukebook_species not in update_dict[known_species]:
+                update_dict[known_species][flukebook_species] = 0
+            update_dict[known_species][flukebook_species] += 1
+
+    assert len(update_aid_list) == len(update_species_list)
+    print(ut.repr3(update_dict))
+
+    ibs.set_annot_species(update_aid_list, update_species_list)
+
+    return candidate_aid_list, update_dict
+
+
+@register_ibs_method
+@register_api('/api/flukebook/sync/', methods=['GET', 'POST'])
+def flukebook_sync(ibs, **kwargs):
+    candidate_gid_list = ibs.delete_flukebook_orphaned_image_uuids()
+    candidate_aid_list, update_dict = ibs.delete_flukebook_orphaned_annot_uuids()
+
+    result_dict = {
+        'deleted_images' : len(candidate_gid_list),
+        'deleted_annots' : len(candidate_aid_list),
+        'species_update' : update_dict,
+    }
+    return result_dict
+
+
 if __name__ == '__main__':
     """
     CommandLine:
