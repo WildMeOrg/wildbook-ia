@@ -296,6 +296,7 @@ class DBInputs(object):
         Sets up an ibs object with an aids_pool
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('humpbacks_fb')
             >>> self = Chap3('GZ_Master1')
@@ -399,7 +400,7 @@ def find_minority_class_ccs(infr):
 
 
 def test_mcc():
-    import plottool as pt
+    import plottool_ibeis as pt
     import sklearn.metrics
     num = 100
     xdata = np.linspace(0, 1, num * 2)

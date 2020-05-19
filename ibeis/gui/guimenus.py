@@ -7,9 +7,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
 from ibeis import constants as const
-import guitool as gt
-
-(print, rrr, profile) = ut.inject2(__name__)
+import guitool_ibeis as gt
+ut.noinject(__name__, '[guimenus]')
 
 
 class DummyBack(object):
@@ -37,7 +36,7 @@ def setup_dummy_menus():
         >>> print(result)
     """
     #import unittest
-    import guitool as gt
+    import guitool_ibeis as gt
     gt.ensure_qapp()  # must be ensured before any embeding
     mainwin = gt.QtWidgets.QMainWindow()
     back = DummyBack()
@@ -156,12 +155,12 @@ def setup_view_menu(mainwin, back):
         name='toggleOutput',
         text='Toggle Output Log',
         triggered=back.toggle_output_widget)
-    menu.newAction(
-        name='actionLayout_Figures',
-        text='Layout Figures',
-        tooltip='Organizes windows in a grid',
-        shortcut='Ctrl+L',
-        triggered=back.layout_figures)
+    # menu.newAction(
+    #     name='actionLayout_Figures',
+    #     text='Layout Figures',
+    #     tooltip='Organizes windows in a grid',
+    #     shortcut='Ctrl+L',
+    #     triggered=back.layout_figures)
     pass
 
 
@@ -390,6 +389,9 @@ def setup_developer_menu(mainwin, back):
     mainwin.menuDev = mainwin.menubar.newMenu('Dev')
     menu = mainwin.menuDev
     menu.newAction(
+        text='Download Demo Data',
+        triggered=back.ensure_demodata)
+    menu.newAction(
         name='actionMakeIPythonNotebook',
         text='Launch IPython Notebook',
         triggered=back.launch_ipy_notebook)
@@ -404,23 +406,6 @@ def setup_developer_menu(mainwin, back):
     menu.newAction(
         text='Set Work Directory',
         triggered=back.set_workdir)
-    menu.newAction(
-        text='Update Source Install',
-        triggered=back.update_source_install)
-    # TESTS
-    mainwin.menuTests = menu.newMenu('Tests')
-    mainwin.menuTests.newAction(
-        text='Run IBEIS Tests',
-        triggered=back.run_tests)
-    mainwin.menuTests.newAction(
-        text='Run Utool Tests',
-        triggered=back.run_utool_tests)
-    mainwin.menuTests.newAction(
-        text='Run Vtool Tests',
-        triggered=back.run_vtool_tests)
-    mainwin.menuTests.newAction(
-        text='Assert Modules',
-        triggered=back.assert_modules)
     # --- TESTS --
     menu.addSeparator()
     menu.newAction(
@@ -564,6 +549,24 @@ def setup_depricated_menu(mainwin, back):
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         triggered=back.dev_reload)
+
+    # TESTS
+    mainwin.menuTests = menu.newMenu('Tests')
+    mainwin.menuTests.newAction(
+        text='Run IBEIS Tests',
+        triggered=back.run_tests)
+    mainwin.menuTests.newAction(
+        text='Run Utool Tests',
+        triggered=back.run_utool_tests)
+    mainwin.menuTests.newAction(
+        text='Run Vtool Tests',
+        triggered=back.run_vtool_tests)
+    mainwin.menuTests.newAction(
+        text='Assert Modules',
+        triggered=back.assert_modules)
+    menu.newAction(
+        text='Update Source Install',
+        triggered=back.update_source_install)
 
 
 def setup_zebra_menu(mainwin, back):

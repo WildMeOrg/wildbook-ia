@@ -2,9 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import utool as ut
-import plottool as pt
-from plottool import plot_helpers as ph
-from plottool import viz_image2
+import plottool_ibeis as pt
+from plottool_ibeis import plot_helpers as ph
+from plottool_ibeis import viz_image2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
 (print, rrr, profile) = ut.inject2(__name__, '[viz_img]')

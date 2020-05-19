@@ -73,6 +73,7 @@ def generate_all():
         ./experiments_overnight.sh
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> generate_all()
     """
@@ -126,6 +127,7 @@ def parse_latex_comments_for_commmands():
         python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> parse_latex_comments_for_commmands()
@@ -215,6 +217,7 @@ def precompute_data():
         python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(precompute_data())
     """
@@ -248,6 +251,7 @@ def experiments_baseline():
         ./experiment_baseline.sh
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_baseline())
     """
@@ -272,6 +276,7 @@ def experiments_invariance():
         python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_invariance())
     """
@@ -300,6 +305,7 @@ def experiments_namescore():
         python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_namescore())
     """
@@ -321,6 +327,7 @@ def experiments_k():
         ./experiment_k.sh
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_k())
     """
@@ -343,6 +350,7 @@ def experiments_viewpoint():
         ./experiment_view.sh
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_viewpoint())
     """

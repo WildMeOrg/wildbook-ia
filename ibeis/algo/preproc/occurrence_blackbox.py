@@ -407,7 +407,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
     # Cluster nan distributions differently
     X_bools = ~np.isnan(X_data)
     group_id = (X_bools * np.power(2, [2, 1, 0])).sum(axis=1)
-    import vtool as vt
+    import vtool_ibeis as vt
     unique_ids, groupxs = vt.group_indices(group_id)
     grouped_labels = []
     for xs in groupxs:

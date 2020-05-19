@@ -30,10 +30,10 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import dtool
+import dtool_ibeis
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import six  # NOQA
 from functools import partial
 from os.path import join
@@ -59,12 +59,12 @@ def compare_score_pdfs(testres):
         >>>     defaultdb=defaultdb, a=['timectrl'], t=['best'])
         >>> testres.compare_score_pdfs()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     #from ibeis.init import main_helpers
     import utool as ut
-    #import plottool as pt
+    #import plottool_ibeis as pt
     ut.ensureqt()
 
     testres.draw_annot_scoresep(f='fail=False')
@@ -137,7 +137,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         >>> ut.show_if_requested()
     """
     print('[testres] draw_feat_scoresep')
-    import plottool as pt
+    import plottool_ibeis as pt
 
     def load_feat_scores(qreq_, qaids):
         import ibeis  # NOQA
@@ -297,7 +297,7 @@ def get_local_distinctiveness_modeldir(ibs):
     return ibs.distinctdir
 
 
-class NormFeatScoreConfig(dtool.Config):
+class NormFeatScoreConfig(dtool_ibeis.Config):
     _alias = 'nfscfg'
     _param_info_list = [
         ut.ParamInfo('disttype', None),
@@ -364,10 +364,10 @@ def compare_featscores():
         >>> result = compare_featscores()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import ibeis
     nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}
@@ -433,7 +433,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
 
     Returns:
-        vtool.ScoreNormalizer: encoder
+        vtool_ibeis.ScoreNormalizer: encoder
 
     CommandLine:
         python -m ibeis --tf learn_annotscore_normalizer --show
@@ -554,7 +554,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
 
     Returns:
-        vtool.ScoreNormalizer: encoder
+        vtool_ibeis.ScoreNormalizer: encoder
 
     CommandLine:
         python -m ibeis --tf learn_featscore_normalizer --show -t default:

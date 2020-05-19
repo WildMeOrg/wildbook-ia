@@ -8,10 +8,10 @@ from six.moves import range
 from time import mktime
 from datetime import date, datetime
 import utool as ut
-import guitool as gt
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
-import plottool as pt
+import guitool_ibeis as gt
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+import plottool_ibeis as pt
 (print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 
 

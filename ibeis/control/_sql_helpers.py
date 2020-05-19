@@ -38,7 +38,7 @@ def compare_string_versions(a, b):
 
 
 def _devcheck_backups():
-    import dtool as dt
+    import dtool_ibeis as dt
     dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
     sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*staging_back*.sqlite3'))
     fpaths = sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*database_back*.sqlite3'))
@@ -174,12 +174,12 @@ def get_backup_fpaths(ibs):
 
 
 def copy_database(src_fpath, dst_fpath):
-    import dtool
+    import dtool_ibeis
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
     timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
-    db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
-                                     inmemory=False, timeout=timeout)
+    db = dtool_ibeis.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
+                                           inmemory=False, timeout=timeout)
     db.backup(dst_fpath)
 
 
@@ -239,6 +239,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         dobackup (bool):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control._sql_helpers import *  # NOQA
         >>> ibs = '?'
         >>> db = ibs.db
@@ -484,7 +485,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
         schema_spec (module): schema module to get nth version of
         n (int): version index (-1 is the latest)
     """
-    from dtool.sql_control import SQLDatabaseController
+    from dtool_ibeis.sql_control import SQLDatabaseController
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]

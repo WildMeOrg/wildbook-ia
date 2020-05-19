@@ -61,7 +61,7 @@ References:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import numpy as np
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -134,6 +134,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         flat_offsets (ndarray): offset positions per annotation
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)
         >>> words = data['words']
@@ -146,6 +147,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         >>> assert len(agg_flags_list) == len(flat_offsets) - 1
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=100, nannots=5)
         >>> words = data['words']
@@ -264,7 +266,7 @@ def compute_rvec(vecs, word):
         >>> word = words[-1]
         >>> rvecs, error_flags = compute_rvec(vecs, word)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.figure()
         >>> # recenter residuals for visualization
         >>> cvecs = (rvecs + word[None, :])
@@ -302,7 +304,7 @@ def aggregate_rvecs(rvecs, maws, error_flags):
         >>> maws = [1.0] * len(rvecs)
         >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> pt.figure()
         >>> # recenter residuals for visualization
@@ -864,6 +866,7 @@ def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
         gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
         >>> ibs, smk, qreq_= testdata_smk()
         >>> X = qreq_.qinva.grouped_annots[0]
@@ -924,7 +927,7 @@ def selectivity(u, alpha=3.0, thresh=0.0, out=None):
         float: score
 
     CommandLine:
-        python -m plottool plot_func --show --range=-1,1  \
+        python -m plottool_ibeis plot_func --show --range=-1,1  \
             --setup="import ibeis" \
             --func ibeis.algo.smk.smk_funcs.selectivity \
             "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)"
@@ -973,7 +976,7 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
         >>> data = testdata_rvecs()
         >>> ut.quit_if_noshow()
         >>> exec(ut.execstr_dict(data))
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from scipy.spatial import Voronoi, voronoi_plot_2d
         >>> pt.qt4ensure()
         >>> fig = pt.figure()

@@ -13,7 +13,7 @@ def qt_review():
     CommandLine:
         python -m ibeis.scripts.iccv qt_review
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     import ibeis
     app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
@@ -99,6 +99,7 @@ def gt_review():
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> result = gt_review()
         >>> print(result)
@@ -159,7 +160,7 @@ def gt_review():
 
     # TODO: add an inspect pair to infr
     print('[graph_widget] show_selected')
-    import guitool as gt
+    import guitool_ibeis as gt
     from ibeis.viz import viz_graph2
     app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
@@ -170,7 +171,7 @@ def gt_review():
     infr.params['inference.enabled'] = False
     infr.reset_feedback('staging', apply=True)
 
-    # from guitool.__PYQT__ import QtCore
+    # from guitool_ibeis.__PYQT__ import QtCore
     # Qt = QtCore.Qt
 
     # Move absolutely sure edges down so they arn't re-reviewed
@@ -213,7 +214,7 @@ def gt_review():
         df.loc[edge]
     gt.qtapp_loop(qwin=self, freq=10)
 
-    # import plottool as pt
+    # import plottool_ibeis as pt
     # from ibeis.viz import viz_chip
     # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
     # then we just need to iterate through results
@@ -421,8 +422,8 @@ def draw_cmcs(dbname):
         >>> print(result)
     """
     # DRAW RESULTS
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     import pathlib
     if dbname is None:
         dbname = 'PZ_Master1'
@@ -490,8 +491,8 @@ def iccv_roc(dbname):
         >>> result = iccv_roc(dbname)
         >>> print(result)
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     from ibeis.scripts.script_vsone import OneVsOneProblem
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     pt.qtensure()
@@ -614,9 +615,9 @@ def draw_saved_roc(dbname):
     """
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
-    import plottool as pt
+    import plottool_ibeis as pt
     import sklearn.metrics
-    import vtool as vt
+    import vtool_ibeis as vt
     import matplotlib as mpl
     pt.qtensure()
 
@@ -729,6 +730,7 @@ def end_to_end():
         python -m ibeis.scripts.iccv end_to_end --db GZ_Master1
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> result = end_to_end()
         >>> print(result)
@@ -998,7 +1000,7 @@ def draw_ete(dbname):
     """
     ut.cprint('Draw ETE', 'green')
     # DRAW RESULTS
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.qtensure()
 
     import pathlib
@@ -1134,7 +1136,7 @@ def draw_ete(dbname):
     plot_fpath = plot_fpath.parent.joinpath('fig_' + plot_fpath.stem + plot_fpath.suffix)
     # .joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
-    import vtool as vt
+    import vtool_ibeis as vt
     clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
     print('plot_fpath = %r' % (plot_fpath,))
     print('clip_fpath = %r' % (clip_fpath,))
@@ -1144,7 +1146,7 @@ def draw_ete(dbname):
 
 
 def show_phis(phis):
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.qtensure()
     ranks = 20
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
@@ -1267,7 +1269,7 @@ def learn_phi():
     from ibeis.init.filter_annots import encounter_crossval
     from ibeis.init import main_helpers
     from ibeis.expt import test_result
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.qtensure()
 
     ibs = ibeis.opendb('GZ_Master1')
@@ -1418,7 +1420,7 @@ def learn_phi():
     # pt.plot(basis, density)
 
     # bins, edges = testres.get_rank_percentage_cumhist()
-    # import plottool as pt
+    # import plottool_ibeis as pt
     # pt.qtensure()
     # pt.multi_plot(edges, [bins[0]])
 

@@ -224,7 +224,7 @@ def get_injured_sharks():
                                                  tags_list=clist['tags'])
         aid_list
 
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis import core_annots
     pt.qt4ensure()
     #annots = ibs.annots()
@@ -261,7 +261,7 @@ def get_injured_sharks():
 
     if False:
         # Show overlap matrix
-        import plottool as pt
+        import plottool_ibeis as pt
         import pandas as pd
         import numpy as np
         dict_ = overlaps
@@ -273,7 +273,7 @@ def get_injured_sharks():
         label_texts = df.columns.values
 
         def label_ticks(label_texts):
-            import plottool as pt
+            import plottool_ibeis as pt
             truncated_labels = [repr(lbl[0:100]) for lbl in label_texts]
             ax = pt.gca()
             ax.set_xticks(list(range(len(label_texts))))
@@ -316,12 +316,12 @@ def get_injured_sharks():
 
     from skimage.feature import hog
     from skimage import data, color, exposure
-    import plottool as pt
+    import plottool_ibeis as pt
     image2 = color.rgb2gray(data.astronaut())  # NOQA
 
     fpath = './GOPR1120.JPG'
 
-    import vtool as vt
+    import vtool_ibeis as vt
     for fpath in [fpath]:
         """
         http://scikit-image.org/docs/dev/auto_examples/plot_hog.html
@@ -409,7 +409,7 @@ def detect_sharks(ibs, gids):
     ibs.set_annot_bboxes(old_annots.aids, bboxes)
 
     if False:
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.qt4ensure()
 
         inter = pt.MultiImageInteraction(
@@ -601,7 +601,7 @@ def shark_misc():
     #if False:
     #    print('Removing small images')
     #    import numpy as np
-    #    import vtool as vt
+    #    import vtool_ibeis as vt
     #    imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed['new_fpath']])
     #    sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
     #    areq_flags_list = sqrt_area_list >= 750

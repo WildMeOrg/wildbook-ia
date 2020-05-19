@@ -6,7 +6,7 @@ import utool as ut
 import pandas as pd
 import itertools as it
 import networkx as nx
-import vtool as vt
+import vtool_ibeis as vt
 from os.path import join  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
@@ -375,6 +375,7 @@ class InfrLearning(object):
         Uses current knowledge to train verifiers for new unseen pairs.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
@@ -509,6 +510,7 @@ class _RedundancyAugmentation(object):
             k (int): redundnacy level (if None uses infr.params['redun.neg'])
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph import demo
             >>> k = 2
             >>> cc1, cc2 = {1}, {2, 3}
@@ -544,7 +546,7 @@ class _RedundancyAugmentation(object):
                 num += 1
                 yield edge
                 if num >= k:
-                    raise StopIteration()
+                    return
             # Check non-existing edges next
             seed = 2827295125
             try:
@@ -560,7 +562,7 @@ class _RedundancyAugmentation(object):
                     num += 1
                     yield edge
                     if num >= k:
-                        raise StopIteration()
+                        return
 
     def find_pos_augment_edges(infr, pcc, k=None):
         """
@@ -638,6 +640,7 @@ class _RedundancyAugmentation(object):
         Finds edges that might complete them.
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(ccs=[(1,), (2,), (3,)], ignore_pair=True)
@@ -647,6 +650,7 @@ class _RedundancyAugmentation(object):
             >>> assert len(list(infr.find_neg_redun_candidate_edges())) == 0
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(pcc_sizes=[3] * 20, ignore_pair=True)
             >>> ccs = list(infr.positive_components())

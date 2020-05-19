@@ -4,7 +4,7 @@ Interface to pydarknet yolo object detection.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from six.moves import zip
 (print, rrr, profile) = ut.inject2(__name__, '[yolo]')
 
@@ -69,7 +69,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
 
     Yields:

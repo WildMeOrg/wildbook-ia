@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import sys
-import dtool
+import dtool_ibeis
 from datetime import timedelta
 from functools import update_wrapper
 import warnings
@@ -38,11 +38,11 @@ try:
     import flask
     from flask import session, request
     HAS_FLASK = True
-except Exception as ex:
+except Exception:
     HAS_FLASK = False
     msg = ('Missing flask and/or Flask-session.\n'
            'pip install Flask')
-    ut.printex(ex, msg, iswarning=True)
+    warnings.warn(msg)
     if ut.STRICT:
         raise
 
@@ -50,30 +50,29 @@ try:
     #from flask.ext.cors import CORS
     from flask_cors import CORS
     HAS_FLASK_CORS = True
-except Exception as ex:
+except Exception:
     HAS_FLASK_CORS = False
-    ut.printex(ex, 'Missing flask.ext.cors', iswarning=True)
+    warnings.warn('Missing flask.ext.cors')
     if ut.SUPER_STRICT:
         raise
 
-
-# try:
-#     from flask_cas import CAS
-#     from flask_cas import login_required as login_required_cas
-#     #from flask.ext.cas import CAS
-#     #from flask.ext.cas import login_required
-#     # HAS_FLASK_CAS = True
-#     HAS_FLASK_CAS = False
-# except Exception as ex:
-#     HAS_FLASK_CAS = False
-#     login_required_cas = ut.identity
-#     msg = ('Missing flask.ext.cas.\n'
-#            'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
-#     ut.printex(ex, msg, iswarning=True)
-#     # sudo
-#     print('')
-#     if ut.SUPER_STRICT:
-#         raise
+try:
+    from flask_cas import CAS  # NOQA
+    from flask_cas import login_required as login_required_cas
+    #from flask.ext.cas import CAS
+    #from flask.ext.cas import login_required
+    # HAS_FLASK_CAS = True
+    HAS_FLASK_CAS = False
+except Exception:
+    HAS_FLASK_CAS = False
+    login_required_cas = ut.identity
+    msg = ('Missing flask.ext.cas.\n'
+           'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
+    warnings.warn(msg)
+    # sudo
+    print('')
+    if ut.SUPER_STRICT:
+        raise
 
 
 # </flask>
@@ -92,7 +91,6 @@ GLOBAL_APP_SECRET = os.urandom(64)
 GLOBAL_APP = None
 GLOBAL_CORS = None
 GLOBAL_CAS = None
-#JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 REMOTE_PROXY_URL = None
 REMOTE_PROXY_PORT = 5001
@@ -448,7 +446,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.controller_inject import *  # NOQA
         >>> import ibeis
         >>> import time
@@ -1245,9 +1243,9 @@ def make_ibs_register_decorator(modname):
         return func
     return CLASS_INJECT_KEY, register_ibs_method
 
-_decors_image = dtool.make_depcache_decors(const.IMAGE_TABLE)
-_decors_annot = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-_decors_part  = dtool.make_depcache_decors(const.PART_TABLE)
+_decors_image = dtool_ibeis.make_depcache_decors(const.IMAGE_TABLE)
+_decors_annot = dtool_ibeis.make_depcache_decors(const.ANNOTATION_TABLE)
+_decors_part  = dtool_ibeis.make_depcache_decors(const.PART_TABLE)
 
 register_preprocs = {
     'image' : _decors_image['preproc'],

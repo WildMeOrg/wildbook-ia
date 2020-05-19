@@ -8,10 +8,10 @@ import six  # NOQA
 from ibeis._devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
-from plottool import draw_func2 as df2
+from plottool_ibeis import draw_func2 as df2
 import numpy as np
 import utool
-import vtool.keypoint as ktool
+import vtool_ibeis.keypoint as ktool
 from ibeis import sysres
 from ibeis.other import ibsfuncs
 from ibeis.dbio import ingest_hsdb

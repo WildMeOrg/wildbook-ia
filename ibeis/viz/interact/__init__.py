@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 ut.noinject(__name__, '[ibeis.viz.interact.__init__]', DEBUG=False)
 
-from plottool import interact_helpers as ih
+from plottool_ibeis import interact_helpers as ih
 
 from ibeis.viz.interact import interact_annotations2
 from ibeis.viz.interact import interact_chip

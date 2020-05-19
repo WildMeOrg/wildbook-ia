@@ -819,6 +819,7 @@ def update_1_3_4(db, ibs=None):
         """ we initially had viewpoint coordinates inverted
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import math
             >>> TAU = 2 * math.pi
             >>> old_viewpoint_labels = [
@@ -842,8 +843,8 @@ def update_1_3_4(db, ibs=None):
         yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
-    from dtool.sql_control import SQLDatabaseController
-    assert isinstance(db, SQLDatabaseController)
+    from dtool_ibeis.sql_control import SQLDatabaseController
+    assert isinstance(db,  SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
         # Add original image path to image table for more data persistance and
@@ -1845,7 +1846,7 @@ def dump_schema_sql():
     CommandLine:
         python -m ibeis.control.DB_SCHEMA dump_schema_sql
     """
-    import dtool as dt
+    import dtool_ibeis as dt
     from ibeis.control import DB_SCHEMA_CURRENT
     db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)

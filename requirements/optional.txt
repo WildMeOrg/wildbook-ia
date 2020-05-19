@@ -1,0 +1,13 @@
+ansi2html
+autopep8
+pyfiglet
+
+flask-cors
+flask-swagger
+pydot
+pydot-ng
+
+Flask-CAS
+
+Cython>=0.24
+jupyter

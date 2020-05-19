@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function  # , unicode_li
 import os
 from os.path import exists, join, realpath
 import utool as ut
+import ubelt as ub
 from six.moves import input, zip, map
 from ibeis import constants as const
 from ibeis import params
@@ -22,7 +23,7 @@ ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def get_ibeis_resource_dir():
-    return ut.ensure_app_resource_dir('ibeis')
+    return ub.ensure_app_cache_dir('ibeis')
 
 
 def _ibeis_cache_dump():
@@ -71,7 +72,7 @@ def get_workdir(allow_gui=True):
         str: work_dir
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-get_workdir
+        python -m ibeis.init.sysres get_workdir
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -82,7 +83,8 @@ def get_workdir(allow_gui=True):
         >>> print(result)
     """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
-    if work_dir is not '.' and exists(work_dir):
+    print('[ibeis.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
+    if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
         work_dir = set_workdir()
@@ -101,7 +103,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
 
-        python -m ibeis.init.sysres --exec-set_workdir --workdir
+        python -m ibeis.init.sysres set_workdir
 
     Example:
         >>> # SCRIPT
@@ -146,14 +148,14 @@ def get_rawdir():
 
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
-    import guitool
-    guitool.ensure_qtapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qtapp()
     # Gui selection
-    work_dir = guitool.select_directory('Select a work directory')
+    work_dir = guitool_ibeis.select_directory('Select a work directory')
 
     # Make sure selection is ok
     if not exists(work_dir):
-        try_again = guitool.user_option(
+        try_again = guitool_ibeis.user_option(
             paremt=None,
             msg='Directory %r does not exist.' % work_dir,
             title='get work dir failed',
@@ -622,7 +624,7 @@ def ensure_pz_mtest_batchworkflow_test():
                 imageset_aids_list[imageset_idx].extend(chunk)
                 imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
 
-            #import vtool as vt
+            #import vtool_ibeis as vt
             #import networkx as netx
             #nodes = list(range(len(aids)))
             #edges_pairs = vt.pdist_argsort(hourdiffs)
@@ -716,7 +718,7 @@ def ensure_pz_mtest_mergesplit_test():
 
     total_names = num_merge_names + num_split_names + num_combo_names
 
-    modify_aids = ut.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+    modify_aids = list(ub.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names]))
 
     merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
     merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')
@@ -748,7 +750,7 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    print('final_result = %s' % (ut.repr2(final_result),))
+    print('final_result = %s' % (ub.repr2(final_result),))
 
 
 def ensure_wilddogs():
@@ -803,11 +805,7 @@ def get_global_distinctiveness_modeldir(ensure=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.init.sysres
-        python -m ibeis.init.sysres --allexamples
-        python -m ibeis.init.sysres --allexamples --noface --nosrc
+        xdoctest -m ibeis.init.sysres
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

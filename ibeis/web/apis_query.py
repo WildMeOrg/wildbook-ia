@@ -69,7 +69,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         python -m ibeis.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -91,7 +91,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> print(result)
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import time
         >>> import ibeis
@@ -211,7 +211,7 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> print('image.shape = %r' % (image.shape,))
         >>> print('image.dtype = %r' % (image.dtype,))
         >>> ut.print_object_size(image)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
@@ -292,7 +292,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         python -m ibeis.web.apis_query review_graph_match_html --show --domain=localhost
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.apis_query import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -339,7 +339,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> html_str = web_ibs.send_ibeis_request('/api/review/query/graph/', type_='get', **kw)
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
 
@@ -385,7 +385,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>                             query_config_dict, _internal_state=None,
         >>>                             callback_url=None)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
     """
@@ -1185,7 +1185,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
 
 def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
-    import plottool as pt
+    import plottool_ibeis as pt
     render_config = {
         'overlay'    : overlay,
         'show_ell'   : draw_matches,
@@ -1243,7 +1243,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.apis_query import *
         >>> import ibeis
         >>> # Open local instance

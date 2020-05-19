@@ -16,7 +16,7 @@ Zebra Experiment:
         -a ctrl:qmingt=2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import dtool
+import dtool_ibeis
 import six
 import utool as ut
 import numpy as np
@@ -29,7 +29,7 @@ from ibeis.algo import Config as old_config
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-class MatchHeuristicsConfig(dtool.Config):
+class MatchHeuristicsConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('can_match_self', False),
         ut.ParamInfo('can_match_samename', True),
@@ -37,7 +37,7 @@ class MatchHeuristicsConfig(dtool.Config):
     ]
 
 
-class SMKRequestConfig(dtool.Config):
+class SMKRequestConfig(dtool_ibeis.Config):
     """ Figure out how to do this """
     _param_info_list = [
         ut.ParamInfo('proot', 'smk'),
@@ -95,6 +95,7 @@ class SMKRequest(mc5.EstimatorRequest):
             -a ctrl:qmingt=2,qindex=40:60 --profile
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
@@ -132,7 +133,7 @@ class SMKRequest(mc5.EstimatorRequest):
         # Hack to work with existing hs code
         qreq_.stack_config = SMKRequestConfig(**config)
         # Flat config
-        qreq_.qparams = dtool.base.StackedConfig([
+        qreq_.qparams = dtool_ibeis.base.StackedConfig([
             dict(qreq_.stack_config.parse_items())
         ])
         #    # TODO: add vocab, inva, features
@@ -141,6 +142,7 @@ class SMKRequest(mc5.EstimatorRequest):
     def dump_vectors(qreq_):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
             >>> import ibeis
             >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')

@@ -7,7 +7,7 @@ import numpy as np
 import utool as ut
 import networkx as nx
 import itertools as it
-import vtool as vt  # NOQA
+import vtool_ibeis as vt  # NOQA
 # import ibeis.algo.graph.nx_edge_kconnectivity as nx_ec
 from ibeis.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict
@@ -346,7 +346,7 @@ def demodata_tarjan_bridge():
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_tarjan_bridge()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_nx(G)
         >>> ut.show_if_requested()
     """
@@ -398,7 +398,7 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> size, k, p = 25, 3, .1
         >>> rng = ut.ensure_rng(0)

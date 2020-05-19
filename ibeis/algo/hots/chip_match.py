@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from os.path import join
 from operator import xor
 import six
@@ -410,7 +410,7 @@ class _ChipMatchVisualization(object):
 
     def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None,
                            plottype='annotmatch', **kwargs):
-        import plottool as pt
+        import plottool_ibeis as pt
         if fnum is None:
             fnum = pt.next_fnum()
         nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=False)
@@ -485,7 +485,7 @@ class _ChipMatchVisualization(object):
             ut.printex(ex, 'failed in cm.ishow_single_annotmatch', keys=['aid', 'qreq_'])
             raise
         #if not kwargs.get('noupdate', False):
-        #    import plottool as pt
+        #    import plottool_ibeis as pt
         #    pt.update()
 
     ishow_match = ishow_single_annotmatch
@@ -552,7 +552,7 @@ class _ChipMatchVisualization(object):
             >>> ut.startfile(img_fpath, quote=True)
             >>> ut.show_if_requested()
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
@@ -588,7 +588,7 @@ class _ChipMatchVisualization(object):
         """
         users newer rendering based code
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -646,7 +646,7 @@ class _ChipMatchVisualization(object):
             >>> print('kwargs = %s' % (ut.repr2(kwargs),))
             >>> cm, qreq_ = ibeis.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> tt = ut.tic('render image')
             >>> img = cm.render_single_annotmatch(qreq_, aid, **kwargs)
             >>> ut.toc(tt)
@@ -656,7 +656,7 @@ class _ChipMatchVisualization(object):
         """
         import io
         import cv2
-        import plottool as pt
+        import plottool_ibeis as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -714,13 +714,13 @@ class _ChipMatchVisualization(object):
             >>> name_scoring = False
             >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
             >>> ut.quit_if_noshow()
-            >>> import guitool
-            >>> guitool.qtapp_loop(qwin=qres_wgt)
+            >>> import guitool_ibeis
+            >>> guitool_ibeis.qtapp_loop(qwin=qres_wgt)
         """
         print('[cm] qt_inspect_gui')
         from ibeis.gui import inspect_gui
-        import guitool
-        guitool.ensure_qapp()
+        import guitool_ibeis
+        guitool_ibeis.ensure_qapp()
         cm_list = [cm]
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
@@ -1535,7 +1535,7 @@ class _ChipMatchConvenienceGetter(object):
             >>> result = ('info_ = %s' % (ut.repr3(info_, precision=2),))
             >>> print(result)
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         if flags is None:
             flags = [True] * len(cm.daid_list)
             # flags = cm.score_list > 0

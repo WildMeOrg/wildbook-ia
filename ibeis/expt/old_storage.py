@@ -96,25 +96,25 @@ def make_metadata_custom_api(metadata):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qapp()
         >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
         >>> metadata = ResultMetadata(metadata_fpath, autoconnect=True)
         >>> wgt = make_metadata_custom_api(metadata)
         >>> ut.quit_if_noshow()
         >>> wgt.show()
         >>> wgt.raise_()
-        >>> guitool.qtapp_loop(wgt, frequency=100)
+        >>> guitool_ibeis.qtapp_loop(wgt, frequency=100)
     """
-    import guitool
-    from guitool.__PYQT__ import QtCore
+    import guitool_ibeis
+    from guitool_ibeis.__PYQT__ import QtCore
 
-    class MetadataViewer(guitool.APIItemWidget):
+    class MetadataViewer(guitool_ibeis.APIItemWidget):
         def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
-            guitool.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
+            guitool_ibeis.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
             wgt.connect_signals_and_slots()
 
-        @guitool.slot_(QtCore.QModelIndex)
+        @guitool_ibeis.slot_(QtCore.QModelIndex)
         def _on_doubleclick(wgt, qtindex):
             print('[wgt] _on_doubleclick: ')
             col = qtindex.column()
@@ -134,7 +134,7 @@ def make_metadata_custom_api(metadata):
             #wgt.view.pressed.connect(wgt._on_pressed)
             #wgt.view.activated.connect(wgt._on_activated)
 
-    guitool.ensure_qapp()
+    guitool_ibeis.ensure_qapp()
     #cfgstr_list = metadata
     col_name_list, column_list = metadata.get_square_data()
 
@@ -169,7 +169,7 @@ def make_metadata_custom_api(metadata):
     def get_thumb_size():
         return 128
     col_width_dict = {}
-    custom_api = guitool.CustomAPI(
+    custom_api = guitool_ibeis.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size,
@@ -185,8 +185,8 @@ def make_metadata_custom_api(metadata):
 
 
 def make_test_result_custom_api(ibs, testres):
-    import guitool
-    guitool.ensure_qapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qapp()
     cfgx = 0
     cfgres_info = testres.cfgx2_cmsinfo[cfgx]
     qaids = testres.qaids
@@ -216,13 +216,13 @@ def make_test_result_custom_api(ibs, testres):
         return 128
     col_width_dict = {}
 
-    custom_api = guitool.CustomAPI(
+    custom_api = guitool_ibeis.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     #headers = custom_api.make_headers(tblnice='results')
     #print(ut.repr2(headers))
-    wgt = guitool.APIItemWidget()
+    wgt = guitool_ibeis.APIItemWidget()
     wgt.connect_api(custom_api)
     return wgt
 
@@ -293,7 +293,7 @@ def draw_results(ibs, testres):
     #avuuids = ibs.get_annot_visual_uuids(qaids)
     #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
-    #import guitool
+    #import guitool_ibeis
 
     # ut.argv_flag_dec(draw_rank_cmc)(ibs, testres)
 
@@ -303,13 +303,13 @@ def draw_results(ibs, testres):
 
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):
-        import guitool
-        guitool.ensure_qapp()
+        import guitool_ibeis
+        guitool_ibeis.ensure_qapp()
         #wgt = make_test_result_custom_api(ibs, testres)
         wgt = make_metadata_custom_api(metadata)
         wgt.show()
         wgt.raise_()
-        guitool.qtapp_loop(wgt, frequency=100)
+        guitool_ibeis.qtapp_loop(wgt, frequency=100)
     metadata.close()
 
     if ut.NOT_QUIET:

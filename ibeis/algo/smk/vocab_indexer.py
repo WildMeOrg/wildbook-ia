@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import dtool
+import dtool_ibeis
 import utool as ut
-import vtool as vt
-import pyflann
+import vtool_ibeis as vt
+from vtool_ibeis._pyflann_backend import pyflann as pyflann
 from ibeis.algo.smk import pickle_flann
 import numpy as np
 import warnings
@@ -14,7 +14,7 @@ from ibeis.control.controller_inject import register_preprocs
 derived_attribute = register_preprocs['annot']
 
 
-class VocabConfig(dtool.Config):
+class VocabConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
@@ -40,7 +40,7 @@ class VisualVocab(ut.NiceRepr):
         vocab.flann_params['checks'] = 1024
         vocab.flann_params['trees'] = 8
         # TODO: grab the depcache rowid and maybe config?
-        # make a dtool.Computable
+        # make a dtool_ibeis.Computable
 
     def __nice__(vocab):
         return 'nW=%r' % (ut.safelen(vocab.wx_to_word))
@@ -119,16 +119,17 @@ class VisualVocab(ut.NiceRepr):
             python -m ibeis.algo.smk.vocab_indexer render_vocab --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> vocab = testdata_vocab('PZ_MTEST', num_words=64)
             >>> all_words = vocab.render_vocab()
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         wx_list = list(range(len(vocab)))
         # wx_list = ut.strided_sample(wx_list, 64)
         wx_list = ut.strided_sample(wx_list, 64)
@@ -217,7 +218,7 @@ def compute_vocab(depc, fid_list, config):
         >>> ut.quit_if_noshow()
         >>> data = train_vecs
         >>> centroids = vocab.wx_to_word
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> vt.plot_centroids(data, centroids, num_pca_dims=2)
         >>> ut.show_if_requested()
         >>> #config = ibs.depc_annot['vocab'].configclass()

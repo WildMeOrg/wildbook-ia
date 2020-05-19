@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists  # NOQA
 import utool as ut
-import plottool as pt
-import vtool as vt
+import plottool_ibeis as pt
+import vtool_ibeis as vt
 import pathlib
 import matplotlib as mpl
 import random
@@ -119,6 +119,7 @@ class Chap5(DBInputs):
         python -m ibeis Chap5._setup
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> #self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
@@ -197,6 +198,7 @@ class Chap5(DBInputs):
     def _thresh_test(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('PZ_Master1')
             >>> self = Chap5('GZ_Master1')
@@ -595,7 +597,7 @@ class Chap5(DBInputs):
             >>> self = Chap5('PZ_Master1')
         """
         import ibeis
-        import plottool as pt
+        import plottool_ibeis as pt
         sim_results = self.ensure_results('simulation')
         key = 'graph'
 
@@ -1073,6 +1075,7 @@ class Chap5(DBInputs):
             python -m ibeis Chap5.draw_simulation2 --db PZ_Master1 --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap5(dbname)
@@ -1329,6 +1332,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap4(dbname)
@@ -1428,6 +1432,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.measure_all --db GZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -1495,6 +1500,7 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.draw_all --db PZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -2247,7 +2253,7 @@ class Chap4(DBInputs):
         ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
                              for rs in sub_reports])
 
-        import plottool as pt
+        import plottool_ibeis as pt
 
         mpl.rcParams.update(TMP_RC)
         fig = pt.figure(fnum=1, doclf=True)
@@ -2557,7 +2563,7 @@ class Chap4(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_wordcloud(self, task_key):
-        import plottool as pt
+        import plottool_ibeis as pt
         results = self.ensure_results('all')
         importances = ut.map_keys(feat_alias, results['importance'][task_key])
 
@@ -2639,6 +2645,7 @@ class Chap4(DBInputs):
     def custom_single_hard_case(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'
@@ -3232,7 +3239,7 @@ class Chap3Draw(object):
         df = pd.DataFrame.from_records(infos)
         df['cdfs'] = cdfs
         df['K'] = ut.take_column(pcfgs, 'K')
-        import plottool as pt
+        import plottool_ibeis as pt
         # groups = list(df.groupby(('dsize', 't_denc_pername')))
         df = df[df['K'] != 10]
 
@@ -3792,7 +3799,7 @@ class Sampler(object):
             return subenc
 
         def _only_comparable(qsubenc, avail_dencs):
-            from vtool import _rhomb_dist
+            from vtool_ibeis import _rhomb_dist
             qviews = set(ut.flatten(qsubenc.viewpoint_code))
             comparable_encs = []
             for denc in avail_dencs:
@@ -3874,6 +3881,7 @@ class Sampler(object):
         Vary num per name and total number of annots
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()

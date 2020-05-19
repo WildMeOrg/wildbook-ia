@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
 import itertools
 from ibeis.algo.hots import hstypes
@@ -312,6 +312,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> ut.show_if_requested()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> annot_score_list = []
         >>> annot_aid_list   = []

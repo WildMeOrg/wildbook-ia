@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-import plottool as pt
+import plottool_ibeis as pt
 import utool as ut
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
@@ -16,7 +16,7 @@ import itertools as it
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -119,6 +119,7 @@ class GraphExpt(DBInputs):
         python -m ibeis GraphExpt._setup
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> #self = GraphExpt('GZ_Master1')
             >>> self = GraphExpt('PZ_MTEST')
@@ -347,6 +348,7 @@ class GraphExpt(DBInputs):
             python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --diskshow
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = GraphExpt(dbname)
@@ -608,8 +610,8 @@ def draw_match_states():
             NEGTV: list(infr.neg_graph.edges())[0],
             INCMP: list(infr.incmp_graph.edges())[0],
         }
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     for key, edge in chosen.items():
         match = infr._make_matches_from([edge], config={
             'match_config': {'ratio_thresh': .7}})[0]
@@ -814,6 +816,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure all RotanTurtles --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = VerifierExpt(dbname)
@@ -1791,6 +1794,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.draw_all --db PZ_Master1
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
@@ -2892,6 +2896,7 @@ class VerifierExpt(DBInputs):
     def custom_single_hard_case(self):
         """
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'

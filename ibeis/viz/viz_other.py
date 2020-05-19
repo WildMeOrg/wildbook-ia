@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
+import plottool_ibeis as pt
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
@@ -22,10 +22,10 @@ def chip_montage(ibs, qaids, config=None):
         >>> config = None
         >>> chip_montage(ibs, qaids, config)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     chip_list = ibs.get_annot_chips(qaids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)
@@ -51,10 +51,10 @@ def image_montage(ibs, gids, config=None):
         >>> gids = ibs.get_annot_gids(qaids[0:1000])
         >>> image_montage(ibs, gids, config)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     img_list = ibs.get_images(gids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)

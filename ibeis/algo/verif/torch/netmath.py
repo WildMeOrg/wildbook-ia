@@ -1,9 +1,9 @@
 import utool as ut
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import six
 import torch
-from torch.autograd import Variable
+# from torch.autograd import Variable  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 # from pysseg import getLogger
@@ -50,6 +50,7 @@ class ContrastiveLoss(torch.nn.Module):
         $(y E)^2 + ((1 - y) max(m - E, 0)^2)$
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.siamese import *
         >>> vecs1, vecs2, label = testdata_siam_desc()
         >>> self = ContrastiveLoss()
@@ -64,7 +65,7 @@ class ContrastiveLoss(torch.nn.Module):
         >>> dist1_l2 = dist_l2[~label]
         >>> loss0 = loss2x[label] / 2
         >>> loss1 = loss2x[~label] / 2
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(dist0_l2, loss0, 'x', color=pt.TRUE_BLUE, label='imposter_loss', y_label='loss')
         >>> pt.plot2(dist1_l2, loss1, 'x', color=pt.FALSE_RED, label='genuine_loss', y_label='loss')
         >>> pt.gca().set_xlabel('l2-dist')

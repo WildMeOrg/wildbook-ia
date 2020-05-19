@@ -10,6 +10,7 @@ def benchmark_knn():
         python ~/code/ibeis/ibeis/algo/hots/tests/bench.py benchmark_knn --profile
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from bench import *  # NOQA
         >>> result = benchmark_knn()
         >>> print(result)
@@ -25,8 +26,10 @@ def benchmark_knn():
     )
     locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
     Kpad_list, impossible_daids_list = ut.dict_take(
-       locals_, ['Kpad_list', 'impossible_daids_list'])
-    nns_list1 = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
+        locals_,
+        ['Kpad_list', 'impossible_daids_list']
+    )
+    nns_list1 = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,  # NOQA
                                   verbose=verbose)
 
 

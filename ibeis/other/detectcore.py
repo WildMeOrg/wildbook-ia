@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip
 from os.path import exists, expanduser, join, abspath, basename
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
 import cv2
 import ibeis.constants as const

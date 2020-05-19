@@ -20,8 +20,9 @@ import re
 from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
+import ubelt as ub
 from utool._internal.meta_util_six import get_funcname, set_funcname
 import itertools as it
 from ibeis import constants as const
@@ -98,7 +99,7 @@ def get_image_time_statstr(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     unixtime_list_ = ibs.get_image_unixtime(gid_list)
     utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.compress(unixtime_list_, utvalid_list)
+    unixtime_list  = list(ub.compress(unixtime_list_, utvalid_list))
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
     return unixtime_statstr
 
@@ -829,9 +830,9 @@ def check_annot_consistency(ibs, aid_list=None):
 @register_ibs_method
 def check_annot_corrupt_uuids(ibs, aid_list=None):
     """
-    # del dtool.__SQLITE__.converters['UUID']
+    # del dtool_ibeis.__SQLITE__.converters['UUID']
     # import uuid
-    # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
+    # del dtool_ibeis.__SQLITE__.adapters[(uuid.UUID, dtool_ibeis.__SQLITE__.PrepareProtocol)]
 
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
@@ -936,7 +937,7 @@ def check_annot_size(ibs):
 
 def check_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT """
-    import vtool.exif as exif
+    import vtool_ibeis.exif as exif
     from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
     exif_dict_list = []
@@ -1111,7 +1112,7 @@ def fix_exif_data(ibs, gid_list):
         >>> result = fix_exif_data(ibs, gid_list)
         >>> print(result)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
 
@@ -2669,7 +2670,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         >>> print(result)
         extended_yaws_list = [['frontleft'], ['frontright'], ['backleft'], ['frontleft']]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     # DEPRICATE?
     ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
     ori2 = const.VIEWTEXT_TO_YAW_RADIANS[towards]
@@ -2889,7 +2890,7 @@ def get_yaw_viewtexts(yaw_list):
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
 
     """
-    #import vtool as vt
+    #import vtool_ibeis as vt
     import numpy as np
     stdlblyaw_list = list(const.VIEWTEXT_TO_YAW_RADIANS.items())
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
@@ -3152,7 +3153,7 @@ def merge_names(ibs, merge_name, other_names):
 def inspect_nonzero_yaws(ibs):
     """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
     from ibeis.viz import viz_chip
-    import plottool as pt
+    import plottool_ibeis as pt
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
@@ -4326,7 +4327,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> ibeis.other.dbinfo.hackshow_names(ibs, filtered_aids)
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     #min_timedelta = 60 * 60 * 24
     #min_timedelta = 60 * 10
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
@@ -4792,6 +4793,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.annots().aids
+        >>> stats = ibs.get_annot_stats_dict(aids)
+        >>> import ubelt as ub
+        >>> print('annot_stats = {}'.format(ub.repr2(stats, nl=1)))
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibeis.testdata_aids(ibs=ibs)
         >>> prefix = ''
         >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
@@ -4803,7 +4814,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> old = ut.get_argval('--old', default=True)
         >>> use_hist = ut.get_argval('--use_hist', default=True)
         >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, use_hist=use_hist, old=old, **kwargs)
-        >>> result = ('aid_stats_dict = %s' % (ut.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
+        >>> result = ('aid_stats_dict = %s' % (ub.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
         >>> print(result)
     """
     kwargs = kwargs.copy()
@@ -5054,7 +5065,7 @@ def compare_nested_props(ibs, aids1_list,
         >>> result = compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     def replace_none_with_nan(x):
@@ -6769,7 +6780,7 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
 
 
 def overwrite_unixtimes_from_gps_worker(path):
-    from vtool.exif import parse_exif_unixtime_gps
+    from vtool_ibeis.exif import parse_exif_unixtime_gps
     unixtime_gps = parse_exif_unixtime_gps(path)
     return unixtime_gps
 

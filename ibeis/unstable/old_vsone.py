@@ -213,9 +213,9 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 def gridsearch_ratio_thresh(matches):
     import sklearn
     import sklearn.metrics
-    import vtool as vt
+    import vtool_ibeis as vt
     # Param search for vsone
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.qt4ensure()
 
     skf = sklearn.model_selection.StratifiedKFold(n_splits=10,

@@ -10,8 +10,8 @@ from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
 import utool as ut
-import vtool as vt
-import pyflann
+import vtool_ibeis as vt
+from vtool_ibeis._pyflann_backend import pyflann as pyflann
 # import itertools as it
 #import lockfile
 from os.path import basename

@@ -191,7 +191,7 @@ class DistinctivnessNormalizer(ut.Cachable):
 
     def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args,
                             **kwargs):
-        import pyflann
+        from vtool_ibeis._pyflann_backend import pyflann as pyflann
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
             try:
@@ -276,7 +276,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> assert np.all(qfx2_dstncvs) >= 0
             >>> ut.quit_if_noshow()
             >>> # Show distinctivness on an animal and a corresponding graph
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> chip = qreq_.ibs.get_annot_chips(qaid)
             >>> qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)
             >>> show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
@@ -350,7 +350,7 @@ def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs
 
 
 def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.figure(fnum, pnum=pnum)
     ax = pt.gca()
     divider = pt.ensure_divider(ax)
@@ -505,7 +505,7 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
@@ -522,7 +522,7 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     from ibeis.algo import Config
     postload_commands(ibs, None)
 
-    import plottool as pt
+    import plottool_ibeis as pt
 
     #cfglbl_list = cfgdict_list
     #ut.all_dict_combinations_lbls(varied_dict)

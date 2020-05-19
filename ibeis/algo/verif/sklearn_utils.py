@@ -245,6 +245,7 @@ def classification_report2(y_true, y_pred, target_names=None,
             Error Measures in MultiClass Prediction
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
         >>> y_true = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
         >>> y_pred = [1, 2, 1, 3, 1, 2, 2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 1, 3]
@@ -266,7 +267,7 @@ def classification_report2(y_true, y_pred, target_names=None,
         >>>     y_pred = testdata_ypred(y_true, p_wrong, rng)
         >>>     report = classification_report2(y_true, y_pred, verbose='hack')
         >>>     rs.append(report)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qtensure()
         >>> df = pd.DataFrame(rs).drop(['raw'], axis=1)
         >>> delta = df.subtract(df['target'], axis=0)

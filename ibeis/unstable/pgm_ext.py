@@ -131,7 +131,7 @@ class ApproximateFactor(object):
         return self.variables
 
     def marginalize(self, variables, inplace=True):
-        """
+        r"""
         Modifies the factor with marginalized values.
 
         Args:
@@ -151,6 +151,7 @@ class ApproximateFactor(object):
             python -m ibeis.algo.hots.pgm_ext marginalize --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
@@ -190,7 +191,7 @@ class ApproximateFactor(object):
             return phi
 
     def _compute_unique_state_ids(self):
-        import vtool as vt
+        import vtool_ibeis as vt
         #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
         data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
         return data_ids
@@ -216,7 +217,7 @@ class ApproximateFactor(object):
             | v1_1 | v2_0 | v3_2 |                0.1000 |
             +------+------+------+-----------------------+
         """
-        import vtool as vt
+        import vtool_ibeis as vt
 
         phi = self.copy() if inplace else self
         #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
@@ -238,7 +239,7 @@ class ApproximateFactor(object):
             return phi
 
     def normalize(self, inplace=True):
-        """
+        r"""
         Normalizes the weights of factor so that they sum to 1.
 
         Args:
@@ -596,7 +597,7 @@ def mustbe_example():
         >>> assert phi2['fred'] == 1, 'should be 1'
         >>> ut.quit_if_noshow()
         >>> #netx.draw_graphviz(model, with_labels=True)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pgm_viz.show_model(model, fnum=1)
         >>> pgm_viz.show_model(model, fnum=2, evidence=evidence, factor_list=factor_list2)
         >>> ut.show_if_requested()
@@ -711,7 +712,7 @@ def coin_example():
         >>> # factor_list2 = infr.query(query_vars, evidence).values()
         >>> # print_factors(model, factor_list2)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> from ibeis.algo.hots import bayes
         >>> kw = bayes.cluster_query(model, query_vars,evidence2,
         >>>                          method='bp', operation='marginalize')

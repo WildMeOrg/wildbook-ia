@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 from six.moves import zip, map
 import numpy as np
-import vtool as vt
+import vtool_ibeis as vt
 import utool as ut
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
@@ -166,7 +166,7 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
     CommandLine:
         python -m ibeis.tag_funcs --exec-rename_and_reduce_tags --db PZ_Master1
 
-    Example:
+    Ignore:
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> import ibeis
         >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
@@ -416,7 +416,7 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         >>> # Show timedelta info
         >>> ut.quit_if_noshow()
         >>> timedelta_list = ibs.get_annot_pair_timedelta(aid1_list, aid2_list)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (has_any,))
         >>> ut.show_if_requested()
     """

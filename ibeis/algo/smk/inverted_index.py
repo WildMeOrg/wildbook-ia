@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-import dtool
+import dtool_ibeis
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import numpy as np
 from ibeis.algo.smk import smk_funcs
 from ibeis.control.controller_inject import register_preprocs
@@ -13,7 +13,7 @@ from ibeis.control.controller_inject import register_preprocs
 derived_attribute = register_preprocs['annot']
 
 
-class InvertedIndexConfig(dtool.Config):
+class InvertedIndexConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('nAssign', 1),
         #ut.ParamInfo('int_rvec', False, hideif=False),
@@ -154,8 +154,9 @@ class InvertedAnnotsExtras(object):
             python -m ibeis.algo.smk.inverted_index render_inverted_vocab_word --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.inverted_index import *  # NOQA
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
             >>> wx_list = list(inva.wx_to_aids.keys())
@@ -169,7 +170,7 @@ class InvertedAnnotsExtras(object):
             >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, '?'))
             >>>     pt.update()
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         # Create the contributing patch image
         word_patches = inva.get_patches(wx, ibs)
         word_patches_ = ut.strided_sample(word_patches, 64)
@@ -219,17 +220,18 @@ class InvertedAnnotsExtras(object):
             python -m ibeis.algo.smk.inverted_index render_inverted_vocab --show --debug-depc
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
             >>> all_words = inva.render_inverted_vocab(ibs)
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         # Get words with the most assignments
         vocab = ibs.depc['vocab'].get_row_data([inva.vocab_rowid], 'words')[0]
 
@@ -267,6 +269,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         >>> inva = InvertedAnnots(aids, qreq_)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> qreq_, inva = testdata_inva()
     """
 
@@ -594,6 +597,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> tup = dat[1]
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.inverted_index import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')

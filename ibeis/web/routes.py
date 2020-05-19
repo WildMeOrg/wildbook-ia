@@ -3657,7 +3657,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
         >>> resp = web_ibs.get('/turk/identification/lnbnn/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(resp.content)
         >>> ut.show_if_requested()
     """
@@ -4324,7 +4324,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         >>> resp = web_ibs.get('/turk/identification/graph/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.render_html(resp.content)
         >>> ut.show_if_requested()
     """

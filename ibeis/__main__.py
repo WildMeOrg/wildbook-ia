@@ -6,11 +6,11 @@ Runs IBIES gui
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool as ut
-import ibeis  # NOQA
+import ubelt as ub
 import sys
 (print, rrr, profile) = ut.inject2(__name__)
 
-CMD = ut.get_argflag('--cmd')
+CMD = ub.argflag('--cmd')
 
 
 def dependencies_for_myprogram():
@@ -19,8 +19,8 @@ def dependencies_for_myprogram():
     References:
         http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
     """
-    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
-    from PyQt4 import QtCore, QtGui  # NOQA
+    from guitool_ibeis.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
+    # from PyQt4 import QtCore, QtGui  # NOQA
     #from PyQt4 import QtCore, QtGui  # NOQA
     from scipy.sparse.csgraph import _validation  # NOQA
     from scipy.special import _ufuncs_cxx  # NOQA
@@ -38,6 +38,7 @@ def run_ibeis():
         python -m ibeis find_installed_tomcat
         python -m ibeis get_annot_groundtruth:1
     """
+    import ibeis  # NOQA
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
@@ -48,30 +49,21 @@ def run_ibeis():
         rsync_ibeisdb.rsync_ibsdb_main()
         sys.exit(0)
 
-    if ut.get_argflag('--devcmd'):
+    if ub.argflag('--devcmd'):
         # Hack to let devs mess around when using an installer version
         # TODO: add more hacks
         #import utool.tests.run_tests
         #utool.tests.run_tests.run_tests()
         ut.embed()
     # Run the tests of other modules
-    elif ut.get_argflag('--run-utool-tests'):
-        import utool.tests.run_tests
-        retcode = utool.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
-    elif ut.get_argflag('--run-vtool-tests'):
-        import vtool.tests.run_tests
-        retcode = vtool.tests.run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
-    elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
-        from ibeis.tests import run_tests
-        retcode = run_tests.run_tests()
-        print('... exiting')
-        sys.exit(retcode)
+    elif ub.argflag('--run-utool-tests'):
+        raise Exception('Deprecated functionality')
+    elif ub.argflag('--run-vtool_ibeis-tests'):
+        raise Exception('Deprecated functionality')
+    elif ub.argflag(('--run-ibeis-tests', '--run-tests')):
+        raise Exception('Deprecated functionality')
 
-    if ut.get_argflag('-e'):
+    if ub.argflag('-e'):
         """
         ibeis -e print -a default -t default
         """
@@ -83,21 +75,22 @@ def run_ibeis():
 
     # Attempt to run a test using the funciton name alone
     # with the --tf flag
-    import ibeis.tests.run_tests
-    import ibeis.tests.reset_testdbs
-    import ibeis.scripts.thesis
-    ignore_prefix = [
-        #'ibeis.tests',
-        'ibeis.control.__SQLITE3__',
-        '_autogen_explicit_controller']
-    ignore_suffix = ['_grave']
-    func_to_module_dict = {
-        'demo_bayesnet': 'ibeis.unstable.demobayes',
-    }
-    ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
-                            func_to_module_dict=func_to_module_dict)
+    # if False:
+    #     import ibeis.tests.run_tests
+    #     import ibeis.tests.reset_testdbs
+    #     import ibeis.scripts.thesis
+    #     ignore_prefix = [
+    #         #'ibeis.tests',
+    #         'ibeis.control.__SQLITE3__',
+    #         '_autogen_explicit_controller']
+    #     ignore_suffix = ['_grave']
+    #     func_to_module_dict = {
+    #         'demo_bayesnet': 'ibeis.unstable.demobayes',
+    #     }
+    #     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
+    #                             func_to_module_dict=func_to_module_dict)
 
-    #if ut.get_argflag('-e'):
+    #if ub.argflag('-e'):
     #    import ibeis
     #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),
     #    prefix_list=['--', '-'])
@@ -118,7 +111,7 @@ def run_ibeis():
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
         """
         print('[ibeis] Testing module')
         mod_alias_list = {
@@ -141,6 +134,9 @@ def run_ibeis():
         #front = back.front
         #ui = front.ui
     ibs = main_locals['ibs']  # NOQA
+    print('-- EXECSTR --')
+    print(ub.codeblock(execstr))
+    print('-- /EXECSTR --')
     exec(execstr)
     # </DEBUG CODE>
 

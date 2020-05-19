@@ -232,6 +232,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> ibs.close_job_manager()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')  # , domain='http://52.33.105.88')
@@ -245,7 +246,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> cm_list = qreq_.execute()
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')

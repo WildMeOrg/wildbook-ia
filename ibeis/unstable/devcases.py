@@ -68,7 +68,7 @@ def fix_pz_master():
     import ibeis
     ibeis._preload()
     from ibeis.gui import inspect_gui
-    import guitool
+    import guitool_ibeis
     ibs = ibeis.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
@@ -81,7 +81,7 @@ def fix_pz_master():
     qres_wgt = inspect_gui.launch_review_matches_interface(ibs, qres_list, dodraw=ut.show_was_requested())
 
     if ut.show_was_requested():
-        guitool.guitool_main.qtapp_loop()
+        guitool_ibeis.guitool_main.qtapp_loop()
     return qres_wgt
 
 
@@ -135,7 +135,7 @@ def myquery():
     from ibeis.algo.hots import special_query  # NOQA
     from ibeis.algo.hots import distinctiveness_normalizer  # NOQA
     from ibeis import viz  # NOQA
-    import plottool as pt
+    import plottool_ibeis as pt
     index = ut.get_argval('--index', int, 0)
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
     qaids = [aid1]
@@ -289,11 +289,11 @@ def myquery():
     #plt.show()
     #print(ut.repr2()))
     # TODO: plot max variation dims
-    #import plottool as pt
+    #import plottool_ibeis as pt
     #pt.plot(p_list, diff_list)
     """
     viz.show_chip(ibs, aid1)
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.update()
     """
 
@@ -385,7 +385,7 @@ def show_power_law_plots():
         >>> pt.show_if_requested()
     """
     import numpy as np
-    import plottool as pt
+    import plottool_ibeis as pt
     xdata = np.linspace(0, 1, 1000)
     ydata = xdata
     fnum = 1

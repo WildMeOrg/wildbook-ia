@@ -83,7 +83,7 @@ nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     %reload_ext autoreload
     %autoreload
     import utool as ut
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.templates import notebook_helpers
     notebook_helpers.custom_globals()
 
@@ -441,7 +441,7 @@ per_name_accuracy = (
                               gridlinestyle='-', linewidth=3, markersize=10,
                               fontweight='normal', sep=' ')
 
-        import plottool as pt
+        import plottool_ibeis as pt
         ax = pt.gca()
         ax.grid(True)
         gridlines = ax.get_xgridlines() + ax.get_ygridlines()
@@ -806,7 +806,7 @@ per_encounter_stats = (
         nid_to_nAids = ut.map_vals(len, nid_to_aids)
         nAids_per_name_hist = ut.dict_hist(nid_to_nAids.values())
 
-        import plottool as pt
+        import plottool_ibeis as pt
         xdata = list(nAids_per_name_hist.keys())
         ydata = list(nAids_per_name_hist.values())
         fig = pt.multi_plot(xdata, [ydata], kind='bar',
@@ -820,7 +820,7 @@ per_encounter_stats = (
         nid_to_nEncs = ut.map_vals(len, nid_to_encs)
         nEncs_per_name_hist = ut.dict_hist(nid_to_nEncs.values())
 
-        import plottool as pt
+        import plottool_ibeis as pt
         xdata = list(nEncs_per_name_hist.keys())
         ydata = list(nEncs_per_name_hist.values())
         fig = pt.multi_plot(xdata, [ydata], kind='bar',

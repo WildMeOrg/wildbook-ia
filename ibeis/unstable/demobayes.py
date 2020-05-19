@@ -93,6 +93,7 @@ def classify_k(cfg={}):
         python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.unstable.demobayes import *  # NOQA
         >>> cfg_list = testdata_demo_cfgs()
         >>> classify_k(cfg_list[0])
@@ -202,8 +203,8 @@ def classify_k(cfg={}):
 
 
 def show_toy_distributions(toy_params):
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
     tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
@@ -237,10 +238,10 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         >>> num_names = 40
         >>> get_toy_data_1vM(num_annots, num_names)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -382,7 +383,7 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
         >>> result = ('(aids, nids, aids1, nids1, all_aids, all_nids) = %s' % (ut.repr2((aids, nids, aids1, nids1, all_aids, all_nids), nl=1),))
         >>> print(result)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if num_names is None:
         num_names = num_annots
     print('Generating toy data with num_annots=%r' % (num_annots,))
@@ -448,7 +449,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> from ibeis.unstable.demobayes import *  # NOQA
         >>> toy_data = get_toy_data_1v1()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
@@ -463,7 +464,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_names = 6
         >>> toy_data2 = get_toy_data_1v1(num_annots, num_names, initial_aids=initial_aids, initial_nids=initial_nids)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
@@ -471,7 +472,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_annots = 1000
         >>> num_names = 400
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -546,7 +547,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
         >>> (discr_domain, discr_p_same, encoder) = learn_prob_score(num_scores, ret_enc=True, use_cache=False)
         >>> print('discr_p_same = %r' % (discr_p_same,))
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> encoder.visualize()
         >>> ut.show_if_requested()
     """
@@ -563,7 +564,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     #diag_labels = pairwise_matches.compress(is_diag)
 
     # Learn P(S_{ij} | M_{ij})
-    import vtool as vt
+    import vtool_ibeis as vt
     encoder = vt.ScoreNormalizer(
         reverse=True, monotonize=True,
         adjust=4,
@@ -571,7 +572,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
 
     if False:
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.ensureqt()
         encoder.visualize()
         #show_toy_distributions()

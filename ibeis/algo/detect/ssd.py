@@ -4,7 +4,7 @@ Interface to SSD object proposals.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from six.moves import zip
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
@@ -130,7 +130,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
 
     Yields:

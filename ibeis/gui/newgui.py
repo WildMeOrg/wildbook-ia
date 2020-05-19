@@ -22,15 +22,15 @@ from os.path import isdir
 import sys
 import functools
 import utool as ut
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
-from guitool import slot_, ChangeLayoutContext
-# from guitool import BlockContext
-# from guitool import checks_qt_error
-import guitool as gt
-import plottool as pt
-from plottool import color_funcs
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis import slot_, ChangeLayoutContext
+# from guitool_ibeis import BlockContext
+# from guitool_ibeis import checks_qt_error
+import guitool_ibeis as gt
+import plottool_ibeis as pt
+from plottool_ibeis import color_funcs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
@@ -848,7 +848,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Image, ImageGrid, Annotation, or Names table/tree
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
@@ -1069,7 +1069,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                text = '51e10019-968b-5f2e-2287-8432464d7547 '
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
@@ -1259,6 +1259,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.show_annotation(aid, web=True)),
                     ('View image in Web',
                         lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
+                    ('Set annotation species',
+                        lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('----', lambda: None),
                     ('Remove annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
@@ -1275,6 +1277,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View annotations in Web',
                         lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
+                    ('Set annotation species',
+                        lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
                     ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
@@ -1429,6 +1433,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('----', lambda: None),
                     ('Delete image\'s annotations',
                         lambda: ibswgt.back.delete_image_annotations([gid])),
+                    ('Set image\'s annotations species',
+                        lambda: ibswgt.back.override_all_annotation_species(gids=[gid])),
                     ('Delete image',
                         lambda: ibswgt.back.delete_image(gid)),
                 ]
@@ -1437,6 +1443,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('----', lambda: None),
                     ('Delete images\' annotations',
                         lambda: ibswgt.back.delete_image_annotations(gid_list)),
+                    ('Set images\' annotations species',
+                        lambda: ibswgt.back.override_all_annotation_species(gids=gid_list)),
                     ('Delete images',
                         lambda: ibswgt.back.delete_image(gid_list)),
                 ]
@@ -1571,7 +1579,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             python -m ibeis.gui.newgui imagesDropped --show
 
         Example:
-            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
             >>> url_list = [ut.grab_test_imgpath('carl.jpg'), ut.grab_test_imgpath('lena.png')]

@@ -339,7 +339,7 @@ def add_images_json(ibs, image_uri_list,
         ,"bucket":"flukebook-prod-asset-store","key":""
 
     Example:
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--web)
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> import uuid
@@ -538,6 +538,7 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
         python -m ibeis.web.app --test-add_annots_json
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> web_instance = ibeis.opendb(db='testdb1')

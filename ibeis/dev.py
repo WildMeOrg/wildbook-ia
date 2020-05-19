@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+mkinit ~/code/ibeis/ibeis
+
+
+
 DEV SCRIPT
 
 TODO: DEPRICATE
@@ -40,14 +44,20 @@ import utool as ut
 from utool.util_six import get_funcname
 import utool
 #from ibeis.algo.hots import smk
-import plottool as pt
+import plottool_ibeis as pt
 import ibeis
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    ibeis._preload()
+# if __name__ == '__main__':
+#     multiprocessing.freeze_support()
+#     ibeis._preload()
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
-from ibeis._devcmds_ibeis import *  # NOQA
+from ibeis._devscript import devcmd, devprecmd  # NOQA
+from os.path import split, join, expanduser  # NOQA
+from plottool_ibeis import draw_func2 as df2  # NOQA
+from ibeis import sysres  # NOQA
+from ibeis.other import ibsfuncs  # NOQA
+from ibeis.dbio import ingest_hsdb  # NOQA
+from ibeis._devcmds_ibeis import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
 # IBEIS
 from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
@@ -132,6 +142,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    import vtool_ibeis as vt
     tuned_params = vt.tune_flann(vecs,
                                  target_precision=.98,
                                  build_weight=0.05,
@@ -172,6 +183,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
@@ -295,7 +307,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 
     # Explicit (simple) test functions
     if intest('export'):
-        export(ibs)
+        raise NotImplementedError('export')
     if intest('dbinfo'):
         dbinfo.get_dbinfo(ibs)
     if intest('headers', 'schema'):
@@ -303,7 +315,8 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     if intest('info'):
         print(ibs.get_infostr())
     if intest('printcfg'):
-        printcfg(ibs)
+        raise NotImplementedError('printcfg')
+        # printcfg(ibs)
     if intest('tables'):
         ibs.print_tables()
     if intest('imgtbl'):
@@ -537,7 +550,7 @@ def run_dev(ibs):
 
 EXAMPLE_TEXT = '''
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
-python dev.py --t mtest
+python -m ibeis.dev --t mtest
 python dev.py --t nauts
 ./resetdbs.sh  # FIXME
 python ibeis/dbio/ingest_database.py  <- see module for usage
@@ -653,8 +666,6 @@ def devmain():
         -w     # wait / show the gui / figures are visible
         --cmd  # ipython shell to play with variables
         -t     # run list of tests
-
-        Examples:
     """
     from ibeis import params
     params.parse_args()
@@ -760,11 +771,11 @@ def ggr_random_name_splits():
         sshfs -o idmap=user lev:/ ~/lev
 
     Example:
-        >>> # DISABLE_DOCTEST GGR
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     gt.ensure_qtapp()
     #nid_list = ibs.get_valid_nids(filter_empty=True)
     import ibeis
@@ -863,7 +874,7 @@ def ggr_random_name_splits():
                              ibs.get_name_aids(remain_unique_nids)]
 
     sample_size = 75
-    import vtool as vt
+    import vtool_ibeis as vt
     vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
 
     remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
@@ -907,13 +918,6 @@ def ggr_random_name_splits():
     num_positive = sum(is_positive)
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
     #gt.qtapp_loop(qwin=win)
-
-
-if __name__ == '__main__':
-    multiprocessing.freeze_support()  # for win32
-    # HACK to run tests without specifing ibs first
-    #run_devmain2()
-    devmain()
 
 
 r"""
@@ -999,3 +1003,9 @@ Guesses:
     2 4 4 4 1 1 1 2 2 2
     0 0 1 1 1 2 0 0 1
 """
+
+
+if __name__ == '__main__':
+    """
+    """
+    devmain()

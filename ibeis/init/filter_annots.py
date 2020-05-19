@@ -1495,7 +1495,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                 -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 --db lynx --veryverbtd --nocache-aid
 
-    Example:
+    Ignore:
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
     """
@@ -1608,7 +1608,7 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids,
     r"""
     Orders preference for sampling based on some metric
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     grouped_reference_unixtimes = ibs.unflat_map(
         prop_getter, gt_ref_grouped_aids)
     grouped_available_gt_unixtimes = ibs.unflat_map(
@@ -1857,7 +1857,7 @@ def multi_sampled_seaturtle_queries():
 
 @profile
 def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
-    """
+    r"""
     Sampling preserves input sample structure and thust does not always return
     exact values
 
@@ -1907,7 +1907,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> daids = sample_annots_wrt_ref(ibs, initial_aids, dcfg, qaids, prefix, verbose)
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     from ibeis.expt import annotation_configs
 
     def get_cfg(key):

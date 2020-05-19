@@ -14,21 +14,21 @@ rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
 python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 
 
-
 Example:
+    >>> # xdoctest: +SKIP
     >>> # The scripts in this file essentiall do this:
-    >>> dbdir = <your new database directory>
-    >>> gpath_list = <path to your images>
+    >>> dbdir = '<your new database directory>'
+    >>> gpath_list = '<path to your images>'
     >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
     >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
     >>> # use whole images as annotations
     >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
     >>> # Extra stuff
-    >>> name_list = <names that correspond to your annots>
+    >>> name_list = '<names that correspond to your annots>'
     >>> ibs.set_annot_names(aid_list, name_list)
-    >>> occur_text_list = <occurrence that images belongs to>
+    >>> occur_text_list = '<occurrence that images belongs to>'
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
-    >>> ibs.append_annot_case_tags(aid_list, <annotation tags>)
+    >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -38,7 +38,7 @@ from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 import parse
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -101,11 +101,11 @@ class Ingestable2(object):
         self.imgpath_list = imgpath_list
         self.postingest_func = postingest_func
 
-        import dtool
+        import dtool_ibeis
         # valid_species = None
         valid_species = ['____']
 
-        class IngestConfig(dtool.Config):
+        class IngestConfig(dtool_ibeis.Config):
             _param_info_list = [
                 ut.ParamInfo(
                     'images_as_annots', False),
@@ -630,15 +630,15 @@ def ingest_testdb1(dbname):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> import utool as ut
-        >>> from vtool.tests import grabdata
+        >>> from ibeis import demodata
         >>> import ibeis
-        >>> grabdata.ensure_testdata()
+        >>> demodata.ensure_testdata()
         >>> # DELETE TESTDB1
         >>> TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), 'testdb1')
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from vtool.tests import grabdata   # TODO: remove and use utool appdir
+    from ibeis import demodata  # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
         from ibeis import constants as const
@@ -740,10 +740,11 @@ def ingest_testdb1(dbname):
         for aids in aidgroups:
             pass
 
+        print('finish postingest_tesdb1_func')
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
-                      img_dir=grabdata.get_testdata_dir(),
+                      img_dir=demodata.get_testdata_dir(),
                       adjust_percent=0.00,
                       images_as_annots=True,
                       postingest_func=postingest_tesdb1_func)
@@ -869,7 +870,7 @@ def ingest_standard_database(dbname, force_delete=False):
         dbname (str): database name
         force_delete (bool):
 
-    Example:
+    Ignore:
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> dbname = 'testdb1'
         >>> force_delete = False
@@ -908,7 +909,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_oxford_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
 
     Ignore:
@@ -1190,7 +1191,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_coco_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import simplejson as json
@@ -1705,21 +1706,7 @@ def injest_main():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict  # NOQA
-
-
-        python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete
-        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
-        python ibeis/dbio/ingest_database.py --db snails_drop1
-        python ibeis/dbio/ingest_database.py --db testdb1
-        python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
-
+        xdoctest -m ibeis.dbio.ingest_database
     """
-    ut.inject_colored_exceptions()
-    if ut.doctest_was_requested():
-        ut.doctest_funcs()
-    else:
-        injest_main()
-    import multiprocessing
-    multiprocessing.freeze_support()  # win32
+    import xdoctest
+    xdoctest.doctest_module(__file__)

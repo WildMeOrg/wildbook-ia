@@ -52,8 +52,8 @@ def crftest():
         False: {'mu': 7.0, 'sigma': .9}
     }
     if False:
-        import vtool as vt
-        import plottool as pt
+        import vtool_ibeis as vt
+        import plottool_ibeis as pt
         pt.ensureqt()
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])

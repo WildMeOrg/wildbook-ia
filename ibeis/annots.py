@@ -117,7 +117,7 @@ ANNOT_SETTABLE_ATTRS = [
 
 class _AnnotPropInjector(BASE_TYPE):
     """
-    Example:
+    Ignore:
         >>> from ibeis import _ibeis_object
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -258,7 +258,7 @@ class Annots(BASE):
 
     #@property
     def get_speeds(self):
-        #import vtool as vt
+        #import vtool_ibeis as vt
         edges = self.get_aidpairs()
         speeds = self._ibs.get_annotpair_speeds(edges)
         #edges = vt.pdist_indicies(len(annots))
@@ -442,6 +442,7 @@ class AnnotGroups(ut.NiceRepr):
 class _AnnotMatchPropInjector(BASE_TYPE):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis import _ibeis_object
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

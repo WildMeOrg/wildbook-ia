@@ -2,10 +2,10 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 import pandas as pd
-import vtool as vt  # NOQA
+import vtool_ibeis as vt  # NOQA
 import networkx as nx
 import opengm
-import plottool as pt  # NOQA
+import plottool_ibeis as pt  # NOQA
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
@@ -352,7 +352,7 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
             valueNotEqual = same_weight
             if not np.isfinite(valueNotEqual):
                 """
-                python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+                python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
                 print('valueNotEqual = %r' % (valueNotEqual,))
                 print('p_same = %r' % (p_same,))
@@ -503,7 +503,7 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
         print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
         print('value = %r' % (infr.value(),))
 
-    # import plottool as pt
+    # import plottool_ibeis as pt
     # viz_factor_graph(gm)
     # # _ = pt.show_nx(G)
     # print("SHOW")

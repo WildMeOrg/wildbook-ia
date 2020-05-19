@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import join
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.expt import draw_helpers
 from six.moves import map, range, reduce
 print, rrr, profile = ut.inject2(__name__)
@@ -38,7 +38,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
         >>> scorediff(ibs, testres, f=f, verbose=ut.VERBOSE)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     for cfgx in range(testres.nConfig):
         cm_list = testres.cfgx2_qreq_[cfgx].execute()
         aid_list = [cm.qaid for cm in cm_list]
@@ -143,7 +143,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
         #                   autolabel=False, title='Failure Cases', ymax=ymax,
         #                   pnum=(1, 2, 2), fnum=fnum)
 
-        from plottool.abstract_interaction import AbstractInteraction
+        from plottool_ibeis.abstract_interaction import AbstractInteraction
 
         class SortedScoreSupportInteraction(AbstractInteraction):
 
@@ -160,7 +160,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 pt.set_ylabel('score diff')
 
             def on_click_inside(self, event, ex):
-                import vtool as vt
+                import vtool_ibeis as vt
                 #ax = event.inaxes
                 #for l in ax.get_lines():
                 #    print(l.get_label())
@@ -239,8 +239,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         import IPython
         IPython.get_ipython().magic('pylab qt4')
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     from ibeis.expt import cfghelpers
     if ut.VERBOSE:
         print('[dev] draw_annot_scoresep')
@@ -414,7 +414,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         >>> draw_casetag_hist(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis import tag_funcs
     from ibeis.expt import cfghelpers
     # All unfiltered tags
@@ -531,7 +531,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
@@ -764,7 +764,7 @@ def temp_num_exmaples_cmc():
 
     xdata = list(range(1, num_ranks + 1))
 
-    import plottool as pt
+    import plottool_ibeis as pt
     ymin = 30
     xpad = .9  # if kind == 'plot' else .5
     num_yticks = 8 if ymin == 30 else 11
@@ -790,7 +790,7 @@ def temp_num_exmaples_cmc():
     pt.adjust_subplots(bottom=.15, top=.9, left=.2)
     fpath = 'cmc-dpername-combined.png'
     fig.savefig(fpath, transparent=True, edgecolor='none')
-    import vtool as vt
+    import vtool_ibeis as vt
     vt.clipwhite_ondisk(fpath, fpath, verbose=True)
     ut.startfile(fpath)
 
@@ -853,7 +853,7 @@ def temp_multidb_cmc():
 
     xdata = list(range(1, num_ranks + 1))
 
-    import plottool as pt
+    import plottool_ibeis as pt
     ymin = 30
     xpad = .9  # if kind == 'plot' else .5
     num_yticks = 8 if ymin == 30 else 11
@@ -875,7 +875,7 @@ def temp_multidb_cmc():
     fig.set_size_inches(*((1.5 * np.array([4, 3])).tolist()))
     pt.adjust_subplots(bottom=.15)
     fig.savefig('cmc-combined.png', transparent=True, edgecolor='none')
-    import vtool as vt
+    import vtool_ibeis as vt
     vt.clipwhite_ondisk('cmc-combined.png', 'cmc-combined.png', verbose=True)
     ut.startfile('cmc-combined.png')
 
@@ -935,7 +935,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if group_queries:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
@@ -1120,7 +1120,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
         >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import datetime
     plotkw = {}
     plotkw['markersize'] = 12
@@ -1284,7 +1284,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         >>>                                        f=filt_cfg, figdir=figdir)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
 

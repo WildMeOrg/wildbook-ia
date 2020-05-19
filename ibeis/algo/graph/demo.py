@@ -77,7 +77,7 @@ def demo2():
         >>> result = demo2()
         >>> print(result)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
 
     from ibeis.scripts.thesis import TMP_RC
     import matplotlib as mpl
@@ -444,7 +444,7 @@ def demodata_infr(**kwargs):
         python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
         python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=100
 
-    Example:
+    Ignore:
         >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> from ibeis.algo.graph import demo
         >>> import networkx as nx
@@ -470,7 +470,7 @@ def demodata_infr(**kwargs):
         }
     """
     import networkx as nx
-    import vtool as vt
+    import vtool_ibeis as vt
     from ibeis.algo.graph import nx_utils
 
     def kwalias(*args):
@@ -740,7 +740,7 @@ class DummyVerif(object):
             >>> verif.show_score_probs()
             >>> ut.show_if_requested()
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         dist = verif.score_dist
         n = 100000
         for key in verif.dummy_params.keys():

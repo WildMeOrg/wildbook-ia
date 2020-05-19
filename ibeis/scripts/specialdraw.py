@@ -22,8 +22,8 @@ def multidb_montage():
         >>> multidb_montage()
     """
     import ibeis
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     import numpy as np
     pt.ensureqt()
     dbnames = [
@@ -83,7 +83,7 @@ def featweight_fig():
     """
     # ENABLE_DOCTEST
     import ibeis
-    # import plottool as pt
+    # import plottool_ibeis as pt
     import matplotlib as mpl
     from ibeis.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
@@ -109,7 +109,7 @@ def featweight_fig():
     assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
     chip = depc.get('chips', aids, 'img', config=config)[0]
     ut.quit_if_noshow()
-    import plottool as pt
+    import plottool_ibeis as pt
     fnum = 1
     pnum_ = pt.make_pnum_nextgen(1, 3)
     pt.figure(fnum=fnum, doclf=True)
@@ -135,7 +135,7 @@ def simple_vsone_matches():
         >>> ut.show_if_requested()
     """
     import ibeis
-    # import plottool as pt
+    # import plottool_ibeis as pt
     import matplotlib as mpl
     from ibeis.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
@@ -151,7 +151,7 @@ def simple_vsone_matches():
     match = infr._exec_pairwise_match(edges)[0]
 
     ut.quit_if_noshow()
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.figure(fnum=1, doclf=True)
     match.show(heatmask=True, vert=False, modifysize=True, show_ell=False,
                show_lines=False, show_ori=False)
@@ -173,12 +173,12 @@ def double_depcache_graph():
         >>> result = double_depcache_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
     import networkx as nx
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.ensureqt()
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
@@ -314,7 +314,7 @@ def double_depcache_graph():
 
 
 def lighten_hex(hexcolor, amount):
-    import plottool as pt
+    import plottool_ibeis as pt
     import matplotlib.colors as colors
     return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
 
@@ -335,7 +335,7 @@ def general_identify_flow():
         >>> ut.show_if_requested()
     """
     import networkx as nx
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.ensureqt()
     # pt.plt.xkcd()
 
@@ -496,10 +496,10 @@ def graphcut_flow():
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> graphcut_flow()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.ensureqt()
     import networkx as nx
     # pt.plt.xkcd()
@@ -583,10 +583,10 @@ def merge_viewpoint_graph():
         >>> result = merge_viewpoint_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import ibeis
     import networkx as nx
 
@@ -694,11 +694,11 @@ def setcover_example():
         >>> result = setcover_example()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     import networkx as nx
     pt.ensureqt()
@@ -793,11 +793,11 @@ def k_redun_demo():
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> k_redun_demo()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 
@@ -858,11 +858,11 @@ def graph_iden_cut_demo():
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> graph_iden_cut_demo()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     # import networkx as nx
     pt.ensureqt()
@@ -974,11 +974,11 @@ def show_id_graph():
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> show_id_graph()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     # import networkx as nx
     pt.ensureqt()
     # ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
@@ -1165,11 +1165,11 @@ def intraoccurrence_connected():
         >>> result = intraoccurrence_connected()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import ibeis
-    import plottool as pt
+    import plottool_ibeis as pt
     from ibeis.viz import viz_graph
     import networkx as nx
     pt.ensureqt()
@@ -1416,14 +1416,14 @@ def scalespace():
         >>> result = ('imgBGRA_warped = %s' % (ut.repr2(imgBGRA_warped),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     import numpy as np
     # import matplotlib.pyplot as plt
     import cv2
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     pt.qt4ensure()
 
     #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
@@ -1540,7 +1540,7 @@ def event_space():
     venn3(subsets=subsets, set_labels=set_labels)
     plt.show()
 
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.ensureqt()
     from matplotlib_subsets import treesets_rectangles
     tree = (
@@ -1633,7 +1633,7 @@ def draw_inconsistent_pcc():
         python -m ibeis.scripts.specialdraw draw_inconsistent_pcc --show
     """
     from ibeis.algo.graph import demo
-    import plottool as pt
+    import plottool_ibeis as pt
     import matplotlib as mpl
     from ibeis.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
@@ -1682,7 +1682,7 @@ def draw_graph_id():
         python -m ibeis.scripts.specialdraw draw_graph_id --show
     """
     from ibeis.algo.graph import demo
-    import plottool as pt
+    import plottool_ibeis as pt
     import matplotlib as mpl
     from ibeis.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
@@ -1714,7 +1714,7 @@ def redun_demo2():
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
     from ibeis.algo.graph import demo
     # from ibeis.algo.graph import nx_utils
-    import plottool as pt
+    import plottool_ibeis as pt
 
     # import networkx as nx
     pt.ensureqt()
@@ -1790,7 +1790,7 @@ def redun_demo3():
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
     from ibeis.algo.graph import demo
     from ibeis.algo.graph import nx_utils as nxu
-    import plottool as pt
+    import plottool_ibeis as pt
 
     # import networkx as nx
     pt.ensureqt()
@@ -1847,7 +1847,7 @@ def system_diagram():
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
     from ibeis.algo.graph import demo
     from ibeis.algo.graph import nx_utils as nxu  # NOQA
-    import plottool as pt
+    import plottool_ibeis as pt
 
     # import networkx as nx
     pt.ensureqt()

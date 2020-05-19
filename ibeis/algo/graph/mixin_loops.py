@@ -631,7 +631,7 @@ class InfrReviewers(object):
         return user_request
 
     def qt_edge_reviewer(infr, edge=None):
-        import guitool as gt
+        import guitool_ibeis as gt
         gt.ensure_qapp()
         from ibeis.viz import viz_graph2
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
@@ -664,7 +664,7 @@ class InfrReviewers(object):
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.params['redun.enabled'] = False
             >>> win = infr.qt_review_loop()
-            >>> import guitool as gt
+            >>> import guitool_ibeis as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
         infr.qt_edge_reviewer()
@@ -682,7 +682,7 @@ if False:
         """
         Will fill the queue with content of the source in a separate thread.
 
-        Example:
+        Ignore:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',

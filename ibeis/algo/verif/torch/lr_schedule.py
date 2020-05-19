@@ -5,6 +5,7 @@ class Exponential(object):
     epochs.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.torch.lr_schedule import *
         >>> lr_scheduler = Exponential()
         >>> rates = np.array([lr_scheduler(i) for i in range(6)])

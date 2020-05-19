@@ -328,7 +328,7 @@ def compress_acfg_list_for_printing(acfg_list):
     CommandLine:
         python -m ibeis --tf compress_acfg_list_for_printing
 
-    Example:
+    Ignore:
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]

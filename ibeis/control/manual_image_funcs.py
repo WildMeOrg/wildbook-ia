@@ -24,7 +24,7 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
-import vtool as vt
+import vtool_ibeis as vt
 from ibeis.web import routes_ajax
 import six
 print, rrr, profile = ut.inject2(__name__)
@@ -994,7 +994,7 @@ def _set_image_orientation(ibs, gid_list, orientation_list):
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
-    from vtool.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
+    from vtool_ibeis.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
                             ORIENTATION_UNDEFINED, ORIENTATION_000)
 
     def _update_bounding_boxes(gid, val):
@@ -1202,8 +1202,8 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                               read_extern=False, ensure=ensure_paths,
                               hack_paths=not ensure_paths)
-    #except dtool.ExternalStorageException:
-    #    # TODO; this check might go in dtool itself
+    #except dtool_ibeis.ExternalStorageException:
+    #    # TODO; this check might go in dtool_ibeis itself
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
     if DEBUG_THUMB:
@@ -1556,7 +1556,7 @@ def get_image_detectpaths(ibs, gid_list):
     Returns:
         list_ (list): a list of image paths resized to a constant area for detection
     """
-    import dtool
+    import dtool_ibeis
     depc = ibs.depc_image
     config = {
         'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
@@ -1565,8 +1565,8 @@ def get_image_detectpaths(ibs, gid_list):
     try:
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
+    except dtool_ibeis.ExternalStorageException:
+        # TODO; this check might go in dtool_ibeis itself
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
     #print(thumbpath_list)
@@ -1849,7 +1849,7 @@ def get_image_orientation_str(ibs, gid_list):
         Method: GET
         URL:    /api/image/orientation/str/
     """
-    from vtool.exif import ORIENTATION_DICT
+    from vtool_ibeis.exif import ORIENTATION_DICT
     orient_list = ibs.get_image_orientation(gid_list)
     orient_str = [ ORIENTATION_DICT[orient] for orient in orient_list ]
     return orient_str
