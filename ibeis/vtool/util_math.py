@@ -7,8 +7,8 @@ FIXME: monotization functions need more hueristics
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 from six.moves import range, zip
-(print, rrr, profile) = ut.inject2(__name__, '[math]', DEBUG=False)
 
 
 TAU = np.pi * 2  # References: tauday.com
@@ -27,11 +27,11 @@ def interpolate_nans(arr):
         ndarray: new_arr
 
     CommandLine:
-        python -m vtool.math --exec-interpolate_nans
+        python -m vtool_ibeis.util_math --exec-interpolate_nans
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([np.nan, np.nan, np.nan, np.nan])
         >>> new_arr = interpolate_nans(arr)
         >>> result = ('new_arr = %s' % (str(new_arr),))
@@ -40,14 +40,14 @@ def interpolate_nans(arr):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([np.nan, 1, np.nan, np.nan, np.nan, np.nan, 10, np.nan, 5])
         >>> new_arr = interpolate_nans(arr)
         >>> result = ('new_arr = %s' % (str(new_arr),))
         >>> print(result)
         new_arr = [  1.    1.    2.8   4.6   6.4   8.2  10.    7.5   5. ]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     new_arr = arr.copy()
     nan_idxs = np.where(np.isnan(arr))[0]
     consecutive_groups = vt.group_consecutive(nan_idxs)
@@ -85,12 +85,12 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         http://scikit-learn.org/stable/auto_examples/plot_isotonic_regression.html
 
     CommandLine:
-        python -m vtool.math --test-ensure_monotone_strictly_increasing --show
-        python -m vtool.math --test-ensure_monotone_strictly_increasing --show --offset=0
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.math import *   # NOQA
+        >>> from vtool_ibeis.util_math import *   # NOQA
         >>> import numpy as np
         >>> arr_ = np.array([0.4, 0.4, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7, 0.9, 0.9, 0.91, 0.92, 1.0, 1.0])
         >>> arr = ensure_monotone_strictly_increasing(arr_)
@@ -98,15 +98,15 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
 
     Example2:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> left_endpoint = None
         >>> rng = np.random.RandomState(0)
         >>> right_endpoint = None
         >>> domain = np.arange(100)
         >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
         >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1 + 1.2
-        >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
+        >>> #arr_ = vt.demodata.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> arr = ensure_monotone_strictly_increasing(arr_, left_endpoint, right_endpoint)
         >>> result = str(arr)
@@ -115,8 +115,8 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> print('arr = %r' % (np.diff(arr),))
         >>> assert non_decreasing(arr), 'ensure nondecreasing failed2'
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed2'
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_increasing(arr_)
         >>> pt.plot2(domain, arr, 'b-', fnum=1, pnum=(3, 1, 2), equal_aspect=False)
@@ -124,13 +124,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(3, 1, 3), title='after monotonization (strictly decreasing)', equal_aspect=False)
         >>> ut.show_if_requested()
     """
-    #with ut.EmbedOnException():
     arr = ensure_monotone_increasing(arr_, newmode=newmode)
-    #assert strictly_increasing(arr), 'ensure strict monotonic failed'
-    #import utool as ut
-    #print(ut.get_stats(arr))
-    #if arr.max() == 1.0:
-    #    ut.embed()
     if zerohack:
         left_endpoint = 0.0
     if onehack:
@@ -155,16 +149,16 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         ndarray: arr
 
     CommandLine:
-        python -m vtool.math --test-ensure_monotone_strictly_decreasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_decreasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> domain = np.arange(100)
         >>> rng = np.random.RandomState(0)
         >>> arr_ = np.sin(np.pi * (domain / 75) + 1.3) + (rng.rand(len(domain)) - .5) * .05 + 1.0
-        >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
+        >>> #arr_ = vt.demodata.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> left_endpoint = 2.5
         >>> right_endpoint = 0.25
@@ -172,8 +166,8 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> result = str(arr)
         >>> print(result)
         >>> assert strictly_decreasing(arr), 'ensure strict monotonic failed'
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_decreasing(arr_)
         >>> pt.plot2(domain, arr, 'b-', fnum=1, pnum=(3, 1, 2), equal_aspect=False)
@@ -201,12 +195,12 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
         ndarray: arr -
 
     CommandLine:
-        python -m vtool.math --exec-breakup_equal_streak
-        python -m vtool.math --test-ensure_monotone_strictly_increasing --show --offset=0
+        python -m vtool_ibeis.util_math --exec-breakup_equal_streak
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr_in = np.array([0, 0, 1, 1, 2, 2], dtype=np.float32)
         >>> arr_in = np.array([ 1.20488135,  1.2529297 ,  1.27306686,  1.29859663,
         >>>    1.31769871, 1.37102388,  1.38114004,  1.45732054,  1.48119571,  1.48119571,
@@ -292,7 +286,7 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
         for group, isend in zip(index_groups, isend_list)
     ]
 
-    #import vtool as vt
+    #import vtool_ibeis as vt
     #vt.apply_grouping(arr, index_groups)
     #np.vstack((min_vals, max_vals)).T
 
@@ -341,11 +335,11 @@ def group_consecutive(arr):
         ndarray: arr -
 
     CommandLine:
-        python -m vtool.math --exec-group_consecutive
+        python -m vtool_ibeis.util_math --exec-group_consecutive
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([1, 2, 3, 5, 6, 7, 8, 9, 10, 15, 99, 100, 101])
         >>> groups = group_consecutive(arr)
         >>> result = ('groups = %s' % (str(groups),))
@@ -401,21 +395,21 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True
         ndarray: arr
 
     CommandLine:
-        python -m vtool.math --test-ensure_monotone_increasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_increasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
-        >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
+        >>> offset = float(ub.argval('--offset', default=2.3))
         >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1
         >>> arr = ensure_monotone_increasing(arr_, fromleft=False, fromright=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
         >>> ut.show_if_requested()
@@ -450,11 +444,11 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         ndarray: arr
 
     CommandLine:
-        python -m vtool.math --test-ensure_monotone_decreasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_decreasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
@@ -462,8 +456,8 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         >>> arr = ensure_monotone_decreasing(arr_, fromright=True, fromleft=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (decreasing)', equal_aspect=False)
         >>> ut.show_if_requested()
@@ -514,11 +508,11 @@ def iceil(num, dtype=np.int32):
         ndarray or scalar:
 
     CommandLine:
-        python -m vtool.math --test-iceil
+        python -m vtool_ibeis.util_math --test-iceil
 
     Setup:
-        >>> from vtool.math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -530,7 +524,7 @@ def iceil(num, dtype=np.int32):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> num = [1.5, 2.9]
-        >>> result = ut.repr2(vt.iceil(num), with_dtype=True)
+        >>> result = ub.repr2(vt.iceil(num), with_dtype=True)
         >>> print(result)
         np.array([2, 3], dtype=np.int32)
     """
@@ -550,14 +544,14 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         sigma (float):
 
     CommandLine:
-        python -m vtool.math --test-gauss_func1d
+        python -m vtool_ibeis.util_math --test-gauss_func1d
 
     CommandLine:
-        python -m vtool.math --test-gauss_func1d --show
+        python -m vtool_ibeis.util_math --test-gauss_func1d --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> # build test data
         >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
         >>> mu = 0.0
@@ -567,8 +561,8 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
         array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
@@ -588,11 +582,11 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
 
 
     CommandLine:
-        python -m vtool.math --test-gauss_func1d_unnormalized --show
+        python -m vtool_ibeis.util_math --test-gauss_func1d_unnormalized --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> # build test data
         >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
         >>> sigma = 1.0
@@ -601,8 +595,8 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
         array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
@@ -620,15 +614,15 @@ def logistic_01(x):
         x (?):
 
     CommandLine:
-        python -m vtool.math --exec-logistic_01 --show
+        python -m vtool_ibeis.util_math --exec-logistic_01 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> x = np.linspace(0, 1)
         >>> y = logistic_01(x)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot(x, y)
         >>> ut.show_if_requested()
     """
@@ -650,7 +644,7 @@ def logit(x):
 def beaton_tukey_loss(u, a=1):
     """
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
 
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
@@ -666,7 +660,7 @@ def beaton_tukey_loss(u, a=1):
 def beaton_tukey_weight(u, a=1):
     """
     CommandLine:
-        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight
+        python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight
 
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
@@ -681,8 +675,8 @@ def beaton_tukey_weight(u, a=1):
 
 def gauss_parzen_est(dist, L=1, sigma=.38):
     """
-    python -m plottool.draw_func2 --exec-plot_func --show --range=-.2,.2 --func=vt.gauss_parzen_est
-    python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func=vt.gauss_parzen_est
+    python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-.2,.2 --func=vt.gauss_parzen_est
+    python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,1 --func=vt.gauss_parzen_est
     """
     tau = np.pi * 2
     const_term = np.log(L * sigma * np.sqrt(tau))
@@ -692,13 +686,7 @@ def gauss_parzen_est(dist, L=1, sigma=.38):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, vtool.math; utool.doctest_funcs(vtool.math, allexamples=True)"
-        python -c "import utool, vtool.math; utool.doctest_funcs(vtool.math)"
-        python -m vtool.math
-        python -m vtool.math --allexamples
-        python -m vtool.math --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.util_math
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

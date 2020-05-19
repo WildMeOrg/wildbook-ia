@@ -257,12 +257,12 @@ def RhombicuboctahedronDistanceDemo():
 
     # z = {'({}, {})'.format(k1, k2): d for (k1, k2), d in dist_lookup.items()}
     # for i in range(0, 5):
-    #     print(ut.repr2({k: v for k, v in z.items() if v == i}, si=True))
+    #     print(ub.repr2({k: v for k, v in z.items() if v == i}, si=True))
     # i = None
-    # print(ut.repr2({k: v for k, v in z.items() if v == i}, si=True))
+    # print(ub.repr2({k: v for k, v in z.items() if v == i}, si=True))
 
     # z = ut.sort_dict(z, 'vals')
-    # print(ut.repr2(z, nl=2, si=True))
+    # print(ub.repr2(z, nl=2, si=True))
 
     # if False:
     #     from ibeis import constants as const
@@ -292,7 +292,7 @@ def RhombicuboctahedronDistanceDemo():
         node_to_label = {f: ''.join(ut.take_column(f, 0)).upper() for f in faces}
         nx.set_node_attributes(G, name='label', values=node_to_label)
 
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.qt4ensure()
         pt.show_nx(G, prog='neato', groupby='groupid')
 

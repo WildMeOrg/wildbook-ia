@@ -5,25 +5,25 @@
 
 """
 from __future__ import absolute_import, division, print_function
-from vtool import _rhomb_dist
+from vtool_ibeis import _rhomb_dist
 import six
 import warnings
 import pandas as pd
 import utool as ut
+import ubelt as ub
 import numpy as np
 import parse
+from collections import namedtuple
+from .util_math import TAU
+
 try:
     import pyhesaff
 except ImportError:
     pyhesaff = None
     pass
-from collections import namedtuple
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 AssignTup = namedtuple('AssignTup', ('fm', 'match_dist', 'norm_fx1', 'norm_dist'))
-
-TAU = 2 * np.pi  # tauday.org
 
 
 class MatchingError(Exception):
@@ -93,21 +93,26 @@ VSONE_PI_DICT = {
 
 
 def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
-    import vtool as vt
-    from vtool.inspect_matches import lazy_test_annot
+    import vtool_ibeis as vt
+    from vtool_ibeis.inspect_matches import lazy_test_annot
     # hashid based on the state of the code
     if not apply:
         use_cache = False
-    hashid = ut.hashstr27(ut.get_func_sourcecode(vt.matching.PairwiseMatch))
-    cfgstr = ut.get_dict_hashid(cfgdict) + hashid
-    cacher = ut.Cacher('test_match_v5', cfgstr=cfgstr, appname='vtool',
-                       enabled=use_cache)
+    function_sig = ut.get_func_sourcecode(vt.matching.PairwiseMatch)
+    hashid = ut.hash_data(function_sig)
+    ub.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions()
+    cfgstr = ub.hash_data(cfgdict) + hashid
+    cacher = ub.Cacher(
+        'test_match_v5',
+        cfgstr=cfgstr,
+        appname='vtool_ibeis',
+        enabled=use_cache
+    )
     match = cacher.tryload()
     annot1 = lazy_test_annot('easy1.png')
     annot2 = lazy_test_annot('easy2.png')
     if match is None or recompute:
         match = vt.PairwiseMatch(annot1, annot2)
-
         if apply:
             match.apply_all(cfgdict)
         cacher.save(match)
@@ -117,8 +122,7 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
     return match
 
 
-@ut.reloadable_class
-class PairwiseMatch(ut.NiceRepr):
+class PairwiseMatch(ub.NiceRepr):
     """
     Newest (Sept-16-2016) object oriented one-vs-one matching interface
 
@@ -134,8 +138,57 @@ class PairwiseMatch(ut.NiceRepr):
 
         Optional annotation attributes:
             aid, nid, flann, rchip, dlen_sqrd, weight
+
+    Ignore:
+        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
+        >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
+        >>> annot1 = {'rchip': imgR}
+        >>> annot2 = {'rchip': imgL}
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({'refine_method': 'affine', 'affine_invariance': False, 'rotation_invariance': False})
+        >>> dsize = imgR.shape[0:2][::-1]
+        >>> imgR_warp = vt.warpHomog(imgR, match.H_12, dsize)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> import guitool_ibeis as gt
+        >>> gt.ensure_qapp()
+        >>> match.ishow()
+        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
+        >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
+        >>> annot1 = {'rchip': imgR}
+        >>> annot2 = {'rchip': imgL}
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({'refine_method': 'affine', 'affine_invariance': False, 'rotation_invariance': False})
+        >>> dsize = imgR.shape[0:2][::-1]
+        >>> imgR_warp = vt.warpHomog(imgR, match.H_12, dsize)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> kwplot.imshow(imgL, pnum=(2, 1, 1))
+        >>> kwplot.imshow(imgR_warp, pnum=(2, 1, 2))
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> import guitool_ibeis as gt
+        >>> gt.ensure_qapp()
+        >>> match.ishow()
     """
     def __init__(match, annot1=None, annot2=None):
+        if not isinstance(annot1, ut.LazyDict):
+            annot1 = ut.LazyDict(annot1)
+        if not isinstance(annot2, ut.LazyDict):
+            annot2 = ut.LazyDict(annot2)
+
         match.annot1 = annot1
         match.annot2 = annot2
         match.fm = None
@@ -145,8 +198,8 @@ class PairwiseMatch(ut.NiceRepr):
 
         match.verbose = False
 
-        match.local_measures = ut.odict([])
-        match.global_measures = ut.odict([])
+        match.local_measures = ub.odict([])
+        match.global_measures = ub.odict([])
         match._inplace_default = False
 
     @staticmethod
@@ -224,7 +277,7 @@ class PairwiseMatch(ut.NiceRepr):
         if match.verbose:
             print('[match] show')
 
-        import plottool as pt
+        import plottool_ibeis as pt
         annot1 = match.annot1
         annot2 = match.annot2
         try:
@@ -251,7 +304,7 @@ class PairwiseMatch(ut.NiceRepr):
             # mask_blend = 0
 
         if mask_blend:
-            import vtool as vt
+            import vtool_ibeis as vt
             mask1 = vt.resize(annot1['probchip_img'], vt.get_size(rchip1))
             mask2 = vt.resize(annot2['probchip_img'], vt.get_size(rchip2))
             # vt.blend_images_average(vt.mask1, 1.0, alpha=mask_blend)
@@ -278,20 +331,22 @@ class PairwiseMatch(ut.NiceRepr):
     def ishow(match):
         """
         CommandLine:
-            python -m vtool.matching ishow --show
+            python -m vtool_ibeis.matching ishow --show
 
         Example:
             >>> # SCRIPT
-            >>> from vtool.matching import *  # NOQA
-            >>> import vtool as vt
-            >>> import guitool as gt
+            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> import vtool_ibeis as vt
+            >>> import guitool_ibeis as gt
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
-            >>> ut.quit_if_noshow()
+            >>> self.disp_config['show_homog'] = True
+            >>> self.update()
+            >>> # xdoctest: +REQUIRES(--show)
             >>> gt.qtapp_loop(qwin=self, freq=10)
         """
-        from vtool.inspect_matches import MatchInspector
+        from vtool_ibeis.inspect_matches import MatchInspector
         self = MatchInspector(match=match)
         self.show()
         return self
@@ -302,7 +357,7 @@ class PairwiseMatch(ut.NiceRepr):
                                           match.annot2[key])
 
     def add_local_measures(match, xy=True, scale=True):
-        import vtool as vt
+        import vtool_ibeis as vt
         if xy:
             key_ = 'norm_xys'
             norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
@@ -342,7 +397,7 @@ class PairwiseMatch(ut.NiceRepr):
         if match.fm is not None:
             match_.fm = match.fm.copy()
             match_.fs = match.fs.copy()
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.copy(), match.local_measures)
         return match_
 
@@ -352,7 +407,7 @@ class PairwiseMatch(ut.NiceRepr):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
         match_.fs = match.fs.compress(flags, axis=0)
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.compress(flags), match.local_measures)
         return match_
 
@@ -360,7 +415,7 @@ class PairwiseMatch(ut.NiceRepr):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.take(indicies, axis=0)
         match_.fs = match.fs.take(indicies, axis=0)
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.take(indicies), match.local_measures)
         return match_
 
@@ -369,14 +424,15 @@ class PairwiseMatch(ut.NiceRepr):
         Assign feature correspondences between annots
 
         Example:
-            >>> from vtool.matching import *  # NOQA
+            >>> # xdoctest
+            >>> from vtool_ibeis.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True}
             >>> match = demodata_match({}, apply=False)
             >>> m1 = match.copy().assign({'symmetric': False})
             >>> m2 = match.copy().assign({'symmetric': True})
 
         Grid:
-            from vtool.matching import *  # NOQA
+            from vtool_ibeis.matching import *  # NOQA
             grid = {
                 'symmetric': [True, False],
             }
@@ -393,7 +449,7 @@ class PairwiseMatch(ut.NiceRepr):
 
         if match.verbose:
             print('[match] assign')
-            print('[match] params = ' + ut.repr2(params))
+            print('[match] params = ' + ub.repr2(params))
 
         ensure_metadata_vsone(annot1, annot2, cfgdict)
 
@@ -413,9 +469,8 @@ class PairwiseMatch(ut.NiceRepr):
         ratio_score = (1.0 - ratio)
 
         # remove local measure that can no longer apply
-        ut.delete_dict_keys(match.local_measures, ['sver_err_xy',
-                                                   'sver_err_scale',
-                                                   'sver_err_ori'])
+        match.local_measures = ub.dict_diff(match.local_measures, [
+            'sver_err_xy', 'sver_err_scale', 'sver_err_ori'])
 
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
@@ -457,7 +512,7 @@ class PairwiseMatch(ut.NiceRepr):
     def sver_flags(match, cfgdict={}, return_extra=False):
         """
         Example:
-            >>> from vtool.matching import *  # NOQA
+            >>> from vtool_ibeis.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'newsym': True}
             >>> match = demodata_match(cfgdict, apply=False)
             >>> cfgbase = {'symmetric': True, 'ratio_thresh': .8}
@@ -467,8 +522,8 @@ class PairwiseMatch(ut.NiceRepr):
             >>> flags1 = match.sver_flags(cfgdict)
             >>> flags2 = match.sver_flags(cfgbase)
         """
-        from vtool import spatial_verification as sver
-        import vtool as vt
+        from vtool_ibeis import spatial_verification as sver
+        import vtool_ibeis as vt
 
         def _run_sver(kpts1, kpts2, fm, match_weights, **sver_kw):
             svtup = sver.spatially_verify_kpts(
@@ -595,8 +650,8 @@ class PairwiseMatch(ut.NiceRepr):
 
     def apply_sver(match, cfgdict={}, inplace=None):
         """
-        Example:
-            >>> from vtool.matching import *  # NOQA
+        Ignore:
+            >>> from vtool_ibeis.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'ratio_thresh': .8,
             >>>            'thresh_bins': [.5, .6, .7, .8]}
             >>> match = demodata_match(cfgdict, apply=False)
@@ -618,7 +673,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     def _make_global_feature_vector(match, global_keys=None):
         """ Global annotation properties and deltas """
-        import vtool as vt
+        import vtool_ibeis as vt
         feat = ut.odict([])
 
         if global_keys is None:
@@ -683,12 +738,12 @@ class PairwiseMatch(ut.NiceRepr):
         Summary statistics of local features
 
         CommandLine:
-            python -m vtool.matching _make_local_summary_feature_vector
+            python -m vtool_ibeis.matching _make_local_summary_feature_vector
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool.matching import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> cfgdict = {}
             >>> match = demodata_match(cfgdict, recompute=0)
             >>> match.apply_all(cfgdict)
@@ -704,7 +759,7 @@ class PairwiseMatch(ut.NiceRepr):
             >>> feat = match._make_local_summary_feature_vector(
             >>>     local_keys=local_keys,
             >>>     bin_key=bin_key, summary_ops=summary_ops, bins=bins)
-            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> result = ('feat = %s' % (ub.repr2(feat, nl=2),))
             >>> print(result)
         """
 
@@ -828,15 +883,15 @@ class PairwiseMatch(ut.NiceRepr):
             dict: feat
 
         CommandLine:
-            python -m vtool.matching make_feature_vector
+            python -m vtool_ibeis.matching make_feature_vector
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool.matching import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> match = demodata_match({})
             >>> feat = match.make_feature_vector(indices=[0, 1])
-            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> result = ('feat = %s' % (ub.repr2(feat, nl=2),))
             >>> print(result)
         """
         feat = ut.odict([])
@@ -883,12 +938,12 @@ class AnnotPairFeatInfo(object):
         PairwiseMatch.
 
     CommandLine:
-        python -m vtool.matching AnnotPairFeatInfo
+        python -m vtool_ibeis.matching AnnotPairFeatInfo
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> match = demodata_match({})
         >>> match.add_global_measures(['time', 'gps'])
         >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -985,7 +1040,7 @@ class AnnotPairFeatInfo(object):
                local_measure, summary_measure, summary_op, summary_bin,
                summary_binval, summary_binkey,
 
-        Examples:
+        Ignore:
             >>> featinfo.select_columns([
             >>>     ('measure_type', '==', 'local'),
             >>>     ('local_sorter', 'in', ['weighted_ratio_score', 'lnbnn_norm_dist']),
@@ -1170,12 +1225,12 @@ class AnnotPairFeatInfo(object):
     def dimkey_grammar(featinfo):
         """
         CommandLine:
-            python -m vtool.matching AnnotPairFeatInfo.dimkey_grammar
+            python -m vtool_ibeis.matching AnnotPairFeatInfo.dimkey_grammar
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool.matching import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> match = demodata_match({})
             >>> match.add_global_measures(['view', 'qual', 'gps', 'time'])
             >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -1266,12 +1321,12 @@ class AnnotPairFeatInfo(object):
         Summarizes the types (global, local, summary) of features in X based on
         standardized dimension names.
         """
-        grouped_keys = ut.ddict(list)
+        grouped_keys = ub.ddict(list)
         for key in featinfo.columns:
             type_ = featinfo.measure_type(key)
             grouped_keys[type_].append(key)
 
-        info_items = ut.odict([
+        info_items = ub.odict([
             ('global_measures', ut.lmap(featinfo.global_measure,
                                         grouped_keys['global'])),
 
@@ -1350,7 +1405,7 @@ def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
 
 
 def ensure_metadata_normxy(annot, cfgdict={}):
-    import vtool as vt
+    import vtool_ibeis as vt
     if 'norm_xys' not in annot:
         def eval_normxy():
             xys = vt.get_xys(annot['kpts'])
@@ -1369,22 +1424,22 @@ def ensure_metadata_feats(annot, cfgdict={}):
         cfgdict (dict): (default = {})
 
     CommandLine:
-        python -m vtool.matching --exec-ensure_metadata_feats
+        python -m vtool_ibeis.matching --exec-ensure_metadata_feats
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
+        >>> from vtool_ibeis.matching import *  # NOQA
         >>> rchip_fpath = ut.grab_test_imgpath('easy1.png')
         >>> annot = ut.LazyDict({'rchip_fpath': rchip_fpath})
         >>> cfgdict = {}
         >>> ensure_metadata_feats(annot, cfgdict)
         >>> assert len(annot._stored_results) == 1
         >>> annot['kpts']
-        >>> assert len(annot._stored_results) == 4
+        >>> assert len(annot._stored_results) >= 4
         >>> annot['vecs']
-        >>> assert len(annot._stored_results) == 5
+        >>> assert len(annot._stored_results) >= 5
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     rchip_key = 'rchip'
     nchip_key = 'nchip'
     _feats_key = '_feats'
@@ -1431,7 +1486,7 @@ def ensure_metadata_feats(annot, cfgdict={}):
                 )
             rchip = annot[rchip_key]
             if filter_list:
-                from vtool import image_filters
+                from vtool_ibeis import image_filters
                 ipreproc = image_filters.IntensityPreproc()
                 nchip = ipreproc.preprocess(rchip, filter_list)
             else:
@@ -1475,8 +1530,9 @@ def ensure_metadata_dlen_sqrd(annot):
 
 def ensure_metadata_flann(annot, cfgdict):
     """ setup lazy flann evaluation """
-    import vtool as vt
+    import vtool_ibeis as vt
     flann_params = {'algorithm': 'kdtree', 'trees': 8}
+
     if 'flann' not in annot:
         def eval_flann():
             vecs = annot['vecs']
@@ -1577,7 +1633,7 @@ def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):
     uses flann index to return nearest neighbors with distances normalized
     between 0 and 1 using sifts uint8 trick
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if K == 0:
         (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
     elif len(vecs2) == 0:
@@ -1601,9 +1657,9 @@ def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):
 
 def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
                              K, Knorm=None):
-    """
-    import vtool as vt
-    from vtool.matching import *
+    r"""
+    import vtool_ibeis as vt
+    from vtool_ibeis.matching import *
     K = 2
     Knorm = 1
     feat1 = np.random.rand(5, 3)
@@ -1706,20 +1762,6 @@ def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
 
     # ---------
     # Align matches with the reverse direction
-    # lookup = {(fx1, fx2): mx for mx, (fx1, fx2) in enumerate(fm)}
-    # idx_lookup = np.array([lookup[(i, j)] for i, j in fm_])
-    # idx_lookup_ = idx_lookup.argsort()
-
-    # if False:
-    #     assert fx1_to_flags.sum() == fx2_to_flags.sum()
-    #     assert np.all(fm[idx_lookup] == fm_)
-    #     assert np.all(fm == fm_[idx_lookup_])
-
-    #     assert match_dist2.sum() == match_dist1.sum()
-    #     assert set(ut.emap(frozenset, fm_)) == set(ut.emap(frozenset, fm))
-    # norm_fx2 = norm_fx2_[idx_lookup_]
-    # norm_dist2 = norm_dist2_[idx_lookup_]
-    # norm_dist1
 
     # Do this by enforcing a constant sorting. No lookup necessary
     sortx = np.lexsort(fm.T)
@@ -1754,13 +1796,13 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         fx2_to_dist = np.arange(fx2_to_fx1.size).reshape(fx2_to_fx1.shape)
 
     CommandLine:
-        python -m vtool.matching --test-assign_unconstrained_matches --show
-        python -m vtool.matching assign_unconstrained_matches:0
-        python -m vtool.matching assign_unconstrained_matches:1
+        python -m vtool_ibeis.matching --test-assign_unconstrained_matches --show
+        python -m vtool_ibeis.matching assign_unconstrained_matches:0
+        python -m vtool_ibeis.matching assign_unconstrained_matches:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
+        >>> from vtool_ibeis.matching import *  # NOQA
         >>> fx2_to_fx1, fx2_to_dist = empty_neighbors(0, 0)
         >>> K = 1
         >>> Knorm = 1
@@ -1768,16 +1810,12 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
         >>>                                          Knorm, fx2_to_flags)
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
-        >>> result = ut.repr4(assigntup, precision=3, nobr=True, with_dtype=True)
+        >>> result = ub.repr2(assigntup, precision=3, nobr=True, with_dtype=True)
         >>> print(result)
-        np.array([], shape=(0, 2), dtype=np.int32),
-        np.array([], dtype=np.float64),
-        np.array([], dtype=np.int32),
-        np.array([], dtype=np.float64),
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
+        >>> from vtool_ibeis.matching import *  # NOQA
         >>> fx2_to_fx1 = np.array([[ 77,   971, 22],
         >>>                        [116,   120, 34],
         >>>                        [122,   128, 99],
@@ -1797,10 +1835,10 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
         >>>                                          Knorm, fx2_to_flags)
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
-        >>> result = ut.repr3(assigntup, precision=3, nobr=True, with_dtype=True)
+        >>> result = ub.repr2(assigntup, precision=3, nobr=True, with_dtype=True)
         >>> print(result)
         >>> assert len(fm.shape) == 2 and fm.shape[1] == 2
-        >>> assert ut.allsame(list(map(len, assigntup)))
+        >>> assert ub.allsame(list(map(len, assigntup)))
     """
     # Infer the valid internal query feature indexes and ranks
     index_dtype = fx2_to_fx1.dtype
@@ -1867,7 +1905,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
+        >>> from vtool_ibeis.matching import *  # NOQA
         >>> K = 2
         >>> fx2_to_fx1 = np.array([[ 0,  1], # 0
         >>>                        [ 1,  4], # 1
@@ -1881,16 +1919,8 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
         >>> fx2_to_flagsA = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
         >>> fx2_to_flagsB = flag_sym_slow(fx2_to_fx1, fx1_to_fx2, K)
         >>> assert np.all(fx2_to_flagsA == fx2_to_flagsB)
-        >>> result = ut.repr2(fx2_to_flagsB)
+        >>> result = ub.repr2(fx2_to_flagsB)
         >>> print(result)
-        np.array([[ True, False],
-                  [ True,  True],
-                  [False, False],
-                  [False,  True]])
-
-    Ignore:
-        %timeit flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-        %timeit flag_sym_slow(fx2_to_fx1, fx1_to_fx2, K)
     """
     match_12 = fx1_to_fx2.T[:K].T
     match_21 = fx2_to_fx1.T[:K].T
@@ -1909,11 +1939,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.matching
-        python -m vtool.matching --allexamples
-        python -m vtool.matching --allexamples --noface --nosrc
+        python ~/code/vtool_ibeis/vtool_ibeis/matching.py
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

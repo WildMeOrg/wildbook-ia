@@ -7,10 +7,9 @@ References:
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import six
+import ubelt as ub
 import numpy as np
 import scipy.interpolate
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def testdata_scores_labels():
@@ -24,8 +23,7 @@ def nan_to_num(arr, num):
     return arr
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class ConfusionMetrics(ut.NiceRepr):
+class ConfusionMetrics(ub.NiceRepr):
     r"""
     Can compute average percision using the PASCAL definition
 
@@ -54,11 +52,11 @@ class ConfusionMetrics(ut.NiceRepr):
         print(ut.indent('\n'.join(lines)))
 
     CommandLine:
-        python -m vtool.confusion ConfusionMetrics --show
+        python -m vtool_ibeis.confusion ConfusionMetrics --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> c = self = confusions = ConfusionMetrics().fit(scores, labels)
         >>> assert np.all(c.n_pos == c.n_tp + c.n_fn)
@@ -76,7 +74,7 @@ class ConfusionMetrics(ut.NiceRepr):
         >>> assert np.all(np.isclose(c.ppv, c.recall * c.prev / c.bias))
         >>> assert np.all(np.isclose(
         >>>    c.wracc, 4 * c.c * (c.tpr - c.fpr) / (1 + c.c) ** 2))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> confusions.draw_roc_curve()
         >>> ut.show_if_requested()
     """
@@ -372,7 +370,6 @@ class ConfusionMetrics(ut.NiceRepr):
     # --------------
 
     def fit(self, scores, labels, verbose=False):
-        import sklearn.metrics
         scores = np.asarray(scores)
         labels = np.asarray(labels)
         # must be binary
@@ -387,7 +384,12 @@ class ConfusionMetrics(ut.NiceRepr):
         # sklearn has much faster implementation
         # n_fp - count the number of false positives with score >= threshold[i]
         # n_tp - count the number of true positives with score >= threshold[i]
-        n_fp, n_tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
+        try:
+            from sklearn.metrics._ranking import _binary_clf_curve
+        except ImportError:
+            from sklearn.metrics.ranking import _binary_clf_curve
+
+        n_fp, n_tp, thresholds = _binary_clf_curve(
             labels, scores, pos_label=1)
 
         n_samples = len(labels)
@@ -477,7 +479,7 @@ class ConfusionMetrics(ut.NiceRepr):
             thresh = self.thresholds[idx]
         else:
             # interpolated version
-            import vtool as vt
+            import vtool_ibeis as vt
             thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
         return thresh
 
@@ -493,12 +495,12 @@ class ConfusionMetrics(ut.NiceRepr):
             float: thresh
 
         CommandLine:
-            python -m vtool.confusion get_thresh_at_metric
-            python -m vtool.confusion --exec-interact_roc_factory --show
+            python -m vtool_ibeis.confusion get_thresh_at_metric
+            python -m vtool_ibeis.confusion --exec-interact_roc_factory --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
+            >>> from vtool_ibeis.confusion import *  # NOQA
             >>> scores, labels = testdata_scores_labels()
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
@@ -578,7 +580,7 @@ class ConfusionMetrics(ut.NiceRepr):
                 better.
 
         Doctest:
-            >>> from vtool.confusion import *
+            >>> from vtool_ibeis.confusion import *
             >>> pat1 = [0, 0, 0, 0]
             >>> pat2 = [0, 0, 1, 1]
             >>> pat3 = [0, 1, 1, 1]
@@ -588,18 +590,18 @@ class ConfusionMetrics(ut.NiceRepr):
             >>> import itertools as it
             >>> s = it.count(0)
             >>> # Create places of ambiguitiy and unambiguity
-            >>> x = ut.flatten([[next(s)] * len(pat) for pat in pats for _ in range(n)])
-            >>> y = ut.flatten([pat for pat in pats for _ in range(n)])
+            >>> x = list(ub.flatten([[next(s)] * len(pat) for pat in pats for _ in range(n)]))
+            >>> y = list(ub.flatten([pat for pat in pats for _ in range(n)]))
             >>> self = ConfusionMetrics().fit(x, y)
             >>> at_metric = 'n_false_pos'
             >>> at_value = 0
             >>> subindex = False
-            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=True)
-            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=False)
+            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker='minthresh')
+            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker= 'maxthresh')
             >>> assert idx1 == 3
             >>> assert idx2 == 0
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         at_arr = getattr(self, at_metric)
 
         if at_value in {'max', 'maximize'}:
@@ -633,7 +635,7 @@ class ConfusionMetrics(ut.NiceRepr):
             return idx
 
     def get_metric_at_index(self, metric, subindex):
-        import vtool as vt
+        import vtool_ibeis as vt
         arr = getattr(self, metric)
         if isinstance(subindex, int):
             value = arr[subindex]
@@ -651,7 +653,7 @@ class ConfusionMetrics(ut.NiceRepr):
             float : value - metric value
 
         CommandLine:
-            python -m vtool.confusion --exec-get_metric_at_threshold
+            python -m vtool_ibeis.confusion --exec-get_metric_at_threshold
 
         Ignore:
             >>> self = cfms
@@ -660,7 +662,7 @@ class ConfusionMetrics(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
+            >>> from vtool_ibeis.confusion import *  # NOQA
             >>> scores, labels = testdata_scores_labels()
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
@@ -716,7 +718,7 @@ class ConfusionMetrics(ut.NiceRepr):
         x_metric = 'thresholds'
         y_metric = 'fpr'
         """
-        import plottool as pt
+        import plottool_ibeis as pt
         # pt.qtensure()
         # xdata = self.thresholds
         xdata = getattr(self, x_metric)
@@ -727,7 +729,7 @@ class ConfusionMetrics(ut.NiceRepr):
                       ylabel=y_metric, use_legend=True)
 
     def plot_metrics(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         metrics = [
             'mcc',
             'acc',
@@ -750,7 +752,7 @@ class ConfusionMetrics(ut.NiceRepr):
                       ylabel='metric', use_legend=True)
 
     def show_mcc(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.multi_plot(self.thresholds, [self.mcc], xlabel='threshold', marker='',
                       ylabel='MCC')
         pass
@@ -778,10 +780,10 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
         float: interp_vals
 
     CommandLine:
-        python -m vtool.confusion --exec-interpolate_replbounds
+        python -m vtool_ibeis.confusion --exec-interpolate_replbounds
 
     Example:
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> self = ConfusionMetrics().fit(scores, labels)
         >>> xdata = self.tpr
@@ -797,7 +799,7 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> xdata = np.array([0.7,  0.8,  0.8,  0.9,  0.9, 0.9])
         >>> ydata = np.array([34,    26,   23,   22,   19,  17])
         >>> pt = np.array([.85, 1.0, -1.0])
@@ -816,13 +818,12 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
             xdata = xdata.take(sortx, axis=0)
             ydata = ydata.take(sortx, axis=0)
 
-    is_scalar = not ut.isiterable(pt)
+    is_scalar = not ub.iterable(pt)
     #print('----')
     #print('xdata = %r' % (xdata,))
     #print('ydata = %r' % (ydata,))
     if is_scalar:
         pt = np.array([pt])
-    #ut.ensure_iterable(pt)
     minval = xdata.min()
     maxval = xdata.max()
     argx_min_list = np.argwhere(xdata == minval)
@@ -843,7 +844,7 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
     if True:
         # Grouping should be ok because xdata should be sorted
         # therefore groupxs are consecutive
-        import vtool as vt
+        import vtool_ibeis as vt
         unique_vals, groupxs = vt.group_indices(xdata)
         grouped_ydata = vt.apply_grouping(ydata, groupxs)
         if maximize:
@@ -885,20 +886,20 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         http://en.wikipedia.org/wiki/Information_retrieval#Mean_Average_precision
 
     CommandLine:
-        python -m vtool.confusion --test-interpolate_precision_recall --show
+        python -m vtool_ibeis.confusion --test-interpolate_precision_recall --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> nSamples = 11
         >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> precision = confusions.precision
         >>> recall = confusions.recall
         >>> recall_domain, p_interp = interpolate_precision_recall(confusions.precision, recall, nSamples=11)
-        >>> result = ut.repr2(p_interp, precision=1, with_dtype=True)
+        >>> result = ub.repr2(p_interp, precision=1, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> draw_precision_recall_curve(recall_domain, p_interp)
         >>> ut.show_if_requested()
         np.array([ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  0.9,  0.9,  0.8,  0.6], dtype=np.float64)
@@ -935,26 +936,26 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         confusions (Confusions):
 
     CommandLine:
-        python -m vtool.confusion --exec-interact_roc_factory --show
+        python -m vtool_ibeis.confusion --exec-interact_roc_factory --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> print('scores = %r' % (scores,))
         >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> print(ut.make_csv_table(
         >>>   [confusions.fpr, confusions.tpr, confusions.thresholds],
         >>>   ['fpr', 'tpr', 'thresh']))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ROCInteraction = interact_roc_factory(confusions, target_tpr=.4, show_operating_point=True)
         >>> inter = ROCInteraction()
         >>> inter.show_page()
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    from plottool.abstract_interaction import AbstractInteraction
+    from plottool_ibeis.abstract_interaction import AbstractInteraction
 
     class ROCInteraction(AbstractInteraction):
         """
@@ -978,7 +979,6 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
             kwargs['thresholds'] = kwargs.get('thresholds', confusions.thresholds)
             kwargs['show_operating_point'] = kwargs.get('show_operating_point',
                                                         show_operating_point)
-            #ut.embed()
             confusions.draw_roc_curve(fnum=fnum, pnum=pnum,
                                       target_tpr=target_tpr, **kwargs)
 
@@ -1023,11 +1023,11 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
         show_operating_point (bool): (default = False)
 
     CommandLine:
-        python -m vtool.confusion --exec-draw_roc_curve --show --lightbg
+        python -m vtool_ibeis.confusion --exec-draw_roc_curve --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> fpr = confusions.fpr
@@ -1044,7 +1044,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
         >>>   thresholds, color, show_operating_point)
         >>> ut.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     import sklearn.metrics
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1142,7 +1142,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
 def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
                                 fnum=1, pnum=None,
                                 color=None):
-    import plottool as pt
+    import plottool_ibeis as pt
     if color is None:
         color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
     if recall_domain is None:
@@ -1158,18 +1158,14 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
               flipx=False, color=color, fnum=fnum, pnum=pnum,
               title='Interplated Precision Vs Recall\n' + 'avep = %.3f'  % ave_p)
     #print('Interplated Precision')
-    #print(ut.repr2(list(zip(recall_domain, p_interp))))
+    #print(ub.repr2(list(zip(recall_domain, p_interp))))
     #fig.show()
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.confusion
-        python -m vtool.confusion --allexamples
-        python -m vtool.confusion --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.confusion
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

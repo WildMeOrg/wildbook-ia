@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import utool as ut
+import ubelt as ub
 import six
-(print, rrr, profile) = ut.inject2(__name__, '[feat]')
 
 
 def extract_feature_from_patch(patch):
     import pyhesaff
     import numpy as np
-    import vtool as vt
+    import vtool_ibeis as vt
     patch = vt.rectify_to_uint8(patch)
     patch = vt.rectify_to_square(patch)
     patch_list = np.ascontiguousarray(patch[None, :])
@@ -32,20 +32,20 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
 
 
     CommandLine:
-        python -m vtool.features --test-extract_features
-        python -m vtool.features --test-extract_features --show
-        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
-        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
-        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show --no-affine-invariance
+        python -m vtool_ibeis.features --test-extract_features
+        python -m vtool_ibeis.features --test-extract_features --show
+        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show --no-affine-invariance
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.features import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.features import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
         >>> imgBGR = vt.imread(img_fpath)
-        >>> feat_type = ut.get_argval('--feat_type', default='hesaff+sift')
+        >>> feat_type = ub.argval('--feat_type', default='hesaff+sift')
         >>> import pyhesaff
         >>> kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
         >>> # execute function
@@ -55,8 +55,8 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> result = str((kpts, vecs))
         >>> print(result)
         >>> # Show keypoints
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> #pt.figure(fnum=1, doclf=True, docla=True)
         >>> #pt.imshow(imgBGR)
         >>> #pt.draw_kpts2(kpts, ori=True)
@@ -72,7 +72,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         from ibeis_cnn import _plugin
         (kpts, sift) = pyhesaff.detect_feats2(img_or_fpath, **kwargs)
         if isinstance(img_or_fpath, six.string_types):
-            import vtool as vt
+            import vtool_ibeis as vt
             img_or_fpath = vt.imread(img_or_fpath)
         vecs_list = _plugin.extract_siam128_vecs([img_or_fpath], [kpts])
         vecs = vecs_list[0]
@@ -88,15 +88,15 @@ def get_extract_features_default_params():
         dict:
 
     CommandLine:
-        python -m vtool.features --test-get_extract_features_default_params
+        python -m vtool_ibeis.features --test-get_extract_features_default_params
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.features import *  # NOQA
+        >>> from vtool_ibeis.features import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> param_dict = get_extract_features_default_params()
-        >>> result = ut.repr2(param_dict)
+        >>> result = ub.repr2(param_dict)
         >>> # verify results
         >>> print(result)
     """
@@ -107,11 +107,11 @@ def get_extract_features_default_params():
 
 def detect_opencv_keypoints():
     import cv2
-    import vtool as vt
+    import vtool_ibeis as vt
     import numpy as np  # NOQA
 
-    #img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
-    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+    #img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='lena.png'))
+    img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='zebra.png'))
     imgBGR = vt.imread(img_fpath)
     imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
 
@@ -192,7 +192,7 @@ def detect_opencv_keypoints():
 
     print(list(type_to_kpts.keys()))
     print(ut.depth_profile(list(type_to_kpts.values())))
-    print('type_to_kpts = ' + ut.repr3(type_to_kpts, truncate=True))
+    print('type_to_kpts = ' + ub.repr2(type_to_kpts, truncate=True))
 
     cv2_kpts = type_to_kpts['MSER']
     kp = cv2_kpts[0]  # NOQA
@@ -214,13 +214,13 @@ def detect_opencv_keypoints():
 
     print(list(type_to_desc.keys()))
     print(ut.depth_profile(list(type_to_desc.values())))
-    print('type_to_desc = ' + ut.repr3(type_to_desc, truncate=True))
+    print('type_to_desc = ' + ub.repr2(type_to_desc, truncate=True))
 
 
 def test_mser():
     import cv2
-    import vtool as vt
-    import plottool as pt
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt
     import numpy as np
     pt.qt4ensure()
     class Keypoints(ut.NiceRepr):
@@ -249,10 +249,10 @@ def test_mser():
 
         def compress(self, flags, inplace=False):
             subarr = self.kparr.compress(flags, axis=0)
-            info = {key: ut.compress(val, flags) for key, val in self.info.items()}
+            info = {key: list(ub.compress(val, flags)) for key, val in self.info.items()}
             return Keypoints(subarr, info)
 
-    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+    img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='zebra.png'))
     imgBGR = vt.imread(img_fpath)
     imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
     # http://docs.opencv.org/master/d3/d28/classcv_1_1MSER.html#gsc.tab=0
@@ -299,9 +299,9 @@ def test_mser():
     #flags = self.scale < np.mean(self.scale)
     #flags = self.scale < np.median(self.scale)
     self = self.compress(flags)
-    import plottool as pt
+    import plottool_ibeis as pt
     #pt.interact_keypoints.ishow_keypoints(imgBGR, self.kparr, None, ell_alpha=.4, color='distinct', fnum=2)
-    #import plottool as pt
+    #import plottool_ibeis as pt
     vis = imgBGR.copy()
 
     for region in self.info['regions']:
@@ -371,11 +371,7 @@ def test_mser():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.features
-        python -m vtool.features --allexamples
-        python -m vtool.features --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.features
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

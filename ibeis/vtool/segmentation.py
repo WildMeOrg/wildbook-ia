@@ -3,8 +3,7 @@ from six.moves import range, zip  # NOQA
 import numpy as np
 import cv2
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[seg]', DEBUG=False)
+import ubelt as ub
 
 DEBUG_SEGM = False
 
@@ -76,18 +75,18 @@ def demo_grabcut(bgr_img):
         img (ndarray[uint8_t, ndim=2]):  image data
 
     CommandLine:
-        python -m vtool.segmentation --test-demo_grabcut --show
+        python -m vtool_ibeis.segmentation --test-demo_grabcut --show
 
     SeeAlso:
         python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.segmentation import *  # NOQA
+        >>> from vtool_ibeis.segmentation import *  # NOQA
         >>> # build test data
         >>> import utool as ut
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('easy1.png')
         >>> bgr_img = vt.imread(img_fpath)
         >>> # execute function
@@ -95,11 +94,11 @@ def demo_grabcut(bgr_img):
         >>> result = demo_grabcut(bgr_img)
         >>> # verify results
         >>> print(result)
-        >>> #ut.quit_if_noshow()
+        >>> ## xdoctest: +REQUIRES(--show)
         >>> pt.show_if_requested()
     """
-    import plottool as pt
-    from plottool import interact_impaint
+    import plottool_ibeis as pt
+    from plottool_ibeis import interact_impaint
     label_colors = [       255,           170,            50,          0]
     label_values = [cv2.GC_FGD, cv2.GC_PR_FGD, cv2.GC_PR_BGD, cv2.GC_BGD]
     h, w = bgr_img.shape[0:2]
@@ -111,9 +110,9 @@ def demo_grabcut(bgr_img):
     init_mask[-1, :] = label_colors[label_values.index(cv2.GC_BGD)]
     init_mask[:,  0] = label_colors[label_values.index(cv2.GC_BGD)]
     init_mask[:, -1] = label_colors[label_values.index(cv2.GC_BGD)]
-    #import vtool as vt
+    #import vtool_ibeis as vt
     cached_mask_fpath = 'tmp_mask.png'
-    if ut.get_argflag('--nocache'):
+    if ub.argflag('--nocache'):
         ut.delete(cached_mask_fpath)
     print('unique init mask colors')
     print(np.unique(init_mask))
@@ -280,11 +279,7 @@ def segment(img_fpath, bbox_, new_size=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.segmentation
-        python -m vtool.segmentation --allexamples
-        python -m vtool.segmentation --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.segmentation
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

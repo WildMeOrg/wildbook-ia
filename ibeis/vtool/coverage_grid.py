@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range, map  # NOQA
 import numpy as np
 import utool as ut
+import ubelt as ub
 import cv2
-from vtool import coverage_kpts
-print, print_, profile = ut.inject2(__name__)
+from vtool_ibeis import coverage_kpts
 
 
 # TODO: integrate more
@@ -30,12 +30,12 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         ndarray: weightgrid
 
     CommandLine:
-        python -m vtool.coverage_grid --test-make_grid_coverage_mask --show
+        python -m vtool_ibeis.coverage_grid --test-make_grid_coverage_mask --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_grid import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.coverage_grid import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
         >>> pxl_per_bin = 4
@@ -45,12 +45,12 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         >>> # verify result
         >>> result = str(weightgrid)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(weightgrid)
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     coverage_gridtup = sparse_grid_coverage(
         kpts, chipsize, weights,
         pxl_per_bin=pxl_per_bin,
@@ -125,7 +125,7 @@ def compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr):
 
 
 def weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma):
-    import vtool as vt
+    import vtool_ibeis as vt
     _gaussweights = vt.gauss_func1d_unnormalized(neighbor_subbin_sqrddist_arr, grid_sigma)
     # If uncommented next line ensure each column sums to 1
     #np.divide(_gaussweights, _gaussweights.sum(axis=0)[None, :], out=_gaussweights)
@@ -142,23 +142,23 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
         weights (ndarray):
 
     CommandLine:
-        python -m vtool.coverage_grid --test-sparse_grid_coverage --show
+        python -m vtool_ibeis.coverage_grid --test-sparse_grid_coverage --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_grid import *  # NOQA
+        >>> from vtool_ibeis.coverage_grid import *  # NOQA
         >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage()
         >>> chipsize = (chipsize[0] + 50, chipsize[1])
         >>> pxl_per_bin = 3
         >>> grid_steps = 2
         >>> grid_sigma = 1.6
         >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin, grid_steps, grid_sigma)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> show_coverage_grid(*coverage_gridtup)
         >>> pt.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     # Compute grid size and stride
     chip_w, chip_h = chipsize
     # find enough rows to fit pxl_per_bin pixels into a grid dimension
@@ -196,8 +196,8 @@ def show_coverage_grid(num_rows, num_cols, subbin_xy_arr,
     """
     visualizes the voting scheme on the grid. (not a mask, and no max)
     """
-    import plottool as pt
-    import vtool as vt
+    import plottool_ibeis as pt
+    import vtool_ibeis as vt
     import matplotlib as mpl
 
     if fnum is None:
@@ -281,16 +281,16 @@ def get_coverage_grid_gridsearch_configs():
 def gridsearch_coverage_grid():
     """
     CommandLine:
-        python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
+        python -m vtool_ibeis.coverage_grid --test-gridsearch_coverage_grid --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_grid import *  # NOQA
-        >>> import plottool as pt
+        >>> from vtool_ibeis.coverage_grid import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> gridsearch_coverage_grid()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     fname = None  # 'easy1.png'
     kpts, chipsize, weights = coverage_kpts.testdata_coverage(fname)
     if len(kpts) > 100:
@@ -299,11 +299,11 @@ def gridsearch_coverage_grid():
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
     coverage_gridtup_list = [
         sparse_grid_coverage(kpts, chipsize, weights, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+        for cfgdict in ub.ProgIter(cfgdict_list, desc='coverage grid')
     ]
 
     fnum = 1
-    with ut.Timer('plotting gridsearch'):
+    with ub.Timer('plotting gridsearch'):
         ut.interact_gridsearch_result_images(
             show_coverage_grid, cfgdict_list, cfglbl_list,
             coverage_gridtup_list, fnum=fnum, figtitle='coverage grid', unpack=True,
@@ -315,21 +315,21 @@ def gridsearch_coverage_grid():
 def gridsearch_coverage_grid_mask():
     """
     CommandLine:
-        python -m vtool.coverage_grid --test-gridsearch_coverage_grid_mask --show
+        python -m vtool_ibeis.coverage_grid --test-gridsearch_coverage_grid_mask --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_grid import *  # NOQA
-        >>> import plottool as pt
+        >>> from vtool_ibeis.coverage_grid import *  # NOQA
+        >>> import plottool_ibeis as pt
         >>> gridsearch_coverage_grid_mask()
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
     kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
     gridmask_list = [
         255 *  make_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+        for cfgdict in ub.ProgIter(cfgdict_list, desc='coverage grid')
     ]
     NORMHACK = False
     if NORMHACK:
@@ -350,11 +350,7 @@ def gridsearch_coverage_grid_mask():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.coverage_grid
-        python -m vtool.coverage_grid --allexamples
-        python -m vtool.coverage_grid --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.coverage_grid
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

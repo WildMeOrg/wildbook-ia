@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 
 
 def testdata_blend(scale=128):
-    import vtool as vt
+    import vtool_ibeis as vt
     img_fpath = ut.grab_test_imgpath('lena.png')
     img1 = vt.imread(img_fpath)
     rng = np.random.RandomState(0)
@@ -22,7 +22,7 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     """
     gridsearch for a function that produces a single image
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     cfgdict_list, cfglbl_list = param_info.get_gridsearch_input(defaultslice=slice(0, 10))
     fnum = pt.ensure_fnum(None)
     if show_func is None:
@@ -30,7 +30,7 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     lbl = ut.get_funcname(test_func)
     cfgresult_list = [
         test_func(*args, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl=lbl)
+        for cfgdict in ub.ProgIter(cfgdict_list, desc=lbl)
     ]
     onclick_func = None
     ut.interact_gridsearch_result_images(
@@ -42,7 +42,7 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
 
 
 def ensure_alpha_channel(img, alpha=1.0):
-    import vtool as vt
+    import vtool_ibeis as vt
     img = vt.rectify_to_float01(img)
     c = vt.get_num_channels(img)
     if c == 4:
@@ -58,7 +58,7 @@ def ensure_alpha_channel(img, alpha=1.0):
 
 
 def ensure_grayscale(img, colorspace_hint='BGR'):
-    import vtool as vt
+    import vtool_ibeis as vt
     img = vt.rectify_to_float01(img)
     c = vt.get_num_channels(img)
     if c == 1:
@@ -74,7 +74,7 @@ def overlay_alpha_images(img1, img2):
     References:
         http://stackoverflow.com/questions/25182421/overlay-numpy-alpha
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     img1 = vt.rectify_to_float01(img1)
     img2 = vt.rectify_to_float01(img2)
 
@@ -145,23 +145,23 @@ def blend_images_average(img1, img2, alpha=.5):
         https://en.wikipedia.org/wiki/Blend_modes
 
     CommandLine:
-        python -m vtool.blend blend_images_average:0 --show
-        python -m vtool.blend blend_images_average:1 --show
+        python -m vtool_ibeis.blend blend_images_average:0 --show
+        python -m vtool_ibeis.blend blend_images_average:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> test_func = blend_images_average
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
@@ -176,7 +176,7 @@ def blend_images_average(img1, img2, alpha=.5):
     #assert img1.min() >= 0 and img1.max() <= 1
     #assert img2.min() >= 0 and img2.max() <= 1
     if isinstance(alpha, np.ndarray):
-        import vtool as vt
+        import vtool_ibeis as vt
         img1, img2 = vt.make_channels_comparable(img1, img2)
         img1, alpha = vt.make_channels_comparable(img1, alpha)
         img2, alpha = vt.make_channels_comparable(img2, alpha)
@@ -201,17 +201,17 @@ def blend_images_average_stack(images, alpha=None):
         https://en.wikipedia.org/wiki/Blend_modes
 
     CommandLine:
-        python -m vtool.blend --test-blend_images_average:0 --show
-        python -m vtool.blend --test-blend_images_average:1 --show
+        python -m vtool_ibeis.blend --test-blend_images_average:0 --show
+        python -m vtool_ibeis.blend --test-blend_images_average:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
     """
@@ -222,7 +222,7 @@ def blend_images_average_stack(images, alpha=None):
 
     # Make all images comparable
     imgT = images[0]
-    import vtool as vt
+    import vtool_ibeis as vt
     for img in images[1:]:
         imgT, _ = vt.make_channels_comparable(imgT, img)
     images = [vt.make_channels_comparable(img, imgT)[0] for img in images]
@@ -245,23 +245,23 @@ def blend_images_mult_average(img1, img2, alpha=.5):
         https://en.wikipedia.org/wiki/Blend_modes
 
     CommandLine:
-        python -m vtool.blend --test-blend_images_mult_average:0 --show
-        python -m vtool.blend --test-blend_images_mult_average:1 --show
+        python -m vtool_ibeis.blend --test-blend_images_mult_average:0 --show
+        python -m vtool_ibeis.blend --test-blend_images_mult_average:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_mult_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> test_func = blend_images_mult_average
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
@@ -275,7 +275,7 @@ def blend_images_mult_average(img1, img2, alpha=.5):
     #imgB = np.zeros(img2.shape, dtype=img2.dtype)
     #assert img1.min() >= 0 and img1.max() <= 1
     #assert img2.min() >= 0 and img2.max() <= 1
-    import vtool as vt
+    import vtool_ibeis as vt
     img1_ = vt.rectify_to_float01(img1)
     img2_ = vt.rectify_to_float01(img2)
     img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
@@ -304,23 +304,23 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         https://en.wikipedia.org/wiki/Blend_modes
 
     CommandLine:
-        python -m vtool.blend --test-blend_images_multiply:0 --show
-        python -m vtool.blend --test-blend_images_multiply:1 --show
+        python -m vtool_ibeis.blend --test-blend_images_multiply:0 --show
+        python -m vtool_ibeis.blend --test-blend_images_multiply:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_multiply(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
+        >>> from vtool_ibeis.blend import *  # NOQA
         >>> test_func = blend_images_multiply
         >>> args = testdata_blend(scale=128)
         >>> param_info = ut.ParamInfoList('blend_params', [
@@ -330,15 +330,15 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         >>> gridsearch_image_function(param_info, test_func, args)
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     # rectify type
     img1_ = vt.rectify_to_float01(img1)
     img2_ = vt.rectify_to_float01(img2)
 
     img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
 
-    # print(ut.repr2(ut.get_stats(img1_, axis=2)))
-    # print(ut.repr2(ut.get_stats(img2_.ravel())))
+    # print(ub.repr2(ut.get_stats(img1_, axis=2)))
+    # print(ub.repr2(ut.get_stats(img2_.ravel())))
     #assert img1_.min() >= 0 and img1_.max() <= 1
     #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform
@@ -365,16 +365,10 @@ def blend_images_multiply(img1, img2, alpha=0.5):
 def gridsearch_addWeighted():
     r"""
     CommandLine:
-        python -m vtool.blend --test-gridsearch_addWeighted --show
-
-    Example:
-        >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
-        >>> gridsearch_addWeighted()
-        >>> ut.show_if_requested()
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/blend.py gridsearch_addWeighted
     """
     import cv2
-    import vtool as vt
+    import vtool_ibeis as vt
     def test_func(src1, src2, alpha=1.0, **kwargs):
         beta = 1.0 - alpha
         src1 = vt.rectify_to_float01(src1)
@@ -401,12 +395,12 @@ def gridsearch_addWeighted():
 def gamma_adjust(img, gamma=1.0):
     """
     CommandLine:
-        python -m vtool.blend --test-gamma_adjust:0 --show
+        python -m vtool_ibeis.blend --test-gamma_adjust:0 --show
 
-    Example2:
-        >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
-        >>> import vtool as vt
+    Ignore:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool_ibeis.blend import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> test_func = gamma_adjust
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.rectify_to_float01(vt.imread(img_fpath))
@@ -426,11 +420,7 @@ def gamma_adjust(img, gamma=1.0):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.blend
-        python -m vtool.blend --allexamples
-        python -m vtool.blend --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.blend
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

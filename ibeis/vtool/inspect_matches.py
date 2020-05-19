@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 try:
-    import guitool as gt
-    from guitool import mpl_widget
+    import guitool_ibeis as gt
+    from guitool_ibeis import mpl_widget
     INSPECT_BASE = gt.GuitoolWidget
     MatplotlibWidget = mpl_widget.MatplotlibWidget
 except ImportError:
+    import warnings
+    warnings.warn('WARNING: guitool not available')
     MatplotlibWidget = object
     INSPECT_BASE = object
 
@@ -28,7 +30,7 @@ def lazy_test_annot(key):
     return annot
 
 try:
-    import dtool as dt
+    import dtool_ibeis as dt
 
     MatchDisplayConfig = dt.from_param_info_list([
         ut.ParamInfo('overlay', True),
@@ -58,15 +60,15 @@ class MatchInspector(INSPECT_BASE):
         (3) a text area displaying information about the match vector
 
     CommandLine:
-        python -m vtool.inspect_matches MatchInspector:0 --show
-        python -m vtool.inspect_matches MatchInspector:1 --show
+        python -m vtool_ibeis.inspect_matches MatchInspector:0 --show
+        python -m vtool_ibeis.inspect_matches MatchInspector:1 --show
 
-        python -m vtool.inspect_matches MatchInspector:1 --db GZ_Master1 --aids=1041,1045 --show
+        python -m vtool_ibeis.inspect_matches MatchInspector:1 --db GZ_Master1 --aids=1041,1045 --show
 
     Example:
         >>> # SCRIPT
-        >>> from vtool.inspect_matches import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.inspect_matches import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> annot1 = lazy_test_annot('easy1.png')
@@ -74,19 +76,19 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
     Example:
         >>> # SCRIPT
-        >>> from vtool.inspect_matches import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.inspect_matches import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> import ibeis
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> aids = ut.argval('--aids', default=[1, 2])
+        >>> aids = ub.argval('--aids', default=[1, 2])
         >>> print('aids = %r' % (aids,))
         >>> annots = ibs.annots(aids)
         >>> annot1 = annots[0]._make_lazy_dict()
@@ -96,14 +98,13 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match, cfgdict=cfgdict)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
 
     def showEvent(self, event):
         super(MatchInspector, self).showEvent(event)
-        # ut.cprint('[viz_graph] showEvent', 'green')
         # Fire initialize event after we show the GUI
         # QtCore.QTimer.singleShot(50, self.init_inference)
         self.first_show()
@@ -126,8 +127,8 @@ class MatchInspector(INSPECT_BASE):
 
     def initialize(self, match=None, on_context=None, autoupdate=True,
                    info_text=None, cfgdict=None):
-        from plottool import abstract_interaction
-        from guitool.__PYQT__ import QtCore
+        from plottool_ibeis import abstract_interaction
+        from guitool_ibeis.__PYQT__ import QtCore
         self.set_match(match, on_context, info_text)
         self._setup_configs(cfgdict=cfgdict)
         self._setup_layout(autoupdate=autoupdate)
@@ -143,7 +144,7 @@ class MatchInspector(INSPECT_BASE):
         gt.popup_menu(self, qpoint, options)
 
     def screenshot(self):
-        import plottool as pt
+        import plottool_ibeis as pt
         with pt.RenderingContext() as render:
             self.match.show(**self.disp_config)
         fpaths = gt.newFileDialog('.', mode='save', exec_=True)
@@ -151,7 +152,7 @@ class MatchInspector(INSPECT_BASE):
             fpath = fpaths[0]
             if not fpath.endswith('.jpg'):
                 fpath += '.jpg'
-            import vtool as vt
+            import vtool_ibeis as vt
             vt.imwrite(fpath, render.image)
 
     def embed(self):
@@ -160,27 +161,27 @@ class MatchInspector(INSPECT_BASE):
         utool.embed()
 
     def _new_config_widget(self, cfg, changed=None):
-        from guitool import PrefWidget2
+        from guitool_ibeis import PrefWidget2
         user_mode = 0
         cfg_widget = PrefWidget2.EditConfigWidget(
             config=cfg, user_mode=user_mode, parent=self, changed=changed)
         return cfg_widget
 
     def closeEvent(self, event):
-        from plottool import abstract_interaction
+        from plottool_ibeis import abstract_interaction
         abstract_interaction.unregister_interaction(self)
         super(MatchInspector, self).closeEvent(event)
 
     def _setup_configs(self, cfgdict=None):
-        from vtool import matching
-        import dtool
+        from vtool_ibeis import matching
+        import dtool_ibeis
         # import pyhesaff
 
         # default_dict = pyhesaff.get_hesaff_default_params()
         # default_dict = vt.get_extract_features_default_params()
-        TmpFeatConfig = dtool.from_param_info_list(matching.VSONE_FEAT_CONFIG)
+        TmpFeatConfig = dtool_ibeis.from_param_info_list(matching.VSONE_FEAT_CONFIG)
 
-        TmpNChipConfig = dtool.from_param_info_list(matching.NORM_CHIP_CONFIG)
+        TmpNChipConfig = dtool_ibeis.from_param_info_list(matching.NORM_CHIP_CONFIG)
         # [
         #     ut.ParamInfo(key, val) for key, val in default_dict.items()
         #     # ut.ParamInfo('affine_invariance', True),
@@ -190,7 +191,7 @@ class MatchInspector(INSPECT_BASE):
         self.featconfig = TmpFeatConfig()
         self.chipconfig = TmpNChipConfig()
 
-        TmpVsOneConfig = dtool.from_param_info_list(
+        TmpVsOneConfig = dtool_ibeis.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
         self.config = TmpVsOneConfig()
         self.disp_config = MatchDisplayConfig()
@@ -213,7 +214,7 @@ class MatchInspector(INSPECT_BASE):
             self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self, autoupdate=True):
-        from guitool.__PYQT__ import QtWidgets
+        from guitool_ibeis.__PYQT__ import QtWidgets
         self.menubar = gt.newMenubar(self)
         self.menuFile = self.menubar.newMenu('Dev')
         self.menuFile.newAction(triggered=self.embed)
@@ -240,13 +241,12 @@ class MatchInspector(INSPECT_BASE):
         self.infobox = splitter2.addNewTextEdit()
 
     def execute_vsone(self):
-        from vtool import matching
+        from vtool_ibeis import matching
         print('[inspect_match] Execute vsone')
 
         cfgdict = {}
         cfgdict.update(self.featconfig.asdict())
         cfgdict.update(self.chipconfig.asdict())
-        # print('cfgdict = ' + ut.repr4(cfgdict))
 
         match = self.match
         match.verbose = True
@@ -275,7 +275,7 @@ class MatchInspector(INSPECT_BASE):
         info_html = ''
         if self.info_text is not None:
             info_html = '<pre>' + self.info_text + '</pre>'
-        feat_html = '<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>'
+        feat_html = '<pre>' + ut.align(ub.repr2(summary), ':') + '</pre>'
         self.infobox.setText(info_html + feat_html)
 
         self.mpl_widget.clf()
@@ -321,8 +321,8 @@ class MatchInspector(INSPECT_BASE):
 
 
 def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
-    import plottool.interact_matches
-    #import plottool as pt
+    import plottool_ibeis.interact_matches
+    #import plottool_ibeis as pt
     fm, fs = matches[type_][0:2]
     try:
         H1 = metadata['H_' + type_.split('+')[0]]
@@ -331,11 +331,11 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     #fm, fs = matches['RAT'][0:2]
     annot1 = metadata['annot1']
     annot2 = metadata['annot2']
-    rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['nchip', 'kpts', 'vecs'])
-    rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
+    rchip1, kpts1, vecs1 = ub.dict_take(annot1, ['nchip', 'kpts', 'vecs'])
+    rchip2, kpts2, vecs2 = ub.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     fsv = fs[:, None]
-    interact = plottool.interact_matches.MatchInteraction2(
+    interact = plottool_ibeis.interact_matches.MatchInteraction2(
         rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1,
         **kwargs)
     return interact
@@ -345,16 +345,12 @@ def show_matching_dict(matches, metadata, *args, **kwargs):
     interact = make_match_interaction(matches, metadata, *args, **kwargs)
     interact.show_page()
     return interact
-    #MatchInteraction2
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.inspect_matches
-        python -m vtool.inspect_matches --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool_ibeis.inspect_matches
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

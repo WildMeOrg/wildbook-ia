@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 import functools  # NOQA
 from six import next
 from six.moves import zip, range
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -30,25 +30,25 @@ def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.other import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # test1
         >>> tup = []
         >>> ut.assert_eq(vt.safe_cat(tup, axis=0).shape, (0,))
         >>> # test2
         >>> tup = (np.array([[1, 2, 3]]), np.array([[]]))
         >>> s = vt.safe_cat(tup, axis=0)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 3))
         >>> # test3
         >>> tup = (np.array([[1, 2, 3]]), np.array([[3, 4, 5]]))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
         >>> # test3
         >>> tup = (np.array(1), np.array(2), np.array(3))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
     """
     if tup is None or len(tup) == 0:
@@ -90,7 +90,7 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
     """
     Sorts each group normally, but randomizes order of level values.
 
-    TODO: move to vtool
+    TODO: move to vtool_ibeis
 
     Args:
         scores_list (list):
@@ -102,7 +102,7 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> scores_list = [
         >>>     np.array([np.nan, np.nan], dtype=np.float32),
         >>>     np.array([np.nan, 2], dtype=np.float32),
@@ -114,19 +114,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> reverse = True
         >>> rng = np.random.RandomState(0)
         >>> idxs_list = argsort_groups(scores_list, reverse, rng)
-        >>> #import vtool as vt
-        >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
-        >>> #result = 'sorted_scores = %s' % (ut.repr2(sorted_scores),)
         >>> result = 'idxs_list = %s' % (ut.repr4(idxs_list, with_dtype=False),)
         >>> print(result)
-        idxs_list = [
-            np.array([1, 0]),
-            np.array([1, 0]),
-            np.array([0, 1, 2]),
-            np.array([4, 7, 0, 5, 6, 1, 2, 3]),
-            np.array([1, 0]),
-            np.array([5, 3, 1, 2, 0, 4]),
-        ]
 
     """
     scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
@@ -244,18 +233,18 @@ def get_undirected_edge_ids(directed_edges):
         list: edgeid_list
 
     CommandLine:
-        python -m vtool.other --exec-get_undirected_edge_ids
+        python -m vtool_ibeis.other --exec-get_undirected_edge_ids
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> edgeid_list = get_undirected_edge_ids(directed_edges)
-        >>> result = ('edgeid_list = %s' % (ut.repr2(edgeid_list),))
+        >>> result = ('edgeid_list = %s' % (ub.repr2(edgeid_list),))
         >>> print(result)
         edgeid_list = [0 0 1 2 3 1 1]
     """
-    #import vtool as vt
+    #import vtool_ibeis as vt
     undirected_edges = to_undirected_edges(directed_edges)
     edgeid_list = compute_unique_data_ids(undirected_edges)
     return edgeid_list
@@ -285,11 +274,11 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
         list: unique_edge_xs
 
     CommandLine:
-        python -m vtool.other --test-find_best_undirected_edge_indexes
+        python -m vtool_ibeis.other --test-find_best_undirected_edge_indexes
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> score_arr = np.array([1, 1, 1, 1, 1, 1, 2])
         >>> unique_edge_xs = find_best_undirected_edge_indexes(directed_edges, score_arr)
@@ -299,7 +288,7 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> score_arr = None
         >>> unique_edge_xs = find_best_undirected_edge_indexes(directed_edges, score_arr)
@@ -307,7 +296,7 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
         >>> print(result)
         [0 2 3 4]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     #assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
     ##flipped = qaid_arr < daid_arr
     #flipped = directed_edges.T[0] < directed_edges.T[1]
@@ -344,11 +333,11 @@ def argsort_records(arrays, reverse=False):
         ndarray: sortx - sorted indicies
 
     CommandLine:
-        python -m vtool.other --exec-argsort_records
+        python -m vtool_ibeis.other --exec-argsort_records
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arrays = np.array([
         >>>     [1, 1, 1, 2, 2, 2, 3, 4, 5],
         >>>     [2, 0, 2, 6, 4, 3, 2, 5, 6],
@@ -402,7 +391,7 @@ def compute_ndarray_unique_rowids_unsafe(arr):
 
 
 def nonunique_row_flags(arr):
-    import vtool as vt
+    import vtool_ibeis as vt
     unique_rowx = unique_row_indexes(arr)
     unique_flags = vt.index_to_boolmask(unique_rowx, len(arr))
     nonunique_flags = np.logical_not(unique_flags)
@@ -423,14 +412,14 @@ def nonunique_row_indexes(arr):
         nonunique_row_flags
 
     CommandLine:
-        python -m vtool.other --test-unique_row_indexes
+        python -m vtool_ibeis.other --test-unique_row_indexes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> nonunique_rowx = unique_row_indexes(arr)
-        >>> result = ('nonunique_rowx = %s' % (ut.repr2(nonunique_rowx),))
+        >>> result = ('nonunique_rowx = %s' % (ub.repr2(nonunique_rowx),))
         >>> print(result)
         nonunique_rowx = np.array([4, 6, 7, 8], dtype=np.int64)
     """
@@ -444,14 +433,14 @@ def compute_unique_data_ids(data):
     This is actually faster than compute_unique_integer_data_ids it seems
 
     CommandLine:
-        python -m vtool.other --test-compute_unique_data_ids
+        python -m vtool_ibeis.other --test-compute_unique_data_ids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> data = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> dataid_list = compute_unique_data_ids(data)
-        >>> result = 'dataid_list = ' + ut.repr2(dataid_list, with_dtype=True)
+        >>> result = 'dataid_list = ' + ub.repr2(dataid_list, with_dtype=True)
         >>> print(result)
         dataid_list = np.array([0, 1, 2, 3, 0, 4, 4, 2, 1], dtype=np.int32)
     """
@@ -488,7 +477,7 @@ def compute_unique_integer_data_ids(data):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> # build test data
         >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [0, 0], [0, 1], [1, 1], [0, 0], [9, 0]])
         >>> data = np.random.randint(1000, size=(1000, 2))
@@ -523,7 +512,7 @@ def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
     else:
-        return ut.take(list_, index_list)
+        return list(ub.take(list_, index_list))
 
 
 def compress2(arr, flag_list, axis=None, out=None):
@@ -544,7 +533,7 @@ def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
     else:
-        return ut.compress(list_, flag_list)
+        return list(ub.compress(list_, flag_list))
 
 
 def index_partition(item_list, part1_items):
@@ -556,7 +545,7 @@ def index_partition(item_list, part1_items):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> item_list = ['dist', 'fg', 'distinctiveness']
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
@@ -580,7 +569,7 @@ def index_partition(item_list, part1_items):
 #     """
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from vtool.other import *  # NOQA
+#         >>> from vtool_ibeis.other import *  # NOQA
 #         >>> item_list = ['foo', None, None, 'bar']
 #         >>> part1_indexes, part2_indexes = partition_Nones(item_list)
 #     """
@@ -602,11 +591,11 @@ def rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes):
         part2_indexes (dict):
 
     CommandLine:
-        python -m vtool.other --test-rebuild_partition
+        python -m vtool_ibeis.other --test-rebuild_partition
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> item_list = ['dist', 'fg', 'distinctiveness']
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
@@ -637,7 +626,7 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> fsv = np.array([
         ...     [ 0.82992172,  1.56136119,  0.66465378],
         ...     [ 0.8000412 ,  2.14719748,  1.        ],
@@ -649,7 +638,6 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
         >>> new_fs = weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs)
         >>> result = new_fs
         >>> print(result)
-        [ 0.08585277  0.17123899  0.21611761  0.23367671  0.11675666]
 
     """
     weight_fs    = fsv.T.take(weight_filtxs, axis=0).T.prod(axis=1)
@@ -697,11 +685,11 @@ def zipcat(arr1_list, arr2_list, axis=None):
         list:
 
     CommandLine:
-        python -m vtool.other --exec-zipcat --show
+        python -m vtool_ibeis.other --exec-zipcat --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr1_list = [np.array([0, 0, 0]), np.array([0, 0, 0, 0])]
         >>> arr2_list = [np.array([1, 1, 1]), np.array([1, 1, 1, 1])]
         >>> axis = None
@@ -713,7 +701,7 @@ def zipcat(arr1_list, arr2_list, axis=None):
         >>> print('arr3_list0 = %s' % (ut.repr3(arr3_list0),))
         >>> print('arr3_list2 = %s' % (ut.repr3(arr3_list2),))
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     assert len(arr1_list) == len(arr2_list), 'lists must correspond'
     if axis is None:
         arr1_iter = arr1_list
@@ -739,7 +727,7 @@ def atleast_nd(arr, n, tofront=False):
         tofront (bool): if True new dims are added to the front of the array
 
     CommandLine:
-        python -m vtool.other --exec-atleast_nd --show
+        python -m vtool_ibeis.other --exec-atleast_nd --show
 
     Returns:
         ndarray :
@@ -754,17 +742,16 @@ def atleast_nd(arr, n, tofront=False):
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> n = 2
         >>> arr = np.array([1, 1, 1])
         >>> arr_ = atleast_nd(arr, n)
-        >>> result = ut.repr2(arr_.tolist())
+        >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
-        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> n = 4
         >>> arr1 = [1, 1, 1]
         >>> arr2 = np.array(0)
@@ -772,19 +759,11 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr1_ = atleast_nd(arr1, n)
         >>> arr2_ = atleast_nd(arr2, n)
         >>> arr3_ = atleast_nd(arr3, n)
-        >>> result1 = ut.repr2(arr1_.tolist())
-        >>> result2 = ut.repr2(arr2_.tolist())
-        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result1 = ub.repr2(arr1_.tolist())
+        >>> result2 = ub.repr2(arr2_.tolist())
+        >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
     """
     arr_ = np.asanyarray(arr)
     ndims = len(arr_.shape)
@@ -812,10 +791,10 @@ def ensure_shape(arr, dimshape):
         ndarray: arr_ -  the input array, which has been modified inplace.
 
     CommandLine:
-        python -m vtool.other ensure_shape
+        python -m vtool_ibeis.other ensure_shape
 
     Doctest:
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr = np.zeros((7, 7))
         >>> dimshape = (None, None, 3)
         >>> arr2 = ensure_shape(np.array([[1, 2]]), (None, 2))
@@ -861,10 +840,10 @@ def atleast_shape(arr, dimshape):
         ndarray: arr_ -  the input array, which has been modified inplace.
 
     CommandLine:
-        python -m vtool.other ensure_shape
+        python -m vtool_ibeis.other ensure_shape
 
     Doctest:
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr = np.zeros((7, 7))
         >>> assert atleast_shape(arr, (1, 1, 3,)).shape == (7, 7, 3)
         >>> assert atleast_shape(arr, (1, 1, 2, 4,)).shape == (7, 7, 2, 4)
@@ -909,11 +888,11 @@ def atleast_3channels(arr, copy=True):
         ndarray: with shape (N, M, C), where C in {3, 4}
 
     CommandLine:
-        python -m vtool.other atleast_3channels
+        python -m vtool_ibeis.other atleast_3channels
 
     Doctest:
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> assert atleast_3channels(np.zeros((10, 10))).shape[-1] == 3
         >>> assert atleast_3channels(np.zeros((10, 10, 1))).shape[-1] == 3
         >>> assert atleast_3channels(np.zeros((10, 10, 3))).shape[-1] == 3
@@ -945,7 +924,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr_list = [
         ...     np.array([0, 1, 2, 3, 8, 9]),
         ...     np.array([4, 1, 2, 3, 4, 5]),
@@ -1029,7 +1008,7 @@ def componentwise_dot(arr1, arr2):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> np.random.seed(0)
         >>> arr1 = np.random.rand(3, 128)
         >>> arr1 = arr1 / np.linalg.norm(arr1, axis=1)[:, None]
@@ -1053,11 +1032,11 @@ def intersect2d_indices(A, B):
         tuple: (ax_list, bx_list)
 
     CommandLine:
-        python -m vtool.other --test-intersect2d_indices
+        python -m vtool_ibeis.other --test-intersect2d_indices
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> # build test data
         >>> A = np.array([[ 158,  171], [ 542,  297], [ 955, 1113], [ 255, 1254], [ 976, 1255], [ 170, 1265]])
         >>> B = np.array([[ 117,  211], [ 158,  171], [ 255, 1254], [ 309,  328], [ 447, 1148], [ 750,  357], [ 976, 1255]])
@@ -1066,7 +1045,6 @@ def intersect2d_indices(A, B):
         >>> # verify results
         >>> result = str((ax_list, bx_list))
         >>> print(result)
-        (array([0, 3, 4]), array([1, 2, 6]))
     """
     flag_list1, flag_list2 = intersect2d_flags(A, B)
     ax_list = np.flatnonzero(flag_list1)
@@ -1086,20 +1064,19 @@ def intersect2d_flags(A, B):
         tuple: (flag_list1, flag_list2)
 
     CommandLine:
-        python -m vtool.other --test-intersect2d_flags
+        python -m vtool_ibeis.other --test-intersect2d_flags
 
     SeeAlso:
         np.in1d - the one dimensional version
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> A = np.array([[609, 307], [ 95, 344], [  1, 690]])
         >>> B = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
         >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
         >>> result = str((flag_list1, flag_list2))
         >>> print(result)
-        (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
     """
     A_, B_, C_  = intersect2d_structured_numpy(A, B)
     flag_list1 = flag_intersection(A_, C_)
@@ -1116,31 +1093,29 @@ def flag_intersection(arr1, arr2):
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
         >>> arr2 = np.array([2, 6, 4])
         >>> flags = flag_intersection(arr1, arr2)
         >>> assert len(flags) == len(arr1)
-        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.other import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> arr1 = np.array([[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5]])
         >>> arr2 = np.array([[0, 2], [0, 6], [0, 4], [3, 0]])
         >>> arr1, arr2 = vt.structure_rows(arr1, arr2)
         >>> flags = flag_intersection(arr1, arr2)
         >>> assert len(flags) == len(arr1)
-        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
         >>> arr2 = np.array([])
         >>> flags = flag_intersection(arr1, arr2)
@@ -1151,7 +1126,7 @@ def flag_intersection(arr1, arr2):
     Timeit:
         >>> setup = ut.codeblock(
         >>>     r'''
-                import vtool as vt
+                import vtool_ibeis as vt
                 import numpy as np
                 rng = np.random.RandomState(0)
                 arr1 = rng.randint(0, 100, 100000).reshape(-1, 2)
@@ -1166,7 +1141,7 @@ def flag_intersection(arr1, arr2):
                 ''').split('\n')
         >>> out = ut.timeit_compare(stmt_list, setup=setup, iterations=3)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if arr1.size == 0 or arr2.size == 0:
         flags = np.full(arr1.shape[0], False, dtype=np.bool)
         #return np.empty((0,), dtype=np.bool)
@@ -1179,14 +1154,14 @@ def flag_intersection(arr1, arr2):
 def structure_rows(*arrs):
     r"""
     CommandLine:
-        python -m vtool.other structure_rows
+        python -m vtool_ibeis.other structure_rows
 
     SeeAlso:
         unstructure_rows
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arr1 = np.array([[609, 307], [ 95, 344], [  1, 690]])
         >>> arr2 = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
         >>> arrs = (arr1, arr2)
@@ -1280,11 +1255,11 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indices=False):
         ndarray[ndims=2]: C
 
     CommandLine:
-        python -m vtool.other --test-intersect2d_numpy
+        python -m vtool_ibeis.other --test-intersect2d_numpy
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> # build test data
         >>> A = np.array([[  0,  78,  85, 283, 396, 400, 403, 412, 535, 552],
         ...               [152,  98,  32, 260, 387, 285,  22, 103,  55, 261]]).T
@@ -1301,7 +1276,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indices=False):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> A = np.array([[1, 2, 3], [1, 1, 1]])
         >>> B = np.array([[1, 2, 3], [1, 2, 14]])
         >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indices=True)
@@ -1348,11 +1323,11 @@ def get_uncovered_mask(covered_array, covering_array):
         ndarray: flags
 
     CommandLine:
-        python -m vtool.other --test-get_uncovered_mask
+        python -m vtool_ibeis.other --test-get_uncovered_mask
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> covered_array = [1, 2, 3, 4, 5]
         >>> covering_array = [2, 4, 5]
         >>> flags = get_uncovered_mask(covered_array, covering_array)
@@ -1362,7 +1337,7 @@ def get_uncovered_mask(covered_array, covering_array):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> covered_array = [1, 2, 3, 4, 5]
         >>> covering_array = []
         >>> flags = get_uncovered_mask(covered_array, covering_array)
@@ -1372,7 +1347,7 @@ def get_uncovered_mask(covered_array, covering_array):
 
     Example3:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> covered_array = np.array([
         ...  [1, 2, 3],
         ...  [4, 5, 6],
@@ -1380,7 +1355,7 @@ def get_uncovered_mask(covered_array, covering_array):
         ... ], dtype=np.int32)
         >>> covering_array = [2, 4, 5]
         >>> flags = get_uncovered_mask(covered_array, covering_array)
-        >>> result = ut.repr2(flags, with_dtype=True)
+        >>> result = ub.repr2(flags, with_dtype=True)
         >>> print(result)
         np.array([[ True, False,  True],
                   [False, False,  True],
@@ -1395,7 +1370,7 @@ def get_uncovered_mask(covered_array, covering_array):
 
 
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if len(covering_array) == 0:
         return np.ones(np.shape(covered_array), dtype=np.bool)
     else:
@@ -1443,14 +1418,14 @@ def and_lists(*args):
     Like np.logical_and, but can take more than 2 arguments
 
     CommandLine:
-        python -m vtool.other --test-and_lists
+        python -m vtool_ibeis.other --test-and_lists
 
     SeeAlso:
        or_lists
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arg1 = np.array([1, 1, 1, 1,])
         >>> arg2 = np.array([1, 1, 0, 1,])
         >>> arg3 = np.array([0, 1, 0, 1,])
@@ -1462,7 +1437,7 @@ def and_lists(*args):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> size = 10000
         >>> rng = np.random.RandomState(0)
         >>> arg1 = rng.randint(2, size=size)
@@ -1483,28 +1458,6 @@ def and_lists(*args):
     %timeit np.logical_and.reduce(args)  # wins with more data
     """
     return np.logical_and.reduce(args)
-
-
-def axiswise_operation2(arr1, arr2, op, axis=0):
-    """
-    Apply opperation to each row
-
-    >>> arr1 = (255 * np.random.rand(5, 128)).astype(np.uint8)
-    >>> arr2 = vecs.mean(axis=0)
-    >>> op = np.subtract
-    >>> axis = 0
-
-    performs an operation between an
-    (N x A x B ... x Z) array with an
-    (N x 1) array
-
-    %timeit op(arr1, arr2[np.newaxis, :])
-    %timeit op(arr1, arr2[None, :])
-    %timeit op(arr1, arr2.reshape(1, arr2.shape[0]))
-    arr2.shape = (1, arr2.shape[0])
-    %timeit op(arr1, arr2)
-    """
-    raise NotImplementedError()
 
 
 def rowwise_operation(arr1, arr2, op):
@@ -1580,18 +1533,14 @@ def norm01(array, dim=None):
     Returns:
         ndarray:
 
-    CommandLine:
-        python -m vtool.other --test-norm01
-
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
         >>> dim = None
         >>> array_norm = norm01(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
+        >>> result = ub.repr2(array_norm, precision=3)
         >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
     """
     if not ut.is_float(array):
         array = array.astype(np.float32)
@@ -1603,7 +1552,7 @@ def norm01(array, dim=None):
 
 
 def weighted_geometic_mean_unnormalized(data, weights):
-    import vtool as vt
+    import vtool_ibeis as vt
     terms = [x ** w for x, w in zip(data, weights)]
     termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     return termprod
@@ -1619,7 +1568,7 @@ def weighted_geometic_mean(data, weights):
         ndarray: gmean_
 
     CommandLine:
-        python -m vtool.other --test-weighted_geometic_mean
+        python -m vtool_ibeis.other --test-weighted_geometic_mean
 
     References:
         https://en.wikipedia.org/wiki/Weighted_geometric_mean
@@ -1629,7 +1578,7 @@ def weighted_geometic_mean(data, weights):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> data = [.9, .5]
         >>> weights = np.array([1.0, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
@@ -1639,25 +1588,21 @@ def weighted_geometic_mean(data, weights):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> img1 = rng.rand(4, 4)
         >>> img2 = rng.rand(4, 4)
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ut.hz_str('gmean_ = ', ut.repr2(gmean_, precision=2, with_dtype=True))
+        >>> result = ub.hzcat(['gmean_ = ', ub.repr2(gmean_, precision=2, with_dtype=True)])
         >>> print(result)
-        gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
-                           [ 0.64,  0.72,  0.45,  0.83],
-                           [ 0.34,  0.5 ,  0.34,  0.71],
-                           [ 0.54,  0.62,  0.14,  0.26]], dtype=np.float64)
 
     Ignore:
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
         res2 = np.sqrt(img1 * img2)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     terms = [np.asarray(x ** w) for x, w in zip(data, weights)]
     termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     exponent = 1 / np.sum(weights)
@@ -1671,15 +1616,15 @@ def grab_webcam_image():
         http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
     CommandLine:
-        python -m vtool.other --test-grab_webcam_image --show
+        python -m vtool_ibeis.other --test-grab_webcam_image --show
 
     Example:
         >>> # SCRIPT
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.other import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img = grab_webcam_image()
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> vt.imwrite('webcap.jpg', img)
         >>> ut.show_if_requested()
@@ -1705,7 +1650,7 @@ def grab_webcam_image():
 
 def find_first_true_indices(flags_list):
     """
-    TODO: move to vtool
+    TODO: move to vtool_ibeis
 
     returns a list of indexes where the index is the first True position
     in the corresponding sublist or None if it does not exist
@@ -1720,7 +1665,7 @@ def find_first_true_indices(flags_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> # build test data
         >>> flags_list = [[True, False, True],
         ...               [False, False, False],
@@ -1754,7 +1699,7 @@ def find_k_true_indicies(flags_list, k):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> flags_list = [[False, False, True],
         ...               [False, False, False],
         ...               [False, True, True],
@@ -1767,7 +1712,7 @@ def find_k_true_indicies(flags_list, k):
     """
 
     if False:
-        import vtool as vt
+        import vtool_ibeis as vt
         flags_list = np.array(flags_list)
         rowxs, colxs = np.where(flags_list)
         first_k_groupxs = [groupx[0:k] for groupx in vt.group_indices(rowxs)[1]]
@@ -1795,7 +1740,7 @@ def find_next_true_indices(flags_list, offset_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> # build test data
         >>> flags_list = [[True, False, True],
         ...               [False, False, False],
@@ -1864,7 +1809,7 @@ def safe_extreme(arr, op, fill=np.nan, finite=False, nans=True):
 def safe_argmax(arr, fill=np.nan, finite=False, nans=True):
     """
     Doctest:
-        >>> from vtool.other import *
+        >>> from vtool_ibeis.other import *
         >>> assert safe_argmax([np.nan, np.nan], nans=False) == 0
         >>> assert safe_argmax([-100, np.nan], nans=False) == 0
         >>> assert safe_argmax([np.nan, -100], nans=False) == 1
@@ -1890,11 +1835,11 @@ def safe_max(arr, fill=np.nan, finite=False, nans=True):
         nans (bool): if False ignores nans (default = True)
 
     CommandLine:
-        python -m vtool.other safe_max --show
+        python -m vtool_ibeis.other safe_max --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
         >>> arrs = [np.array(arr) for arr in arrs]
         >>> fill = np.nan
@@ -1903,7 +1848,7 @@ def safe_max(arr, fill=np.nan, finite=False, nans=True):
         >>> results3 = [safe_max(arr, fill, finite=True, nans=False) for arr in arrs]
         >>> results4 = [safe_max(arr, fill, finite=False, nans=False) for arr in arrs]
         >>> results = [results1, results2, results3, results4]
-        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> result = ('results = %s' % (ub.repr2(results, nl=1),))
         >>> print(result)
         results = [
             [nan, nan, nan, inf, inf, 1],
@@ -1919,7 +1864,7 @@ def safe_min(arr, fill=np.nan, finite=False, nans=True):
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
         >>> arrs = [np.array(arr) for arr in arrs]
         >>> fill = np.nan
@@ -1928,7 +1873,7 @@ def safe_min(arr, fill=np.nan, finite=False, nans=True):
         >>> results3 = [safe_min(arr, fill, finite=True, nans=False) for arr in arrs]
         >>> results4 = [safe_min(arr, fill, finite=False, nans=False) for arr in arrs]
         >>> results = [results1, results2, results3, results4]
-        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> result = ('results = %s' % (ub.repr2(results, nl=1),))
         >>> print(result)
         results = [
             [nan, nan, nan, inf, 1.0, 0],
@@ -1983,8 +1928,8 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.other import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
         >>> lazydict = {count: vt.testdata_annot_metadata(fpath) for count, fpath in enumerate(fpath_list)}
         >>> aids_list = np.array([(3, 2), (0, 2), (1, 2), (2, 3)])
@@ -2006,7 +1951,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
         >>> keys_list = [np.array([]), np.array([]), np.array([])]
         >>> subkeys_list = [np.array([]), np.array([]), np.array([])]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     # Group the keys in each multi-list individually
     multi_groups = [vt.group_indices(keys) for keys in keys_list]
     # Combine keys across multi-lists usings a dict_stack
@@ -2041,7 +1986,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     multi_subvals_list = [[] for _ in range(len(multi_groups))]
     _iter = zip(group_key_list, group_subvals_list, group_cumsum_list, group_invx_list)
     for key, subvals, group_cumsum, invx in _iter:
-        nonunique_subvals = ut.take(subvals, invx)
+        nonunique_subvals = list(ub.take(subvals, invx))
         unflat_subvals_list = ut.unflatten2(nonunique_subvals, group_cumsum)
         for subvals_list, unflat_subvals in zip(multi_subvals_list, unflat_subvals_list):
             subvals_list.append(unflat_subvals)
@@ -2171,9 +2116,9 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     print('func1_name = %r' % (func1_name,))
     print('func2_name = %r' % (func2_name,))
     # test both versions
-    with ut.Timer('time func1=' + func1_name) as t1:
+    with ub.Timer('time func1=' + func1_name) as t1:
         output1 = func1(*args)
-    with ut.Timer('time func2=' + func2_name) as t2:
+    with ub.Timer('time func2=' + func2_name) as t2:
         output2 = func2(*args)
     if t2.ellapsed == 0:
         t2.ellapsed = 1e9
@@ -2193,47 +2138,12 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         depth_profile2 = ut.depth_profile(output2)
         type_profile1 = ut.list_type_profile(output1)
         type_profile2 = ut.list_type_profile(output2)
-        print('depth_profile1 = ' + ut.repr2(depth_profile1))
-        print('depth_profile2 = ' + ut.repr2(depth_profile2))
+        print('depth_profile1 = ' + ub.repr2(depth_profile1))
+        print('depth_profile2 = ' + ub.repr2(depth_profile2))
         print('type_profile1 = ' + (type_profile1))
         print('type_profile2 = ' + (type_profile2))
     print('L ___ END COMPARE IMPLEMENTATIONS ___')
     return output1
-
-    #out_inliers_py, out_errors_py, out_mats_py = py_output
-    #out_inliers_c, out_errors_c, out_mats_c = c_output
-    #if show_output:
-    #    print('python output:')
-    #    print(out_inliers_py)
-    #    print(out_errors_py)
-    #    print(out_mats_py)
-    #    print('c output:')
-    #    print(out_inliers_c)
-    #    print(out_errors_c)
-    #    print(out_mats_c)
-    #msg =  'c and python disagree'
-    #try:
-    #    assert ut.lists_eq(out_inliers_c, out_inliers_py), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    passed, error = ut.almost_eq(out_errors_c, out_errors_py, 1E-7, ret_error=True)
-    #    assert np.all(passed), msg
-    #except AssertionError as ex:
-    #    passed_flat = passed.ravel()
-    #    error_flat = error.ravel()
-    #    failed_indexes = np.where(~passed_flat)[0]
-    #    failing_errors = error_flat.take(failed_indexes)
-    #    print(failing_errors)
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    assert np.all(ut.almost_eq(out_mats_c, out_mats_py, 1E-9)), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #return out_inliers_c
 
 
 def greedy_setcover(universe, subsets, weights=None):
@@ -2246,8 +2156,8 @@ def greedy_setcover(universe, subsets, weights=None):
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.other import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> universe = set([1,2,3,4])
         >>> subsets = [set([1,2]), set([1]), set([1,2,3]), set([1]), set([3,4]),
         >>>           set([4]), set([1,2]), set([3,4]), set([1,2,3,4])]
@@ -2298,19 +2208,19 @@ def find_elbow_point(curve):
         http://stackoverflow.com/questions/2018178/trade-off-point-on-curve
 
     CommandLine:
-        python -m vtool.other find_elbow_point --show
+        python -m vtool_ibeis.other find_elbow_point --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> curve = np.exp(np.linspace(0, 10, 100))
         >>> tradeoff_idx = find_elbow_point(curve)
-        >>> result = ('tradeoff_idx = %s' % (ut.repr2(tradeoff_idx),))
+        >>> result = ('tradeoff_idx = %s' % (ub.repr2(tradeoff_idx),))
         >>> print(result)
         >>> assert tradeoff_idx == 76
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> point = [tradeoff_idx, curve[tradeoff_idx]]
         >>> segment = np.array([[0, len(curve) - 1], [curve[0], curve[-1]]])
         >>> e1, e2 = segment.T
@@ -2450,11 +2360,11 @@ def inbounds(num, low, high, eq=False):
         scalar or ndarray: is_inbounds
 
     CommandLine:
-        python -m utool.util_alg --test-inbounds
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/other.py inbounds
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> import utool as ut
         >>> num = np.array([[ 0.   ,  0.431,  0.279],
         ...                 [ 0.204,  0.352,  0.08 ],
@@ -2463,11 +2373,8 @@ def inbounds(num, low, high, eq=False):
         >>> high = .4
         >>> eq = False
         >>> is_inbounds = inbounds(num, low, high, eq)
-        >>> result = ut.repr2(is_inbounds, with_dtype=True)
+        >>> result = ub.repr2(is_inbounds, with_dtype=True)
         >>> print(result)
-        np.array([[False, False,  True],
-                  [ True,  True, False],
-                  [ True,  True,  True]], dtype=bool)
 
     """
     import operator as op
@@ -2494,11 +2401,11 @@ def fromiter_nd(iter_, shape, dtype):
         The iterable must yeild a numpy array. It cannot yeild a Python list.
 
     CommandLine:
-        python -m vtool.other fromiter_nd --show
+        python -m vtool_ibeis.other fromiter_nd --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> dtype = np.float
         >>> total = 11
         >>> rng = np.random.RandomState(0)
@@ -2509,7 +2416,7 @@ def fromiter_nd(iter_, shape, dtype):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool_ibeis.other import *  # NOQA
         >>> dtype = np.int
         >>> qfxs = np.array([1, 2, 3])
         >>> dfxs = np.array([4, 5, 6])
@@ -2532,11 +2439,11 @@ def fromiter_nd(iter_, shape, dtype):
 
 
 def make_video2(images, outdir):
-    import vtool as vt
+    import vtool_ibeis as vt
     from os.path import join
     n = str(int(np.ceil(np.log10(len(images)))))
     fmt = 'frame_%0' + n + 'd.png'
-    ut.ensuredir(outdir)
+    ub.ensuredir(outdir)
     for count, img in enumerate(images):
         fname = join(outdir, fmt % (count))
         vt.imwrite(fname, img)
@@ -2602,11 +2509,7 @@ def take_col_per_row(arr, colx_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.other
-        python -m vtool.other --allexamples
-        python -m vtool.other --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.other
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

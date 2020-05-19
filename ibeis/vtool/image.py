@@ -8,17 +8,12 @@ from os.path import splitext
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 from PIL import Image
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-    cv2 = None
-from vtool import exif
+import cv2
+from .util_math import TAU
+from vtool_ibeis import exif
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 
-
-TAU = np.pi * 2
 
 if cv2 is not None:
 
@@ -45,7 +40,14 @@ if cv2 is not None:
         'borderMode': cv2.BORDER_CONSTANT
     }
 
-    IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] in ('3', '4') else cv2.CV_LOAD_IMAGE_COLOR
+    try:
+        IMREAD_COLOR = cv2.IMREAD_COLOR
+    except AttributeError:
+        from distutils.version import LooseVersion
+        cv2_version = LooseVersion(cv2.__version__)
+        print('UNKNOWN cv2_version = {!r}'.format(cv2_version))
+        assert cv2_version.version[0] <= 2
+        IMREAD_COLOR = cv2.CV_LOAD_IMAGE_COLOR
 else:
     # Hacks
     cv2 = ut.DynStruct()
@@ -116,17 +118,17 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
     Creates a montage / collage from a set of images
 
     CommandLine:
-        python -m vtool.image --exec-montage:0 --show
-        python -m vtool.image --exec-montage:1
+        python -m vtool_ibeis.image --exec-montage:0 --show
+        python -m vtool_ibeis.image --exec-montage:1
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
         >>> num = 4
-        >>> img_list = ut.flatten([img_list1] * num)
+        >>> img_list = list(ub.flatten([img_list1] * num))
         >>> dsize = (700, 700)
         >>> rng = np.random.RandomState(42)
         >>> method = 'unused'
@@ -134,8 +136,8 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> dst, debug_info = montage(img_list, dsize, rng, method=method,
         >>>                           return_debug=True)
         >>> place_img = debug_info.get('place_img_', np.ones((2, 2)))
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(dst, pnum=(1, 2, 1))
         >>> pt.imshow(place_img / place_img.max(), pnum=(1, 2, 2))
         >>> ut.show_if_requested()
@@ -146,7 +148,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> import ibeis
         >>> import random
         >>> from os.path import join, expanduser, abspath
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> ibs = ibeis.opendb('GZC')
         >>> gid_list0 = ibs.get_valid_gids()
         >>> img_list = []
@@ -166,7 +168,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> print('Writing to: %r' % (filepath, ))
         >>> imwrite(filepath, dst)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     channels = 3
     shape = tuple(dsize[::-1]) + (channels,)
     dst = np.zeros(shape, dtype=np.uint8)
@@ -276,9 +278,9 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         ndarray: imgBGR
 
     CommandLine:
-        python -m vtool.image --test-imread
-        python -m vtool.image --test-imread:1
-        python -m vtool.image --test-imread:2
+        python -m vtool_ibeis.image --test-imread
+        python -m vtool_ibeis.image --test-imread:1
+        python -m vtool_ibeis.image --test-imread:2
 
     References:
         http://docs.opencv.org/modules/core/doc/utility_and_system_functions_and_macros.html#error
@@ -286,16 +288,16 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> imgBGR1 = imread(img_fpath, grayscale=False)
         >>> imgBGR2 = imread(img_fpath, grayscale=True)
         >>> imgBGR3 = imread(img_fpath, orient=True)
-        >>> assert imgBGR1.shape == (512, 512, 3)
-        >>> assert imgBGR2.shape == (512, 512)
+        >>> assert imgBGR1.shape == (250, 300, 3)
+        >>> assert imgBGR2.shape == (250, 300)
         >>> assert np.all(imgBGR1 == imgBGR3)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgBGR1, pnum=(2, 2, 1))
         >>> pt.imshow(imgBGR2, pnum=(2, 2, 2))
         >>> pt.imshow(imgBGR3, pnum=(2, 2, 3))
@@ -303,7 +305,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_url = 'http://images.summitpost.org/original/769474.JPG'
         >>> img_fpath = ut.grab_file_url(img_url)
         >>> imgBGR1 = imread(img_url)
@@ -317,8 +319,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> print(result)
         >>> print('num_diff_pxls=%r/%r' % (num_diff_pxls, diff_pxls.size))
         >>> assert num_diff_pxls == 0
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> diffMag = np.linalg.norm(imgBGR2 / 255. - imgBGR1 / 255., axis=2)
         >>> pt.imshow(imgBGR1, pnum=(1, 3, 1))
         >>> pt.imshow(diffMag / diffMag.max(), pnum=(1, 3, 2))
@@ -328,14 +330,14 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> url = 'http://www.sherv.net/cm/emo/funny/2/big-dancing-banana-smiley-emoticon.gif'
         >>> img_fpath = ut.grab_file_url(url)
         >>> delete_if_corrupted = False
         >>> grayscale = False
         >>> imgBGR = imread(img_fpath, grayscale=grayscale)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgBGR)
         >>> ut.show_if_requested()
     """
@@ -368,8 +370,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
         except cv2.error as cv2ex:
             ut.printex(cv2ex, 'opencv error', iswarning=True)
-            #print('cv2error dict = ' + ut.repr2(cv2ex.__dict__))
-            #print('cv2error dirlist = ' + ut.repr2(dir(cv2ex)))
+            #print('cv2error dict = ' + ub.repr2(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ub.repr2(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))
             #print('cv2error message = ' + repr(cv2ex.message))
             #cv2error args =
@@ -483,7 +485,7 @@ def _fix_orient_pil_img(pil_img, grayscale=False, orient=False, **kwargs):
     else:
         imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
-        imgBGR = _fix_orientation(imgBGR, orient)
+        imgBGR = _fix_orientation(imgBGR, orient, **kwargs)
     return imgBGR
 
 
@@ -528,16 +530,16 @@ def imwrite(img_fpath, imgBGR, fallback=False):
         fallback (bool): (default = False)
 
     CommandLine:
-        python -m vtool.image --exec-imwrite
+        python -m vtool_ibeis.image --exec-imwrite
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> import utool as ut
         >>> img_fpath1 = ut.grab_test_imgpath('zebra.png')
         >>> imgBGR = vt.imread(img_fpath1)
-        >>> img_dpath = ut.ensure_app_resource_dir('vtool', 'testwrite')
+        >>> img_dpath = ub.ensure_app_cache_dir('vtool_ibeis', 'testwrite')
         >>> img_fpath2 = ut.unixjoin(img_dpath, 'zebra.png')
         >>> fallback = False
         >>> imwrite(img_fpath2, imgBGR, fallback=fallback)
@@ -648,10 +650,10 @@ def open_image_size(image_fpath):
         tuple: size (width, height)
 
     CommandLine:
-        python -m vtool.image --test-open_image_size
+        python -m vtool_ibeis.image --test-open_image_size
 
     Doctest:
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> image_fpath = ut.grab_test_imgpath('patsy.jpg')
         >>> size = open_image_size(image_fpath)
         >>> result = ('size = %s' % (str(size),))
@@ -660,14 +662,14 @@ def open_image_size(image_fpath):
 
     Ignore:
         # Confirm that Image.open is a lazy load
-        import vtool as vt
+        import vtool_ibeis as vt
         import utool as ut
         import timeit
         setup = ut.codeblock(
             '''
             from PIL import Image
             import utool as ut
-            import vtool as vt
+            import vtool_ibeis as vt
             image_fpath = ut.grab_test_imgpath('patsy.jpg')
             '''
         )
@@ -706,7 +708,7 @@ def cvt_BGR2RGB(imgBGR):
     return imgRGB
 
 
-def warpAffine(img, Aff, dsize):
+def warpAffine(img, Aff, dsize, assume_float01=True):
     """
     dsize = (width, height) of return image
 
@@ -719,20 +721,19 @@ def warpAffine(img, Aff, dsize):
         ndarray: warped_img
 
     CommandLine:
-        python -m vtool.image --test-warpAffine --show
+        python -m vtool_ibeis.image --test-warpAffine --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
-        >>> TAU = np.pi * 2
         >>> Aff = vt.rotation_mat3x3(TAU / 8)
         >>> dsize = vt.get_size(img)
         >>> warped_img = warpAffine(img, Aff, dsize)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(warped_img)
         >>> ut.show_if_requested()
 
@@ -752,16 +753,27 @@ def warpAffine(img, Aff, dsize):
         CONCLUSION, cv2 transforms are better
 
     """
-
     warped_img = cv2.warpAffine(img, Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
+    if assume_float01 and img.dtype.kind == 'f':
+        # Ensure that image intensity doesnt go out of range
+        warped_img = warped_img.clip(0, 1)
     return warped_img
 
 
-def warpHomog(img, Homog, dsize):
+def warpHomog(img, Homog, dsize, assume_float01=True):
     """
     dsize = (width, height) of return image
+
+    Example:
+        >>> img = np.random.rand(224, 224)
+        >>> Homog = np.random.rand(3, 3)
+        >>> dsize = (128, 128)
+        >>> warped_img = warpHomog(img, Homog, dsize)
     """
     warped_img = cv2.warpPerspective(img, Homog, tuple(dsize), **CV2_WARP_KWARGS)
+    if assume_float01 and img.dtype.kind == 'f':
+        # Ensure that image intensity doesnt go out of range
+        warped_img = warped_img.clip(0, 1)
     return warped_img
 
 
@@ -797,45 +809,45 @@ def resized_dims_and_ratio(img_size, max_dsize):
         tuple: (dsize, ratio)
 
     CommandLine:
-        python -m vtool.image resized_dims_and_ratio --show
+        python -m vtool_ibeis.image resized_dims_and_ratio --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_size = (200, 100)
         >>> max_dsize = (150, 150)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((150, 75), 0.75)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, 1000)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((2000, 1000), 10.0)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_size = (200, 100)
         >>> max_dsize = (None, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
     """
@@ -876,18 +888,18 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
         str: out_fpath -  file path string
 
     CommandLine:
-        python -m vtool.image pad_image_ondisk
+        python -m vtool_ibeis.image pad_image_ondisk
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_fpath = ut.get_argval('--fpath', type_=str)
         >>> pad_ = '?'
         >>> out_fpath = None
         >>> value = 0
         >>> borderType = 0
         >>> out_fpath = pad_image_ondisk(img_fpath, pad_, out_fpath, value, borderType)
-        >>> result = ('out_fpath = %s' % (ut.repr2(out_fpath),))
+        >>> result = ('out_fpath = %s' % (ub.repr2(out_fpath),))
         >>> print(result)
     """
     imgBGR = imread(img_fpath)
@@ -937,20 +949,20 @@ def make_white_transparent(imgBGR):
         ndarray: imgBGRA
 
     CommandLine:
-        python -m vtool.image make_white_transparent --show
+        python -m vtool_ibeis.image make_white_transparent --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> imgBGR = imread(ut.get_argval('--fpath', type_=str))
         >>> imgBGRA = make_white_transparent(imgBGR)
-        >>> result = ('imgBGRA = %s' % (ut.repr2(imgBGRA),))
+        >>> result = ('imgBGRA = %s' % (ub.repr2(imgBGRA),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     dist = vt.get_pixel_dist(imgBGR, [255, 255, 255])
     # grayflags = np.logical_and(imgBGR[:, :, 0] == imgBGR[:, :, 1], imgBGR[:, :, 1] == imgBGR[:, :, 2])
     # dist = dist / dist.max()
@@ -974,12 +986,12 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
         ndarray: cropped_img
 
     CommandLine:
-        python -m vtool.image --exec-crop_out_imgfill
+        python -m vtool_ibeis.image --exec-crop_out_imgfill
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img = vt.get_stripe_patch()
         >>> img = (img * 255).astype(np.uint8)
         >>> print(img)
@@ -993,8 +1005,8 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img = vt.get_stripe_patch()
         >>> img = (img * 255).astype(np.uint8)
         >>> print(img)
@@ -1004,7 +1016,7 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
         >>> result = ('cropped_img = \n%s' % (str(cropped_img),))
         >>> print(result)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if fillval is None:
         fillval = np.array([255] * get_num_channels(img))
     # for colored images
@@ -1035,9 +1047,9 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
         str: fpath_out
 
     CommandLine:
-        python -m vtool.image clipwhite_ondisk
+        python -m vtool_ibeis.image clipwhite_ondisk
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
     img = vt.imread(fpath_in, flags=cv2.IMREAD_UNCHANGED)
@@ -1085,11 +1097,11 @@ def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
         out_fpath (None):
 
     CommandLine:
-        python -m vtool.image --test-rotate_image_ondisk
+        python -m vtool_ibeis.image --test-rotate_image_ondisk
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath('star.png')
         >>> theta = TAU * 3 / 8
@@ -1098,7 +1110,7 @@ def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
         >>> out_fpath_ = rotate_image_ondisk(img_fpath, theta, out_fpath)
         >>> print(out_fpath_)
         >>> if ut.get_argflag('--show') or ut.inIPython():
-        >>>     import plottool as pt
+        >>>     import plottool_ibeis as pt
         >>>     pt.imshow(out_fpath_,  pnum=(1, 1, 1))
         >>>     pt.show_if_requested()
 
@@ -1121,24 +1133,24 @@ def rotate_image(img, theta, border_mode=None, interpolation=None, dsize=None):
         theta (?):
 
     CommandLine:
-        python -m vtool.image --test-rotate_image
+        python -m vtool_ibeis.image --test-rotate_image
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img = vt.get_test_patch('star2')
         >>> theta = TAU / 16.0
         >>> # execute function
         >>> imgR = rotate_image(img, theta)
         >>> if ut.get_argflag('--show') or ut.inIPython():
-        >>>     import plottool as pt
+        >>>     import plottool_ibeis as pt
         >>>     pt.imshow(img  * 255,  pnum=(1, 2, 1))
         >>>     pt.imshow(imgR * 255, pnum=(1, 2, 2))
         >>>     pt.show_if_requested()
     """
-    from vtool import linalg as ltool
+    from vtool_ibeis import linalg as ltool
     border_mode = _rectify_border_mode(border_mode)
     interpolation = _rectify_interpolation(interpolation)
     bbox0 = [0, 0, img.shape[1], img.shape[0]]
@@ -1162,24 +1174,24 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
         dsize (tuple):  width, height
 
     CommandLine:
-        python -m vtool.image --test-shear --show
+        python -m vtool_ibeis.image --test-shear --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> x_shear = 0.05
         >>> y_shear = -0.05
         >>> dsize = None
         >>> imgSh = shear(img, x_shear, y_shear, dsize)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgSh)
         >>> ut.show_if_requested()
     """
-    from vtool import linalg as ltool
+    from vtool_ibeis import linalg as ltool
     if dsize is None:
         dsize = get_size(img)
     shear_mat3x3 = ltool.shear_mat3x3(x_shear, y_shear)
@@ -1195,13 +1207,13 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     r"""
 
     CommandLine:
-        python -m vtool.image --test-affine_warp_around_center --show
+        python -m vtool_ibeis.image --test-affine_warp_around_center --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath) / 255.0
         >>> img = img.astype(np.float32)
         >>> dsize = (1000, 1000)
@@ -1216,12 +1228,12 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy,
         ...     theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize,
         ...     borderMode=borderMode, flags=flags, borderValue=(.5, .5, .5))
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow((img_warped * 255.0).astype(np.uint8))
         >>> ut.show_if_requested()
     """
-    from vtool import linalg as ltool
+    from vtool_ibeis import linalg as ltool
     if dsize is None:
         dsize = (img.shape[1], img.shape[0])
     else:
@@ -1286,7 +1298,7 @@ def rectify_to_uint8(img):
     if img.dtype.kind in ('f'):
         if img.max() <= 1.0 or img.min() >= 0.0:
             raise ValueError('Bad input image. Stats={}'.format(
-                ut.repr2(ut.get_stats(img.ravel()), precision=2)))
+                ub.repr2(ut.get_stats(img.ravel()), precision=2)))
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
@@ -1298,11 +1310,11 @@ def make_channels_comparable(img1, img2):
     Broadcasts image arrays so they can have elementwise operations applied
 
     CommandLine:
-        python -m vtool.image make_channels_comparable
+        python -m vtool_ibeis.image make_channels_comparable
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> wh_basis = [(5, 5), (3, 5), (5, 3), (1, 1), (1, 3), (3, 1)]
         >>> for w, h in wh_basis:
         >>>     shape_basis = [(w, h), (w, h, 1), (w, h, 3)]
@@ -1319,7 +1331,7 @@ def make_channels_comparable(img1, img2):
         >>>         assert img1.size == img2.size, 'new imgs should have same size'
         >>>         print('--------')
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     # w1, h1 = get_size(img1)
     # w2, h2 = get_size(img2)
     # if not (w1 == w2 and h1 == h2):
@@ -1401,12 +1413,12 @@ def convert_colorspace(img, colorspace, src_colorspace='BGR'):
         ndarray[uint8_t, ndim=2]: img -  image data
 
     CommandLine:
-        python -m vtool.image convert_colorspace --show
+        python -m vtool_ibeis.image convert_colorspace --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('zebra.png')
         >>> img_fpath = ut.grab_file_url('http://itsnasb.com/wp-content/uploads/2013/03/lisa-frank-logo1.jpg')
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
@@ -1424,8 +1436,8 @@ def convert_colorspace(img, colorspace, src_colorspace='BGR'):
         >>> imgAB_BGR = convert_colorspace(imgAB_LAB, src_colorspace, colorspace)
         >>> imgA_BGR = convert_colorspace(imgA_LAB, src_colorspace, colorspace)
         >>> imgB_BGR = convert_colorspace(imgB_LAB, src_colorspace, colorspace)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> #imgAB_HSV = convert_colorspace(convert_colorspace(imgAB_LAB, 'LAB', 'BGR'), 'BGR', 'HSV')
         >>> imgAB_HSV = convert_colorspace(img, 'HSV', 'BGR')
         >>> imgAB_HSV[:, :, 1:3] = .6 if ut.is_float(img) else 128
@@ -1487,12 +1499,12 @@ def padded_resize(img, target_size=(64, 64), interpolation=None):
         target_size (tuple):
 
     CommandLine:
-        python -m vtool.image --test-padded_resize --show
+        python -m vtool_ibeis.image --test-padded_resize --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> imgA = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> imgB = vt.imread(ut.grab_test_imgpath('ada.jpg'))
         >>> imgC = vt.imread(ut.grab_test_imgpath('carl.jpg'), grayscale=True)
@@ -1501,8 +1513,8 @@ def padded_resize(img, target_size=(64, 64), interpolation=None):
         >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
         >>> # verify results
         >>> assert ut.allsame([vt.get_size(img3) for img3 in img3_list])
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.imshow(img3_list[0], pnum=pnum_())
         >>> pt.imshow(img3_list[1], pnum=pnum_())
@@ -1533,12 +1545,12 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         ndarray: img_sqare
 
     CommandLine:
-        python -m vtool.image embed_in_square_image --show
+        python -m vtool_ibeis.image embed_in_square_image --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> target_size = tuple(np.array(vt.get_size(img)) * 3)
@@ -1552,8 +1564,8 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         >>> img_square2 = embed_in_square_image(img, target_size, img_origin, target_origin)
         >>> assert img_square.sum() == img.sum()
         >>> assert vt.get_size(img_square) == target_size
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img_square, pnum=(1, 2, 1))
         >>> pt.imshow(img_square2, pnum=(1, 2, 2))
         >>> ut.show_if_requested()
@@ -1652,20 +1664,20 @@ def resize_to_maxdims_ondisk(img_fpath, max_dsize, out_fpath=None):
         out_fpath (str):  file path string(default = None)
 
     CommandLine:
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormA.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormB.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormC.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormD.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormE.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormF.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormG.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormH.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormI.png --dsize=417,None
-        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormJ.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormA.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormB.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormC.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormD.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormE.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormF.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormG.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormH.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormI.png --dsize=417,None
+        python -m vtool_ibeis.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormJ.png --dsize=417,None
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_fpath = ut.get_argval('--fpath')
         >>> max_dsize = ut.get_argval('--dsize', type_=list)
         >>> out_fpath = None
@@ -1686,12 +1698,12 @@ def resize_to_maxdims(img, max_dsize=(64, 64),
         interpolation (long):
 
     CommandLine:
-        python -m vtool.image --test-resize_to_maxdims --show
+        python -m vtool_ibeis.image --test-resize_to_maxdims --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> max_dsize = (1024, 1024)
@@ -1699,8 +1711,8 @@ def resize_to_maxdims(img, max_dsize=(64, 64),
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
     """
@@ -1715,12 +1727,12 @@ def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
     Resize an image such that its max width or height is:
 
     CommandLine:
-        python -m vtool.image --test-resize_thumb --show
+        python -m vtool_ibeis.image --test-resize_thumb --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
@@ -1730,8 +1742,8 @@ def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
     """
@@ -1753,14 +1765,14 @@ def find_pixel_value_index(img, pixel):
         pixel (ndarray or scalar):
 
     CommandLine:
-        python -m vtool.math --test-find_pixel_value_index
+        python -m vtool_ibeis.util_math --test-find_pixel_value_index
 
     References:
         http://stackoverflow.com/questions/21407815/get-column-row-index-from-numpy-array-that-meets-a-boolean-condition
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> # build test data
         >>> img = np.random.rand(10, 10, 3) + 1.0
         >>> pixel = np.array([0, 0, 0])
@@ -1790,13 +1802,13 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
     """
 
     CommandLine:
-        python -m vtool.image --test-draw_text:0 --show
-        python -m vtool.image --test-draw_text:1 --show
+        python -m vtool_ibeis.image --test-draw_text:0 --show
+        python -m vtool_ibeis.image --test-draw_text:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> font_names = sorted([key for key in cv2.__dict__.keys() if key.startswith('FONT_H')])
         >>> text = 'opencv'
         >>> img = np.zeros((400, 1024), dtype=np.uint8)
@@ -1813,15 +1825,15 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> font_names = sorted([key for key in cv2.__dict__.keys() if key.startswith('FONT_H')])
         >>> text = 'opencv'
         >>> img = np.zeros((400, 1024, 3), dtype=np.uint8)
@@ -1840,8 +1852,8 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
 
@@ -1864,17 +1876,17 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
 #        img (ndarray[uint8_t, ndim=2]):  image data
 #
 #    CommandLine:
-#        python -m vtool.image --test-testing --show
+#        python -m vtool_ibeis.image --test-testing --show
 #
 #    Example:
 #        >>> # DISABLE_DOCTEST
-#        >>> from vtool.image import *  # NOQA
-#        >>> import vtool as vt
-#        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+#        >>> from vtool_ibeis.image import *  # NOQA
+#        >>> import vtool_ibeis as vt
+#        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
 #        >>> img = vt.imread(img_fpath)
 #        >>> img2 = testing(img)
-#        >>> ut.quit_if_noshow()
-#        >>> import plottool as pt
+#        >>> # xdoctest: +REQUIRES(--show)
+#        >>> import plottool_ibeis as pt
 #        >>> pt.imshow(img, pnum=(1, 2, 1))
 #        >>> pt.imshow(img2, pnum=(1, 2, 2))
 #        >>> ut.show_if_requested()
@@ -1895,19 +1907,19 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         http://www.siafoo.net/snippet/229
 
     CommandLine:
-        python -m vtool.image perlin_noise --show
+        python -m vtool_ibeis.image perlin_noise --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> #size = (64, 64)
         >>> size = (256, 256)
         >>> #scale = 32.0
         >>> scale = 64.0
         >>> img = perlin_noise(size, scale)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img, pnum=(1, 1, 1))
         >>> ut.show_if_requested()
     """
@@ -1992,9 +2004,9 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
 def testdata_imglist():
     # build test data
-    import vtool as vt
+    import vtool_ibeis as vt
     img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-    img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+    img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
     img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
     img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
     img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2008,12 +2020,12 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
     # TODO: add initial scale down factor?
 
     CommandLine:
-        python -m vtool.image --test-stack_image_list_special --show
+        python -m vtool_ibeis.image --test-stack_image_list_special --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_list_ = testdata_imglist()
         >>> img1 = img_list_[0]
         >>> img_list = img_list_[1:]
@@ -2024,17 +2036,17 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
         >>> initial_sf = None
         >>> initial_sf = .5
         >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list, num_bot, vert, use_larger, initial_sf)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> wh_list = np.array([vt.get_size(img1)] + list(map(vt.get_size, img_list)))
         >>> wh_list_ = wh_list * sf_list
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> print('imgB.shape = %r' % (imgB.shape,))
         >>> for offset, wh, color in zip(offset_list, wh_list_, pt.distinct_colors(len(offset_list))):
         ...    pt.draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     interpolation = _rectify_interpolation(interpolation)
     #img2 = img_list[0]
     img_list2 = img_list[:num]
@@ -2139,12 +2151,12 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         tuple: (stacked_img, stacked_img, stacked_sfs)
 
     CommandLine:
-        python -m vtool.image --test-stack_multi_images2 --show
+        python -m vtool_ibeis.image --test-stack_multi_images2 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_list = testdata_imglist()
         >>> img_stack1, offset_list1, sf_list1 = stack_image_list(img_list[::-1], vert=True, return_info=True, modifysize=True)
         >>> img_stack2, offset_list2, sf_list2 = stack_image_list(img_list, vert=True, return_info=True, modifysize=True)
@@ -2155,10 +2167,10 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> vert = False
         >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
-        >>> result = ut.remove_doublspaces(ut.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
+        >>> result = ut.remove_doublspaces(ub.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(stacked_img)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list[::-1] + img_list + img_list])
         >>> wh_list_ = wh_list * stacked_sfs
@@ -2219,11 +2231,11 @@ def stack_square_images(img_list, return_info=False, **kwargs):
         ndarray:
 
     CommandLine:
-        python -m vtool.image --test-stack_square_images
+        python -m vtool_ibeis.image --test-stack_square_images
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> img_list = '?'
         >>> result = stack_square_images(img_list)
         >>> print(result)
@@ -2255,12 +2267,12 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
     r"""
 
     CommandLine:
-        python -m vtool.image --test-stack_image_list --show
+        python -m vtool_ibeis.image --test-stack_image_list --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_list = testdata_imglist()
         >>> vert = False
@@ -2271,10 +2283,10 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> result = ut.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
+        >>> result = ub.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list])
         >>> wh_list_ = wh_list * sf_list
@@ -2335,12 +2347,12 @@ def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
         nchannels (int): (default = 3)
 
     CommandLine:
-        python -m vtool.image embed_channels --show
+        python -m vtool_ibeis.image embed_channels --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # Embed a (N,M,2) image into an (N,M,3) image
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath).T[1:3].T
@@ -2350,7 +2362,7 @@ def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
         >>> assert newimg.shape[-1] == 3
         >>> assert np.all(newimg[:, :, input_channels] == img)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     new_shape = img.shape[0:2] + (nchannels,)
     if not isinstance(fill, tuple):
         fill = (fill,)
@@ -2402,13 +2414,13 @@ def ensure_3channel(patch):
         ndarray: [N, M, 3]
 
     CommandLine:
-        python -m vtool.image --exec-ensure_3channel --show
+        python -m vtool_ibeis.image --exec-ensure_3channel --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> patch1 = vt.imread(ut.grab_test_imgpath('lena.png'))[0:512, 0:500, :]
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> patch1 = vt.imread(ut.grab_test_imgpath('astro.png'))[0:512, 0:500, :]
         >>> patch2 = vt.imread(ut.grab_test_imgpath('ada.jpg'))[:, :, 0:1]
         >>> patch3 = vt.imread(ut.grab_test_imgpath('jeff.png'))[0:390, 0:400, 0]
         >>> res1 = ensure_3channel(patch1)
@@ -2467,15 +2479,15 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         img2 (ndarray[uint8_t, ndim=2]):  image data
 
     CommandLine:
-        python -m vtool.image --test-stack_images --show
+        python -m vtool_ibeis.image --test-stack_images --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> vert = True
         >>> modifysize = False
         >>> # execute function
@@ -2489,8 +2501,8 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> # verify results
         >>> result = str((imgB.shape, woff, hoff))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(imgB)
         >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
         >>> wh2 = np.multiply(vt.get_size(img2), sf_tup[1])
@@ -2500,7 +2512,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         ((662, 512, 3), (0.0, 0.0), (0, 150))
     """
     import operator
-    import vtool as vt
+    import vtool_ibeis as vt
     interpolation = _rectify_interpolation(interpolation, default=cv2.INTER_NEAREST)
     # TODO: move this to the same place I'm doing the color gradient
     nChannels1 = vt.get_num_channels(img1)
@@ -2623,15 +2635,15 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         ndarray: None
 
     CommandLine:
-        python -m vtool.image --test-stack_image_recurse --show
+        python -m vtool_ibeis.image --test-stack_image_recurse --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.image import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
         >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
         >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2641,8 +2653,8 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> # execute function
         >>> imgB = stack_image_recurse(img_list1, img_list2, vert)
         >>> # verify results
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> imshow(imgB)
         >>> #wh1 = img1.shape[0:2][::-1]
         >>> #wh2 = img2.shape[0:2][::-1]
@@ -2707,7 +2719,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
         list: isvalid_flags
 
     CommandLine:
-        python -m vtool.image filterflags_valid_images --show
+        python -m vtool_ibeis.image filterflags_valid_images --show
 
     Notes:
         An MPO (Multi Picture Object) file is a stereoscopic image and contains
@@ -2716,9 +2728,9 @@ def filterflags_valid_images(gpaths, valid_formats=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool_ibeis.image import *  # NOQA
         >>> gpaths = [ut.grab_test_imgpath('carl.jpg'),
-        >>>           ut.grab_test_imgpath('lena.png')]
+        >>>           ut.grab_test_imgpath('astro.png')]
         >>> flags = filterflags_valid_images(gpaths)
         >>> assert all(flags)
     """
@@ -2753,7 +2765,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
 
     #def read_frames(gpath):
     #    from PIL import Image, ImageSequence
-    #    import vtool as vt
+    #    import vtool_ibeis as vt
     #    import cv2
     #    #pil_image.n_frames
     #    pil_image = Image.open(gpath)
@@ -2766,7 +2778,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
     #        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     #        sequence.append(img)
     #    stack = vt.stack_square_images(sequence)
-    #    import plottool as pt
+    #    import plottool_ibeis as pt
     #    pt.qt4ensure()
     #    pt.imshow(stack)
     #    ## btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
@@ -2853,11 +2865,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.image
-        python -m vtool.image --allexamples
-        python -m vtool.image --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.image
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

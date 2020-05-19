@@ -5,9 +5,9 @@ These functions might be PR quality for numpy.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 from six import next
 from six.moves import zip, range
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def atleast_nd(arr, n, tofront=False):
@@ -24,7 +24,7 @@ def atleast_nd(arr, n, tofront=False):
             array.  otherwise they are added to the back.
 
     CommandLine:
-        python -m vtool.numpy_utils atleast_nd
+        python -m vtool_ibeis.numpy_utils atleast_nd
 
     Returns:
         ndarray :
@@ -39,17 +39,16 @@ def atleast_nd(arr, n, tofront=False):
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> n = 2
         >>> arr = np.array([1, 1, 1])
         >>> arr_ = atleast_nd(arr, n)
-        >>> result = ut.repr2(arr_.tolist())
+        >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
-        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> n = 4
         >>> arr1 = [1, 1, 1]
         >>> arr2 = np.array(0)
@@ -57,19 +56,11 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr1_ = atleast_nd(arr1, n)
         >>> arr2_ = atleast_nd(arr2, n)
         >>> arr3_ = atleast_nd(arr3, n)
-        >>> result1 = ut.repr2(arr1_.tolist())
-        >>> result2 = ut.repr2(arr2_.tolist())
-        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result1 = ub.repr2(arr1_.tolist())
+        >>> result2 = ub.repr2(arr2_.tolist())
+        >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
     """
     arr_ = np.asanyarray(arr)
     ndims = len(arr_.shape)
@@ -89,7 +80,7 @@ def ensure_shape(arr, dimshape):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> ensure_shape(np.array([[1, 2]]), (None, 2))
         >>> ensure_shape(np.array([]), (None, 2))
     """
@@ -125,11 +116,11 @@ def fromiter_nd(iter_, shape, dtype):
         The iterable must yeild a numpy array. It cannot yeild a Python list.
 
     CommandLine:
-        python -m vtool.numpy_utils fromiter_nd
+        python -m vtool_ibeis.numpy_utils fromiter_nd
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> dtype = np.float
         >>> total = 11
         >>> rng = np.random.RandomState(0)
@@ -140,7 +131,7 @@ def fromiter_nd(iter_, shape, dtype):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> dtype = np.int
         >>> qfxs = np.array([1, 2, 3])
         >>> dfxs = np.array([4, 5, 6])
@@ -164,7 +155,7 @@ def fromiter_nd(iter_, shape, dtype):
         >>> mega_bytes = sum([x.nbytes for x in vecs_list]) / 2 ** 20
         >>> print('mega_bytes = %r' % (mega_bytes,))
         >>> import itertools as it
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> n_total = n_feat_list.sum()
         >>> target1 = np.vstack(vecs_list)
         >>> iter_ = it.chain.from_iterable(vecs_list)
@@ -208,12 +199,12 @@ def index_to_boolmask(index_list, maxval=None, isflat=True):
         ndarray: mask
 
     CommandLine:
-        python -m vtool.util_numpy index_to_boolmask
+        python -m vtool_ibeis.util_numpy index_to_boolmask
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_numpy import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_numpy import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> index_list = np.array([(0, 0), (1, 1), (2, 1)])
         >>> maxval = (3, 3)
         >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=False)
@@ -225,8 +216,8 @@ def index_to_boolmask(index_list, maxval=None, isflat=True):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_numpy import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_numpy import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> index_list = np.array([0, 1, 4])
         >>> maxval = 5
         >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=True)
@@ -253,11 +244,11 @@ def multiaxis_reduce(ufunc, arr, startaxis=0):
     used to get max/min over all axes after <startaxis>
 
     CommandLine:
-        python -m vtool.numpy_utils --test-multiaxis_reduce
+        python -m vtool_ibeis.numpy_utils --test-multiaxis_reduce
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> arr = (rng.rand(4, 3, 2, 1) * 255).astype(np.uint8)
         >>> ufunc = np.amax
@@ -282,7 +273,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> arr_list = [
         ...     np.array([0, 1, 2, 3, 8, 9]),
         ...     np.array([4, 1, 2, 3, 4, 5]),
@@ -340,14 +331,14 @@ def unique_row_indexes(arr):
         http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
 
     CommandLine:
-        python -m vtool.numpy_utils --test-unique_row_indexes
+        python -m vtool_ibeis.numpy_utils --test-unique_row_indexes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.numpy_utils import *  # NOQA
+        >>> from vtool_ibeis.numpy_utils import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> unique_rowx = unique_row_indexes(arr)
-        >>> result = ('unique_rowx = %s' % (ut.repr2(unique_rowx),))
+        >>> result = ('unique_rowx = %s' % (ub.repr2(unique_rowx),))
         >>> print(result)
         unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
 
@@ -366,12 +357,9 @@ def unique_row_indexes(arr):
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.numpy_utils
-        python -m vtool.numpy_utils --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool_ibeis.numpy_utils
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

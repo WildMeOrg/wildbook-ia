@@ -167,16 +167,16 @@ class Font(object):
 def font_demo():
     r"""
     CommandLine:
-        python -m vtool.fontdemo font_demo --show
+        python -m vtool_ibeis.fontdemo font_demo --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.fontdemo import *  # NOQA
+        >>> from vtool_ibeis.fontdemo import *  # NOQA
         >>> result = font_demo()
         >>> import utool as ut
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
     filename = '/usr/share/fonts/truetype/freefont/FreeMono.ttf'
@@ -199,18 +199,18 @@ def get_text_test_img(text):
         text (str):
 
     CommandLine:
-        python -m vtool.fontdemo get_text_test_img --show
+        python -m vtool_ibeis.fontdemo get_text_test_img --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.fontdemo import *  # NOQA
+        >>> from vtool_ibeis.fontdemo import *  # NOQA
         >>> import utool as ut
         >>> text = 'A012'
         >>> text_img = get_text_test_img(text)
-        >>> result = ('text_img = %s' % (ut.repr2(text_img),))
+        >>> result = ('text_img = %s' % (ub.repr2(text_img),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(text_img)
         >>> ut.show_if_requested()
     """
@@ -222,15 +222,10 @@ def get_text_test_img(text):
     text_img = img.reshape(buf.height, buf.width) * 255
     return text_img
 
-
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        pip install freetype-py
-        python -m vtool.fontdemo
-        python -m vtool.fontdemo --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool_ibeis.fontdemo
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

@@ -2,10 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import six
+import ubelt as ub
 import scipy.interpolate
 from functools import partial
-print, rrr, profile = ut.inject2(__name__)
 
 
 def check_unused_kwargs(kwargs, expected_keys):
@@ -64,7 +63,7 @@ class ScoreNormVisualizeClass(object):
         return score_thresh, prob_thresh
 
     def _plot_score_support_hist(encoder, fnum, pnum=(1, 1, 1), **kwargs):
-        import plottool as pt
+        import plottool_ibeis as pt
         fnum = pt.ensure_fnum(fnum)
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
@@ -92,8 +91,8 @@ class ScoreNormVisualizeClass(object):
             **support_kw)
 
     def _plot_roc(encoder, fnum, pnum, **kwargs):
-        import vtool as vt
-        import plottool as pt  # NOQA
+        import vtool_ibeis as vt
+        import plottool_ibeis as pt  # NOQA
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
 
@@ -130,13 +129,12 @@ class ScoreNormVisualizeClass(object):
                            cfgstr='', fnum=fnum, pnum=pnum)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
     """
     Conforms to scikit-learn Estimator interface
 
     CommandLine:
-        python -m vtool.score_normalization --test-ScoreNormalizer --show --cmd
+        python -m vtool_ibeis.score_normalization --test-ScoreNormalizer --show --cmd
 
     Kwargs:
         tpr (float): target true positive rate (default .90)
@@ -150,13 +148,13 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> encoder = ScoreNormalizer()
-        >>> X, y = vt.tests.dummy.testdata_binary_scores()
+        >>> X, y = vt.demodata.testdata_binary_scores()
         >>> attrs = {'index': np.arange(len(y)) * ((2 * y) - 1)}
         >>> encoder.fit(X, y, attrs)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> encoder.visualize()
         >>> ut.show_if_requested()
     """
@@ -205,11 +203,11 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         """
 
         CommandLine:
-            python -m vtool.score_normalization --test-__getstate__
+            python -m vtool_ibeis.score_normalization --test-__getstate__
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool.score_normalization import *  # NOQA
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
             >>> encoder = ScoreNormalizer()
             >>> from six.moves import cPickle as pickle
             >>> dump = pickle.dumps(encoder)
@@ -246,12 +244,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             ut.printex(ex, 'could not learn thresh', iswarning=True)
 
     @staticmethod
-    # @ut.apply_docstr(flatten_scores)
     def _to_xy(tp_scores, tn_scores, part_attrs=None):
         return flatten_scores(tp_scores, tn_scores, part_attrs)
 
     @staticmethod
-    # @ut.apply_docstr(partition_scores)
     def _to_partitioned(X, y, attrs={}):
         return partition_scores(X, y, attrs)
 
@@ -323,11 +319,11 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         greater than probability of trueneg
 
         CommandLine:
-            python -m vtool.score_normalization --exec-learn_threshold2 --show
+            python -m vtool_ibeis.score_normalization --exec-learn_threshold2 --show
 
         Example:
-            >>> from vtool.score_normalization import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> #encoder, X, y = testdata_score_normalier([(3.5, 256), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 5064), (18.5, 128)], adjust=1, p_tp_method='ratio')
             >>> encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 5064)], [(6.5, 256), (12.5, 2048), (18.5, 128)], adjust=1, p_tp_method='ratio')
             >>> #encoder, X, y = testdata_score_normalier(adjust=1)
@@ -335,8 +331,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #encoder, X, y = testdata_score_normalier([(0, 64)], [(-.1, 12)], adjust=8, min_clip=0)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
-            >>> ut.quit_if_noshow()
-            >>> import plottool as pt
+            >>> # xdoctest: +REQUIRES(--show)
+            >>> import plottool_ibeis as pt
             >>> pt.ensureqt()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(closeness)
@@ -379,7 +375,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> pt.adjust_subplots(hspace=.5, top=.95, bottom=.08)
             >>> pt.show_if_requested()
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         if False:
             # New stuff with area should make this irrelevant
             #weights = encoder.p_score_given_tp
@@ -502,7 +498,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         if ut.get_argflag('--debug-scorethresh') and not getattr(encoder, 'block', False):
             encoder.block = True
             ut.exec_func_doctest(encoder.learn_threshold2,
-                                 start_sentinal='import plottool as pt',
+                                 start_sentinal='import plottool_ibeis as pt',
                                  end_sentinal='pt.show_if_requested()')
             encoder.block = False
         return score_thresh
@@ -512,7 +508,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         Learns cutoff threshold that achieves the target confusion metric
         Typically a desired false positive rate (recall) is specified
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         # select a cutoff threshold
         #import sklearn.metrics
         if len(thresh_kw) > 0:
@@ -610,13 +606,13 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool.score_normalization import *  # NOQA
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
             >>> encoder, X, y = testdata_score_normalier()
             >>> (fp_indicies, fn_indicies) = encoder.get_error_indicies(X, y)
             >>> fp_X = X.take(fp_indicies)[0:3]
             >>> fn_X = X.take(fn_indicies)[0:3]
-            >>> result =    'fp_X = ' + ut.repr2(fp_X)
-            >>> result += '\nfn_X = ' + ut.repr2(fn_X)
+            >>> result =    'fp_X = ' + ub.repr2(fp_X)
+            >>> result += '\nfn_X = ' + ub.repr2(fn_X)
             >>> print(result)
             fp_X = np.array([ 6.196,  5.912,  5.804])
             fn_X = np.array([ 3.947,  4.277,  4.43 ])
@@ -649,17 +645,17 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             tuple: (fp_indicies, fn_indicies)
 
         CommandLine:
-            python -m vtool.score_normalization --test-get_correct_indices
+            python -m vtool_ibeis.score_normalization --test-get_correct_indices
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool.score_normalization import *  # NOQA
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
             >>> encoder, X, y = testdata_score_normalier()
             >>> (tp_indicies, tn_indicies) = encoder.get_correct_indices(X, y)
             >>> tp_X = X.take(tp_indicies)[0:3]
             >>> tn_X = X.take(tn_indicies)[0:3]
-            >>> result =    'tp_X = ' + ut.repr2(tp_X)
-            >>> result += '\ntn_X = ' + ut.repr2(tn_X)
+            >>> result =    'tp_X = ' + ub.repr2(tp_X)
+            >>> result += '\ntn_X = ' + ub.repr2(tn_X)
             >>> print(result)
             tp_X = np.array([ 8.883,  8.77 ,  8.759])
             tn_X = np.array([ 0.727,  0.76 ,  0.841])
@@ -724,15 +720,15 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             with_precision_recall
 
         CommandLine:
-            python -m vtool.score_normalization --exec-ScoreNormalizer.visualize:0 --show
-            python -m vtool.score_normalization --exec-ScoreNormalizer.visualize:1 --show
+            python -m vtool_ibeis.score_normalization --exec-ScoreNormalizer.visualize:0 --show
+            python -m vtool_ibeis.score_normalization --exec-ScoreNormalizer.visualize:1 --show
 
         Example0:
             >>> # UNSTABLE_DOCTEST
-            >>> from vtool.score_normalization import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> encoder = ScoreNormalizer()
-            >>> X, y = vt.tests.dummy.testdata_binary_scores()
+            >>> X, y = vt.demodata.testdata_binary_scores()
             >>> encoder.fit(X, y)
             >>> kwargs = dict(
             >>>     with_pr=True, interactive=True, with_roc=True,
@@ -742,10 +738,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
 
         Example1:
             >>> # UNSTABLE_DOCTEST
-            >>> from vtool.score_normalization import *  # NOQA
-            >>> import vtool as vt
+            >>> from vtool_ibeis.score_normalization import *  # NOQA
+            >>> import vtool_ibeis as vt
             >>> encoder = ScoreNormalizer()
-            >>> X, y = vt.tests.dummy.testdata_binary_scores()
+            >>> X, y = vt.demodata.testdata_binary_scores()
             >>> encoder.fit(X, y)
             >>> kwargs = dict(
             >>>     with_pr=True, interactive=True, with_roc=True, with_hist=True,
@@ -753,7 +749,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> encoder.visualize(target_tpr=.95, **kwargs)
             >>> ut.show_if_requested()
         """
-        #import plottool as pt
+        #import plottool_ibeis as pt
         default_kw = dict(
             with_scores=False,
             with_roc=True,
@@ -810,18 +806,18 @@ def partition_scores(X, y, attrs=None):
         tuple: (scores, labels, attrs)
 
     CommandLine:
-        python -m vtool.score_normalization --test-partition_scores
+        python -m vtool_ibeis.score_normalization --test-partition_scores
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> X = np.array([5, 6, 6, 7, 1, 2, 2])
         >>> attrs = {'qaid': np.array([21, 24, 25, 26, 11, 14, 15])}
         >>> y = np.array([1, 1, 1, 1, 0, 0, 0], dtype=np.bool)
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>> result = ub.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
@@ -832,7 +828,7 @@ def partition_scores(X, y, attrs=None):
         },
 
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     import operator
     # Make partitioning
     unique_labels, groupxs = vt.group_indices(y)
@@ -868,11 +864,11 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         tuple: (scores, labels, attrs)
 
     CommandLine:
-        python -m vtool.score_normalization --test-flatten_scores
+        python -m vtool_ibeis.score_normalization --test-flatten_scores
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> tp_scores = np.array([5, 6, 6, 7])
         >>> tn_scores = np.array([1, 2, 2])
         >>> part_attrs = {
@@ -884,7 +880,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> (X, y, attrs) = tup
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>> result = ub.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),
@@ -937,11 +933,11 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score)
 
     CommandLine:
-        python -m vtool.score_normalization --test-learn_score_normalization
+        python -m vtool_ibeis.score_normalization --test-learn_score_normalization
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> tp_support = np.linspace(100, 10000, 512)
         >>> tn_support = np.linspace(0, 120, 512)
         >>> gridsize = 1024
@@ -956,7 +952,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         >>> print(result)
         0.99
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     if verbose:
         print('[scorenorm] Learning normalization pdf')
         print('[scorenorm] * tp_support.shape=%r' % (tp_support.shape,))
@@ -1114,11 +1110,11 @@ def find_clip_range(tp_support, tn_support, clip_factor=ut.PHI + 1, reverse=None
         tuple: min_score, max_score
 
     CommandLine:
-        python -m vtool.score_normalization --test-find_clip_range
+        python -m vtool_ibeis.score_normalization --test-find_clip_range
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> tp_support = np.array([100, 200, 50000])
         >>> tn_support = np.array([10, 30, 110])
         >>> clip_factor = ut.PHI + 1
@@ -1185,20 +1181,20 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         ndarray: probabilities
 
     CommandLine:
-        python -m vtool.score_normalization --test-normalize_scores
+        python -m vtool_ibeis.score_normalization --test-normalize_scores
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> score_domain = np.linspace(0, 10, 10)
         >>> p_tp_given_score = (score_domain ** 2) / (score_domain.max() ** 2)
         >>> scores = np.array([-1, 0.0, 0.01, 2.3, 8.0, 9.99, 10.0, 10.1, 11.1])
         >>> prob = normalize_scores(score_domain, p_tp_given_score, scores)
         >>> #np.set_printoptions(suppress=True)
-        >>> result = ut.repr2(prob, precision=2, suppress_small=True)
+        >>> result = ub.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot2(score_domain, p_tp_given_score, 'r-x', equal_aspect=False, label='learned probability')
         >>> pt.plot2(scores, prob, 'yo', equal_aspect=False, title='Normalized scores', pad=.2, label='query points')
         >>> pt.legend('upper left')
@@ -1253,22 +1249,26 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     DEPRICATE
 
     CommandLine:
-        python -m vtool.score_normalization --test-test_score_normalization --show
+        python -m vtool_ibeis.score_normalization --test-test_score_normalization --show
 
-    Example:
+    CommandLine:
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/score_normalization.py test_score_normalization
+
+    Ignore:
         >>> # GUI_DOCTEST
         >>> # Shows how score normalization works with gaussian noise
-        >>> from vtool.score_normalization import *  # NOQA
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
         >>> verbose = True
         >>> randstate = np.random.RandomState(seed=0)
         >>> # Get a training sample
         >>> tp_support = randstate.normal(loc=6.5, size=(256,))
         >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> test_score_normalization(tp_support, tn_support, verbose=verbose)
         >>> ut.show_if_requested()
 
     """
-    import plottool as pt  # NOQA
+    import plottool_ibeis as pt  # NOQA
 
     # Print raw score statistics
     print('tp_support')
@@ -1311,7 +1311,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         if figtitle is not None:
             pt.set_figtitle(figtitle)
         else:
-            pt.set_figtitle('ScoreNorm test' + ut.repr2(normkw, newlines=False))
+            pt.set_figtitle('ScoreNorm test' + ub.repr2(normkw, newlines=False))
 
     locals_ = locals()
     return locals_
@@ -1324,7 +1324,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
 
 def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
                       cfgstr='', fnum=None, pnum=(1, 1, 1), **kwargs):
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -1347,7 +1347,7 @@ def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
 def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
                        score_thresh=None, prob_thresh=None, cfgstr='',
                        fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -1377,14 +1377,14 @@ def inspect_pdfs(tn_support, tp_support,
     Shows plots of learned thresholds
 
     CommandLine:
-        python -m vtool.score_normalization --test-ScoreNormalizer --show
-        python -m vtool.score_normalization --exec-ScoreNormalizer.visualize --show
+        python -m vtool_ibeis.score_normalization --test-ScoreNormalizer --show
+        python -m vtool_ibeis.score_normalization --exec-ScoreNormalizer.visualize --show
     """
-    import plottool as pt  # NOQA
-    from plottool.interactions import ExpandableInteraction
-    from plottool.abstract_interaction import AbstractInteraction
-    import vtool as vt
-    import plottool as pt  # NOQA
+    import plottool_ibeis as pt  # NOQA
+    from plottool_ibeis.interactions import ExpandableInteraction
+    from plottool_ibeis.abstract_interaction import AbstractInteraction
+    import vtool_ibeis as vt
+    import plottool_ibeis as pt  # NOQA
 
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1403,7 +1403,7 @@ def inspect_pdfs(tn_support, tp_support,
                                      nSubplots=nSubplots)
 
     #print('Always interactive even if: interactive = %r' % (interactive,))
-    # Make a plottool interaction
+    # Make a plottool_ibeis interaction
     inter = ExpandableInteraction(fnum, _pnumiter)
 
     scores = np.hstack([tn_support, tp_support])
@@ -1453,7 +1453,7 @@ def inspect_pdfs(tn_support, tp_support,
                 data_pdf.sel_mode = 'tp'
             else:
                 data_pdf.sel_mode = 'tn'
-            print('TOGGLE data_pdf.sel_mode = %r' % (self.sel_mode,))
+            print('TOGGLE data_pdf.sel_mode = %r' % (data_pdf.sel_mode,))
 
         @staticmethod
         def static_plot(fnum, pnum):
@@ -1475,7 +1475,7 @@ def inspect_pdfs(tn_support, tp_support,
                 data_pdf.toggle_mode()
 
         def on_click_inside(data_pdf, event, ex):
-            import vtool as vt
+            import vtool_ibeis as vt
             #ax = event.inaxes
             #for l in ax.get_lines():
             #    print(l.get_label())
@@ -1484,7 +1484,7 @@ def inspect_pdfs(tn_support, tp_support,
             print('closest tp_index = %r, %r' % (tp_index, tp_dist))
             print('closest tn_index = %r, %r' % (tn_index, tn_dist))
             SEL_TP = data_pdf.sel_mode == 'tp'
-            print('data_pdf.sel_mode = %r' % (self.sel_mode,))
+            print('data_pdf.sel_mode = %r' % (data_pdf.sel_mode,))
             if SEL_TP:
                 tp_attrs = data_pdf.part_attrs[True]
                 if len(tp_attrs) == 0:
@@ -1615,33 +1615,17 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     Returns:
         ndarray: data_pdf
 
-    CommandLine:
-        python -m vtool.score_normalization estimate_pdf --show
-
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.score_normalization import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> rng = np.random.RandomState(0)
         >>> data = rng.randn(1000)
         >>> data_pdf = vt.estimate_pdf(data)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> #pt.plot(data_pdf.support, data_pdf.cdf)
-        >>> #pt.plot(data_pdf.support, data_pdf.density)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.plot(data_pdf.support[:-1], np.diff(data_pdf.cdf))
-        >>> #pt.plot(data_pdf.cumhazard)
         >>> ut.show_if_requested()
-
-    Ignore:
-        mx = data_pdf.support.max()
-        mn = data_pdf.support.min()
-        scipy.integrate.quad(data_pdf.evaluate, mn, mx)
-
-        assert np.isclose(np.sum(np.diff(data_pdf.support)[0] * data_pdf.density), 1)
-        assert np.isclose(np.trapz(data_pdf.density, data_pdf.support), 1)
-
-        np.trapz(data_pdf.density, data_pdf.support)
     """
     import utool as ut
     import numpy as np
@@ -1682,7 +1666,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
                     # import scipy as sp
                     data_pdf.cdf = data_pdf.density.cumsum()
                     # data_pdf.cdf = sp.integrate.cumtrapz(data_pdf.density,
-                                                           # data_pdf.support)
+                    #                                        data_pdf.support)
 
                 def evaluate(data_pdf, scores):
                     return np.exp(data_pdf.kde.score_samples(scores[:, None]))
@@ -1709,11 +1693,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.score_normalization
-        python -m vtool.score_normalization --allexamples
-        python -m vtool.score_normalization --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.score_normalization
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

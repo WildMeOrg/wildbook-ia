@@ -5,10 +5,8 @@ import warnings
 import scipy.signal
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[hist]')
-
-
-TAU = np.pi * 2
+import ubelt as ub
+from .util_math import TAU
 
 
 def argsubmax(ydata, xdata=None):
@@ -20,18 +18,18 @@ def argsubmax(ydata, xdata=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> ydata = [ 0,  1,  2, 1.5,  0]
         >>> xdata = [00, 10, 20,  30, 40]
         >>> result1 = argsubmax(ydata, xdata=None)
         >>> result2 = argsubmax(ydata, xdata=xdata)
-        >>> result = ut.repr2([result1, result2], precision=4, nl=1, nobr=True)
+        >>> result = ub.repr2([result1, result2], precision=4, nl=1, nobr=True)
         >>> print(result)
         (2.1667, 2.0208),
         (21.6667, 2.0208),
 
     Example:
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> hist_ = np.array([0, 1, 2, 3, 4])
         >>> centers = None
         >>> maxima_thresh=None
@@ -62,20 +60,20 @@ def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
         tuple: (submaxima_x, submaxima_y)
 
     CommandLine:
-        python -m vtool.histogram argsubmaxima
-        python -m vtool.histogram argsubmaxima --show
+        python -m vtool_ibeis.histogram argsubmaxima
+        python -m vtool_ibeis.histogram argsubmaxima --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> maxima_thresh = .8
         >>> hist = np.array([6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> (submaxima_x, submaxima_y) = argsubmaxima(hist, centers, maxima_thresh)
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.draw_hist_subbin_maxima(hist, centers)
         >>> pt.show_if_requested()
         (array([ 3.0318792]), array([ 37.19208239]))
@@ -125,18 +123,18 @@ def argsubmax2(ydata, xdata=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> ydata = [ 0,  1,  2, 1.5,  0]
         >>> xdata = [00, 10, 20,  30, 40]
         >>> result1 = argsubmax(ydata, xdata=None)
         >>> result2 = argsubmax(ydata, xdata=xdata)
-        >>> result = ut.repr2([result1, result2], precision=4, nl=1, nobr=True)
+        >>> result = ub.repr2([result1, result2], precision=4, nl=1, nobr=True)
         >>> print(result)
         (2.1667, 2.0208),
         (21.6667, 2.0208),
 
     Example:
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> hist_ = np.array([0, 1, 2, 3, 4])
         >>> centers = None
         >>> thresh_factor = None
@@ -182,27 +180,26 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         tuple: (submaxima_x, submaxima_y)
 
     CommandLine:
-        python -m vtool.histogram argsubmaxima
-        python -m vtool.histogram argsubmaxima --show
+        python -m vtool_ibeis.histogram argsubmaxima
+        python -m vtool_ibeis.histogram argsubmaxima --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> thresh_factor = .8
         >>> ydata = np.array([6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> op = 'min'
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, xdata, thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
-        >>> prkeysint(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
-        (array([ 3.03374251]), array([ 37.2719012]))
 
     Doctest:
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> thresh_factor = .8
         >>> ydata = np.array([1, 1, 1, 2, 1, 2, 3, 2, 4, 1.1, 5, 1.2, 1.1, 1.1, 1.2, 1.1])
         >>> op = 'max'
@@ -210,8 +207,8 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, thresh_factor=thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.qtensure()
         >>> xdata = np.arange(len(ydata))
         >>> pt.figure(fnum=1, doclf=True)
@@ -301,8 +298,8 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
                 rel_subextrema_x[violates] = rel_argextrema[violates]
             rel_subextrema_y[violates] = ydata[rel_argextrema[violates]]
     else:
-        x123 = None  # for plottool
-        coeff_list = []  # for plottool
+        x123 = None  # for plottool_ibeis
+        coeff_list = []  # for plottool_ibeis
         rel_subextrema_x, rel_subextrema_y = [], []
 
     # Check left boundary
@@ -389,7 +386,7 @@ def linear_interpolation(arr, subindices):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> arr = np.array([0, 1, 2, 3])
         >>> subindices = np.array([0, .1, 1, 1.8, 2, 2.5, 3] )
         >>> subvalues = linear_interpolation(arr, subindices)
@@ -412,18 +409,17 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=None):
     must take positive only values
 
     CommandLine:
-        python -m vtool.histogram hist_argmaxima
+        python -m vtool_ibeis.histogram hist_argmaxima
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> maxima_thresh = .8
         >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
         >>> result = str((maxima_x, maxima_y, argmaxima))
         >>> print(result)
-        (array([ 0.39,  2.75]), array([  8.69,  34.62]), array([1, 4]))
     """
     # FIXME: Not handling general cases
     # [0] index because argrelmaxima returns a tuple
@@ -448,7 +444,7 @@ def hist_argmaxima2(hist, maxima_thresh=.8):
 
     Setup:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
 
     GridSearch:
         >>> hist1 = np.array([1, .9, .8, .99, .99, 1.1, .9, 1.0, 1.0])
@@ -511,11 +507,11 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         what happens when argmaxima[i] == len(hist_)
 
     CommandLine:
-        python -m vtool.histogram --test-interpolate_submaxima --show
+        python -m vtool_ibeis.histogram --test-interpolate_submaxima --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> argmaxima = np.array([1, 4, 7])
         >>> hist_ = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
@@ -524,10 +520,10 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>>                            key_list=['x123', 'y123', 'coeff_list'])
         >>> x123, y123, coeff_list = locals_
         >>> res = (submaxima_x, submaxima_y)
-        >>> result = ut.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
+        >>> result = ub.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.figure(fnum=pt.ensure_fnum(None))
         >>> pt.plot(centers, hist_, '-')
@@ -597,14 +593,14 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
         centers (None):
 
     CommandLine:
-        python -m vtool.histogram --test-show_hist_submaxima --show
+        python -m vtool_ibeis.histogram --test-show_hist_submaxima --show
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show
-        python -m vtool.histogram --test-show_hist_submaxima --dpath figures --save ~/latex/crall-candidacy-2015/figures/show_hist_submaxima.jpg
+        python -m vtool_ibeis.histogram --test-show_hist_submaxima --dpath figures --save ~/latex/crall-candidacy-2015/figures/show_hist_submaxima.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import plottool as pt
-        >>> from vtool.histogram import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> hist_ = np.array(list(map(float, ut.get_argval('--hist', type_=list, default=[1, 4, 2, 5, 3, 3]))))
         >>> edges = np.array(list(map(float, ut.get_argval('--edges', type_=list, default=[0, 1, 2, 3, 4, 5, 6]))))
         >>> maxima_thresh = ut.get_argval('--maxima_thresh', type_=float, default=.8)
@@ -612,7 +608,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
         >>> show_hist_submaxima(hist_, edges, centers, maxima_thresh)
         >>> pt.show_if_requested()
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if centers is None:
         centers = hist_edges_to_centers(edges)
     bin_colors = pt.get_orientation_color(centers)
@@ -636,7 +632,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
     #    #ax.grid(True)
     #    #ax.set_title("Angle Colors", va='bottom')
     title = ut.get_argval('--title', default='')
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.set_figtitle(title)
 
 
@@ -720,11 +716,11 @@ def interpolated_histogram(data, weights, range_, bins,
         _debug (bool): (default = False)
 
     CommandLine:
-        python -m vtool.histogram --test-interpolated_histogram
+        python -m vtool_ibeis.histogram --test-interpolated_histogram
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> data = np.array([ 0,  1,  2,  3.5,  3,  3,  4,  4])
         >>> weights = np.array([1., 1., 1., 1., 1., 1., 1., 1.])
         >>> range_ = (0, 4)
@@ -740,7 +736,7 @@ def interpolated_histogram(data, weights, range_, bins,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> data = np.array([ 0,  1,  2,  3.5,  3,  3,  4,  4])
         >>> weights = np.array([4.5, 1., 1., 1., 1., 1., 1., 1.])
         >>> range_ = (-.5, 4.5)
@@ -816,7 +812,7 @@ def interpolated_histogram(data, weights, range_, bins,
     else:
         edges = np.linspace(start, stop, bins + 1, endpoint=True)
     if _debug:
-        import vtool as vt
+        import vtool_ibeis as vt
         assert np.allclose(np.diff(edges), step)
         print(hist.shape)
         print(edges.shape)
@@ -830,7 +826,7 @@ def hist_edges_to_centers(edges):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> edges = [-0.79, 0.00, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 6.28, 7.07]
         >>> centers = hist_edges_to_centers(edges)
         >>> result = str(centers)
@@ -854,18 +850,18 @@ def wrap_histogram(hist_, edges_, _debug=False):
         tuple: (hist_wrap, edge_wrap)
 
     CommandLine:
-        python -m vtool.histogram --test-wrap_histogram
+        python -m vtool_ibeis.histogram --test-wrap_histogram
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> hist_ = np.array([8., 0., 0., 34.32, 29.45, 0., 0., 6.73])
         >>> edges_ = np.array([ 0.        ,  0.78539816,  1.57079633,
         ...                    2.35619449,  3.14159265,  3.92699081,
         ...                    4.71238898,  5.49778714,  6.2831853 ])
         >>> (hist_wrap, edge_wrap) = wrap_histogram(hist_, edges_)
         >>> tup = (hist_wrap.tolist(), edge_wrap.tolist())
-        >>> result = ut.repr2(tup, nl=1, nobr=True, precision=2)
+        >>> result = ub.repr2(tup, nl=1, nobr=True, precision=2)
         >>> print(result)
         [6.73, 8.00, 0.00, 0.00, 34.32, 29.45, 0.00, 0.00, 6.73, 8.00],
         [-0.79, 0.00, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 6.28, 7.07],
@@ -877,7 +873,7 @@ def wrap_histogram(hist_, edges_, _debug=False):
     hist_wrap = np.hstack((hist_[-1:], hist_, hist_[0:1]))
     edge_wrap = np.hstack((edges_[0:1] - left_step, edges_, edges_[-1:] + right_step))
     if _debug:
-        import vtool as vt
+        import vtool_ibeis as vt
         print(vt.kpts_docrepr(hist_wrap, 'hist_wrap', False))
         print(vt.kpts_docrepr(edge_wrap, 'edge_wrap', False))
     return hist_wrap, edge_wrap
@@ -932,11 +928,11 @@ def subbin_bounds(z, radius, low, high):
             #Returns: quantized_bounds=(iz1, iz2), subbin_offset
 
     CommandLine:
-        python -m vtool.histogram --test-subbin_bounds
+        python -m vtool_ibeis.histogram --test-subbin_bounds
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
+        >>> from vtool_ibeis.histogram import *  # NOQA
         >>> z = 1.5
         >>> radius = 5.666
         >>> low = 0
@@ -961,17 +957,17 @@ def subbin_bounds(z, radius, low, high):
 def show_ori_image_ondisk():
     r"""
     CommandLine:
-        python -m vtool.histogram --test-show_ori_image_ondisk --show
+        python -m vtool_ibeis.histogram --test-show_ori_image_ondisk --show
 
-        python -m vtool.histogram --test-show_ori_image_ondisk --show --patch_img_fpath patches/KP_0_PATCH.png --ori_img_fpath patches/KP_0_orientations01.png --weights_img_fpath patches/KP_0_WEIGHTS.png --grady_img_fpath patches/KP_0_ygradient.png --gradx_img_fpath patches/KP_0_xgradient.png --title cpp_show_ori_ondisk
+        python -m vtool_ibeis.histogram --test-show_ori_image_ondisk --show --patch_img_fpath patches/KP_0_PATCH.png --ori_img_fpath patches/KP_0_orientations01.png --weights_img_fpath patches/KP_0_WEIGHTS.png --grady_img_fpath patches/KP_0_ygradient.png --gradx_img_fpath patches/KP_0_xgradient.png --title cpp_show_ori_ondisk
 
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show --rebuild-hesaff --no-rmbuild
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from vtool_ibeis.histogram import *  # NOQA
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> result = show_ori_image_ondisk()
         >>> pt.show_if_requested()
     """
@@ -985,7 +981,7 @@ def show_ori_image_ondisk():
     #    default=ut.augpath(img_fpath, '_mag'))
     #    vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
     #    vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
-    import vtool as vt
+    import vtool_ibeis as vt
     print('show_ori_image_ondisk')
     def parse_img_from_arg(argstr_):
         fpath = ut.get_argval(argstr_, type_=str, default='None')
@@ -1010,7 +1006,7 @@ def show_ori_image_ondisk():
     #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
     show_ori_image(gori, weights, patch, gradx, grady, gauss)
     title = ut.get_argval('--title', default='')
-    import plottool as pt
+    import plottool_ibeis as pt
     pt.set_figtitle(title)
 
 
@@ -1019,7 +1015,7 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     CommandLine:
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show --nocpp
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     if fnum is None:
         fnum = pt.next_fnum()
     print('gori.max = %r' % gori.max())
@@ -1028,14 +1024,12 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     bgr_ori = pt.color_orimag(gori, weights, False, encoding='bgr')
     print('bgr_ori.max = %r' % bgr_ori.max())
 
-    #ut.embed()
-
     bgr_ori = (255 * bgr_ori).astype(np.uint8)
     print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
     legend = pt.make_ori_legend_img()
     #gorimag_, woff, hoff = vt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
-    import vtool as vt
+    import vtool_ibeis as vt
     gorimag_, offsets, sftup = vt.stack_images(bgr_ori, legend, vert=False,
                                                modifysize=True,
                                                return_sf=True)
@@ -1060,10 +1054,7 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.histogram
-        python -m vtool.histogram --allexamples
-        python -m vtool.histogram --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.histogram
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

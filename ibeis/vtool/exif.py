@@ -16,8 +16,7 @@ from PIL import Image
 import utool as ut
 import warnings
 from utool import util_time
-from vtool import image_shared
-(print, rrr, profile) = ut.inject2(__name__)
+from vtool_ibeis import image_shared
 
 
 # Inverse of PIL.ExifTags.TAGS
@@ -132,8 +131,6 @@ def check_exif_keys(pil_img):
             invalid_keys.append(key)
     print('[io] valid_keys = ' + '\n'.join(valid_keys))
     print('-----------')
-    #import draw_func2 as df2
-    #exec(df2.present())
 
 
 def read_all_exif_tags(pil_img):
@@ -249,11 +246,11 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         pip install Pillow==2.9
 
     CommandLine:
-        python -m vtool.exif --test-get_lat_lon
+        python -m vtool_ibeis.exif --test-get_lat_lon
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> # DISABLE_DOCTEST
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> pil_img = Image.open(image_fpath)
@@ -261,38 +258,35 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         >>> latlon = get_lat_lon(exif_dict)
         >>> result = np.array_str(np.array(latlon), precision=3)
         >>> print(result)
-        [ 41.89   12.486]
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[GPSINFO_CODE]
-        PIL.ExifTags.TAGS[GPSINFO_CODE]
     """
-    if GPSINFO_CODE in exif_dict:
-        gps_info = exif_dict[GPSINFO_CODE]
+    try:
+        if GPSINFO_CODE in exif_dict:
+            gps_info = exif_dict[GPSINFO_CODE]
 
-        if (GPSLATITUDE_CODE in gps_info and
-             GPSLATITUDEREF_CODE in gps_info and
-             GPSLONGITUDE_CODE in gps_info and
-             GPSLONGITUDEREF_CODE in gps_info):
-            gps_latitude      = gps_info[GPSLATITUDE_CODE]
-            gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
-            gps_longitude     = gps_info[GPSLONGITUDE_CODE]
-            gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
-            try:
-                lat = convert_degrees(gps_latitude)
-                if gps_latitude_ref != 'N':
-                    lat = 0 - lat
+            if (GPSLATITUDE_CODE in gps_info and
+                 GPSLATITUDEREF_CODE in gps_info and
+                 GPSLONGITUDE_CODE in gps_info and
+                 GPSLONGITUDEREF_CODE in gps_info):
+                gps_latitude      = gps_info[GPSLATITUDE_CODE]
+                gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
+                gps_longitude     = gps_info[GPSLONGITUDE_CODE]
+                gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
+                try:
+                    lat = convert_degrees(gps_latitude)
+                    if gps_latitude_ref != 'N':
+                        lat = 0 - lat
 
-                lon = convert_degrees(gps_longitude)
-                if gps_longitude_ref != 'E':
-                    lon = 0 - lon
-                return lat, lon
-            except (ZeroDivisionError, TypeError):
-                # FIXME: -1, -1 is not a good invalid GPS
-                # Find out what the divide by zero really means
-                # currently we think it just is bad gps data
-                pass
+                    lon = convert_degrees(gps_longitude)
+                    if gps_longitude_ref != 'E':
+                        lon = 0 - lon
+                    return lat, lon
+                except (ZeroDivisionError, TypeError):
+                    # FIXME: -1, -1 is not a good invalid GPS
+                    # Find out what the divide by zero really means
+                    # currently we think it just is bad gps data
+                    pass
+    except Exception:
+        pass
     return default
 
 
@@ -302,11 +296,11 @@ def get_orientation(exif_dict, default=0, on_error='warn'):
     exif_data2 (obtained through exif_data2 above)
 
     CommandLine:
-        python -m vtool.exif --test-get_orientation
+        python -m vtool_ibeis.exif --test-get_orientation
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
         >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
@@ -320,11 +314,6 @@ def get_orientation(exif_dict, default=0, on_error='warn'):
         >>>     result.append(orient)
         >>> print(result)
         [1, 6, 8]
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[ORIENTATION_CODE]
-        PIL.ExifTags.TAGS[ORIENTATION_CODE]
     """
     if ORIENTATION_CODE in exif_dict:
         orient = exif_dict[ORIENTATION_CODE]
@@ -347,11 +336,11 @@ def get_orientation_str(exif_dict, **kwargs):
     exif_data2 (obtained through exif_data2 above)
 
     CommandLine:
-        python -m vtool.exif --test-get_orientation_str
+        python -m vtool_ibeis.exif --test-get_orientation_str
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
         >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
@@ -365,11 +354,6 @@ def get_orientation_str(exif_dict, **kwargs):
         >>>     result.append(orient_str)
         >>> print(result)
         ['Normal', '90 Clockwise', '90 Counter-Clockwise']
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[ORIENTATION_CODE]
-        PIL.ExifTags.TAGS[ORIENTATION_CODE]
     """
     orient = get_orientation(exif_dict, **kwargs)
     orient_str = ORIENTATION_DICT[orient]
@@ -380,22 +364,9 @@ def get_unixtime(exif_dict, default=-1):
     """
     TODO: Exif.Image.TimeZoneOffset
 
-    Ignore:
-        gpaths = ut.list_images('/home/joncrall/work/humpbacks_fb/_ibsdb/images', full=1)
-        gpaths = ut.list_images('/home/joncrall/work/humpbacks/_ibsdb/images', full=1)
-        exifs = list(ut.generate2(vt.read_exif, zip(gpaths)))
-        times = ut.dict_take_column(exifs, 'DateTimeOriginal', '!!!!!!!!!!!!!!!!!!!')
-        idxs = ut.where([y[-2] == ' ' for y in times])
-
-        gpath = gpaths[idxs[0]]
-        exif_dict = vt.get_exif_dict(Image.open(gpath))
-        ut.take(times, idxs)
-        ut.take(exifs, idxs)
-        ut.take(gpaths, idxs)
-
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> pil_img = Image.open(image_fpath)
         >>> exif_dict = get_exif_dict(pil_img)
@@ -425,18 +396,15 @@ def parse_exif_unixtime(image_fpath):
         float: unixtime
 
     CommandLine:
-        python -m vtool.exif --test-parse_exif_unixtime
+        python -m vtool_ibeis.exif --test-parse_exif_unixtime
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> # DISABLE_DOCTEST
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> unixtime = parse_exif_unixtime(image_fpath)
         >>> result = str(unixtime)
         >>> print(result)
-        1325351249
-
-        1325369249.0
     """
     pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)
@@ -454,11 +422,7 @@ def parse_exif_unixtime_gps(image_fpath):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.exif
-        python -m vtool.exif --allexamples
-        python -m vtool.exif --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.exif
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

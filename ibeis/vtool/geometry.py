@@ -4,11 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip
 import numpy as np
 import utool as ut
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-(print, rrr, profile) = ut.inject2(__name__, '[geom]', DEBUG=False)
+import ubelt as ub
+import cv2
 
 
 def bboxes_from_vert_list(verts_list, castint=False):
@@ -21,15 +18,6 @@ def verts_list_from_bboxes_list(bboxes_list):
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
 
 
-#def mask_from_verts(verts):
-#    h, w = shape[0:2]
-#    y, x = np.mgrid[:h, :w]
-#    points = np.transpose((x.ravel(), y.ravel()))
-#    #mask = nxutils.points_inside_poly(points, verts)
-#    mask = _nxutils_points_inside_poly(points, verts)
-#    return mask.reshape(h, w)
-
-
 def verts_from_bbox(bbox, close=False):
     r"""
     Args:
@@ -40,11 +28,11 @@ def verts_from_bbox(bbox, close=False):
         list: verts
 
     CommandLine:
-        python -m vtool.geometry --test-verts_from_bbox
+        python -m vtool_ibeis.geometry --test-verts_from_bbox
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> bbox = (10, 10, 50, 50)
         >>> close = False
         >>> verts = verts_from_bbox(bbox, close)
@@ -83,20 +71,20 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
         out (None):
 
     CommandLine:
-        python -m vtool.geometry --test-draw_border --show
+        python -m vtool_ibeis.geometry --test-draw_border --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> color = (0, 128, 255)
         >>> thickness = 20
         >>> out = None
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
         >>> img = draw_border(img_in, color, thickness, out)
-        >>> # verify results
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
     """
@@ -123,18 +111,19 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         ndarray[uint8_t, ndim=2]: img -  image data
 
     CommandLine:
-        python -m vtool.geometry --test-draw_verts --show
-        python -m vtool.geometry --test-draw_verts:0 --show
-        python -m vtool.geometry --test-draw_verts:1 --show
+        python -m vtool_ibeis.geometry --test-draw_verts --show
+        python -m vtool_ibeis.geometry --test-draw_verts:0 --show
+        python -m vtool_ibeis.geometry --test-draw_verts:1 --show
 
     References:
         http://docs.opencv.org/modules/core/doc/drawing_functions.html#line
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> verts = ((10, 10), (10, 100), (100, 100), (100, 10))
@@ -147,15 +136,16 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert out is not img
         >>> assert out is not img_in
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
-        >>> import plottool as pt
-        >>> import vtool as vt
+        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
+        >>> import vtool_ibeis as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> verts = ((10, 10), (10, 100), (100, 100), (100, 10))
@@ -167,7 +157,7 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert img_in is img, 'should be in place'
         >>> assert out is img, 'should be in place'
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
 
@@ -209,12 +199,12 @@ def closest_point_on_line_segment(p, e1, e2):
         http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 
     CommandLine:
-        python -m vtool.geometry --exec-closest_point_on_line_segment --show
+        python -m vtool_ibeis.geometry --exec-closest_point_on_line_segment --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> #bbox = np.array([10, 10, 10, 10], dtype=np.float)
         >>> #verts_ = np.array(vt.verts_from_bbox(bbox, close=True))
         >>> #R = vt.rotation_around_bbox_mat3x3(vt.TAU / 3, bbox)
@@ -227,7 +217,8 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> rng = np.random.RandomState(0)
         >>> p_list = rng.rand(64, 2) * 20 + 5
         >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
@@ -263,7 +254,7 @@ def closest_point_on_line_segment(p, e1, e2):
 
 
 def distance_to_lineseg(p, e1, e2):
-    import vtool as vt
+    import vtool_ibeis as vt
     close_pt = vt.closest_point_on_line_segment(p, e1, e2)
     dist_to_lineseg = vt.L2(p, close_pt)
     return dist_to_lineseg
@@ -275,12 +266,12 @@ def closest_point_on_line(p, e1, e2):
     Does not clip to the segment.
 
     CommandLine:
-        python -m vtool.geometry closest_point_on_line --show
+        python -m vtool_ibeis.geometry closest_point_on_line --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> verts = np.array([[ 21.83012702,  13.16987298],
         >>>                   [ 16.83012702,  21.83012702],
         >>>                   [  8.16987298,  16.83012702],
@@ -294,7 +285,8 @@ def closest_point_on_line(p, e1, e2):
         >>>     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
         >>>     close_pts.append(candidates[dists.argmin()])
         >>> close_pts = np.array(close_pts)
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
@@ -320,7 +312,7 @@ def closest_point_on_line(p, e1, e2):
 
 
 def closest_point_on_vert_segments(p, verts):
-    import vtool as vt
+    import vtool_ibeis as vt
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
     new_pts = candidates[dists.argmin()]
@@ -332,12 +324,12 @@ def closest_point_on_bbox(p, bbox):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> p_list = np.array([[19, 7], [7, 14], [14, 11], [8, 7], [23, 21]], dtype=np.float)
         >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
         >>> [closest_point_on_bbox(p, bbox) for p in p_list]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     verts = np.array(vt.verts_from_bbox(bbox, close=True))
     new_pts = closest_point_on_vert_segments(p, verts)
     return new_pts
@@ -368,7 +360,6 @@ def union_extents(extents):
     return (xmin, xmax, ymin, ymax)
 
 
-#def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
     """
     Args:
@@ -377,12 +368,15 @@ def extent_from_bbox(bbox):
     Returns:
         extent (ndarray): tl_x, br_x, tl_y, br_y
 
+    CommandLine:
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/geometry.py extent_from_bbox
+
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> bbox = [0, 0, 10, 10]
         >>> extent = extent_from_bbox(bbox)
-        >>> result = ('extent = %s' % (ut.repr2(extent),))
+        >>> result = ('extent = %s' % (ub.repr2(extent, nl=0),))
         >>> print(result)
         extent = [0, 10, 0, 10]
     """
@@ -404,10 +398,10 @@ def bbox_from_extent(extent):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> extent = [0, 10, 0, 10]
         >>> bbox = bbox_from_extent(extent)
-        >>> result = ('bbox = %s' % (ut.repr2(bbox),))
+        >>> result = ('bbox = %s' % (ub.repr2(bbox, nl=0),))
         >>> print(result)
         bbox = [0, 0, 10, 10]
     """
@@ -446,7 +440,7 @@ def get_pointset_extent_wh(pts):
 
 def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
     """ Converts bbox to thumb format with a scale factor"""
-    import vtool as vt
+    import vtool_ibeis as vt
     (x1, y1, _w, _h) = xywh
     x2 = (x1 + _w)
     y2 = (y1 + _h)
@@ -462,7 +456,7 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
 def scale_bbox(bbox, sx, sy=None):
     if sy is None:
         sy = sx
-    from vtool import linalg
+    from vtool_ibeis import linalg
     centerx, centery = bbox_center(bbox)
     S = linalg.scale_around_mat3x3(sx, sy, centerx, centery)
     verts = np.array(verts_from_bbox(bbox))
@@ -496,11 +490,11 @@ def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
         new_verts - vertices of scaled bounding box for every input
 
     CommandLine:
-        python -m vtool.image --test-scaled_verts_from_bbox_gen
+        python -m vtool_ibeis.image --test-scaled_verts_from_bbox_gen
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> # build test data
         >>> bbox_list = [(10, 10, 100, 100)]
         >>> theta_list = [0]
@@ -526,7 +520,7 @@ def scaled_verts_from_bbox(bbox, theta, sx, sy):
     """
     if bbox is None:
         return None
-    from vtool import linalg
+    from vtool_ibeis import linalg
     # Transformation matrixes
     R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
     S = linalg.scale_mat3x3(sx, sy)
@@ -552,11 +546,11 @@ def point_inside_bbox(point, bbox):
         bool or ndarray: True if the point is in the bbox
 
     CommandLine:
-        python -m vtool.geometry point_inside_bbox --show
+        python -m vtool_ibeis.geometry point_inside_bbox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.geometry import *  # NOQA
+        >>> from vtool_ibeis.geometry import *  # NOQA
         >>> point = np.array([
         >>>     [3, 2], [4, 1], [2, 3], [1, 1], [0, 0],
         >>>     [4, 9.5], [9, 9.5], [7, 2], [7, 8], [9, 3]
@@ -564,10 +558,10 @@ def point_inside_bbox(point, bbox):
         >>> bbox = (3, 2, 5, 7)
         >>> flag = point_inside_bbox(point, bbox)
         >>> flag = flag.astype(np.int)
-        >>> result = ('flag = %s' % (ut.repr2(flag),))
+        >>> result = ('flag = %s' % (ub.repr2(flag),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> verts = np.array(verts_from_bbox(bbox, close=True))
         >>> pt.plot(verts.T[0], verts.T[1], 'b-')
         >>> pt.plot(point[0][flag], point[1][flag], 'go')
@@ -587,11 +581,7 @@ def point_inside_bbox(point, bbox):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.geometry
-        python -m vtool.geometry --allexamples
-        python -m vtool.geometry --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.geometry
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

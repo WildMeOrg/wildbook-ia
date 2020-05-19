@@ -6,17 +6,16 @@ TODO:
     http://nbviewer.jupyter.org/github/lmcinnes/hdbscan/blob/master/notebooks/Comparing%20Clustering%20Algorithms.ipynb
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range, zip, map  # NOQA
-import utool as ut
+from six.moves import zip, map  # NOQA
+import ubelt as ub
 import numpy as np
-import scipy.sparse as spsparse  # NOQA
+import utool as ut
 
-(print, rrr, profile) = ut.inject2(__name__)
+from vtool_ibeis._pyflann_backend import FLANN_CLS
 
 
 def tune_flann2(data):
-    import pyflann
-    flann = pyflann.FLANN()
+    flann = FLANN_CLS()
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.6,
                           build_weight=0.01,
@@ -60,15 +59,15 @@ class AnnoyWraper(object):
 
 def jagged_group(groupids_list):
     """ flattens and returns group indexes into the flattened list """
-    #flatx2_itemx = np.array(ut.flatten(itemxs_iter))
-    flatids = np.array(ut.flatten(groupids_list))
+    #flatx2_itemx = np.array(list(ub.flatten(itemxs_iter)))
+    flatids = np.array(list(ub.flatten(groupids_list)))
     keys, groupxs = group_indices(flatids)
     return keys, groupxs
 
 
 def apply_jagged_grouping(unflat_items, groupxs):
     """ takes unflat_list and flat group indices. Returns the unflat grouping """
-    flat_items = np.array(ut.flatten(unflat_items))
+    flat_items = np.array(list(ub.flatten(unflat_items)))
     item_groups = apply_grouping(flat_items, groupxs)
     return item_groups
     #itemxs_iter = [[count] * len(idx2_groupid) for count, idx2_groupid in enumerate(groupids_list)]
@@ -87,11 +86,11 @@ def groupedzip(id_list, datas_list):
         iterator: _iter
 
     CommandLine:
-        python -m vtool.clustering2 --test-groupedzip
+        python -m vtool_ibeis.clustering2 --test-groupedzip
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> # build test data
         >>> id_list = np.array([1, 2, 1, 2, 1, 2, 3])
         >>> datas_list = [
@@ -103,7 +102,7 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += ut.repr2(grouped_tuples, nl=1)
+        >>> result += ub.repr2(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
         [
@@ -129,16 +128,16 @@ def group_indices(idx2_groupid, assume_sorted=False):
         tuple (ndarray, list of ndarrays): (keys, groupxs)
 
     CommandLine:
-        python -m vtool.clustering2 --test-group_indices
-        python -m vtool.clustering2 --exec-group_indices:1
-        utprof.py -m vtool.clustering2 --test-group_indices:2
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices:0
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices:1
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([1, 2, 3], dtype=np.int64),
         [
@@ -149,13 +148,13 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([[  24], [ 129], [ 659], [ 659], [ 24],
         ...       [659], [ 659], [ 822], [ 659], [ 659], [24]])
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([ 24, 129, 659, 822], dtype=np.int64),
         [
@@ -167,10 +166,10 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([False,  True], dtype=np.bool),
         [
@@ -180,8 +179,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Time:
         >>> # xdoctest: +SKIP
-        >>> import vtool as vt
-        >>> import utool as ut
+        >>> import vtool_ibeis as vt
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
         >>> print(setup)
         >>> stmt_list = ut.codeblock(
@@ -276,20 +274,17 @@ def find_duplicate_items(item_arr):
         ?: duplicate_items
 
     CommandLine:
-        python -m vtool.clustering2 --test-find_duplicate_items
+        python -m vtool_ibeis.clustering2 --test-find_duplicate_items
 
     References:
         http://stackoverflow.com/questions/21888406/getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> # build test data
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> np.random.seed(0)
         >>> item_arr = np.random.randint(100, size=30)
-        >>> # execute function
         >>> duplicate_items = find_duplicate_items(item_arr)
-        >>> # verify results
         >>> assert duplicate_items == list(six.iterkeys(ut.find_duplicate_items(item_arr)))
         >>> result = str(duplicate_items)
         >>> print(result)
@@ -325,15 +320,11 @@ def apply_grouping(items, groupxs, axis=0):
         invert_apply_grouping
 
     CommandLine:
-        python -m vtool.clustering2 --test-apply_grouping
+        python -m vtool_ibeis.clustering2 --test-apply_grouping
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> #np.random.seed(42)
-        >>> #size = 10
-        >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
-        >>> #items = np.random.randint(5, 10, size=size)
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> items        = np.array([1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
@@ -363,24 +354,21 @@ def invert_apply_grouping(grouped_items, groupxs):
         list: items
 
     CommandLine:
-        python -m vtool.clustering2 --test-invert_apply_grouping
+        python -m vtool_ibeis.clustering2 --test-invert_apply_grouping
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> # build test data
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> grouped_items = [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
         >>> groupxs = [np.array([1, 3, 5]), np.array([0, 2, 4, 6]), np.array([ 7,  8,  9, 10])]
-        >>> # execute function
         >>> items = invert_apply_grouping(grouped_items, groupxs)
         >>> result = items
-        >>> # verify results
         >>> print(result)
         [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> grouped_items, groupxs = [], []
         >>> result = invert_apply_grouping(grouped_items, groupxs)
         >>> print(result)
@@ -464,13 +452,7 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     to the <num_pca_dims> principal components
     """
     # http://www.janeriksolem.net/2012/03/isomap-with-scikit-learn.html
-    if __debug__ and False:
-        ut.printex(Exception('INFO'), keys=[
-            (type, 'data'),
-            'data',
-            'data.shape',
-        ])
-    from plottool import draw_func2 as df2
+    from plottool_ibeis import draw_func2 as df2
     data_dims = data.shape[1]
     show_dims = min(num_pca_dims, data_dims)
     if data_dims != show_dims:
@@ -495,15 +477,14 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        import pyflann
-        (datax2_label, dists) = pyflann.FLANN().nn(centroids, data, 1)
+        (datax2_label, dists) = FLANN_CLS().nn(centroids, data, 1)
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
     print(datax2_label)
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     #if datax2_centroids is None:
-    #    (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1)
+    #    (datax2_centroidx, _) = p FLANN_CLS().nn(centroids, data, 1)
     #data_colors = colors[np.array(datax2_centroidx, dtype=np.int32)]
     nColors = datax2_label.max() - datax2_label.min() + 1
     print('nColors=%r' % (nColors,))
@@ -511,15 +492,6 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     colors = np.array(df2.distinct_colors(nColors, brightness=.95))
     clus_colors = np.array(df2.distinct_colors(nCentroids, brightness=.95))
     assert labels != 'centroids' or nColors == K
-    if __debug__ and False:
-        ut.printex(Exception('INFO'), keys=[
-            'colors',
-            (ut.get_stats, 'colors'),
-            'colors.shape',
-            'datax2_label',
-            (ut.get_stats, 'datax2_label'),
-            'datax2_label.shape',
-        ])
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     data_colors = colors[datax2_label]
     # Create a figure
@@ -568,7 +540,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
         ndim (int): (default = 2)
 
     CommandLine:
-        python -m vtool.clustering2 --test-uniform_sampe_hypersphere
+        python -m vtool_ibeis.clustering2 --test-uniform_sampe_hypersphere
 
     Ignore:
         #pip install polytope
@@ -576,13 +548,13 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> num = 100
         >>> ndim = 3
         >>> pts = uniform_sampe_hypersphere(num, ndim)
         >>> print(pts)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool_ibeis as pt
         >>> if ndim == 2:
         >>>     pt.plot(pts.T[0], pts.T[1], 'gx')
         >>> elif ndim == 3:
@@ -597,7 +569,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
         >>> pt.dark_background()
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     pts = np.random.rand(num, ndim)
     if not only_quadrent_1:
         pts =  pts * 2 - 1
@@ -612,12 +584,12 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         requires CPLEX
 
     CommandLine:
-        python -m vtool.clustering2 unsupervised_multicut_labeling --show
+        python -m vtool_ibeis.clustering2 unsupervised_multicut_labeling --show
 
     Ignore:
 
         >>> # synthetic data
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> size = 100
         >>> thresh = 50
         >>> np.random.randint(0, 1)
@@ -658,9 +630,9 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
 
     Example:
         >>> # SCRIPT
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> import networkx as nx
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> rng = np.random.RandomState(443284320)
         >>> pt.ensureqt()
         >>> #
@@ -697,10 +669,10 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> graph = ut.nx_from_matrix(cost_matrix)
         >>> weights = nx.get_edge_attributes(graph, 'weight')
         >>> #
-        >>> floatfmt1 = ut.partial(ut.map_dict_vals, lambda x: 'w=%.2f' % x)
-        >>> floatfmt2 = ut.partial(ut.map_dict_vals, lambda x: 'l=%.2f' % x)
+        >>> floatfmt1 = ut.partial(ub.map_vals, lambda x: 'w=%.2f' % x)
+        >>> floatfmt2 = ut.partial(ub.map_vals, lambda x: 'l=%.2f' % x)
         >>> #
-        >>> lens = ut.map_dict_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
+        >>> lens = ub.map_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
         >>> labels = floatfmt1(weights)
         >>> #labels = floatfmt2(lens)
         >>> nx.set_edge_attributes(graph, name='label', values=labels)
@@ -708,7 +680,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> nx.set_node_attributes(graph, name='shape', values='ellipse')
         >>> encounter_lbls_str = [str(x) for x in name_labels]
         >>> node_name_lbls = dict(zip(aids, encounter_lbls_str))
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> #
         >>> mcut_labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh=vt.eps)
         >>> diff = ut.find_group_differences(
@@ -743,7 +715,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     """
     import opengm
     import numpy as np
-    #import plottool as pt
+    #import plottool_ibeis as pt
     from itertools import product
     cost_matrix_ = cost_matrix - thresh
     num_vars = len(cost_matrix_)
@@ -859,11 +831,8 @@ def example_binary():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.clustering2
-        python -m vtool.clustering2 --allexamples
-        python -m vtool.clustering2 --allexamples --noface --nosrc
+        python ~/code/vtool_ibeis/vtool_ibeis/clustering2.py all
+        python -m vtool_ibeis.clustering2 all
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

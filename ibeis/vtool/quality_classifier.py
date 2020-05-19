@@ -6,26 +6,26 @@ References:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import ubelt as ub
 import numpy as np
 import cv2
-#profile = ut.profile
-print, print_,  profile = ut.inject2(__name__, '[sharpness]', DEBUG=False)
 
 
 def compute_average_contrast(img):
     """
     CommandLine:
-        python -m vtool.quality_classifier --exec-compute_average_contrast --show
+        python -m vtool_ibeis.quality_classifier --exec-compute_average_contrast --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.quality_classifier import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.quality_classifier import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> average_contrast, gradmag_sqrd = compute_average_contrast(img)
-        >>> import plottool as pt
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
+        >>> import plottool_ibeis as pt
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.figure(fnum=1)
         >>> pt.plt.imshow(gradmag_sqrd)
         >>> ut.show_if_requested()
@@ -68,12 +68,12 @@ def contrast_measures(img):
 
 
 def test_average_contrast():
-    import vtool as vt
+    import vtool_ibeis as vt
     ut.get_valid_test_imgkeys()
     img_fpath_list = [ut.grab_test_imgpath(key) for key in ut.get_valid_test_imgkeys()]
     img_list = [vt.imread(img, grayscale=True) for img in img_fpath_list]
     avecontrast_list = np.array([compute_average_contrast(img) for img in img_list])
-    import plottool as pt
+    import plottool_ibeis as pt
     nCols = len(img_list)
     fnum = None
     if fnum is None:
@@ -83,8 +83,9 @@ def test_average_contrast():
     y_list = avecontrast_list[sortx]
     x_list = np.arange(0, nCols) + .5
     pt.plot(x_list, y_list, 'bo-')
-    sorted_imgs = ut.take(img_list, sortx)
-    for px, img in ut.ProgressIter(enumerate(sorted_imgs, start=1)):
+    sorted_imgs = list(ub.take(img_list, sortx))
+
+    for px, img in ub.ProgIter(enumerate(sorted_imgs, start=1)):
         pt.imshow(img, fnum=fnum, pnum=(2, nCols, nCols + px))
 
 
@@ -94,7 +95,7 @@ def fourier_devtest(img):
         img (ndarray[uint8_t, ndim=2]):  image data
 
     CommandLine:
-        python -m vtool.quality_classifier --test-fourier_devtest --show
+        python -m vtool_ibeis.quality_classifier --test-fourier_devtest --show
 
     References:
         http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_transforms/py_fourier_transform/py_fourier_transform.html
@@ -102,15 +103,13 @@ def fourier_devtest(img):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.quality_classifier import *  # NOQA
-        >>> import vtool as vt
-        >>> # build test data
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> from vtool_ibeis.quality_classifier import *  # NOQA
+        >>> import vtool_ibeis as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
-        >>> # execute function
         >>> magnitude_spectrum = fourier_devtest(img)
     """
-    import plottool as pt
+    import plottool_ibeis as pt
     def pad_img(img):
         rows, cols = img.shape
         nrows = cv2.getOptimalDFTSize(rows)
@@ -164,21 +163,19 @@ def fourier_devtest(img):
     print('dft_shift.shape = %r' % (dft.shape,))
 
     if ut.show_was_requested():
-        #import plottool as pt
+        #import plottool_ibeis as pt
         next_pnum = pt.make_pnum_nextgen(nRows=3, nCols=2)
         pt.imshow(nimg, pnum=next_pnum(), title='nimg')
         pt.imshow(20 * get_fdomain_mag(dft), pnum=next_pnum(), title='mag(f)')
         pt.imshow(20 * get_fdomain_mag(dft_mask), pnum=next_pnum(), title='dft_mask')
         pt.imshow(img_back, pnum=next_pnum(), title='img_back')
         pt.show_if_requested()
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.quality_classifier
-        python -m vtool.quality_classifier --allexamples
-        python -m vtool.quality_classifier --allexamples --noface --nosrc
+        xdoctest -m vtool_ibeis.quality_classifier
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
