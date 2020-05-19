@@ -652,7 +652,7 @@ def make_netharn_registry(remote):
             name='utool', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/utool.git',
-                'Wildbook': 'git@github.com:WildbookOrg/utool.gi',
+                'Wildbook': 'git@github.com:WildbookOrg/utool.git',
             },
         ),
         CommonRepo(
@@ -666,14 +666,14 @@ def make_netharn_registry(remote):
             name='vtool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/vtool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/vtool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/vtool_ibeis.git',
             },
         ),
         CommonRepo(
             name='dtool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/dtool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/dtool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/dtool_ibeis.git',
             },
         ),
         CommonRepo(
@@ -686,28 +686,28 @@ def make_netharn_registry(remote):
             name='plottool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/plottool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/plottool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/plottool_ibeis.git',
             },
         ),
         CommonRepo(
             name='guitool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/guitool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/guitool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/guitool_ibeis.git',
             },
         ),
         CommonRepo(
             name='pyflann_ibeis', branch='master', remote=remote,
             remotes={
-                'Erotemic': 'git@github.com:Erotemic/pyflann_ibeis',
-                'Wildbook': 'git@github.com:WildbookOrg/flann.git',
+                'Erotemic': 'git@github.com:Erotemic/pyflann_ibeis.git',
+                'Wildbook': 'git@github.com:WildbookOrg/pyflann_ibeis.git',
             },
         ),
         CommonRepo(
             name='pyhesaff', branch='master', remote=remote,
             remotes={
-                'Erotemic': 'git@github.com:Erotemic/pyhesaff',
-                'Wildbook': 'git@github.com:WildbookOrg/hesaff.git',
+                'Erotemic': 'git@github.com:Erotemic/pyhesaff.git',
+                'Wildbook': 'git@github.com:WildbookOrg/pyhesaff.git',
             },
         ),
         CommonRepo(
