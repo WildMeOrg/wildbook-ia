@@ -796,6 +796,19 @@ def start_web_query_all(ibs):
     return jobid
 
 
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/flukebook/sync/', methods=['GET'])
+def start_flukebook_sync(ibs, **kwargs):
+    """
+    REST:
+        Method: GET
+        URL: /api/engine/flukebook/sync/
+    """
+    jobid = ibs.job_manager.jobiface.queue_job('flukebook_sync')
+    return jobid
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

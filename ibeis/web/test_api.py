@@ -3,6 +3,7 @@
 """This is a proof of concept for connecting to an authenticated Qubica Server"""
 from __future__ import print_function, division, absolute_import
 from hashlib import sha1
+import utool as ut
 import hmac
 import requests
 
