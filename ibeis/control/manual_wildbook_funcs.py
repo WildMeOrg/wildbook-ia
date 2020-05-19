@@ -564,7 +564,7 @@ def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
         assert None not in candidate_gid_list
         ibs.delete_images(candidate_gid_list)
 
-    return candidate_gid_list
+    return candidate_uuid_list
 
 
 @register_ibs_method
@@ -702,18 +702,18 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
 
     ibs.set_annot_species(update_aid_list, update_species_list)
 
-    return candidate_aid_list, update_dict
+    return candidate_uuid_list, update_dict
 
 
 @register_ibs_method
 @register_api('/api/flukebook/sync/', methods=['GET', 'POST'])
 def flukebook_sync(ibs, **kwargs):
-    candidate_gid_list = ibs.delete_flukebook_orphaned_image_uuids()
-    candidate_aid_list, update_dict = ibs.delete_flukebook_orphaned_annot_uuids()
+    candidate_image_uuid_list = ibs.delete_flukebook_orphaned_image_uuids()
+    candidate_annot_uuid_list, update_dict = ibs.delete_flukebook_orphaned_annot_uuids()
 
     result_dict = {
-        'deleted_images' : len(candidate_gid_list),
-        'deleted_annots' : len(candidate_aid_list),
+        'deleted_images' : len(candidate_image_uuid_list),
+        'deleted_annots' : len(candidate_annot_uuid_list),
         'species_update' : update_dict,
     }
     return result_dict
