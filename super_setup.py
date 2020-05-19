@@ -62,8 +62,8 @@ class GitURL(object):
         tested for specific use cases and therefore might need to be improved.
 
     References:
-        .. [1] https://github.com/coala/git-url-parse
-        .. [2] https://github.com/FriendCode/giturlparse.py
+        .. [1] git@github.com:coala/git-url-parse
+        .. [2] git@github.com:FriendCode/giturlparse.py
         .. [3] https://git-scm.com/docs/git-clone#URLS
 
     Example:
@@ -196,7 +196,7 @@ class Repo(ub.NiceRepr):
         >>> from super_setup import *
         >>> import ubelt as ub
         >>> repo = Repo(
-        >>>     remote='https://github.com/Erotemic/ubelt.git',
+        >>>     remote='git@github.com:Erotemic/ubelt.git',
         >>>     code_dpath=ub.ensuredir(ub.expandpath('~/tmp/demo-repos')),
         >>> )
         >>> print('repo = {}'.format(repo))
@@ -216,7 +216,7 @@ class Repo(ub.NiceRepr):
         >>>     remote='github',
         >>>     branch='master',
         >>>     remotes={
-        >>>         'github': 'https://github.com/Erotemic/ubelt.git',
+        >>>         'github': 'git@github.com:Erotemic/ubelt.git',
         >>>         'fakemirror': 'https://gitlab.com/Erotemic/ubelt.git',
         >>>     },
         >>>     code_dpath=ub.ensuredir(ub.expandpath('~/tmp/demo-repos')),
@@ -652,116 +652,123 @@ def make_netharn_registry(remote):
             name='utool', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/utool.git',
-                'Wildbook': 'https://github.com/WildbookOrg/utool.gi',
+                'Wildbook': 'git@github.com:WildbookOrg/utool.gi',
+            },
+        ),
+        CommonRepo(
+            name='ubelt', branch='master', remote=remote,
+            remotes={
+                'Erotemic': 'git@github.com:Erotemic/ubelt.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ubelt.git',
             },
         ),
         CommonRepo(
             name='vtool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/vtool_ibeis.git',
-                'Wildbook': 'https://github.com/WildbookOrg/vtool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/vtool.git',
             },
         ),
         CommonRepo(
             name='dtool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/dtool_ibeis.git',
-                'Wildbook': 'https://github.com/WildbookOrg/dtool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/dtool.git',
             },
         ),
         CommonRepo(
             name='detecttools_ibeis', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/detecttools.git',
+                'Wildbook': 'git@github.com:WildbookOrg/detecttools.git',
             },
         ),
         CommonRepo(
             name='plottool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/plottool_ibeis.git',
-                'Wildbook': 'https://github.com/WildbookOrg/plottool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/plottool.git',
             },
         ),
         CommonRepo(
             name='guitool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/guitool_ibeis.git',
-                'Wildbook': 'https://github.com/WildbookOrg/guitool.git',
+                'Wildbook': 'git@github.com:WildbookOrg/guitool.git',
             },
         ),
         CommonRepo(
             name='pyflann_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/pyflann_ibeis',
-                'Wildbook': 'https://github.com/WildbookOrg/flann.git',
+                'Wildbook': 'git@github.com:WildbookOrg/flann.git',
             },
         ),
         CommonRepo(
             name='pyhesaff', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/pyhesaff',
-                'Wildbook': 'https://github.com/WildbookOrg/hesaff.git',
+                'Wildbook': 'git@github.com:WildbookOrg/hesaff.git',
             },
         ),
         CommonRepo(
             name='pydarknet', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/pydarknet.git',
+                'Wildbook': 'git@github.com:WildbookOrg/pydarknet.git',
             },
         ),
         CommonRepo(
             name='pyrf', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/pyrf.git',
+                'Wildbook': 'git@github.com:WildbookOrg/pyrf.git',
             },
         ),
         CommonRepo(
             name='ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/ibeis.git',
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis.git',
             },
         ),
         CommonRepo(
             name='ibeis_cnn', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis_cnn.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis_cnn.git',
             },
         ),
         CommonRepo(
             name='ibeis_curvrank', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-curvrank-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',
             },
         ),
         CommonRepo(
             name='ibeis_deepsense', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-deepsense-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-deepsense-module.git',
             },
         ),
         CommonRepo(
             name='ibeis_finfindr', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-finfindr-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',
             },
         ),
         CommonRepo(
             name='ibeis_flukematch', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-flukematch-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-flukematch-module.git',
             },
         ),
         CommonRepo(
             name='ibeis_kaggle7', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-kaggle7-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',
             },
         ),
         CommonRepo(
             name='ibeis_2d_orientation', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'https://github.com/WildbookOrg/ibeis-2d-orientation-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/ibeis-2d-orientation-module.git',
             },
         ),
     ]
