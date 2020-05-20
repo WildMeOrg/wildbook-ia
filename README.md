@@ -199,7 +199,14 @@ baseline_neighbor_filter in the module ibeis.algo.hots.pipeline:
     python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter:0
     
 
-# Code Style Guidelines
+# Code Style and Development Guidelines
+
+## Contributing
+
+It's recommended that you use `pre-commit` to ensure linting procedures are run
+on any commit you make. (See also (pre-commit.com)[https://pre-commit.com/])
+
+Reference (pre-commit's installation instructions)[https://pre-commit.com/#install] for software installation on your OS/platform. After you have the software installed, run `pre-commit install` on the commandline. Now everytime you commit to this project's codebase the linter procedures will automatically run over the changed files.
 
 For Python try to conform to pep8. 
 You should set up your preferred editor to use flake8 as linter.

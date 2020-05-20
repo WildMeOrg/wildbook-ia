@@ -147,3 +147,6 @@ models*/
 docker/dev/
 
 *.backup
+
+# Add an exception for .pre-commit-config.yaml
+!.pre-commit-config.yaml
