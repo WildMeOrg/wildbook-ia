@@ -1,4 +1,4 @@
-FROM wildme.azurecr.io/ibeis/base:latest as org.wildme.ibeis.dependencies
+FROM wildme/ibeis-base:latest as org.wildme.ibeis.dependencies
 
 ARG AZURE_DEVOPS_CACHEBUSTER=0
 

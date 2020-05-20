@@ -1,4 +1,4 @@
-FROM wildme.azurecr.io/ibeis/dependencies:latest as org.wildme.ibeis.provision
+FROM wildme/ibeis-dependencies:latest as org.wildme.ibeis.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
