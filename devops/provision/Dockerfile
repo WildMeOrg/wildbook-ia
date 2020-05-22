@@ -85,7 +85,7 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pyrf \
  && /bin/bash unix_build.sh \
  && cd /ibeis/vtool \
- && /bin/bash unix_build.sh
+ && /bin/bash dev/unix_build.sh
 
 # Install Python repositories
 RUN cd /ibeis/detecttools \
