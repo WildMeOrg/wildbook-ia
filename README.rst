@@ -277,6 +277,46 @@ Running Tests
 
 The new way of running tests is with xdoctest, or using the "run_doctests.sh" script.
 
+Code Style and Development Guidelines
+-------------------------------------
+
+Contributing
+~~~~~~~~~~~~
+
+It's recommended that you use ``pre-commit`` to ensure linting procedures are run
+on any commit you make. (See also `pre-commit.com <https://pre-commit.com/>`_)
+
+Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit instal`` on the commandline. Now everytime you commit to this project's codebase the linter procedures will automatically run over the changed files.
+
+Python
+~~~~~~
+
+Try to conform to pep8. 
+You should set up your preferred editor to use flake8 as linter.
+If using vim I recommend syntastic.
+
+To run flake8 from the commandline use::
+
+  flake8
+
+This will use the flake8 configuration within ``setup.cfg``,
+which ignores several errors and stylistic considerations.
+See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
+
+
+.. Dev comment: my laptop seems to report these flake8 errors while my desktops
+   don't. I'm going to list errors that might need to be explicitly enabled here:
+
+     * 'F821',  # undefined name
+     * 'F403',  # import * used, unable to detect names
+
+C++ (Cplusplus)
+~~~~~~~~~~~~~~~
+
+For C++ code use ``astyle`` to format your code::
+
+  atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
+
 
 Example usage
 --------------
