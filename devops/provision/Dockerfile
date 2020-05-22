@@ -64,8 +64,10 @@ RUN cd /ibeis/utool \
 ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
 
 # Build Python repositories with external codebases
+# TODO remove flann checkout v2.0.0 once the "next" branch is working
 RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/flann \
+ && git checkout v2.0.0 \
  && /bin/bash unix_build.sh \
  && cd /ibeis/hesaff \
  && /bin/bash unix_build.sh \
