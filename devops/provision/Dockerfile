@@ -63,6 +63,9 @@ RUN cd /ibeis/utool \
 
 ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
 
+RUN . /virtualenv/env3/bin/activate \
+ && pip install scikit-build
+
 # Build Python repositories with external codebases
 # TODO remove flann checkout v2.0.0 once the "next" branch is working
 # TODO remove hesaff checkout v2.0.0 once the "next" branch is working
