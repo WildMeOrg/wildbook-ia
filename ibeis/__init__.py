@@ -337,12 +337,13 @@ Regen Command:
 """
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ibeis
-        python -m ibeis --allexamples
+    """
+    Runs the unittests for the ibeis codebase
+
+    Commandline usage: python -m ibeis
+
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    from ibeis.tests.run_tests import run_tests
+    run_tests()

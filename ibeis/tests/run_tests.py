@@ -306,22 +306,14 @@ def convert_tests_from_ibeis_to_nose(module_list):
     moddir = ut.get_module_dir(tests)
     ut.writeto(join(moddir, 'test_autogen_nose_tests.py'), autogen_test_src)
 
-#if __name__ == '__main__':
-#    """
-#    python -m ibeis --run-tests
-#    """
-#    import multiprocessing
-#    multiprocessing.freeze_support()
-#    run_tests()
-
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ibeis.tests.run_tests
-        python -m ibeis.tests.run_tests --allexamples
+    """
+    Run the unit tests for IBEIS
+
+    Commandline usage: python -m ibeis.tests.run_tests
+
     """
     import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    multiprocessing.freeze_support()
+    run_tests()

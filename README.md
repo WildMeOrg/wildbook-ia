@@ -199,31 +199,28 @@ baseline_neighbor_filter in the module ibeis.algo.hots.pipeline:
     python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter:0
     
 
-# Code Style Guidelines
+# Code Style and Development Guidelines
 
-For Python try to conform to pep8. 
+## Contributing
+
+It's recommended that you use `pre-commit` to ensure linting procedures are run
+on any commit you make. (See also (pre-commit.com)[https://pre-commit.com/])
+
+Reference (pre-commit's installation instructions)[https://pre-commit.com/#install] for software installation on your OS/platform. After you have the software installed, run `pre-commit install` on the commandline. Now everytime you commit to this project's codebase the linter procedures will automatically run over the changed files.
+
+## Python
+
+Try to conform to pep8. 
 You should set up your preferred editor to use flake8 as linter.
 If using vim I recommend syntastic.
 
-DISABLE THESE ERRORS 
-* 'E127', # continuation line over-indented for visual indent
-* 'E201', # whitespace after '('
-* 'E202', # whitespace before ']'
-* 'E203', # whitespace before ', '
-* 'E221', # multiple spaces before operator
-* 'E222', # multiple spaces after operator
-* 'E241', # multiple spaces after ,
-* 'E265', # block comment should start with "# "
-* 'E271', # multiple spaces after keyword 
-* 'E272', # multiple spaces before keyword
-* 'E301', # expected 1 blank line, found 0
-* 'E501', # > 79
-* 'N802', # function name should be lowercase
-* 'N803', # argument name should be lowercase
-* 'N805', # first argument of a method should be named 'self'
-* 'N806', # variable in function should be lowercase
+To run flake8 from the commandline use:
+    flake8
 
-flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802,N803,N805,N806 ~/code/ibeis
+This will use the flake8 configuration within `setup.cfg`,
+which ignores several errors and stylistic considerations.
+See the `setup.cfg` file for a full and accurate listing of stylistic codes to ignore.
+
 
 ( Dev comment: my laptop seems to report these flake8 errors while my desktops
   don't. I'm going to list errors that might need to be explicitly enabled here:
@@ -233,8 +230,10 @@ flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802
 
 )
 
-For C++ code use astyle to format your code:
-atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
+## C++ (Cplusplus)
+
+For C++ code use `astyle` to format your code:
+    atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
 
 
 # Updating Documentation
