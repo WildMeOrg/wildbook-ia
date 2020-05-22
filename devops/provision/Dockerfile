@@ -65,11 +65,13 @@ ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
 
 # Build Python repositories with external codebases
 # TODO remove flann checkout v2.0.0 once the "next" branch is working
+# TODO remove hesaff checkout v2.0.0 once the "next" branch is working
 RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/flann \
  && git checkout v2.0.0 \
  && /bin/bash unix_build.sh \
  && cd /ibeis/hesaff \
+ && git checkout v2.0.0 \
  && /bin/bash unix_build.sh \
  && cd /ibeis/lightnet \
  && /virtualenv/env3/bin/pip install -r requirements.txt \
