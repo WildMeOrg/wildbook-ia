@@ -91,43 +91,44 @@ RUN . /virtualenv/env3/bin/activate \
  && /bin/bash dev/unix_build.sh
 
 # Install Python repositories
-RUN cd /ibeis/detecttools \
- && /virtualenv/env3/bin/pip install -e . \
+RUN . /virtualenv/env3/bin/activate \
+ && cd /ibeis/detecttools \
+ && pip install -e . \
  && cd /ibeis/dtool \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis_cnn \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/guitool \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/hesaff \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/brambox \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/lightnet \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/plottool \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/pydarknet \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/pyrf \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/utool \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ubelt \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/vtool \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-flukematch-module \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-curvrank-module \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-deepsense-module \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-finfindr-module \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-kaggle7-module \
- && /virtualenv/env3/bin/pip install -e . \
+ && pip install -e . \
  && cd /ibeis/ibeis-2d-orientation-module \
- && /virtualenv/env3/bin/pip install -e .
+ && pip install -e .
