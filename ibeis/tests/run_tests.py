@@ -309,11 +309,8 @@ def convert_tests_from_ibeis_to_nose(module_list):
 
 if __name__ == '__main__':
     """
-    Run the unit tests for IBEIS
-
-    Commandline usage: python -m ibeis.tests.run_tests
-
+    CommandLine:
+        xdoctest -m ibeis.tests.run_tests
     """
-    import multiprocessing
-    multiprocessing.freeze_support()
-    run_tests()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
