@@ -274,6 +274,7 @@ class ChipConfig(dtool_ibeis.Config):
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
+
 ChipImgType = dtool_ibeis.ExternType(vt.imread, vt.imwrite, extkey='ext')
 
 
@@ -654,7 +655,7 @@ class ProbchipConfig(dtool_ibeis.Config):
 
 
 ProbchipImgType = dtool_ibeis.ExternType(ut.partial(vt.imread, grayscale=True),
-                                   vt.imwrite, extern_ext='.png')
+                                         vt.imwrite, extern_ext='.png')
 
 
 @derived_attribute(
@@ -1477,8 +1478,9 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         configured_annot_views[config] = annots.view()
 
     if preload:
-        precompute_weights = (qannot_cfg['weight'] == 'fgweights' or
-                              dannot_cfg['weight'] == 'fgweights')
+        precompute_weights = (
+            qannot_cfg['weight'] == 'fgweights' or dannot_cfg['weight'] == 'fgweights'
+        )
         unique_annot_views = list(configured_annot_views.values())
         for annots in unique_annot_views:
             annots.chip_size
@@ -1769,7 +1771,7 @@ def compute_classifications(depc, aid_list, config=None):
         yield result
 
 
-class CanonicalConfig(dtool.Config):
+class CanonicalConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('canonical_weight_filepath', None),
     ]
@@ -1989,7 +1991,7 @@ def compute_aoi2(depc, aid_list, config=None):
         yield result
 
 
-class OrienterConfig(dtool.Config):
+class OrienterConfig(dtool_ibeis.Config):
     _param_info_list = [
         ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
         ut.ParamInfo('orienter_weight_filepath',  None),
