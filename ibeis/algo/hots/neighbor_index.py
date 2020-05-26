@@ -541,6 +541,8 @@ class NeighborIndex(object):
                 nnindexer.flann.load_index(flann_fpath, idx2_vec)
             except (IOError, pyflann.FLANNException) as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
+            except Exception as ex:
+                ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
             else:
                 load_success = True
         return load_success

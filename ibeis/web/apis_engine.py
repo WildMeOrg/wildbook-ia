@@ -546,7 +546,7 @@ def start_identify_annots_query(ibs,
 
     # Convert annot UUIDs to aids for matching_state_list into user_feedback for query
     state_list = map(sanitize, ut.take_column(matching_state_list, 2))
-    {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
+    # {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
     user_feedback = {
         'aid1'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
         'aid2'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
