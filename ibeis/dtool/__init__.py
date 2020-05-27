@@ -3,19 +3,19 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import utool as ut
-ut.noinject(__name__, '[dtool_ibeis]')
+ut.noinject(__name__, '[dtool]')
 
-from dtool_ibeis import __SQLITE__ as lite
-from dtool_ibeis import base
-from dtool_ibeis import sql_control
-from dtool_ibeis import depcache_control
-from dtool_ibeis import depcache_table
+from ibeis.dtool import __SQLITE__ as lite
+from ibeis.dtool import base
+from ibeis.dtool import sql_control
+from ibeis.dtool import depcache_control
+from ibeis.dtool import depcache_table
 
-from dtool_ibeis.depcache_control import DependencyCache, make_depcache_decors
-from dtool_ibeis.base import (AlgoResult, MatchResult, Config,
+from ibeis.dtool.depcache_control import DependencyCache, make_depcache_decors
+from ibeis.dtool.base import (AlgoResult, MatchResult, Config,
                         VsManySimilarityRequest, VsOneSimilarityRequest)
-from dtool_ibeis.depcache_table import ExternalStorageException, ExternType
-from dtool_ibeis.base import *  # NOQA
-from dtool_ibeis.sql_control import SQLDatabaseController
+from ibeis.dtool.depcache_table import ExternalStorageException, ExternType
+from ibeis.dtool.base import *  # NOQA
+from ibeis.dtool.sql_control import SQLDatabaseController
 
 __version__ = '1.0.1'

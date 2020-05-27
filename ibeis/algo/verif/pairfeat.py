@@ -5,7 +5,7 @@ import vtool_ibeis as vt
 import numpy as np
 import ubelt as ub
 import pandas as pd
-import dtool_ibeis as dt
+from ibeis import dtool as dt
 from os.path import join
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.core_annots import ChipConfig

@@ -2,7 +2,7 @@
 # import utool as ut
 # import numpy as np
 # from six.moves import zip
-# from dtool_ibeis import depcache_table
+# from ibeis.dtool import depcache_table
 
 
 # def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
@@ -27,13 +27,13 @@
 #         _debug (bool): (default = False)
 
 #     CommandLine:
-#         python -m dtool_ibeis.depcache_control --exec-get_all_descendant_rowids:0
-#         python -m dtool_ibeis.depcache_control --exec-get_all_descendant_rowids:1
+#         python -m dtool.depcache_control --exec-get_all_descendant_rowids:0
+#         python -m dtool.depcache_control --exec-get_all_descendant_rowids:1
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> tablename = 'spam'
 #         >>> root_rowids = [1, 2]
@@ -81,8 +81,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> _debug = True
 #         >>> tablename = 'vsmany'
@@ -102,8 +102,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> # Make sure algo config can correctly get properites
 #         >>> depc = testdata_depc()
 #         >>> tablename = 'chip'
@@ -126,8 +126,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_all_descendant_rowids), globals())
 #         >>> _debug = True
@@ -209,8 +209,8 @@
 #         import plottool_ibeis as pt
 #         pt.ensureqt()
 
-#         from dtool_ibeis.depcache_control import *  # NOQA
-#         from dtool_ibeis.example_depcache import testdata_depc
+#         from ibeis.dtool.depcache_control import *  # NOQA
+#         from ibeis.dtool.example_depcache import testdata_depc
 #         depc = testdata_depc()
 #         exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         print(ut.depth_profile(root_rowids))
@@ -227,9 +227,9 @@
 #             pt.set_title(key)
 
 #     CommandLine:
-#         python -m dtool_ibeis.depcache_control --exec-get_rowids
-#         python -m dtool_ibeis.depcache_control --dump-get_rowids
-#         python -m dtool_ibeis.depcache_control --exec-get_rowids:0
+#         python -m dtool.depcache_control --exec-get_rowids
+#         python -m dtool.depcache_control --dump-get_rowids
+#         python -m dtool.depcache_control --exec-get_rowids:0
 
 #     GridParams:
 #         >>> param_grid = dict(
@@ -244,8 +244,8 @@
 
 #     Setup:
 #         >>> # DISABLE_GRID_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         >>> import plottool_ibeis as pt
@@ -267,8 +267,8 @@
 
 #     Example1:
 #         >>> # ENABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         >>> root_rowids = [1, 2, 3]
@@ -280,8 +280,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from dtool_ibeis.depcache_control import *  # NOQA
-#         >>> from dtool_ibeis.example_depcache import testdata_depc
+#         >>> from ibeis.dtool.depcache_control import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         >>> flat_root_ids = [1, 2, 3]
@@ -498,11 +498,11 @@
 # def test_getprop_with_configs():
 #     r"""
 #     CommandLine:
-#         python -m dtool_ibeis.example_depcache2 test_getprop_with_configs --show
+#         python -m dtool.example_depcache2 test_getprop_with_configs --show
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> test_getprop_with_configs()
 #     """
 #     config1 = {'manual_extract': True}
@@ -543,33 +543,33 @@
 #     sudo pip install freetype-py
 
 #     CommandLine:
-#         python -m dtool_ibeis.example_depcache2 testdata_depc2 --show
+#         python -m dtool.example_depcache2 testdata_depc2 --show
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc2()
 #         >>> ut.quit_if_noshow()
 #         >>> import plottool_ibeis as pt
 #         >>> depc.show_graph()
 #         >>> ut.show_if_requested()
 #     """
-#     import dtool_ibeis
+#     from ibeis import dtool
 #     import vtool_ibeis as vt
 #     from vtool_ibeis import fontdemo
 
-#     # put the test cache in the dtool_ibeis repo
-#     dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+#     # put the test cache in the dtool repo
+#     dtool_repo = dirname(ut.get_module_dir(dtool))
 #     cache_dpath = join(dtool_repo, 'DEPCACHE2')
 
 #     root = 'annot'
 
-#     depc = dtool_ibeis.DependencyCache(
+#     depc = dtool.DependencyCache(
 #         root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
 
 #     # ----------
 
-#     class ChipConfig(dtool_ibeis.Config):
+#     class ChipConfig(dtool.Config):
 #         _param_info_list = [
 #             ut.ParamInfo('dim_size', 500),
 #             ut.ParamInfo('ext', '.png'),
@@ -587,7 +587,7 @@
 
 #     # ----------
 
-#     class TipConfig(dtool_ibeis.Config):
+#     class TipConfig(dtool.Config):
 #         _param_info_list = [
 #             ut.ParamInfo('manual_extract', False, hideif=False),
 #         ]
@@ -623,7 +623,7 @@
 
 #     # ----------
 
-#     class CropChipConfig(dtool_ibeis.Config):
+#     class CropChipConfig(dtool.Config):
 #         _param_info_list = [
 #             ut.ParamInfo('dim_size', 500),
 #         ]
@@ -649,7 +649,7 @@
 
 #     # ----------
 
-#     class TrailingEdgeConfig(dtool_ibeis.Config):
+#     class TrailingEdgeConfig(dtool.Config):
 #         _param_info_list = []
 
 #     @depc.register_preproc(
@@ -675,11 +675,11 @@
 #     sudo pip install freetype-py
 
 #     CommandLine:
-#         python -m dtool_ibeis.example_depcache2 testdata_depc_image --show
+#         python -m dtool.example_depcache2 testdata_depc_image --show
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_image()
 #         >>> ut.quit_if_noshow()
 #         >>> import plottool_ibeis as pt
@@ -688,15 +688,15 @@
 #         >>> print(depc['detection'].compute_order)
 #         >>> ut.show_if_requested()
 #     """
-#     import dtool_ibeis
+#     from ibeis import dtool
 
-#     # put the test cache in the dtool_ibeis repo
-#     dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+#     # put the test cache in the dtool repo
+#     dtool_repo = dirname(ut.get_module_dir(dtool))
 #     cache_dpath = join(dtool_repo, 'DEPCACHE2')
 
 #     root = 'image'
 
-#     depc = dtool_ibeis.DependencyCache(
+#     depc = dtool.DependencyCache(
 #         root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
 
 #     # ----------
@@ -715,11 +715,11 @@
 # def testdata_depc_annot():
 #     """
 #     CommandLine:
-#         python -m dtool_ibeis.example_depcache2 testdata_depc_annot --show
+#         python -m dtool.example_depcache2 testdata_depc_annot --show
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_annot()
 #         >>> ut.quit_if_noshow()
 #         >>> import plottool_ibeis as pt
@@ -730,9 +730,9 @@
 #         >>> print(table.compute_order)
 #         >>> ut.show_if_requested()
 #     """
-#     import dtool_ibeis
-#     # put the test cache in the dtool_ibeis repo
-#     dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+#     from ibeis import dtool
+#     # put the test cache in the dtool repo
+#     dtool_repo = dirname(ut.get_module_dir(dtool))
 #     cache_dpath = join(dtool_repo, 'DEPCACHE2')
 #     dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
 #     def dummy_func(depc, *args, **kwargs):
@@ -749,7 +749,7 @@
 #     #vocab_parent = 'chip'
 #     #vocab_parent = 'feat'
 #     vocab_parent = 'featweight'
-#     depc = dtool_ibeis.DependencyCache(
+#     depc = dtool.DependencyCache(
 #         root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
 #     depc.register_preproc(tablename='chip', parents=['annot'], **dummy_cols)(dummy_func)
 #     depc.register_preproc(tablename='fgmodel', parents=['chip*'], **dummy_cols)(dummy_func)

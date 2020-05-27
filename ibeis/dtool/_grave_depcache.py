@@ -120,12 +120,12 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     annotations seems to go beyond that.  Therefore, AlgoRequest.
 
     Ignore:
-        cls = dtool_ibeis.AlgoRequest
+        cls = dtool.AlgoRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.base import *  # NOQA
-        >>> from dtool_ibeis.example_depcache import testdata_depc
+        >>> from ibeis.dtool.base import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
         >>> request2 = depc.new_request('vsmany', [1, 2], [1, 2])
@@ -407,8 +407,8 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         """
         Returns which nodes to compute first, and what inputs are needed
 
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> import plottool_ibeis as pt
             >>> pt.ensureqt()
             >>> depc = testdata_depc()
@@ -562,12 +562,12 @@ def get_all_ancestor_rowids(depc, tablename, native_rowids):
         dict: rowid_dict
 
     CommandLine:
-        python -m dtool_ibeis.depcache_control --exec-get_all_ancestor_rowids
+        python -m dtool.depcache_control --exec-get_all_ancestor_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.depcache_control import *  # NOQA
-        >>> from dtool_ibeis.example_depcache import testdata_depc
+        >>> from ibeis.dtool.depcache_control import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> tablename = 'spam'
         >>> target_root_rowids = [4, 9, 7]
@@ -631,8 +631,8 @@ def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None)
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)

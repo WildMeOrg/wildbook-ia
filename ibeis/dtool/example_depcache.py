@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m dtool_ibeis.example_depcache --exec-dummy_example_depcacahe --show
-    python -m dtool_ibeis.depcache_control --exec-make_graph --show
+    python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
+    python -m dtool.depcache_control --exec-make_graph --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -10,8 +10,8 @@ import numpy as np
 import uuid
 from os.path import join, dirname
 from six.moves import zip
-from dtool_ibeis import depcache_control
-import dtool_ibeis
+from ibeis.dtool import depcache_control
+from ibeis import dtool
 
 
 if False:
@@ -31,7 +31,7 @@ if False:
             yield 'dummy'
 
 
-class DummyKptsConfig(dtool_ibeis.Config):
+class DummyKptsConfig(dtool.Config):
     def get_param_info_list(self):
         return [
             ut.ParamInfo('adapt_shape', True),
@@ -39,7 +39,7 @@ class DummyKptsConfig(dtool_ibeis.Config):
         ]
 
 
-class DummyIndexerConfig(dtool_ibeis.Config):
+class DummyIndexerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('index_method', 'single'),
         ut.ParamInfo('trees', 8),
@@ -51,7 +51,7 @@ class DummyIndexerConfig(dtool_ibeis.Config):
     #]
 
 
-class DummyNNConfig(dtool_ibeis.Config):
+class DummyNNConfig(dtool.Config):
     def get_param_info_list(self):
         return [
             ut.ParamInfo('K', 4),
@@ -61,18 +61,18 @@ class DummyNNConfig(dtool_ibeis.Config):
         ]
 
 
-class DummySVERConfig(dtool_ibeis.Config):
+class DummySVERConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('sver_on', True),
         ut.ParamInfo('xy_thresh', .01)
     ]
 
 
-class DummyChipConfig(dtool_ibeis.Config):
+class DummyChipConfig(dtool.Config):
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.example_depcache import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import *  # NOQA
         >>> cfg = DummyChipConfig()
         >>> cfg.dim_size = 700
         >>> cfg.histeq = True
@@ -91,15 +91,15 @@ class DummyChipConfig(dtool_ibeis.Config):
     ]
 
 
-class ProbchipConfig(dtool_ibeis.Config):
+class ProbchipConfig(dtool.Config):
     """
     CommandLine:
-        python -m dtool_ibeis.example_depcache --exec-ProbchipConfig --show
+        python -m dtool.example_depcache --exec-ProbchipConfig --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from dtool_ibeis.depcache_control import *  # NOQA
-        >>> from dtool_ibeis.example_depcache import testdata_depc
+        >>> from ibeis.dtool.depcache_control import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> table = depc['probchip']
         >>> exec(ut.execstr_funckw(table.get_rowid), globals())
@@ -130,7 +130,7 @@ class ProbchipConfig(dtool_ibeis.Config):
     ]
 
 
-class DummyVsManyConfig(dtool_ibeis.Config):
+class DummyVsManyConfig(dtool.Config):
     # Different pipeline components can go here as well as dependencies
     # that were not explicitly enumerated in the tree structure
     _param_info_list = [
@@ -150,7 +150,7 @@ class DummyVsManyConfig(dtool_ibeis.Config):
     ]
 
 
-class DummyVsOneConfig(dtool_ibeis.Config):
+class DummyVsOneConfig(dtool.Config):
     def get_sub_config_list(self):
         # Different pipeline components can go here
         # as well as dependencies that were not
@@ -171,26 +171,26 @@ class DummyVsOneConfig(dtool_ibeis.Config):
         ]
 
 
-class DummyVsOneRequest(dtool_ibeis.VsOneSimilarityRequest):
+class DummyVsOneRequest(dtool.VsOneSimilarityRequest):
     pass
 
 
-class DummyVsManyRequest(dtool_ibeis.VsManySimilarityRequest):
+class DummyVsManyRequest(dtool.VsManySimilarityRequest):
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.example_depcache import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import *  # NOQA
         >>> algo_config = DummyVsManyConfig()
         >>> print(algo_config)
     """
     pass
 
 
-class DummyAnnotMatch(dtool_ibeis.MatchResult):
+class DummyAnnotMatch(dtool.MatchResult):
     pass
 
 
-class DummyVsOneMatch(dtool_ibeis.AlgoResult, ut.NiceRepr):
+class DummyVsOneMatch(dtool.AlgoResult, ut.NiceRepr):
     def __init__(self):
         self.score = None
         self.qaid = None
@@ -206,7 +206,7 @@ def testdata_depc(fname=None):
     Example of local registration
     """
 
-    import dtool_ibeis
+    from ibeis import dtool
     import vtool_ibeis as vt
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
                          verbose=False)
@@ -216,11 +216,11 @@ def testdata_depc(fname=None):
     def get_root_uuid(aid_list):
         return ut.lmap(ut.hashable_to_uuid, aid_list)
 
-    # put the test cache in the dtool_ibeis repo
-    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE')
 
-    depc = dtool_ibeis.DependencyCache(
+    depc = dtool.DependencyCache(
         root_tablename=dummy_root, default_fname=fname,
         cache_dpath=cache_dpath,
         get_root_uuid=get_root_uuid,
@@ -236,7 +236,7 @@ def testdata_depc(fname=None):
         TODO: Infer properties from docstr?
 
         Args:
-            depc (dtool_ibeis.DependencyCache):
+            depc (dtool.DependencyCache):
             annot_rowid_list (list): list of annot rowids
             config (dict): config dictionary
 
@@ -332,7 +332,7 @@ def testdata_depc(fname=None):
     def vsmany_matching(depc, qaids, config=None):
         """
         CommandLine:
-            python -m dtool_ibeis.base --exec-VsManySimilarityRequest
+            python -m dtool.base --exec-VsManySimilarityRequest
         """
         print('RUNNING DUMMY VSMANY ALGO')
         daids = config.daids
@@ -458,7 +458,7 @@ def testdata_depc(fname=None):
         def neighbs(depc, *args, **kwargs):
             """
             CommandLine:
-                python -m dtool_ibeis.base --exec-VsManySimilarityRequest
+                python -m dtool.base --exec-VsManySimilarityRequest
             """
             #dummy_preproc_kpts
             for qaid in zip(args):
@@ -470,7 +470,7 @@ def testdata_depc(fname=None):
         def neighbs_score(depc, *args, **kwargs):
             """
             CommandLine:
-                python -m dtool_ibeis.base --exec-VsManySimilarityRequest
+                python -m dtool.base --exec-VsManySimilarityRequest
             """
             raise NotImplementedError('hack')
 
@@ -485,7 +485,7 @@ def testdata_depc(fname=None):
         def compute_vsone_matching(depc, qaids, daids, config):
             """
             CommandLine:
-                python -m dtool_ibeis.base --exec-VsOneSimilarityRequest
+                python -m dtool.base --exec-VsOneSimilarityRequest
             """
             print('RUNNING DUMMY VSONE ALGO')
             for qaid, daid in zip(qaids, daids):
@@ -508,7 +508,7 @@ def example_getter_methods(depc, tablename, root_rowids):
     """
     example of different ways to get data
     """
-    import dtool_ibeis
+    from ibeis import dtool
     print('\n+---')
     print('Running getter example')
     print(' * tablename=%r' % (tablename))
@@ -552,8 +552,8 @@ def example_getter_methods(depc, tablename, root_rowids):
         print('extern_data = table.get_row_data(tbl_rowids, (excol,))')
         print(ut.varinfo_str(extern_data, 'extern_data'))
         # you can lookup the hidden paths as follows
-        extern_paths = table.get_row_data(tbl_rowids, (excol + dtool_ibeis.depcache_table.EXTERN_SUFFIX,))  # NOQA
-        print('extern_paths = table.get_row_data(tbl_rowids, (excol + dtool_ibeis.depcache_table.EXTERN_SUFFIX,))')
+        extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))  # NOQA
+        print('extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))')
         print(ut.varinfo_str(extern_paths, 'extern_paths'))
 
     # But you can also just the root rowids directly. This is the simplest way
@@ -595,11 +595,11 @@ def test_getters(depc):
 def dummy_example_depcacahe():
     r"""
     CommandLine:
-        python -m dtool_ibeis.example_depcache --exec-dummy_example_depcacahe
+        python -m dtool.example_depcache --exec-dummy_example_depcacahe
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.example_depcache import *  # NOQA
+        >>> from ibeis.dtool.example_depcache import *  # NOQA
         >>> depc = dummy_example_depcacahe()
     """
     fname = None
@@ -673,8 +673,8 @@ def dummy_example_depcacahe():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool_ibeis.example_depcache
-        python -m dtool_ibeis.example_depcache --allexamples
+        python -m dtool.example_depcache
+        python -m dtool.example_depcache --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

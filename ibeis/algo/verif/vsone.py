@@ -16,7 +16,7 @@ import ubelt as ub
 import itertools as it
 import numpy as np
 import vtool_ibeis as vt
-import dtool_ibeis as dt
+from ibeis import dtool as dt
 import six  # NOQA
 import hashlib
 import copy

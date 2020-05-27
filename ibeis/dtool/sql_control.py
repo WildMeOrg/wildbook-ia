@@ -16,7 +16,7 @@ import threading
 from functools import partial
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
-from dtool_ibeis import __SQLITE__ as lite  # NOQA
+from ibeis.dtool import __SQLITE__ as lite  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -344,13 +344,13 @@ class SQLDatabaseController(object):
             readonly (bool): (default = False)
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --exec-__init__
+            python -m dtool.sql_control --exec-__init__
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> ut.exec_funckw(SQLDatabaseController.__init__, locals())
-            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool_ibeis')
+            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> readonly = False
             >>> db = SQLDatabaseController(sqldb_dpath, sqldb_fname)
@@ -558,19 +558,19 @@ class SQLDatabaseController(object):
         Get the database initialization (creation) UUID
 
         CommandLine:
-            python -m dtool_ibeis.sql_control get_db_init_uuid
+            python -m dtool.sql_control get_db_init_uuid
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> import uuid
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
             >>> # Check existing database keeps UUID
-            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool_ibeis')
+            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> readonly = False
             >>> db1 = SQLDatabaseController(sqldb_dpath, sqldb_fname)
@@ -768,7 +768,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
@@ -973,7 +973,7 @@ class SQLDatabaseController(object):
             id_colname (bool): default False. Experimental feature that could result in a 10x speedup
 
         CommandLine:
-            python -m dtool_ibeis.sql_control get
+            python -m dtool.sql_control get
 
         Ignore:
             tblname = 'annotations'
@@ -992,7 +992,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])
@@ -1048,11 +1048,11 @@ class SQLDatabaseController(object):
         setter
 
         CommandLine:
-            python -m dtool_ibeis.sql_control set
+            python -m dtool.sql_control set
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])
@@ -1358,12 +1358,12 @@ class SQLDatabaseController(object):
             list: metadata_items
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --exec-get_metadata_items
+            python -m dtool.sql_control --exec-get_metadata_items
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import testdata_depc
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> db = testdata_depc()['notch'].db
             >>> metadata_items = db.get_metadata_items()
             >>> result = ('metadata_items = %s' % (ut.repr2(sorted(metadata_items)),))
@@ -1448,12 +1448,12 @@ class SQLDatabaseController(object):
             str: operation
 
         CommandLine:
-            python -m dtool_ibeis.sql_control _make_add_table_sqlstr
+            python -m dtool.sql_control _make_add_table_sqlstr
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -1826,12 +1826,12 @@ class SQLDatabaseController(object):
         """ Convenience: Autogenerates the most up-to-date database schema
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --exec-get_schema_current_autogeneration_str
+            python -m dtool.sql_control --exec-get_schema_current_autogeneration_str
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -1842,7 +1842,7 @@ class SQLDatabaseController(object):
         # Define what tab space we want to save
         tab1 = ' ' * 4
         line_list = []
-        #autogen_cmd = 'python -m dtool_ibeis.DB_SCHEMA --test-test_dbschema
+        #autogen_cmd = 'python -m dtool.DB_SCHEMA --test-test_dbschema
         #--force-incremental-db-update --dump-autogen-schema'
         # File Header
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
@@ -1921,11 +1921,11 @@ class SQLDatabaseController(object):
             dict: autogen_dict
 
         CommandLine:
-            python -m dtool_ibeis.sql_control get_table_autogen_dict
+            python -m dtool.sql_control get_table_autogen_dict
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
@@ -1956,11 +1956,11 @@ class SQLDatabaseController(object):
             str: quoted_docstr
 
         CommandLine:
-            python -m dtool_ibeis.sql_control get_table_autogen_str
+            python -m dtool.sql_control get_table_autogen_str
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
@@ -2079,15 +2079,15 @@ class SQLDatabaseController(object):
             list: superkeys
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --test-get_table_superkey_colnames
+            python -m dtool.sql_control --test-get_table_superkey_colnames
             python -m ibeis --tf get_table_superkey_colnames --tablename=contributors
             python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
             python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> db = depc['chip'].db
             >>> superkeys = db.get_table_superkey_colnames('chip')
@@ -2138,12 +2138,12 @@ class SQLDatabaseController(object):
     def get_table_docstr(db, tablename):
         r"""
         CommandLine:
-            python -m dtool_ibeis.sql_control --exec-get_table_docstr
+            python -m dtool.sql_control --exec-get_table_docstr
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2181,14 +2181,14 @@ class SQLDatabaseController(object):
             http://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --exec-get_columns
-            python -m dtool_ibeis.sql_control --exec-get_columns --tablename=contributors
-            python -m dtool_ibeis.sql_control --exec-get_columns --tablename=nonexist
+            python -m dtool.sql_control --exec-get_columns
+            python -m dtool.sql_control --exec-get_columns --tablename=contributors
+            python -m dtool.sql_control --exec-get_columns --tablename=nonexist
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2258,12 +2258,12 @@ class SQLDatabaseController(object):
         Grabs a table of information
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --test-get_table_column_data
+            python -m dtool.sql_control --test-get_table_column_data
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2298,14 +2298,14 @@ class SQLDatabaseController(object):
             python -m ibeis --tf sql_control.make_json_table_definition
 
         CommandLine:
-            python -m utool --tf iter_module_doctestable --modname=dtool_ibeis.sql_control
+            python -m utool --tf iter_module_doctestable --modname=dtool.sql_control
             --include_inherited=True
-            python -m dtool_ibeis.sql_control --exec-make_json_table_definition
+            python -m dtool.sql_control --exec-make_json_table_definition
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2350,14 +2350,14 @@ class SQLDatabaseController(object):
     def get_table_new_transferdata(db, tablename, exclude_columns=[]):
         """
         CommandLine:
-            python -m dtool_ibeis.sql_control --test-get_table_column_data
-            python -m dtool_ibeis.sql_control --test-get_table_new_transferdata
-            python -m dtool_ibeis.sql_control --test-get_table_new_transferdata:1
+            python -m dtool.sql_control --test-get_table_column_data
+            python -m dtool.sql_control --test-get_table_new_transferdata
+            python -m dtool.sql_control --test-get_table_new_transferdata:1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2375,7 +2375,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # SLOW_DOCTEST
             >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -2393,7 +2393,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # SLOW_DOCTEST
             >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -2529,13 +2529,13 @@ class SQLDatabaseController(object):
             db_src (SQLController): merge data from db_src into db
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --test-merge_databases_new:0
-            python -m dtool_ibeis.sql_control --test-merge_databases_new:2
+            python -m dtool.sql_control --test-merge_databases_new:0
+            python -m dtool.sql_control --test-merge_databases_new:2
 
         Example0:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
             >>> ibs_src = ibeis.opendb(db='testdb1')
@@ -2552,7 +2552,7 @@ class SQLDatabaseController(object):
         Example1:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs_src = ibeis.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
@@ -2569,7 +2569,7 @@ class SQLDatabaseController(object):
         Example2:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from dtool_ibeis.sql_control import *  # NOQA
+            >>> from ibeis.dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs_src = ibeis.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
@@ -2796,13 +2796,13 @@ class SQLDatabaseController(object):
             str: csv_table
 
         CommandLine:
-            python -m dtool_ibeis.sql_control --test-get_table_csv
-            python -m dtool_ibeis.sql_control --exec-get_table_csv --tablename=contributors
+            python -m dtool.sql_control --test-get_table_csv
+            python -m dtool.sql_control --exec-get_table_csv --tablename=contributors
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.sql_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])
@@ -2939,8 +2939,8 @@ class SQLTable(ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool_ibeis.sql_control
-        python -m dtool_ibeis.sql_control --allexamples
+        python -m dtool.sql_control
+        python -m dtool.sql_control --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

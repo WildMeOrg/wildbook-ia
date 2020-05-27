@@ -7,9 +7,9 @@ import utool as ut
 import numpy as np
 import six
 from six.moves import zip
-from dtool_ibeis import sql_control
-from dtool_ibeis import depcache_table
-from dtool_ibeis import base
+from ibeis.dtool import sql_control
+from ibeis.dtool import depcache_table
+from ibeis.dtool import base
 from collections import defaultdict
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -26,7 +26,7 @@ Args:
     colnames (list): data returned by this table
     coltypes (list): types of data returned by this table
     chunksize (int): (default = None)
-    configclass (dtool_ibeis.TableConfig): derivative of dtool_ibeis.TableConfig.
+    configclass (dtool.TableConfig): derivative of dtool.TableConfig.
         if None, a default class will be constructed for you. (default = None)
     docstr (str): (default = None)
     fname (str):  file name(default = None)
@@ -56,7 +56,7 @@ def make_depcache_decors(root_tablename):
         Global regsiter proproc function that will define a table for all
         dependency caches containing the parents. See
 
-        See dtool_ibeis.depcache_control.REG_PREPROC_DOC if docstr is not autogened
+        See dtool.depcache_control.REG_PREPROC_DOC if docstr is not autogened
         """
         def register_preproc_wrapper(func):
             check_register(args, kwargs)
@@ -94,7 +94,7 @@ class _CoreDependencyCache(object):
         Registers a table with this dependency cache.
         Essentially passes args down to make a DependencyTable.
 
-        SEE: dtool_ibeis.REG_PREPROC_DOC
+        SEE: dtool.REG_PREPROC_DOC
         """
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
@@ -256,12 +256,12 @@ class _CoreDependencyCache(object):
         gets level dependences from root to tablename
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control --exec-get_dependencies
+            python -m dtool.depcache_control --exec-get_dependencies
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'fgweight'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
@@ -572,13 +572,13 @@ class _CoreDependencyCache(object):
         rowids uniquely specify parent inputs and a configuration.
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control get_rowids --show
-            python -m dtool_ibeis.depcache_control get_rowids:1
+            python -m dtool.depcache_control get_rowids --show
+            python -m dtool.depcache_control get_rowids:1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> kwargs = {}
@@ -596,7 +596,7 @@ class _CoreDependencyCache(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Test external / ensure getters
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> config = {}
             >>> depc = testdata_depc()
             >>> aids = [1,]
@@ -608,7 +608,7 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> root_rowids = [1, 2]
@@ -667,13 +667,13 @@ class _CoreDependencyCache(object):
             list: prop_list
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control --exec-get
+            python -m dtool.depcache_control --exec-get
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -688,9 +688,9 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -707,9 +707,9 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -798,13 +798,13 @@ class _CoreDependencyCache(object):
         Gets data using internal ids, which is faster if you have them.
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control get_native:0
-            python -m dtool_ibeis.depcache_control get_native:1
+            python -m dtool.depcache_control get_native:0
+            python -m dtool.depcache_control get_native:1
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Simple test of get native
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> config = {}
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
@@ -814,7 +814,7 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> config = {}
             >>> tablename = 'chip'
@@ -879,11 +879,11 @@ class _CoreDependencyCache(object):
             list:
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control get_root_rowids --show
+            python -m dtool.depcache_control get_root_rowids --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.example_depcache import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> config1 = {'adapt_shape': False}
             >>> config2 = {'adapt_shape': True}
@@ -1109,7 +1109,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         Constructs a networkx representation of the dependency graph
 
         CommandLine:
-            python -m dtool_ibeis --tf DependencyCache.make_graph --show --reduced
+            python -m dtool --tf DependencyCache.make_graph --show --reduced
 
             python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced
 
@@ -1123,8 +1123,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> import utool as ut
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
@@ -1140,8 +1140,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> import utool as ut
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=True)
@@ -1349,12 +1349,12 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             root_rowids (list):
 
         CommandLine:
-            python -m dtool_ibeis.depcache_control delete_root --show
+            python -m dtool.depcache_control delete_root --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.delete_root), globals())
             >>> root_rowids = [1]
@@ -1492,12 +1492,12 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     def stacked_config(depc, source, dest, config):
         r"""
         CommandLine:
-            python -m dtool_ibeis.depcache_control stacked_config --show
+            python -m dtool.depcache_control stacked_config --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool_ibeis.depcache_control import *  # NOQA
-            >>> from dtool_ibeis.example_depcache import testdata_depc
+            >>> from ibeis.dtool.depcache_control import *  # NOQA
+            >>> from ibeis.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> source = depc.root
             >>> dest = 'fgweight'
@@ -1528,8 +1528,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool_ibeis.depcache_control
-        python -m dtool_ibeis.depcache_control --allexamples
+        python -m dtool.depcache_control
+        python -m dtool.depcache_control --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

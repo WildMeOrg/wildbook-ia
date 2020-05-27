@@ -30,7 +30,7 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import dtool_ibeis
+from ibeis import dtool
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
@@ -297,7 +297,7 @@ def get_local_distinctiveness_modeldir(ibs):
     return ibs.distinctdir
 
 
-class NormFeatScoreConfig(dtool_ibeis.Config):
+class NormFeatScoreConfig(dtool.Config):
     _alias = 'nfscfg'
     _param_info_list = [
         ut.ParamInfo('disttype', None),

@@ -39,7 +39,7 @@ def depc_34_helper(depc):
                     #(tablename + repr(row_arg) + repr(param_val)),
                 #yield (np.array([row_arg]),)
             dummy_func = dummy_gen_func
-        from dtool_ibeis import base
+        from ibeis.dtool import base
         configclass = base.make_configclass({config_param: 42}, tablename)
         dummy_cols = dict(colnames=['data'], coltypes=[str], configclass=configclass, **kwargs)
         depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(dummy_func)
@@ -51,11 +51,11 @@ def testdata_depc3(in_memory=True):
     Example of local registration
 
     CommandLine:
-        python -m dtool_ibeis.example_depcache2 testdata_depc3 --show
+        python -m dtool.example_depcache2 testdata_depc3 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
         >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
         >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
@@ -74,17 +74,17 @@ def testdata_depc3(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    import dtool_ibeis
+    from ibeis import dtool
 
-    # put the test cache in the dtool_ibeis repo
-    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE3')
 
     # FIXME: this only puts the sql files in memory
     default_fname = ':memory:' if in_memory else None
 
     root = 'annot'
-    depc = dtool_ibeis.DependencyCache(
+    depc = dtool.DependencyCache(
         root_tablename=root, get_root_uuid=ut.identity,
         default_fname=default_fname,
         cache_dpath=cache_dpath, use_globals=False)
@@ -118,11 +118,11 @@ def testdata_depc4(in_memory=True):
     Example of local registration
 
     CommandLine:
-        python -m dtool_ibeis.example_depcache2 testdata_depc4 --show
+        python -m dtool.example_depcache2 testdata_depc4 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
+        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc4()
         >>> #data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
         >>> #data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
@@ -141,17 +141,17 @@ def testdata_depc4(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    import dtool_ibeis
+    from ibeis import dtool
 
-    # put the test cache in the dtool_ibeis repo
-    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE3')
 
     # FIXME: this only puts the sql files in memory
     default_fname = ':memory:' if in_memory else None
 
     root = 'annot'
-    depc = dtool_ibeis.DependencyCache(
+    depc = dtool.DependencyCache(
         root_tablename=root, get_root_uuid=ut.identity,
         default_fname=default_fname,
         cache_dpath=cache_dpath, use_globals=False)
@@ -182,14 +182,14 @@ def testdata_depc4(in_memory=True):
 
 
 def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
-    import dtool_ibeis
-    # put the test cache in the dtool_ibeis repo
-    dtool_repo = dirname(ut.get_module_dir(dtool_ibeis))
+    from ibeis import dtool
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE5')
     # FIXME: this only puts the sql files in memory
     default_fname = ':memory:' if in_memory else None
     root = 'annot'
-    depc = dtool_ibeis.DependencyCache(
+    depc = dtool.DependencyCache(
         root_tablename=root, get_root_uuid=ut.identity,
         default_fname=default_fname,
         cache_dpath=cache_dpath, use_globals=False)
@@ -206,8 +206,8 @@ def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool_ibeis.example_depcache2
-        python -m dtool_ibeis.example_depcache2 --allexamples
+        python -m dtool.example_depcache2
+        python -m dtool.example_depcache2 --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
