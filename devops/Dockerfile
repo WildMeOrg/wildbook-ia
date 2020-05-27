@@ -31,8 +31,6 @@ RUN cd /ibeis/ibeis \
 
 RUN cd /ibeis/detecttools \
  && rm -rf .git \
- && cd /ibeis/dtool \
- && rm -rf .git \
  && cd /ibeis/ibeis_cnn \
  && rm -rf .git \
  && cd /ibeis/guitool \
