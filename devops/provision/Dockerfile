@@ -19,7 +19,7 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch next https://github.com/WildbookOrg/ibeis-finfindr-module       /ibeis/ibeis-finfindr-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-kaggle7-module        /ibeis/ibeis-kaggle7-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-2d-orientation-module /ibeis/ibeis-2d-orientation-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis                       /ibeis/ibeis \
+ && git clone --branch master https://github.com/WildbookOrg/ibeis                     /ibeis/ibeis \
  && git clone --branch next https://github.com/WildbookOrg/ibeis_cnn                   /ibeis/ibeis_cnn \
  && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
  && git clone --branch next https://github.com/WildbookOrg/plottool                    /ibeis/plottool \
