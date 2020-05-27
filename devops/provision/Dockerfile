@@ -11,7 +11,6 @@ ENV LANG C.UTF-8
 
 # Clone IBEIS VSTS repositories
 RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
- && git clone --branch next https://github.com/WildbookOrg/detecttools                 /ibeis/detecttools \
  && git clone --branch next https://github.com/WildbookOrg/dtool                       /ibeis/dtool \
  && git clone --branch next https://github.com/WildbookOrg/flann                       /ibeis/flann \
  && git clone --branch next https://github.com/WildbookOrg/guitool                     /ibeis/guitool \
@@ -92,8 +91,6 @@ RUN . /virtualenv/env3/bin/activate \
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
- && cd /ibeis/detecttools \
- && pip install -e . \
  && cd /ibeis/dtool \
  && pip install -e . \
  && cd /ibeis/ibeis_cnn \
