@@ -5,7 +5,7 @@ from six.moves import range, input
 from os.path import join, expanduser, exists, basename  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.other import ibsfuncs
-from detecttools.directory import Directory
+from ibeis.detecttools.directory import Directory
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__)
