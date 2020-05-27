@@ -1,0 +1,28 @@
+[global]
+floatX = float32
+device = cpu
+openmp = True
+allow_gc = True
+optimizer = fast_run
+enable_initial_driver_test = False
+
+[cuda]
+root = /usr/local/cuda/
+
+[lib]
+cnmem = 0.01
+
+[dnn]
+enabled = False
+
+[dnn.conv]
+algo_fwd = time_once
+algo_bwd_data = time_once
+algo_bwd_filter = time_once
+
+[nvcc]
+fastmath = True
+optimizer_including = cudnn
+
+[blas]
+ldflags = -llapack -lblas
