@@ -6,6 +6,9 @@ ARG AZURE_DEVOPS_CACHEBUSTER=0
 
 RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+
 # Clone IBEIS VSTS repositories
 RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
  && git clone --branch next https://github.com/WildbookOrg/detecttools                 /ibeis/detecttools \
