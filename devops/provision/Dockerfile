@@ -58,8 +58,8 @@ RUN cd /ibeis/utool \
 
 # Checkout latest version of all other repos
 RUN cd /ibeis/ibeis \
- && /virtualenv/env3/bin/python super_setup.py --pull \
- && /virtualenv/env3/bin/python super_setup.py --pull
+ && /virtualenv/env3/bin/python super_setup.py pull \
+ && /virtualenv/env3/bin/python super_setup.py pull
 
 ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
 

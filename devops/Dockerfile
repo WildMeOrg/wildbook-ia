@@ -13,8 +13,8 @@ RUN git config --global user.email "dev@wildme.org" \
 
 # Checkout latest version of all other repos
 RUN cd /ibeis/ibeis \
- && /virtualenv/env3/bin/python super_setup.py --pull \
- && /virtualenv/env3/bin/python super_setup.py --pull
+ && /virtualenv/env3/bin/python super_setup.py pull \
+ && /virtualenv/env3/bin/python super_setup.py pull
 
 RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank/ \
  && rm -rf __init__.py \
