@@ -11,10 +11,10 @@ RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 RUN git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me Development Nightly Build (Azure CI)"
 
-# Checkout latest version of all other repos
-RUN cd /ibeis/ibeis \
- && /virtualenv/env3/bin/python super_setup.py pull \
- && /virtualenv/env3/bin/python super_setup.py pull
+# TODO Temporarily disabled: Checkout latest version of all other repos
+#RUN cd /ibeis/ibeis \
+# && /virtualenv/env3/bin/python super_setup.py pull \
+# && /virtualenv/env3/bin/python super_setup.py pull
 
 RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank/ \
  && rm -rf __init__.py \

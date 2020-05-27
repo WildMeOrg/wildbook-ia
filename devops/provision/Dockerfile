@@ -56,10 +56,10 @@ RUN cd /ibeis/utool \
  && cd /ibeis/ubelt \
  && /virtualenv/env3/bin/pip install -e .
 
-# Checkout latest version of all other repos
-RUN cd /ibeis/ibeis \
- && /virtualenv/env3/bin/python super_setup.py pull \
- && /virtualenv/env3/bin/python super_setup.py pull
+# TODO Temporarily disabled: Checkout latest version of all other repos
+#RUN cd /ibeis/ibeis \
+# && /virtualenv/env3/bin/python super_setup.py pull \
+# && /virtualenv/env3/bin/python super_setup.py pull
 
 ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
 
