@@ -942,10 +942,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         tuple : (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff) if success else None
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts --show
-        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts --show --refine-method='affine'
-        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
-        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts
+        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --show
+        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --show --refine-method='affine'
+        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
+        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0
 
     Example:
         >>> # ENABLE_DOCTEST
