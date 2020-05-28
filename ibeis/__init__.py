@@ -33,11 +33,11 @@ if ut.is_developer():
         #'show_vocabulary',
     ]
 
-# If we dont initialize plottool_ibeis before <something>
+# If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool_ibeis, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
-#import plottool_ibeis
+#import ibeis.plottool
 
 
 ENABLE_WILDBOOK_SIGNAL = False

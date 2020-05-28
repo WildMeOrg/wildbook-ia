@@ -416,7 +416,7 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         >>> # Show timedelta info
         >>> ut.quit_if_noshow()
         >>> timedelta_list = ibs.get_annot_pair_timedelta(aid1_list, aid2_list)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (has_any,))
         >>> ut.show_if_requested()
     """

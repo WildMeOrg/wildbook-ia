@@ -267,7 +267,7 @@ def classification_report2(y_true, y_pred, target_names=None,
         >>>     y_pred = testdata_ypred(y_true, p_wrong, rng)
         >>>     report = classification_report2(y_true, y_pred, verbose='hack')
         >>>     rs.append(report)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.qtensure()
         >>> df = pd.DataFrame(rs).drop(['raw'], axis=1)
         >>> delta = df.subtract(df['target'], axis=0)

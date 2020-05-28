@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 import utool as ut
 import numpy as np
 from ibeis.other import ibsfuncs

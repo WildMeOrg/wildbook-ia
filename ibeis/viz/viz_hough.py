@@ -5,8 +5,8 @@ import vtool_ibeis as vt
 from ibeis.viz import viz_helpers as vh
 from ibeis.algo.detect import randomforest
 from os.path import splitext
-from plottool_ibeis import viz_image2
-import plottool_ibeis as pt
+from ibeis.plottool import viz_image2
+import ibeis.plottool as pt
 (print, rrr, profile) = ut.inject2(__name__)
 
 

@@ -41,7 +41,7 @@ CommandLine:
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
     >>> import ibeis
-    >>> import plottool_ibeis as pt
+    >>> import ibeis.plottool as pt
     >>> ibs = ibeis.opendb('testdb1')
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
@@ -68,7 +68,7 @@ register_subprop = register_subprops['annot']
 
 def testdata_core(defaultdb='testdb1', size=2):
     import ibeis
-    # import plottool_ibeis as pt
+    # import ibeis.plottool as pt
     ibs = ibeis.opendb(defaultdb=defaultdb)
     depc = ibs.depc_annot
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
@@ -112,7 +112,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> compute_chipthumb(depc, aid_list, config)
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> import ibeis.viz.interact.interact_chip
         >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
         >>> interact_obj.start()
@@ -318,7 +318,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> #interact_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
         >>> import ibeis.viz.interact.interact_chip
         >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
@@ -337,7 +337,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config=config, recompute=True)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
     """
@@ -586,13 +586,13 @@ def compute_annotmask(depc, aid_list, config=None):
         >>> mask = depc.get_property('annotmask', aid_list, 'img', config, recompute=edit)[0]
         >>> chip = depc.get_property('chips', aid_list, 'img', config=chip_config)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> resized = vt.resize_mask(mask, chip)
         >>> blended = vt.blend_images_multiply(chip, resized)
         >>> pt.imshow(blended, title='mask')
         >>> pt.show_if_requested()
     """
-    from plottool_ibeis import interact_impaint
+    from ibeis.plottool import interact_impaint
     # TODO: Ensure interactive required cache words
     # Keep manual things above the cache dir
     mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
@@ -686,7 +686,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> #result = ut.repr2(probchip_fpath_list_)
         >>> #print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> #xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
         >>> #iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> xlabel_list = [str(vt.get_size(img)) for img in probchip_list_]
@@ -866,7 +866,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
 
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = ChipConfig.from_argv_dict()
         >>> probchip_config = ProbchipConfig(smooth_thresh=None)
@@ -967,7 +967,7 @@ def compute_hog(depc, cid_list, config=None):
         >>> hoggen = compute_hog(depc, cid_list, config)
         >>> hog = list(hoggen)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> hog_image = make_hog_block_image(hog, config)
         >>> ut.show_if_requested()
     """
@@ -1082,7 +1082,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> assert kpts.shape[1] == 6
         >>> assert vecs.shape[1] == 128
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1101,7 +1101,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> idx = 5
         >>> (nFeat, kpts, vecs) = feat_list[idx]
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> chip = depc.get_native('chips', cid_list[idx:idx + 1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1197,8 +1197,8 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         >>> result = ('(num_kpts, kpts, vecs) = %s' % (ut.repr2((num_kpts, kpts, vecs)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
-        >>> from plottool_ibeis.interactions import ExpandableInteraction
+        >>> import ibeis.plottool as pt
+        >>> from ibeis.plottool.interactions import ExpandableInteraction
         >>> interact = ExpandableInteraction()
         >>> interact.append_plot(pt.interact_keypoints.KeypointInteraction(masked_chip, kpts, vecs))
         >>> interact.append_plot(lambda **kwargs: pt.plot_score_histograms([vt.get_scales(kpts)], **kwargs))
@@ -1312,7 +1312,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
         >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> fnum = 1
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.figure(fnum=fnum, doclf=True)

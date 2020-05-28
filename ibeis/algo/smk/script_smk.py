@@ -1085,7 +1085,7 @@ def sanity_checks(offset_list, Y_list, query_annots, ibs):
         # Look at the standard query images here
         # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
         from ibeis.viz import viz_chip
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.qt4ensure()
         fnum = 1
         pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
@@ -1164,7 +1164,7 @@ def compare_data(Y_list_):
     # ibs = qreq_.ibs
     # z = ibs.annots([a.aid for a in bady])
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     ut.qtensure()
     gamma1s = np.array(gamma1s)
     gamma2s = np.array(gamma2s)
@@ -1183,7 +1183,7 @@ def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath = join(imgdir,  data_uri_order[i] + '.jpg')
     image = vt.imread(gpath)
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qt4ensure()
     # pt.imshow(image)
     l = offset_list[i]

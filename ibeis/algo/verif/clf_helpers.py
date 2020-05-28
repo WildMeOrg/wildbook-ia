@@ -529,7 +529,7 @@ class ClfProblem(ut.NiceRepr):
         print('uncal_score = %r' % (uncal_score,))
         print('cal_score = %r' % (cal_score,))
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         ut.qtensure()
         pt.figure()
         ax = pt.gca()
@@ -870,7 +870,7 @@ class ClfResult(ut.NiceRepr):
 
             if warmup is not None:
                 """
-                python -m plottool_ibeis.draw_func2 plot_func --show --range=0,1 \
+                python -m ibeis.plottool.draw_func2 plot_func --show --range=0,1 \
                         --func="lambda x: np.maximum(0, (x - .6) / (1 - .6))"
                 """
                 # If n_support < warmup: then interpolate to learned thresh
@@ -1031,7 +1031,7 @@ class ClfResult(ut.NiceRepr):
 
     def ishow_roc(res):
         import vtool_ibeis as vt
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         ut.qtensure()
         y_test_bin = res.target_bin_df.values
         # The maximum allowed false positive rate

@@ -266,7 +266,7 @@ def compute_rvec(vecs, word):
         >>> word = words[-1]
         >>> rvecs, error_flags = compute_rvec(vecs, word)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.figure()
         >>> # recenter residuals for visualization
         >>> cvecs = (rvecs + word[None, :])
@@ -304,7 +304,7 @@ def aggregate_rvecs(rvecs, maws, error_flags):
         >>> maws = [1.0] * len(rvecs)
         >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.qt4ensure()
         >>> pt.figure()
         >>> # recenter residuals for visualization
@@ -927,7 +927,7 @@ def selectivity(u, alpha=3.0, thresh=0.0, out=None):
         float: score
 
     CommandLine:
-        python -m plottool_ibeis plot_func --show --range=-1,1  \
+        python -m ibeis.plottool plot_func --show --range=-1,1  \
             --setup="import ibeis" \
             --func ibeis.algo.smk.smk_funcs.selectivity \
             "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)"
@@ -976,7 +976,7 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
         >>> data = testdata_rvecs()
         >>> ut.quit_if_noshow()
         >>> exec(ut.execstr_dict(data))
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> from scipy.spatial import Voronoi, voronoi_plot_2d
         >>> pt.qt4ensure()
         >>> fig = pt.figure()

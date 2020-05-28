@@ -627,7 +627,7 @@ def hackshow_names(ibs, aid_list, fnum=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import vtool_ibeis as vt
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
@@ -703,7 +703,7 @@ def show_time_distributions(ibs, unixtime_list):
     r"""
     """
     #import vtool_ibeis as vt
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     unixtime_list = np.array(unixtime_list)
     num_nan = np.isnan(unixtime_list).sum()
     num_total = len(unixtime_list)

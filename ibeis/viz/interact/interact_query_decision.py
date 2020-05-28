@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
-from plottool_ibeis import interact_helpers as ih
-import plottool_ibeis as pt
+from ibeis.plottool import interact_helpers as ih
+import ibeis.plottool as pt
 from functools import partial
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
-from plottool_ibeis.abstract_interaction import AbstractInteraction
+from ibeis.plottool.abstract_interaction import AbstractInteraction
 
 ut.noinject(__name__, '[interact_query_decision]')
 

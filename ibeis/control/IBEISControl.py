@@ -1136,7 +1136,7 @@ class IBEISController(BASE_CLASS):
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> icon = ibs.get_database_icon()
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.imshow(icon)
             >>> ut.show_if_requested()
         """

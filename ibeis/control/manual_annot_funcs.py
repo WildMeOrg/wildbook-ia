@@ -2634,7 +2634,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
         >>> result = ('unixtime_list = %s' % (str(unixtime_list),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
@@ -3291,7 +3291,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> result = ('probchip_fpath_list = %s' % (str(probchip_fpath_list),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list, nPerPage=4)
         >>> iteract_obj.start()
         >>> ut.show_if_requested()

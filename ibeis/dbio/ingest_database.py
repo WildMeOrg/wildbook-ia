@@ -909,7 +909,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_oxford_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
 
     Ignore:
@@ -1191,7 +1191,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         >>> dryrun = True
         >>> ingest_coco_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     import simplejson as json

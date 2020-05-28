@@ -59,12 +59,12 @@ def compare_score_pdfs(testres):
         >>>     defaultdb=defaultdb, a=['timectrl'], t=['best'])
         >>> testres.compare_score_pdfs()
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     #from ibeis.init import main_helpers
     import utool as ut
-    #import plottool_ibeis as pt
+    #import ibeis.plottool as pt
     ut.ensureqt()
 
     testres.draw_annot_scoresep(f='fail=False')
@@ -137,7 +137,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         >>> ut.show_if_requested()
     """
     print('[testres] draw_feat_scoresep')
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     def load_feat_scores(qreq_, qaids):
         import ibeis  # NOQA
@@ -364,10 +364,10 @@ def compare_featscores():
         >>> result = compare_featscores()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import ibeis
     nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}

@@ -346,7 +346,7 @@ def demodata_tarjan_bridge():
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_tarjan_bridge()
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.show_nx(G)
         >>> ut.show_if_requested()
     """
@@ -398,7 +398,7 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> size, k, p = 25, 3, .1
         >>> rng = ut.ensure_rng(0)

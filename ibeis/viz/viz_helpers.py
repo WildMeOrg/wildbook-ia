@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import utool as ut
 import vtool_ibeis.keypoint as ktool
-import plottool_ibeis.draw_func2 as df2
+import ibeis.plottool.draw_func2 as df2
 from six.moves import zip, map
-from plottool_ibeis import plot_helpers as ph
+from ibeis.plottool import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, rrr, profile) = ut.inject2(__name__)

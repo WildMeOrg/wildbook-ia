@@ -12,9 +12,9 @@ from ibeis import dtool
 import networkx as nx
 import itertools as it
 import guitool_ibeis as gt
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 import ibeis.constants as const
-from plottool_ibeis import abstract_interaction
+from ibeis.plottool import abstract_interaction
 from guitool_ibeis.__PYQT__ import QtCore
 from guitool_ibeis.__PYQT__.QtCore import Qt
 from guitool_ibeis import mpl_widget

@@ -11,7 +11,7 @@ def do_infr_test(ccs, edges, new_edges):
     Creates a graph with `ccs` + `edges` and then adds `new_edges`
     """
     # import networkx as nx
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     infr = demo.make_demo_infr(ccs, edges)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
@@ -22,7 +22,7 @@ def chip_montage(ibs, qaids, config=None):
         >>> config = None
         >>> chip_montage(ibs, qaids, config)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -51,7 +51,7 @@ def image_montage(ibs, gids, config=None):
         >>> gids = ibs.get_annot_gids(qaids[0:1000])
         >>> image_montage(ibs, gids, config)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt

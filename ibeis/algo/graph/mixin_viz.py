@@ -16,7 +16,7 @@ class GraphVisualization(object):
     """ contains plotting related code """
 
     def _get_truth_colors(infr):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         truth_colors = {
             POSTV: pt.TRUE_BLUE,
             NEGTV: pt.FALSE_RED,
@@ -28,11 +28,11 @@ class GraphVisualization(object):
 
     @property
     def _error_color(infr):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         return pt.ORANGE
 
     def _get_cmap(infr):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         # return pt.plt.cm.RdYlBu
         if hasattr(infr, '_cmap'):
             return infr._cmap
@@ -110,7 +110,7 @@ class GraphVisualization(object):
 
     def get_colored_edge_weights(infr, graph=None, highlight_reviews=True):
         # Update color and linewidth based on scores/weight
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         if graph is None:
             graph = infr.graph
         truth_colors = infr._get_truth_colors()
@@ -148,14 +148,14 @@ class GraphVisualization(object):
             #print('!! edges = %r' % (len(edges),))
             #print('!! colors = %r' % (len(colors),))
             if len(nan_idxs) > 0:
-                import plottool_ibeis as pt
+                import ibeis.plottool as pt
                 for idx in nan_idxs:
                     colors[idx] = pt.GRAY
         return edges, colors
 
     @profile
     def get_colored_weights(infr, weights):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         #pt.rrrr()
         # cmap_ = 'viridis'
         # cmap_ = 'plasma'
@@ -247,7 +247,7 @@ class GraphVisualization(object):
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
 
         infr.print('update_visual_attrs', 3)
         if graph is None:
@@ -544,7 +544,7 @@ class GraphVisualization(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_viz import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> infr = demo.demodata_infr(ccs=ut.estarmap(
             >>>    range, [(1, 6), (6, 10), (10, 13), (13, 15), (15, 16),
             >>>            (17, 20)]))
@@ -559,7 +559,7 @@ class GraphVisualization(object):
             >>> infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         if graph is None:
             graph = infr.graph
         # kwargs['fontsize'] = kwargs.get('fontsize', 8)
@@ -605,7 +605,7 @@ class GraphVisualization(object):
             fig.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
 
     def show_edge(infr, edge, fnum=None, pnum=None, **kwargs):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         match = infr._exec_pairwise_match([edge])[0]
         fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum, pnum=pnum)
@@ -618,7 +618,7 @@ class GraphVisualization(object):
 
     def draw_aids(infr, aids, fnum=None):
         from ibeis.viz import viz_chip
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         fnum = pt.ensure_fnum(None)
         fig = pt.figure(fnum=fnum)
         viz_chip.show_many_chips(infr.ibs, aids, fnum=fnum)
@@ -627,8 +627,8 @@ class GraphVisualization(object):
     def start_qt_interface(infr, loop=True):
         import guitool_ibeis as gt
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
-        from plottool_ibeis import abstract_interaction
-        import plottool_ibeis as pt
+        from ibeis.plottool import abstract_interaction
+        import ibeis.plottool as pt
         pt.qtensure()
         gt.ensure_qtapp()
         # win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
@@ -661,7 +661,7 @@ class GraphVisualization(object):
         """
         Example
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
 
         if error_edges is None:
             # compute a minimal set of edges to minimally fix the case
@@ -722,7 +722,7 @@ class GraphVisualization(object):
 
 
 def on_pick(event, infr=None):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     print('ON PICK: %r' % (event,))
     artist = event.artist
     plotdat = pt.get_plotdat_dict(artist)

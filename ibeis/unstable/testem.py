@@ -44,7 +44,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         else:
             dup_edges.append((u, v))
     graph.remove_edges_from(dup_edges)
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import networkx as nx
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
@@ -324,7 +324,7 @@ def try_em():
         >>> from ibeis.algo.hots.testem import *  # NOQA
         >>> P, Pn, PL, gam, num_labels = test_em()
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.qt4ensure()
         >>> draw_em_graph(P, Pn, PL, gam, num_labels)
         >>> ut.show_if_requested()

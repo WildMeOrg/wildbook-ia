@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool_ibeis as pt
-from plottool_ibeis import plot_helpers as ph
+import ibeis.plottool as pt
+from ibeis.plottool import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
@@ -15,7 +15,7 @@ def HARDCODE_SHOW_PB_PAIR():
     Example:
         >>> # SCRIPT
         >>> from ibeis.viz.viz_chip import *  # NOQA
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> HARDCODE_SHOW_PB_PAIR()
         >>> pt.show_if_requested()
     """
@@ -33,7 +33,7 @@ def HARDCODE_SHOW_PB_PAIR():
     selected_ams = ut.compress(ams, flags)
     aid_pairs = ibs.get_annotmatch_aids(selected_ams)
     aid1, aid2 = aid_pairs[index]
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     fnum = 1
     if ut.get_argflag('--match'):
         request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])

@@ -179,7 +179,7 @@ def augment_nnindexer_experiment():
             elif resolution == 1:
                 ut.embed()
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     next_fnum = iter(range(0, 1)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
@@ -223,7 +223,7 @@ def flann_add_time_experiment():
     import ibeis
     import utool as ut
     import numpy as np
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     def make_flann_index(vecs, flann_params):
         flann = pyflann.FLANN()
@@ -336,7 +336,7 @@ def subindexer_time_experiment():
     import ibeis
     import utool as ut
     from vtool_ibeis._pyflann_backend import pyflann as pyflann
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     ibs = ibeis.opendb(db='PZ_Master0')
     daid_list = ibs.get_valid_aids()
     count_list = []

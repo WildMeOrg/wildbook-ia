@@ -597,7 +597,7 @@ def mustbe_example():
         >>> assert phi2['fred'] == 1, 'should be 1'
         >>> ut.quit_if_noshow()
         >>> #netx.draw_graphviz(model, with_labels=True)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pgm_viz.show_model(model, fnum=1)
         >>> pgm_viz.show_model(model, fnum=2, evidence=evidence, factor_list=factor_list2)
         >>> ut.show_if_requested()
@@ -712,7 +712,7 @@ def coin_example():
         >>> # factor_list2 = infr.query(query_vars, evidence).values()
         >>> # print_factors(model, factor_list2)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> from ibeis.algo.hots import bayes
         >>> kw = bayes.cluster_query(model, query_vars,evidence2,
         >>>                          method='bp', operation='marginalize')

@@ -9,11 +9,11 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
-import plottool_ibeis as pt  # NOQA
+import ibeis.plottool as pt  # NOQA
 from functools import partial
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from plottool_ibeis import interact_helpers as ih
+from ibeis.plottool import interact_helpers as ih
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -42,7 +42,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         >>> ut.show_if_requested()
     """
     # FIXME: needs to be flushed out a little
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     show_chip_list = [
         partial(viz.show_chip, ibs, aid, config2_=config2_)
         for aid in aid_list
@@ -135,7 +135,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     def newplot_wrp(func):
         def _wrp():
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             ret = func()
             pt.draw()
             return ret
@@ -361,7 +361,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             print('aid = %r' % (aid,))
             print('config2_ = %r' % (config2_,))
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
-            #import plottool_ibeis as pt
+            #import ibeis.plottool as pt
             #pt.plt.ioff()
             # TODO need to disable matplotlib callbacks?
             # Causes can't re-enter readline error
@@ -445,7 +445,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
     mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
-        from plottool_ibeis.viz_featrow import draw_feat_row
+        from ibeis.plottool.viz_featrow import draw_feat_row
         # Get the fx-th keypiont
         chip = ibs.get_annot_chips(aid, config2_=config2_)
         kp = ibs.get_annot_kpts(aid, config2_=config2_)[fx]

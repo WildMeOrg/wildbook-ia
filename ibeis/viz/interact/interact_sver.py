@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from plottool_ibeis import interact_helpers as ih
+from ibeis.plottool import interact_helpers as ih
 (print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 
 

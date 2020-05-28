@@ -439,7 +439,7 @@ def plot_gps_html(gps_list):
         >>> unixtime_list = unixtime_list_.compress(isvalid)  # NOQA
         >>> plot_image_gps(gps_list)
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import gmplot
     import matplotlib as mpl
     import vtool_ibeis as vt

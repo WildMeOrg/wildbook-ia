@@ -16,7 +16,7 @@ from functools import partial
 from guitool_ibeis.__PYQT__ import QtCore
 from guitool_ibeis.__PYQT__ import QtWidgets
 from guitool_ibeis.__PYQT__.QtCore import Qt
-from plottool_ibeis import fig_presenter
+from ibeis.plottool import fig_presenter
 import guitool_ibeis as gt
 #import six
 import utool as ut
@@ -734,7 +734,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             )
 
         def show_single_namematch():
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             ax = cm.show_single_namematch(qreq_, aid2, mode=0)
             ax = pt.gca()
             ax.figure.canvas.draw()

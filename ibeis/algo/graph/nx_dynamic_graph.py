@@ -160,7 +160,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         >>> assert self.connected_to(u) != self.connected_to(v)
         >>> ccs = list(self.connected_components())
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.qtensure()
         >>> pt.show_nx(self)
 

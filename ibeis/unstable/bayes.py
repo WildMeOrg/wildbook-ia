@@ -713,7 +713,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
 
 
 def draw_tree_model(model, **kwargs):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import networkx as netx
     if not ut.get_argval('--hackjunc'):
         fnum = pt.ensure_fnum(None)
@@ -839,14 +839,14 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         >>> result = show_model(model, evidence, soft_evidence)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
         draw_tree_model(model, **kwargs)
         return
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import networkx as netx
     fnum = pt.ensure_fnum(None)
     netx_graph = (model)

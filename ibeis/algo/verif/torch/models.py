@@ -91,7 +91,7 @@ def visualize():
     params = model.state_dict()
     G = make_nx(y, params)
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.dump_nx_ondisk(G, './pytorch_network.png')
     ut.startfile( './pytorch_network.png')
     # pt.show_nx(G, arrow_width=1)
