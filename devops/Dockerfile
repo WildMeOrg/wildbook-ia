@@ -65,8 +65,6 @@ RUN cd /ibeis/ibeis_cnn \
  && rm -rf .git \
  && cd /ibeis/utool \
  && rm -rf .git \
- && cd /ibeis/vtool \
- && rm -rf .git \
  && cd /ibeis/ibeis \
  && rm -rf .git
 

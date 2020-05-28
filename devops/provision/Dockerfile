@@ -27,7 +27,6 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
  && git clone --branch next https://github.com/WildbookOrg/ubelt                       /ibeis/ubelt \
  && git clone --branch next https://github.com/WildbookOrg/utool                       /ibeis/utool \
- && git clone --branch next https://github.com/WildbookOrg/vtool                       /ibeis/vtool
 
 RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank \
  && git init \
@@ -83,9 +82,7 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pydarknet \
  && /bin/bash unix_build.sh \
  && cd /ibeis/pyrf \
- && /bin/bash unix_build.sh \
- && cd /ibeis/vtool \
- && /bin/bash dev/unix_build.sh
+ && /bin/bash unix_build.sh
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
@@ -106,8 +103,6 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/utool \
  && pip install -e . \
  && cd /ibeis/ubelt \
- && pip install -e . \
- && cd /ibeis/vtool \
  && pip install -e . \
  && cd /ibeis/ibeis \
  && pip install -e . \
