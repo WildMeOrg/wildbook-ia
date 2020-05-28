@@ -1,0 +1,14 @@
+
+	<object>
+		<name>_^_NAME_^_</name>
+		<pose>_^_POSE_^_</pose>
+		<interest>_^_INTEREST_^_</interest>
+		<truncated>_^_TRUNCATED_^_</truncated>
+		<difficult>_^_DIFFICULT_^_</difficult>
+		<bndbox>
+			<xmax>_^_XMAX_^_</xmax>
+			<xmin>_^_XMIN_^_</xmin>
+			<ymax>_^_YMAX_^_</ymax>
+			<ymin>_^_YMIN_^_</ymin>
+		</bndbox>_^_PART_MULTIPLE_OPTIONAL_^_
+	</object>

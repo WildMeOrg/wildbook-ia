@@ -1,0 +1,10 @@
+
+		<part>
+			<name>_^_NAME_^_</name>
+			<bndbox>
+                <xmax>_^_XMAX_^_</xmax>
+				<xmin>_^_XMIN_^_</xmin>
+                <ymax>_^_YMAX_^_</ymax>
+				<ymin>_^_YMIN_^_</ymin>
+			</bndbox>
+		</part>

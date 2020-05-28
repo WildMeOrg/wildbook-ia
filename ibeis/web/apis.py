@@ -371,7 +371,7 @@ def image_upload_zip(**kwargs):
     """
     test to ensure Directory and utool do the same thing
 
-    from detecttools.directory import Directory
+    from ibeis.detecttools.directory import Directory
     upload_path = ut.truepath('~/Pictures')
     gpath_list1 = sorted(ut.list_images(upload_path, recursive=False, full=True))
 

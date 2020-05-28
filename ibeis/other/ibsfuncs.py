@@ -8369,7 +8369,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
 
 @register_ibs_method
 def import_folder(ibs, path, recursive=True, **kwargs):
-    from detecttools.directory import Directory
+    from ibeis.detecttools.directory import Directory
     direct = Directory(path, recursive=recursive, images=True)
     gid_list = ibs.add_images(direct.files(), **kwargs)
     return gid_list
