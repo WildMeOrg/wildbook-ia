@@ -50,7 +50,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     """Create training XML for training models."""
     import random
     from datetime import date
-    from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+    from ibeis.detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
     print('Received species_mapping = %r' % (species_mapping, ))
 
@@ -772,7 +772,7 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         >>> # dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
         >>> ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)
     """
-    from detecttools.ibeisdata import IBEIS_Data
+    from ibeis.detecttools.ibeisdata import IBEIS_Data
     import random
 
     num_examples = int(num_examples)

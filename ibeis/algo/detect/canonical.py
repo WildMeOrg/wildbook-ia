@@ -534,7 +534,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
 
 def test(gpath_list, canonical_weight_filepath=None, **kwargs):
-    from detecttools.directory import Directory
+    from ibeis.detecttools.directory import Directory
 
     # Get correct weight if specified with shorthand
     archive_url = None

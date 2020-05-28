@@ -29,9 +29,7 @@ RUN cd /ibeis/ibeis \
  && git checkout ${BRANCH} \
  && git pull
 
-RUN cd /ibeis/detecttools \
- && rm -rf .git \
- && cd /ibeis/ibeis_cnn \
+RUN cd /ibeis/ibeis_cnn \
  && rm -rf .git \
  && cd /ibeis/guitool \
  && rm -rf .git \

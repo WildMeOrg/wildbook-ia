@@ -211,7 +211,6 @@ Erotemic's IBEIS Image Analysis module dependencies
 
 bluemellophone's IBEIS Image Analysis modules
 
-* https://github.com/WildbookOrg/detecttools
 * https://github.com/WildbookOrg/pyrf
   docs: http://bluemellophone.github.io/pyrf
 
