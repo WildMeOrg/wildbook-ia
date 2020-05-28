@@ -6,10 +6,10 @@ import sys
 import six
 import traceback
 from utool.Preferences import Pref, PrefNode, PrefChoice
-from guitool_ibeis.__PYQT__ import _fromUtf8, _translate, QVariantHack
-from guitool_ibeis.__PYQT__ import QtWidgets, QtCore
-from guitool_ibeis.__PYQT__.QtCore import Qt
-from guitool_ibeis import qtype
+from ibeis.guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
+from ibeis.guitool.__PYQT__ import QtWidgets, QtCore
+from ibeis.guitool.__PYQT__.QtCore import Qt
+from ibeis.guitool import qtype
 import utool as ut
 from utool import util_type
 ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
@@ -345,16 +345,16 @@ class EditPrefWidget(QtWidgets.QWidget):
 def test_preference_gui():
     r"""
     CommandLine:
-        python -m guitool_ibeis.PreferenceWidget --exec-test_preference_gui --show
+        python -m ibeis.guitool.PreferenceWidget --exec-test_preference_gui --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.PreferenceWidget import *  # NOQA
-        >>> import guitool_ibeis
-        >>> guitool_ibeis.ensure_qtapp()
+        >>> from ibeis.guitool.PreferenceWidget import *  # NOQA
+        >>> import ibeis.guitool
+        >>> guitool.ensure_qtapp()
         >>> scope = test_preference_gui()
         >>> ut.quit_if_noshow()
-        >>> guitool_ibeis.qtapp_loop(freq=10)
+        >>> guitool.qtapp_loop(freq=10)
     """
     import dtool
     class DtoolConfig(dtool.Config):
@@ -390,8 +390,8 @@ def test_preference_gui():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool_ibeis.PreferenceWidget
-        python -m guitool_ibeis.PreferenceWidget --allexamples
+        python -m ibeis.guitool.PreferenceWidget
+        python -m ibeis.guitool.PreferenceWidget --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

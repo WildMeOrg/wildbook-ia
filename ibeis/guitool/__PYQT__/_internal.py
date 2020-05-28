@@ -51,9 +51,9 @@ from __PYQT__ import QtTest
 from __PYQT__.QtCore import Qt
 from __PYQT__.QtGui import QSizePolicy
 
-python -c "from guitool_ibeis.__PYQT__ import QtCore"
-python -c "from guitool_ibeis import __PYQT__"
-python -c "import guitool_ibeis.__PYQT__"
+python -c "from ibeis.guitool.__PYQT__ import QtCore"
+python -c "from ibeis.guitool import __PYQT__"
+python -c "import ibeis.guitool.__PYQT__"
 python -c "import __PYQT__"
 from __PYQT__ import QtGui
 from __PYQT__ import QtTest

@@ -2,20 +2,20 @@
 """
 
 CommandLine:
-    python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show
-    python -m guitool_ibeis.guitool_components ConfigConfirmWidget --show
+    python -m ibeis.guitool.PrefWidget2 EditConfigWidget --show
+    python -m ibeis.guitool.guitool_components ConfigConfirmWidget --show
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six  # NOQA
 import traceback
-from guitool_ibeis.__PYQT__ import QtCore, QtGui  # NOQA
-from guitool_ibeis.__PYQT__ import QtWidgets
-from guitool_ibeis.__PYQT__ import QVariantHack
-from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION
-from guitool_ibeis.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
-from guitool_ibeis.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
+from ibeis.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from ibeis.guitool.__PYQT__ import QtWidgets
+from ibeis.guitool.__PYQT__ import QVariantHack
+from ibeis.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
+from ibeis.guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
+from ibeis.guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
 import utool as ut
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
@@ -193,8 +193,8 @@ class ConfigValueDelegate(DELEGATE_BASE):
     specific column
 
     CommandLine:
-        python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show
-        python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show --verbconf
+        python -m ibeis.guitool.PrefWidget2 EditConfigWidget --show
+        python -m ibeis.guitool.PrefWidget2 EditConfigWidget --show --verbconf
 
     References:
         http://stackoverflow.com/questions/28037126/how-to-use-qcombobox-as-delegate-with-qtableview
@@ -282,12 +282,12 @@ class ConfigValueDelegate(DELEGATE_BASE):
             print('\n\n')
             print('[DELEGATE] newEditor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode is not None and leafNode.is_combo:
-            import guitool_ibeis
+            import ibeis.guitool
             options = leafNode.valid_values
             curent_value = index.model().data(index)
             if VERBOSE_CONFIG:
                 print('[DELEGATE] * current_value = %r' % (curent_value,))
-            editor = guitool_ibeis.newComboBox(parent, options, default=curent_value)
+            editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             editor.setAutoFillBackground(True)
         #elif leafNode is not None and leafNode.type_ is float:
@@ -893,14 +893,14 @@ class EditConfigWidget(QtWidgets.QWidget):
         config (dtool.Config):
 
     CommandLine:
-        python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show
-        python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show --verbconf
+        python -m ibeis.guitool.PrefWidget2 EditConfigWidget --show
+        python -m ibeis.guitool.PrefWidget2 EditConfigWidget --show --verbconf
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.PrefWidget2 import *  # NOQA
-        >>> import guitool_ibeis
-        >>> guitool_ibeis.ensure_qtapp()
+        >>> from ibeis.guitool.PrefWidget2 import *  # NOQA
+        >>> import ibeis.guitool
+        >>> guitool.ensure_qtapp()
         >>> import dtool
         >>> def changed(key=None):
         >>>     print('config[key] = %r has changed' % (key,))
@@ -926,7 +926,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> widget.show()
         >>> ut.quit_if_noshow()
         >>> widget.resize(400, 500)
-        >>> guitool_ibeis.qtapp_loop(qwin=widget, freq=10)
+        >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
     # data_changed(key)
     data_changed = QtCore.pyqtSignal(str)
@@ -946,7 +946,7 @@ class EditConfigWidget(QtWidgets.QWidget):
             self.data_changed.connect(changed)
 
     def init_layout(self):
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         # Create the tree view and buttons
         self.tree_view = QtWidgets.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
@@ -1015,7 +1015,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         #self.tree_view.header().resizeSection(0, 250)
         #setDefaultSectionSize(
 
-        # from guitool_ibeis import api_item_view
+        # from ibeis.guitool import api_item_view
         # api_item_view.set_column_persistant_editor(self.tree_view, 1)
         # # Persistant editors
         #num_rows = 4  # self.tree_view.model.rowCount()
@@ -1072,8 +1072,8 @@ class EditConfigWidget(QtWidgets.QWidget):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool_ibeis.PrefWidget2
-        python -m guitool_ibeis.PrefWidget2 --allexamples
+        python -m ibeis.guitool.PrefWidget2
+        python -m ibeis.guitool.PrefWidget2 --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

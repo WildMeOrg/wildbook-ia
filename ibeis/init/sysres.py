@@ -148,14 +148,14 @@ def get_rawdir():
 
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
-    import guitool_ibeis
-    guitool_ibeis.ensure_qtapp()
+    import ibeis.guitool
+    guitool.ensure_qtapp()
     # Gui selection
-    work_dir = guitool_ibeis.select_directory('Select a work directory')
+    work_dir = guitool.select_directory('Select a work directory')
 
     # Make sure selection is ok
     if not exists(work_dir):
-        try_again = guitool_ibeis.user_option(
+        try_again = guitool.user_option(
             paremt=None,
             msg='Directory %r does not exist.' % work_dir,
             title='get work dir failed',

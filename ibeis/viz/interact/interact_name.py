@@ -86,10 +86,10 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    import guitool_ibeis
+                    import ibeis.guitool
                     from ibeis.viz.interact import interact_chip
                     height = fig.canvas.geometry().height()
-                    qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
+                    qpoint = guitool.newQPoint(event.x, height - event.y)
                     refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
                     interact_chip.show_annot_context_menu(
                         ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
@@ -654,8 +654,8 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def on_key_press(self, event=None):
         if event.key == 'escape':
-            import guitool_ibeis
-            if guitool_ibeis.are_you_sure():
+            import ibeis.guitool
+            if guitool.are_you_sure():
                 self.close()
 
     def figure_clicked(self, event=None):
@@ -666,15 +666,15 @@ class MatchVerificationInteraction(AbstractInteraction):
                 aid = vh.get_ibsdat(ax, 'aid')
                 #print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    #import guitool_ibeis
+                    #import ibeis.guitool
                     #height = self.fig.canvas.geometry().height()
-                    #qpoint = guitool_ibeis.newQPoint(event.x, height - event.y)
+                    #qpoint = guitool.newQPoint(event.x, height - event.y)
                     #ibs = self.ibs
                     #is_exemplar = ibs.get_annot_exemplar_flags(aid)
                     #def context_func():
                     #    ibs.set_annot_exemplar_flags(aid, not is_exemplar)
                     #    self.show_page()
-                    #guitool_ibeis.popup_menu(self.fig.canvas, pt, [
+                    #guitool.popup_menu(self.fig.canvas, pt, [
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     #])
                     # TODO USE ABSTRACT INTERACTION

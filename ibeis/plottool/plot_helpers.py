@@ -141,7 +141,7 @@ def qt4ensure():
 
 
 def qtensure():
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     if ut.inIPython():
         import IPython
         ipython = IPython.get_ipython()

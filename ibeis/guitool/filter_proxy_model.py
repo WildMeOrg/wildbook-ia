@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-from guitool_ibeis.__PYQT__ import QtGui, QtCore  # NOQA
-from guitool_ibeis.__PYQT__.QtCore import Qt
+from ibeis.guitool.__PYQT__ import QtGui, QtCore  # NOQA
+from ibeis.guitool.__PYQT__.QtCore import Qt
 import utool
 
 utool.noinject(__name__, '[APIItemView]', DEBUG=False)
@@ -86,18 +86,18 @@ class FilterProxyModel(BASE_CLASS):
         return self.sourceModel().parent(self.mapToSource(index))
 
     def get_header_data(self, colname, proxyIndex):
-        #print('[guitool_ibeis] calling default map to source')
-        #print('[guitool_ibeis] proxyIndex=%r' % proxyIndex)
+        #print('[guitool] calling default map to source')
+        #print('[guitool] proxyIndex=%r' % proxyIndex)
         #proxy_keys = dir(proxyIndex)
         #proxy_vals = [getattr(proxyIndex, key) for key in proxy_keys]
         #proxy_dict = dict(zip(proxy_keys, proxy_vals))
-        #print('[guitool_ibeis] proxyIndex.__dict__=%s' % utool.repr2(proxy_dict))
+        #print('[guitool] proxyIndex.__dict__=%s' % utool.repr2(proxy_dict))
         #utool.embed()
         #sourceIndex = BASE_CLASS.mapToSource(self, proxyIndex)
         sourceIndex = self.mapToSource(proxyIndex)
-        #print('[guitool_ibeis] calling set header')
+        #print('[guitool] calling set header')
         ret = self.sourceModel().get_header_data(colname, sourceIndex)
-        #print('[guitool_ibeis] finished')
+        #print('[guitool] finished')
         return ret
 
     def update_filterdict(self, new_dict):

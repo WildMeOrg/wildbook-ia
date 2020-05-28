@@ -70,10 +70,10 @@ def print_all_backends():
 
 
 def get_pyqt():
-    have_guitool_ibeis = ut.check_module_installed('guitool_ibeis')
+    have_guitool = ut.check_module_installed('guitool')
     try:
-        if have_guitool_ibeis:
-            from guitool_ibeis import __PYQT__ as PyQt
+        if have_guitool:
+            from ibeis.guitool import __PYQT__ as PyQt
             pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
         else:
             try:

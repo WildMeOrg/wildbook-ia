@@ -625,7 +625,7 @@ class GraphVisualization(object):
         return fig
 
     def start_qt_interface(infr, loop=True):
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
         from ibeis.plottool import abstract_interaction
         import ibeis.plottool as pt

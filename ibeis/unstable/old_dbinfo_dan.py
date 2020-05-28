@@ -164,7 +164,7 @@ def dans_splits(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = dans_splits(ibs)
         >>> ut.quit_if_noshow()
@@ -213,7 +213,7 @@ def dans_splits(ibs):
 
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     import ibeis.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
@@ -244,7 +244,7 @@ def fix_splits_interaction(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = fix_splits_interaction(ibs)
         >>> ut.quit_if_noshow()
@@ -264,7 +264,7 @@ def fix_splits_interaction(ibs):
 
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     import ibeis.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
@@ -301,7 +301,7 @@ def split_analysis(ibs):
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = split_analysis(ibs)
         >>> ut.quit_if_noshow()
@@ -418,7 +418,7 @@ def split_analysis(ibs):
 
     if 1:
         from ibeis.viz import viz_graph2
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):

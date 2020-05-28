@@ -135,7 +135,7 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef TreeNode build_internal_structure(object model):
-    #from guitool_ibeis.api_item_model import *
+    #from ibeis.guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
     USE_RECURSIVE = True

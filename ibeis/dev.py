@@ -775,7 +775,7 @@ def ggr_random_name_splits():
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     gt.ensure_qtapp()
     #nid_list = ibs.get_valid_nids(filter_empty=True)
     import ibeis

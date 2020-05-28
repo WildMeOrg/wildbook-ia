@@ -68,7 +68,7 @@ def fix_pz_master():
     import ibeis
     ibeis._preload()
     from ibeis.gui import inspect_gui
-    import guitool_ibeis
+    import ibeis.guitool
     ibs = ibeis.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
@@ -81,7 +81,7 @@ def fix_pz_master():
     qres_wgt = inspect_gui.launch_review_matches_interface(ibs, qres_list, dodraw=ut.show_was_requested())
 
     if ut.show_was_requested():
-        guitool_ibeis.guitool_main.qtapp_loop()
+        guitool.guitool_main.qtapp_loop()
     return qres_wgt
 
 

@@ -491,7 +491,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> dlg.show()
             >>> import plottool_ibeis as pt
             >>> self = dlg.widget
-            >>> guitool_ibeis.qtapp_loop(qwin=dlg)
+            >>> guitool.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
         """
@@ -507,7 +507,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return UnnamedConfig
 
     def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         gt.ensure_qapp()  # must be ensured before any embeding
         dlg = gt.ConfigConfirmWidget.as_dialog(
             title=title, msg=msg, config=cfg)

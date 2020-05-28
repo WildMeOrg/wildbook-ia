@@ -136,7 +136,7 @@ def demo_single_pairwise_feature_vector():
             class_to_edge[class_name] = edge
 
         import ibeis.plottool as pt
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         gt.ensure_qapp()
         pt.qtensure()
 

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
-from guitool_ibeis.__PYQT__ import QtCore, QtGui
-from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
-from guitool_ibeis.__PYQT__.QtCore import Qt
+from ibeis.guitool.__PYQT__ import QtCore, QtGui
+from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
+from ibeis.guitool.__PYQT__.QtCore import Qt
 import math
 import utool
 

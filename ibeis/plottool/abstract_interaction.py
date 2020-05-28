@@ -310,7 +310,7 @@ class AbstractInteraction(object):
         """
         context menu
         """
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         height = self.fig.canvas.geometry().height()
         qpoint = gt.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas

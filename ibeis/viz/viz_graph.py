@@ -486,12 +486,12 @@ class AnnotGraphInteraction(AbstractInteraction):
         pt.update()
 
     def edit_config(self, event):
-        import guitool_ibeis
-        guitool_ibeis.ensure_qtapp()
-        from guitool_ibeis import PrefWidget2
+        import ibeis.guitool
+        guitool.ensure_qtapp()
+        from ibeis.guitool import PrefWidget2
         self.widget = PrefWidget2.EditConfigWidget(config=self.config)
         self.widget.show()
-        #dlg = guitool_ibeis.ConfigConfirmWidget.as_dialog(None,
+        #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
         #                                            title='Confirm Import Images',
         #                                            msg='New Settings',
         #                                            config=self.config)
@@ -781,7 +781,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     if ut.get_argflag('--cut'):
         infr.apply_all()
 
-    #import guitool_ibeis as gt
+    #import ibeis.guitool as gt
     #gt.ensure_qtapp()
     #print('infr = %r' % (infr,))
     #win = test_qt_graphs(infr=infr, use_image=use_image)

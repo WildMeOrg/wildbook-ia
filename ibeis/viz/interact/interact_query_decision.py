@@ -324,7 +324,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             >>> # verify results
             >>> #print(result)
         """
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         print('[interact_query_decision] Confirming selected animals.')
 
         selected_aids = [aid for aid in self.comp_aids
@@ -384,7 +384,7 @@ class QueryVerificationInteraction(AbstractInteraction):
 
     def figure_clicked(self, event=None):
         from ibeis.viz import viz_helpers as vh
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')

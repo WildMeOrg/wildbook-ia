@@ -19,7 +19,7 @@ def dependencies_for_myprogram():
     References:
         http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
     """
-    from guitool_ibeis.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
+    from ibeis.guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
     # from PyQt4 import QtCore, QtGui  # NOQA
     #from PyQt4 import QtCore, QtGui  # NOQA
     from scipy.sparse.csgraph import _validation  # NOQA
