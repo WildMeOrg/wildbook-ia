@@ -683,13 +683,6 @@ def make_netharn_registry(remote):
             },
         ),
         CommonRepo(
-            name='plottool_ibeis', branch='master', remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/plottool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/plottool_ibeis.git',
-            },
-        ),
-        CommonRepo(
             name='guitool_ibeis', branch='master', remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/guitool_ibeis.git',

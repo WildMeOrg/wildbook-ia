@@ -25,7 +25,6 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch master https://github.com/WildbookOrg/ibeis                     /ibeis/ibeis \
  && git clone --branch next https://github.com/WildbookOrg/ibeis_cnn                   /ibeis/ibeis_cnn \
  && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
- && git clone --branch next https://github.com/WildbookOrg/plottool                    /ibeis/plottool \
  && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /ibeis/pydarknet \
  && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
  && git clone --branch next https://github.com/WildbookOrg/ubelt                       /ibeis/ubelt \
@@ -105,8 +104,6 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/brambox \
  && pip install -e . \
  && cd /ibeis/lightnet \
- && pip install -e . \
- && cd /ibeis/plottool \
  && pip install -e . \
  && cd /ibeis/pydarknet \
  && pip install -e . \

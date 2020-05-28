@@ -61,8 +61,6 @@ RUN cd /ibeis/detecttools \
  && rm -rf .git \
  && cd /ibeis/ibeis-2d-orientation-module \
  && rm -rf .git \
- && cd /ibeis/plottool \
- && rm -rf .git \
  && cd /ibeis/pydarknet \
  && rm -rf .git \
  && cd /ibeis/pyrf \
