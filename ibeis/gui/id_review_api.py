@@ -92,7 +92,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     from ibeis.algo.hots import chip_match
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
     automatch_kw = ut.update_existing(automatch_kw, review_cfg)
@@ -633,7 +633,7 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     import cv2
     import io
     import ibeis.plottool as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     import matplotlib as mpl
 
     if cm.__class__.__name__ == 'PairwiseMatch':

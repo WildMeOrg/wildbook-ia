@@ -7,7 +7,7 @@ import numpy as np
 import utool as ut
 import networkx as nx
 import itertools as it
-import vtool_ibeis as vt  # NOQA
+import ibeis.vtool as vt  # NOQA
 # import ibeis.algo.graph.nx_edge_kconnectivity as nx_ec
 from ibeis.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict

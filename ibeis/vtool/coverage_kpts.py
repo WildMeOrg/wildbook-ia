@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 import utool as ut
 import ubelt as ub
-from vtool_ibeis import patch as ptool
-from vtool_ibeis import keypoint as ktool
+from ibeis.vtool import patch as ptool
+from ibeis.vtool import keypoint as ktool
 
 
 # TODO: integrate more
@@ -29,13 +29,13 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
     makes a heatmap overlay for keypoints
 
     CommandLine:
-        python -m vtool_ibeis.coverage_kpts make_kpts_heatmask --show
+        python -m ibeis.vtool.coverage_kpts make_kpts_heatmask --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
-        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.coverage_kpts import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> import pyhesaff
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
@@ -76,10 +76,10 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
 
 
 def make_heatmask(mask, cmap='plasma'):
-    # import vtool_ibeis as vt
+    # import ibeis.vtool as vt
     # use a disk instead of a gaussian
     import plottool_ibeis as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     assert len(mask.shape) == 2
     mask = vt.rectify_to_float01(mask)
     heatmask = pt.plt.get_cmap(cmap)(mask)
@@ -124,8 +124,8 @@ def make_kpts_coverage_mask(
     Example:
         >>> # ENABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(module:plottool_ibeis)
-        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.coverage_kpts import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> import plottool_ibeis as pt
         >>> import pyhesaff
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
@@ -197,16 +197,16 @@ def warp_patch_onto_kpts(
         ndarray: mask
 
     CommandLine:
-        python -m vtool_ibeis.coverage_kpts --test-warp_patch_onto_kpts
-        python -m vtool_ibeis.coverage_kpts --test-warp_patch_onto_kpts --show
-        python -m vtool_ibeis.coverage_kpts --test-warp_patch_onto_kpts --show --hole
-        python -m vtool_ibeis.coverage_kpts --test-warp_patch_onto_kpts --show --square
-        python -m vtool_ibeis.coverage_kpts --test-warp_patch_onto_kpts --show --square --hole
+        python -m ibeis.vtool.coverage_kpts --test-warp_patch_onto_kpts
+        python -m ibeis.vtool.coverage_kpts --test-warp_patch_onto_kpts --show
+        python -m ibeis.vtool.coverage_kpts --test-warp_patch_onto_kpts --show --hole
+        python -m ibeis.vtool.coverage_kpts --test-warp_patch_onto_kpts --show --square
+        python -m ibeis.vtool.coverage_kpts --test-warp_patch_onto_kpts --show --square --hole
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.coverage_kpts import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> import pyhesaff
         >>> img_fpath    = ut.grab_test_imgpath('carl.jpg')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
@@ -241,7 +241,7 @@ def warp_patch_onto_kpts(
         >>> show_coverage_map(chip, mask, patch, kpts)
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     #if len(kpts) == 0:
     #    return None
     chip_scale_h = int(np.ceil(chipshape[0] * cov_scale_factor))
@@ -357,11 +357,11 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3,
         ndarray: patch
 
     CommandLine:
-        python -m vtool_ibeis.coverage_kpts --test-get_gaussian_weight_patch
+        python -m ibeis.vtool.coverage_kpts --test-get_gaussian_weight_patch
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
+        >>> from ibeis.vtool.coverage_kpts import *  # NOQA
         >>> patch = get_gaussian_weight_patch()
         >>> result = str(patch)
         >>> print(result)
@@ -421,11 +421,11 @@ def gridsearch_kpts_coverage_mask():
     testing function
 
     CommandLine:
-        python -m vtool_ibeis.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
+        python -m ibeis.vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
+        >>> from ibeis.vtool.coverage_kpts import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> gridsearch_kpts_coverage_mask()
         >>> pt.show_if_requested()
@@ -453,7 +453,7 @@ def gridsearch_kpts_coverage_mask():
 
 def testdata_coverage(fname=None):
     """ testing function """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     # build test data
     kpts, vecs = vt.demodata.get_testdata_kpts(fname, with_vecs=True)
     # HACK IN DISTINCTIVENESS
@@ -497,7 +497,7 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.coverage_kpts
+        xdoctest -m ibeis.vtool.coverage_kpts
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

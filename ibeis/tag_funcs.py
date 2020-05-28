@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 from six.moves import zip, map
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import utool as ut
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)

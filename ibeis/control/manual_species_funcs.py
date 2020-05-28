@@ -11,7 +11,7 @@ import functools
 import six  # NOQA
 from six.moves import range, zip, map  # NOQA
 #import numpy as np
-#import vtool_ibeis as vt
+#import ibeis.vtool as vt
 import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA

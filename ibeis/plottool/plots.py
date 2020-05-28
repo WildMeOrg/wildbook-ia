@@ -635,7 +635,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
     if report_max:
         # TODO: multiple max poses
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         maxpos_list = ydata_list.argmax(axis=1)
         max_nd0_list = nd_basis[0].take(maxpos_list)
         max_score_list = vt.ziptake(ydata_list, maxpos_list)
@@ -765,7 +765,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
         >>> pt.show_if_requested()
     """
     # Find maxima
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(hist, centers, maxima_thresh)
     argmaxima = np.array(ut.ensure_iterable(argmaxima))
     maxima_y = np.array(ut.ensure_iterable(maxima_y))
@@ -844,7 +844,7 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.plottool.plots import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> import ibeis.plottool as pt
         >>> ydata = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.01, 0.00, 6.73, 8.69])
         >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
@@ -859,7 +859,7 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
         >>> pt.show_if_requested()
     """
     # Find maxima
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     # Hack into the source code
     locals_ = ut.exec_func_src2(vt.argsubextrema2)
 
@@ -2241,7 +2241,7 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
 
 
 def draw_time_distribution(unixtime_list, bw=None):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     import ibeis.plottool as pt
     if len(unixtime_list) > 0:
         from sklearn.neighbors.kde import KernelDensity

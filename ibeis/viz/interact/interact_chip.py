@@ -8,7 +8,7 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import ibeis.plottool as pt  # NOQA
 from functools import partial
 from ibeis import viz

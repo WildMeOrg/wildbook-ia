@@ -7,7 +7,7 @@ from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 from os.path import abspath, expanduser, join
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import numpy as np
 import cv2
 

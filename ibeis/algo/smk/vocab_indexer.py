@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis import dtool
 import utool as ut
-import vtool_ibeis as vt
-from vtool_ibeis._pyflann_backend import pyflann as pyflann
+import ibeis.vtool as vt
+from ibeis.vtool._pyflann_backend import pyflann as pyflann
 from ibeis.algo.smk import pickle_flann
 import numpy as np
 import warnings

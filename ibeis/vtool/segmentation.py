@@ -75,18 +75,18 @@ def demo_grabcut(bgr_img):
         img (ndarray[uint8_t, ndim=2]):  image data
 
     CommandLine:
-        python -m vtool_ibeis.segmentation --test-demo_grabcut --show
+        python -m ibeis.vtool.segmentation --test-demo_grabcut --show
 
     SeeAlso:
         python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.segmentation import *  # NOQA
+        >>> from ibeis.vtool.segmentation import *  # NOQA
         >>> # build test data
         >>> import utool as ut
         >>> import plottool_ibeis as pt
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> img_fpath = ut.grab_test_imgpath('easy1.png')
         >>> bgr_img = vt.imread(img_fpath)
         >>> # execute function
@@ -110,7 +110,7 @@ def demo_grabcut(bgr_img):
     init_mask[-1, :] = label_colors[label_values.index(cv2.GC_BGD)]
     init_mask[:,  0] = label_colors[label_values.index(cv2.GC_BGD)]
     init_mask[:, -1] = label_colors[label_values.index(cv2.GC_BGD)]
-    #import vtool_ibeis as vt
+    #import ibeis.vtool as vt
     cached_mask_fpath = 'tmp_mask.png'
     if ub.argflag('--nocache'):
         ut.delete(cached_mask_fpath)
@@ -279,7 +279,7 @@ def segment(img_fpath, bbox_, new_size=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.segmentation
+        xdoctest -m ibeis.vtool.segmentation
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range
 from ibeis import dtool
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import numpy as np
 from ibeis.algo.smk import smk_funcs
 from ibeis.control.controller_inject import register_preprocs

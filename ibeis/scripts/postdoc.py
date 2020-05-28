@@ -16,7 +16,7 @@ import itertools as it
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -611,7 +611,7 @@ def draw_match_states():
             INCMP: list(infr.incmp_graph.edges())[0],
         }
     import ibeis.plottool as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     for key, edge in chosen.items():
         match = infr._make_matches_from([edge], config={
             'match_config': {'ratio_thresh': .7}})[0]

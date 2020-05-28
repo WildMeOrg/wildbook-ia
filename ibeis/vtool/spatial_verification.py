@@ -35,14 +35,14 @@ import numpy.linalg as npl
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
-import vtool_ibeis.keypoint as ktool
-import vtool_ibeis.linalg as ltool
-import vtool_ibeis.distance
+import ibeis.vtool.keypoint as ktool
+import ibeis.vtool.linalg as ltool
+import ibeis.vtool.distance
 import cv2
 from .util_math import TAU
 
 try:
-    from vtool_ibeis import sver_c_wrapper
+    from ibeis.vtool import sver_c_wrapper
     HAVE_SVER_C_WRAPPER = not ut.get_argflag('--no-c')
 except Exception as ex:
     HAVE_SVER_C_WRAPPER = False
@@ -62,13 +62,13 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-build_lstsqrs_Mx9
+        python -m ibeis.vtool.spatial_verification --test-build_lstsqrs_Mx9
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair()
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
@@ -111,13 +111,13 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
 def try_svd(M):
     """
     CommandLine:
-        python -m vtool_ibeis.spatial_verification try_svd
+        python -m ibeis.vtool.spatial_verification try_svd
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
         >>> rng = np.random.RandomState(42)
         >>> num = 1000
         >>> xy1_mn = rng.randn(2, num)
@@ -130,8 +130,8 @@ def try_svd(M):
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
         >>> num = np.ceil(np.sqrt(2000))
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair(wh_num=(num, num))
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
@@ -164,12 +164,12 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
     CURRENTLY NOT WORKING
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-build_affine_lstsqrs_Mx6
+        python -m ibeis.vtool.spatial_verification --test-build_affine_lstsqrs_Mx6
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair()
         >>> xy1_man = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_man = ktool.get_xys(kpts2).astype(np.float64)
@@ -249,13 +249,13 @@ def compute_affine(xy1_man, xy2_man):
         ndarray[shape=(3,3)]: A - affine matrix
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-compute_affine:1 --show
+        python -m ibeis.vtool.spatial_verification --test-compute_affine:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool.keypoint as ktool
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair()
         >>> xy1_mn = ktool.get_xys(kpts1)
         >>> xy2_mn = ktool.get_xys(kpts2)
@@ -266,9 +266,9 @@ def compute_affine(xy1_man, xy2_man):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool.keypoint as ktool
         >>> import plottool_ibeis as pt
         >>> xy1_man, xy2_man, rchip1, rchip2, T1, T2 = testdata_matching_affine_inliers_normalized()
         >>> A_prime = compute_affine(xy1_man, xy2_man)
@@ -313,13 +313,13 @@ def compute_homog(xy1_mn, xy2_mn):
         ndarray[shape=(3,3)]: H - homography matrix
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-compute_homog:1 --show
+        python -m ibeis.vtool.spatial_verification --test-compute_homog:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.keypoint as ktool
-        >>> import vtool_ibeis.demodata as demodata
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.keypoint as ktool
+        >>> import ibeis.vtool.demodata as demodata
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair()
         >>> xy1_mn = ktool.get_xys(kpts1)
         >>> xy2_mn = ktool.get_xys(kpts2)
@@ -333,8 +333,8 @@ def compute_homog(xy1_mn, xy2_mn):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.keypoint as ktool
         >>> import plottool_ibeis as pt
         >>> xy1_man, xy2_man, rchip1, rchip2, T1, T2 = testdata_matching_affine_inliers_normalized()
         >>> H_prime = compute_homog(xy1_man, xy2_man)
@@ -362,8 +362,8 @@ def compute_homog(xy1_mn, xy2_mn):
 
 
 def testdata_matching_affine_inliers():
-    import vtool_ibeis.demodata as demodata
-    import vtool_ibeis as vt
+    import ibeis.vtool.demodata as demodata
+    import ibeis.vtool as vt
     scale_thresh = 2.0
     xy_thresh = ut.get_argval('--xy-thresh', type_=float, default=.01)
     dlen_sqrd2 = 447271.015
@@ -402,14 +402,14 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         tuple: hypo_inliers, hypo_errors
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-_test_hypothesis_inliers
+        python -m ibeis.vtool.spatial_verification --test-_test_hypothesis_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> from vtool_ibeis.spatial_verification import _test_hypothesis_inliers  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> from ibeis.vtool.spatial_verification import _test_hypothesis_inliers  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool.keypoint as ktool
         >>> _kw1 = dict(seed=12, damping=1.2, wh_stride=(30, 30))
         >>> _kw2 = dict(seed=24, damping=1.6, wh_stride=(30, 30))
         >>> kpts1 = demodata.perterbed_grid_kpts(**_kw1).astype(np.float64)
@@ -450,9 +450,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     ## Check for projection errors
-    xy_err    = vtool_ibeis.distance.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
-    scale_err = vtool_ibeis.distance.det_distance(_det1_mt, det2_m)
-    ori_err   = vtool_ibeis.distance.ori_distance(_ori1_mt, ori2_m)
+    xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
+    scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+    ori_err   = vtool.distance.ori_distance(_ori1_mt, ori2_m)
 
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
@@ -493,14 +493,14 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
             The input invVs = perdoch.invA's
 
     CommandLine:
-        python2 -m vtool_ibeis.spatial_verification --test-get_affine_inliers
-        python3 -m vtool_ibeis.spatial_verification --test-get_affine_inliers
+        python2 -m ibeis.vtool.spatial_verification --test-get_affine_inliers
+        python3 -m ibeis.vtool.spatial_verification --test-get_affine_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool.keypoint as ktool
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair((100, 100))
         >>> fm = demodata.make_dummy_fm(len(kpts1)).astype(np.int32)
         >>> fs = np.ones(len(fm), dtype=np.float64)
@@ -641,7 +641,7 @@ def estimate_refined_transform(kpts1, kpts2, fm, aff_inliers, refine_method='hom
     #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_LMEDS)[0]
     #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_8POINT)[0]
     else:
-        raise NotImplementedError('[vtool_ibeis] Unknown refine_method=%r' % (refine_method,))
+        raise NotImplementedError('[vtool] Unknown refine_method=%r' % (refine_method,))
 
     #H_prime /= H_prime[2, 2]
     # Different methods?
@@ -677,22 +677,22 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         tuple: homog_tup1
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001 --no-full-homog-checks
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show --no-full-homog-checks
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001 --no-full-homog-checks
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show --no-full-homog-checks
         # --------------
         # Shows (sorta) how inliers are computed
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:1 --show
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --xy-thresh=.001
-        python -m vtool_ibeis.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --xy-thresh=.001
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:1 --show
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --xy-thresh=.001
+        python -m ibeis.vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --xy-thresh=.001
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> H = estimate_refined_transform(kpts1, kpts2, fm, aff_inliers)
@@ -706,7 +706,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm_, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> H = estimate_refined_transform(kpts1, kpts2, fm_, aff_inliers)
@@ -771,7 +771,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
-    xy_err = vtool_ibeis.distance.L2_sqrd(xy1_mt.T, xy2_m.T)
+    xy_err = vtool.distance.L2_sqrd(xy1_mt.T, xy2_m.T)
     # Estimate final inliers
     #ut.embed()
     if full_homog_checks:
@@ -795,9 +795,9 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         _det1_mt = scales1_mt ** 2
         det2_m = ktool.get_sqrd_scales(kpts2_m)
         ori2_m = ktool.get_oris(kpts2_m)
-        #xy_err    = vtool_ibeis.distance.L2_sqrd(xy2_m.T, _xy1_mt.T)
-        scale_err = vtool_ibeis.distance.det_distance(_det1_mt, det2_m)
-        ori_err   = vtool_ibeis.distance.ori_distance(oris1_mt, ori2_m)
+        #xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T)
+        scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+        ori_err   = vtool.distance.ori_distance(oris1_mt, ori2_m)
         ###
         xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
         scale_inliers_flag = np.less(scale_err, scale_thresh)
@@ -846,15 +846,15 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
     returned homography maps image1 space into image2 space
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-refine_inliers
-        python -m vtool_ibeis.spatial_verification --test-refine_inliers:0
-        python -m vtool_ibeis.spatial_verification --test-refine_inliers:1 --show
+        python -m ibeis.vtool.spatial_verification --test-refine_inliers
+        python -m ibeis.vtool.spatial_verification --test-refine_inliers:0
+        python -m ibeis.vtool.spatial_verification --test-refine_inliers:1 --show
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool.keypoint as ktool
         >>> kpts1, kpts2 = demodata.get_dummy_kpts_pair((100, 100))
         >>> fm = demodata.make_dummy_fm(len(kpts1)).astype(np.int32)
         >>> aff_inliers = np.arange(len(fm))
@@ -867,8 +867,8 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *  # NOQA
-        >>> import vtool_ibeis.keypoint as ktool
+        >>> from ibeis.vtool.spatial_verification import *  # NOQA
+        >>> import ibeis.vtool.keypoint as ktool
         >>> import plottool_ibeis as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> homog_tup1 = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
@@ -942,16 +942,16 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         tuple : (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff) if success else None
 
     CommandLine:
-        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --show
-        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --show --refine-method='affine'
-        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0 --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
-        python -m xdoctest vtool_ibeis.spatial_verification spatially_verify_kpts:0
+        python -m xdoctest vtool.spatial_verification spatially_verify_kpts:0 --show
+        python -m xdoctest vtool.spatial_verification spatially_verify_kpts:0 --show --refine-method='affine'
+        python -m xdoctest vtool.spatial_verification spatially_verify_kpts:0 --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
+        python -m xdoctest vtool.spatial_verification spatially_verify_kpts:0
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.spatial_verification import *
-        >>> import vtool_ibeis.demodata as demodata
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.spatial_verification import *
+        >>> import ibeis.vtool.demodata as demodata
+        >>> import ibeis.vtool as vt
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         >>> default_dict = vt.get_extract_features_default_params()
@@ -1078,7 +1078,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.spatial_verification
+        xdoctest -m ibeis.vtool.spatial_verification
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

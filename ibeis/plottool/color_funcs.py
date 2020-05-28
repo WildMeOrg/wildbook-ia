@@ -221,7 +221,7 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
         >>> pt.show_if_requested()
     """
     import ibeis.plottool as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
     #print(ut.repr2(block_list))

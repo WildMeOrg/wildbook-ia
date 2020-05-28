@@ -1345,7 +1345,7 @@ def download_missing_images(parsed, num=None):
 
 def postprocess_corrupted(parsed_dl):
     # Remove corrupted or ill-formatted images
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     print('Checking for corrupted images')
     gpaths = fpaths = parsed_dl['new_fpath']
     valid_flags = vt.filterflags_valid_images(fpaths, verbose=2)

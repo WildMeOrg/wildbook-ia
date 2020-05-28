@@ -93,7 +93,7 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=Tru
         print('[viz] show_many_chips')
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True, vert=vert)
     pt.imshow(stacked_chips, fnum=None, pnum=None)
 
@@ -137,7 +137,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
@@ -216,7 +216,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         zoom_ = ut.get_argval('--zoom', type_=float, default=None)
         if zoom_ is not None:
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             # Zoom into the chip for some image context
             rotated_verts = ibs.get_annot_rotated_verts(aid)
             bbox = ibs.get_annot_bboxes(aid)

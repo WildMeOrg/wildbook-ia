@@ -7,7 +7,7 @@ from six.moves import zip, range, filter, map  # NOQA
 import six
 import utool as ut
 import uuid
-from vtool_ibeis import geometry
+from ibeis.vtool import geometry
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
 
 

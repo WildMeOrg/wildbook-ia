@@ -105,7 +105,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     if True:
         return bruteforce(model, query_vars=None, evidence=evidence)
     else:
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
         # hack
         query_vars = ut.setdiff_ordered(query_vars, ut.list_getattr(model.ttype2_cpds['score'], 'variable'))
@@ -848,7 +848,7 @@ def flow():
     import pystruct.models  # NOQA
     import networkx as netx  # NOQA
 
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     num_annots = 10
     num_names = num_annots
     hidden_nids = np.random.randint(0, num_names, num_annots)
@@ -860,7 +860,7 @@ def flow():
     }
 
     if True:
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         import ibeis.plottool as pt
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])

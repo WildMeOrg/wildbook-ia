@@ -5,7 +5,7 @@
 
 """
 from __future__ import absolute_import, division, print_function
-from vtool_ibeis import _rhomb_dist
+from ibeis.vtool import _rhomb_dist
 import six
 import warnings
 import pandas as pd
@@ -93,8 +93,8 @@ VSONE_PI_DICT = {
 
 
 def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
-    import vtool_ibeis as vt
-    from vtool_ibeis.inspect_matches import lazy_test_annot
+    import ibeis.vtool as vt
+    from ibeis.vtool.inspect_matches import lazy_test_annot
     # hashid based on the state of the code
     if not apply:
         use_cache = False
@@ -105,7 +105,7 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
     cacher = ub.Cacher(
         'test_match_v5',
         cfgstr=cfgstr,
-        appname='vtool_ibeis',
+        appname='vtool',
         enabled=use_cache
     )
     match = cacher.tryload()
@@ -140,8 +140,8 @@ class PairwiseMatch(ub.NiceRepr):
             aid, nid, flann, rchip, dlen_sqrd, weight
 
     Ignore:
-        >>> from vtool_ibeis.matching import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.matching import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
         >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
         >>> annot1 = {'rchip': imgR}
@@ -161,8 +161,8 @@ class PairwiseMatch(ub.NiceRepr):
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qapp()
         >>> match.ishow()
-        >>> from vtool_ibeis.matching import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.matching import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> imgR = vt.imread(ut.grab_test_imgpath('easy1.png'))
         >>> imgL = vt.imread(ut.grab_test_imgpath('easy2.png'))
         >>> annot1 = {'rchip': imgR}
@@ -304,7 +304,7 @@ class PairwiseMatch(ub.NiceRepr):
             # mask_blend = 0
 
         if mask_blend:
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             mask1 = vt.resize(annot1['probchip_img'], vt.get_size(rchip1))
             mask2 = vt.resize(annot2['probchip_img'], vt.get_size(rchip2))
             # vt.blend_images_average(vt.mask1, 1.0, alpha=mask_blend)
@@ -331,12 +331,12 @@ class PairwiseMatch(ub.NiceRepr):
     def ishow(match):
         """
         CommandLine:
-            python -m vtool_ibeis.matching ishow --show
+            python -m ibeis.vtool.matching ishow --show
 
         Example:
             >>> # SCRIPT
-            >>> from vtool_ibeis.matching import *  # NOQA
-            >>> import vtool_ibeis as vt
+            >>> from ibeis.vtool.matching import *  # NOQA
+            >>> import ibeis.vtool as vt
             >>> import guitool_ibeis as gt
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
@@ -346,7 +346,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> # xdoctest: +REQUIRES(--show)
             >>> gt.qtapp_loop(qwin=self, freq=10)
         """
-        from vtool_ibeis.inspect_matches import MatchInspector
+        from ibeis.vtool.inspect_matches import MatchInspector
         self = MatchInspector(match=match)
         self.show()
         return self
@@ -357,7 +357,7 @@ class PairwiseMatch(ub.NiceRepr):
                                           match.annot2[key])
 
     def add_local_measures(match, xy=True, scale=True):
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         if xy:
             key_ = 'norm_xys'
             norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
@@ -425,14 +425,14 @@ class PairwiseMatch(ub.NiceRepr):
 
         Example:
             >>> # xdoctest
-            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> from ibeis.vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True}
             >>> match = demodata_match({}, apply=False)
             >>> m1 = match.copy().assign({'symmetric': False})
             >>> m2 = match.copy().assign({'symmetric': True})
 
         Grid:
-            from vtool_ibeis.matching import *  # NOQA
+            from ibeis.vtool.matching import *  # NOQA
             grid = {
                 'symmetric': [True, False],
             }
@@ -512,7 +512,7 @@ class PairwiseMatch(ub.NiceRepr):
     def sver_flags(match, cfgdict={}, return_extra=False):
         """
         Example:
-            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> from ibeis.vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'newsym': True}
             >>> match = demodata_match(cfgdict, apply=False)
             >>> cfgbase = {'symmetric': True, 'ratio_thresh': .8}
@@ -522,8 +522,8 @@ class PairwiseMatch(ub.NiceRepr):
             >>> flags1 = match.sver_flags(cfgdict)
             >>> flags2 = match.sver_flags(cfgbase)
         """
-        from vtool_ibeis import spatial_verification as sver
-        import vtool_ibeis as vt
+        from ibeis.vtool import spatial_verification as sver
+        import ibeis.vtool as vt
 
         def _run_sver(kpts1, kpts2, fm, match_weights, **sver_kw):
             svtup = sver.spatially_verify_kpts(
@@ -651,7 +651,7 @@ class PairwiseMatch(ub.NiceRepr):
     def apply_sver(match, cfgdict={}, inplace=None):
         """
         Ignore:
-            >>> from vtool_ibeis.matching import *  # NOQA
+            >>> from ibeis.vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'ratio_thresh': .8,
             >>>            'thresh_bins': [.5, .6, .7, .8]}
             >>> match = demodata_match(cfgdict, apply=False)
@@ -673,7 +673,7 @@ class PairwiseMatch(ub.NiceRepr):
 
     def _make_global_feature_vector(match, global_keys=None):
         """ Global annotation properties and deltas """
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         feat = ut.odict([])
 
         if global_keys is None:
@@ -738,12 +738,12 @@ class PairwiseMatch(ub.NiceRepr):
         Summary statistics of local features
 
         CommandLine:
-            python -m vtool_ibeis.matching _make_local_summary_feature_vector
+            python -m ibeis.vtool.matching _make_local_summary_feature_vector
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool_ibeis.matching import *  # NOQA
-            >>> import vtool_ibeis as vt
+            >>> from ibeis.vtool.matching import *  # NOQA
+            >>> import ibeis.vtool as vt
             >>> cfgdict = {}
             >>> match = demodata_match(cfgdict, recompute=0)
             >>> match.apply_all(cfgdict)
@@ -883,12 +883,12 @@ class PairwiseMatch(ub.NiceRepr):
             dict: feat
 
         CommandLine:
-            python -m vtool_ibeis.matching make_feature_vector
+            python -m ibeis.vtool.matching make_feature_vector
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool_ibeis.matching import *  # NOQA
-            >>> import vtool_ibeis as vt
+            >>> from ibeis.vtool.matching import *  # NOQA
+            >>> import ibeis.vtool as vt
             >>> match = demodata_match({})
             >>> feat = match.make_feature_vector(indices=[0, 1])
             >>> result = ('feat = %s' % (ub.repr2(feat, nl=2),))
@@ -938,12 +938,12 @@ class AnnotPairFeatInfo(object):
         PairwiseMatch.
 
     CommandLine:
-        python -m vtool_ibeis.matching AnnotPairFeatInfo
+        python -m ibeis.vtool.matching AnnotPairFeatInfo
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.matching import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.matching import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> match = demodata_match({})
         >>> match.add_global_measures(['time', 'gps'])
         >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -1225,12 +1225,12 @@ class AnnotPairFeatInfo(object):
     def dimkey_grammar(featinfo):
         """
         CommandLine:
-            python -m vtool_ibeis.matching AnnotPairFeatInfo.dimkey_grammar
+            python -m ibeis.vtool.matching AnnotPairFeatInfo.dimkey_grammar
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool_ibeis.matching import *  # NOQA
-            >>> import vtool_ibeis as vt
+            >>> from ibeis.vtool.matching import *  # NOQA
+            >>> import ibeis.vtool as vt
             >>> match = demodata_match({})
             >>> match.add_global_measures(['view', 'qual', 'gps', 'time'])
             >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -1405,7 +1405,7 @@ def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
 
 
 def ensure_metadata_normxy(annot, cfgdict={}):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     if 'norm_xys' not in annot:
         def eval_normxy():
             xys = vt.get_xys(annot['kpts'])
@@ -1424,11 +1424,11 @@ def ensure_metadata_feats(annot, cfgdict={}):
         cfgdict (dict): (default = {})
 
     CommandLine:
-        python -m vtool_ibeis.matching --exec-ensure_metadata_feats
+        python -m ibeis.vtool.matching --exec-ensure_metadata_feats
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> from ibeis.vtool.matching import *  # NOQA
         >>> rchip_fpath = ut.grab_test_imgpath('easy1.png')
         >>> annot = ut.LazyDict({'rchip_fpath': rchip_fpath})
         >>> cfgdict = {}
@@ -1439,7 +1439,7 @@ def ensure_metadata_feats(annot, cfgdict={}):
         >>> annot['vecs']
         >>> assert len(annot._stored_results) >= 5
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     rchip_key = 'rchip'
     nchip_key = 'nchip'
     _feats_key = '_feats'
@@ -1486,7 +1486,7 @@ def ensure_metadata_feats(annot, cfgdict={}):
                 )
             rchip = annot[rchip_key]
             if filter_list:
-                from vtool_ibeis import image_filters
+                from ibeis.vtool import image_filters
                 ipreproc = image_filters.IntensityPreproc()
                 nchip = ipreproc.preprocess(rchip, filter_list)
             else:
@@ -1530,7 +1530,7 @@ def ensure_metadata_dlen_sqrd(annot):
 
 def ensure_metadata_flann(annot, cfgdict):
     """ setup lazy flann evaluation """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     flann_params = {'algorithm': 'kdtree', 'trees': 8}
 
     if 'flann' not in annot:
@@ -1633,7 +1633,7 @@ def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):
     uses flann index to return nearest neighbors with distances normalized
     between 0 and 1 using sifts uint8 trick
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     if K == 0:
         (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
     elif len(vecs2) == 0:
@@ -1658,8 +1658,8 @@ def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):
 def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
                              K, Knorm=None):
     r"""
-    import vtool_ibeis as vt
-    from vtool_ibeis.matching import *
+    import ibeis.vtool as vt
+    from ibeis.vtool.matching import *
     K = 2
     Knorm = 1
     feat1 = np.random.rand(5, 3)
@@ -1796,13 +1796,13 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         fx2_to_dist = np.arange(fx2_to_fx1.size).reshape(fx2_to_fx1.shape)
 
     CommandLine:
-        python -m vtool_ibeis.matching --test-assign_unconstrained_matches --show
-        python -m vtool_ibeis.matching assign_unconstrained_matches:0
-        python -m vtool_ibeis.matching assign_unconstrained_matches:1
+        python -m ibeis.vtool.matching --test-assign_unconstrained_matches --show
+        python -m ibeis.vtool.matching assign_unconstrained_matches:0
+        python -m ibeis.vtool.matching assign_unconstrained_matches:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> from ibeis.vtool.matching import *  # NOQA
         >>> fx2_to_fx1, fx2_to_dist = empty_neighbors(0, 0)
         >>> K = 1
         >>> Knorm = 1
@@ -1815,7 +1815,7 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> from ibeis.vtool.matching import *  # NOQA
         >>> fx2_to_fx1 = np.array([[ 77,   971, 22],
         >>>                        [116,   120, 34],
         >>>                        [122,   128, 99],
@@ -1905,7 +1905,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.matching import *  # NOQA
+        >>> from ibeis.vtool.matching import *  # NOQA
         >>> K = 2
         >>> fx2_to_fx1 = np.array([[ 0,  1], # 0
         >>>                        [ 1,  4], # 1
@@ -1939,7 +1939,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/vtool_ibeis/vtool_ibeis/matching.py
+        python ~/code/vtool/vtool/matching.py
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

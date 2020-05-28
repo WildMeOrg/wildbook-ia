@@ -207,7 +207,7 @@ def testdata_depc(fname=None):
     """
 
     from ibeis import dtool
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
                          verbose=False)
 
@@ -362,7 +362,7 @@ def testdata_depc(fname=None):
             tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
             coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
         def dummy_manual_chipmask(depc, parent_rowids, config=None):
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             from plottool_ibeis import interact_impaint
             mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
             ut.ensuredir(mask_dpath)

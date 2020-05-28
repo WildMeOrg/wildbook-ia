@@ -12,11 +12,11 @@ class IntensityPreproc(object):
     Prefered over old methods
 
     CommandLine:
-        python -m vtool_ibeis.image_filters IntensityPreproc --show
+        python -m ibeis.vtool.image_filters IntensityPreproc --show
 
     Doctest:
-        >>> from vtool_ibeis.image_filters import *
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.image_filters import *
+        >>> import ibeis.vtool as vt
         >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
         >>> filter_list = [
         >>>     ('medianblur', {}),
@@ -99,8 +99,8 @@ def adapteq_fn(chipBGR):
     adaptive histogram equalization with CLAHE
 
     Example:
-        >>> from vtool_ibeis.image_filters import *
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.image_filters import *
+        >>> import ibeis.vtool as vt
         >>> import utool as ut
         >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
         >>> chip2 = adapteq_fn(chipBGR)
@@ -124,8 +124,8 @@ def medianfilter_fn(chipBGR):
     median filtering
 
     Example:
-        >>> from vtool_ibeis.image_filters import *
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.image_filters import *
+        >>> import ibeis.vtool as vt
         >>> import utool as ut
         >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
         >>> chip2 = adapteq_fn(chipBGR)
@@ -206,7 +206,7 @@ def grabcut_fn(chipBGR):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.image_filters
+        xdoctest -m ibeis.vtool.image_filters
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

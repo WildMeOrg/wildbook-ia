@@ -9,7 +9,7 @@ def atan2(y, x):
     does atan2 but returns from 0 to TAU
 
     Example:
-        >>> from vtool_ibeis.trig import *  # NOQA
+        >>> from ibeis.vtool.trig import *  # NOQA
         >>> import utool
         >>> rng = np.random.RandomState(0)
         >>> y = rng.rand(1000).astype(np.float64)

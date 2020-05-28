@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import vtool_ibeis.keypoint as ktool
+import ibeis.vtool.keypoint as ktool
 import ibeis.plottool.draw_func2 as df2
 from six.moves import zip, map
 from ibeis.plottool import plot_helpers as ph

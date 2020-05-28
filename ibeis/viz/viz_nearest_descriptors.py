@@ -105,7 +105,7 @@ def show_top_featmatches(qreq_, cm_list):
     # for cm in cm_list:
     #     cm.score_annot_csum(qreq_)
     import numpy as np
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     from functools import partial
     # Stack chipmatches
     ibs = qreq_.ibs

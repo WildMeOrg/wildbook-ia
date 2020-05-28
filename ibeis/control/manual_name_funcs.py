@@ -14,7 +14,7 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -434,7 +434,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     ORDER BY name_rowid ASC
 
 
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     vt
     vt.aid_list[0]
 

@@ -258,7 +258,7 @@ class MatchInteraction2(BASE_CLASS):
                 kpts1_m = self.kpts1[self.fm[:, 0]]
                 kpts2_m = self.kpts2[self.fm[:, 1]]
                 x2, y2, w2, h2 = self.xywh2
-                import vtool_ibeis as vt
+                import ibeis.vtool as vt
                 _mx1, _dist1 = vt.nearest_point(x, y, kpts1_m)
                 _mx2, _dist2 = vt.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2

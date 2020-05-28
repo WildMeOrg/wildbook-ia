@@ -60,15 +60,15 @@ class MatchInspector(INSPECT_BASE):
         (3) a text area displaying information about the match vector
 
     CommandLine:
-        python -m vtool_ibeis.inspect_matches MatchInspector:0 --show
-        python -m vtool_ibeis.inspect_matches MatchInspector:1 --show
+        python -m ibeis.vtool.inspect_matches MatchInspector:0 --show
+        python -m ibeis.vtool.inspect_matches MatchInspector:1 --show
 
-        python -m vtool_ibeis.inspect_matches MatchInspector:1 --db GZ_Master1 --aids=1041,1045 --show
+        python -m ibeis.vtool.inspect_matches MatchInspector:1 --db GZ_Master1 --aids=1041,1045 --show
 
     Example:
         >>> # SCRIPT
-        >>> from vtool_ibeis.inspect_matches import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.inspect_matches import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> annot1 = lazy_test_annot('easy1.png')
@@ -82,8 +82,8 @@ class MatchInspector(INSPECT_BASE):
 
     Example:
         >>> # SCRIPT
-        >>> from vtool_ibeis.inspect_matches import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.inspect_matches import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> import ibeis
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
@@ -152,7 +152,7 @@ class MatchInspector(INSPECT_BASE):
             fpath = fpaths[0]
             if not fpath.endswith('.jpg'):
                 fpath += '.jpg'
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             vt.imwrite(fpath, render.image)
 
     def embed(self):
@@ -173,7 +173,7 @@ class MatchInspector(INSPECT_BASE):
         super(MatchInspector, self).closeEvent(event)
 
     def _setup_configs(self, cfgdict=None):
-        from vtool_ibeis import matching
+        from ibeis.vtool import matching
         import dtool_ibeis
         # import pyhesaff
 
@@ -241,7 +241,7 @@ class MatchInspector(INSPECT_BASE):
         self.infobox = splitter2.addNewTextEdit()
 
     def execute_vsone(self):
-        from vtool_ibeis import matching
+        from ibeis.vtool import matching
         print('[inspect_match] Execute vsone')
 
         cfgdict = {}
@@ -350,7 +350,7 @@ def show_matching_dict(matches, metadata, *args, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.inspect_matches
+        xdoctest -m ibeis.vtool.inspect_matches
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

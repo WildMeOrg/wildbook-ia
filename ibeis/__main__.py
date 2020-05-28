@@ -58,7 +58,7 @@ def run_ibeis():
     # Run the tests of other modules
     elif ub.argflag('--run-utool-tests'):
         raise Exception('Deprecated functionality')
-    elif ub.argflag('--run-vtool_ibeis-tests'):
+    elif ub.argflag('--run-vtool-tests'):
         raise Exception('Deprecated functionality')
     elif ub.argflag(('--run-ibeis-tests', '--run-tests')):
         raise Exception('Deprecated functionality')
@@ -111,7 +111,7 @@ def run_ibeis():
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
         """
         print('[ibeis] Testing module')
         mod_alias_list = {

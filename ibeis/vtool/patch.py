@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 from six.moves import zip
 import numpy as np
-from vtool_ibeis import histogram as htool
-from vtool_ibeis import keypoint as ktool
-from vtool_ibeis import linalg as ltool
-from vtool_ibeis import image as gtool
-from vtool_ibeis import trig
+from ibeis.vtool import histogram as htool
+from ibeis.vtool import keypoint as ktool
+from ibeis.vtool import linalg as ltool
+from ibeis.vtool import image as gtool
+from ibeis.vtool import trig
 import utool as ut
 import ubelt as ub
 from .util_math import TAU
@@ -55,11 +55,11 @@ def get_test_patch(key='star', jitter=False):
         ndarray: patch
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-get_test_patch --show
+        python -m ibeis.vtool.patch --test-get_test_patch --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> key = 'star2'
         >>> jitter = False
@@ -95,11 +95,11 @@ def get_no_symbol(variant='symbol', size=(100, 100)):
         ndarray: errorimg
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-get_no_symbol --show
+        python -m ibeis.vtool.patch --test-get_no_symbol --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> errorimg = get_no_symbol()
         >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool_ibeis as pt
@@ -120,7 +120,7 @@ def get_no_symbol(variant='symbol', size=(100, 100)):
         cv2.circle(errorimg, center, radius, color_bgr, thickness)
         cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
     else:
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         fontFace = cv2.FONT_HERSHEY_PLAIN
         org = (size[0] * .1, size[1] * .6)
         fontkw = dict(bottomLeftOrigin=False, fontScale=2.5, fontFace=fontFace)
@@ -215,18 +215,18 @@ def get_stripe_patch(jitter=False):
 def test_show_gaussian_patches2(shape=(19, 19)):
     r"""
     CommandLine:
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show --shape=7,7
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show --shape=19,19
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show --shape=41,41
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show --shape=41,7
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches2 --show
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches2 --show --shape=7,7
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches2 --show --shape=19,19
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,41
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,7
 
     References:
         http://matplotlib.org/examples/mplot3d/surface3d_demo.html
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
         >>> import plottool_ibeis as pt
         >>> shape = ut.get_argval(('--shape',), type_=list, default=[19, 19])
@@ -237,7 +237,7 @@ def test_show_gaussian_patches2(shape=(19, 19)):
     import plottool_ibeis as pt
     import numpy as np
     import matplotlib as mpl
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     shape = tuple(map(int, shape))
     print('shape = %r' % (shape,))
     #shape = (27, 27)
@@ -270,7 +270,7 @@ def show_gaussian_patch(shape, sigma1, sigma2):
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
     import matplotlib as mpl
     import plottool_ibeis as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     ybasis = np.arange(shape[0])
     xbasis = np.arange(shape[1])
     xgrid, ygrid = np.meshgrid(xbasis, ybasis)
@@ -288,15 +288,15 @@ def inverted_sift_patch(sift, dim=32):
     Idea for inverted sift visualization
 
     CommandLine:
-        python -m vtool_ibeis.patch test_sift_viz --show --name=star
-        python -m vtool_ibeis.patch test_sift_viz --show --name=star2
-        python -m vtool_ibeis.patch test_sift_viz --show --name=cross
-        python -m vtool_ibeis.patch test_sift_viz --show --name=stripe
+        python -m ibeis.vtool.patch test_sift_viz --show --name=star
+        python -m ibeis.vtool.patch test_sift_viz --show --name=star2
+        python -m ibeis.vtool.patch test_sift_viz --show --name=cross
+        python -m ibeis.vtool.patch test_sift_viz --show --name=stripe
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.patch import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> patch = vt.get_test_patch(ut.get_argval('--name', default='star'))
         >>> sift = vt.extract_feature_from_patch(patch)
         >>> siftimg = test_sift_viz(sift)
@@ -312,7 +312,7 @@ def inverted_sift_patch(sift, dim=32):
         >>> pt.mpl_sift.draw_sift_on_patch(patch2, sift)
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     # dim = 21
     pad = dim // 2 + (dim % 2)
     # pad = 0
@@ -342,11 +342,11 @@ def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
     FIXME: angle does not work properly
 
     CommandLine:
-        python -m vtool_ibeis.patch gradient_fill --show
+        python -m ibeis.vtool.patch gradient_fill --show
 
     Example:
-        >>> from vtool_ibeis.patch import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.patch import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> shape = (9, 9)
         >>> #style = 'linear'
         >>> style = 'step'
@@ -359,7 +359,7 @@ def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
     """
     if not isinstance(shape, tuple):
         shape = (shape, shape)
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     patch = np.zeros(shape)
     if vert:
         vals = np.linspace(0, 1, shape[0])
@@ -391,19 +391,19 @@ def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
 def test_show_gaussian_patches(shape=(19, 19)):
     r"""
     CommandLine:
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show --shape=7,7
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show --shape=17,17
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show --shape=41,41
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show --shape=29,29
-        python -m vtool_ibeis.patch --test-test_show_gaussian_patches --show --shape=41,7
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show --shape=7,7
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show --shape=17,17
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show --shape=41,41
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show --shape=29,29
+        python -m ibeis.vtool.patch --test-test_show_gaussian_patches --show --shape=41,7
 
     References:
         http://matplotlib.org/examples/mplot3d/surface3d_demo.html
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
         >>> import plottool_ibeis as pt
         >>> shape = ut.get_argval(('--shape',), type_=list, default=[19, 19])
@@ -414,7 +414,7 @@ def test_show_gaussian_patches(shape=(19, 19)):
     import plottool_ibeis as pt
     import numpy as np
     import matplotlib as mpl
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     shape = tuple(map(int, shape))
     print('shape = %r' % (shape,))
     #shape = (27, 27)
@@ -451,11 +451,11 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         sigma (float):
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-gaussian_patch --show
+        python -m ibeis.vtool.patch --test-gaussian_patch --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> #shape = (7, 7)
         >>> shape = (24, 24)
         >>> sigma = None  # 1.0
@@ -565,13 +565,13 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
             patches from the img corresonding to the keypoint
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-get_warped_patches --show --use_cpp
-        python -m vtool_ibeis.patch --test-get_warped_patches --show --use_python
+        python -m ibeis.vtool.patch --test-get_warped_patches --show --use_cpp
+        python -m ibeis.vtool.patch --test-get_warped_patches --show --use_python
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.patch import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
@@ -637,7 +637,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
     r"""
     Sympy:
         # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-        from vtool_ibeis.patch import *  # NOQA
+        from ibeis.vtool.patch import *  # NOQA
         import sympy
         from sympy.abc import theta
         ori = theta
@@ -752,7 +752,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
 
 
 def generate_to_patch_transforms(kpts, patch_size=41):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     xs, ys = vt.get_xys(kpts)
     # rotate relative to the gravity vector
     oris = vt.get_oris(kpts)
@@ -776,7 +776,7 @@ def generate_to_patch_transforms(kpts, patch_size=41):
 def patch_gaussian_weighted_average_intensities(probchip, kpts_):
     """
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     patch_size = 41
     M_iter = vt.generate_to_patch_transforms(kpts_, patch_size)
     dsize = np.ceil([patch_size, patch_size]).astype(np.int)
@@ -807,14 +807,14 @@ def gaussian_average_patch(patch, sigma=None, copy=True):
         sigma (float):
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-gaussian_average_patch
+        python -m ibeis.vtool.patch --test-gaussian_average_patch
 
     References:
         http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> patch = get_star_patch()
         >>> #sigma = 1.6
         >>> sigma = None
@@ -825,7 +825,7 @@ def gaussian_average_patch(patch, sigma=None, copy=True):
     Ignore:
         import utool as ut
         import plottool_ibeis as pt
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         import cv2
         gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
         gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
@@ -914,8 +914,8 @@ def GaussianBlurInplace(img, sigma, size=None):
         sigma (flaot):
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-GaussianBlurInplace:0 --show
-        python -m vtool_ibeis.patch --test-GaussianBlurInplace:1 --show
+        python -m ibeis.vtool.patch --test-GaussianBlurInplace:0 --show
+        python -m ibeis.vtool.patch --test-GaussianBlurInplace:1 --show
 
 
     References;
@@ -930,7 +930,7 @@ def GaussianBlurInplace(img, sigma, size=None):
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
         >>> import plottool_ibeis as pt
         >>> img = get_test_patch('star2')
@@ -952,7 +952,7 @@ def GaussianBlurInplace(img, sigma, size=None):
         >>> # DISABLE_DOCTEST
         >>> # demonstrate cascading smoothing property
         >>> # THIS ISNT WORKING WHY???
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
         >>> import plottool_ibeis as pt
         >>> img = get_test_patch('star2')
@@ -1030,7 +1030,7 @@ def find_kpts_direction(imgBGR, kpts, DEBUG_ROTINVAR=False):
         ndarray[float32_t, ndim=2]: kpts -  keypoints
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-find_kpts_direction
+        python -m ibeis.vtool.patch --test-find_kpts_direction
     """
 
     ori_list = []
@@ -1052,34 +1052,34 @@ def draw_kp_ori_steps():
     Shows steps in orientation estimation
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-draw_kp_ori_steps --show --fname=zebra.png --fx=121
-        python -m vtool_ibeis.patch --test-draw_kp_ori_steps --show --interact
-        python -m vtool_ibeis.patch --test-draw_kp_ori_steps --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
+        python -m ibeis.vtool.patch --test-draw_kp_ori_steps --show --fname=zebra.png --fx=121
+        python -m ibeis.vtool.patch --test-draw_kp_ori_steps --show --interact
+        python -m ibeis.vtool.patch --test-draw_kp_ori_steps --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
 
-        python -m vtool_ibeis.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180 --height=2.65 --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1 --diskshow
+        python -m ibeis.vtool.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180 --height=2.65 --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1 --diskshow
 
-        python -m vtool_ibeis.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180  --djust=.04,.05,.1 --diskshow --fname=zebra.png --fx=121
+        python -m ibeis.vtool.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180  --djust=.04,.05,.1 --diskshow --fname=zebra.png --fx=121
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> import plottool_ibeis as pt
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> draw_kp_ori_steps()
         >>> pt.show_if_requested()
     """
-    #from vtool_ibeis.patch import *  # NOQA
-    #import vtool_ibeis as vt
+    #from ibeis.vtool.patch import *  # NOQA
+    #import ibeis.vtool as vt
     # build test data
     import utool as ut
     import plottool_ibeis as pt
     from six.moves import input
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
 
     if True:
         from ibeis.scripts.thesis import TMP_RC
         import matplotlib as mpl
         mpl.rcParams.update(TMP_RC)
-    #import vtool_ibeis as vt
+    #import ibeis.vtool as vt
     np.random.seed(0)
     USE_COMMANLINE = True
     if USE_COMMANLINE:
@@ -1183,7 +1183,7 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag,
                                       gori, hist, centers, gori_weights,
                                       fx=None):
     import plottool_ibeis as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     # DRAW TEST INFO
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
@@ -1237,11 +1237,11 @@ def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
         maxima_thresh (float):
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-test_ondisk_find_patch_fpath_dominant_orientations
+        python -m ibeis.vtool.patch --test-test_ondisk_find_patch_fpath_dominant_orientations
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> # build test data
         >>> patch_fpath = ut.get_argval('--patch-fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
@@ -1250,7 +1250,7 @@ def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
         >>> test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins, maxima_thresh)
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     patch = vt.imread(patch_fpath, grayscale=True)
     #submax_ori = submaxima_x[submaxima_y.argmax()]
     #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
@@ -1330,12 +1330,12 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
         float: ori_offset - offset of current orientation to dominant orientation
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-find_dominant_kp_orientations
+        python -m ibeis.vtool.patch --test-find_dominant_kp_orientations
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.patch import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> # build test data
         >>> np.random.seed(0)
         >>> #imgBGR = get_test_patch('cross', jitter=False)
@@ -1388,7 +1388,7 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
         tuple: (hist, centers)
 
     CommandLine:
-        python -m vtool_ibeis.patch --test-get_orientation_histogram
+        python -m ibeis.vtool.patch --test-get_orientation_histogram
 
     Ignore:
         print(vt.kpts_docrepr(gori, 'gori = '))
@@ -1396,7 +1396,7 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.patch import *  # NOQA
+        >>> from ibeis.vtool.patch import *  # NOQA
         >>> # build test data
         >>> gori = np.array([[ 0.  ,  0.  ,  3.14,  3.14,  0.  ],
         ...                  [ 4.71,  6.15,  3.13,  3.24,  4.71],
@@ -1435,7 +1435,7 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m vtool_ibeis.patch
+        python -m ibeis.vtool.patch
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

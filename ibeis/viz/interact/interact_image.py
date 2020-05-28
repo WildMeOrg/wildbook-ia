@@ -54,7 +54,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             x, y = event.xdata, event.ydata
             # Find ANNOTATION center nearest to the clicked point
             aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             centx, _dist = vt.nearest_point(x, y, annotation_centers)
             aid = aid_list[centx]
             print(' ...clicked aid=%r' % aid)

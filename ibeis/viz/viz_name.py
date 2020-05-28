@@ -177,7 +177,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             # References:
             # http://stackoverflow.com/questions/17543359/drawing-lines-between-two-plots-in-matplotlib
             import matplotlib as mpl
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             # !!!
             #http://matplotlib.org/users/transforms_tutorial.html
 

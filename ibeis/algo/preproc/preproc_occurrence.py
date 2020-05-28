@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from six.moves import zip, map, range
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
@@ -289,7 +289,7 @@ def group_images_by_label(label_arr, gid_arr):
     Output: Length M list of unique labels, and lenth M list of lists of ids
     """
     # Reverse the image to cluster index mapping
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     labels_, groupxs_ = vt.group_indices(label_arr)
     sortx = np.array(list(map(len, groupxs_))).argsort()[::-1]
     labels  = labels_.take(sortx, axis=0)
@@ -442,7 +442,7 @@ def plot_gps_html(gps_list):
     import ibeis.plottool as pt
     import gmplot
     import matplotlib as mpl
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     pt.qt4ensure()
 
     lat = gps_list.T[0]

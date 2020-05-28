@@ -2,7 +2,7 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 import pandas as pd
-import vtool_ibeis as vt  # NOQA
+import ibeis.vtool as vt  # NOQA
 import networkx as nx
 import opengm
 import ibeis.plottool as pt  # NOQA

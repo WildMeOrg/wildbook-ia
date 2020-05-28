@@ -3,7 +3,7 @@ import utool as ut
 import numpy as np
 import ibeis.plottool.draw_func2 as df2
 from ibeis.plottool import custom_constants
-#from vtool_ibeis import keypoint as ktool
+#from ibeis.vtool import keypoint as ktool
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
 ut.noinject(__name__, '[viz_sv]')
 
@@ -12,7 +12,7 @@ def get_blended_chip(chip1, chip2, M):
     """
     warps chip1 into chip2 space
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     wh2 = vt.get_size(chip2)
     chip1_Mt = vt.warpHomog(chip1, M, wh2)
     chip2_blendM = vt.blend_images(chip1_Mt, chip2)
@@ -26,10 +26,10 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     """ Visualizes spatial verification
 
     CommandLine:
-        python -m vtool_ibeis.spatial_verification --test-spatially_verify_kpts --show
+        python -m ibeis.vtool.spatial_verification --test-spatially_verify_kpts --show
 
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     #import ibeis.plottool as pt
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
@@ -165,7 +165,7 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.plottool.draw_sv import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> kpts1, kpts2, fm, aff_inliers, chip1, chip2, xy_thresh_sqrd = vt.testdata_matching_affine_inliers()
         >>> inliers = aff_inliers
         >>> mx = None
@@ -177,7 +177,7 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
         >>> pt.show_if_requested()
     """
     import ibeis.plottool as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     colors = pt.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0:2]
     # Begin the drawing

@@ -24,7 +24,7 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis.web import routes_ajax
 import six
 print, rrr, profile = ut.inject2(__name__)
@@ -994,7 +994,7 @@ def _set_image_orientation(ibs, gid_list, orientation_list):
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
-    from vtool_ibeis.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
+    from ibeis.vtool.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
                             ORIENTATION_UNDEFINED, ORIENTATION_000)
 
     def _update_bounding_boxes(gid, val):
@@ -1849,7 +1849,7 @@ def get_image_orientation_str(ibs, gid_list):
         Method: GET
         URL:    /api/image/orientation/str/
     """
-    from vtool_ibeis.exif import ORIENTATION_DICT
+    from ibeis.vtool.exif import ORIENTATION_DICT
     orient_list = ibs.get_image_orientation(gid_list)
     orient_str = [ ORIENTATION_DICT[orient] for orient in orient_list ]
     return orient_str

@@ -678,7 +678,7 @@ def fix_annotmatch_pzmaster1():
     # # pd.unique(annotmatch['annotmatch_evidence_decision'])
     # from ibeis.gui import inspect_gui
     # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
-    # from vtool_ibeis import inspect_matches
+    # from ibeis.vtool import inspect_matches
 
     # aid1, aid2 = 2108, 2040
 

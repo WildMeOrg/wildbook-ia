@@ -24,7 +24,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         >>> import ibeis.plottool as pt
         >>> import utool as ut
         >>> import pyhesaff
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> ut.quit_if_noshow()
         >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
@@ -79,7 +79,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
             else:
                 print('...nearest')
                 x, y = event.xdata, event.ydata
-                import vtool_ibeis as vt
+                import ibeis.vtool as vt
                 fx = vt.nearest_point(x, y, kpts)[0]
                 self._select_ith_kpt(fx)
         elif viztype == 'warped':
@@ -113,7 +113,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         >>> import ibeis.plottool as pt
         >>> import utool as ut
         >>> import pyhesaff
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> ut.quit_if_noshow()
         >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
@@ -121,7 +121,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         >>> pt.show_if_requested()
     """
     if isinstance(chip, six.string_types):
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         chip = vt.imread(chip)
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
@@ -167,7 +167,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 else:
                     print('...nearest')
                     x, y = event.xdata, event.ydata
-                    import vtool_ibeis as vt
+                    import ibeis.vtool as vt
                     fx = vt.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':

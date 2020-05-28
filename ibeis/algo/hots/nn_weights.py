@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import functools
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh
@@ -415,7 +415,7 @@ def lnbnn_fn(vdist, ndist):
         >>> PdiC, PdiCbar = sympy.symbols('PdiC, PdiCbar')
         >>> oddsC = log(PdiC / PdiCbar)
         >>> sympy.simplify(oddsC)
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> vt.check_expr_eq(oddsC, log(PdiC) - log(PdiCbar))
 
 
@@ -489,7 +489,7 @@ def bar_l2_fn(vdist, ndist):
 def loglnbnn_fn(vdist, ndist):
     r"""
     Ignore:
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         vt.check_expr_eq('log(d) - log(n)', 'log(d / n)')   # True
         vt.check_expr_eq('log(d) / log(n)', 'log(d - n)')
 

@@ -37,7 +37,7 @@ from six.moves import zip
 from ibeis import dtool
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
 import sys

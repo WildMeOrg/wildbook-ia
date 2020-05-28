@@ -11,7 +11,7 @@ from os.path import join
 from ibeis import dtool
 import itertools as it
 import hashlib
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import utool as ut
 import numpy as np
 from ibeis.algo.hots import neighbor_index_cache

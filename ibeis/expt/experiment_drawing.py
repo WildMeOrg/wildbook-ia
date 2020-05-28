@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import join
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis.expt import draw_helpers
 from six.moves import map, range, reduce
 print, rrr, profile = ut.inject2(__name__)
@@ -160,7 +160,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 pt.set_ylabel('score diff')
 
             def on_click_inside(self, event, ex):
-                import vtool_ibeis as vt
+                import ibeis.vtool as vt
                 #ax = event.inaxes
                 #for l in ax.get_lines():
                 #    print(l.get_label())
@@ -240,7 +240,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         IPython.get_ipython().magic('pylab qt4')
     """
     import ibeis.plottool as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     from ibeis.expt import cfghelpers
     if ut.VERBOSE:
         print('[dev] draw_annot_scoresep')
@@ -790,7 +790,7 @@ def temp_num_exmaples_cmc():
     pt.adjust_subplots(bottom=.15, top=.9, left=.2)
     fpath = 'cmc-dpername-combined.png'
     fig.savefig(fpath, transparent=True, edgecolor='none')
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     vt.clipwhite_ondisk(fpath, fpath, verbose=True)
     ut.startfile(fpath)
 
@@ -875,7 +875,7 @@ def temp_multidb_cmc():
     fig.set_size_inches(*((1.5 * np.array([4, 3])).tolist()))
     pt.adjust_subplots(bottom=.15)
     fig.savefig('cmc-combined.png', transparent=True, edgecolor='none')
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     vt.clipwhite_ondisk('cmc-combined.png', 'cmc-combined.png', verbose=True)
     ut.startfile('cmc-combined.png')
 

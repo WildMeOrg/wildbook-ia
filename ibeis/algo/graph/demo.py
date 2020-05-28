@@ -470,7 +470,7 @@ def demodata_infr(**kwargs):
         }
     """
     import networkx as nx
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     from ibeis.algo.graph import nx_utils
 
     def kwalias(*args):

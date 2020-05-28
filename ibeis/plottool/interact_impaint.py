@@ -14,7 +14,7 @@ import utool as ut
 import matplotlib.pyplot as plt
 import numpy as np
 try:
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
 except ImportError:
     pass
 from ibeis.plottool import abstract_interaction

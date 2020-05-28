@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import numpy.linalg as npl
-from vtool_ibeis import linalg as ltool
-from vtool_ibeis import image as gtool
+from ibeis.vtool import linalg as ltool
+from ibeis.vtool import image as gtool
 import utool as ut
 try:
     import cv2
@@ -24,7 +24,7 @@ def get_image_to_chip_transform(bbox, chipsz, theta):
 
     Sympy:
         # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-        from vtool_ibeis.patch import *  # NOQA
+        from ibeis.vtool.patch import *  # NOQA
         import sympy
         import sympy.abc
         theta = sympy.abc.theta
@@ -38,7 +38,7 @@ def get_image_to_chip_transform(bbox, chipsz, theta):
         wt = w * ht / h
         cw_, ch_ = round(wt), round(ht)
 
-        from vtool_ibeis import ltool
+        from ibeis.vtool import ltool
         T1 = ltool.translation_mat3x3(tx1, ty1, dtype=None)
         S  = ltool.scale_mat3x3(sx, sy, dtype=None)
         R  = ltool.rotation_mat3x3(-theta, sympy.sin, sympy.cos)
@@ -130,12 +130,12 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
         ndarray: chipBGR
 
     CommandLine:
-        python -m vtool_ibeis.chip --test-extract_chip_from_img
-        python -m vtool_ibeis.chip --test-extract_chip_from_img --show
+        python -m ibeis.vtool.chip --test-extract_chip_from_img
+        python -m ibeis.vtool.chip --test-extract_chip_from_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.chip import *  # NOQA
+        >>> from ibeis.vtool.chip import *  # NOQA
         >>> # build test data
         >>> imgBGR = gtool.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> bbox = (100, 3, 100, 100)
@@ -167,12 +167,12 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
 def gridsearch_chipextract():
     r"""
     CommandLine:
-        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/chip.py gridsearch_chipextract --show
+        xdoctest -m ~/code/vtool/vtool/chip.py gridsearch_chipextract --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # GRIDSEARCH
-        >>> from vtool_ibeis.chip import *  # NOQA
+        >>> from ibeis.vtool.chip import *  # NOQA
         >>> gridsearch_chipextract()
         >>> ut.show_if_requested()
     """
@@ -339,12 +339,12 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         ndarray: chipBGR -  cropped image
 
     CommandLine:
-        python -m vtool_ibeis.chip --test-compute_chip --show
+        python -m ibeis.vtool.chip --test-compute_chip --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.chip import *  # NOQA
-        >>> from vtool_ibeis.util_math import TAU
+        >>> from ibeis.vtool.chip import *  # NOQA
+        >>> from ibeis.vtool.util_math import TAU
         >>> # build test data
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox = (100, 3, 100, 100)
@@ -357,7 +357,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
         >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool_ibeis as pt
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> pt.imshow(vt.draw_verts(vt.imread(gfpath), vt.scaled_verts_from_bbox(bbox, theta, 1, 1)), pnum=(1, 2, 1))
         >>> pt.imshow(chipBGR, pnum=(1, 2, 2))
         >>> pt.show_if_requested()
@@ -390,11 +390,11 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
             size of entire margined chip,
 
     CommandLine:
-        python -m vtool_ibeis.chip --test-get_extramargin_measures --show
+        python -m ibeis.vtool.chip --test-get_extramargin_measures --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.chip import *  # NOQA
+        >>> from ibeis.vtool.chip import *  # NOQA
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox_gs = [40, 40, 150, 150]
         >>> theta = .15 * (np.pi * 2)
@@ -431,7 +431,7 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
 
 def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, mbbox_gs, margin_size):
     import plottool_ibeis as pt
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
 
     imgBGR = vt.imread(gfpath)
     chipBGR = compute_chip(gfpath, bbox_gs, theta, new_size, [])
@@ -467,7 +467,7 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.chip
+        xdoctest -m ibeis.vtool.chip
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

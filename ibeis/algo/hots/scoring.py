@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import utool as ut
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 print, rrr, profile = ut.inject2(__name__)

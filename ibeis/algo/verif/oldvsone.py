@@ -46,7 +46,7 @@ def demo_single_pairwise_feature_vector():
         >>> match = demo_single_pairwise_feature_vector()
         >>> print(match)
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     import ibeis
     ibs = ibeis.opendb('testdb1')
     qaid, daid = 1, 2

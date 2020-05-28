@@ -6,7 +6,7 @@ import utool as ut
 import pandas as pd
 import itertools as it
 import networkx as nx
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from os.path import join  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_

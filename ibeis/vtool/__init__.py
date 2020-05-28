@@ -3,7 +3,7 @@
 VTool - Computer vision tools
 
 Autogenerate Command:
-    mkinit vtool_ibeis -i
+    mkinit vtool -i
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
@@ -38,45 +38,45 @@ __submodules__ = [
     'demodata',
 ]
 
-from vtool_ibeis import histogram
-from vtool_ibeis import features
-from vtool_ibeis import linalg
-from vtool_ibeis import blend
-from vtool_ibeis import image_shared
-from vtool_ibeis import image
-from vtool_ibeis import exif
-from vtool_ibeis import distance
-from vtool_ibeis import keypoint
-from vtool_ibeis import ellipse
-from vtool_ibeis import patch
-from vtool_ibeis import chip
-from vtool_ibeis import spatial_verification
-from vtool_ibeis import trig
-from vtool_ibeis import util_math
-from vtool_ibeis import matching
-from vtool_ibeis import geometry
-from vtool_ibeis import nearest_neighbors
-from vtool_ibeis import clustering2
-from vtool_ibeis import other
-from vtool_ibeis import numpy_utils
-from vtool_ibeis import confusion
-from vtool_ibeis import score_normalization
-from vtool_ibeis import symbolic
-from vtool_ibeis import demodata
+from ibeis.vtool import histogram
+from ibeis.vtool import features
+from ibeis.vtool import linalg
+from ibeis.vtool import blend
+from ibeis.vtool import image_shared
+from ibeis.vtool import image
+from ibeis.vtool import exif
+from ibeis.vtool import distance
+from ibeis.vtool import keypoint
+from ibeis.vtool import ellipse
+from ibeis.vtool import patch
+from ibeis.vtool import chip
+from ibeis.vtool import spatial_verification
+from ibeis.vtool import trig
+from ibeis.vtool import util_math
+from ibeis.vtool import matching
+from ibeis.vtool import geometry
+from ibeis.vtool import nearest_neighbors
+from ibeis.vtool import clustering2
+from ibeis.vtool import other
+from ibeis.vtool import numpy_utils
+from ibeis.vtool import confusion
+from ibeis.vtool import score_normalization
+from ibeis.vtool import symbolic
+from ibeis.vtool import demodata
 
 # TODO: de-utoolificaiton: replace utool with ubelt
-from vtool_ibeis import histogram as htool
-from vtool_ibeis import linalg as ltool
-from vtool_ibeis import image as gtool
-from vtool_ibeis import exif as exiftool
-from vtool_ibeis import keypoint as ktool
-from vtool_ibeis import ellipse as etool
-from vtool_ibeis import patch as ptool
-from vtool_ibeis import chip as ctool
-from vtool_ibeis import spatial_verification as svtool
-from vtool_ibeis import clustering2 as clustertool
-from vtool_ibeis import trig
-from vtool_ibeis import util_math as mtool
+from ibeis.vtool import histogram as htool
+from ibeis.vtool import linalg as ltool
+from ibeis.vtool import image as gtool
+from ibeis.vtool import exif as exiftool
+from ibeis.vtool import keypoint as ktool
+from ibeis.vtool import ellipse as etool
+from ibeis.vtool import patch as ptool
+from ibeis.vtool import chip as ctool
+from ibeis.vtool import spatial_verification as svtool
+from ibeis.vtool import clustering2 as clustertool
+from ibeis.vtool import trig
+from ibeis.vtool import util_math as mtool
 
 import sys
 
@@ -85,33 +85,33 @@ break
 """
 
 # <AUTOGEN_INIT>
-from vtool_ibeis import histogram
-from vtool_ibeis import features
-from vtool_ibeis import linalg
-from vtool_ibeis import blend
-from vtool_ibeis import image_shared
-from vtool_ibeis import image
-from vtool_ibeis import exif
-from vtool_ibeis import distance
-from vtool_ibeis import keypoint
-from vtool_ibeis import ellipse
-from vtool_ibeis import patch
-from vtool_ibeis import chip
-from vtool_ibeis import spatial_verification
-from vtool_ibeis import trig
-from vtool_ibeis import util_math
-from vtool_ibeis import matching
-from vtool_ibeis import geometry
-from vtool_ibeis import nearest_neighbors
-from vtool_ibeis import clustering2
-from vtool_ibeis import other
-from vtool_ibeis import numpy_utils
-from vtool_ibeis import confusion
-from vtool_ibeis import score_normalization
-from vtool_ibeis import symbolic
-from vtool_ibeis import demodata
+from ibeis.vtool import histogram
+from ibeis.vtool import features
+from ibeis.vtool import linalg
+from ibeis.vtool import blend
+from ibeis.vtool import image_shared
+from ibeis.vtool import image
+from ibeis.vtool import exif
+from ibeis.vtool import distance
+from ibeis.vtool import keypoint
+from ibeis.vtool import ellipse
+from ibeis.vtool import patch
+from ibeis.vtool import chip
+from ibeis.vtool import spatial_verification
+from ibeis.vtool import trig
+from ibeis.vtool import util_math
+from ibeis.vtool import matching
+from ibeis.vtool import geometry
+from ibeis.vtool import nearest_neighbors
+from ibeis.vtool import clustering2
+from ibeis.vtool import other
+from ibeis.vtool import numpy_utils
+from ibeis.vtool import confusion
+from ibeis.vtool import score_normalization
+from ibeis.vtool import symbolic
+from ibeis.vtool import demodata
 
-from vtool_ibeis.histogram import (argsubextrema2, argsubmax, argsubmax2,
+from ibeis.vtool.histogram import (argsubextrema2, argsubmax, argsubmax2,
                              argsubmaxima, argsubmaxima2, argsubmin2,
                              argsubminima2, get_histinfo_str, hist_argmaxima,
                              hist_argmaxima2, hist_edges_to_centers,
@@ -120,10 +120,10 @@ from vtool_ibeis.histogram import (argsubextrema2, argsubmax, argsubmax2,
                              maximum_parabola_point, show_hist_submaxima,
                              show_ori_image, show_ori_image_ondisk,
                              subbin_bounds, wrap_histogram,)
-from vtool_ibeis.features import (detect_opencv_keypoints,
+from ibeis.vtool.features import (detect_opencv_keypoints,
                             extract_feature_from_patch, extract_features,
                             get_extract_features_default_params, test_mser,)
-from vtool_ibeis.linalg import (TRANSFORM_DTYPE, add_homogenous_coordinate,
+from ibeis.vtool.linalg import (TRANSFORM_DTYPE, add_homogenous_coordinate,
                           affine_around_mat3x3, affine_mat3x3, det_ltri,
                           dot_ltri, gauss2d_pdf, inv_ltri, normalize,
                           normalize_rows, random_affine_args,
@@ -134,14 +134,14 @@ from vtool_ibeis.linalg import (TRANSFORM_DTYPE, add_homogenous_coordinate,
                           scale_around_mat3x3, scale_mat3x3, shear_mat3x3, svd,
                           transform_around, transform_points_with_homography,
                           translation_mat3x3, whiten_xy_points,)
-from vtool_ibeis.blend import (blend_images, blend_images_average,
+from ibeis.vtool.blend import (blend_images, blend_images_average,
                          blend_images_average_stack, blend_images_mult_average,
                          blend_images_multiply, ensure_alpha_channel,
                          ensure_grayscale, gamma_adjust,
                          gridsearch_addWeighted, gridsearch_image_function,
                          overlay_alpha_images, testdata_blend,)
-from vtool_ibeis.image_shared import (open_pil_image, print_image_checks,)
-from vtool_ibeis.image import (EXIF_TAG_DATETIME, EXIF_TAG_GPS, LINE_AA,
+from ibeis.vtool.image_shared import (open_pil_image, print_image_checks,)
+from ibeis.vtool.image import (EXIF_TAG_DATETIME, EXIF_TAG_GPS, LINE_AA,
                          affine_warp_around_center, clipwhite,
                          clipwhite_ondisk, combine_offset_lists,
                          convert_colorspace, convert_image_list_colorspace,
@@ -166,7 +166,7 @@ from vtool_ibeis.image import (EXIF_TAG_DATETIME, EXIF_TAG_GPS, LINE_AA,
                          stack_multi_images2, stack_square_images,
                          subpixel_values, testdata_imglist, warpAffine,
                          warpHomog,)
-from vtool_ibeis.exif import (DATETIMEORIGINAL_TAGID, EXIF_TAG_TO_TAGID,
+from ibeis.vtool.exif import (DATETIMEORIGINAL_TAGID, EXIF_TAG_TO_TAGID,
                         GPSDATE_CODE, GPSINFO_CODE, GPSLATITUDEREF_CODE,
                         GPSLATITUDE_CODE, GPSLONGITUDEREF_CODE,
                         GPSLONGITUDE_CODE, GPSTIME_CODE, GPS_TAG_TO_GPSID,
@@ -181,7 +181,7 @@ from vtool_ibeis.exif import (DATETIMEORIGINAL_TAGID, EXIF_TAG_TO_TAGID,
                         make_exif_dict_human_readable, parse_exif_unixtime,
                         parse_exif_unixtime_gps, read_all_exif_tags, read_exif,
                         read_exif_tags, read_one_exif_tag,)
-from vtool_ibeis.distance import (L1, L2, L2_root_sift, L2_sift, L2_sift_sqrd,
+from ibeis.vtool.distance import (L1, L2, L2_root_sift, L2_sift, L2_sift_sqrd,
                             L2_sqrd, TEMP_VEC_DTYPE, VALID_DISTS, bar_L2_sift,
                             bar_cos_sift, closest_point, compute_distances,
                             cos_sift, cosine_dist, cyclic_distance,
@@ -190,7 +190,7 @@ from vtool_ibeis.distance import (L1, L2, L2_root_sift, L2_sift, L2_sift_sqrd,
                             pdist_indicies, safe_pdist, signed_cyclic_distance,
                             signed_ori_distance, testdata_hist, testdata_sift2,
                             understanding_pseudomax_props, wrapped_distance,)
-from vtool_ibeis.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM,
+from ibeis.vtool.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM,
                             SCAX_DIM, SCAY_DIM, SHAPE_DIMS, SKEW_DIM, XDIM,
                             YDIM, augment_2x2_with_translation, cast_split,
                             convert_kptsZ_to_kpts, decompose_Z_to_RV_mats2x2,
@@ -215,7 +215,7 @@ from vtool_ibeis.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM,
                             kpts_repr, offset_kpts, rectify_invV_mats_are_up,
                             transform_kpts, transform_kpts_to_imgspace,
                             transform_kpts_xys,)
-from vtool_ibeis.ellipse import (adaptive_scale, check_kpts_in_bounds,
+from ibeis.vtool.ellipse import (adaptive_scale, check_kpts_in_bounds,
                            circular_distance, expand_kpts, expand_scales,
                            expand_subscales, extrema_neighbors, find_maxima,
                            find_maxima_with_neighbors, gradient_magnitude,
@@ -224,7 +224,7 @@ from vtool_ibeis.ellipse import (adaptive_scale, check_kpts_in_bounds,
                            interpolate_peaks2, kpts_matrices,
                            sample_ell_border_pts, sample_ell_border_vals,
                            sample_uniform, subscale_peaks,)
-from vtool_ibeis.patch import (GaussianBlurInplace, draw_kp_ori_steps,
+from ibeis.vtool.patch import (GaussianBlurInplace, draw_kp_ori_steps,
                          find_dominant_kp_orientations, find_kpts_direction,
                          find_patch_dominant_orientations,
                          gaussian_average_patch, gaussian_patch,
@@ -243,14 +243,14 @@ from vtool_ibeis.patch import (GaussianBlurInplace, draw_kp_ori_steps,
                          test_ondisk_find_patch_fpath_dominant_orientations,
                          test_show_gaussian_patches,
                          test_show_gaussian_patches2, testdata_patch,)
-from vtool_ibeis.chip import (ScaleStrat, apply_filter_funcs, compute_chip,
+from ibeis.vtool.chip import (ScaleStrat, apply_filter_funcs, compute_chip,
                         extract_chip_from_gpath,
                         extract_chip_from_gpath_into_square,
                         extract_chip_from_img, extract_chip_into_square,
                         get_extramargin_measures, get_image_to_chip_transform,
                         get_scaled_size_with_dlen, gridsearch_chipextract,
                         testshow_extramargin_info,)
-from vtool_ibeis.spatial_verification import (HAVE_SVER_C_WRAPPER, INDEX_DTYPE,
+from ibeis.vtool.spatial_verification import (HAVE_SVER_C_WRAPPER, INDEX_DTYPE,
                                         SV_DTYPE, VERBOSE_SVER,
                                         build_affine_lstsqrs_Mx6,
                                         build_lstsqrs_Mx9, compute_affine,
@@ -265,8 +265,8 @@ from vtool_ibeis.spatial_verification import (HAVE_SVER_C_WRAPPER, INDEX_DTYPE,
                                         testdata_matching_affine_inliers,
                                         testdata_matching_affine_inliers_normalized,
                                         try_svd, unnormalize_transform,)
-from vtool_ibeis.trig import (atan2,)
-from vtool_ibeis.util_math import (TAU, beaton_tukey_loss, beaton_tukey_weight,
+from ibeis.vtool.trig import (atan2,)
+from ibeis.vtool.util_math import (TAU, beaton_tukey_loss, beaton_tukey_weight,
                              breakup_equal_streak, ensure_monotone_decreasing,
                              ensure_monotone_increasing,
                              ensure_monotone_strictly_decreasing,
@@ -277,7 +277,7 @@ from vtool_ibeis.util_math import (TAU, beaton_tukey_loss, beaton_tukey_weight,
                              non_decreasing, non_increasing,
                              strictly_decreasing, strictly_increasing,
                              test_language_modulus,)
-from vtool_ibeis.matching import (AnnotPairFeatInfo, AssignTup, MatchingError,
+from ibeis.vtool.matching import (AnnotPairFeatInfo, AssignTup, MatchingError,
                             NORM_CHIP_CONFIG, PSEUDO_MAX_DIST,
                             PSEUDO_MAX_DIST_SQRD, PSEUDO_MAX_VEC_COMPONENT,
                             PairwiseMatch, SUM_OPS, VSONE_ASSIGN_CONFIG,
@@ -293,7 +293,7 @@ from vtool_ibeis.matching import (AnnotPairFeatInfo, AssignTup, MatchingError,
                             flag_symmetric_matches, invsum,
                             normalized_nearest_neighbors,
                             symmetric_correspondence, testdata_annot_metadata,)
-from vtool_ibeis.geometry import (bbox_center, bbox_from_center_wh, bbox_from_extent,
+from ibeis.vtool.geometry import (bbox_center, bbox_from_center_wh, bbox_from_extent,
                             bbox_from_verts, bbox_from_xywh,
                             bboxes_from_vert_list, closest_point_on_bbox,
                             closest_point_on_line,
@@ -306,14 +306,14 @@ from vtool_ibeis.geometry import (bbox_center, bbox_from_center_wh, bbox_from_ex
                             scale_bbox, scale_extents, scaled_verts_from_bbox,
                             scaled_verts_from_bbox_gen, union_extents,
                             verts_from_bbox, verts_list_from_bboxes_list,)
-from vtool_ibeis.nearest_neighbors import (AnnoyWrapper, ann_flann_once,
+from ibeis.vtool.nearest_neighbors import (AnnoyWrapper, ann_flann_once,
                                      assign_to_centroids, flann_augment,
                                      flann_cache, flann_index_time_experiment,
                                      get_flann_cfgstr, get_flann_fpath,
                                      get_flann_params, get_flann_params_cfgstr,
                                      get_kdtree_flann_params, invertible_stack,
                                      test_annoy, test_cv2_flann, tune_flann,)
-from vtool_ibeis.clustering2 import (AnnoyWraper, apply_grouping, apply_grouping_,
+from ibeis.vtool.clustering2 import (AnnoyWraper, apply_grouping, apply_grouping_,
                                apply_grouping_iter, apply_grouping_iter2,
                                apply_jagged_grouping, example_binary,
                                find_duplicate_items, group_indices, groupby,
@@ -323,7 +323,7 @@ from vtool_ibeis.clustering2 import (AnnoyWraper, apply_grouping, apply_grouping
                                plot_centroids, sorted_indices_ranges,
                                tune_flann2, uniform_sample_hypersphere,
                                unsupervised_multicut_labeling,)
-from vtool_ibeis.other import (and_lists, argsort_groups, argsort_records,
+from ibeis.vtool.other import (and_lists, argsort_groups, argsort_records,
                          assert_zipcompress, asserteq, atleast_3channels,
                          atleast_nd, atleast_shape,
                          calc_error_bars_from_sample,
@@ -358,15 +358,15 @@ from vtool_ibeis.other import (and_lists, argsort_groups, argsort_records,
                          weighted_average_scoring, weighted_geometic_mean,
                          weighted_geometic_mean_unnormalized, zipcat,
                          zipcompress, zipcompress_safe, ziptake, zstar_value,)
-from vtool_ibeis.numpy_utils import (atleast_nd, ensure_shape, fromiter_nd,
+from ibeis.vtool.numpy_utils import (atleast_nd, ensure_shape, fromiter_nd,
                                index_to_boolmask, iter_reduce_ufunc,
                                multiaxis_reduce, unique_row_indexes,)
-from vtool_ibeis.confusion import (ConfusionMetrics, draw_precision_recall_curve,
+from ibeis.vtool.confusion import (ConfusionMetrics, draw_precision_recall_curve,
                              draw_roc_curve, interact_roc_factory,
                              interpolate_precision_recall,
                              interpolate_replbounds, nan_to_num,
                              testdata_scores_labels,)
-from vtool_ibeis.score_normalization import (ScoreNormVisualizeClass,
+from ibeis.vtool.score_normalization import (ScoreNormVisualizeClass,
                                        ScoreNormalizer, check_unused_kwargs,
                                        estimate_pdf, find_clip_range,
                                        flatten_scores, get_left_area,
@@ -376,10 +376,10 @@ from vtool_ibeis.score_normalization import (ScoreNormVisualizeClass,
                                        plot_postbayes_pdf, plot_prebayes_pdf,
                                        test_score_normalization,
                                        testdata_score_normalier,)
-from vtool_ibeis.symbolic import (check_expr_eq, custom_sympy_attrs, evalprint,
+from ibeis.vtool.symbolic import (check_expr_eq, custom_sympy_attrs, evalprint,
                             symbolic_randcheck, sympy_latex_repr, sympy_mat,
                             sympy_numpy_repr,)
-from vtool_ibeis.demodata import (DEFAULT_DTYPE, dummy_img, dummy_seed,
+from ibeis.vtool.demodata import (DEFAULT_DTYPE, dummy_img, dummy_seed,
                             force_kpts_feasibility, get_dummy_dpts,
                             get_dummy_invV_mats, get_dummy_kpts,
                             get_dummy_kpts_pair, get_dummy_matching_kpts,

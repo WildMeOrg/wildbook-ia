@@ -13,7 +13,7 @@ TEMP_VEC_DTYPE = np.float64
 
 
 def testdata_hist():
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     rng = np.random.RandomState(0)
     hist1 = vt.demodata.testdata_dummy_sift(rng=rng)
     hist2 = vt.demodata.testdata_dummy_sift(rng=rng)
@@ -74,11 +74,11 @@ def signed_ori_distance(ori1, ori2):
         ndarray: ori_dist
 
     CommandLine:
-        python -m vtool_ibeis.distance --exec-signed_ori_distance
+        python -m ibeis.vtool.distance --exec-signed_ori_distance
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> ori1 = np.array([0,  0, 3, 4, 0, 0])
         >>> ori2 = np.array([3,  4, 0, 0, np.pi, np.pi - .1])
         >>> ori_dist = signed_ori_distance(ori1, ori2)
@@ -133,11 +133,11 @@ def ori_distance(ori1, ori2, out=None):
         >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E3))
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-ori_distance
+        python -m ibeis.vtool.distance --test-ori_distance
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> ori1 = (rng.rand(10) * TAU) - np.pi
         >>> ori2 = (rng.rand(10) * TAU) - np.pi
@@ -150,7 +150,7 @@ def ori_distance(ori1, ori2, out=None):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> ori1 = np.array([ 0.3,  7.0,  0.0,  3.1], dtype=np.float64)
         >>> ori2 = np.array([ 6.8, -1.0,  0.0, -3.1], dtype=np.float64)
         >>> dist_ = ori_distance(ori1, ori2)
@@ -160,7 +160,7 @@ def ori_distance(ori1, ori2, out=None):
 
     Example3:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> ori1 = .3
         >>> ori2 = 6.8
         >>> dist_ = ori_distance(ori1, ori2)
@@ -189,11 +189,11 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
         ndarray: arr_dist
 
     CommandLine:
-        python -m vtool_ibeis.distance cyclic_distance
+        python -m ibeis.vtool.distance cyclic_distance
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> out = None
         >>> modulo = 8
         >>> offset = 0  # doesnt matter what offset is
@@ -224,7 +224,7 @@ def det_distance(det1, det2):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> rng = np.random.RandomState(53)
         >>> det1 = rng.rand(5)
         >>> det2 = rng.rand(5)
@@ -256,7 +256,7 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> import numpy
         >>> ut.exec_funckw(L2_sqrd, globals())
         >>> rng = np.random.RandomState(53)
@@ -269,7 +269,7 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1 = 3
         >>> hist2 = 0
         >>> result = L2_sqrd(hist1, hist2)
@@ -286,11 +286,11 @@ def understanding_pseudomax_props(mode=2):
     Function showing some properties of distances between normalized pseudomax vectors
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-understanding_pseudomax_props
+        python -m ibeis.vtool.distance --test-understanding_pseudomax_props
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> for mode in [0, 1, 2, 3]:
         ...     print('+---')
         ...     print('mode = %r' % (mode,))
@@ -298,7 +298,7 @@ def understanding_pseudomax_props(mode=2):
         ...     print('L___')
         >>> print(result)
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     pseudo_max = 512
     rng = np.random.RandomState(0)
     num = 10
@@ -418,11 +418,11 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
         dict: dist_dict
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-compute_distances
+        python -m ibeis.vtool.distance --test-compute_distances
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1 = np.array([[1, 2], [2, 1], [0, 0]])
         >>> hist2 = np.array([[1, 2], [3, 1], [2, 2]])
         >>> dist_list = ['L1', 'L2']
@@ -449,11 +449,11 @@ def bar_L2_sift(hist1, hist2):
         hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-bar_L2_sift
+        python -m ibeis.vtool.distance --test-bar_L2_sift
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> barl2_dist = bar_L2_sift(hist1, hist2)
         >>> result = ub.repr2(barl2_dist, precision=2)
@@ -475,11 +475,11 @@ def L2_sift(hist1, hist2):
         ndarray: euclidean distance between 0-1 normalized sift descriptors
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-L2_sift
+        python -m ibeis.vtool.distance --test-L2_sift
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> sift1, sift2, sift3, sift4, sift5 = testdata_sift2()
         >>> l2_dist = L2_sift(hist1, hist2)
@@ -554,11 +554,11 @@ def cos_sift(hist1, hist2):
     cos dist
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-cos_sift
+        python -m ibeis.vtool.distance --test-cos_sift
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> l2_dist = cos_sift(hist1, hist2)
         >>> #xdoctest: +IGNORE_WHITESPACE
@@ -576,7 +576,7 @@ def cosine_dist(hist1, hist2):
 
 
 def _assert_siftvec(sift):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     assert vt.check_sift_validity(sift)
 
 
@@ -586,11 +586,11 @@ def emd(hist1, hist2, cost_matrix='sift'):
     require: lpsolve55-5.5.0.9.win32-py2.7.exe
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-emd
+        python -m ibeis.vtool.distance --test-emd
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> emd_dists = emd(hist1, hist2)
         >>> result = ub.repr2(emd_dists, precision=2)
@@ -662,7 +662,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     pt_arr = np.array([1.1, 2, .95, 20])[:, None]
     distfunc = vt.L2_sqrd
     """
-    #import vtool_ibeis as vt
+    #import ibeis.vtool as vt
     assert len(pt_arr) > 0
     dists = distfunc(pt, pt_arr)
     xlist = dists.argsort()
@@ -689,13 +689,13 @@ def haversine(latlon1, latlon2):
         stackoverflow.com/questions/4913349/haversine-distance-gps-points
 
     CommandLine:
-        python -m vtool_ibeis.distance --exec-haversine
+        python -m ibeis.vtool.distance --exec-haversine
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> import scipy.spatial.distance as spdist
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> import functools
         >>> gpsarr_track_list_ = [
         ...    np.array([[ -80.21895315, -158.81099213],
@@ -763,11 +763,11 @@ def pdist_argsort(x):
         ndarray: sortx_2d
 
     CommandLine:
-        python -m vtool_ibeis.distance --test-pdist_argsort
+        python -m ibeis.vtool.distance --test-pdist_argsort
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.distance import *  # NOQA
+        >>> from ibeis.vtool.distance import *  # NOQA
         >>> x = np.array([ 21695.78, 10943.76, 10941.44, 25867.64, 10752.03,
         >>>               10754.35, 4171.86, 2.32, 14923.89, 14926.2 ],
         >>>              dtype=np.float64)
@@ -797,7 +797,7 @@ def pdist_argsort(x):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m vtool_ibeis.distance all
+        python -m ibeis.vtool.distance all
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

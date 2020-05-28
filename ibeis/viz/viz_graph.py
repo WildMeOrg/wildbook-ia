@@ -12,7 +12,7 @@ WindowsDepends:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis import dtool
 import numpy as np  # NOQA
 import itertools

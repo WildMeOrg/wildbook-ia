@@ -860,8 +860,8 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
     """
-    from vtool_ibeis import inspect_matches
-    import vtool_ibeis as vt
+    from ibeis.vtool import inspect_matches
+    import ibeis.vtool as vt
 
     if cfgdict is not None:
         assert qreq_ is None, 'specify only one cfg or qreq_'

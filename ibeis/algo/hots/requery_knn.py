@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import itertools as it
 from six.moves import range, zip, map  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)

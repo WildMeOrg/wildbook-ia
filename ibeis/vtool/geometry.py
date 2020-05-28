@@ -28,11 +28,11 @@ def verts_from_bbox(bbox, close=False):
         list: verts
 
     CommandLine:
-        python -m vtool_ibeis.geometry --test-verts_from_bbox
+        python -m ibeis.vtool.geometry --test-verts_from_bbox
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> bbox = (10, 10, 50, 50)
         >>> close = False
         >>> verts = verts_from_bbox(bbox, close)
@@ -71,12 +71,12 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
         out (None):
 
     CommandLine:
-        python -m vtool_ibeis.geometry --test-draw_border --show
+        python -m ibeis.vtool.geometry --test-draw_border --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.geometry import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> color = (0, 128, 255)
         >>> thickness = 20
@@ -111,19 +111,19 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         ndarray[uint8_t, ndim=2]: img -  image data
 
     CommandLine:
-        python -m vtool_ibeis.geometry --test-draw_verts --show
-        python -m vtool_ibeis.geometry --test-draw_verts:0 --show
-        python -m vtool_ibeis.geometry --test-draw_verts:1 --show
+        python -m ibeis.vtool.geometry --test-draw_verts --show
+        python -m ibeis.vtool.geometry --test-draw_verts:0 --show
+        python -m ibeis.vtool.geometry --test-draw_verts:1 --show
 
     References:
         http://docs.opencv.org/modules/core/doc/drawing_functions.html#line
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool_ibeis as pt
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> verts = ((10, 10), (10, 100), (100, 100), (100, 10))
@@ -142,10 +142,10 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool_ibeis as pt
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> # build test data
         >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> verts = ((10, 10), (10, 100), (100, 100), (100, 10))
@@ -199,12 +199,12 @@ def closest_point_on_line_segment(p, e1, e2):
         http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 
     CommandLine:
-        python -m vtool_ibeis.geometry --exec-closest_point_on_line_segment --show
+        python -m ibeis.vtool.geometry --exec-closest_point_on_line_segment --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.geometry import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> #bbox = np.array([10, 10, 10, 10], dtype=np.float)
         >>> #verts_ = np.array(vt.verts_from_bbox(bbox, close=True))
         >>> #R = vt.rotation_around_bbox_mat3x3(vt.TAU / 3, bbox)
@@ -254,7 +254,7 @@ def closest_point_on_line_segment(p, e1, e2):
 
 
 def distance_to_lineseg(p, e1, e2):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     close_pt = vt.closest_point_on_line_segment(p, e1, e2)
     dist_to_lineseg = vt.L2(p, close_pt)
     return dist_to_lineseg
@@ -266,12 +266,12 @@ def closest_point_on_line(p, e1, e2):
     Does not clip to the segment.
 
     CommandLine:
-        python -m vtool_ibeis.geometry closest_point_on_line --show
+        python -m ibeis.vtool.geometry closest_point_on_line --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.geometry import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> verts = np.array([[ 21.83012702,  13.16987298],
         >>>                   [ 16.83012702,  21.83012702],
         >>>                   [  8.16987298,  16.83012702],
@@ -312,7 +312,7 @@ def closest_point_on_line(p, e1, e2):
 
 
 def closest_point_on_vert_segments(p, verts):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
     new_pts = candidates[dists.argmin()]
@@ -324,12 +324,12 @@ def closest_point_on_bbox(p, bbox):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> p_list = np.array([[19, 7], [7, 14], [14, 11], [8, 7], [23, 21]], dtype=np.float)
         >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
         >>> [closest_point_on_bbox(p, bbox) for p in p_list]
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     verts = np.array(vt.verts_from_bbox(bbox, close=True))
     new_pts = closest_point_on_vert_segments(p, verts)
     return new_pts
@@ -369,11 +369,11 @@ def extent_from_bbox(bbox):
         extent (ndarray): tl_x, br_x, tl_y, br_y
 
     CommandLine:
-        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/geometry.py extent_from_bbox
+        xdoctest -m ~/code/vtool/vtool/geometry.py extent_from_bbox
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> bbox = [0, 0, 10, 10]
         >>> extent = extent_from_bbox(bbox)
         >>> result = ('extent = %s' % (ub.repr2(extent, nl=0),))
@@ -398,7 +398,7 @@ def bbox_from_extent(extent):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> extent = [0, 10, 0, 10]
         >>> bbox = bbox_from_extent(extent)
         >>> result = ('bbox = %s' % (ub.repr2(bbox, nl=0),))
@@ -440,7 +440,7 @@ def get_pointset_extent_wh(pts):
 
 def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
     """ Converts bbox to thumb format with a scale factor"""
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     (x1, y1, _w, _h) = xywh
     x2 = (x1 + _w)
     y2 = (y1 + _h)
@@ -456,7 +456,7 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
 def scale_bbox(bbox, sx, sy=None):
     if sy is None:
         sy = sx
-    from vtool_ibeis import linalg
+    from ibeis.vtool import linalg
     centerx, centery = bbox_center(bbox)
     S = linalg.scale_around_mat3x3(sx, sy, centerx, centery)
     verts = np.array(verts_from_bbox(bbox))
@@ -490,11 +490,11 @@ def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
         new_verts - vertices of scaled bounding box for every input
 
     CommandLine:
-        python -m vtool_ibeis.image --test-scaled_verts_from_bbox_gen
+        python -m ibeis.vtool.image --test-scaled_verts_from_bbox_gen
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> # build test data
         >>> bbox_list = [(10, 10, 100, 100)]
         >>> theta_list = [0]
@@ -520,7 +520,7 @@ def scaled_verts_from_bbox(bbox, theta, sx, sy):
     """
     if bbox is None:
         return None
-    from vtool_ibeis import linalg
+    from ibeis.vtool import linalg
     # Transformation matrixes
     R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
     S = linalg.scale_mat3x3(sx, sy)
@@ -546,11 +546,11 @@ def point_inside_bbox(point, bbox):
         bool or ndarray: True if the point is in the bbox
 
     CommandLine:
-        python -m vtool_ibeis.geometry point_inside_bbox --show
+        python -m ibeis.vtool.geometry point_inside_bbox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.geometry import *  # NOQA
+        >>> from ibeis.vtool.geometry import *  # NOQA
         >>> point = np.array([
         >>>     [3, 2], [4, 1], [2, 3], [1, 1], [0, 0],
         >>>     [4, 9.5], [9, 9.5], [7, 2], [7, 8], [9, 3]
@@ -581,7 +581,7 @@ def point_inside_bbox(point, bbox):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.geometry
+        xdoctest -m ibeis.vtool.geometry
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

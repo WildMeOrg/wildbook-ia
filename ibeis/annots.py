@@ -258,7 +258,7 @@ class Annots(BASE):
 
     #@property
     def get_speeds(self):
-        #import vtool_ibeis as vt
+        #import ibeis.vtool as vt
         edges = self.get_aidpairs()
         speeds = self._ibs.get_annotpair_speeds(edges)
         #edges = vt.pdist_indicies(len(annots))

@@ -3,11 +3,11 @@
 wraps c implementations slower parts of spatial verification
 
 CommandLine:
-    python -m vtool_ibeis.sver_c_wrapper --rebuild-sver
-    python -m vtool_ibeis.sver_c_wrapper --rebuild-sver --allexamples
-    python -m vtool_ibeis.sver_c_wrapper --allexamples
+    python -m ibeis.vtool.sver_c_wrapper --rebuild-sver
+    python -m ibeis.vtool.sver_c_wrapper --rebuild-sver --allexamples
+    python -m ibeis.vtool.sver_c_wrapper --allexamples
 
-    python -m vtool_ibeis.sver_c_wrapper --test-test_sver_wrapper --rebuild-sver
+    python -m ibeis.vtool.sver_c_wrapper --test-test_sver_wrapper --rebuild-sver
 """
 from __future__ import absolute_import, division, print_function
 import ctypes as C
@@ -15,7 +15,7 @@ import numpy as np
 import utool as ut
 import ubelt as ub
 from os.path import dirname, join, realpath
-from vtool_ibeis.other import asserteq, compare_implementations  # NOQA
+from ibeis.vtool.other import asserteq, compare_implementations  # NOQA
 
 c_double_p = C.POINTER(C.c_double)
 
@@ -154,7 +154,7 @@ def call_hello():
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.sver_c_wrapper
+        xdoctest -m ibeis.vtool.sver_c_wrapper
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

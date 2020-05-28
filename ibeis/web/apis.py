@@ -12,7 +12,7 @@ from flask import request, current_app, send_file
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import uuid as uuid_module
 import six
 from ibeis.web.app import PROMETHEUS

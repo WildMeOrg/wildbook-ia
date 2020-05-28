@@ -38,7 +38,7 @@ from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 import parse
 
 (print, rrr, profile) = ut.inject2(__name__)

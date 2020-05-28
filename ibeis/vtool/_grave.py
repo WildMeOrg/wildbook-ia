@@ -29,7 +29,7 @@ class ScoreNormalizerUnsupervised(object):
         encoder.learn_probabilities(X, y, verbose=verbose)
 
     def learn_probabilities(encoder, X, y=None, verbose=True):
-        import vtool_ibeis as vt
+        import ibeis.vtool as vt
         gridsize = encoder.learn_kw['gridsize']
         adjust = encoder.learn_kw['adjust']
         # Record support
@@ -128,7 +128,7 @@ def bow_test():
         darr[ax, ax + total] = 1
 
     # nx2_axs = dict(zip(*))
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     groupxs = vt.group_indices(ax2_nx)[1]
     class_bows = np.vstack([arr.sum(axis=0) for arr in vt.apply_grouping(darr, groupxs)])
     # generate a query for each class
@@ -169,12 +169,12 @@ def match_inspect_graph():
     """
 
     CommandLine:
-        python -m vtool_ibeis.inspect_matches match_inspect_graph --show
+        python -m ibeis.vtool.inspect_matches match_inspect_graph --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.inspect_matches import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.inspect_matches import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> self = match_inspect_graph()
@@ -183,7 +183,7 @@ def match_inspect_graph():
         >>> self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     annots = [lazy_test_annot('easy1.png'),
               lazy_test_annot('easy2.png'),
               lazy_test_annot('easy3.png'),

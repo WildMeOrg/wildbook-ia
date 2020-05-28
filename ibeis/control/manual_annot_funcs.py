@@ -114,7 +114,7 @@ def compute_annot_visual_semantic_uuids(ibs, gid_list, include_preprocess=False,
 def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_list=None,
                            species_list=None, species_rowid_list=None, viewpoint_list=None,
                            nid_list=None, name_list=None, skip_cleaning=False, **kwargs):
-    from vtool_ibeis import geometry
+    from ibeis.vtool import geometry
 
     # BBOXES / VERTS
     # For import only, we can specify both by setting import_override to True
@@ -1792,7 +1792,7 @@ def get_annot_rotated_verts(ibs, aid_list):
         Method: GET
         URL:    /api/annot/vert/rotated/
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     vert_list = ibs.get_annot_verts(aid_list)
     theta_list = ibs.get_annot_thetas(aid_list)
     # Convex bounding boxes for verticies
@@ -2817,7 +2817,7 @@ def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True, **kwargs):
         Method: PUT
         URL:    /api/annot/bbox/
     """
-    from vtool_ibeis import geometry
+    from ibeis.vtool import geometry
     # changing the bboxes also changes the bounding polygon
     vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     # naively overwrite the bounding polygon with a rectangle - for now trust the user!
@@ -3199,7 +3199,7 @@ def set_annot_verts(ibs, aid_list, verts_list,
     with ut.Timer('set_annot_verts'):
 
         with ut.Timer('set_annot_verts...config'):
-            from vtool_ibeis import geometry
+            from ibeis.vtool import geometry
             nInput = len(aid_list)
             # Compute data to set
             if isinstance(verts_list, np.ndarray):

@@ -8,7 +8,7 @@ import six
 def extract_feature_from_patch(patch):
     import pyhesaff
     import numpy as np
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     patch = vt.rectify_to_uint8(patch)
     patch = vt.rectify_to_square(patch)
     patch_list = np.ascontiguousarray(patch[None, :])
@@ -32,16 +32,16 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
 
 
     CommandLine:
-        python -m vtool_ibeis.features --test-extract_features
-        python -m vtool_ibeis.features --test-extract_features --show
-        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show
-        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show
-        python -m vtool_ibeis.features --test-extract_features --feat-type=hesaff+siam128 --show --no-affine-invariance
+        python -m ibeis.vtool.features --test-extract_features
+        python -m ibeis.vtool.features --test-extract_features --show
+        python -m ibeis.vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m ibeis.vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m ibeis.vtool.features --test-extract_features --feat-type=hesaff+siam128 --show --no-affine-invariance
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.features import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> from ibeis.vtool.features import *  # NOQA
+        >>> import ibeis.vtool as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
         >>> imgBGR = vt.imread(img_fpath)
@@ -72,7 +72,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         from ibeis_cnn import _plugin
         (kpts, sift) = pyhesaff.detect_feats2(img_or_fpath, **kwargs)
         if isinstance(img_or_fpath, six.string_types):
-            import vtool_ibeis as vt
+            import ibeis.vtool as vt
             img_or_fpath = vt.imread(img_or_fpath)
         vecs_list = _plugin.extract_siam128_vecs([img_or_fpath], [kpts])
         vecs = vecs_list[0]
@@ -88,11 +88,11 @@ def get_extract_features_default_params():
         dict:
 
     CommandLine:
-        python -m vtool_ibeis.features --test-get_extract_features_default_params
+        python -m ibeis.vtool.features --test-get_extract_features_default_params
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool_ibeis.features import *  # NOQA
+        >>> from ibeis.vtool.features import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> param_dict = get_extract_features_default_params()
@@ -107,7 +107,7 @@ def get_extract_features_default_params():
 
 def detect_opencv_keypoints():
     import cv2
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     import numpy as np  # NOQA
 
     #img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='lena.png'))
@@ -219,7 +219,7 @@ def detect_opencv_keypoints():
 
 def test_mser():
     import cv2
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     import plottool_ibeis as pt
     import numpy as np
     pt.qt4ensure()
@@ -371,7 +371,7 @@ def test_mser():
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.features
+        xdoctest -m ibeis.vtool.features
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

@@ -60,14 +60,14 @@ def check_expr_eq(expr1, expr2, verbose=True):
         expr2 (?):
 
     CommandLine:
-        python -m vtool_ibeis.symbolic --test-check_expr_eq
+        python -m ibeis.vtool.symbolic --test-check_expr_eq
 
     SeeALso:
         vt.symbolic_randcheck
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool_ibeis.symbolic import *  # NOQA
+        >>> from ibeis.vtool.symbolic import *  # NOQA
         >>> expr1 = sympy.Matrix([ [sx*x + 1.0*tx + w1*y], [sy*y + 1.0*ty + w2*x], [1.0]])
         >>> expr2 = sympy.Matrix([ [sx*x + tx + w1*y], [sy*y + ty + w2*x], [1]])
         >>> result = check_expr_eq(expr1, expr2)
@@ -191,7 +191,7 @@ x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool_ibeis.symbolic
+        xdoctest -m ibeis.vtool.symbolic
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

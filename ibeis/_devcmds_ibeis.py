@@ -11,7 +11,7 @@ from os.path import split, join, expanduser
 from ibeis.plottool import draw_func2 as df2
 import numpy as np
 import utool
-import vtool_ibeis.keypoint as ktool
+import ibeis.vtool.keypoint as ktool
 from ibeis import sysres
 from ibeis.other import ibsfuncs
 from ibeis.dbio import ingest_hsdb

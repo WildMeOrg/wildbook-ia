@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from ibeis.viz import viz_helpers as vh
 from ibeis.algo.detect import randomforest
 from os.path import splitext

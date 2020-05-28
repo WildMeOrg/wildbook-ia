@@ -1608,7 +1608,7 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids,
     r"""
     Orders preference for sampling based on some metric
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     grouped_reference_unixtimes = ibs.unflat_map(
         prop_getter, gt_ref_grouped_aids)
     grouped_available_gt_unixtimes = ibs.unflat_map(
@@ -1907,7 +1907,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> daids = sample_annots_wrt_ref(ibs, initial_aids, dcfg, qaids, prefix, verbose)
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     from ibeis.expt import annotation_configs
 
     def get_cfg(key):

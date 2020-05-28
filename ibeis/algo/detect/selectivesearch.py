@@ -4,7 +4,7 @@ Interface to Selective Search object proposals.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import vtool_ibeis as vt
+import ibeis.vtool as vt
 from six.moves import zip
 import tempfile
 import subprocess

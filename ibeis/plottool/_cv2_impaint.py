@@ -14,7 +14,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.plottool.interact_impaint import *  # NOQA
         >>> import utool as ut
-        >>> import vtool_ibeis as vt
+        >>> import ibeis.vtool as vt
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> img = vt.imread(img_fpath)
         >>> label_colors = [255, 200, 100, 0]
@@ -129,7 +129,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
 
 def cached_impaint(bgr_img, cached_mask_fpath=None, label_colors=None,
                    init_mask=None, aug=False, refine=False):
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     if cached_mask_fpath is None:
         cached_mask_fpath = 'image_' + ut.hashstr_arr(bgr_img) + '.png'
     if aug:

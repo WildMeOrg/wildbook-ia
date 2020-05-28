@@ -142,7 +142,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     tuned_params = vt.tune_flann(vecs,
                                  target_precision=.98,
                                  build_weight=0.05,
@@ -874,7 +874,7 @@ def ggr_random_name_splits():
                              ibs.get_name_aids(remain_unique_nids)]
 
     sample_size = 75
-    import vtool_ibeis as vt
+    import ibeis.vtool as vt
     vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
 
     remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
