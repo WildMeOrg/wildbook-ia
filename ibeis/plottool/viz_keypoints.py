@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import utool
-import plottool_ibeis.draw_func2 as df2
+import ibeis.plottool.draw_func2 as df2
 import numpy as np
-from plottool_ibeis import plot_helpers as ph
+from ibeis.plottool import plot_helpers as ph
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
 utool.noinject(__name__, '[viz_keypoints]')
 
@@ -31,11 +31,11 @@ def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
         darken, update, redraw_image, docla, doclf, projection, sel_fx
 
     CommandLine:
-        python -m plottool_ibeis.viz_keypoints --exec-show_keypoints
+        python -m ibeis.plottool.viz_keypoints --exec-show_keypoints
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.viz_keypoints import *  # NOQA
+        >>> from ibeis.plottool.viz_keypoints import *  # NOQA
         >>> import vtool_ibeis as vt
         >>> kpts, vecs, chip = testdata_kpts()
         >>> fnum = 0
@@ -66,7 +66,7 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         None
 
     Example:
-        >>> from plottool_ibeis.viz_keypoints import *  # NOQA
+        >>> from ibeis.plottool.viz_keypoints import *  # NOQA
         >>> sel_fx = None
         >>> kpts = np.array([[  92.9246,   17.5453,    7.8103,   -3.4594,   10.8566,    0.    ],
         ...                  [  76.8585,   24.7918,   11.4412,   -3.2634,    9.6287,    0.    ],

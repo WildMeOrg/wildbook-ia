@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool_ibeis as pt
-import plottool_ibeis.plot_helpers as ph
+import ibeis.plottool as pt
+import ibeis.plottool.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -581,7 +581,7 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 
     """
     import vtool_ibeis.image as gtool
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import numpy as np
     import vtool_ibeis as vt
     kwargs = kwargs.copy()

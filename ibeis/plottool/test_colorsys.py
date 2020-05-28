@@ -1,6 +1,6 @@
 import colorsys
 import numpy as np
-from plottool_ibeis import color_funcs
+from ibeis.plottool import color_funcs
 
 def TEST_COLORSYS():
     rgb = [1.0, .2, .1]

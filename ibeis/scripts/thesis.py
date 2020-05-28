@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists  # NOQA
 import utool as ut
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 import vtool_ibeis as vt
 import pathlib
 import matplotlib as mpl
@@ -597,7 +597,7 @@ class Chap5(DBInputs):
             >>> self = Chap5('PZ_Master1')
         """
         import ibeis
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         sim_results = self.ensure_results('simulation')
         key = 'graph'
 
@@ -2253,7 +2253,7 @@ class Chap4(DBInputs):
         ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
                              for rs in sub_reports])
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
 
         mpl.rcParams.update(TMP_RC)
         fig = pt.figure(fnum=1, doclf=True)
@@ -2563,7 +2563,7 @@ class Chap4(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_wordcloud(self, task_key):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         results = self.ensure_results('all')
         importances = ut.map_keys(feat_alias, results['importance'][task_key])
 
@@ -3239,7 +3239,7 @@ class Chap3Draw(object):
         df = pd.DataFrame.from_records(infos)
         df['cdfs'] = cdfs
         df['K'] = ut.take_column(pcfgs, 'K')
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         # groups = list(df.groupby(('dsize', 't_denc_pername')))
         df = df[df['K'] != 10]
 

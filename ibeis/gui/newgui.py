@@ -29,8 +29,8 @@ from guitool_ibeis import slot_, ChangeLayoutContext
 # from guitool_ibeis import BlockContext
 # from guitool_ibeis import checks_qt_error
 import guitool_ibeis as gt
-import plottool_ibeis as pt
-from plottool_ibeis import color_funcs
+import ibeis.plottool as pt
+from ibeis.plottool import color_funcs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six

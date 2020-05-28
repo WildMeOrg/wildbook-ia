@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import range
-from plottool_ibeis import draw_func2 as df2
-from plottool_ibeis.viz_featrow import draw_feat_row
+from ibeis.plottool import draw_func2 as df2
+from ibeis.plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-import plottool_ibeis as pt  # NOQA
+import ibeis.plottool as pt  # NOQA
 import six  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -99,7 +99,7 @@ def show_top_featmatches(qreq_, cm_list):
         >>>                                        a=['default:has_none=mother,size=30'])
         >>> show_top_featmatches(qreq_, cm_list)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     # for cm in cm_list:
@@ -146,7 +146,7 @@ def show_top_featmatches(qreq_, cm_list):
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
-    import plottool_ibeis as pt  # NOQA
+    import ibeis.plottool as pt  # NOQA
     pt.ensureqt()
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
@@ -177,8 +177,8 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
 
     SeeAlso:
-        plottool_ibeis.viz_featrow
-        ~/code/plottool_ibeis/plottool_ibeis/viz_featrow.py
+        plottool.viz_featrow
+        ~/code/plottool/plottool/viz_featrow.py
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -206,7 +206,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    import plottool_ibeis as pt  # NOQA
+    import ibeis.plottool as pt  # NOQA
     consecutive_distance_compare = True
     draw_chip     = kwargs.get('draw_chip', False)
     draw_desc     = kwargs.get('draw_desc', True)

@@ -3,10 +3,10 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #import itertools
-import plottool_ibeis.draw_func2 as df2
-from plottool_ibeis import plot_helpers as ph
-from plottool_ibeis import custom_constants
-from plottool_ibeis import custom_figure
+import ibeis.plottool.draw_func2 as df2
+from ibeis.plottool import plot_helpers as ph
+from ibeis.plottool import custom_constants
+from ibeis.plottool import custom_figure
 #(print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
 ut.noinject(__name__, '[viz_featrow]')
@@ -42,17 +42,17 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     CommandLine:
 
         # Use this to find the fx you want to visualize
-        python -m plottool_ibeis.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
+        python -m ibeis.plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
 
         # Use this to visualize the featrow
-        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --show
-        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
-        python -m plottool_ibeis.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
+        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --show
+        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
+        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.viz_featrow import *  # NOQA
-        >>> import plottool_ibeis as pt
+        >>> from ibeis.plottool.viz_featrow import *  # NOQA
+        >>> import ibeis.plottool as pt
         >>> # build test data
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> chip = imgBGR
@@ -197,9 +197,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool_ibeis.viz_featrow
-        python -m plottool_ibeis.viz_featrow --allexamples
-        python -m plottool_ibeis.viz_featrow --allexamples --noface --nosrc
+        python -m ibeis.plottool.viz_featrow
+        python -m ibeis.plottool.viz_featrow --allexamples
+        python -m ibeis.plottool.viz_featrow --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

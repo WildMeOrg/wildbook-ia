@@ -632,7 +632,7 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     from ibeis.viz import viz_matches
     import cv2
     import io
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import vtool_ibeis as vt
     import matplotlib as mpl
 

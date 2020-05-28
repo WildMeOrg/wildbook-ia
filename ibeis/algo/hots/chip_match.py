@@ -410,7 +410,7 @@ class _ChipMatchVisualization(object):
 
     def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None,
                            plottype='annotmatch', **kwargs):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
         nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=False)
@@ -485,7 +485,7 @@ class _ChipMatchVisualization(object):
             ut.printex(ex, 'failed in cm.ishow_single_annotmatch', keys=['aid', 'qreq_'])
             raise
         #if not kwargs.get('noupdate', False):
-        #    import plottool_ibeis as pt
+        #    import ibeis.plottool as pt
         #    pt.update()
 
     ishow_match = ishow_single_annotmatch
@@ -552,7 +552,7 @@ class _ChipMatchVisualization(object):
             >>> ut.startfile(img_fpath, quote=True)
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
@@ -588,7 +588,7 @@ class _ChipMatchVisualization(object):
         """
         users newer rendering based code
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -646,7 +646,7 @@ class _ChipMatchVisualization(object):
             >>> print('kwargs = %s' % (ut.repr2(kwargs),))
             >>> cm, qreq_ = ibeis.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> tt = ut.tic('render image')
             >>> img = cm.render_single_annotmatch(qreq_, aid, **kwargs)
             >>> ut.toc(tt)
@@ -656,7 +656,7 @@ class _ChipMatchVisualization(object):
         """
         import io
         import cv2
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']

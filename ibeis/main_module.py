@@ -56,7 +56,7 @@ def _parse_args():
 
 
 def _init_matplotlib():
-    from plottool_ibeis import __MPL_INIT__
+    from ibeis.plottool import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
 
 

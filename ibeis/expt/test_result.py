@@ -1338,7 +1338,7 @@ class TestResult(ut.NiceRepr):
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
             >>> print(ut.repr2(ut.dict_hist(flat_tags), key_order_metric='val'))
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
             >>> pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
             >>> pt.set_figtitle(ut.get_cfg_lbl(filt_cfg))
@@ -1835,7 +1835,7 @@ class TestResult(ut.NiceRepr):
             >>> result = '(truth2_prop, prop2_mat) = %s' % str((truth2_prop, prop2_mat))
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> ut.show_if_requested()
         """
 
@@ -1996,7 +1996,7 @@ class TestResult(ut.NiceRepr):
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import vtool_ibeis as vt
 
         # dont look at filtered cases
@@ -2147,7 +2147,7 @@ class TestResult(ut.NiceRepr):
         DUPLICATE CODE
         rectify with experiment_drawing
         """
-        #import plottool_ibeis as pt
+        #import ibeis.plottool as pt
         import vtool_ibeis as vt
         if ut.VERBOSE:
             print('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
@@ -2309,12 +2309,12 @@ class TestResult(ut.NiceRepr):
                     testres.qaids, config2_=qreq_.query_config2_))[:, 0].mean()
                     for qreq_ in testres.cfgx2_qreq_]
 
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             #pt.plt.imshow(-y, interpolation='none', cmap='hot')
             #pt.plt.colorbar()
 
             def label_ticks():
-                import plottool_ibeis as pt
+                import ibeis.plottool as pt
                 ax = pt.gca()
                 labels = testres.get_varied_labels()
                 ax.set_xticks(list(range(len(labels))))
@@ -2393,7 +2393,7 @@ class TestResult(ut.NiceRepr):
 
         for cm_list, qreq_ in zip(cfgx2_cms, testres.cfgx2_qreq_):
             if PLOT:
-                import plottool_ibeis as pt
+                import ibeis.plottool as pt
                 pt.qt4ensure()
                 fnum = pt.ensure_fnum(None)
                 pt.figure(fnum=fnum)

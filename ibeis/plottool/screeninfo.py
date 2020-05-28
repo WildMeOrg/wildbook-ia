@@ -102,13 +102,13 @@ def get_resolution_info(monitor_num=0):
         dict: info
 
     CommandLine:
-        python -m plottool_ibeis.screeninfo get_resolution_info --show
+        python -m ibeis.plottool.screeninfo get_resolution_info --show
         xrandr | grep ' connected'
         grep "NVIDIA" /var/log/Xorg.0.log
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.screeninfo import *  # NOQA
+        >>> from ibeis.plottool.screeninfo import *  # NOQA
         >>> monitor_num = 1
         >>> for monitor_num in range(get_number_of_monitors()):
         >>>     info = get_resolution_info(monitor_num)
@@ -251,11 +251,11 @@ def get_monitor_geom(monitor_num=0):
         tuple: geom
 
     CommandLine:
-        python -m plottool_ibeis.screeninfo get_monitor_geom --show
+        python -m ibeis.plottool.screeninfo get_monitor_geom --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.screeninfo import *  # NOQA
+        >>> from ibeis.plottool.screeninfo import *  # NOQA
         >>> monitor_num = 0
         >>> geom = get_monitor_geom(monitor_num)
         >>> result = ('geom = %s' % (ut.repr2(geom),))
@@ -368,8 +368,8 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m plottool_ibeis.screeninfo
-        python -m plottool_ibeis.screeninfo --allexamples
+        python -m ibeis.plottool.screeninfo
+        python -m ibeis.plottool.screeninfo --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

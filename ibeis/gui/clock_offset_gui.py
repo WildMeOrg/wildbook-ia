@@ -11,7 +11,7 @@ import utool as ut
 import guitool_ibeis as gt
 from guitool_ibeis.__PYQT__ import QtWidgets
 from guitool_ibeis.__PYQT__.QtCore import Qt
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 (print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 
 

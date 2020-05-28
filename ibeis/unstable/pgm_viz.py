@@ -199,7 +199,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
 
 
 def draw_map_histogram(top_assignments, fnum=None, pnum=(1, 1, 1)):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     bin_labels = ut.get_list_column(top_assignments, 0)
     bin_vals =  ut.get_list_column(top_assignments, 1)
     fnum = pt.ensure_fnum(fnum)
@@ -214,7 +214,7 @@ def draw_map_histogram(top_assignments, fnum=None, pnum=(1, 1, 1)):
 
 def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
                        ttype_colors, **kwargs):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     var2_post = {f.variables[0]: f for f in factor_list}
 
@@ -359,7 +359,7 @@ def make_colorcodes(model):
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=n0,rand_scores=True --show --verbose
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     ttype_colors = {}
     ttype_scalars = {}
 
@@ -396,7 +396,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
     if not isinstance(model, BayesianModel):
         model = model.to_bayesian_model()
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import networkx as nx
     kwargs = kwargs.copy()
     factor_list = kwargs.pop('factor_list', [])
@@ -502,7 +502,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
 
 
 def draw_markov_model(model, fnum=None, **kwargs):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, doclf=True)
     ax = pt.gca()
@@ -571,7 +571,7 @@ def draw_markov_model(model, fnum=None, **kwargs):
 
 
 def draw_junction_tree(model, fnum=None, **kwargs):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum)
     ax = pt.gca()
@@ -655,10 +655,10 @@ def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwarg
         >>> result = show_model(model, evidence, soft_evidence)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     fnum = pt.ensure_fnum(fnum)
     top_assignments = kwargs.get('top_assignments', None)
     if evidence and top_assignments and 'factor_list' in kwargs:

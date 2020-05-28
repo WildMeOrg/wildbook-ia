@@ -78,7 +78,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
 
     Yields:

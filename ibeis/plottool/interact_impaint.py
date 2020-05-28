@@ -17,7 +17,7 @@ try:
     import vtool_ibeis as vt
 except ImportError:
     pass
-from plottool_ibeis import abstract_interaction
+from ibeis.plottool import abstract_interaction
 import math
 from six.moves import range, zip, input  # NOQA
 ut.noinject('impaint')
@@ -32,7 +32,7 @@ class PaintInteraction(PAINTER_BASE):
         http://stackoverflow.com/questions/22232812/drawing-on-image-with-mpl
 
     CommandLine:
-        python -m plottool_ibeis.interact_impaint --exec-draw_demo --show
+        python -m ibeis.plottool.interact_impaint --exec-draw_demo --show
     """
     def __init__(self, img, **kwargs):
         super(PaintInteraction, self).__init__(**kwargs)
@@ -44,7 +44,7 @@ class PaintInteraction(PAINTER_BASE):
         self.mask = mask
         self.img = img
         self.brush_size = 75
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         self.valid_colors1 = ut.odict([
             #('background', (255 * pt.BLACK).tolist()),
             ('scenery', (255 * pt.BLACK).tolist()),
@@ -62,14 +62,14 @@ class PaintInteraction(PAINTER_BASE):
         self._imshow_running = True
 
     def update_title(self):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         key = (self.valid_colors1.keys())[self.color1_idx]
         pt.plt.title('Click on the image to draw. exit to finish.\n'
                      'Right click erases, scroll wheel resizes.'
                      't changes current_color=%r' % (key,))
 
     def static_plot(self, fnum=None, pnum=(1, 1, 1)):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         self.ax = pt.gca()
         #self.ax.imshow(img, interpolation='nearest', alpha=1)
         #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
@@ -79,7 +79,7 @@ class PaintInteraction(PAINTER_BASE):
         self.ax.grid(False)
 
     def update_image(self):
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         #print('update_image')
         self.ax.images.pop()
         #self.ax.imshow(self.mask, interpolation='nearest', alpha=0.6)
@@ -171,7 +171,7 @@ class PaintInteraction(PAINTER_BASE):
 
 def impaint_mask2(img, init_mask=None):
     """
-        python -m plottool_ibeis.interact_impaint --exec-draw_demo --show
+        python -m ibeis.plottool.interact_impaint --exec-draw_demo --show
     """
     if False:
         QT = False  # NOQA
@@ -226,14 +226,14 @@ def impaint_mask2(img, init_mask=None):
 def draw_demo():
     r"""
     CommandLine:
-        python -m plottool_ibeis.interact_impaint --exec-draw_demo --show
+        python -m ibeis.plottool.interact_impaint --exec-draw_demo --show
 
     Example:
         >>> # SCRIPT
-        >>> from plottool_ibeis.interact_impaint import *  # NOQA
+        >>> from ibeis.plottool.interact_impaint import *  # NOQA
         >>> result = draw_demo()
         >>> print(result)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.show_if_requested()
     """
     fpath = ut.grab_test_imgpath('zebra.png')
@@ -252,9 +252,9 @@ def draw_demo():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool_ibeis.interact_impaint
-        python -m plottool_ibeis.interact_impaint --allexamples
-        python -m plottool_ibeis.interact_impaint --allexamples --noface --nosrc
+        python -m ibeis.plottool.interact_impaint
+        python -m ibeis.plottool.interact_impaint --allexamples
+        python -m ibeis.plottool.interact_impaint --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

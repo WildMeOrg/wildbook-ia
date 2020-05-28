@@ -1291,7 +1291,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm.setup_evaluation()
             >>> featinfo = pblm.feature_info(task_key, clf_key, data_key)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> text = importances
             >>> pt.wordcloud(featinfo.importances)
             >>> ut.show_if_requested()
@@ -1313,7 +1313,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def report_importance(pblm, task_key, clf_key, data_key):
         # ut.qtensure()
-        # import plottool_ibeis as pt  # NOQA
+        # import ibeis.plottool as pt  # NOQA
         if clf_key != 'RF':
             print('Can only report importance for RF not %r' % (clf_key,))
             return
@@ -1429,7 +1429,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         u = mccs2.mean(axis=0)
         s = mccs2.std(axis=0)
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.qtensure()
         pt.plot(n_dims, u, label='mean')
         ax = pt.gca()

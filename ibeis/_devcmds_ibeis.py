@@ -8,7 +8,7 @@ import six  # NOQA
 from ibeis._devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
-from plottool_ibeis import draw_func2 as df2
+from ibeis.plottool import draw_func2 as df2
 import numpy as np
 import utool
 import vtool_ibeis.keypoint as ktool

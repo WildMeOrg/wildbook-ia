@@ -166,7 +166,7 @@ class OrigAnnotInference(object):
         idx1 = vt.find_elbow_point(curve)
         idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
         if False:
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
             pt.plot(curve)
             pt.plot(idx1, curve[idx1], 'bo')
@@ -239,14 +239,14 @@ class OrigAnnotInference(object):
                     if graph.has_edge(aid1, aid2):
                         graph.remove_edge(aid1, aid2)
         if show:
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PINK for aid in qreq_.daids})
             nx.set_node_attributes(graph, name='color', values={aid: pt.TRUE_BLUE for aid in qreq_.qaids})
             nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
             nx.set_node_attributes(graph, name='label', values={node: 'n%r' % (node[1],) for node in name_nodes})
             nx.set_node_attributes(graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes})
         if show:
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
         return graph
 
@@ -408,7 +408,7 @@ class OrigAnnotInference(object):
                 import scipy.special
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize and param configuration
-                # python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                # python -m ibeis.plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
                 #a = 2.0
                 a = 1.5
                 b = 2

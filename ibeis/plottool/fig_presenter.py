@@ -3,7 +3,7 @@ import sys
 import time
 import utool as ut
 import matplotlib as mpl
-from plottool_ibeis import custom_figure
+from ibeis.plottool import custom_figure
 
 #from .custom_constants import golden_wh
 
@@ -101,7 +101,7 @@ def show_figure(fig):
         fig.show()
         fig.canvas.draw()
     except AttributeError as ex:
-        if not hasattr(fig, '_no_raise_plottool_ibeis'):
+        if not hasattr(fig, '_no_raise_plottool'):
             ut.printex(ex, '[pt] probably registered made figure with Qt.', iswarning=True)
 
 
@@ -150,7 +150,7 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    #print('[plottool_ibeis] all_figures_tile()')
+    #print('[plottool] all_figures_tile()')
     if no_tile:
         return
 
@@ -164,7 +164,7 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     if num_wins == 0:
         return
 
-    from plottool_ibeis import screeninfo
+    from ibeis.plottool import screeninfo
 
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
@@ -198,7 +198,7 @@ def all_figures_bring_to_front():
         for fig in iter(all_figures):
             bring_to_front(fig)
     except Exception as ex:
-        if not hasattr(fig, '_no_raise_plottool_ibeis'):
+        if not hasattr(fig, '_no_raise_plottool'):
             ut.printex(ex, iswarning=True)
 
 
@@ -286,14 +286,14 @@ def present(*args, **kwargs):
         hide_toolbar
 
     CommandLine:
-        python -m plottool_ibeis.fig_presenter present
+        python -m ibeis.plottool.fig_presenter present
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.fig_presenter import *  # NOQA
+        >>> from ibeis.plottool.fig_presenter import *  # NOQA
         >>> result = present()
         >>> print(result)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.show_if_requested()
     """
     if VERBOSE:

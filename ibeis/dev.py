@@ -44,7 +44,7 @@ import utool as ut
 from utool.util_six import get_funcname
 import utool
 #from ibeis.algo.hots import smk
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 import ibeis
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
@@ -53,7 +53,7 @@ import ibeis
 #                                   developing=True)
 from ibeis._devscript import devcmd, devprecmd  # NOQA
 from os.path import split, join, expanduser  # NOQA
-from plottool_ibeis import draw_func2 as df2  # NOQA
+from ibeis.plottool import draw_func2 as df2  # NOQA
 from ibeis import sysres  # NOQA
 from ibeis.other import ibsfuncs  # NOQA
 from ibeis.dbio import ingest_hsdb  # NOQA

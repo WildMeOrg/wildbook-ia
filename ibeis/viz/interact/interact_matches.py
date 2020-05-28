@@ -13,16 +13,16 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 import six
-from plottool_ibeis import interact_helpers as ih
+from ibeis.plottool import interact_helpers as ih
 from ibeis import viz
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import hstypes
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
-from plottool_ibeis import interact_matches
+from ibeis.plottool import interact_matches
 from ibeis.viz.interact.interact_chip import ishow_chip
 (print, rrr, profile) = ut.inject2(__name__, '[interact_matches]')
 
@@ -35,7 +35,7 @@ def testdata_match_interact(**kwargs):
     Example:
         >>> # VIZ_DOCTEST
         >>> from ibeis.viz.interact.interact_matches import *  # NOQA
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> kwargs = {}
         >>> mx = ut.get_argval('--mx', type_=int, default=None)
         >>> self = testdata_match_interact(mx=mx, **kwargs)
@@ -59,7 +59,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     Plots a chip result and sets up callbacks for interaction.
 
     SeeAlso:
-        plottool_ibeis.interact_matches.MatchInteraction2
+        plottool.interact_matches.MatchInteraction2
 
     CommandLine:
         python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
@@ -289,7 +289,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
 
         ax = pt.gca()  # HACK
 
-        from plottool_ibeis import plot_helpers as ph
+        from ibeis.plottool import plot_helpers as ph
         viztype = ph.get_plotdat(ax, 'viztype', '')
         is_match_type = viztype in ['matches', 'multi_match']
 
@@ -327,7 +327,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
 
     # Callback
     def on_click_inside(self, event, ax):
-        from plottool_ibeis import plot_helpers as ph
+        from ibeis.plottool import plot_helpers as ph
         ibs       = self.ibs
         viztype = ph.get_plotdat(ax, 'viztype', '')
         is_match_type = viztype in ['matches', 'multi_match']

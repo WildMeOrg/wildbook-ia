@@ -400,7 +400,7 @@ def find_minority_class_ccs(infr):
 
 
 def test_mcc():
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import sklearn.metrics
     num = 100
     xdata = np.linspace(0, 1, num * 2)

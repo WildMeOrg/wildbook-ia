@@ -1027,7 +1027,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool_ibeis as pt
+                import ibeis.plottool as pt
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
@@ -1068,7 +1068,7 @@ def check_database_overlap(ibs1, ibs2):
             # if False:
             #     # Debug code
             #     import ibeis.viz
-            #     import plottool_ibeis as pt
+            #     import ibeis.plottool as pt
             #     gid_pairs = list(zip(changed_gids1, changed_gids2))
             #     pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
             #     for fnum, pairs in enumerate(pairs_iter, start=1):
@@ -1145,7 +1145,7 @@ def check_database_overlap(ibs1, ibs2):
             if False:
                 # Debug code
                 import ibeis.viz
-                import plottool_ibeis as pt
+                import ibeis.plottool as pt
                 #aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
                 pairs_iter = ut.ichunks(aid_pairs, chunksize=8)

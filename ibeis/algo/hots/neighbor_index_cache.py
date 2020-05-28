@@ -675,7 +675,7 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.ensureqt()
         >>> pt.plt.imshow(S)
 

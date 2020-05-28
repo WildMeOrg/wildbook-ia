@@ -135,7 +135,7 @@ def myquery():
     from ibeis.algo.hots import special_query  # NOQA
     from ibeis.algo.hots import distinctiveness_normalizer  # NOQA
     from ibeis import viz  # NOQA
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     index = ut.get_argval('--index', int, 0)
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
     qaids = [aid1]
@@ -289,11 +289,11 @@ def myquery():
     #plt.show()
     #print(ut.repr2()))
     # TODO: plot max variation dims
-    #import plottool_ibeis as pt
+    #import ibeis.plottool as pt
     #pt.plot(p_list, diff_list)
     """
     viz.show_chip(ibs, aid1)
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.update()
     """
 
@@ -385,7 +385,7 @@ def show_power_law_plots():
         >>> pt.show_if_requested()
     """
     import numpy as np
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     xdata = np.linspace(0, 1, 1000)
     ydata = xdata
     fnum = 1

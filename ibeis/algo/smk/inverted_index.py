@@ -156,7 +156,7 @@ class InvertedAnnotsExtras(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.inverted_index import *  # NOQA
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
             >>> wx_list = list(inva.wx_to_aids.keys())
@@ -170,7 +170,7 @@ class InvertedAnnotsExtras(object):
             >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, '?'))
             >>>     pt.update()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         # Create the contributing patch image
         word_patches = inva.get_patches(wx, ibs)
         word_patches_ = ut.strided_sample(word_patches, 64)
@@ -226,12 +226,12 @@ class InvertedAnnotsExtras(object):
             >>> ibs = qreq_.ibs
             >>> all_words = inva.render_inverted_vocab(ibs)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         # Get words with the most assignments
         vocab = ibs.depc['vocab'].get_row_data([inva.vocab_rowid], 'words')[0]
 

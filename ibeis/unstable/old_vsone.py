@@ -215,7 +215,7 @@ def gridsearch_ratio_thresh(matches):
     import sklearn.metrics
     import vtool_ibeis as vt
     # Param search for vsone
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qt4ensure()
 
     skf = sklearn.model_selection.StratifiedKFold(n_splits=10,

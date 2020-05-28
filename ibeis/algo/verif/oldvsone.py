@@ -135,7 +135,7 @@ def demo_single_pairwise_feature_vector():
             edge = series.name
             class_to_edge[class_name] = edge
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import guitool_ibeis as gt
         gt.ensure_qapp()
         pt.qtensure()
@@ -185,7 +185,7 @@ def demo_single_pairwise_feature_vector():
         config = {'ratio_thresh': 1.0, 'sv_on': False}
         matches = infr._exec_pairwise_match(edges, config)
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.qtensure()
         thresholds = np.linspace(0, 1.0, 100)
         pos_truth = task.y_bin.T[pos_idx]

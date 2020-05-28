@@ -53,7 +53,7 @@ def crftest():
     }
     if False:
         import vtool_ibeis as vt
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.ensureqt()
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])

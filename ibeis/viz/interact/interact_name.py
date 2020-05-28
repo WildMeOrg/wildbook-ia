@@ -16,15 +16,15 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 from six.moves import zip
-from plottool_ibeis import interact_helpers as ih
+from ibeis.plottool import interact_helpers as ih
 import functools
-import plottool_ibeis as pt
+import ibeis.plottool as pt
 from ibeis import viz
 from ibeis import constants as const
 from ibeis.viz import viz_helpers as vh
 from ibeis.other import ibsfuncs
 from ibeis.viz import viz_chip
-from plottool_ibeis.abstract_interaction import AbstractInteraction
+from ibeis.plottool.abstract_interaction import AbstractInteraction
 (print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 
 

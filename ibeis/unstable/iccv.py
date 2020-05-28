@@ -214,7 +214,7 @@ def gt_review():
         df.loc[edge]
     gt.qtapp_loop(qwin=self, freq=10)
 
-    # import plottool_ibeis as pt
+    # import ibeis.plottool as pt
     # from ibeis.viz import viz_chip
     # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
     # then we just need to iterate through results
@@ -423,7 +423,7 @@ def draw_cmcs(dbname):
     """
     # DRAW RESULTS
     import vtool_ibeis as vt
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import pathlib
     if dbname is None:
         dbname = 'PZ_Master1'
@@ -491,7 +491,7 @@ def iccv_roc(dbname):
         >>> result = iccv_roc(dbname)
         >>> print(result)
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import vtool_ibeis as vt
     from ibeis.scripts.script_vsone import OneVsOneProblem
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
@@ -615,7 +615,7 @@ def draw_saved_roc(dbname):
     """
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import sklearn.metrics
     import vtool_ibeis as vt
     import matplotlib as mpl
@@ -1000,7 +1000,7 @@ def draw_ete(dbname):
     """
     ut.cprint('Draw ETE', 'green')
     # DRAW RESULTS
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qtensure()
 
     import pathlib
@@ -1146,7 +1146,7 @@ def draw_ete(dbname):
 
 
 def show_phis(phis):
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qtensure()
     ranks = 20
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
@@ -1269,7 +1269,7 @@ def learn_phi():
     from ibeis.init.filter_annots import encounter_crossval
     from ibeis.init import main_helpers
     from ibeis.expt import test_result
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qtensure()
 
     ibs = ibeis.opendb('GZ_Master1')
@@ -1420,7 +1420,7 @@ def learn_phi():
     # pt.plot(basis, density)
 
     # bins, edges = testres.get_rank_percentage_cumhist()
-    # import plottool_ibeis as pt
+    # import ibeis.plottool as pt
     # pt.qtensure()
     # pt.multi_plot(edges, [bins[0]])
 

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from plottool_ibeis import custom_figure
+from ibeis.plottool import custom_figure
 import utool as ut
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #                                                       '[interact_helpers]',

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import plottool_ibeis.draw_func2 as df2
+import ibeis.plottool.draw_func2 as df2
 import numpy as np
 from ibeis.other import ibsfuncs
-from plottool_ibeis import plot_helpers as ph
-import plottool_ibeis as pt
+from ibeis.plottool import plot_helpers as ph
+import ibeis.plottool as pt
 import utool as ut
 from ibeis.viz import viz_chip
 

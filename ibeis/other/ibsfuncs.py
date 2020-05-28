@@ -3153,7 +3153,7 @@ def merge_names(ibs, merge_name, other_names):
 def inspect_nonzero_yaws(ibs):
     """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
     from ibeis.viz import viz_chip
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
@@ -5065,7 +5065,7 @@ def compare_nested_props(ibs, aids1_list,
         >>> result = compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     def replace_none_with_nan(x):

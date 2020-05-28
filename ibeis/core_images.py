@@ -91,7 +91,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221}, recompute=True)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.quit_if_noshow()
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)
         >>> iteract_obj.start()

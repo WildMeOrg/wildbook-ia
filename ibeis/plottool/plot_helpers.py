@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-# import plottool_ibeis.draw_func2 as df2
-from plottool_ibeis import fig_presenter
-#from plottool_ibeis import custom_figure
-#from plottool_ibeis import custom_constants
+# import ibeis.plottool.draw_func2 as df2
+from ibeis.plottool import fig_presenter
+#from ibeis.plottool import custom_figure
+#from ibeis.plottool import custom_constants
 #from os.path import join
 import utool as ut
 ut.noinject(__name__, '[plot_helpers]')
@@ -52,11 +52,11 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
         tuple: (None, None)
 
     CommandLine:
-        python -m plottool_ibeis.plot_helpers --test-get_square_row_cols
+        python -m ibeis.plottool.plot_helpers --test-get_square_row_cols
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from plottool_ibeis.plot_helpers import *  # NOQA
+        >>> from ibeis.plottool.plot_helpers import *  # NOQA
         >>> # build test data
         >>> nSubplots = 9
         >>> nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]

@@ -649,7 +649,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         draw_tree_model(model, **kwargs)
         return
 
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     import networkx as netx
     import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
@@ -861,7 +861,7 @@ def flow():
 
     if True:
         import vtool_ibeis as vt
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
         fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])

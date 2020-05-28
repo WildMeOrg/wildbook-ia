@@ -365,7 +365,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>>             new_names = find_consistent_labeling(grouped_oldnames)
         >>>     ydata.append(t.ave_secs)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.qtensure()
         >>> pt.multi_plot(xdata, [ydata])
         >>> ut.show_if_requested()

@@ -40,7 +40,7 @@ from ibeis.gui import guiheaders as gh
 from ibeis.gui import newgui
 from ibeis.viz import interact
 from os.path import exists, join, dirname, normpath
-from plottool_ibeis import fig_presenter
+from ibeis.plottool import fig_presenter
 from six.moves import zip
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 
@@ -1962,7 +1962,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
             >>> #gt.ensure_qapp()  # must be ensured before any embeding
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> gt.qtapp_loop(qwin=back)
         """
         #from ibeis.init import filter_annots
@@ -2713,7 +2713,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> result = back.commit_to_wb_step(refresh)
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> ut.show_if_requested()
         """
         imgsetid = back.get_selected_imgsetid()
@@ -2955,7 +2955,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.ibs is not None:
             back.ibs.reset_table_cache()
         back.refresh_state()
-        from plottool_ibeis import draw_func2 as df2
+        from ibeis.plottool import draw_func2 as df2
         df2.update()
 
     @slot_()

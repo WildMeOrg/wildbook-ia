@@ -77,7 +77,7 @@ def demo2():
         >>> result = demo2()
         >>> print(result)
     """
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
 
     from ibeis.scripts.thesis import TMP_RC
     import matplotlib as mpl
@@ -740,7 +740,7 @@ class DummyVerif(object):
             >>> verif.show_score_probs()
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         dist = verif.score_dist
         n = 100000
         for key in verif.dummy_params.keys():

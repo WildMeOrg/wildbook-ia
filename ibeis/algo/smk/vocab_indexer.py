@@ -124,12 +124,12 @@ class VisualVocab(ut.NiceRepr):
             >>> vocab = testdata_vocab('PZ_MTEST', num_words=64)
             >>> all_words = vocab.render_vocab()
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         wx_list = list(range(len(vocab)))
         # wx_list = ut.strided_sample(wx_list, 64)
         wx_list = ut.strided_sample(wx_list, 64)
@@ -218,7 +218,7 @@ def compute_vocab(depc, fid_list, config):
         >>> ut.quit_if_noshow()
         >>> data = train_vecs
         >>> centroids = vocab.wx_to_word
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> vt.plot_centroids(data, centroids, num_pca_dims=2)
         >>> ut.show_if_requested()
         >>> #config = ibs.depc_annot['vocab'].configclass()

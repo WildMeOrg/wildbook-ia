@@ -116,7 +116,7 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> print('pl_high = %r' % (pl_high,))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> import scipy, scipy.stats
         >>> x = pl_index  # np.array([10, 11, 12])
         >>> k, N, K, n = resight, x, nvisit1, nvisit2
@@ -168,7 +168,7 @@ def dans_splits(ibs):
         >>> gt.ensure_qtapp()
         >>> win = dans_splits(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     #pair = 9262, 932
@@ -214,7 +214,7 @@ def dans_splits(ibs):
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
     import guitool_ibeis as gt
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -248,7 +248,7 @@ def fix_splits_interaction(ibs):
         >>> gt.ensure_qtapp()
         >>> win = fix_splits_interaction(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     split_props = {'splitcase', 'photobomb'}
@@ -265,7 +265,7 @@ def fix_splits_interaction(ibs):
     from ibeis.algo.graph import graph_iden
     from ibeis.viz import viz_graph2
     import guitool_ibeis as gt
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -305,7 +305,7 @@ def split_analysis(ibs):
         >>> gt.ensure_qtapp()
         >>> win = split_analysis(ibs)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
         >>> #ut.show_if_requested()
     """
@@ -833,7 +833,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         assert np.all(0 == np.diff(np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1))
 
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         import networkx as nx
         #pt.qt4ensure()
         #len(list(nx.connected_components(graph1)))
@@ -1012,7 +1012,7 @@ def print_feature_info(testres):
         testres (ibeis.expt.test_result.TestResult): test result
 
     Ignore:
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.qt4ensure()
         testres.draw_rank_cmc()
 
@@ -1025,7 +1025,7 @@ def print_feature_info(testres):
         >>> result = ('(tex_nKpts, tex_kpts_stats, tex_scale_stats) = %s' % (ut.repr2((tex_nKpts, tex_kpts_stats, tex_scale_stats)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt

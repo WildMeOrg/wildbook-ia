@@ -204,7 +204,7 @@ def classify_k(cfg={}):
 
 def show_toy_distributions(toy_params):
     import vtool_ibeis as vt
-    import plottool_ibeis as pt
+    import ibeis.plottool as pt
     pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
     tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
@@ -238,7 +238,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         >>> num_names = 40
         >>> get_toy_data_1vM(num_annots, num_names)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -449,7 +449,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> from ibeis.unstable.demobayes import *  # NOQA
         >>> toy_data = get_toy_data_1v1()
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
@@ -464,7 +464,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_names = 6
         >>> toy_data2 = get_toy_data_1v1(num_annots, num_names, initial_aids=initial_aids, initial_nids=initial_nids)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
@@ -547,7 +547,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
         >>> (discr_domain, discr_p_same, encoder) = learn_prob_score(num_scores, ret_enc=True, use_cache=False)
         >>> print('discr_p_same = %r' % (discr_p_same,))
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> encoder.visualize()
         >>> ut.show_if_requested()
     """
@@ -572,7 +572,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
 
     if False:
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         pt.ensureqt()
         encoder.visualize()
         #show_toy_distributions()
