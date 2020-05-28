@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import dtool_ibeis
+from ibeis import dtool
 import utool as ut
 import vtool_ibeis as vt
 from vtool_ibeis._pyflann_backend import pyflann as pyflann
@@ -14,7 +14,7 @@ from ibeis.control.controller_inject import register_preprocs
 derived_attribute = register_preprocs['annot']
 
 
-class VocabConfig(dtool_ibeis.Config):
+class VocabConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
@@ -40,7 +40,7 @@ class VisualVocab(ut.NiceRepr):
         vocab.flann_params['checks'] = 1024
         vocab.flann_params['trees'] = 8
         # TODO: grab the depcache rowid and maybe config?
-        # make a dtool_ibeis.Computable
+        # make a dtool.Computable
 
     def __nice__(vocab):
         return 'nW=%r' % (ut.safelen(vocab.wx_to_word))

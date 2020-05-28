@@ -101,11 +101,11 @@ class Ingestable2(object):
         self.imgpath_list = imgpath_list
         self.postingest_func = postingest_func
 
-        import dtool_ibeis
+        from ibeis import dtool
         # valid_species = None
         valid_species = ['____']
 
-        class IngestConfig(dtool_ibeis.Config):
+        class IngestConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo(
                     'images_as_annots', False),

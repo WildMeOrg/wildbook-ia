@@ -49,7 +49,7 @@ Setup:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 from vtool_ibeis import image_filters
-import dtool_ibeis
+from ibeis import dtool
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
@@ -63,7 +63,7 @@ from ibeis.algo.hots import neighbor_index
 
 derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
-# dtool_ibeis.Config.register_func = derived_attribute
+# dtool.Config.register_func = derived_attribute
 
 
 def testdata_core(defaultdb='testdb1', size=2):
@@ -76,7 +76,7 @@ def testdata_core(defaultdb='testdb1', size=2):
     return ibs, depc, aid_list
 
 
-class ChipThumbConfig(dtool_ibeis.Config):
+class ChipThumbConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('thumbsize', 128, 'sz', type_=eval),
         ut.ParamInfo('pad', 0, hideif=0),
@@ -89,7 +89,7 @@ class ChipThumbConfig(dtool_ibeis.Config):
 @derived_attribute(
     tablename='chipthumb', parents=['annotations'],
     colnames=['img', 'width', 'height'],
-    coltypes=[dtool_ibeis.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
+    coltypes=[dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
               int, int],
     configclass=ChipThumbConfig,
     fname='chipthumb',
@@ -242,7 +242,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         yield (thumbBGR, width, height)
 
 
-class ChipConfig(dtool_ibeis.Config):
+class ChipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
         #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
@@ -275,7 +275,7 @@ class ChipConfig(dtool_ibeis.Config):
     ]
 
 
-ChipImgType = dtool_ibeis.ExternType(vt.imread, vt.imwrite, extkey='ext')
+ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
 
 
 @derived_attribute(
@@ -543,7 +543,7 @@ def compute_dlen_sqrd(depc, aid_list, config=None):
     return dlen_sqrt_list
 
 
-class AnnotMaskConfig(dtool_ibeis.Config):
+class AnnotMaskConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('manual', True)
     ]
@@ -629,7 +629,7 @@ def compute_annotmask(depc, aid_list, config=None):
         # ibs.delete_annot_chip_thumbs([aid])
 
 
-class ProbchipConfig(dtool_ibeis.Config):
+class ProbchipConfig(dtool.Config):
     # TODO: incorporate into base
     _named_defaults = {
         'rf': {
@@ -654,7 +654,7 @@ class ProbchipConfig(dtool_ibeis.Config):
     #]
 
 
-ProbchipImgType = dtool_ibeis.ExternType(ut.partial(vt.imread, grayscale=True),
+ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
                                          vt.imwrite, extern_ext='.png')
 
 
@@ -894,7 +894,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     return mask2
 
 
-class HOGConfig(dtool_ibeis.Config):
+class HOGConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('orientations', 8),
         ut.ParamInfo('pixels_per_cell', (16, 16)),
@@ -986,7 +986,7 @@ def compute_hog(depc, cid_list, config=None):
         yield (hog,)
 
 
-class FeatConfig(dtool_ibeis.Config):
+class FeatConfig(dtool.Config):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
@@ -1053,7 +1053,7 @@ def compute_feats(depc, cid_list, config=None):
     this equation. Move the firewall towards the controller
 
     Args:
-        depc (dtool_ibeis.DependencyCache):
+        depc (dtool.DependencyCache):
         cid_list (list):
         config (None):
 
@@ -1220,11 +1220,11 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
     return (num_kpts, kpts, vecs)
 
 
-class FeatWeightConfig(dtool_ibeis.Config):
+class FeatWeightConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('featweight_enabled', True, 'enabled='),
     ]
-    # FIXME: incorporate config dependencies in dtool_ibeis
+    # FIXME: incorporate config dependencies in dtool
     #_parents = [FeatConfig, ProbchipConfig]
 
 
@@ -1239,7 +1239,7 @@ class FeatWeightConfig(dtool_ibeis.Config):
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
     Args:
-        depc (dtool_ibeis.DependencyCache): depc
+        depc (dtool.DependencyCache): depc
         fid_list (list):
         config (None): (default = None)
 
@@ -1348,7 +1348,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
     return weights
 
 
-class VsOneConfig(dtool_ibeis.Config):
+class VsOneConfig(dtool.Config):
     """
     Example:
         >>> # DISABLE_DOCTEST
@@ -1515,7 +1515,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         return configured_lazy_annots
 
 
-class IndexerConfig(dtool_ibeis.Config):
+class IndexerConfig(dtool.Config):
     """
     Example:
         >>> # DISABLE_DOCTEST
@@ -1562,9 +1562,9 @@ testmode = ut.get_argflag('--testmode')
 def compute_neighbor_index(depc, fids_list, config):
     r"""
     Args:
-        depc (dtool_ibeis.DependencyCache):
+        depc (dtool.DependencyCache):
         fids_list (list):
-        config (dtool_ibeis.Config):
+        config (dtool.Config):
 
     CommandLine:
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
@@ -1609,7 +1609,7 @@ def compute_neighbor_index(depc, fids_list, config):
     yield (nnindexer,)
 
 
-# class FeatNeighborConfig(dtool_ibeis.Config)
+# class FeatNeighborConfig(dtool.Config)
 
 
 if testmode:
@@ -1623,9 +1623,9 @@ if testmode:
     def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
         """
         Args:
-            depc (dtool_ibeis.DependencyCache):
+            depc (dtool.DependencyCache):
             aids_list (list):
-            config (dtool_ibeis.Config):
+            config (dtool.Config):
 
         CommandLine:
             python -m ibeis.core_annots --exec-compute_feature_neighbors --show
@@ -1697,7 +1697,7 @@ if testmode:
         pass
 
 
-class ClassifierConfig(dtool_ibeis.Config):
+class ClassifierConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'densenet']),
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -1771,7 +1771,7 @@ def compute_classifications(depc, aid_list, config=None):
         yield result
 
 
-class CanonicalConfig(dtool_ibeis.Config):
+class CanonicalConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('canonical_weight_filepath', None),
     ]
@@ -1834,7 +1834,7 @@ def compute_canonical(depc, aid_list, config=None):
         yield result
 
 
-class LabelerConfig(dtool_ibeis.Config):
+class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
         ut.ParamInfo('labeler_weight_filepath',  None),
@@ -1931,7 +1931,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         yield result
 
 
-class AoIConfig(dtool_ibeis.Config):
+class AoIConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('aoi_two_weight_filepath', None),
     ]
@@ -1991,7 +1991,7 @@ def compute_aoi2(depc, aid_list, config=None):
         yield result
 
 
-class OrienterConfig(dtool_ibeis.Config):
+class OrienterConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
         ut.ParamInfo('orienter_weight_filepath',  None),

@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
-import dtool_ibeis
+from ibeis import dtool
 import networkx as nx
 import itertools as it
 import guitool_ibeis as gt
@@ -1410,7 +1410,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def edit_filters(self):
         # TODO: split up review configs / show thumbs etc...
-        config = dtool_ibeis.Config.from_dict(self.review_cfg)
+        config = dtool.Config.from_dict(self.review_cfg)
         dlg = gt.ConfigConfirmWidget.as_dialog(self, title='Edit Filters',
                                                msg='Edit Filters',
                                                with_spoiler=False,

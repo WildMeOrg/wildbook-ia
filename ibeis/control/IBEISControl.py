@@ -35,7 +35,7 @@ Note:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import dtool_ibeis
+from ibeis import dtool
 import atexit
 import weakref
 import utool as ut
@@ -554,7 +554,7 @@ class IBEISController(BASE_CLASS):
         needs_backup = not ut.get_argflag('--nobackup')
         if ibs.get_dbname() == 'PZ_MTEST':
             needs_backup = False
-        if dtool_ibeis.sql_control.READ_ONLY:
+        if dtool.sql_control.READ_ONLY:
             needs_backup = False
         return needs_backup
 
@@ -612,7 +612,7 @@ class IBEISController(BASE_CLASS):
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
-            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
+            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
                 ibs.sqldb_fname, ibs.db_version_expected, version_next='2.0.0')
             ibs.db_version_expected = new_version
@@ -623,7 +623,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.db = dtool_ibeis.SQLDatabaseController(
+        ibs.db = dtool.SQLDatabaseController(
             fpath=sqldb_fpath, text_factory=six.text_type,
             inmemory=False, readonly=readonly,
             always_check_metadata=False,
@@ -695,7 +695,7 @@ class IBEISController(BASE_CLASS):
             ibs.staging_version_expected = request_stagingversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
-            new_version, new_fname = dtool_ibeis.sql_control.dev_test_new_schema_version(
+            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
                 ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.1.1')
             ibs.staging_version_expected = new_version
@@ -706,7 +706,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.staging = dtool_ibeis.SQLDatabaseController(
+        ibs.staging = dtool.SQLDatabaseController(
             fpath=sqlstaging_fpath, text_factory=six.text_type,
             inmemory=False, readonly=readonly,
             always_check_metadata=False,
@@ -729,7 +729,7 @@ class IBEISController(BASE_CLASS):
     def _init_depcache(ibs):
         # Initialize dependency cache for images
         image_root_getters = {}
-        ibs.depc_image = dtool_ibeis.DependencyCache(
+        ibs.depc_image = dtool.DependencyCache(
             root_tablename=const.IMAGE_TABLE,
             default_fname=const.IMAGE_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
@@ -753,7 +753,7 @@ class IBEISController(BASE_CLASS):
             'theta': ibs.get_annot_thetas,
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc_annot = dtool_ibeis.DependencyCache(
+        ibs.depc_annot = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
@@ -771,7 +771,7 @@ class IBEISController(BASE_CLASS):
 
         # Initialize dependency cache for parts
         part_root_getters = {}
-        ibs.depc_part = dtool_ibeis.DependencyCache(
+        ibs.depc_part = dtool.DependencyCache(
             root_tablename=const.PART_TABLE,
             default_fname=const.PART_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),

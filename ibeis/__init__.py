@@ -12,7 +12,7 @@ __version__ = '2.2.4'
 
 try:
     import utool as ut
-    import dtool_ibeis
+    from ibeis import dtool
 except ImportError as ex:
     print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
     print('[ibeis !!!] Perhaps try super_setup.py pull')

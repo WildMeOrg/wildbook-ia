@@ -343,7 +343,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     r"""
     Returns a hacky cacheid for neighbor configs.
-    DEPRICATE: This will be replaced by dtool_ibeis caching
+    DEPRICATE: This will be replaced by dtool caching
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters

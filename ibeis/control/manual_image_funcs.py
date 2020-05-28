@@ -1202,8 +1202,8 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                               read_extern=False, ensure=ensure_paths,
                               hack_paths=not ensure_paths)
-    #except dtool_ibeis.ExternalStorageException:
-    #    # TODO; this check might go in dtool_ibeis itself
+    #except dtool.ExternalStorageException:
+    #    # TODO; this check might go in dtool itself
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
     if DEBUG_THUMB:
@@ -1556,7 +1556,7 @@ def get_image_detectpaths(ibs, gid_list):
     Returns:
         list_ (list): a list of image paths resized to a constant area for detection
     """
-    import dtool_ibeis
+    from ibeis import dtool
     depc = ibs.depc_image
     config = {
         'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
@@ -1565,8 +1565,8 @@ def get_image_detectpaths(ibs, gid_list):
     try:
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-    except dtool_ibeis.ExternalStorageException:
-        # TODO; this check might go in dtool_ibeis itself
+    except dtool.ExternalStorageException:
+        # TODO; this check might go in dtool itself
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
     #print(thumbpath_list)
