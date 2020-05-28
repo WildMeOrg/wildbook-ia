@@ -31,8 +31,6 @@ RUN cd /ibeis/ibeis \
 
 RUN cd /ibeis/ibeis_cnn \
  && rm -rf .git \
- && cd /ibeis/guitool \
- && rm -rf .git \
  && cd /ibeis/hesaff \
  && rm -rf .git \
  && cd /ibeis/lightnet \

@@ -35,7 +35,6 @@ futures_actors
 
 utool >= 2.1.2
 vtool_ibeis >= 2.1.0
-guitool_ibeis >= 2.0.0
 
 pyqt5>= 5.11.2;python_version>'2.7'  
 
