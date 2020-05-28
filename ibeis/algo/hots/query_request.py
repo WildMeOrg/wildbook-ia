@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 TODO:
-    replace with dtool_ibeis
+    replace with dtool
     Rename to IdentifyRequest
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
-import dtool_ibeis
+from ibeis import dtool
 import itertools as it
 import hashlib
 import vtool_ibeis as vt
@@ -53,7 +53,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qaid_list (list): query ids
         daid_list (list): database ids
         cfgdict (dict): pipeline dictionary config
-        query_cfg (dtool_ibeis.Config): Pipeline Config Object
+        query_cfg (dtool.Config): Pipeline Config Object
         unique_species (None): (default = None)
         use_memcache (bool): (default = True)
         verbose (bool):  verbosity flag(default = True)
@@ -163,9 +163,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = smk_pipeline.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
-    elif query_cfg is not None and isinstance(query_cfg, dtool_ibeis.Config):
+    elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
         if verbose > 2:
-            print('[qreq] dtool_ibeis.Config HACK')
+            print('[qreq] dtool.Config HACK')
         tablename = query_cfg.get_config_name()
         cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]

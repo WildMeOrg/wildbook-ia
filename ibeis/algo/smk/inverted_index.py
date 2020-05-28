@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-import dtool_ibeis
+from ibeis import dtool
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
@@ -13,7 +13,7 @@ from ibeis.control.controller_inject import register_preprocs
 derived_attribute = register_preprocs['annot']
 
 
-class InvertedIndexConfig(dtool_ibeis.Config):
+class InvertedIndexConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('nAssign', 1),
         #ut.ParamInfo('int_rvec', False, hideif=False),

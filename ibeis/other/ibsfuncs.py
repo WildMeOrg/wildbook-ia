@@ -830,9 +830,9 @@ def check_annot_consistency(ibs, aid_list=None):
 @register_ibs_method
 def check_annot_corrupt_uuids(ibs, aid_list=None):
     """
-    # del dtool_ibeis.__SQLITE__.converters['UUID']
+    # del dtool.__SQLITE__.converters['UUID']
     # import uuid
-    # del dtool_ibeis.__SQLITE__.adapters[(uuid.UUID, dtool_ibeis.__SQLITE__.PrepareProtocol)]
+    # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
 
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
@@ -8369,7 +8369,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
 
 @register_ibs_method
 def import_folder(ibs, path, recursive=True, **kwargs):
-    from detecttools.directory import Directory
+    from ibeis.detecttools.directory import Directory
     direct = Directory(path, recursive=recursive, images=True)
     gid_list = ibs.add_images(direct.files(), **kwargs)
     return gid_list

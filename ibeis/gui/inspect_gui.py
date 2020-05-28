@@ -236,8 +236,8 @@ class QueryResultsWidget(gt.APIItemWidget):
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
     def edit_filters(qres_wgt):
-        import dtool_ibeis
-        config = dtool_ibeis.Config.from_dict(qres_wgt.review_cfg)
+        from ibeis import dtool
+        config = dtool.Config.from_dict(qres_wgt.review_cfg)
         dlg = gt.ConfigConfirmWidget.as_dialog(qres_wgt, title='Edit Filters',
                                                msg='Edit Filters',
                                                with_spoiler=False,

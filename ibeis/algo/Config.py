@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import six
 import copy
-#import dtool_ibeis
+#from ibeis import dtool
 from os.path import join
 from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
@@ -519,7 +519,7 @@ class QueryConfig(ConfigBase):
         >>> print(cfgstr)
     """
 
-    # TODO: make this a dtool_ibeis Config
+    # TODO: make this a dtool Config
     _todo_subconfig_list = [NNConfig, NNWeightConfig, SpatialVerifyConfig,
                             FlannConfig, FeatureWeightConfig]
 

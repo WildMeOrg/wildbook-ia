@@ -138,7 +138,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
     """
     def __init__(self, ibs):
         from ibeis.expt import annotation_configs
-        import dtool_ibeis
+        from ibeis import dtool
         from guitool_ibeis import PrefWidget2
         from guitool_ibeis.__PYQT__.QtCore import Qt
         super(CustomAnnotCfgSelector, self).__init__()
@@ -147,7 +147,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.qaids = None
         self.accept_flag = False
 
-        class TmpAnnotConfig(dtool_ibeis.Config):
+        class TmpAnnotConfig(dtool.Config):
             _param_info_list = (
                 annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO +
                 annotation_configs.INTRAGROUP_DEFAULTS_PARAM_INFO +
@@ -155,7 +155,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
                 annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
             )
 
-        class TmpPipelineConfig(dtool_ibeis.Config):
+        class TmpPipelineConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K, min_=1, none_ok=False),
                 ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm, min_=1, none_ok=False),
@@ -174,15 +174,15 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.dcfg = TmpAnnotConfig()
 
         self.pcfg = TmpPipelineConfig()
-        self.review_cfg = dtool_ibeis.Config.from_dict({
+        self.review_cfg = dtool.Config.from_dict({
             'filter_reviewed': True,
             'ranks_top': 1,
             'filter_true_matches': True,
         })
-        self.info_cfg = dtool_ibeis.Config.from_dict({
+        self.info_cfg = dtool.Config.from_dict({
             key: False for key in ibs.parse_annot_config_stats_filter_kws()
         })
-        self.exemplar_cfg = dtool_ibeis.Config.from_dict({
+        self.exemplar_cfg = dtool.Config.from_dict({
             #'imgsetid': None,
             'exemplars_per_view': ibs.cfg.other_cfg.exemplars_per_view,
         })
@@ -1701,8 +1701,8 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> ut.quit_if_noshow()
         """
         print('[back] do_group_occurrence_step')
-        import dtool_ibeis
-        #class TmpConfig(dtool_ibeis.Config):
+        from ibeis import dtool
+        #class TmpConfig(dtool.Config):
         #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
         ibs = back.ibs
 
@@ -1714,7 +1714,7 @@ class MainWindowBackend(GUIBACK_BASE):
                                                           shipped=False,
                                                           min_num_gids=1)
 
-        class TmpConfig(dtool_ibeis.Config):
+        class TmpConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo('seconds_thresh', 1600, 'sec'),
                 ut.ParamInfo('use_gps', True, ''),
@@ -1834,10 +1834,10 @@ class MainWindowBackend(GUIBACK_BASE):
         assert review_in_web_mode in ['detections', 'annotations']
         if True:
             # TODO better confirm dialog
-            import dtool_ibeis
+            from ibeis import dtool
             species_text = ibs.get_all_species_texts()
             species_nice = ibs.get_all_species_nice()
-            class TmpDetectConfig(dtool_ibeis.Config):
+            class TmpDetectConfig(dtool.Config):
                 _param_info_list = [
                     ut.ParamInfo('review_in_web', review_in_web),
                     ut.ParamInfo('detector', ibs.cfg.detect_cfg.detector, valid_values=['cnn', 'rf']),
@@ -1997,9 +1997,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
         # TODO better confirm dialog
         if True:
-            import dtool_ibeis
+            from ibeis import dtool
             ibs = back.ibs   # NOQA
-            #class TmpIDConfig(dtool_ibeis.Config):
+            #class TmpIDConfig(dtool.Config):
             #    _param_info_list = [
             #        #ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
             #        #ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
@@ -2019,7 +2019,7 @@ class MainWindowBackend(GUIBACK_BASE):
             tmpdict = cfgdict.copy()
             tmpdict.update(review_config)
 
-            config = dtool_ibeis.Config.from_dict(tmpdict)
+            config = dtool.Config.from_dict(tmpdict)
 
             #print('config = %r' % (config,))
             options = [
@@ -2459,8 +2459,8 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        import dtool_ibeis
-        config = dtool_ibeis.Config.from_dict({
+        from ibeis import dtool
+        config = dtool.Config.from_dict({
             'K': 1,
             'Knorm': 5,
             'min_pername': 1,

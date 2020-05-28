@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import utool as ut
 import vtool_ibeis as vt
-import dtool_ibeis
+from ibeis import dtool
 import numpy as np  # NOQA
 import itertools
 from ibeis.plottool.abstract_interaction import AbstractInteraction
@@ -361,7 +361,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
     return plotinfo
 
 
-class InferenceConfig(dtool_ibeis.Config):
+class InferenceConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('min_labels', 1),
         ut.ParamInfo('max_labels', 5),

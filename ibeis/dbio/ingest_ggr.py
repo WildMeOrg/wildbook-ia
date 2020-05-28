@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 """Converts a GGR-style raw data to IBEIS database."""
 from __future__ import absolute_import, division, print_function
-from detecttools.directory import Directory
+from ibeis.detecttools.directory import Directory
 from os.path import join, exists
 import utool as ut
 import ibeis

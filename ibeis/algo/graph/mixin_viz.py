@@ -204,7 +204,7 @@ class GraphVisualization(object):
 
     @staticmethod
     def make_viz_config(use_image, small_graph):
-        import dtool_ibeis as dt
+        from ibeis import dtool as dt
         class GraphVizConfig(dt.Config):
             _param_info_list = [
                 # Appearance

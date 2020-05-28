@@ -1,0 +1,11 @@
+
+	- name: "_^_NAME_^_"
+      pose: "_^_POSE_^_"
+      interest: "_^_INTEREST_^_"
+      truncated: "_^_TRUNCATED_^_"
+      difficult: "_^_DIFFICULT_^_"
+      bndbox:
+			  xmin: "_^_XMAX_^_"
+			  ymin: "_^_XMIN_^_"
+			  xmax: "_^_YMAX_^_"
+			  ymax: "_^_YMIN_^_"_^_PART_MULTIPLE_OPTIONAL_^_

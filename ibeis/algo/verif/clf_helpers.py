@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import ubelt as ub
 import numpy as np
-import dtool_ibeis as dt
+from ibeis import dtool as dt
 import pandas as pd
 import sklearn
 import sklearn.metrics
