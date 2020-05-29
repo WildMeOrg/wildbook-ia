@@ -363,7 +363,7 @@ def testdata_depc(fname=None):
             coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
         def dummy_manual_chipmask(depc, parent_rowids, config=None):
             import vtool_ibeis as vt
-            from plottool_ibeis import interact_impaint
+            from ibeis.plottool import interact_impaint
             mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
             ut.ensuredir(mask_dpath)
             if config is None:
@@ -626,7 +626,7 @@ def dummy_example_depcacahe():
 
     test_getters(depc)
 
-    #import plottool_ibeis as pt
+    #import ibeis.plottool as pt
     # pt.ensureqt()
 
     graph = depc.make_graph()  # NOQA

@@ -489,7 +489,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>>     msg='Confirm')
             >>> dlg.resize(700, 500)
             >>> dlg.show()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> self = dlg.widget
             >>> guitool.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA

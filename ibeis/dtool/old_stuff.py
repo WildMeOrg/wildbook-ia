@@ -206,7 +206,7 @@
 #         tablename = 'nnindexer'
 #         multi_rowids = (1, 2, 3, 4, 5)
 #         root_rowids = [[multi_rowids]]
-#         import plottool_ibeis as pt
+#         import ibeis.plottool as pt
 #         pt.ensureqt()
 
 #         from ibeis.dtool.depcache_control import *  # NOQA
@@ -216,7 +216,7 @@
 #         print(ut.depth_profile(root_rowids))
 #         tablename = 'neighbs'
 #         table = depc[tablename]  # NOQA
-#         import plottool_ibeis as pt
+#         import ibeis.plottool as pt
 #         pt.ensureqt()
 #         _debug = depc._debug = True
 #         depc.get_rowids(tablename, root_rowids, config, _debug=_debug)
@@ -248,7 +248,7 @@
 #         >>> from ibeis.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
-#         >>> import plottool_ibeis as pt
+#         >>> import ibeis.plottool as pt
 #         >>> pt.ensureqt()
 #         >>> #pt.show_nx(depc.graph)
 
@@ -550,7 +550,7 @@
 #         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc2()
 #         >>> ut.quit_if_noshow()
-#         >>> import plottool_ibeis as pt
+#         >>> import ibeis.plottool as pt
 #         >>> depc.show_graph()
 #         >>> ut.show_if_requested()
 #     """
@@ -682,7 +682,7 @@
 #         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_image()
 #         >>> ut.quit_if_noshow()
-#         >>> import plottool_ibeis as pt
+#         >>> import ibeis.plottool as pt
 #         >>> depc.show_graph()
 #         >>> depc['detection'].show_input_graph()
 #         >>> print(depc['detection'].compute_order)
@@ -722,7 +722,7 @@
 #         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_annot()
 #         >>> ut.quit_if_noshow()
-#         >>> import plottool_ibeis as pt
+#         >>> import ibeis.plottool as pt
 #         >>> depc.show_graph()
 #         >>> tablename = 'featweight'
 #         >>> table = depc[tablename]

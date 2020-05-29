@@ -134,7 +134,7 @@ def make_expanded_input_graph(graph, target):
         >>> print('x = %r' % (x,))
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> pt.show_nx(graph, fnum=1, pnum=(1, 2, 1))
         >>> pt.show_nx(exi_graph, fnum=1, pnum=(1, 2, 2))
         >>> ut.show_if_requested()
@@ -483,8 +483,8 @@ class TableInput(ut.NiceRepr):
             >>> print('exi_inputs4 = %r' % (exi_inputs4,))
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
-            >>> from plottool_ibeis.interactions import ExpandableInteraction
+            >>> import ibeis.plottool as pt
+            >>> from ibeis.plottool.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=2)
             >>> depc['vsone'].show_dep_subgraph(inter)
             >>> exi_inputs1.show_exi_graph(inter)
@@ -761,8 +761,8 @@ class TableInput(ut.NiceRepr):
             >>> table = depc['neighbs']
             >>> inputs = table.rootmost_inputs
             >>> print('inputs = %r' % (inputs,))
-            >>> import plottool_ibeis as pt
-            >>> from plottool_ibeis.interactions import ExpandableInteraction
+            >>> import ibeis.plottool as pt
+            >>> from ibeis.plottool.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=1)
             >>> inputs.show_exi_graph(inter=inter)
             >>> # FIXME; Expanding inputs can overspecify inputs
@@ -779,8 +779,8 @@ class TableInput(ut.NiceRepr):
             >>> inter.start()
             >>> ut.show_if_requested()
         """
-        import plottool_ibeis as pt
-        from plottool_ibeis.interactions import ExpandableInteraction
+        import ibeis.plottool as pt
+        from ibeis.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction()

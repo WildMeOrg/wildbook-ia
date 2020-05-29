@@ -62,9 +62,9 @@ def testdata_depc3(in_memory=True):
         >>> depc.print_all_tables()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> depc.show_graph()
-        >>> from plottool_ibeis.interactions import ExpandableInteraction
+        >>> from ibeis.plottool.interactions import ExpandableInteraction
         >>> inter = ExpandableInteraction(nCols=2)
         >>> depc['smk_match'].show_input_graph(inter)
         >>> depc['vsone'].show_input_graph(inter)
@@ -129,9 +129,9 @@ def testdata_depc4(in_memory=True):
         >>> depc.print_all_tables()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
+        >>> import ibeis.plottool as pt
         >>> depc.show_graph()
-        >>> from plottool_ibeis.interactions import ExpandableInteraction
+        >>> from ibeis.plottool.interactions import ExpandableInteraction
         >>> inter = ExpandableInteraction(nCols=2)
         >>> depc['smk_match'].show_input_graph(inter)
         >>> depc['vsone'].show_input_graph(inter)

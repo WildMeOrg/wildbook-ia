@@ -1094,11 +1094,11 @@ class _TableGeneralHelper(ub.NiceRepr):
         return children_tablenames
 
     def show_dep_subgraph(table, inter=None):
-        from plottool_ibeis.interactions import ExpandableInteraction
+        from ibeis.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         graph = table.depc.explicit_graph
         nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
@@ -1122,13 +1122,13 @@ class _TableGeneralHelper(ub.NiceRepr):
             >>> depc = testdata_depc3()
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> table = depc['smk_match']
             >>> table.show_input_graph()
             >>> #print(depc['smk_match'].flat_compute_rmi_edges)
             >>> ut.show_if_requested()
         """
-        from plottool_ibeis.interactions import ExpandableInteraction
+        from ibeis.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
@@ -1161,7 +1161,7 @@ class _TableGeneralHelper(ub.NiceRepr):
             >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
             >>> # xdoctest: +REQUIRES(--show)
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.ensureqt()
             >>> table.show_input_graph()
             >>> pt.interactions.zoom_factory()
