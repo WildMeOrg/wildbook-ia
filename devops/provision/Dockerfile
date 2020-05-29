@@ -11,8 +11,8 @@ ENV LANG C.UTF-8
 
 # Clone IBEIS VSTS repositories
 RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
- && git clone --branch next https://github.com/WildbookOrg/flann                       /ibeis/flann \
- && git clone --branch next https://github.com/WildbookOrg/hesaff                      /ibeis/hesaff \
+ && git clone --branch master https://github.com/WildbookOrg/flann                     /ibeis/flann \
+ && git clone --branch master https://github.com/WildbookOrg/hesaff                    /ibeis/hesaff \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-flukematch-module     /ibeis/ibeis-flukematch-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-curvrank-module       /ibeis/ibeis-curvrank-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-deepsense-module      /ibeis/ibeis-deepsense-module \
@@ -24,9 +24,9 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
  && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /ibeis/pydarknet \
  && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
- && git clone --branch next https://github.com/WildbookOrg/ubelt                       /ibeis/ubelt \
+ && git clone --branch master https://github.com/WildbookOrg/ubelt                     /ibeis/ubelt \
  && git clone --branch next https://github.com/WildbookOrg/utool                       /ibeis/utool \
- && git clone --branch next https://github.com/WildbookOrg/vtool                       /ibeis/vtool
+ && git clone --branch master https://github.com/WildbookOrg/vtool                     /ibeis/vtool
 
 RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank \
  && git init \
