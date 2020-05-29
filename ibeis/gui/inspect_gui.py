@@ -13,11 +13,11 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
-from guitool_ibeis.__PYQT__ import QtCore
-from guitool_ibeis.__PYQT__ import QtWidgets
-from guitool_ibeis.__PYQT__.QtCore import Qt
+from ibeis.guitool.__PYQT__ import QtCore
+from ibeis.guitool.__PYQT__ import QtWidgets
+from ibeis.guitool.__PYQT__.QtCore import Qt
 from ibeis.plottool import fig_presenter
-import guitool_ibeis as gt
+import ibeis.guitool as gt
 #import six
 import utool as ut
 from ibeis.gui import id_review_api
@@ -373,7 +373,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 option_dict = {key[key.find('&') + 1]: val for key, val in options
                                if '&' in key}
                 return option_dict
-            # TODO: use guitool_ibeis options dict
+            # TODO: use guitool options dict
             #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
             option_dict = make_option_dict(options)
 

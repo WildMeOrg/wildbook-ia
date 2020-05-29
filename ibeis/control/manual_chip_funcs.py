@@ -190,7 +190,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     get chip thumb info
     The return type of this is interpreted and computed in
-    ~/code/guitool_ibeis/guitool_ibeis/api_thumb_delegate.py
+    ~/code/guitool/guitool/api_thumb_delegate.py
 
     Args:
         aid_list  (list):
@@ -245,7 +245,7 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
     r"""
     get chip thumb info
     The return type of this is interpreted and computed in
-    ~/code/guitool_ibeis/guitool_ibeis/api_thumb_delegate.py
+    ~/code/guitool/guitool/api_thumb_delegate.py
 
     Args:
         aid_list  (list):

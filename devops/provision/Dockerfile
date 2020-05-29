@@ -12,7 +12,6 @@ ENV LANG C.UTF-8
 # Clone IBEIS VSTS repositories
 RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
  && git clone --branch next https://github.com/WildbookOrg/flann                       /ibeis/flann \
- && git clone --branch next https://github.com/WildbookOrg/guitool                     /ibeis/guitool \
  && git clone --branch next https://github.com/WildbookOrg/hesaff                      /ibeis/hesaff \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-flukematch-module     /ibeis/ibeis-flukematch-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-curvrank-module       /ibeis/ibeis-curvrank-module \
@@ -90,8 +89,6 @@ RUN . /virtualenv/env3/bin/activate \
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/ibeis_cnn \
- && pip install -e . \
- && cd /ibeis/guitool \
  && pip install -e . \
  && cd /ibeis/hesaff \
  && pip install -e . \

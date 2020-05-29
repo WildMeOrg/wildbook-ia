@@ -714,13 +714,13 @@ class _ChipMatchVisualization(object):
             >>> name_scoring = False
             >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
             >>> ut.quit_if_noshow()
-            >>> import guitool_ibeis
-            >>> guitool_ibeis.qtapp_loop(qwin=qres_wgt)
+            >>> import ibeis.guitool
+            >>> guitool.qtapp_loop(qwin=qres_wgt)
         """
         print('[cm] qt_inspect_gui')
         from ibeis.gui import inspect_gui
-        import guitool_ibeis
-        guitool_ibeis.ensure_qapp()
+        import ibeis.guitool
+        guitool.ensure_qapp()
         cm_list = [cm]
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,

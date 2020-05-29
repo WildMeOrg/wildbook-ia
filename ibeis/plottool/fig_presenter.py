@@ -51,7 +51,7 @@ def get_geometry(fnum):
 
 
 #def get_screen_info():
-#    # TODO Move dependency to guitool_ibeis
+#    # TODO Move dependency to guitool
 #    desktop = QtWidgets.QDesktopWidget()
 #    mask = desktop.mask()  # NOQA
 #    layout_direction = desktop.layoutDirection()  # NOQA
@@ -122,7 +122,7 @@ def get_main_win_base():
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
-            #from guitool_ibeis.__PYQT__ import QtGui
+            #from ibeis.guitool.__PYQT__ import QtGui
             QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
@@ -174,8 +174,8 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
-        from guitool_ibeis.__PYQT__ import QtGui  # NOQA
-        from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+        from ibeis.guitool.__PYQT__ import QtGui  # NOQA
+        from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
         isqt4_back = isinstance(win, QtWidgets.QMainWindow)
         isqt4_widget = isinstance(win, QtWidgets.QWidget)
         (x, y, w, h) = valid_positions[ix]
@@ -234,7 +234,7 @@ def bring_to_front(fig):
     #if not ut.WIN32:
     # NOT sure on the correct order of these
     # can cause the figure geometry to be unset
-    from guitool_ibeis.__PYQT__.QtCore import Qt
+    from ibeis.guitool.__PYQT__.QtCore import Qt
     qtwin.activateWindow()
     qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
     qtwin.setWindowFlags(Qt.WindowFlags(0))

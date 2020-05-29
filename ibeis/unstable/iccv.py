@@ -13,7 +13,7 @@ def qt_review():
     CommandLine:
         python -m ibeis.scripts.iccv qt_review
     """
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     import ibeis
     app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
@@ -160,7 +160,7 @@ def gt_review():
 
     # TODO: add an inspect pair to infr
     print('[graph_widget] show_selected')
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     from ibeis.viz import viz_graph2
     app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
@@ -171,7 +171,7 @@ def gt_review():
     infr.params['inference.enabled'] = False
     infr.reset_feedback('staging', apply=True)
 
-    # from guitool_ibeis.__PYQT__ import QtCore
+    # from ibeis.guitool.__PYQT__ import QtCore
     # Qt = QtCore.Qt
 
     # Move absolutely sure edges down so they arn't re-reviewed

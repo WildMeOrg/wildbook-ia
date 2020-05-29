@@ -176,9 +176,9 @@ def impaint_mask2(img, init_mask=None):
     if False:
         QT = False  # NOQA
         #if QT:
-        #    from guitool_ibeis import mpl_embed
-        #    import guitool_ibeis
-        #    guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
+        #    from ibeis.guitool import mpl_embed
+        #    import ibeis.guitool
+        #    guitool.ensure_qapp()  # must be ensured before any embeding
         #    wgt = mpl_embed.QtAbstractMplInteraction()
         #    fig = wgt.fig
         #    ax = wgt.axes
@@ -201,7 +201,7 @@ def impaint_mask2(img, init_mask=None):
         #if not QT:
         #    plt.show(block=True)
         #else:
-        #    guitool_ibeis.qtapp_loop(wgt, frequency=100, init_signals=True)
+        #    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
         #    wgt.show()
         ##input('hack to block... press enter when done')
     else:
@@ -214,7 +214,7 @@ def impaint_mask2(img, init_mask=None):
         # Hacky code to block until the interaction is actually done
         # pntr.show()
         import time
-        from guitool_ibeis.__PYQT__ import QtGui
+        from ibeis.guitool.__PYQT__ import QtGui
         while pntr.is_running:
             QtWidgets.qApp.processEvents()
             time.sleep(0.05)

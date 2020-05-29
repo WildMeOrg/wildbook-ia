@@ -5,9 +5,9 @@ import sys
 import utool as ut
 import numpy as np
 try:
-    import guitool_ibeis as gt
-    from guitool_ibeis.__PYQT__ import QtWidgets
-    from guitool_ibeis.__PYQT__ import QtCore
+    import ibeis.guitool as gt
+    from ibeis.guitool.__PYQT__ import QtWidgets
+    from ibeis.guitool.__PYQT__ import QtCore
 except ImportError:
     try:
         from PyQt4 import QtGui as QtWidgets
@@ -19,7 +19,7 @@ except ImportError:
         from PyQt5 import QtCore  # NOQA
     except ImportError:
         pass
-    print('Warning: guitool_ibeis did not import correctly')
+    print('Warning: guitool did not import correctly')
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[screeninfo]', DEBUG=True)
 ut.noinject(__name__, '[screeninfo]')
 
@@ -114,7 +114,7 @@ def get_resolution_info(monitor_num=0):
         >>>     info = get_resolution_info(monitor_num)
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     app = gt.ensure_qtapp()[0]  # NOQA
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()

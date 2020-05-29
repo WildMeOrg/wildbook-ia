@@ -26,9 +26,9 @@ import functools
 import traceback  # NOQA
 import utool as ut
 import ubelt as ub
-import guitool_ibeis as gt
-from guitool_ibeis import slot_, signal_, cast_from_qt
-from guitool_ibeis.__PYQT__ import QtCore, QtGui, QtWidgets
+import ibeis.guitool as gt
+from ibeis.guitool import slot_, signal_, cast_from_qt
+from ibeis.guitool.__PYQT__ import QtCore, QtGui, QtWidgets
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 from ibeis import sysres
@@ -139,8 +139,8 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
     def __init__(self, ibs):
         from ibeis.expt import annotation_configs
         from ibeis import dtool
-        from guitool_ibeis import PrefWidget2
-        from guitool_ibeis.__PYQT__.QtCore import Qt
+        from ibeis.guitool import PrefWidget2
+        from ibeis.guitool.__PYQT__.QtCore import Qt
         super(CustomAnnotCfgSelector, self).__init__()
         self.ibs = ibs
 
@@ -341,7 +341,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
     def populate_table(self):
         #data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
         print('Updating saved query table')
-        from guitool_ibeis.__PYQT__.QtCore import Qt
+        from ibeis.guitool.__PYQT__.QtCore import Qt
         self.table_data = self.get_saved_queries()
         horHeaders = ['fname', 'num_qaids', 'num_daids', 'has_bc']
         data = self.table_data
@@ -2183,7 +2183,7 @@ class MainWindowBackend(GUIBACK_BASE):
         prog_bar.setVisible(True)
         prog_bar.setWindowTitle('Initialize query')
         prog_hook = prog_bar.utool_prog_hook
-        #prog_bar = guitool_ibeis.newProgressBar(None)  # back.front)
+        #prog_bar = guitool.newProgressBar(None)  # back.front)
         # Doesn't seem to work correctly
         #prog_hook.show_indefinite_progress()
         prog_hook.force_event_update()
@@ -2386,7 +2386,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> aid_list = aids_list[ut.list_argmax(list(map(len, aids_list)))]
             >>> back.run_annot_splits(aid_list)
             >>> ut.quit_if_noshow()
-            >>> guitool_ibeis.qtapp_loop(back.mainwin, frequency=100)
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
         """
         cfgdict = {
             'can_match_samename': True,
@@ -2435,7 +2435,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> result = back.run_merge_checks()
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> guitool_ibeis.qtapp_loop(back.mainwin, frequency=100)
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
         """
         pass
         qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
@@ -3059,8 +3059,8 @@ class MainWindowBackend(GUIBACK_BASE):
                 print('[back] new_database(new_dbdir=%r)' % new_dbdir)
                 back.open_database(dbdir=new_dbdir)
             else:
-                from guitool_ibeis.__PYQT__.QtCore import Qt  # NOQA
-                from guitool_ibeis.__PYQT__ import QtGui  # NOQA
+                from ibeis.guitool.__PYQT__.QtCore import Qt  # NOQA
+                from ibeis.guitool.__PYQT__ import QtGui  # NOQA
                 dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
                                                   on_chosen=back.open_database,
                                                   mode='new')
@@ -3686,7 +3686,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def take_screenshot(back):
         """ dev command only """
         print('[back] TAKING SCREENSHOT')
-        from guitool_ibeis.__PYQT__.QtGui import QPixmap
+        from ibeis.guitool.__PYQT__.QtGui import QPixmap
         #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
 
         # Find the focused window

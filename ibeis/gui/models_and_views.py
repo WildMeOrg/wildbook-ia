@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 This provides concrete classes which inherit from abstract
-api_item_models/api_table_models/api_tree_models in guitool_ibeis.
+api_item_models/api_table_models/api_tree_models in guitool.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from guitool_ibeis import (APIItemModel, APITableView, APITreeView, APIItemWidget,
+from ibeis.guitool import (APIItemModel, APITableView, APITreeView, APIItemWidget,
                      StripeProxyModel, ChangeLayoutContext)
 print, rrr, profile = ut.inject2(__name__)
 

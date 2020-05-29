@@ -11,8 +11,8 @@ ut.noinject(__name__, '[plottool.__init__]')
 
 
 # Hopefully this was imported sooner. TODO remove dependency
-#from guitool_ibeis import __PYQT__
-#import guitool_ibeis.__PYQT__ as __PYQT__
+#from ibeis.guitool import __PYQT__
+#import ibeis.guitool.__PYQT__ as __PYQT__
 from ibeis.plottool import __MPL_INIT__
 __MPL_INIT__.init_matplotlib()
 

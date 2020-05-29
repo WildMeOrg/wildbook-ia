@@ -6,7 +6,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from ibeis.viz import viz_helpers as vh
-import guitool_ibeis as gt
+import ibeis.guitool as gt
 import numpy as np
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
@@ -234,7 +234,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> from ibeis.gui import id_review_api
         >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
         >>> tblname = 'chipmatch'

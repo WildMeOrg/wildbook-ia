@@ -1,0 +1,67 @@
+ColumnListTableWidget
+    # Public Signals
+    #def columnsAboutToBeInserted(self, parent, start, end):
+    #def columnsAboutToBeMoved(self, sourceParent, sourceStart,
+    #                          sourceEnd, destinationParent,
+    #                          destinationColumn):
+    #def columnsAboutToBeRemoved(self, parent, start, end):
+    #def columnsInserted(self, parent, start, end):
+    #def columnsMoved(self, sourceParent, sourceStart, sourceEnd,
+    #                 destinationParent, destinationColumn):
+    #def columnsRemoved(self, parent, start, end):
+    #def dataChanged(self, topLeft, bottomRight):
+    #def headerDataChanged(self, orientation, first, last):
+    #def layoutAboutToBeChanged(self,):
+    #def layoutChanged(self,):
+    #def modelAboutToBeReset(self,):
+    #def modelReset(self,):
+    #def rowsAboutToBeInserted(self, parent, start, end):
+    #def rowsAboutToBeMoved(self, sourceParent, sourceStart,
+    #                       sourceEnd, destinationParent,
+    #                       destinationRow):
+    #def rowsAboutToBeRemoved(self, parent, start, end):
+    #def rowsInserted(self, parent, start, end):
+    #def rowsMoved(self, sourceParent, sourceStart, sourceEnd,
+    #              destinationParent, destinationRow):
+    #def rowsRemoved(self, parent, start, end):
+
+
+ColumnListTableView
+    Public Signals
+    activated(QModelIndex index)
+    clicked(QModelIndex index)
+    doubleClicked(QModelIndex index)
+    entered(QModelIndex index)
+    pressed(QModelIndex index)
+    viewportEntered()
+    customContextMenuRequested(QPoint pos)
+    Public Slots
+    clearSelection()
+    edit(QModelIndex index)
+    reset()
+    scrollToBottom()
+    scrollToTop()
+    selectAll()
+    setCurrentIndex(QModelIndex index)
+    setRootIndex(QModelIndex index)
+    update(QModelIndex index)
+
+
+
+        except Exception as ex:
+            if VERBOSE:
+                print('<!!! ERROR !!!>')
+                print(ex)
+                try:
+                    print('row = %r' % (row,))
+                    print('column = %r' % (column,))
+                    print('type_ = %r' % (type_,))
+                    print('var.toString() = %r' % (str(var.toString()),))
+                except Exception:
+                    pass
+                print('</!!! ERROR !!!>')
+                raise
+            else:
+                print(' * ignoring setData')
+                return False
+

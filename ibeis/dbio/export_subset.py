@@ -490,7 +490,7 @@ def fix_bidirectional_annotmatch(ibs):
     ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
     if False:
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         gt.ensure_qapp()
         ut.qtensure()
         from ibeis.gui import inspect_gui
@@ -612,7 +612,7 @@ def fix_annotmatch_pzmaster1():
         ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
         if False:
-            import guitool_ibeis as gt
+            import ibeis.guitool as gt
             gt.ensure_qapp()
             ut.qtensure()
             from ibeis.gui import inspect_gui
@@ -837,7 +837,7 @@ def remerge_subset():
     #     # infr = ibeis.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
 
     #     # randomly sample some new labels to verify
-    #     import guitool_ibeis as gt
+    #     import ibeis.guitool as gt
     #     from ibeis.gui import inspect_gui
     #     gt.ensure_qapp()
     #     ut.qtensure()

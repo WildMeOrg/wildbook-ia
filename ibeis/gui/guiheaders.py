@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 This model provides the declarative interface to all of the api_*_models
-in guitool_ibeis. Each different type of model/view has to register its iders,
-getters, and potentially setters (hopefully if guitool_ibeis ever gets off the
+in guitool. Each different type of model/view has to register its iders,
+getters, and potentially setters (hopefully if guitool ever gets off the
 ground the delters as well)
 
 Different columns can be hidden / shown by modifying this file

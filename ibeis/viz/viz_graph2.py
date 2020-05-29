@@ -11,14 +11,14 @@ import numpy as np
 from ibeis import dtool
 import networkx as nx
 import itertools as it
-import guitool_ibeis as gt
+import ibeis.guitool as gt
 import ibeis.plottool as pt
 import ibeis.constants as const
 from ibeis.plottool import abstract_interaction
-from guitool_ibeis.__PYQT__ import QtCore
-from guitool_ibeis.__PYQT__.QtCore import Qt
-from guitool_ibeis import mpl_widget
-from guitool_ibeis import PrefWidget2
+from ibeis.guitool.__PYQT__ import QtCore
+from ibeis.guitool.__PYQT__.QtCore import Qt
+from ibeis.guitool import mpl_widget
+from ibeis.guitool import PrefWidget2
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -51,7 +51,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qapp()
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -63,7 +63,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> import ibeis
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qapp()
         >>> infr = ibeis.AnnotInference('PZ_Master1', 'all')
         >>> infr.reset_feedback('staging')
@@ -346,7 +346,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qapp()
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -482,7 +482,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> gt.ensure_qapp()
         >>> self = EdgeReviewDialog(edge=(1, 2))
         >>> gt.qtapp_loop(qwin=self, freq=10)
@@ -501,7 +501,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
 
     def initialize(self, edge=None, edge_data=None, conf_editor='hybrid',
                    with_confirm=True, user_id=None):
-        # from guitool_ibeis.__PYQT__ import QtWidgets
+        # from ibeis.guitool.__PYQT__ import QtWidgets
         import ibeis
 
         if user_id is None:
@@ -2407,7 +2407,7 @@ def make_qt_graph_review(qreq_, cm_list):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb)
@@ -2462,7 +2462,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import guitool_ibeis as gt
+        >>> import ibeis.guitool as gt
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)

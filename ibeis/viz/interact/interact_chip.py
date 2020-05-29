@@ -69,7 +69,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
         python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
 
     """
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     callback_list = build_annot_context_options(
         ibs, aid, refresh_func=refresh_func,
         with_interact_name=with_interact_name,
@@ -119,7 +119,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>> result = ('callback_list = %s' % (ut.repr2(callback_list, nl=4),))
         >>> print(result)
     """
-    import guitool_ibeis as gt
+    import ibeis.guitool as gt
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
     def refresh_wrp(func):
@@ -291,7 +291,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     ]
 
     def _setname_callback():
-        import guitool_ibeis as gt
+        import ibeis.guitool as gt
         name = ibs.get_annot_name_texts([aid])[0]
         newname = gt.user_input(title='edit name', msg=name, text=name)
         if newname is not None:
@@ -479,7 +479,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 _chip_view(**kwargs)
         else:
             if event.button == 3:   # right-click
-                import guitool_ibeis as gt
+                import ibeis.guitool as gt
                 #from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = gt.newQPoint(event.x, height - event.y)
