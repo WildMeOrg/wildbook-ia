@@ -1129,7 +1129,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
@@ -1147,7 +1147,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> graph = depc.make_graph(reduced=True)
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
@@ -1178,7 +1178,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             'root': 'ellipse',
             #'root': 'rect',
         }
-        # import plottool_ibeis as pt
+        # import ibeis.plottool as pt
         NEUTRAL_BLUE  = np.array((159, 159, 241, 255)) / 255.0
         RED           = np.array((255,   0,   0, 255)) / 255.0
         color_dict = {
@@ -1323,7 +1323,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
     def show_graph(depc, reduced=False, **kwargs):
         """ Helper "fluff" function """
-        import plottool_ibeis as pt
+        import ibeis.plottool as pt
         graph = depc.make_graph(reduced=reduced)
         if ut.is_developer():
             ut.ensureqt()

@@ -8,11 +8,11 @@ ut.noinject(__name__, '[guitool.__init__]')
 
 
 #try:
-#    # try seeing if importing plottool_ibeis before any guitool things helps
-#    import plottool_ibeis
+#    # try seeing if importing plottool before any guitool things helps
+#    import ibeis.plottool
 #except Exception as ex:
 #    import utool as ut
-#    ut.printex(ex, 'tried to import plottool_ibeis to solve win crash')
+#    ut.printex(ex, 'tried to import ibeis.plottool to solve win crash')
 #    raise
 #    #pass
 

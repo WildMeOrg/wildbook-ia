@@ -409,7 +409,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
             >>> from ibeis.dtool.depcache_control import *  # NOQA
             >>> from ibeis.dtool.example_depcache import testdata_depc
-            >>> import plottool_ibeis as pt
+            >>> import ibeis.plottool as pt
             >>> pt.ensureqt()
             >>> depc = testdata_depc()
             >>> tablename = 'neighbs'
@@ -473,7 +473,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         if False:
             nodes = ut.all_nodes_between(graph, source, target)
             tablegraph = graph.subgraph(nodes)
-            import plottool_ibeis as pt
+            import ibeis.plottool as pt
             # pt.show_nx(tablegraph.reverse())
             # sink = ut.nx_sink_nodes(tablegraph)[0]
             # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
