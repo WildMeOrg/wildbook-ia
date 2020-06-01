@@ -356,7 +356,7 @@ def test_preference_gui():
         >>> ut.quit_if_noshow()
         >>> guitool.qtapp_loop(freq=10)
     """
-    import dtool
+    from ibeis import dtool
     class DtoolConfig(dtool.Config):
         _param_info_list = [
             ut.ParamInfo('str_option2', 'hello'),
