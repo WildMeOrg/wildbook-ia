@@ -1932,9 +1932,11 @@ def compute_labels_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m wbia.core_annots --exec-compute_labels_annotations
+        python -m ibeis.core_annots --exec-compute_labels_annotations
+        python -m ibeis.core_annots --exec-compute_labels_annotations:0
+        python -m ibeis.core_annots --exec-compute_labels_annotations:1
 
-    Example:
+    Example0:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_images import *  # NOQA
         >>> import wbia
@@ -1956,6 +1958,19 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> print(results)
         >>> # depc.delete_property('labeler', aid_list)
         >>> results = depc.get_property('labeler', aid_list, None)
+        >>> print(results)
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'WD_Master'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'wilddog_v3,wilddog_v2,wilddog_v1'}
+        >>> # depc.delete_property('labeler', aid_list)
+        >>> results = depc.get_property('labeler', aid_list, None, config=config)
         >>> print(results)
     """
     print('[ibs] Process Annotation Labels')
@@ -1980,7 +1995,6 @@ def compute_labels_annotations(depc, aid_list, config=None):
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
-
         config_ = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
