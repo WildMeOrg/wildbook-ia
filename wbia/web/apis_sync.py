@@ -439,6 +439,11 @@ def _sync_get_names(ibs, aid_list):
 
 
 @register_ibs_method
+def _sync_get_remote_name_uuids(ibs, local_nids):
+    return ibs._sync_get_annot_endpoint('/api/annot/name/rowid/', local_nids)
+
+
+@register_ibs_method
 def _sync_get_annot_endpoint(ibs, endpoint, aid_list):
     route_url = _construct_route_url(endpoint)
     logger.info('\tGetting info on %d aids from %s' % (len(aid_list), route_url,))
@@ -455,7 +460,6 @@ def _sync_get_auuid_endpoint(ibs, endpoint, auuid_list):
     working_list = auuid_list.copy()
     if len(working_list) > 0 and type(working_list[0]) is str:
         from uuid import UUID
-
         working_list = [UUID(item) for item in working_list]
 
     serialized_uuids = ut.to_json(working_list)
