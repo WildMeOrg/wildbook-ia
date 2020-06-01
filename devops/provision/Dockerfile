@@ -65,6 +65,7 @@ RUN . /virtualenv/env3/bin/activate \
 # Build Python repositories with external codebases
 # TODO remove flann checkout v2.0.0 once the "next" branch is working
 # TODO remove hesaff checkout v2.0.0 once the "next" branch is working
+# TODO remove vtool checkout v2.0.0 once the "master" branch is working
 RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/flann \
  && git checkout v2.0.0 \
@@ -84,7 +85,8 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pyrf \
  && /bin/bash unix_build.sh \
  && cd /ibeis/vtool \
- && /bin/bash dev/unix_build.sh
+ && git checkout v2.0.0 \
+ && /bin/bash unix_build.sh
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
