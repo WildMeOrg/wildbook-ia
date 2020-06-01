@@ -1995,7 +1995,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
-        if ',' not in config['labeler_weight_filepath']:
+        if '+' not in config['labeler_weight_filepath']:
             config_ = {
                 'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
                 'resize_dim': 'wh',
