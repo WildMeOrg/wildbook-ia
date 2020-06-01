@@ -1995,17 +1995,82 @@ def compute_labels_annotations(depc, aid_list, config=None):
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
-        config_ = {
-            'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
-            'resize_dim': 'wh',
-            'axis_aligned': config['labeler_axis_aligned'],
-        }
-        chip_filepath_list = depc.get_property(
-            'chips', aid_list, 'img', config=config_, read_extern=False, ensure=True
-        )
-        config = dict(config)
-        config['classifier_weight_filepath'] = config['labeler_weight_filepath']
-        result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
+        if ',' not in config['labeler_weight_filepath']:
+            config_ = {
+                'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+                'resize_dim': 'wh',
+                'axis_aligned': config['labeler_axis_aligned'],
+            }
+            chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config_,
+                                                   read_extern=False, ensure=True)
+            config = dict(config)
+            config['classifier_weight_filepath'] = config['labeler_weight_filepath']
+            result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
+        else:
+            labeler_weight_filepath = config['labeler_weight_filepath']
+            labeler_weight_filepath = labeler_weight_filepath.strip()
+
+            if labeler_weight_filepath in ['wilddog_v3,wilddog_v2,wilddog_v1']:
+                labeler_weight_filepath_list = labeler_weight_filepath.split(',')
+
+                results_dict = {}
+                for labeler_weight_filepath_ in labeler_weight_filepath_list:
+                    labeler_weight_filepath_ = labeler_weight_filepath_.strip()
+
+                    config_ = dict(config)
+                    config_['labeler_weight_filepath'] = labeler_weight_filepath_
+                    config_.pop('chip_cfg')
+                    results = depc.get_property('labeler', aid_list, None, config=config_)
+                    results_dict[labeler_weight_filepath_] = results
+
+                results_list = ut.take(results_dict, labeler_weight_filepath_list)
+                results_list = list(zip(*results_list))
+
+                result_gen = []
+                for results in results_list:
+                    results_ = dict(zip(labeler_weight_filepath_list, results))
+
+                    result1 = results_.get('wilddog_v1', None)
+                    result2 = results_.get('wilddog_v2', None)
+                    result3 = results_.get('wilddog_v3', None)
+                    assert None not in [result1, result2, result3]
+
+                    flag1 = result1[1] in ['wild_dog_dark', 'wild_dog_general', 'wild_dog_puppy', 'wild_dog_standard', 'wild_dog_tan']
+                    flag2 = result2[1] in ['wild_dog', 'wild_dog_puppy']
+                    flag3 = result3[1] in ['wild_dog']
+
+                    score = np.mean((result1[0], result2[0], result3[0], ))
+
+                    if flag3:
+                        if flag1 and flag2:
+                            # Body
+                            species = result1[1]
+                            viewpoint = result2[2]
+                        else:
+                            # Body Ambiguous
+                            species = 'wild_dog_ambiguous'
+                            viewpoint = 'ambiguous'
+                    else:
+                        if not flag1 and not flag2:
+                            # Tail
+                            species = result3[1]
+                            viewpoint = 'ignore'
+                        else:
+                            # Tail Ambiguous
+                            species = 'wild_dog+tail_ambiguous'
+                            viewpoint = 'ambiguous'
+
+                    quality = 'UNKNOWN'
+                    orientation = 0.0
+                    prob_key = '%s:%s' % (species, viewpoint, )
+                    probs = {}
+                    probs[prob_key] = score
+                    if score < 1.0:
+                        probs['other'] = 1.0 - score
+                    result = (score, species, viewpoint, quality, orientation, probs, )
+                    result_gen.append(result)
+            else:
+                raise NotImplementedError('Muti-tier labeler config not supported')
     else:
         raise ValueError(
             'specified labeler algo is not supported in config = %r' % (config,)
