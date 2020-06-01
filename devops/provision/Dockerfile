@@ -11,8 +11,8 @@ ENV LANG C.UTF-8
 
 # Clone IBEIS VSTS repositories
 RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
- && git clone --branch next https://github.com/WildbookOrg/flann                       /ibeis/flann \
- && git clone --branch next https://github.com/WildbookOrg/hesaff                      /ibeis/hesaff \
+ && git clone --branch master https://github.com/WildbookOrg/flann                     /ibeis/flann \
+ && git clone --branch master https://github.com/WildbookOrg/hesaff                    /ibeis/hesaff \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-flukematch-module     /ibeis/ibeis-flukematch-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-curvrank-module       /ibeis/ibeis-curvrank-module \
  && git clone --branch next https://github.com/WildbookOrg/ibeis-deepsense-module      /ibeis/ibeis-deepsense-module \
@@ -24,9 +24,8 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
  && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /ibeis/pydarknet \
  && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
- && git clone --branch next https://github.com/WildbookOrg/ubelt                       /ibeis/ubelt \
  && git clone --branch next https://github.com/WildbookOrg/utool                       /ibeis/utool \
- && git clone --branch next https://github.com/WildbookOrg/vtool                       /ibeis/vtool
+ && git clone --branch master https://github.com/WildbookOrg/vtool                     /ibeis/vtool
 
 RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank \
  && git init \
@@ -48,9 +47,9 @@ RUN cd /ibeis/ibeis-2d-orientation-module/ibeis_2d_orientation \
 
 # Build and install utool and ubelt
 RUN cd /ibeis/utool \
- && /virtualenv/env3/bin/pip install -e . \
- && cd /ibeis/ubelt \
  && /virtualenv/env3/bin/pip install -e .
+
+RUN /virtualenv/env3/bin/pip install ubelt
 
 # TODO Temporarily disabled: Checkout latest version of all other repos
 #RUN cd /ibeis/ibeis \
@@ -65,6 +64,7 @@ RUN . /virtualenv/env3/bin/activate \
 # Build Python repositories with external codebases
 # TODO remove flann checkout v2.0.0 once the "next" branch is working
 # TODO remove hesaff checkout v2.0.0 once the "next" branch is working
+# TODO remove vtool checkout v2.0.0 once the "master" branch is working
 RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/flann \
  && git checkout v2.0.0 \
@@ -84,7 +84,8 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pyrf \
  && /bin/bash unix_build.sh \
  && cd /ibeis/vtool \
- && /bin/bash dev/unix_build.sh
+ && git checkout v2.0.0 \
+ && /bin/bash unix_build.sh
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
@@ -101,8 +102,6 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pyrf \
  && pip install -e . \
  && cd /ibeis/utool \
- && pip install -e . \
- && cd /ibeis/ubelt \
  && pip install -e . \
  && cd /ibeis/vtool \
  && pip install -e . \
