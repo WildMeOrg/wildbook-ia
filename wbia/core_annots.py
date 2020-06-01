@@ -1968,7 +1968,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
-        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'wilddog_v3,wilddog_v2,wilddog_v1'}
+        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'wilddog_v3+wilddog_v2+wilddog_v1'}
         >>> # depc.delete_property('labeler', aid_list)
         >>> results = depc.get_property('labeler', aid_list, None, config=config)
         >>> print(results)
@@ -2010,8 +2010,8 @@ def compute_labels_annotations(depc, aid_list, config=None):
             labeler_weight_filepath = config['labeler_weight_filepath']
             labeler_weight_filepath = labeler_weight_filepath.strip()
 
-            if labeler_weight_filepath in ['wilddog_v3,wilddog_v2,wilddog_v1']:
-                labeler_weight_filepath_list = labeler_weight_filepath.split(',')
+            if labeler_weight_filepath in ['wilddog_v3+wilddog_v2+wilddog_v1']:
+                labeler_weight_filepath_list = labeler_weight_filepath.split('+')
 
                 results_dict = {}
                 for labeler_weight_filepath_ in labeler_weight_filepath_list:
