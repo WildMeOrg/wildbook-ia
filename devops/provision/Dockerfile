@@ -24,7 +24,6 @@ RUN git clone --branch next https://github.com/WildbookOrg/brambox              
  && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
  && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /ibeis/pydarknet \
  && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
- && git clone --branch master https://github.com/WildbookOrg/ubelt                     /ibeis/ubelt \
  && git clone --branch next https://github.com/WildbookOrg/utool                       /ibeis/utool \
  && git clone --branch master https://github.com/WildbookOrg/vtool                     /ibeis/vtool
 
@@ -48,9 +47,9 @@ RUN cd /ibeis/ibeis-2d-orientation-module/ibeis_2d_orientation \
 
 # Build and install utool and ubelt
 RUN cd /ibeis/utool \
- && /virtualenv/env3/bin/pip install -e . \
- && cd /ibeis/ubelt \
  && /virtualenv/env3/bin/pip install -e .
+
+RUN /virtualenv/env3/bin/pip install ubelt
 
 # TODO Temporarily disabled: Checkout latest version of all other repos
 #RUN cd /ibeis/ibeis \
@@ -103,8 +102,6 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /ibeis/pyrf \
  && pip install -e . \
  && cd /ibeis/utool \
- && pip install -e . \
- && cd /ibeis/ubelt \
  && pip install -e . \
  && cd /ibeis/vtool \
  && pip install -e . \
