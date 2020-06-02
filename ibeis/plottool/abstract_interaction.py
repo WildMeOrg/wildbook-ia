@@ -283,8 +283,8 @@ class AbstractInteraction(object):
         if self.debug > 0:
             print('[pt.a] on_release')
         for button in self.MOUSE_BUTTONS.values():
-            flag = (event is None or event.button is None or
-                    self.MOUSE_BUTTONS[event.button] == button)
+            flag = (event is None or event.button is None
+                    or self.MOUSE_BUTTONS[event.button] == button)
             if flag:
                 self.is_down[button] = False
                 if self.is_drag[button]:

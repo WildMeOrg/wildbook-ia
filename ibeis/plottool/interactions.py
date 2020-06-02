@@ -200,6 +200,7 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
     """
     if ax is None:
         ax = pt.gca()
+
     def zoom_fun(event):
         #print('zooming')
         # get the current x and y limits
