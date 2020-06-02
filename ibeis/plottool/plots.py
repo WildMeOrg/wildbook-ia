@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 from six.moves import zip, range, zip_longest
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 import six
 from six.moves import reduce
 import scipy.stats

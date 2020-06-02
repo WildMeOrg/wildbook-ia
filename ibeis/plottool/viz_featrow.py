@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #import itertools
-import ibeis.plottool.draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import plot_helpers as ph
 from ibeis.plottool import custom_constants
 from ibeis.plottool import custom_figure
