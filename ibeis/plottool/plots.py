@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 from six.moves import zip, range, zip_longest
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 import six
 from six.moves import reduce
 import scipy.stats
@@ -296,6 +296,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     if transpose:
         #xdata_list = ydata_list
         ydata = xdata
+
         # Hack / Fix any transpose issues
         def transpose_key(key):
             if key.startswith('x'):
@@ -316,6 +317,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     title      = kwargs.get('title', None)
     xlabel     = kwargs.get('xlabel', '')
     ylabel     = kwargs.get('ylabel', '')
+
     def none_or_unicode(text):
         return None if text is None else ut.ensure_unicode(text)
 
@@ -1792,6 +1794,7 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     # Prepare y data for boxplot
     y_data_keys = ['std', 'mean', 'max', 'min']
     y_data_dict = list(six.itervalues(param2_stat_dict))
+
     def get_dictlist_key(dict_list, key):
         return [dict_[key] for dict_ in dict_list]
     y_data_components = [get_dictlist_key(y_data_dict, key) for key in y_data_keys]
@@ -2063,7 +2066,7 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     freq = np.histogram(xdata, bins)[0]
     timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True)
                       for b in bins]
-    bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
+    bin_labels = [ll + ' - ' + h for ll, h in ut.iter_window(timedelta_strs)]
     bin_labels[-1] = '> 1 year'
     bin_labels[0] = '< 1 minute'
 
@@ -2376,12 +2379,12 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
         font_path = None
 
     colormap = pt.interpolated_colormap([
-            (pt.RED, 0),
-            (pt.PINK, .15),
-            (pt.ORANGE, .3),
-            (pt.GREEN, .55),
-            (pt.TRUE_BLUE, .75),
-            (pt.PURPLE, 1.0),
+        (pt.RED, 0),
+        (pt.PINK, .15),
+        (pt.ORANGE, .3),
+        (pt.GREEN, .55),
+        (pt.TRUE_BLUE, .75),
+        (pt.PURPLE, 1.0),
     ])
 
     if size is None:

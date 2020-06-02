@@ -3,7 +3,7 @@ from six.moves import range
 #import matplotlib.image as mpimg
 from ibeis.plottool import viz_image2
 from ibeis.plottool import interact_annotations
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import plot_helpers as ph
 from ibeis.plottool import interact_helpers as ih
 from ibeis.plottool import abstract_interaction

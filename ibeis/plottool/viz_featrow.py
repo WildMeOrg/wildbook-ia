@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #import itertools
-import ibeis.plottool.draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import plot_helpers as ph
 from ibeis.plottool import custom_constants
 from ibeis.plottool import custom_figure
@@ -138,9 +138,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
         if shape_labels:
-            warped_lbl = ('warped feature\n' +
-                          'fx=%r scale=%.1f\n' +
-                          '%s') % (fx, scale, xy_str)
+            warped_lbl = ('warped feature\n'
+                          + 'fx=%r scale=%.1f\n'
+                          + '%s') % (fx, scale, xy_str)
         else:
             warped_lbl = ''
         warped_lbl += info

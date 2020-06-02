@@ -11,7 +11,7 @@ import re
 import utool as ut
 import matplotlib as mpl
 ut.noinject(__name__, '[abstract_iteract]')
-import ibeis.plottool.draw_func2 as df2  # NOQA
+from . import draw_func2 as df2  # NOQA
 from ibeis.plottool import fig_presenter  # NOQA
 from ibeis.plottool import plot_helpers as ph  # NOQA
 from ibeis.plottool import interact_helpers as ih  # NOQA
@@ -283,8 +283,8 @@ class AbstractInteraction(object):
         if self.debug > 0:
             print('[pt.a] on_release')
         for button in self.MOUSE_BUTTONS.values():
-            flag = (event is None or event.button is None or
-                    self.MOUSE_BUTTONS[event.button] == button)
+            flag = (event is None or event.button is None
+                    or self.MOUSE_BUTTONS[event.button] == button)
             if flag:
                 self.is_down[button] = False
                 if self.is_drag[button]:

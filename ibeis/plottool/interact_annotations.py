@@ -39,7 +39,7 @@ import utool as ut
 import itertools as it
 import matplotlib as mpl
 from six.moves import zip, range
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import abstract_interaction
 print, rrr, profile = ut.inject2(__name__)
 
@@ -412,6 +412,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.img = img
         self.show_species_tags = True
         self.max_dist = 10
+
         def _reinitialize_variables():
             self.do_mask = do_mask
             self.img_ind = img_ind
@@ -818,8 +819,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             print('[interact_annot] _send_back_annotations')
             indices_list, annottup_list = _get_annottup_list()
             # Delete if index is in original_indices but no in indices_list
-            deleted_indices   = list(set(self.original_indices) -
-                                     set(indices_list))
+            deleted_indices   = list(set(self.original_indices)
+                                     - set(indices_list))
             changed_indices   = []
             unchanged_indices = []  # sanity check
             changed_annottups = []
@@ -1029,9 +1030,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         #    return
 
         quick_resize = (self._poly_held is True and (
-            (event.button == self.MIDDLE_BUTTON) or
-            (event.button == self.RIGHT_BUTTON) or
-            (event.button == self.LEFT_BUTTON and event.key == 'ctrl')
+            (event.button == self.MIDDLE_BUTTON)
+            or (event.button == self.RIGHT_BUTTON)
+            or (event.button == self.LEFT_BUTTON and event.key == 'ctrl')
         ))
 
         if self._poly_held is True and self._ind is not None:
@@ -1076,12 +1077,12 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             return
 
         _flag = (
-            self._ind is None or
-            self._poly_held is False or
-            (self._ind is not None and
-             self.is_down['left'] is True and
-             self._selected_poly is not None
-             )
+            self._ind is None
+            or self._poly_held is False
+            or (self._ind is not None
+                and self.is_down['left'] is True
+                and self._selected_poly is not None
+                )
         )
         if _flag:
             self._selected_poly.set_alpha(0)
@@ -1148,7 +1149,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self._selected_poly.set_species(DEFAULT_SPECIES_TAG)
         if re.match('^tab$', event.key):
             self._selected_poly.increment_species(amount=1)
-        if re.match('^ctrl\+tab$', event.key):
+        if re.match(r'^ctrl\+tab$', event.key):
             self._selected_poly.increment_species(amount=-1)
 
         # NEXT ANND PREV COMMAND

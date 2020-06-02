@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-import ibeis.plottool.draw_func2 as df2
+from . import draw_func2 as df2
 import numpy as np
 from ibeis.plottool import plot_helpers as ph
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)

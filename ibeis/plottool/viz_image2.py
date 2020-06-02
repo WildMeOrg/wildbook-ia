@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 import utool
-import ibeis.plottool.draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import custom_constants
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
 utool.noinject(__name__, '[viz_img2]')
