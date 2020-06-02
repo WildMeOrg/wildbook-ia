@@ -39,7 +39,7 @@ import utool as ut
 import itertools as it
 import matplotlib as mpl
 from six.moves import zip, range
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import abstract_interaction
 print, rrr, profile = ut.inject2(__name__)
 

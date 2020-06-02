@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-from ibeis.plottool import draw_func2 as df2
+from . import draw_func2 as df2
 from ibeis.plottool import plot_helpers as ph
 from ibeis.plottool import interact_helpers as ih
 from ibeis.plottool.viz_featrow import draw_feat_row
