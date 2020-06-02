@@ -13,35 +13,35 @@ ut.noinject(__name__, '[plottool.__init__]')
 # Hopefully this was imported sooner. TODO remove dependency
 #from ibeis.guitool import __PYQT__
 #import ibeis.guitool.__PYQT__ as __PYQT__
-from ibeis.plottool import __MPL_INIT__
+from . import __MPL_INIT__
 __MPL_INIT__.init_matplotlib()
 
 import matplotlib as mpl
 #mpl.use('Qt4Agg')
 import matplotlib.pyplot as plt
 
-from ibeis.plottool import plot_helpers as ph
-from ibeis.plottool import plot_helpers
-from ibeis.plottool import mpl_keypoint
-from ibeis.plottool import mpl_keypoint as mpl_kp
-from ibeis.plottool import mpl_sift as mpl_sift
-from ibeis.plottool import draw_func2
-from ibeis.plottool import draw_func2 as df2
-from ibeis.plottool import fig_presenter
-from ibeis.plottool import custom_constants
-from ibeis.plottool import custom_figure
-from ibeis.plottool import draw_sv
-from ibeis.plottool import viz_featrow
-from ibeis.plottool import viz_keypoints
-from ibeis.plottool import viz_image2
-from ibeis.plottool import plots
-from ibeis.plottool import interact_annotations
-from ibeis.plottool import interact_keypoints
-from ibeis.plottool import interact_multi_image
-from ibeis.plottool import interactions
-from ibeis.plottool import interact_impaint
-from ibeis.plottool import color_funcs
-#from ibeis.plottool import abstract_iteraction
+from . import plot_helpers as ph
+from . import plot_helpers
+from . import mpl_keypoint
+from . import mpl_keypoint as mpl_kp
+from . import mpl_sift as mpl_sift
+from . import draw_func2
+from . import draw_func2 as df2
+from . import fig_presenter
+from . import custom_constants
+from . import custom_figure
+from . import draw_sv
+from . import viz_featrow
+from . import viz_keypoints
+from . import viz_image2
+from . import plots
+from . import interact_annotations
+from . import interact_keypoints
+from . import interact_multi_image
+from . import interactions
+from . import interact_impaint
+from . import color_funcs
+#from . import abstract_iteraction
 
 
 # TODO utoolify this
@@ -63,11 +63,11 @@ IMPORT_TUPLES = [
 
 # The other module shouldn't exist.
 # Functions in it need to be organized
-from ibeis.plottool.plots import draw_hist_subbin_maxima
-#from ibeis.plottool.draw_func2 import *  # NOQA
-from ibeis.plottool.mpl_keypoint import draw_keypoints
-from ibeis.plottool.mpl_sift import draw_sifts, render_sift_on_patch
-from ibeis.plottool import fig_presenter
+from .plots import draw_hist_subbin_maxima
+#from .draw_func2 import *  # NOQA
+from .mpl_keypoint import draw_keypoints
+from .mpl_sift import draw_sifts, render_sift_on_patch
+from . import fig_presenter
 
 import utool
 
@@ -115,24 +115,24 @@ if DOELSE:
     pass
     # <AUTOGEN_INIT>
 
-    from ibeis.plottool import plot_helpers
-    from ibeis.plottool import fig_presenter
-    from ibeis.plottool import custom_constants
-    from ibeis.plottool import custom_figure
-    from ibeis.plottool import plots
-    from ibeis.plottool import draw_func2
-    from ibeis.plottool import interact_impaint
-    from ibeis.plottool import interactions
-    from ibeis.plottool import interact_multi_image
-    from ibeis.plottool import interact_keypoints
-    from ibeis.plottool import interact_matches
-    from ibeis.plottool import nx_helpers
-    from ibeis.plottool.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
+    from . import plot_helpers
+    from . import fig_presenter
+    from . import custom_constants
+    from . import custom_figure
+    from . import plots
+    from . import draw_func2
+    from . import interact_impaint
+    from . import interactions
+    from . import interact_multi_image
+    from . import interact_keypoints
+    from . import interact_matches
+    from . import nx_helpers
+    from .plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
                                        ensureqt, get_bbox_centers,
                                        get_plotdat, get_plotdat_dict,
                                        get_square_row_cols, kp_info, qt4ensure,
                                        set_plotdat,)
-    from ibeis.plottool.fig_presenter import (SLEEP_TIME, VERBOSE,
+    from .fig_presenter import (SLEEP_TIME, VERBOSE,
                                         all_figures_bring_to_front,
                                         all_figures_show,
                                         all_figures_tight_layout,
@@ -145,7 +145,7 @@ if DOELSE:
                                         present, register_qt4_win, reset,
                                         set_geometry, show, show_figure,
                                         unregister_qt4_win, update,)
-    from ibeis.plottool.custom_constants import (BLACK, BLUE, BRIGHT_GREEN,
+    from .custom_constants import (BLACK, BLUE, BRIGHT_GREEN,
                                            BRIGHT_PURPLE, DARK_BLUE,
                                            DARK_GREEN, DARK_ORANGE, DARK_RED,
                                            DARK_YELLOW, DEEP_PINK, DPI,
@@ -162,7 +162,7 @@ if DOELSE:
                                            SMALLEST, TRUE_BLUE, TRUE_GREEN,
                                            UNKNOWN_PURP, WHITE, YELLOW,
                                            golden_wh, golden_wh2,)
-    from ibeis.plottool.custom_figure import (FIGTITLE_SIZE, LABEL_SIZE, LEGEND_SIZE,
+    from .custom_figure import (FIGTITLE_SIZE, LABEL_SIZE, LEGEND_SIZE,
                                         TITLE_SIZE, cla, clf, customize_figure,
                                         customize_fontprop, figure, gca, gcf,
                                         get_ax, get_image_from_figure,
@@ -172,7 +172,7 @@ if DOELSE:
                                         set_figtitle, set_ticks, set_title,
                                         set_xlabel, set_xticks, set_ylabel,
                                         set_yticks, split,)
-    from ibeis.plottool.plots import (colorline, draw_histogram,
+    from .plots import (colorline, draw_histogram,
                                 draw_time_distribution, draw_time_histogram,
                                 draw_timedelta_pie, estimate_pdf,
                                 get_good_logyscale_kwargs, interval_line_plot,
@@ -185,7 +185,7 @@ if DOELSE:
                                 plot_stems, set_logyscale_from_data,
                                 unicode_literals, word_histogram2, wordcloud,
                                 zoom_effect01,)
-    from ibeis.plottool.draw_func2 import (BASE_FNUM, DARKEN, DEBUG, DF2_DIVIDER_KEY,
+    from .draw_func2 import (BASE_FNUM, DARKEN, DEBUG, DF2_DIVIDER_KEY,
                                      FALSE, LEGEND_LOCATION, OffsetImage2,
                                      RenderingContext, SAFE_POS, TAU,
                                      TMP_mevent, TRUE, absolute_lbl, add_alpha,
@@ -240,19 +240,19 @@ if DOELSE:
                                      update_figsize, upperleft_text,
                                      upperright_text, variation_trunctate,
                                      width_from,)
-    from ibeis.plottool.interact_impaint import (PAINTER_BASE, PaintInteraction,
+    from .interact_impaint import (PAINTER_BASE, PaintInteraction,
                                            draw_demo, impaint_mask2,)
-    from ibeis.plottool.interactions import (ExpandableInteraction, PanEvents,
+    from .interactions import (ExpandableInteraction, PanEvents,
                                        check_if_subinteract, pan_factory,
                                        zoom_factory,)
-    from ibeis.plottool.interact_multi_image import (BASE_CLASS, Button,
+    from .interact_multi_image import (BASE_CLASS, Button,
                                                MultiImageInteraction,)
-    from ibeis.plottool.interact_keypoints import (KeypointInteraction,
+    from .interact_keypoints import (KeypointInteraction,
                                              draw_feat_row, ishow_keypoints,
                                              show_keypoints,)
-    from ibeis.plottool.interact_matches import (MatchInteraction2,
+    from .interact_matches import (MatchInteraction2,
                                            show_keypoint_gradient_orientations,)
-    from ibeis.plottool.nx_helpers import (GraphVizLayoutConfig, LARGE_GRAPH,
+    from .nx_helpers import (GraphVizLayoutConfig, LARGE_GRAPH,
                                      apply_graph_layout_attrs, draw_network2,
                                      dump_nx_ondisk, ensure_nonhex_color,
                                      format_anode_pos, get_explicit_graph,
