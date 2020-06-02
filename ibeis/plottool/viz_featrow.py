@@ -138,9 +138,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
         if shape_labels:
-            warped_lbl = ('warped feature\n' +
-                          'fx=%r scale=%.1f\n' +
-                          '%s') % (fx, scale, xy_str)
+            warped_lbl = ('warped feature\n'
+                          + 'fx=%r scale=%.1f\n'
+                          + '%s') % (fx, scale, xy_str)
         else:
             warped_lbl = ''
         warped_lbl += info
