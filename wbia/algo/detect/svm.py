@@ -73,9 +73,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     if weight_filepath in CONFIG_URL_DICT:
         weight_url = CONFIG_URL_DICT[weight_filepath]
         if weight_url.endswith('.zip'):
-            weight_filepath = ut.grab_zipped_url(weight_url, appname='ibeis')
+            weight_filepath = ut.grab_zipped_url(weight_url, appname='wbia')
         else:
-            weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
+            weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
                                                check_hash=True)
 
     # Get ensemble

@@ -2,21 +2,21 @@
 """
 Module Licence and docstring
 
-TODO: ideally the ibeis.constants module would not be used here
+TODO: ideally the wbia.constants module would not be used here
 and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
 
 CommandLine:
-    python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema
+    python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 try:
-    from ibeis.control import STAGING_SCHEMA_CURRENT
+    from wbia.control import STAGING_SCHEMA_CURRENT
     UPDATE_CURRENT  = STAGING_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = STAGING_SCHEMA_CURRENT.VERSION_CURRENT
 except Exception:
@@ -156,24 +156,24 @@ def autogen_staging_schema():
     autogen_staging_schema
 
     CommandLine:
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --diff=1
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=-1
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=0
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=1
-        python -m ibeis.control.STAGING_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --write
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update --dump-autogen-schema
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema --diff=1
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema -n=-1
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema -n=0
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema -n=1
+        python -m wbia.control.STAGING_SCHEMA --force-incremental-db-update
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema --write
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update --dump-autogen-schema
+        python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update
 
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.STAGING_SCHEMA import *  # NOQA
+        >>> from wbia.control.STAGING_SCHEMA import *  # NOQA
         >>> autogen_staging_schema()
     """
-    from ibeis.control import STAGING_SCHEMA
-    from ibeis.control import _sql_helpers
+    from wbia.control import STAGING_SCHEMA
+    from wbia.control import _sql_helpers
     n = ut.get_argval('-n', int, default=-1)
     schema_spec = STAGING_SCHEMA
     db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
@@ -182,8 +182,8 @@ def autogen_staging_schema():
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.preproc.preproc_chip
-    python -m ibeis.control.STAGING_SCHEMA --allexamples
+    python -m wbia.algo.preproc.preproc_chip
+    python -m wbia.control.STAGING_SCHEMA --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

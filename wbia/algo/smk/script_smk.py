@@ -167,9 +167,9 @@ the number of features to from 12.5M to 19.2M by lowering feature detection thre
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-from ibeis.algo.smk import inverted_index
-from ibeis.algo.smk import smk_funcs
-from ibeis.algo.smk import smk_pipeline
+from wbia.algo.smk import inverted_index
+from wbia.algo.smk import smk_funcs
+from wbia.algo.smk import smk_pipeline
 from six.moves import zip, map
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -283,7 +283,7 @@ def load_oxford_2007():
     Loads data from
     http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
 
-    >>> from ibeis.algo.smk.script_smk import *  # NOQA
+    >>> from wbia.algo.smk.script_smk import *  # NOQA
     """
     from os.path import join, basename, splitext
     import pandas as pd
@@ -462,9 +462,9 @@ def load_oxford_2013():
     return data
 
 
-def load_oxford_ibeis():
-    import ibeis
-    ibs = ibeis.opendb('Oxford')
+def load_oxford_wbia():
+    import wbia
+    ibs = wbia.opendb('Oxford')
     dim_size = None
     _dannots = ibs.annots(ibs.filter_annots_general(has_none='query'),
                           config=dict(dim_size=dim_size))
@@ -503,9 +503,9 @@ def get_annots_imgid(_annots):
 
 
 def load_ordered_annots(data_uri_order, query_uri_order):
-    # Open the ibeis version of oxford
-    import ibeis
-    ibs = ibeis.opendb('Oxford')
+    # Open the wbia version of oxford
+    import wbia
+    ibs = wbia.opendb('Oxford')
 
     def reorder_annots(_annots, uri_order):
         intern_uris = get_annots_imgid(_annots)
@@ -531,7 +531,7 @@ def load_ordered_annots(data_uri_order, query_uri_order):
 def run_asmk_script():
    with ut.embed_on_exception_context:  # NOQA
     """
-    >>> from ibeis.algo.smk.script_smk import *
+    >>> from wbia.algo.smk.script_smk import *
     """  # NOQA
 
     # ==============================================
@@ -586,7 +586,7 @@ def run_asmk_script():
     elif config['data_year'] == 2013:
         data = load_oxford_2013()
     elif config['data_year'] is None:
-        data = load_oxford_ibeis()
+        data = load_oxford_wbia()
 
     offset_list = data['offset_list']
     all_kpts = data['all_kpts']
@@ -674,7 +674,7 @@ def run_asmk_script():
         idx_to_wxs = np.ma.array(idx_to_wxs)
         idx_to_maws = np.ma.array(idx_to_maws)
     else:
-        from ibeis.algo.smk import vocab_indexer
+        from wbia.algo.smk import vocab_indexer
         vocab = vocab_indexer.VisualVocab(words)
         dassign_cacher = SMKCacher('assign')
         assign_tup = dassign_cacher.tryload()
@@ -1014,7 +1014,7 @@ def verify_score():
     """
     Recompute all SMK things for two annotations and compare scores.
 
-    >>> from ibeis.algo.smk.script_smk import *  # NOQA
+    >>> from wbia.algo.smk.script_smk import *  # NOQA
 
     cm.print_inspect_str(qreq_)
     cm.show_single_annotmatch(qreq_, daid1)
@@ -1084,8 +1084,8 @@ def sanity_checks(offset_list, Y_list, query_annots, ibs):
         # Visualize queries
         # Look at the standard query images here
         # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
-        from ibeis.viz import viz_chip
-        import ibeis.plottool as pt
+        from wbia.viz import viz_chip
+        import wbia.plottool as pt
         pt.qt4ensure()
         fnum = 1
         pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
@@ -1110,19 +1110,19 @@ def oxford_conic_test():
 
 def load_internal_data():
     """
-    ibeis TestResult --db Oxford \
+    wbia TestResult --db Oxford \
         -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None \
         -a oxford \
         --dev-mode
 
-    ibeis TestResult --db GZ_Master1 \
+    wbia TestResult --db GZ_Master1 \
         -p smk:nWords=[64000],nAssign=[1],SV=[False],fg_on=False \
         -a ctrl:qmingt=2 \
         --dev-mode
     """
-    # from ibeis.algo.smk.smk_pipeline import *  # NOQA
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(
+    # from wbia.algo.smk.smk_pipeline import *  # NOQA
+    import wbia
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='Oxford', a='oxford',
         p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None')
     cm_list = qreq_.execute()
@@ -1134,8 +1134,8 @@ def load_internal_data():
 
 
 def compare_data(Y_list_):
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(
+    import wbia
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='Oxford', a='oxford',
         p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None')
     qreq_.ensure_data()
@@ -1164,7 +1164,7 @@ def compare_data(Y_list_):
     # ibs = qreq_.ibs
     # z = ibs.annots([a.aid for a in bady])
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     ut.qtensure()
     gamma1s = np.array(gamma1s)
     gamma2s = np.array(gamma2s)
@@ -1183,7 +1183,7 @@ def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath = join(imgdir,  data_uri_order[i] + '.jpg')
     image = vt.imread(gpath)
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.qt4ensure()
     # pt.imshow(image)
     l = offset_list[i]
@@ -1260,6 +1260,6 @@ def hyrule_vocab_test():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.smk.script_smk
+        python -m wbia.algo.smk.script_smk
     """
     run_asmk_script()

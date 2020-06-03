@@ -5,7 +5,7 @@ import requests
 import utool as ut
 import numpy as np
 from six.moves import zip
-import ibeis.constants as const
+import wbia.constants as const
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[azure]')
 
@@ -45,7 +45,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_AZURE, **kwargs):
     Kwargs (optional): refer to the Azure documentation for configuration settings
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         gid_list (list of int): the list of IBEIS image_rowids that need detection
 
     Kwargs:

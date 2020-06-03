@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ComamndLine:
-    python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --ipynb
+    python -m wbia --tf autogen_ipynb --ipynb --db PZ_MTEST --ipynb
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -83,8 +83,8 @@ nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     %reload_ext autoreload
     %autoreload
     import utool as ut
-    import ibeis.plottool as pt
-    from ibeis.templates import notebook_helpers
+    import wbia.plottool as pt
+    from wbia.templates import notebook_helpers
     notebook_helpers.custom_globals()
 
     fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
@@ -107,7 +107,7 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     dbdir = '{dbdir}'
 
     # Customize one or more of the following annotation configurations
-    # See ibeis/expt/annotation_configs.py for an enumeration of options
+    # See wbia/expt/annotation_configs.py for an enumeration of options
     a = [
         {annotconfig_list_body}
     ]
@@ -117,7 +117,7 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     daid_override = None
 
     # Customize one ore more of the following pipeline configurations.
-    # See ibeis/algo/Config.py and ibeis/core_annots.py for config options
+    # See wbia/algo/Config.py and wbia/core_annots.py for config options
     t = [
         {pipeline_list_body}
     ]
@@ -125,9 +125,9 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     # TODO: programatic way of listing full set of configuration options
 
     # Load database for this test run
-    import ibeis
-    ibeis.expt.harness.USE_BIG_TEST_CACHE = True
-    ibs = ibeis.opendb(dbdir=dbdir)
+    import wbia
+    wbia.expt.harness.USE_BIG_TEST_CACHE = True
+    ibs = wbia.opendb(dbdir=dbdir)
 
     if False:
         # Set to True to see some of the available LNBNN config settings
@@ -136,7 +136,7 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
 
     if False:
         # Valid Annot Sampling Params
-        from ibeis.expt import annotation_configs
+        from wbia.expt import annotation_configs
         print(ut.repr3(annotation_configs.DEFAULT_AIDCFG))
     # ENDBLOCK
     '''))
@@ -147,7 +147,7 @@ fluke_select = ('# Humpback Select',  ut.codeblock(
     # STARTBLOCK
     # Tag annotations which have been given manual notch points
     from ibeis_flukematch.plugin import *  # NOQA
-    ibs = ibeis.opendb(defaultdb='humpbacks')
+    ibs = wbia.opendb(defaultdb='humpbacks')
     all_aids = ibs.get_valid_aids()
     isvalid = ibs.depc_annot.get_property('Has_Notch', all_aids, 'flag')
     aid_list = ut.compress(all_aids, isvalid)
@@ -164,11 +164,11 @@ fluke_select = ('# Humpback Select',  ut.codeblock(
 annot_config_info =  ('# Annotation Config Info (Safely Ignored)', ut.codeblock(
     r'''
     # STARTBLOCK
-    acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+    acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a, qaid_override=qaid_override,
         daid_override=daid_override, verbose=0)
     # Set use_hist=True to see specific breakdowns of properties
-    ibeis.expt.annotation_configs.print_acfg_list(
+    wbia.expt.annotation_configs.print_acfg_list(
         acfg_list, expanded_aids_list, ibs, per_qual=True, use_hist=False)
     # ENDBLOCK
     ''')
@@ -178,9 +178,9 @@ annot_config_info =  ('# Annotation Config Info (Safely Ignored)', ut.codeblock(
 pipe_config_info =  ('# Pipeline Config Info (Safely Ignored)', ut.codeblock(
     r'''
     # STARTBLOCK
-    cfgdict_list, pipecfg_list = ibeis.expt.experiment_helpers.get_pipecfg_list(
+    cfgdict_list, pipecfg_list = wbia.expt.experiment_helpers.get_pipecfg_list(
         test_cfg_name_list=t, ibs=ibs)
-    ibeis.expt.experiment_helpers.print_pipe_configs(cfgdict_list, pipecfg_list)
+    wbia.expt.experiment_helpers.print_pipe_configs(cfgdict_list, pipecfg_list)
     # ENDBLOCK
     ''')
 )
@@ -190,7 +190,7 @@ dbsize_expt = ('# Database Size Experiment ', ut.codeblock(
     r'''
     # STARTBLOCK
     if True:
-        test_result = ibeis.run_experiment(
+        test_result = wbia.run_experiment(
             e='rank_surface',
             dbdir=dbdir,
             a=['varysize_td'],
@@ -201,7 +201,7 @@ dbsize_expt = ('# Database Size Experiment ', ut.codeblock(
 
     if True:
         # This test requires a little bit of relaxation to get enough data
-        test_result = ibeis.run_experiment(
+        test_result = wbia.run_experiment(
             e='rank_surface',
             dbdir=dbdir,
             a=['varysize_tdqual:qmin_pername=3,dpername=[1,2]'],
@@ -217,7 +217,7 @@ dbsize_expt = ('# Database Size Experiment ', ut.codeblock(
 timedelta_distribution = ('# Result Timedelta Distribution (Safely Ignore)', ut.codeblock(
     r'''
     # STARTBLOCK
-    test_result = ibeis.run_experiment(
+    test_result = wbia.run_experiment(
         e='timedelta_hist',
         dbdir=dbdir,
         a=a,
@@ -231,14 +231,14 @@ timedelta_distribution = ('# Result Timedelta Distribution (Safely Ignore)', ut.
 )
 
 
-#latex_stats = ibeis.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
+#latex_stats = wbia.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
 ##print(latex_stats)
 #pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)
 #pdf_fpath = ut.tail(pdf_fpath, n=2)
 #print(pdf_fpath)
 #from IPython.display import HTML
 #HTML('<iframe src="%s" width=700 height=350></iframe>' % pdf_fpath)
-#_ = ibeis.other.dbinfo.get_dbinfo(ibs)
+#_ = wbia.other.dbinfo.get_dbinfo(ibs)
 timestamp_distribution = (
     ut.codeblock(
         r'''
@@ -258,7 +258,7 @@ timestamp_distribution = (
         r'''
         # STARTBLOCK
         # Get images of those used in the tests
-        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
@@ -267,7 +267,7 @@ timestamp_distribution = (
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
 
-        ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
+        wbia.other.dbinfo.show_image_time_distributions(ibs, gids)
         # ENDBLOCK
         '''))
 
@@ -289,7 +289,7 @@ example_annotations = (
         # STARTBLOCK
         # Get a sample of images
         #gids = ibs.get_valid_gids()
-        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
                     ibs, acfg_name_list=a, qaid_override=qaid_override,
                     daid_override=daid_override, verbose=0)
         aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
@@ -305,9 +305,9 @@ example_annotations = (
         print(samplex)
         gids_sample = ut.take(gids_sorted, samplex)
 
-        import ibeis.viz
+        import wbia.viz
         for gid in ut.ProgressIter(gids_sample, lbl='drawing image'):
-            ibeis.viz.show_image(ibs, gid)
+            wbia.viz.show_image(ibs, gid)
         # ENDBLOCK
         '''),
     COMMENT_SPACE
@@ -334,9 +334,9 @@ example_names = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        from ibeis.viz import viz_graph
+        from wbia.viz import viz_graph
         # TODO: use viz_graph2 instead
-        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
                     ibs, acfg_name_list=a, qaid_override=qaid_override,
                     daid_override=daid_override, verbose=0)
         aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
@@ -389,7 +389,7 @@ per_annotation_accuracy = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='rank_cmc',
             dbdir=dbdir, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
@@ -429,7 +429,7 @@ per_name_accuracy = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='rank_cmc',
             dbdir=dbdir, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
@@ -441,7 +441,7 @@ per_name_accuracy = (
                               gridlinestyle='-', linewidth=3, markersize=10,
                               fontweight='normal', sep=' ')
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         ax = pt.gca()
         ax.grid(True)
         gridlines = ax.get_xgridlines() + ax.get_ygridlines()
@@ -477,7 +477,7 @@ config_disagree_cases = ('# Configuration Disagreements (Safely Ignored)', ut.co
     # This shows individual examples where the tested configurations disagree.
     # This only works if more than one configuration was specified.
     # STARTBLOCK
-    testres = ibeis.run_experiment(
+    testres = wbia.run_experiment(
         e='draw_cases',
         dbdir=dbdir, a=a, t=t,
         f=[':disagree=True,index=0:3'],
@@ -494,7 +494,7 @@ config_disagree_cases = ('# Configuration Disagreements (Safely Ignored)', ut.co
 feat_score_sep = ('# Feature Correspondence Score Separation (Safely Ignored)', ut.codeblock(
     r'''
     # STARTBLOCK
-    test_result = ibeis.run_experiment(
+    test_result = wbia.run_experiment(
         e='TestResult.draw_feat_scoresep',
         dbdir=dbdir,
         a=a,
@@ -513,7 +513,7 @@ success_annot_scoresep = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_annot_scoresep',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=False,min_gf_timedelta=None'],
@@ -528,7 +528,7 @@ all_annot_scoresep = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='scores',
             dbdir=dbdir, a=a, t=t,
             qaid_override=qaid_override, daid_override=daid_override,
@@ -547,7 +547,7 @@ view_intereseting_tags = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        test_result = ibeis.run_experiment(
+        test_result = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir,
             a=a,
@@ -596,7 +596,7 @@ easy_success_cases = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=False,index=0:3,sortdsc=gtscore,max_pername=1'],
@@ -623,7 +623,7 @@ hard_success_cases = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1,min_gtscore=.00001'],  # hack min_gtscore for 0 scores marked as success
@@ -660,7 +660,7 @@ failure_type2_cases =  (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gtscore,max_pername=1'],
@@ -689,7 +689,7 @@ failure_type1_cases = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
@@ -712,7 +712,7 @@ total_failure_cases = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        testres = ibeis.run_experiment(
+        testres = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortasc=gtscore,max_pername=1'],
@@ -730,7 +730,7 @@ investigate_specific_case = (
     ut.codeblock(
         r'''
         # STARTBLOCK
-        test_result = ibeis.run_experiment(
+        test_result = wbia.run_experiment(
             e='draw_cases',
             dbdir=dbdir,
             a=[a[0] + ',qsize=1'],
@@ -750,7 +750,7 @@ per_encounter_stats = (
         r'''
         # STARTBLOCK
         # Load cross validation slices
-        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
@@ -800,13 +800,13 @@ per_encounter_stats = (
     ut.codeblock(
         r'''
         a='default:is_known=True'
-        aids = ibeis.testdata_aids(ibs=ibs, a=a)
+        aids = wbia.testdata_aids(ibs=ibs, a=a)
         annots = ibs.annots(aids)
         nid_to_aids = ut.group_items(annots.aids, annots.nids)
         nid_to_nAids = ut.map_vals(len, nid_to_aids)
         nAids_per_name_hist = ut.dict_hist(nid_to_nAids.values())
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         xdata = list(nAids_per_name_hist.keys())
         ydata = list(nAids_per_name_hist.values())
         fig = pt.multi_plot(xdata, [ydata], kind='bar',
@@ -820,7 +820,7 @@ per_encounter_stats = (
         nid_to_nEncs = ut.map_vals(len, nid_to_encs)
         nEncs_per_name_hist = ut.dict_hist(nid_to_nEncs.values())
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         xdata = list(nEncs_per_name_hist.keys())
         ydata = list(nEncs_per_name_hist.values())
         fig = pt.multi_plot(xdata, [ydata], kind='bar',
@@ -834,10 +834,10 @@ per_encounter_stats = (
 # HACK
 def dataset_summary_stats_hacktest():
     """
-    import ibeis
-    ibs = ibeis.opendb('WWF_Lynx_Copy')
-    # import ibeis
-    # ibs = ibeis.opendb('WWF_Lynx')
+    import wbia
+    ibs = wbia.opendb('WWF_Lynx_Copy')
+    # import wbia
+    # ibs = wbia.opendb('WWF_Lynx')
     a = [
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
@@ -849,7 +849,7 @@ def dataset_summary_stats_hacktest():
         # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
         # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
     ]
-    acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+    acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a, verbose=0)
 
     expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
@@ -870,7 +870,7 @@ lynx_curration_stats = (
         all_n_names = len(ut.unique(ibs.annots(all_aids).nids))
 
         a_image = ['default:max_timestamp=now,require_timestamp=True']
-        _, imgfilt_aids = ibeis.expt.experiment_helpers.get_annotcfg_list(ibs, acfg_name_list=a_image)
+        _, imgfilt_aids = wbia.expt.experiment_helpers.get_annotcfg_list(ibs, acfg_name_list=a_image)
         imgs = ibs.images(set(ibs.annots(imgfilt_aids).gids))
         single_aids = [x for x in imgs.aids if len(x) == 1]
         imgfilt_aids = ut.flatten(single_aids)

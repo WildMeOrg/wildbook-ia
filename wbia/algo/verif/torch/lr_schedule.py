@@ -6,7 +6,7 @@ class Exponential(object):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.torch.lr_schedule import *
+        >>> from wbia.algo.verif.torch.lr_schedule import *
         >>> lr_scheduler = Exponential()
         >>> rates = np.array([lr_scheduler(i) for i in range(6)])
         >>> target = np.array([1E-3, 1E-3, 1E-5, 1E-5, 1E-7, 1E-7])

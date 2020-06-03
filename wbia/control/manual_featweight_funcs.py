@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -12,20 +12,20 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aid_list (list):  list of annotation rowids
         config2_ (dict): (default = None)
         ensure (bool):  eager evaluation if True(default = True)
 
     CommandLine:
-        python -m ibeis.control.manual_featweight_funcs get_annot_fgweights
+        python -m wbia.control.manual_featweight_funcs get_annot_fgweights
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_featweight_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_featweight_funcs import *  # NOQA
+        >>> import wbia
         >>> import numpy as np
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = [1, 2]
         >>> config2_ = None
         >>> ensure = True
@@ -45,13 +45,13 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
 def get_annot_fgweight_rowids(ibs, aid_list, config2_=None, ensure=True):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aid_list (list):  list of annotation rowids
         config2_ (dict): (default = None)
         ensure (bool):  eager evaluation if True(default = True)
 
     CommandLine:
-        python -m ibeis.control.manual_featweight_funcs get_annot_fgweight_rowids
+        python -m wbia.control.manual_featweight_funcs get_annot_fgweight_rowids
     """
     fgw_rowid_list = ibs.depc_annot.get_rowids('featweight', aid_list, config=config2_)
     return fgw_rowid_list
@@ -60,8 +60,8 @@ def get_annot_fgweight_rowids(ibs, aid_list, config2_=None, ensure=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_featweight_funcs
-        python -m ibeis.control.manual_featweight_funcs --allexamples
+        python -m wbia.control.manual_featweight_funcs
+        python -m wbia.control.manual_featweight_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

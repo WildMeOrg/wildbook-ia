@@ -3,12 +3,12 @@ from __future__ import absolute_import, division, print_function
 import uuid
 import six  # NOQA
 from six.moves import range
-from ibeis import constants as const
-from ibeis.control.accessor_decors import (
+from wbia import constants as const
+from wbia.control.accessor_decors import (
     adder, getter_1to1, default_decorator, getter_1toM)
 import utool as ut
-#from ibeis.other import ibsfuncs
-from ibeis.control.controller_inject import make_ibs_register_decorator
+#from wbia.other import ibsfuncs
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -206,9 +206,9 @@ def get_image_glrids(ibs, gid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_lblimage_funcs
-        python -m ibeis.control.manual_lblimage_funcs --allexamples
-        python -m ibeis.control.manual_lblimage_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_lblimage_funcs
+        python -m wbia.control.manual_lblimage_funcs --allexamples
+        python -m wbia.control.manual_lblimage_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

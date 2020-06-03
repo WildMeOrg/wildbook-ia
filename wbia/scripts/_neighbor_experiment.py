@@ -6,7 +6,7 @@ import utool as ut
 from vtool_ibeis._pyflann_backend import pyflann as pyflann
 from os.path import basename, exists  # NOQA
 from six.moves import range
-from ibeis.algo.hots import neighbor_index_cache
+from wbia.algo.hots import neighbor_index_cache
 #import mem_top
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -19,41 +19,41 @@ def augment_nnindexer_experiment():
         http://answers.opencv.org/question/44592/flann-index-training-fails-with-segfault/
 
     CommandLine:
-        utprof.py -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
+        utprof.py -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
 
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
 
         # RUNS THE SEGFAULTING CASE
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        python -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
         # Debug it
         gdb python
-        run -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        run -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
         gdb python
-        run -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+        run -m wbia.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> # execute function
         >>> augment_nnindexer_experiment()
         >>> # verify results
         >>> ut.show_if_requested()
 
     """
-    import ibeis
+    import wbia
     # build test data
-    #ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb(defaultdb='PZ_Master0')
+    #ibs = wbia.opendb('PZ_MTEST')
+    ibs = wbia.opendb(defaultdb='PZ_Master0')
     if ibs.get_dbname() == 'PZ_MTEST':
         initial = 1
         addition_stride = 4
@@ -101,7 +101,7 @@ def augment_nnindexer_experiment():
             # Request an indexer which could be an augmented version of an existing indexer.
             with ut.Timer(verbose=False) as t:
                 memtrack.report('BEFORE AUGMENT')
-                nnindexer_ = neighbor_index_cache.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
+                nnindexer_ = neighbor_index_cache.request_augmented_wbia_nnindexer(qreq_, aid_list_)
                 memtrack.report('AFTER AUGMENT')
             nnindexer_list.append(nnindexer_)
             addition_count_list.append(count)
@@ -135,7 +135,7 @@ def augment_nnindexer_experiment():
             # Call the same code, but force rebuilds
             memtrack.report('BEFORE REINDEX')
             with ut.Timer(verbose=False) as t:
-                nnindexer_ = neighbor_index_cache.request_augmented_ibeis_nnindexer(
+                nnindexer_ = neighbor_index_cache.request_augmented_wbia_nnindexer(
                     qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
             memtrack.report('AFTER REINDEX')
             ibs.print_cachestats_str()
@@ -179,7 +179,7 @@ def augment_nnindexer_experiment():
             elif resolution == 1:
                 ut.embed()
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     next_fnum = iter(range(0, 1)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
@@ -203,27 +203,27 @@ def flann_add_time_experiment():
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show
-        utprof.py -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --show
+        python -m wbia.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --show
+        python -m wbia.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show
+        utprof.py -m wbia.algo.hots._neighbor_experiment --test-flann_add_time_experiment --show
 
-        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --no-with-reindex
+        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m wbia.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --no-with-reindex
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
+        >>> import wbia
+        >>> #ibs = wbia.opendb('PZ_MTEST')
         >>> result = flann_add_time_experiment()
         >>> # verify results
         >>> print(result)
         >>> ut.show_if_requested()
 
     """
-    import ibeis
+    import wbia
     import utool as ut
     import numpy as np
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     def make_flann_index(vecs, flann_params):
         flann = pyflann.FLANN()
@@ -231,7 +231,7 @@ def flann_add_time_experiment():
         return flann
 
     db = ut.get_argval('--db')
-    ibs = ibeis.opendb(db=db)
+    ibs = wbia.opendb(db=db)
 
     # Input
     if ibs.get_dbname() == 'PZ_MTEST':
@@ -240,7 +240,7 @@ def flann_add_time_experiment():
         addition_stride = 4
         max_ceiling = 120
     elif ibs.get_dbname() == 'PZ_Master0':
-        #ibs = ibeis.opendb(db='GZ_ALL')
+        #ibs = wbia.opendb(db='GZ_ALL')
         initial = 32
         reindex_stride = 32
         addition_stride = 16
@@ -333,11 +333,11 @@ def subindexer_time_experiment():
 
     TODO: time experiment
     """
-    import ibeis
+    import wbia
     import utool as ut
     from vtool_ibeis._pyflann_backend import pyflann as pyflann
-    import ibeis.plottool as pt
-    ibs = ibeis.opendb(db='PZ_Master0')
+    import wbia.plottool as pt
+    ibs = wbia.opendb(db='PZ_Master0')
     daid_list = ibs.get_valid_aids()
     count_list = []
     time_list = []
@@ -365,25 +365,25 @@ def trytest_incremental_add(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --test-test_incremental_add
+        python -m wbia.algo.hots._neighbor_experiment --test-test_incremental_add
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> result = test_incremental_add(ibs)
         >>> print(result)
     """
-    import ibeis
-    sample_aids = ibeis.testdata_aids(a='default:pername=1,mingt=2')
+    import wbia
+    sample_aids = wbia.testdata_aids(a='default:pername=1,mingt=2')
     aids1 = sample_aids[::2]
     aids2 = sample_aids[0:5]
     aids3 = sample_aids[:-1]  # NOQA
     daid_list = aids1  # NOQA
     qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
-    nnindexer2 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
+    nnindexer1 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
+    nnindexer2 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(aids3)
@@ -397,7 +397,7 @@ def trytest_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    nnindexer3 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
+    nnindexer3 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(sample_aids)
@@ -417,8 +417,8 @@ def trytest_incremental_add(ibs):
     #uuid_map[daids_hashid] = visual_uuid_list
     #visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
     #visual_uuid_list
-    #%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=False)
-    #%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=True)
+    #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=False)
+    #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=True)
 
     #for uuids in uuid_set
     #    if
@@ -427,15 +427,15 @@ def trytest_incremental_add(ibs):
 def trytest_multiple_add_removes():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-test_multiple_add_removes
+        python -m wbia.algo.hots._neighbor_experiment --exec-test_multiple_add_removes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> result = test_multiple_add_removes()
         >>> print(result)
     """
-    from ibeis.algo.hots.neighbor_index_cache import test_nnindexer
+    from wbia.algo.hots.neighbor_index_cache import test_nnindexer
     K = 4
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
 
@@ -462,7 +462,7 @@ def trytest_multiple_add_removes():
     print('')
     print('TESTING ADD')
     add_first_daids = [17, 22]
-    nnindexer.add_ibeis_support(qreq_, add_first_daids)
+    nnindexer.add_wbia_support(qreq_, add_first_daids)
     print_nnindexer(nnindexer)
     (qfx2_idx0, qfx2_dist0) = nnindexer.knn(qfx2_vec, K)
     assert np.any(qfx2_idx0 != qfx2_idx1), 'some should change'
@@ -473,7 +473,7 @@ def trytest_multiple_add_removes():
     print('')
     print('TESTING REMOVE')
     remove_daid_list = [8, 10, 11]
-    nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
+    nnindexer.remove_wbia_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
     (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
@@ -487,7 +487,7 @@ def trytest_multiple_add_removes():
 
     print('')
     print('TESTING DUPLICATE REMOVE')
-    nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
+    nnindexer.remove_wbia_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
     (qfx2_idx2_, qfx2_dist2_) = nnindexer.knn(qfx2_vec, K)
@@ -499,7 +499,7 @@ def trytest_multiple_add_removes():
     # Is the error here happening because added points seem to
     # get the ids of the removed points?
     new_daid_list = [8, 10]
-    nnindexer.add_ibeis_support(qreq_, new_daid_list)
+    nnindexer.add_wbia_support(qreq_, new_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
     (qfx2_idx3, qfx2_dist3) = nnindexer.knn(qfx2_vec, K)
@@ -514,7 +514,7 @@ def trytest_multiple_add_removes():
 
     print('TESTING DUPLICATE ADD')
     new_daid_list = [8, 10]
-    nnindexer.add_ibeis_support(qreq_, new_daid_list)
+    nnindexer.add_wbia_support(qreq_, new_daid_list)
     # test after modification
     print_nnindexer(nnindexer)
     (qfx2_idx3_, qfx2_dist3_) = nnindexer.knn(qfx2_vec, K)
@@ -523,7 +523,7 @@ def trytest_multiple_add_removes():
 
     print('TESTING ADD QUERY TO DATABASE')
     add_daid_list1 = [qaid]
-    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.add_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
     (qfx2_idx4_, qfx2_dist4_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid4_ = nnindexer.get_nn_aids(qfx2_idx4_)
@@ -533,7 +533,7 @@ def trytest_multiple_add_removes():
 
     print('TESTING REMOVE QUERY POINTS')
     add_daid_list1 = [qaid]
-    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.remove_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
     (qfx2_idx5_, qfx2_dist5_) = nnindexer.knn(qfx2_vec, K)
     issame = (qfx2_idx5_ == qfx2_idx3_)
@@ -546,8 +546,8 @@ def trytest_multiple_add_removes():
     # Do this multiple times
     for _ in range(10):
         add_daid_list1 = [qaid]
-        nnindexer.add_ibeis_support(qreq_, add_daid_list1, verbose=False)
-        nnindexer.remove_ibeis_support(qreq_, add_daid_list1, verbose=False)
+        nnindexer.add_wbia_support(qreq_, add_daid_list1, verbose=False)
+        nnindexer.remove_wbia_support(qreq_, add_daid_list1, verbose=False)
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = (qfx2_idxX_ == qfx2_idx3_)
         percentsame = issame.sum() / issame.size
@@ -556,12 +556,12 @@ def trytest_multiple_add_removes():
 
     # Test again with more data
     print('testing remove query points with more data')
-    nnindexer.add_ibeis_support(qreq_, ibs.get_valid_aids())
+    nnindexer.add_wbia_support(qreq_, ibs.get_valid_aids())
     (qfx2_idx6_, qfx2_dist6_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid6_ = nnindexer.get_nn_aids(qfx2_idx6_)
     assert np.all(qfx2_aid6_.T[0] == qaid), 'should be same'
 
-    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.remove_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
     (qfx2_idx7_, qfx2_dist6_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid7_ = nnindexer.get_nn_aids(qfx2_idx7_)
@@ -570,8 +570,8 @@ def trytest_multiple_add_removes():
     # Do this multiple times
     for _ in range(10):
         add_daid_list1 = [qaid]
-        nnindexer.add_ibeis_support(qreq_, add_daid_list1, verbose=True)
-        nnindexer.remove_ibeis_support(qreq_, add_daid_list1, verbose=True)
+        nnindexer.add_wbia_support(qreq_, add_daid_list1, verbose=True)
+        nnindexer.remove_wbia_support(qreq_, add_daid_list1, verbose=True)
         # weird that all seem to work here
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = (qfx2_idxX_ == qfx2_idx7_)
@@ -583,29 +583,29 @@ def trytest_multiple_add_removes():
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
     big_set = ibs.get_valid_aids()[5:]
     remove_later = big_set[10:14]
-    nnindexer.add_ibeis_support(qreq_, big_set)
+    nnindexer.add_wbia_support(qreq_, big_set)
 
     # Try again where remove is not the last operation
     print('testing remove query points with more op')
     extra_data = np.setdiff1d(ibs.get_valid_aids()[0:5], add_daid_list1)
-    nnindexer.remove_ibeis_support(qreq_, extra_data)
+    nnindexer.remove_wbia_support(qreq_, extra_data)
 
-    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
-    nnindexer.add_ibeis_support(qreq_, extra_data)
+    nnindexer.add_wbia_support(qreq_, add_daid_list1)
+    nnindexer.add_wbia_support(qreq_, extra_data)
 
     (qfx2_idx8_, qfx2_dist8_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid8_ = nnindexer.get_nn_aids(qfx2_idx8_)
     assert np.all(qfx2_aid8_.T[0] == qaid), 'should be same'
 
-    nnindexer.remove_ibeis_support(qreq_, extra_data)
+    nnindexer.remove_wbia_support(qreq_, extra_data)
     (qfx2_idx9_, qfx2_dist9_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid9_ = nnindexer.get_nn_aids(qfx2_idx9_)
     assert np.all(qfx2_aid9_.T[0] == qaid), 'should be same'
-    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.remove_wbia_support(qreq_, add_daid_list1)
 
-    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
-    nnindexer.add_ibeis_support(qreq_, extra_data)
-    nnindexer.remove_ibeis_support(qreq_, remove_later)
+    nnindexer.add_wbia_support(qreq_, add_daid_list1)
+    nnindexer.add_wbia_support(qreq_, extra_data)
+    nnindexer.remove_wbia_support(qreq_, remove_later)
     print(nnindexer.ax2_aid)
 
     aid_list = nnindexer.get_indexed_aids()  # NOQA
@@ -632,11 +632,11 @@ def trytest_multiple_add_removes():
 def pyflann_test_remove_add():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add
+        python -m wbia.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add()
     """
     from vtool_ibeis._pyflann_backend import pyflann as pyflann
@@ -677,11 +677,11 @@ def pyflann_test_remove_add():
 def pyflann_test_remove_add2():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add2
+        python -m wbia.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add2()
     """
     from vtool_ibeis._pyflann_backend import pyflann as pyflann
@@ -750,11 +750,11 @@ def pyflann_remove_and_save():
         grep -ER removed_points_ *
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_remove_and_save
+        python -m wbia.algo.hots._neighbor_experiment --exec-pyflann_remove_and_save
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
+        >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_remove_and_save()
     """
     from vtool_ibeis._pyflann_backend import pyflann as pyflann
@@ -855,9 +855,9 @@ def pyflann_remove_and_save():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment
-        python -m ibeis.algo.hots._neighbor_experiment --allexamples
-        python -m ibeis.algo.hots._neighbor_experiment --allexamples --noface --nosrc
+        python -m wbia.algo.hots._neighbor_experiment
+        python -m wbia.algo.hots._neighbor_experiment --allexamples
+        python -m wbia.algo.hots._neighbor_experiment --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

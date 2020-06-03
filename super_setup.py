@@ -696,10 +696,10 @@ def make_netharn_registry(remote):
             },
         ),
         CommonRepo(
-            name='ibeis', branch='master', remote=remote,
+            name='wbia', branch='master', remote=remote,
             remotes={
-                'Erotemic': 'git@github.com:Erotemic/ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis.git',
+                'Erotemic': 'git@github.com:Erotemic/wbia.git',
+                'Wildbook': 'git@github.com:WildbookOrg/wbia.git',
             },
         ),
         CommonRepo(
@@ -715,13 +715,13 @@ def make_netharn_registry(remote):
             },
         ),
         CommonRepo(
-            name='ibeis_deepsense', branch='master', remote=remote,
+            name='wbia_deepsense', branch='master', remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/ibeis-deepsense-module.git',
             },
         ),
         CommonRepo(
-            name='ibeis_finfindr', branch='master', remote=remote,
+            name='wbia_finfindr', branch='master', remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',
             },
@@ -733,15 +733,15 @@ def make_netharn_registry(remote):
             },
         ),
         CommonRepo(
-            name='ibeis_kaggle7', branch='master', remote=remote,
+            name='wbia_kaggle7', branch='master', remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',
             },
         ),
         CommonRepo(
-            name='ibeis_2d_orientation', branch='master', remote=remote,
+            name='wbia_2d_orientation', branch='master', remote=remote,
             remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-2d-orientation-module.git',
+                'Wildbook': 'git@github.com:WildbookOrg/wbia-2d-orientation-module.git',
             },
         ),
     ]

@@ -96,7 +96,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
     Kwargs (optional): refer to the SSD documentation for configuration settings
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         gid_list (list of int): the list of IBEIS image_rowids that need detection
         downsample (bool, optional): a flag to indicate if the original image
                 sizes should be used; defaults to True
@@ -108,14 +108,14 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         tuple: (gid, gpath, result_list)
 
     CommandLine:
-        python -m ibeis.algo.detect.ssd detect_gid_list --show
+        python -m wbia.algo.detect.ssd detect_gid_list --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.ssd import *  # NOQA
-        >>> from ibeis.core_images import LocalizerConfig
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.algo.detect.ssd import *  # NOQA
+        >>> from wbia.core_images import LocalizerConfig
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> config = {'verbose': True}
         >>> downsample = False
@@ -130,7 +130,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
 
     Yields:
@@ -195,7 +195,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
         config_url = CONFIG_URL_DICT[config_filepath]
-        config_filepath = ut.grab_file_url(config_url, appname='ibeis',
+        config_filepath = ut.grab_file_url(config_url, appname='wbia',
                                            check_hash=True)
 
     # Get correct weights if specified with shorthand
@@ -205,12 +205,12 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         else:
             config_url_ = CONFIG_URL_DICT[weight_filepath]
         weight_url = _parse_weight_from_cfg(config_url_)
-        weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
+        weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
                                             check_hash=True)
 
     if class_filepath is None:
         class_url = _parse_classes_from_cfg(config_url)
-        class_filepath = ut.grab_file_url(class_url, appname='ibeis',
+        class_filepath = ut.grab_file_url(class_url, appname='wbia',
                                           check_hash=True, verbose=verbose)
 
     # load class labels

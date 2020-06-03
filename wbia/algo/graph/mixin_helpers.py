@@ -6,11 +6,11 @@ import operator
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
-from ibeis import constants as const
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from ibeis.algo.graph.state import SAME, DIFF, NULL  # NOQA
-from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph import nx_utils as nxu
+from wbia import constants as const
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
+from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+from wbia.algo.graph.nx_utils import e_
+from wbia.algo.graph import nx_utils as nxu
 import six
 print, rrr, profile = ut.inject2(__name__)
 
@@ -215,10 +215,10 @@ class Convenience(object):
         Helps debugging when ibs.nids has info that annotmatch/staging do not
 
         Examples:
-            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
-            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='GZ_Master1')
+            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.reset_feedback('staging', apply=True)
             >>> infr.relabel_using_reviews(rectify=False)
             >>> aid1, aid2 = 1349, 3087
@@ -380,8 +380,8 @@ class DummyEdges(object):
             label = 'name_label'
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=3, size=4)
             >>> assert infr.status()['nCCs'] == 3
             >>> infr.clear_edges()
@@ -390,9 +390,9 @@ class DummyEdges(object):
             >>> assert infr.status()['nCCs'] == 3
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', 'all', autoinit=True)
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', 'all', autoinit=True)
             >>> infr.reset_feedback('annotmatch', apply=True)
             >>> assert infr.status()['nInconsistentCCs'] == 0
             >>> assert infr.status()['nCCs'] == 41
@@ -430,11 +430,11 @@ class DummyEdges(object):
             decision (str): (default = 'unreviewed')
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_helpers ensure_cliques
+            python -m wbia.algo.graph.mixin_helpers ensure_cliques
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> label = 'name_label'
             >>> infr = demo.demodata_infr(num_pccs=3, size=5)
             >>> print(infr.status())
@@ -496,14 +496,14 @@ class DummyEdges(object):
         they are connected with positive edges.
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_helpers find_mst_edges --profile
+            python -m wbia.algo.graph.mixin_helpers find_mst_edges --profile
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
+            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
             >>> label = 'orig_name_label'
             >>> label = 'name_label'
             >>> infr.find_mst_edges()
@@ -736,8 +736,8 @@ class AssertInvariants(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_helpers
-        python -m ibeis.algo.graph.mixin_helpers --allexamples
+        python -m wbia.algo.graph.mixin_helpers
+        python -m wbia.algo.graph.mixin_helpers --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

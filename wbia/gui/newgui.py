@@ -14,7 +14,7 @@ BUGS:
 
 
 CommandLine:
-    ibeis --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
+    wbia --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter
@@ -22,27 +22,27 @@ from os.path import isdir
 import sys
 import functools
 import utool as ut
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.guitool import slot_, ChangeLayoutContext
-# from ibeis.guitool import BlockContext
-# from ibeis.guitool import checks_qt_error
-import ibeis.guitool as gt
-import ibeis.plottool as pt
-from ibeis.plottool import color_funcs
-from ibeis.gui import guiheaders as gh
-from ibeis.gui import guimenus
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool import slot_, ChangeLayoutContext
+# from wbia.guitool import BlockContext
+# from wbia.guitool import checks_qt_error
+import wbia.guitool as gt
+import wbia.plottool as pt
+from wbia.plottool import color_funcs
+from wbia.gui import guiheaders as gh
+from wbia.gui import guimenus
 import six
-from ibeis.viz.interact import interact_annotations2
-from ibeis.gui.guiheaders import (
+from wbia.viz.interact import interact_annotations2
+from wbia.gui.guiheaders import (
     IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE,
     IMAGESET_TABLE)
-from ibeis.gui.models_and_views import (
+from wbia.gui.models_and_views import (
     IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView,
     ImagesetTableModel, ImagesetTableView, IBEISTableWidget,
     IBEISTreeWidget, ImagesetTableWidget)
-from ibeis import constants as const
+from wbia import constants as const
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -246,8 +246,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     """
     CommandLine:
         # Testing
-        python -m ibeis --db NNP_Master3 --onlyimgtbl
-        python -m ibeis --db PZ_Master1 --onlyimgtbl
+        python -m wbia --db NNP_Master3 --onlyimgtbl
+        python -m wbia --db PZ_Master1 --onlyimgtbl
     """
     def __init__(ibswgt, back=None, ibs=None, parent=None):
         super(IBEISGuiWidget, ibswgt).__init__(parent)
@@ -295,7 +295,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create and layout components
         ibswgt._init_components()
         ibswgt._connect_signals_and_slots()
-        ibswgt.connect_ibeis_control(ibswgt.ibs)
+        ibswgt.connect_wbia_control(ibswgt.ibs)
 
         # Lazy load data every so often
         ibswgt.data_load_timer = QtCore.QTimer()
@@ -564,7 +564,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.NAMES_TREE)
             >>> view = ibswgt.views[gh.NAMES_TREE]
@@ -665,10 +665,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for clearSelection in hack_selections:
             clearSelection()
 
-    def connect_ibeis_control(ibswgt, ibs):
+    def connect_wbia_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
         if VERBOSE_GUI:
-            print('[newgui] connect_ibeis_control(ibs=%r)' % (ibs,))
+            print('[newgui] connect_wbia_control(ibs=%r)' % (ibs,))
         ibswgt.imageset_tabwgt._close_all_tabs()
         if ibs is None:
             if VERBOSE_GUI:
@@ -690,7 +690,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     print('Skipping special imagesets')
             # Update the api models to use the new control
             with ut.Timer('make headers', verbose=VERBOSE_GUI):
-                header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
+                header_dict, declare_tup = gh.make_wbia_headers_dict(ibswgt.ibs)
             ibswgt.declare_tup = declare_tup
 
             def get_title(ibs):
@@ -849,7 +849,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
         """
@@ -878,13 +878,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         hack for letting annots spawn image editing
 
         CommandLine:
-            python -m ibeis.gui.newgui spawn_edit_image_annotation_interaction_from_aid --show
+            python -m wbia.gui.newgui spawn_edit_image_annotation_interaction_from_aid --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.newgui import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ibswgt = back.ibswgt  # NOQA
             >>> aid = 4
@@ -932,11 +932,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             tuple: (current_rowid, next_callback, prev_callback)
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-make_adjacent_qtindex_callbacks
+            python -m wbia.gui.newgui --test-make_adjacent_qtindex_callbacks
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> gid = ibs.get_valid_gids()[0]
             >>> model = ibswgt.models[gh.IMAGE_TABLE]
@@ -975,7 +975,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         callbacks for the edit image annotation (from image table) interaction
 
-        python -m ibeis --db lynx --imgsetid 2
+        python -m wbia --db lynx --imgsetid 2
 
         TODO: needs reimplement
         """
@@ -1070,7 +1070,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
             >>> tblname = gh.NAMES_TREE
@@ -1168,7 +1168,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Context menus on right click of a table
 
         CommandLine:
-            python -m ibeis --db WS_ALL --imgsetid 2 --select-name=A-003
+            python -m wbia --db WS_ALL --imgsetid 2 --select-name=A-003
         """
         if not qtindex.isValid():
             return
@@ -1268,8 +1268,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.delete_annot(aid_list)),
                     ('----', lambda: None),
                 ]
-                from ibeis.viz.interact import interact_chip
-                from ibeis import viz
+                from wbia.viz.interact import interact_chip
+                from wbia import viz
                 context_options += interact_chip.build_annot_context_options(
                     ibswgt.back.ibs, aid, refresh_func=viz.draw,
                     with_interact_image=False)
@@ -1306,7 +1306,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     back.run_annot_splits(aid_list)
 
                 def export_nids(ibs, nid_list):
-                    from ibeis.dbio import export_subset
+                    from wbia.dbio import export_subset
                     if not back.are_you_sure('Confirm export of nid_list=%r' % (nid_list,)):
                         return
                     export_subset.export_names(ibs, nid_list)
@@ -1324,11 +1324,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                      lambda: create_new_imageset_from_names_(ibs, nid_list)),
                 ]
 
-                from ibeis.viz.interact import interact_name
+                from wbia.viz.interact import interact_name
                 context_options += interact_name.build_name_context_options(
                     ibswgt.back.ibs, nid_list)
             elif len(nid_list) == 0:
-                #from ibeis.viz.interact import interact_name
+                #from wbia.viz.interact import interact_name
                 #context_options += interact_name.build_name_context_options(
                 #    ibswgt.back.ibs, nid_list)
                 #print('nutin')
@@ -1415,7 +1415,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.remove_from_imageset(gid_list)),
                 ]
 
-            from ibeis.viz import viz_graph2
+            from wbia.viz import viz_graph2
             context_options += [
                 ('----', lambda: None),
                 ('Graph interaction (Annots)',
@@ -1538,7 +1538,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Double clicking anywhere in the GUI
 
         CommandLine:
-            python -m ibeis --db lynx --imgsetid 2 --select-name=goku
+            python -m wbia --db lynx --imgsetid 2 --select-name=goku
         """
         print('\n+--- DOUBLE CLICK ---')
         if not qtindex.isValid():
@@ -1576,11 +1576,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         image drag and drop event
 
         CommandLine:
-            python -m ibeis.gui.newgui imagesDropped --show
+            python -m wbia.gui.newgui imagesDropped --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
             >>> url_list = [ut.grab_test_imgpath('carl.jpg'), ut.grab_test_imgpath('lena.png')]
             >>> #url_list += [ut.truepath('~/Downloads/Clutter/wd_peter2.zip')]
@@ -1614,7 +1614,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(gpath_list) > 0:
                 ibswgt.back.import_images_from_file(gpath_list=gpath_list)
         else:
-            from ibeis.dbio import ingest_database
+            from wbia.dbio import ingest_database
             ibs = ibswgt.back.ibs
             ingestable = ingest_database.Ingestable2(
                 ibs.get_dbdir(), gpath_list, dir_list, zipfile_list)
@@ -1661,17 +1661,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
 
         CommandLine:
-            python -m ibeis.gui.newgui --exec-edit_image_time --show
+            python -m wbia.gui.newgui --exec-edit_image_time --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
             >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('lynx')
             >>> ibswgt.edit_image_time([277, 630])
             >>> testdata_main_loop(globals(), locals())
         """
-        from ibeis.gui import clock_offset_gui
+        from wbia.gui import clock_offset_gui
         ibswgt.co_wgt = clock_offset_gui.ClockOffsetWidget(ibswgt.ibs, gid_list, hack=True)
         ibswgt.co_wgt.show()
 
@@ -1680,11 +1680,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         TODO:  Finish implementation
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
+            python -m wbia.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> from wbia.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
             >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('PZ_Master1')
             >>> result = ibswgt.filter_annotation_table()
@@ -1721,8 +1721,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 ######################
 
 def testdata_guifront(defaultdb='testdb1'):
-    import ibeis
-    main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=True)
+    import wbia
+    main_locals = wbia.main(defaultdb=defaultdb, allow_newdir=True)
     ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
     ibswgt = back.ibswgt  # NOQA
     globals__ = globals()
@@ -1743,12 +1743,12 @@ def testdata_guifront(defaultdb='testdb1'):
 def testfunc():
     r"""
     CommandLine:
-        python -m ibeis.gui.newgui --test-testfunc --show
-        python -m ibeis.gui.newgui --test-testfunc --cmd
+        python -m wbia.gui.newgui --test-testfunc --show
+        python -m wbia.gui.newgui --test-testfunc --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.newgui import *  # NOQA
+        >>> from wbia.gui.newgui import *  # NOQA
         >>> result = testfunc()
         >>> print(result)
     """
@@ -1760,9 +1760,9 @@ def testfunc():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.newgui
-        python -m ibeis.gui.newgui --allexamples
-        python -m ibeis.gui.newgui --allexamples --noface --nosrc
+        python -m wbia.gui.newgui
+        python -m wbia.gui.newgui --allexamples
+        python -m wbia.gui.newgui --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

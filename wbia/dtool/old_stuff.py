@@ -2,7 +2,7 @@
 # import utool as ut
 # import numpy as np
 # from six.moves import zip
-# from ibeis.dtool import depcache_table
+# from wbia.dtool import depcache_table
 
 
 # def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
@@ -32,8 +32,8 @@
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> tablename = 'spam'
 #         >>> root_rowids = [1, 2]
@@ -81,8 +81,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> _debug = True
 #         >>> tablename = 'vsmany'
@@ -102,8 +102,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> # Make sure algo config can correctly get properites
 #         >>> depc = testdata_depc()
 #         >>> tablename = 'chip'
@@ -126,8 +126,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_all_descendant_rowids), globals())
 #         >>> _debug = True
@@ -206,17 +206,17 @@
 #         tablename = 'nnindexer'
 #         multi_rowids = (1, 2, 3, 4, 5)
 #         root_rowids = [[multi_rowids]]
-#         import ibeis.plottool as pt
+#         import wbia.plottool as pt
 #         pt.ensureqt()
 
-#         from ibeis.dtool.depcache_control import *  # NOQA
-#         from ibeis.dtool.example_depcache import testdata_depc
+#         from wbia.dtool.depcache_control import *  # NOQA
+#         from wbia.dtool.example_depcache import testdata_depc
 #         depc = testdata_depc()
 #         exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         print(ut.depth_profile(root_rowids))
 #         tablename = 'neighbs'
 #         table = depc[tablename]  # NOQA
-#         import ibeis.plottool as pt
+#         import wbia.plottool as pt
 #         pt.ensureqt()
 #         _debug = depc._debug = True
 #         depc.get_rowids(tablename, root_rowids, config, _debug=_debug)
@@ -244,11 +244,11 @@
 
 #     Setup:
 #         >>> # DISABLE_GRID_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
-#         >>> import ibeis.plottool as pt
+#         >>> import wbia.plottool as pt
 #         >>> pt.ensureqt()
 #         >>> #pt.show_nx(depc.graph)
 
@@ -267,8 +267,8 @@
 
 #     Example1:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         >>> root_rowids = [1, 2, 3]
@@ -280,8 +280,8 @@
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.dtool.depcache_control import *  # NOQA
-#         >>> from ibeis.dtool.example_depcache import testdata_depc
+#         >>> from wbia.dtool.depcache_control import *  # NOQA
+#         >>> from wbia.dtool.example_depcache import testdata_depc
 #         >>> depc = testdata_depc()
 #         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
 #         >>> flat_root_ids = [1, 2, 3]
@@ -303,7 +303,7 @@
 
 #     if tablename == 'neighbor_index':
 #         """
-#         python -m ibeis.core_annots --exec-compute_neighbor_index --show
+#         python -m wbia.core_annots --exec-compute_neighbor_index --show
 #         """
 
 #         import utool
@@ -502,7 +502,7 @@
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+#         >>> from wbia.dtool.example_depcache2 import *  # NOQA
 #         >>> test_getprop_with_configs()
 #     """
 #     config1 = {'manual_extract': True}
@@ -547,14 +547,14 @@
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+#         >>> from wbia.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc2()
 #         >>> ut.quit_if_noshow()
-#         >>> import ibeis.plottool as pt
+#         >>> import wbia.plottool as pt
 #         >>> depc.show_graph()
 #         >>> ut.show_if_requested()
 #     """
-#     from ibeis import dtool
+#     from wbia import dtool
 #     import vtool_ibeis as vt
 #     from vtool_ibeis import fontdemo
 
@@ -679,16 +679,16 @@
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+#         >>> from wbia.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_image()
 #         >>> ut.quit_if_noshow()
-#         >>> import ibeis.plottool as pt
+#         >>> import wbia.plottool as pt
 #         >>> depc.show_graph()
 #         >>> depc['detection'].show_input_graph()
 #         >>> print(depc['detection'].compute_order)
 #         >>> ut.show_if_requested()
 #     """
-#     from ibeis import dtool
+#     from wbia import dtool
 
 #     # put the test cache in the dtool repo
 #     dtool_repo = dirname(ut.get_module_dir(dtool))
@@ -719,10 +719,10 @@
 
 #     Example:
 #         >>> # DISABLE_DOCTEST
-#         >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+#         >>> from wbia.dtool.example_depcache2 import *  # NOQA
 #         >>> depc = testdata_depc_annot()
 #         >>> ut.quit_if_noshow()
-#         >>> import ibeis.plottool as pt
+#         >>> import wbia.plottool as pt
 #         >>> depc.show_graph()
 #         >>> tablename = 'featweight'
 #         >>> table = depc[tablename]
@@ -730,7 +730,7 @@
 #         >>> print(table.compute_order)
 #         >>> ut.show_if_requested()
 #     """
-#     from ibeis import dtool
+#     from wbia import dtool
 #     # put the test cache in the dtool repo
 #     dtool_repo = dirname(ut.get_module_dir(dtool))
 #     cache_dpath = join(dtool_repo, 'DEPCACHE2')

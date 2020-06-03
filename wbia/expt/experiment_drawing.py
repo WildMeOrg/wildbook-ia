@@ -7,7 +7,7 @@ from os.path import join
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
-from ibeis.expt import draw_helpers
+from wbia.expt import draw_helpers
 from six.moves import map, range, reduce
 print, rrr, profile = ut.inject2(__name__)
 
@@ -15,30 +15,30 @@ print, rrr, profile = ut.inject2(__name__)
 def scorediff(ibs, testres, f=None, verbose=None):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
-        testres (ibeis.TestResult):  test result object
+        ibs (wbia.IBEISController):  image analysis api
+        testres (wbia.TestResult):  test result object
         f (None): (default = None)
         verbose (bool):  verbosity flag(default = None)
 
     CommandLine:
-        python -m ibeis.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
-        python -m ibeis.expt.experiment_drawing scorediff --db PZ_MTEST -a default -t best --show
+        python -m wbia.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
+        python -m wbia.expt.experiment_drawing scorediff --db PZ_MTEST -a default -t best --show
 
-        python -m ibeis.expt.experiment_drawing scorediff --db humpbacks_fb \
+        python -m wbia.expt.experiment_drawing scorediff --db humpbacks_fb \
             -a default:has_any=hasnotch,mingt=2 \
             -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,use_te_scorer=False,manual_extract=True,ignore_notch=True,te_net=annot_simple --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
         >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
         >>> scorediff(ibs, testres, f=f, verbose=ut.VERBOSE)
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     for cfgx in range(testres.nConfig):
         cm_list = testres.cfgx2_qreq_[cfgx].execute()
         aid_list = [cm.qaid for cm in cm_list]
@@ -143,7 +143,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
         #                   autolabel=False, title='Failure Cases', ymax=ymax,
         #                   pnum=(1, 2, 2), fnum=fnum)
 
-        from ibeis.plottool.abstract_interaction import AbstractInteraction
+        from wbia.plottool.abstract_interaction import AbstractInteraction
 
         class SortedScoreSupportInteraction(AbstractInteraction):
 
@@ -172,7 +172,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 print('aid = %r' % (aid,))
                 if event.button == 3:   # right-click
                     cm = cm_list[idx]
-                    from ibeis.gui import inspect_gui
+                    from wbia.gui import inspect_gui
                     qaid = aid
                     qreq_ = testres.cfgx2_qreq_[cfgx]
                     ibs = testres.ibs
@@ -192,7 +192,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                     #update_callback=self.show_page,
                     #backend_callback=None, aid_list=aid_list)
 
-                    #from ibeis.viz.interact import interact_chip
+                    #from wbia.viz.interact import interact_chip
                     #options = interact_chip.build_annot_context_options(
                     #    testres.ibs, aid, refresh_func=self.show_page, config2_=.extern_query_config2)
                     self.show_popup_menu(options, event)
@@ -212,23 +212,23 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
     CommandLine:
         ib
-        python -m ibeis draw_annot_scoresep --show
-        python -m ibeis draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
-        python -m ibeis draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
-        python -m ibeis draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
-        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
-        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
+        python -m wbia draw_annot_scoresep --show
+        python -m wbia draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
+        python -m wbia draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
+        python -m wbia draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
+        python -m wbia draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
+        python -m wbia draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Paper:
-        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GGR-IBEIS  -a timectrl --save gz_scoresep.png
-        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl:species=zebra_plains --save pz_scoresep.png
-        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl1h:species=giraffe_masai --save girm_scoresep.png
+        python -m wbia draw_annot_scoresep --dbdir lev/media/hdd/golden/GGR-IBEIS  -a timectrl --save gz_scoresep.png
+        python -m wbia draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl:species=zebra_plains --save pz_scoresep.png
+        python -m wbia draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl1h:species=giraffe_masai --save girm_scoresep.png
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
         >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
@@ -239,9 +239,9 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         import IPython
         IPython.get_ipython().magic('pylab qt4')
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
-    from ibeis.expt import cfghelpers
+    from wbia.expt import cfghelpers
     if ut.VERBOSE:
         print('[dev] draw_annot_scoresep')
     if f is None:
@@ -301,7 +301,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     def attr_callback(qaid):
         print('callback qaid = %r' % (qaid,))
         testres.interact_individual_result(qaid)
-        reconstruct_str = ('python -m ibeis.dev -e cases ' +
+        reconstruct_str = ('python -m wbia.dev -e cases ' +
                            testres.reconstruct_test_flags() +
                            ' --qaid ' + str(qaid) + ' --show')
         print('Independent reconstruct')
@@ -377,46 +377,46 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
                       ut.get_argflag('--no-wordcloud')):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         testres (TestResult):  test result object
 
     CommandLine:
-        ibeis --tf -draw_casetag_hist --show
+        wbia --tf -draw_casetag_hist --show
 
         # Experiments I tagged
-        ibeis --tf -draw_casetag_hist -a timectrl -t invarbest --db PZ_Master1  --show
+        wbia --tf -draw_casetag_hist -a timectrl -t invarbest --db PZ_Master1  --show
 
-        ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
+        wbia -e taghist -a timectrl -t best --db PZ_Master1  --show
 
-        ibeis -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
-        ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
-        ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
+        wbia -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
+        wbia -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
+        wbia -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
 
         # Do more tagging
-        ibeis -e cases -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 \
+        wbia -e cases -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 \
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
-        ibeis -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
-        ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 \
+        wbia -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
+        wbia -e cases -a timequalctrl -t invarbest --db PZ_Master1 \
             --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
 
-        ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 \
+        wbia -e cases -a timequalctrl -t invarbest --db PZ_Master1 \
             --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
-        python -m ibeis -e taghist --db PZ_Master1 -a timectrl -t best \
+        python -m wbia -e taghist --db PZ_Master1 -a timectrl -t best \
             --filt :fail=True --no-wordcloud --hargv=tags  --prefix "Failure Case " --label PZTags  --figsize=10,3  --left=.2
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
         >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
         >>> draw_casetag_hist(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
-    from ibeis import tag_funcs
-    from ibeis.expt import cfghelpers
+    import wbia.plottool as pt
+    from wbia import tag_funcs
+    from wbia.expt import cfghelpers
     # All unfiltered tags
     all_tags = testres.get_all_tags()
     if True:
@@ -505,34 +505,34 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     May need to clean this scheme up a bit.
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         testres (TestResult):  test result object
 
     CommandLine:
-        ibeis --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show
+        wbia --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show
 
-        ibeis --tf draw_rank_surface --show -t best -a varysize --db PZ_Master1 --show
+        wbia --tf draw_rank_surface --show -t best -a varysize --db PZ_Master1 --show
 
-        ibeis --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
-        ibeis --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
+        wbia --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
+        wbia --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
 
-        ibeis --tf draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master1 --show --param-keys=K,dcfg_sample_per_name,dcfg_sample_size
-        ibeis --tf draw_rank_surface --show  -t best \
+        wbia --tf draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master1 --show --param-keys=K,dcfg_sample_per_name,dcfg_sample_size
+        wbia --tf draw_rank_surface --show  -t best \
             -a varynannots_td varynannots_td:qmin_pername=3,dpername=2  \
             --db PZ_Master1 --show --param-keys=dcfg_sample_per_name,dcfg_sample_size
-        ibeis --tf draw_rank_surface --show  -t best -a varynannots_td  --db PZ_Master1 --show --param-keys=dcfg_sample_size
+        wbia --tf draw_rank_surface --show  -t best -a varynannots_td  --db PZ_Master1 --show --param-keys=dcfg_sample_size
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_rank_surface(ibs, testres)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import ibeis.plottool as pt
-    from ibeis.expt import annotation_configs
+    import wbia.plottool as pt
+    from wbia.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
@@ -709,8 +709,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
 
 def temp_num_exmaples_cmc():
-    import ibeis
-    ibs1, testres1 = ibeis.testdata_expts(
+    import wbia
+    ibs1, testres1 = wbia.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
         t='Ell:K=1',
         # t='best:prescore_method=nsum',
@@ -718,7 +718,7 @@ def temp_num_exmaples_cmc():
         a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=[1,2],dsize=1939'
     )
 
-    ibs2, testres2 = ibeis.testdata_expts(
+    ibs2, testres2 = wbia.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
         # t='best:prescore_method=nsum',
         t='CircQRH:K=3',
@@ -764,7 +764,7 @@ def temp_num_exmaples_cmc():
 
     xdata = list(range(1, num_ranks + 1))
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     ymin = 30
     xpad = .9  # if kind == 'plot' else .5
     num_yticks = 8 if ymin == 30 else 11
@@ -800,15 +800,15 @@ def temp_multidb_cmc():
     Plots multiple database CMC curves in the same plot for the AI for social
     good paper
     """
-    import ibeis
-    ibs1, testres1 = ibeis.testdata_expts(
+    import wbia
+    ibs1, testres1 = wbia.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
         t='Ell:K=4',
         # t='best:prescore_method=nsum',
         a='timectrl'
         # a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=2'
     )
-    ibs2, testres2 = ibeis.testdata_expts(
+    ibs2, testres2 = wbia.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
         # t='best:prescore_method=nsum',
         t='CircQRH:K=3',
@@ -816,7 +816,7 @@ def temp_multidb_cmc():
         # a='timectrl:species=zebra_plains,qmin_pername=3,dsample_per_name=2'
         # a='timectrl:species=zebra_plains,sample_per_name=3'
     )
-    ibs3, testres3 = ibeis.testdata_expts(
+    ibs3, testres3 = wbia.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
         t='Ell:K=2',
         a='timectrl1h:species=giraffe_masai'
@@ -853,7 +853,7 @@ def temp_multidb_cmc():
 
     xdata = list(range(1, num_ranks + 1))
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     ymin = 30
     xpad = .9  # if kind == 'plot' else .5
     num_yticks = 8 if ymin == 30 else 11
@@ -886,47 +886,47 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         testres (TestResult):
 
     TODO:
         # Cross-validated results with timectrl
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl:xval=True -t invar --kind=cmc
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a timectrl:xval=True -t invar --kind=cmc
 
     CommandLine:
-        python -m ibeis draw_rank_cmc
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t default --kind=cmc
+        python -m wbia draw_rank_cmc
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a timectrl -t default --kind=cmc
 
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
-        #ibeis -e rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
+        #wbia -e rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis.dev -e draw_rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m wbia.dev -e draw_rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cmc -t best -a timectrl --db PZ_Master1 --show
+        python -m wbia --tf draw_rank_cmc -t best -a timectrl --db PZ_Master1 --show
 
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
-        ibeis --tf draw_match_cases --db GZ_ALL -a ctrl \
+        wbia --tf draw_match_cases --db GZ_ALL -a ctrl \
             -t default:K=1,resize_dim=[width],dim_size=[700,750] \
             -f :sortdsc=gfscore,without_tag=scenerymatch,disagree=True \
             --show
 
-        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl \
+        wbia --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl \
             -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
              default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
 
-        ibeis draw_rank_cmc --db GZ_ALL -a ctrl -t default --show
-        ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
+        wbia draw_rank_cmc --db GZ_ALL -a ctrl -t default --show
+        wbia draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> #ibs, testres = main_helpers.testdata_expts(
         >>> #    'seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
@@ -935,7 +935,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     if group_queries:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
@@ -1090,37 +1090,37 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
     r"""
 
     CommandLine:
-        python -m ibeis.dev -e draw_case_timedeltas --show
-        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+        python -m wbia.dev -e draw_case_timedeltas --show
+        python -m wbia.dev -e draw_case_timedeltas --show -t default \
             -a unctrl:num_names=1,name_offset=[1,2]
-        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+        python -m wbia.dev -e draw_case_timedeltas --show -t default \
             -a unctrl:num_names=1,name_offset=[1,2],joinme=1
-        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+        python -m wbia.dev -e draw_case_timedeltas --show -t default \
             -a unctrl:num_names=1,name_offset=[1,2] \
                unctrl:num_names=1,name_offset=[3,0]
 
 
-        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+        python -m wbia.dev -e timedelta_hist --show -t baseline \
             -a unctrl ctrl:force_const_size=True unctrl:force_const_size=True \
             --consistent --db PZ_MTEST
 
         # Testing
-        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+        python -m wbia.dev -e timedelta_hist --show -t baseline \
             -a unctrl ctrl:force_const_size=True unctrl:force_const_size=True \
             --consistent --db PZ_Master1
-        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+        python -m wbia.dev -e timedelta_hist --show -t baseline \
             -a unctrl ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 \
             --aidcfginfo
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import datetime
     plotkw = {}
     plotkw['markersize'] = 12
@@ -1203,7 +1203,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
     pt.figure(fnum=fnum)
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
     bin_labels[0]
-    # python -m ibeis.dev -e timedelta_hist -t baseline -a
+    # python -m wbia.dev -e timedelta_hist -t baseline -a
     # ctrl:force_const_size=True uncontrolled:force_const_size=True
     # --consistent --db GZ_ALL  --show
     colors = pt.distinct_colors(len(bin_labels))
@@ -1237,45 +1237,45 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                      figdir=None, **kwargs):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         testres (TestResult):  test result object
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis --tf draw_match_cases
-        python -m ibeis.dev -e draw_match_cases --figdir=figure
-        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl \
+        python -m wbia --tf draw_match_cases
+        python -m wbia.dev -e draw_match_cases --figdir=figure
+        python -m wbia.dev -e draw_match_cases --db PZ_Master1 -a ctrl \
             -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         # Shows the best results
-        python -m ibeis.dev -e cases --db PZ_Master1 \
+        python -m wbia.dev -e cases --db PZ_Master1 \
             -a timectrl -t invarbest
             --filt :sortasc=gtscore,success=True,index=200:201 --show
 
         # Shows failures sorted by gt score
-        python -m ibeis.dev -e cases --db PZ_Master1 \
+        python -m wbia.dev -e cases --db PZ_Master1 \
             -a timectrl -t invarbest \
             --filt :sortdsc=gfscore,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+        python -m wbia.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest --show --filt \
             :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_td=24h,max_gf_tags=0
 
         # Find untagged failures
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+        python -m wbia.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest \
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
 
         # Show disagreement cases
-        ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
+        wbia --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
@@ -1284,13 +1284,13 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         >>>                                        f=filt_cfg, figdir=figdir)
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
 
     if True:
         import matplotlib as mpl
-        from ibeis.scripts.thesis import TMP_RC
+        from wbia.scripts.thesis import TMP_RC
         mpl.rcParams.update(TMP_RC)
 
     #### ARGUMENT PARSING AND RECTIFICATION ###
@@ -1498,9 +1498,9 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.experiment_drawing
-        python -m ibeis.expt.experiment_drawing --allexamples
-        python -m ibeis.expt.experiment_drawing --allexamples --noface --nosrc
+        python -m wbia.expt.experiment_drawing
+        python -m wbia.expt.experiment_drawing --allexamples
+        python -m wbia.expt.experiment_drawing --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

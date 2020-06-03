@@ -26,12 +26,12 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import six
 try:
-    from ibeis import dtool as dt
+    from wbia import dtool as dt
 except ImportError:
     pass
 import numpy as np
 import utool as ut
-# from ibeis.plottool import colorfuncs
+# from wbia.plottool import colorfuncs
 from six.moves import reduce
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -85,16 +85,16 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         fontproperties
 
     CommandLine:
-        python -m ibeis.plottool.nx_helpers show_nx --show
+        python -m wbia.plottool.nx_helpers show_nx --show
         python -m dtool --tf DependencyCache.make_graph --show
-        python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
+        python -m wbia.scripts.specialdraw double_depcache_graph --show --testmode
         python -m vtool_ibeis.clustering2 unsupervised_multicut_labeling --show
 
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(module:pygraphviz)
-        >>> from ibeis.plottool.nx_helpers import *  # NOQA
+        >>> from wbia.plottool.nx_helpers import *  # NOQA
         >>> import networkx as nx
         >>> graph = nx.DiGraph()
         >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
@@ -107,10 +107,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         >>> fnum = None
         >>> pnum = None
         >>> e = show_nx(graph, with_labels, fnum, pnum, layout='agraph')
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import networkx as nx
     if ax is None:
         fnum = pt.ensure_fnum(fnum)
@@ -205,7 +205,7 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
         http://matplotlib.org/api/offsetbox_api.html
     """
     import vtool_ibeis as vt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     # Ensure all images have been read
     img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
                  if isinstance(img, six.string_types) else img
@@ -734,12 +734,12 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         http://www.graphviz.org/doc/info/attrs.html
 
     CommandLine:
-        python -m ibeis.plottool.nx_helpers nx_agraph_layout --show
+        python -m wbia.plottool.nx_helpers nx_agraph_layout --show
 
     Doctest:
         >>> # xdoctest: +REQUIRES(module:pygraphviz)
-        >>> from ibeis.plottool.nx_helpers import *  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.plottool.nx_helpers import *  # NOQA
+        >>> import wbia.plottool as pt
         >>> import networkx as nx
         >>> import utool as ut
         >>> n, s = 9, 4
@@ -1112,10 +1112,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     fancy way to draw networkx graphs without directly using networkx
 
-    # python -m ibeis.annotmatch_funcs review_tagged_joins --dpath ~/latex/crall-candidacy-2015/ --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
+    # python -m wbia.annotmatch_funcs review_tagged_joins --dpath ~/latex/crall-candidacy-2015/ --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
     # python -m dtool --tf DependencyCache.make_graph --show
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import matplotlib as mpl
 
     figsize = ut.get_argval('--figsize', type_=list, default=None)
@@ -1603,7 +1603,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 #         https://gist.github.com/joferkington/3845684
 #     """
 #     xlabel, ylabel = labels
-#     import ibeis.plottool as pt
+#     import wbia.plottool as pt
 #     if ax is None:
 #         ax = pt.plt.gca()
 #     if arrowprops is None:
@@ -1637,8 +1637,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.plottool.nx_helpers
-        python -m ibeis.plottool.nx_helpers --allexamples
+        python -m wbia.plottool.nx_helpers
+        python -m wbia.plottool.nx_helpers --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

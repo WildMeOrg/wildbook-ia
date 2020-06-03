@@ -3,25 +3,25 @@
 CommandLine:
 
     # Run many experiments
-    python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
+    python -m wbia.scripts.gen_cand_expts --exec-generate_all --full
     ./experiments_overnight.sh
 
     # Database information
-    python -m ibeis --db PZ_MTEST --dbinfo --postload-exit
-    python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
+    python -m wbia --db PZ_MTEST --dbinfo --postload-exit
+    python -m wbia --db PZ_Master0 --dbinfo --postload-exit
 
     # Info about configs for a test
-    python -m ibeis --tf run_expt -t default -a ctrl --db PZ_MTEST --acfginfo
-    python -m ibeis --tf run_expt -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA
-    python -m ibeis --tf run_expt -t default -a ctrl --db NNP_Master3 --acfginfo
+    python -m wbia --tf run_expt -t default -a ctrl --db PZ_MTEST --acfginfo
+    python -m wbia --tf run_expt -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA
+    python -m wbia --tf run_expt -t default -a ctrl --db NNP_Master3 --acfginfo
 
     # Regen Figures
-    python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+    python -m wbia.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
     ./regen_figdef_expt.sh
 
 
     # Print all annotation configs that will be used
-    python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
+    python -m wbia.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
     sh experiment_inspect_acfg.sh
 
 """
@@ -67,20 +67,20 @@ ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
 def generate_all():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
+        python -m wbia.scripts.gen_cand_expts --exec-generate_all --vim
+        python -m wbia.scripts.gen_cand_expts --exec-generate_all
+        python -m wbia.scripts.gen_cand_expts --exec-generate_all --full
         ./experiments_overnight.sh
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> from wbia.scripts.gen_cand_expts import *  # NOQA
         >>> generate_all()
     """
     #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
     script_lines = ut.flatten([
         ['\n\n### ' + ut.get_funcname(func),
-         '# python -m ibeis.scripts.gen_cand_expts --exec-' +
+         '# python -m wbia.scripts.gen_cand_expts --exec-' +
          ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
         for func in TEST_GEN_FUNCS])
     fname, script, line_list = write_script_lines(script_lines, 'experiments_overnight.sh')
@@ -92,31 +92,31 @@ def generate_all():
 def database_intersection_test():
     """
     # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA
+    python -m wbia.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA
 
     # PZ_MTEST is also a subset of PZ_Master0 with minor changes
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
+    python -m wbia.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
 
     # NNP_Master3 and PZ_Master0 are disjoint
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
+    python -m wbia.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA
+    python -m wbia.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA
     """
     pass
 
 
 def generate_dbinfo_table():
     """
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
 
     FIXME: Old database should not be converted to left
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
+    python -m wbia.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
     """
     pass
 
@@ -124,12 +124,12 @@ def generate_dbinfo_table():
 def parse_latex_comments_for_commmands():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+        python -m wbia.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # SCRIPT
-        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> from wbia.scripts.gen_cand_expts import *  # NOQA
         >>> parse_latex_comments_for_commmands()
     """
     fname = ut.get_argval('--fname', type_=str, default='figdefexpt.tex')
@@ -174,8 +174,8 @@ def parse_latex_comments_for_commmands():
     for cmd in cmd_list:
         #cmd = cmd.replace(' -t ', ' \\\n    -t ')
         #cmd = cmd.replace('--db', '\\\n    --db')
-        #cmd = cmd.replace('python -m ibeis.dev', './dev.py')
-        cmd = cmd.replace('python -m ibeis.dev -e', 'ibeis -e')
+        #cmd = cmd.replace('python -m wbia.dev', './dev.py')
+        cmd = cmd.replace('python -m wbia.dev -e', 'wbia -e')
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
@@ -189,12 +189,12 @@ def parse_latex_comments_for_commmands():
 def inspect_annotation_configs():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs
-        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
+        python -m wbia.scripts.gen_cand_expts --exec-inspect_annotation_configs
+        python -m wbia.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> from wbia.scripts.gen_cand_expts import *  # NOQA
         >>> make_standard_test_scripts(inspect_annotation_configs())
     """
     testdef_list = [func() for func in TEST_GEN_FUNCS]
@@ -214,14 +214,14 @@ def precompute_data():
     """
     Ensure features and such are computed
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
+        python -m wbia.scripts.gen_cand_expts --exec-precompute_data
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(precompute_data())
     """
-    #basecmd = 'python -m ibeis.expt.experiment_printres
+    #basecmd = 'python -m wbia.expt.experiment_printres
     #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('preload_flags', [
@@ -247,12 +247,12 @@ def experiments_baseline():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_baseline
         ./experiment_baseline.sh
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_baseline())
     """
     # Invariance Experiments
@@ -272,12 +272,12 @@ def experiments_invariance():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_invariance
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_invariance --full
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_invariance())
     """
     # Invariance Experiments
@@ -298,15 +298,15 @@ def experiments_namescore():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_namescore --full
         ./experiment_namescore.sh
 
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_namescore --full
+        python -m wbia.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_namescore())
     """
     varydict = ut.odict([
@@ -322,13 +322,13 @@ def experiments_namescore():
 def experiments_k():
     """
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_k
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_k --full
         ./experiment_k.sh
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_k())
     """
     varydict = ut.odict([
@@ -346,15 +346,15 @@ def experiments_viewpoint():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full
+        python -m wbia.scripts.gen_cand_expts --exec-experiments_viewpoint --full
         ./experiment_view.sh
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_viewpoint())
     """
-    #basecmd = 'python -m ibeis.expt.experiment_printres
+    #basecmd = 'python -m wbia.expt.experiment_printres
     #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('acfg_name', ['viewpoint_compare']),
@@ -381,15 +381,15 @@ def get_results_command(expt_name, media_name):
     dynamic_flags_ = ''
     dpath = '~/latex/crall-candidacy-2015/'
     if media_name == 'table':
-        margs = 'ibeis.dev -e print_latexsum'
+        margs = 'wbia.dev -e print_latexsum'
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
-        margs = 'ibeis.dev -e draw_rank_cmc'
+        margs = 'wbia.dev -e draw_rank_cmc'
         output_flags +=  ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=' + dpath
         static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
-        margs = 'ibeis.dev -e draw_rank_surface'
+        margs = 'wbia.dev -e draw_rank_surface'
         output_flags += ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=' + dpath
         static_flags += ' --clipwhite'
@@ -397,7 +397,7 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.25,.2,.2'
     elif media_name == 'surface3d':
-        margs = 'ibeis.dev --e draw_rank_surface --no2dsurf'
+        margs = 'wbia.dev --e draw_rank_surface --no2dsurf'
         output_flags += ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=' + dpath
         static_flags += ' --clipwhite'
@@ -405,10 +405,10 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.1,.01,.01'
     elif media_name == 'preload':
-        margs = 'ibeis.expt.precomputer --exec-precfg'
+        margs = 'wbia.expt.precomputer --exec-precfg'
         dynamic_flags_ = ' {preload_flags}'
     elif media_name == 'inspect_acfg':
-        margs = 'ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0'
+        margs = 'wbia.expt.experiment_helpers --exec-get_annotcfg_list:0'
         dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
@@ -424,7 +424,7 @@ def get_results_command(expt_name, media_name):
 
 
 def get_dbnames(exclude_list=[]):
-    from ibeis.expt import experiment_configs
+    from wbia.expt import experiment_configs
     dbnames = experiment_configs.get_candidacy_dbnames()
     dbnames = ut.setdiff_ordered(dbnames, exclude_list)
     dbnames = ['PZ_Master1']
@@ -478,9 +478,9 @@ def write_script_lines(line_list, fname):
     script_lines.extend(line_list)
     script = '\n'.join(script_lines)
     print(script)
-    import ibeis
+    import wbia
     from os.path import dirname, join
-    dpath = dirname(ut.get_module_dir(ibeis))
+    dpath = dirname(ut.get_module_dir(wbia))
     fpath = join(dpath, fname)
     if not ut.get_argflag('--dryrun'):
         ut.writeto(fpath, script)
@@ -491,19 +491,19 @@ def write_script_lines(line_list, fname):
 def gen_dbranks_tables():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables
+        python -m wbia.scripts.gen_cand_expts --exec-gen_dbranks_tables
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> from wbia.scripts.gen_cand_expts import *  # NOQA
         >>> result = gen_dbranks_tables()
         >>> print(result)
     """
     tex_file = ut.codeblock(  # NOQA
         r'''
         \begin{comment}
-        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.expt.experiment_printres --exec-print_latexsum')"
-        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing --exec-draw_rank_cmc')"
+        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'wbia.expt.experiment_printres --exec-print_latexsum')"
+        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m wbia.expt.experiment_drawing --exec-draw_rank_cmc')"
         \end{comment}
         ''')
 
@@ -516,9 +516,9 @@ def gen_dbranks_tables():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts
-        python -m ibeis.scripts.gen_cand_expts --allexamples
-        python -m ibeis.scripts.gen_cand_expts --allexamples --noface --nosrc
+        python -m wbia.scripts.gen_cand_expts
+        python -m wbia.scripts.gen_cand_expts --allexamples
+        python -m wbia.scripts.gen_cand_expts --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

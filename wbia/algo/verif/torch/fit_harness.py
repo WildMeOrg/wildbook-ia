@@ -3,9 +3,9 @@ import torch
 from collections import defaultdict
 from os.path import join
 from torch.autograd import Variable
-from ibeis.algo.verif.torch import netmath
+from wbia.algo.verif.torch import netmath
 import tensorboard_logger
-# from ibeis.algo.verif.torch import gpu_util
+# from wbia.algo.verif.torch import gpu_util
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -77,7 +77,7 @@ class FitHarness(object):
 
         if tensorboard_logger:
             harn.log('Initializing tensorboard')
-            tensorboard_logger.configure("runs/ibeis", flush_secs=2)
+            tensorboard_logger.configure("runs/wbia", flush_secs=2)
 
         if harn.use_cuda:
             harn.log('Fitting model on GPU({})'.format(harn.gpu_num))

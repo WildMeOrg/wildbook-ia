@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from ibeis.plottool import viz_image2
-from ibeis.plottool import draw_func2 as df2
+from wbia.plottool import viz_image2
+from wbia.plottool import draw_func2 as df2
 import cv2
 import utool
 import numpy as np
-from ibeis.plottool.tests.test_helpers import dummy_bbox
+from wbia.plottool.tests.test_helpers import dummy_bbox
 
 
 def test_viz_image(img_fpath):

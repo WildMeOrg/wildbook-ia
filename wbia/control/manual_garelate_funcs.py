@@ -7,27 +7,27 @@ TemplateInfo:
     autogen_key = gar
 
 ToRegenerate:
-    python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
-    python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
+    python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
+    python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
-from ibeis.control import controller_inject
-from ibeis.control import accessor_decors
+from wbia.control import controller_inject
+from wbia.control import accessor_decors
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
@@ -51,7 +51,7 @@ def _get_all_gar_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
+        >>> from wbia.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_gar_rowids()
     """
@@ -107,13 +107,13 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
+        >>> from wbia.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()[:2]
         >>> num_deleted = ibs.delete_gar(gar_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.algo.preproc import preproc_gar
+    #from wbia.algo.preproc import preproc_gar
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d gar rows' %
@@ -150,7 +150,7 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
+        >>> from wbia.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()
         >>> eager = True
@@ -185,7 +185,7 @@ def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
+        >>> from wbia.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()
         >>> eager = True
@@ -225,8 +225,8 @@ def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_garelate_funcs
-        python -m ibeis.control.manual_garelate_funcs --allexamples
+        python -m wbia.control.manual_garelate_funcs
+        python -m wbia.control.manual_garelate_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

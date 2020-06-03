@@ -7,7 +7,7 @@ from os.path import exists, join, realpath
 
 
 #DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
-DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('ibeis', 'detectmodels')
+DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('wbia', 'detectmodels')
 
 DETECTOR_KEY_RF = 'rf'
 
@@ -37,14 +37,14 @@ def get_species_trees_paths(species, modeldir='default'):
         ?: trees_path
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
+        python -m wbia.algo.detect.grabmodels --test-get_species_trees_paths
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.detect.grabmodels import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.detect.grabmodels import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> # execute function
         >>> trees_path = get_species_trees_paths(species, modeldir)
@@ -79,11 +79,11 @@ def ensure_models(modeldir='default', verbose=True):
         modeldir (str):
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-ensure_models
+        python -m wbia.algo.detect.grabmodels --test-ensure_models
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.detect.grabmodels import *  # NOQA
+        >>> from wbia.algo.detect.grabmodels import *  # NOQA
         >>> modeldir = 'default'
         >>> result = ensure_models(modeldir)
         >>> print(result)
@@ -102,11 +102,11 @@ def redownload_models(modeldir='default', verbose=True):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-redownload_models
+        python -m wbia.algo.detect.grabmodels --test-redownload_models
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.detect.grabmodels import *  # NOQA
+        >>> from wbia.algo.detect.grabmodels import *  # NOQA
         >>> result = redownload_models()
     """
     print('[grabmodels] redownload_detection_models')
@@ -137,9 +137,9 @@ if __name__ == '__main__':
     modeldir = ibs.get_detect_modeldir()
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels
-        python -m ibeis.algo.detect.grabmodels --allexamples
-        python -m ibeis.algo.detect.grabmodels --allexamples --noface --nosrc
+        python -m wbia.algo.detect.grabmodels
+        python -m wbia.algo.detect.grabmodels --allexamples
+        python -m wbia.algo.detect.grabmodels --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

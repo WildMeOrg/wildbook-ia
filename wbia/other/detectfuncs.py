@@ -16,7 +16,7 @@ import numpy as np
 import vtool_ibeis as vt
 import utool as ut
 import cv2
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 import tqdm
 
 # Inject utool functions
@@ -52,7 +52,7 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
 
 
 def simple_code(label):
-    from ibeis.constants import YAWALIAS, SPECIES_MAPPING
+    from wbia.constants import YAWALIAS, SPECIES_MAPPING
 
     if label == 'ignore':
         return 'IGNORE'
@@ -1541,7 +1541,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
                                             write_images=False, plot_point=True, output_path=None, plot_iou_recall=True,
                                             **kwargs):
     import matplotlib.pyplot as plt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop')))
@@ -1906,7 +1906,7 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 #         'classify'     : True,
 #         'classifier_algo': 'svm',
 #         'classifier_masking': masking,
-#         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+#         'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
 #     }
 
 #     axes_ = plt.subplot(111)
@@ -2052,7 +2052,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
 @register_ibs_method
 def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, config_list=None, figsize=(20, 20)):
     import matplotlib.pyplot as plt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
@@ -2384,7 +2384,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                                               test_label_list=None,
                                               figsize=(20, 9), **kwargs):
     import matplotlib.pyplot as plt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     depc = ibs.depc_image
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
@@ -3077,7 +3077,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
 
 
 def _canonical_get_boxes(ibs, gid_list, species):
-    from ibeis.web.appfuncs import CANONICAL_PART_TYPE
+    from wbia.web.appfuncs import CANONICAL_PART_TYPE
 
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     aid_list = ibs.filter_annotation_set(aid_list, species=species)
@@ -3652,7 +3652,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 @register_ibs_method
 def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=False, figsize=(20, 20)):
     import matplotlib.pyplot as plt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     fig_ = plt.figure(figsize=figsize)
 
@@ -4073,9 +4073,9 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectfuncs
-        python -m ibeis.other.detectfuncs --allexamples
-        python -m ibeis.other.detectfuncs --allexamples --noface --nosrc
+        python -m wbia.other.detectfuncs
+        python -m wbia.other.detectfuncs --allexamples
+        python -m wbia.other.detectfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

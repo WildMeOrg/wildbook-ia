@@ -8,16 +8,16 @@ import utool as ut
 import sys
 import six
 import itertools
-from ibeis.expt import experiment_configs
-from ibeis.expt import cfghelpers
-from ibeis.algo import Config
-from ibeis.init import filter_annots
+from wbia.expt import experiment_configs
+from wbia.expt import cfghelpers
+from wbia.algo import Config
+from wbia.init import filter_annots
 print, rrr, profile = ut.inject2(__name__)
 
 
 def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
     if pipecfg_list is None:
-        from ibeis.algo import Config
+        from wbia.algo import Config
         cfg_default_dict = dict(Config.QueryConfig().parse_items())
         cfgx2_lbl = ut.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
     else:
@@ -38,7 +38,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
 
     Args:
         test_cfg_name_list (list): list of strs
-        ibs (ibeis.IBEISController): ibeis controller object (optional)
+        ibs (wbia.IBEISController): wbia controller object (optional)
 
     Returns:
         tuple: (cfg_list, cfgx2_lbl) -
@@ -47,15 +47,15 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
                 If there is just one config then nothing is varied
 
     CommandLine:
-        python -m ibeis get_pipecfg_list:0
-        python -m ibeis get_pipecfg_list:1 --db humpbacks
-        python -m ibeis get_pipecfg_list:2
+        python -m wbia get_pipecfg_list:0
+        python -m wbia get_pipecfg_list:1 --db humpbacks
+        python -m wbia get_pipecfg_list:2
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> #test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
         >>> #test_cfg_name_list = ['default', 'default:sv_on=False', 'best']
         >>> test_cfg_name_list = ['default', 'default:sv_on=False', 'best']
@@ -72,9 +72,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     Example1:
         >>> # DISABLE_DOCTEST
         >>> import ibeis_flukematch.plugin
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='humpbacks')
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='humpbacks')
         >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average,crop_dim_size=[960,500]', 'default:K=[1,4]']
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
@@ -103,7 +103,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
             #    augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
             #else:
             #    augcfgdict = {}
-            ## Take the configuration from the ibeis object
+            ## Take the configuration from the wbia object
             #pipe_cfg = ibs.--cfg.query_cfg.deepcopy()
             ## Update with augmented params
             #pipe_cfg.update_query_cfg(**augcfgdict)
@@ -144,7 +144,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
     else:
         root_to_config = ibs.depc_annot.configclass_dict.copy()
-        from ibeis.algo.smk import smk_pipeline
+        from wbia.algo.smk import smk_pipeline
         root_to_config['smk'] = smk_pipeline.SMKRequestConfig
         configclass_list = [
             root_to_config.get(_cfgdict.get('pipeline_root', _cfgdict.get('proot', 'vsmany')),
@@ -154,7 +154,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
                      for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)]
 
     # Enforce rule that removes duplicate configs
-    # by using feasiblity from ibeis.algo.Config
+    # by using feasiblity from wbia.algo.Config
     # TODO: Move this unique finding code to its own function
     # and then move it up one function level so even the custom
     # configs can be uniquified
@@ -205,15 +205,15 @@ def parse_acfg_combo_list(acfg_name_list):
         list: acfg_combo_list
 
     CommandLine:
-        python -m ibeis parse_acfg_combo_list:0
-        python -m ibeis parse_acfg_combo_list:1
-        python -m ibeis parse_acfg_combo_list:2
+        python -m wbia parse_acfg_combo_list:0
+        python -m wbia parse_acfg_combo_list:1
+        python -m wbia parse_acfg_combo_list:2
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
         >>> acfg_name_list = testdata_acfg_names(['default', 'uncontrolled'])
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_list = ut.flatten(acfg_combo_list)
@@ -225,9 +225,9 @@ def parse_acfg_combo_list(acfg_name_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
         >>> # double colon :: means expand consistently and force const size
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'ctrl::unctrl'])
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'varysize', 'ctrl::unctrl'])
@@ -237,7 +237,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
     """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
                                        annotation_configs.TEST_NAMES)
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
@@ -293,10 +293,10 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
 
     CommandLine:
         # The following will trigger this function:
-        ibeis -m ibeis get_annotcfg_list:0 -a timectrl timectrl:view=left --db PZ_MTEST
+        wbia -m wbia get_annotcfg_list:0 -a timectrl timectrl:view=left --db PZ_MTEST
 
     """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
     acfg_list_ = []
@@ -348,24 +348,24 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         annot_cfg_name_list (list):
 
     CommandLine:
-        python -m ibeis get_annotcfg_list:0
-        python -m ibeis get_annotcfg_list:1
-        python -m ibeis get_annotcfg_list:2
+        python -m wbia get_annotcfg_list:0
+        python -m wbia get_annotcfg_list:1
+        python -m wbia get_annotcfg_list:2
 
-        ibeis get_annotcfg_list:0 --ainfo
-        ibeis get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-        ibeis get_annotcfg_list:0 --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
-        ibeis get_annotcfg_list:0 --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
-        ibeis get_annotcfg_list:0 --db testdb1 -a : --ainfo --nocache-aid
-        ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query --ainfo --nocache-aid
-        ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
+        wbia get_annotcfg_list:0 --ainfo
+        wbia get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        wbia get_annotcfg_list:0 --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
+        wbia get_annotcfg_list:0 --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
+        wbia get_annotcfg_list:0 --db testdb1 -a : --ainfo --nocache-aid
+        wbia get_annotcfg_list:0 --db Oxford -a :qhas_any=query --ainfo --nocache-aid
+        wbia get_annotcfg_list:0 --db Oxford -a :qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> filter_dups = not ut.get_argflag('--nofilter-dups')
         >>> acfg_name_list = testdata_acfg_names()
         >>> _tup = get_annotcfg_list(ibs, acfg_name_list, filter_dups)
@@ -382,11 +382,11 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.init import main_helpers
-        >>> from ibeis.expt import annotation_configs
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.expt.experiment_helpers import *  # NOQA
+        >>> import wbia
+        >>> from wbia.init import main_helpers
+        >>> from wbia.expt import annotation_configs
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = ibs.get_valid_aids()
         >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
         >>> a = ['default:crossval_enc=True,require_timestamp=True']
@@ -398,7 +398,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     """
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
@@ -459,9 +459,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.experiment_helpers
-        python -m ibeis.expt.experiment_helpers --allexamples
-        python -m ibeis.expt.experiment_helpers --allexamples --noface --nosrc
+        python -m wbia.expt.experiment_helpers
+        python -m wbia.expt.experiment_helpers --allexamples
+        python -m wbia.expt.experiment_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

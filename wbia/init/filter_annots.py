@@ -10,7 +10,7 @@ import copy
 import utool as ut
 import numpy as np
 import six
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 (print, rrr, profile) = ut.inject2(__name__)
 
 VERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')[0]
@@ -32,16 +32,16 @@ CLASS_INJECT_KEY, register_ibs_method = _tup
 @profile
 def time_filter_annots():
     """
-    python -m ibeis.init.filter_annots time_filter_annots \
+    python -m wbia.init.filter_annots time_filter_annots \
             --db PZ_Master1 -a ctrl:qmingt=2 --profile
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from wbia.init.filter_annots import *  # NOQA
         >>> result = time_filter_annots()
     """
-    import ibeis
-    ibeis.testdata_expanded_aids()
+    import wbia
+    wbia.testdata_expanded_aids()
 
 
 @register_ibs_method
@@ -49,7 +49,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
                           **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
         filter_kw (?):
 
@@ -68,26 +68,26 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
         minqual, view
 
     CommandLine:
-        python -m ibeis --tf filter_annots_general
-        python -m ibeis --tf filter_annots_general --db PZ_Master1 \
+        python -m wbia --tf filter_annots_general
+        python -m wbia --tf filter_annots_general --db PZ_Master1 \
                 --has_any=[needswork,correctable,mildviewpoint] \
                 --has_none=[viewpoint,photobomb,error:viewpoint,quality] --show
 
-        python -m ibeis --tf filter_annots_general --db=GZ_Master1  \
+        python -m wbia --tf filter_annots_general --db=GZ_Master1  \
                 --max-numfeat=300 --show --minqual=junk --species=None
-        python -m ibeis --tf filter_annots_general --db=lynx \
+        python -m wbia --tf filter_annots_general --db=lynx \
                 --been_adjusted=True
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
         >>> filter_kw = ut.argparse_dict(get_default_annot_filter_form(),
         >>>                              type_hint=ut.ddict(list, has_any=list,
         >>>                                                 has_none=list,
         >>>                                                 logic=str))
         >>> print('filter_kw = %s' % (ut.repr2(filter_kw),))
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
         >>> #filter_kw = dict(is_known=True, min_num=1, any_match='.*error.*')
@@ -98,8 +98,8 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
         >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
         >>> ut.print_dict(ibs.get_annot_stats_dict(aid_list_), 'annot_stats')
         >>> ut.quit_if_noshow()
-        >>> import ibeis.viz.interact
-        >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list_)
+        >>> import wbia.viz.interact
+        >>> wbia.viz.interact.interact_chip.interact_multichips(ibs, aid_list_)
         >>> ut.show_if_requested()
     """
     if aid_list is None:
@@ -124,7 +124,7 @@ def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
                           **kwargs):
     """ filter + sampling """
     # hack
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     filter_kw_ = annotation_configs.INDEPENDENT_DEFAULTS.copy()
@@ -153,16 +153,16 @@ def get_default_annot_filter_form():
     Returns dictionary containing defaults for all valid filter parameters
 
     CommandLine:
-        python -m ibeis --tf get_default_annot_filter_form
+        python -m wbia --tf get_default_annot_filter_form
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from wbia.init.filter_annots import *  # NOQA
         >>> filter_kw = get_default_annot_filter_form()
         >>> print(ut.repr2(filter_kw, align=True))
         >>> print(', '.join(filter_kw.keys()))
     """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     iden_defaults = annotation_configs.INDEPENDENT_DEFAULTS.copy()
     filter_kw = iden_defaults
     #tag_defaults = get_annot_tag_filterflags(
@@ -177,7 +177,7 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
     r"""
     Filters annotations by tags including those that is belongs to in a pair
     """
-    from ibeis import tag_funcs
+    from wbia import tag_funcs
 
     # Build Filters
     filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
@@ -236,21 +236,21 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
 def filterannots_by_tags(ibs, aid_list, filter_kw):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis --tf filterannots_by_tags
-        utprof.py -m ibeis --tf filterannots_by_tags
+        python -m wbia --tf filterannots_by_tags
+        utprof.py -m wbia --tf filterannots_by_tags
 
     SeeAlso:
         filter_annotmatch_by_tags
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> aid_list = ibs.get_valid_aids()
         >>> has_any = ut.get_argval('--tags', type_=list,
         >>>                         default=['SceneryMatch', 'Photobomb'])
@@ -274,8 +274,8 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     from os.path import dirname, join
     # Make loading aids a big faster for experiments
     if ut.is_developer():
-        import ibeis
-        repodir = dirname(ut.get_module_dir(ibeis))
+        import wbia
+        repodir = dirname(ut.get_module_dir(wbia))
         acfg_cachedir = join(repodir, 'ACFG_CACHE')
     else:
         #acfg_cachedir = './localdata/ACFG_CACHE'
@@ -300,7 +300,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     if verbose is None:
         verbose = VERB_TESTDATA
     if verbose:
@@ -365,7 +365,7 @@ def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
 @profile
 def hack_extra(ibs, expanded_aids):
     # SUCH HACK to get a larger database
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     _aidcfg = annotation_configs.default['dcfg']
     _aidcfg['sample_per_name'] = 1
     _aidcfg['sample_size'] = 500
@@ -395,28 +395,28 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
     Expands a set of configurations such that they are comparable
 
     CommandLine:
-        python -m ibeis --tf parse_acfg_combo_list  \
+        python -m wbia --tf parse_acfg_combo_list  \
                 -a varysize
-        ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
-        #ibeis --tf get_annotcfg_list --db lynx -a default:hack_imageset=True
-        ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
-        ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
-        ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
-        ibeis --tf get_annotcfg_list --db PZ_Master0 --verbtd \
+        wbia --tf get_annotcfg_list --db PZ_Master1 -a varysize
+        #wbia --tf get_annotcfg_list --db lynx -a default:hack_imageset=True
+        wbia --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
+        wbia --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
+        wbia --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
+        wbia --tf get_annotcfg_list --db PZ_Master0 --verbtd \
                 --nofilter-dups -a varysize
-        ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
+        wbia --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
                 --verbtd --nofilter-dups
-        ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd \
+        wbia --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd \
                 --nofilter-dups
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> from ibeis.expt import annotation_configs
-        >>> from ibeis.expt.experiment_helpers import parse_acfg_combo_list
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> from wbia.init import main_helpers
+        >>> from wbia.expt import annotation_configs
+        >>> from wbia.expt.experiment_helpers import parse_acfg_combo_list
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> #acfg_name_list = ['timectrl:dpername=[1,2]']
         >>> acfg_name_list = ['default:crossval_enc=True,require_timestamp=True']
         >>> aids = ibs.get_valid_aids()
@@ -433,7 +433,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
         >>> main_helpers.unmonkeypatch_encounters(ibs)
         >>> ut.assert_eq(len(expanded_aids_combo_list), 5)
     """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     import copy
 
     if verbose is None:
@@ -692,17 +692,17 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
     `enc_labels` specifies custom encounter labels.
 
     CommandLine:
-        python -m ibeis.init.filter_annots encounter_crossval
+        python -m wbia.init.filter_annots encounter_crossval
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> import ibeis
-        >>> #ibs, aids = ibeis.testdata_aids(
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> from wbia.init import main_helpers
+        >>> import wbia
+        >>> #ibs, aids = wbia.testdata_aids(
         >>> #    defaultdb='WWF_Lynx_Copy',
         >>> #    a='default:minqual=good,require_timestamp=True,view=left')
-        >>> ibs, aids = ibeis.testdata_aids(defaultdb='PZ_MTEST',
+        >>> ibs, aids = wbia.testdata_aids(defaultdb='PZ_MTEST',
         >>>                                 a='default:require_timestamp=True')
         >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
         >>> qenc_per_name = 2
@@ -801,13 +801,13 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
             note, some names may not be big enough to split this many times.
 
     CommandLine:
-        python -m ibeis.init.filter_annots annot_crossval
+        python -m wbia.init.filter_annots annot_crossval
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> n_qaids_per_name = 2
         >>> n_daids_per_name = 3
@@ -952,7 +952,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     built from command line argumetns
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aidcfg (dict): configuration of the annotation filter
         verbose (bool):  verbosity flag(default = False)
         use_cache (bool):  turns on disk based caching(default = None)
@@ -987,41 +987,41 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
                 * inter partition params?
 
     CommandLine:
-        python -m ibeis.dev -e print_acfg  -a timectrl:qsize=10,dsize=10  --db PZ_MTEST --veryverbtd --nocache-aid
-        python -m ibeis.dev -e print_acfg  -a timectrl:qminqual=good,qsize=10,dsize=10  --db PZ_MTEST --veryverbtd --nocache-aid
+        python -m wbia.dev -e print_acfg  -a timectrl:qsize=10,dsize=10  --db PZ_MTEST --veryverbtd --nocache-aid
+        python -m wbia.dev -e print_acfg  -a timectrl:qminqual=good,qsize=10,dsize=10  --db PZ_MTEST --veryverbtd --nocache-aid
 
-        python -m ibeis.dev -e print_acfg  -a timectrl --db PZ_MTEST --verbtd --nocache-aid
-        python -m ibeis.dev -e print_acfg  -a timectrl --db PZ_Master1 --verbtd --nocache-aid
-        python -m ibeis.dev -e print_acfg  -a timequalctrl --db PZ_Master1 --verbtd --nocache-aid
+        python -m wbia.dev -e print_acfg  -a timectrl --db PZ_MTEST --verbtd --nocache-aid
+        python -m wbia.dev -e print_acfg  -a timectrl --db PZ_Master1 --verbtd --nocache-aid
+        python -m wbia.dev -e print_acfg  -a timequalctrl --db PZ_Master1 --verbtd --nocache-aid
 
-        python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=10,dper_name=2 -t default --db PZ_MTEST
-        python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=20,dper_name=2 -t default --db PZ_MTEST
-        python -m ibeis.dev -e print      -a controlled:qsize=10,dsize=10             -t default --db PZ_MTEST --verbtd --nocache-aid
+        python -m wbia.dev -e rank_cmc   -a controlled:qsize=10,dsize=10,dper_name=2 -t default --db PZ_MTEST
+        python -m wbia.dev -e rank_cmc   -a controlled:qsize=10,dsize=20,dper_name=2 -t default --db PZ_MTEST
+        python -m wbia.dev -e print      -a controlled:qsize=10,dsize=10             -t default --db PZ_MTEST --verbtd --nocache-aid
 
-        python -m ibeis.dev -e latexsum -t candinvar -a viewpoint_compare  --db NNP_Master3 --acfginfo
-        utprof.py -m ibeis.dev -e print -t candk -a varysize  --db PZ_MTEST --acfginfo
-        utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo
+        python -m wbia.dev -e latexsum -t candinvar -a viewpoint_compare  --db NNP_Master3 --acfginfo
+        utprof.py -m wbia.dev -e print -t candk -a varysize  --db PZ_MTEST --acfginfo
+        utprof.py -m wbia.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo
 
-        python -m ibeis --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m wbia --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
-        python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 \
+        python -m wbia --tf get_annotcfg_list  --db PZ_Master1 \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd  --veryverbtd
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
-        python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
+        python -m wbia --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-expand_acfgs --show
+        python -m wbia.init.filter_annots --exec-expand_acfgs --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aidcfg = copy.deepcopy(annotation_configs.default)
         >>> aidcfg['qcfg']['species'] = 'primary'
         >>> initial_aids = None
@@ -1031,7 +1031,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     """
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
     if verbose is None:
         verbose = VERB_TESTDATA
 
@@ -1205,7 +1205,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     TODO make filterflags version
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         avail_aids (list):
         aidcfg (dict):
         prefix (str): (default = '')
@@ -1215,14 +1215,14 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         list: avail_aids
 
     CommandLine:
-        python -m ibeis --tf filter_annots_independent --veryverbtd
+        python -m wbia --tf filter_annots_independent --veryverbtd
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = annotation_configs.default['dcfg']
         >>> aidcfg['require_timestamp'] = True
@@ -1237,11 +1237,11 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
 
     Ignore:
         # Testing tag features
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             ---acfginfo --veryverbtd
     """
-    from ibeis.other import ibsfuncs
+    from wbia.other import ibsfuncs
     if aidcfg is None:
         if verbose:
             print('No annot filter returning')
@@ -1491,7 +1491,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
     Thus, the order in which this filter is applied matters.
 
     CommandLine:
-        ibeis --tf get_annotcfg_list \
+        wbia --tf get_annotcfg_list \
                 -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 --db lynx --veryverbtd --nocache-aid
 
@@ -1499,7 +1499,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
     """
-    from ibeis.other import ibsfuncs
+    from wbia.other import ibsfuncs
 
     if aidcfg is None:
         if verbose:
@@ -1798,14 +1798,14 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
 
 @profile
 def multi_sampled_seaturtle_queries():
-    import ibeis
-    from ibeis.expt import annotation_configs
-    from ibeis.expt import experiment_helpers
-    from ibeis.init.filter_annots import expand_acfgs
+    import wbia
+    from wbia.expt import annotation_configs
+    from wbia.expt import experiment_helpers
+    from wbia.init.filter_annots import expand_acfgs
     import copy
     aidcfg = copy.deepcopy(annotation_configs.default)
     db = 'seaturtles'  # 'testdb1'
-    ibs = ibeis.opendb(defaultdb=db)
+    ibs = wbia.opendb(defaultdb=db)
     a = ['default:sample_occur=True,occur_offset=0,exclude_reference=True,qhas_any=(left,right),num_names=1']
     acfg_combo_list = experiment_helpers.parse_acfg_combo_list(a)
     aidcfg = acfg_combo_list[0][0]
@@ -1862,17 +1862,17 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     exact values
 
     CommandLine:
-        python -m ibeis --tf sample_annots --veryverbtd
+        python -m wbia --tf sample_annots --veryverbtd
 
-        python -m ibeis --tf get_annotcfg_list --db seaturtles \
+        python -m wbia --tf get_annotcfg_list --db seaturtles \
             -a default:qhas_any=\(left,right\),sample_occur=True,exclude_reference=True,sample_offset=0,num_names=1 --acfginfo
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = copy.deepcopy(annotation_configs.default['dcfg'])
         >>> aidcfg['sample_per_name'] = 3
@@ -1889,11 +1889,11 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
+        >>> from wbia.init.filter_annots import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
         >>> db = 'seaturtles'  # 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=db)
+        >>> ibs = wbia.opendb(defaultdb=db)
         >>> aidcfg = copy.deepcopy(annotation_configs.default)['qcfg']
         >>> aidcfg['sample_occur'] = True
         >>> initial_aids = ibs.get_valid_aids()
@@ -1908,7 +1908,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
     import vtool_ibeis as vt
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
 
     def get_cfg(key):
         default_dict = annotation_configs.SAMPLE_DEFAULTS
@@ -2169,9 +2169,9 @@ def verb_context(filtertype, aidcfg, verbose):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.init.filter_annots
-        python -m ibeis.init.filter_annots --allexamples
-        python -m ibeis.init.filter_annots --allexamples --noface --nosrc
+        python -m wbia.init.filter_annots
+        python -m wbia.init.filter_annots --allexamples
+        python -m wbia.init.filter_annots --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

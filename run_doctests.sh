@@ -1,2 +1,2 @@
 #!/bin/bash
-xdoctest ibeis --style=google all
+xdoctest wbia --style=google all

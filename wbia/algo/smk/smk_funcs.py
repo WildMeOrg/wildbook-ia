@@ -79,11 +79,11 @@ def cast_residual_integer(rvecs):
         ndarray[uint8_t]:
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs cast_residual_integer --show
+        python -m wbia.algo.smk.smk_funcs cast_residual_integer --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> rvecs = testdata_rvecs(dim=128)['rvecs'][4:]
         >>> rvecs_int8 = cast_residual_integer(rvecs)
         >>> rvecs_float = uncast_residual_integer(rvecs_int8)
@@ -135,7 +135,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)
         >>> words = data['words']
         >>> flat_offsets = data['offset_list']
@@ -148,7 +148,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=100, nannots=5)
         >>> words = data['words']
         >>> flat_offsets = data['offset_list']
@@ -257,16 +257,16 @@ def compute_rvec(vecs, word):
     normalize residuals to unit length.
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs compute_rvec --show
+        python -m wbia.algo.smk.smk_funcs compute_rvec --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
         >>> word = words[-1]
         >>> rvecs, error_flags = compute_rvec(vecs, word)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.figure()
         >>> # recenter residuals for visualization
         >>> cvecs = (rvecs + word[None, :])
@@ -293,18 +293,18 @@ def aggregate_rvecs(rvecs, maws, error_flags):
     Compute aggregated residual vectors Phi(X_c)
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs aggregate_rvecs --show
+        python -m wbia.algo.smk.smk_funcs aggregate_rvecs --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
         >>> word = words[-1]
         >>> rvecs, error_flags = compute_rvec(vecs, word)
         >>> maws = [1.0] * len(rvecs)
         >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qt4ensure()
         >>> pt.figure()
         >>> # recenter residuals for visualization
@@ -362,7 +362,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])
         >>> _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])
         >>> massign_alpha = 1.2
@@ -385,7 +385,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])
         >>> _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])
         >>> _idx_to_wx = _idx_to_wx.astype(np.int32)
@@ -534,7 +534,7 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> idx_to_wxs = [
         >>>     np.array([0, 4], dtype=np.int32),
         >>>     np.array([2], dtype=np.int32),
@@ -585,7 +585,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> idx_to_wxs = np.ma.array([
         >>>     (0, 4),
         >>>     (2, -1),
@@ -648,7 +648,7 @@ def invert_lists(aids, wx_lists, all_wxs=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> aids = [1, 2, 3]
         >>> wx_lists = [[0, 1], [20, 0, 1], [3]]
         >>> wx_to_aids = invert_lists(aids, wx_lists)
@@ -678,7 +678,7 @@ def inv_doc_freq(ndocs_total, ndocs_per_word):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> ndocs_total = 21
         >>> ndocs_per_word = [0, 21, 20, 2, 15, 8, 12, 1, 2]
         >>> idf_per_word = inv_doc_freq(ndocs_total, ndocs_per_word)
@@ -715,7 +715,7 @@ def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> PhisX = np.array([[ 0.        ,  0.        ],
         >>>                   [-1.        ,  0.        ],
         >>>                   [ 0.85085751,  0.52539652],
@@ -774,11 +774,11 @@ def build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
         tuple: (fm, fs)
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs build_matches_agg --show
+        python -m wbia.algo.smk.smk_funcs build_matches_agg --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
         >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
         >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
@@ -823,11 +823,11 @@ def build_matches_sep(X_fxs, Y_fxs, scores_list):
         tuple: (fm, fs)
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs build_matches_agg --show
+        python -m wbia.algo.smk.smk_funcs build_matches_agg --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
         >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
         >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
@@ -867,7 +867,7 @@ def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+        >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
         >>> ibs, smk, qreq_= testdata_smk()
         >>> X = qreq_.qinva.grouped_annots[0]
         >>> wx_to_weight = qreq_.wx_to_weight
@@ -927,15 +927,15 @@ def selectivity(u, alpha=3.0, thresh=0.0, out=None):
         float: score
 
     CommandLine:
-        python -m ibeis.plottool plot_func --show --range=-1,1  \
-            --setup="import ibeis" \
-            --func ibeis.algo.smk.smk_funcs.selectivity \
+        python -m wbia.plottool plot_func --show --range=-1,1  \
+            --setup="import wbia" \
+            --func wbia.algo.smk.smk_funcs.selectivity \
             "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)"
-        python -m ibeis.algo.smk.smk_funcs selectivity --show
+        python -m wbia.algo.smk.smk_funcs selectivity --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> u = np.array([-1.0, -.5, -.1, 0, .1, .5, 1.0])
         >>> alpha = 3.0
         >>> thresh = 0
@@ -962,7 +962,7 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
     two dimensional test data
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs testdata_rvecs --show
+        python -m wbia.algo.smk.smk_funcs testdata_rvecs --show
 
     Ignore:
         dim = 2
@@ -972,11 +972,11 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> from wbia.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs()
         >>> ut.quit_if_noshow()
         >>> exec(ut.execstr_dict(data))
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> from scipy.spatial import Voronoi, voronoi_plot_2d
         >>> pt.qt4ensure()
         >>> fig = pt.figure()
@@ -1044,8 +1044,8 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.smk.smk_funcs
-        python -m ibeis.algo.smk.smk_funcs --allexamples
+        python -m wbia.algo.smk.smk_funcs
+        python -m wbia.algo.smk.smk_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

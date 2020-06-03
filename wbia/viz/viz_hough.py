@@ -2,11 +2,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
-from ibeis.viz import viz_helpers as vh
-from ibeis.algo.detect import randomforest
+from wbia.viz import viz_helpers as vh
+from wbia.algo.detect import randomforest
 from os.path import splitext
-from ibeis.plottool import viz_image2
-import ibeis.plottool as pt
+from wbia.plottool import viz_image2
+import wbia.plottool as pt
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -48,15 +48,15 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None,
     TODO: allow species override in controller
 
     CommandLine:
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1 --aid 9970
+        python -m wbia.viz.viz_hough --exec-show_probability_chip --cnn --show
+        python -m wbia.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1
+        python -m wbia.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1 --aid 9970
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.viz.viz_hough import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.viz import viz_chip
+        >>> from wbia.viz.viz_hough import *  # NOQA
+        >>> import wbia
+        >>> from wbia.viz import viz_chip
         >>> ibs, aid_list, kwargs, config2_ = viz_chip.testdata_showchip()
         >>> fnum = 1
         >>> species = None
@@ -78,8 +78,8 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_hough
-        python -m ibeis.viz.viz_hough --allexamples
+        python -m wbia.viz.viz_hough
+        python -m wbia.viz.viz_hough --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

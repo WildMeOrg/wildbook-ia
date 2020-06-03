@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtGui, QtCore  # NOQA
-from ibeis.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 import utool
 
 utool.noinject(__name__, '[APIItemView]', DEBUG=False)

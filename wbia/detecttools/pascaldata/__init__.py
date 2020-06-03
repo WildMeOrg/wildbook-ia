@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import os
-from ibeis.detecttools.directory import Directory
+from wbia.detecttools.directory import Directory
 from . import common as com
 from pascal_image import PASCAL_Image
 

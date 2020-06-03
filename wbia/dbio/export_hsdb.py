@@ -13,21 +13,21 @@ print, rrr, profile = ut.inject2(__name__)
 def get_hsdb_image_gpaths(ibs, gid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: gpath_list
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
+        python -m wbia.dbio.export_hsdb --test-get_hsdb_image_gpaths
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dbio.export_hsdb import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.export_hsdb import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> # execute function
         >>> gpath_list = get_hsdb_image_gpaths(ibs, gid_list)
@@ -49,17 +49,17 @@ def get_hsdb_image_gpaths(ibs, gid_list):
 def get_hots_table_strings(ibs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --test-get_hots_table_strings
+        python -m wbia.dbio.export_hsdb --test-get_hots_table_strings
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dbio.export_hsdb import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.export_hsdb import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_empty_nids()
         >>> # execute function
         >>> csvtup = get_hots_table_strings(ibs)
@@ -157,7 +157,7 @@ def get_hots_table_strings(ibs):
     return image_table_csv, name_table_csv, chip_table_csv
 
 
-def export_ibeis_to_hotspotter(ibs):
+def export_wbia_to_hotspotter(ibs):
     # Dumps the files
     hsdb_dir = ibs.get_dbdir()
     internal_hsdb = join(hsdb_dir, '_hsdb')
@@ -193,19 +193,19 @@ def get_hots_flat_table(ibs):
     """ Dumps hotspotter flat tables
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     Returns:
         str: flat_table_str
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
+        python -m wbia.dbio.export_hsdb --exec-get_hots_flat_table
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dbio.export_hsdb import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.dbio.export_hsdb import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> flat_table_str = get_hots_flat_table(ibs)
         >>> result = ('flat_table_str = %s' % (str(flat_table_str),))
         >>> print(result)
@@ -246,15 +246,15 @@ def dump_hots_flat_table(ibs):
         file_.write(flat_table_str)
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
+SUCCESS_FLAG_FNAME = '_hsdb_to_wbia_convert_success'
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dbio.export_hsdb
-        python -m ibeis.dbio.export_hsdb --allexamples
-        python -m ibeis.dbio.export_hsdb --allexamples --noface --nosrc
+        python -m wbia.dbio.export_hsdb
+        python -m wbia.dbio.export_hsdb --allexamples
+        python -m wbia.dbio.export_hsdb --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

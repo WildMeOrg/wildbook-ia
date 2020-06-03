@@ -2,7 +2,7 @@
 def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     r"""
     CommandLine:
-        python -m ibeis.plottool.interact_impaint --test-impaint_mask
+        python -m wbia.plottool.interact_impaint --test-impaint_mask
 
     References:
         http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_mouse_handling/py_mouse_handling.html
@@ -12,7 +12,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.interact_impaint import *  # NOQA
+        >>> from wbia.plottool.interact_impaint import *  # NOQA
         >>> import utool as ut
         >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
@@ -152,14 +152,14 @@ def cached_impaint(bgr_img, cached_mask_fpath=None, label_colors=None,
 def demo():
     r"""
     CommandLine:
-        python -m ibeis.plottool.interact_impaint --test-demo
+        python -m wbia.plottool.interact_impaint --test-demo
 
     References:
         http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_mouse_handling/py_mouse_handling.html
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.interact_impaint import *  # NOQA
+        >>> from wbia.plottool.interact_impaint import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> result = demo()

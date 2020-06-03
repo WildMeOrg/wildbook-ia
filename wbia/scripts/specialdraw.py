@@ -14,15 +14,15 @@ def nx_makenode(graph, name, **attrkw):
 def multidb_montage():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw multidb_montage --save montage.jpg --dpath ~/slides --diskshow --show
+        python -m wbia.scripts.specialdraw multidb_montage --save montage.jpg --dpath ~/slides --diskshow --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> multidb_montage()
     """
-    import ibeis
-    import ibeis.plottool as pt
+    import wbia
+    import wbia.plottool as pt
     import vtool_ibeis as vt
     import numpy as np
     pt.ensureqt()
@@ -32,7 +32,7 @@ def multidb_montage():
         'humpbacks_fb',
         'GIRM_Master1',
     ]
-    ibs_list = [ibeis.opendb(dbname) for dbname in dbnames]
+    ibs_list = [wbia.opendb(dbname) for dbname in dbnames]
 
     target_num = 1000
     sample_size = target_num // len(ibs_list)
@@ -73,26 +73,26 @@ def multidb_montage():
 def featweight_fig():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw featweight_fig --show
+        python -m wbia.scripts.specialdraw featweight_fig --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> featweight_fig()
         >>> ut.show_if_requested()
     """
     # ENABLE_DOCTEST
-    import ibeis
-    # import ibeis.plottool as pt
+    import wbia
+    # import wbia.plottool as pt
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
-    from ibeis.core_annots import gen_featweight_worker
+    from wbia.core_annots import gen_featweight_worker
     #test_featweight_worker()
 
-    # ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    # ibs = wbia.opendb(defaultdb='GZ_Master1')
     # aid = ut.get_argval('--aid', type_=list, default=2810)
-    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    ibs = wbia.opendb(defaultdb='PZ_MTEST')
     aid = ut.get_argval('--aid', type_=int, default=1)
     depc = ibs.depc
     aids = [aid]
@@ -109,7 +109,7 @@ def featweight_fig():
     assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
     chip = depc.get('chips', aids, 'img', config=config)[0]
     ut.quit_if_noshow()
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     fnum = 1
     pnum_ = pt.make_pnum_nextgen(1, 3)
     pt.figure(fnum=fnum, doclf=True)
@@ -125,33 +125,33 @@ def featweight_fig():
 def simple_vsone_matches():
     """
     CommandLine:
-        python -m ibeis.scripts.specialdraw simple_vsone_matches --show \
+        python -m wbia.scripts.specialdraw simple_vsone_matches --show \
             --db GZ_Master1 --aids=2811,2810
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> simple_vsone_matches()
         >>> ut.show_if_requested()
     """
-    import ibeis
-    # import ibeis.plottool as pt
+    import wbia
+    # import wbia.plottool as pt
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
 
-    ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    ibs = wbia.opendb(defaultdb='GZ_Master1')
     aids = ut.get_argval('--aids', type_=list, default=[2811, 2810])
     assert len(aids) == 2
     assert all(ibs.db.rows_exist('annotations', aids))
     aid1, aid2 = aids
 
-    infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+    infr = wbia.AnnotInference(ibs=ibs, aids=aids)
     edges = [(aid1, aid2)]
     match = infr._exec_pairwise_match(edges)[0]
 
     ut.quit_if_noshow()
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.figure(fnum=1, doclf=True)
     match.show(heatmask=True, vert=False, modifysize=True, show_ell=False,
                show_lines=False, show_ori=False)
@@ -160,28 +160,28 @@ def simple_vsone_matches():
 def double_depcache_graph():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
+        python -m wbia.scripts.specialdraw double_depcache_graph --show --testmode
 
-        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite
-        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5
+        python -m wbia.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite
+        python -m wbia.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5
 
-        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5
+        python -m wbia.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> result = double_depcache_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
+    import wbia
     import networkx as nx
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.ensureqt()
     # pt.plt.xkcd()
-    ibs = ibeis.opendb('testdb1')
+    ibs = wbia.opendb('testdb1')
     reduced = True
     implicit = True
     annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit)
@@ -314,7 +314,7 @@ def double_depcache_graph():
 
 
 def lighten_hex(hexcolor, amount):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import matplotlib.colors as colors
     return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
 
@@ -322,20 +322,20 @@ def lighten_hex(hexcolor, amount):
 def general_identify_flow():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite
+        python -m wbia.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite
 
-        python -m ibeis.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png --arrow-width=2.0
+        python -m wbia.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png --arrow-width=2.0
 
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> general_identify_flow()
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
     import networkx as nx
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.ensureqt()
     # pt.plt.xkcd()
 
@@ -487,19 +487,19 @@ def graphcut_flow():
         ?: name
 
     CommandLine:
-        python -m ibeis.scripts.specialdraw graphcut_flow --show
-        python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
-        python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
+        python -m wbia.scripts.specialdraw graphcut_flow --show
+        python -m wbia.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
+        python -m wbia.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> graphcut_flow()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.ensureqt()
     import networkx as nx
     # pt.plt.xkcd()
@@ -575,23 +575,23 @@ def graphcut_flow():
 def merge_viewpoint_graph():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw merge_viewpoint_graph --show
+        python -m wbia.scripts.specialdraw merge_viewpoint_graph --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> result = merge_viewpoint_graph()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
-    import ibeis
+    import wbia.plottool as pt
+    import wbia
     import networkx as nx
 
     defaultdb = 'PZ_Master1'
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    ibs = wbia.opendb(defaultdb=defaultdb)
 
     #nids = None
     aids = ibs.get_name_aids(4875)
@@ -642,7 +642,7 @@ def merge_viewpoint_graph():
     nx.set_edge_attributes(graph, name='color', values={edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
 
     #pt.close_all_figures();
-    from ibeis.viz import viz_graph
+    from wbia.viz import viz_graph
     layoutkw = {
         'nodesep': 1,
     }
@@ -686,28 +686,28 @@ def merge_viewpoint_graph():
 def setcover_example():
     """
     CommandLine:
-        python -m ibeis.scripts.specialdraw setcover_example --show
+        python -m wbia.scripts.specialdraw setcover_example --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> result = setcover_example()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
-    import ibeis.plottool as pt
-    from ibeis.viz import viz_graph
+    import wbia
+    import wbia.plottool as pt
+    from wbia.viz import viz_graph
     import networkx as nx
     pt.ensureqt()
-    ibs = ibeis.opendb(defaultdb='testdb2')
+    ibs = wbia.opendb(defaultdb='testdb2')
 
     if False:
         # Select a good set
         aids = ibs.get_name_aids(ibs.get_valid_nids())
-        # ibeis.testdata_aids('testdb2', a='default:mingt=2')
+        # wbia.testdata_aids('testdb2', a='default:mingt=2')
         aids = [a for a in aids if len(a) > 1]
         for a in aids:
             print(ut.repr3(ibs.get_annot_stats_dict(a)))
@@ -716,7 +716,7 @@ def setcover_example():
     aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids)
     cm_list = qreq_.execute()
-    from ibeis.algo.hots import orig_graph_iden
+    from wbia.algo.hots import orig_graph_iden
     infr = orig_graph_iden.OrigAnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
@@ -785,32 +785,32 @@ def setcover_example():
 def k_redun_demo():
     r"""
 
-    python -m ibeis.scripts.specialdraw k_redun_demo --save=kredun.png
-    python -m ibeis.scripts.specialdraw k_redun_demo --show
+    python -m wbia.scripts.specialdraw k_redun_demo --save=kredun.png
+    python -m wbia.scripts.specialdraw k_redun_demo --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> k_redun_demo()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
-    import ibeis.plottool as pt
-    from ibeis.viz import viz_graph
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+    import wbia
+    import wbia.plottool as pt
+    from wbia.viz import viz_graph
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 
     # import networkx as nx
     pt.ensureqt()
-    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ibs = wbia.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
         6612: [7664, 7462, 7522],
         6625: [7746, 7383, 7390, 7477, 7376, 7579],
         6630: [7586, 7377, 7464, 7478],
     }
     aids = ut.flatten(nid2_aid.values())
-    infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+    infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
 
     for name_aids in nid2_aid.values():
         for edge in ut.itertwo(name_aids):
@@ -847,26 +847,26 @@ def k_redun_demo():
 def graph_iden_cut_demo():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --precut
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --postcut
+        python -m wbia.scripts.specialdraw graph_iden_cut_demo --show --precut
+        python -m wbia.scripts.specialdraw graph_iden_cut_demo --show --postcut
 
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --precut --save=precut.png --clipwhite
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --postcut --save=postcut.png --clipwhite
+        python -m wbia.scripts.specialdraw graph_iden_cut_demo --precut --save=precut.png --clipwhite
+        python -m wbia.scripts.specialdraw graph_iden_cut_demo --postcut --save=postcut.png --clipwhite
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> graph_iden_cut_demo()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
-    import ibeis.plottool as pt
-    from ibeis.viz import viz_graph
+    import wbia
+    import wbia.plottool as pt
+    from wbia.viz import viz_graph
     # import networkx as nx
     pt.ensureqt()
-    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ibs = wbia.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
         #4880: [3690, 3696, 3703, 3706, 3712, 3721],
         4880: [3690, 3696, 3703],
@@ -902,7 +902,7 @@ def graph_iden_cut_demo():
     postcut = ut.get_argflag('--postcut')
     aids_list = ibs.group_annots_by_name(aids)[0]
 
-    infr = ibeis.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
+    infr = wbia.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
                                 autoinit=True)
     if postcut:
         infr.init_test_mode2(enable_autoreview=False)
@@ -929,7 +929,7 @@ def graph_iden_cut_demo():
         for edge in new_edges:
             infr.queue.push(edge, -1)
 
-        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+        from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 
         try:
             while True:
@@ -966,25 +966,25 @@ def graph_iden_cut_demo():
 def show_id_graph():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw show_id_graph --show
-        python -m ibeis.scripts.specialdraw show_id_graph --show
+        python -m wbia.scripts.specialdraw show_id_graph --show
+        python -m wbia.scripts.specialdraw show_id_graph --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> show_id_graph()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
-    import ibeis.plottool as pt
+    import wbia
+    import wbia.plottool as pt
     # import networkx as nx
     pt.ensureqt()
-    # ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
-    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    # ibs = wbia.opendb(defaultdb='PZ_PB_RF_TRAIN')
+    ibs = wbia.opendb(defaultdb='PZ_Master1')
 
-    parent_infr = ibeis.AnnotInference(ibs=ibs, aids='all')
+    parent_infr = wbia.AnnotInference(ibs=ibs, aids='all')
     parent_infr.reset_feedback('staging', apply=True)
 
     edgecat = parent_infr.categorize_edges()
@@ -1042,7 +1042,7 @@ def show_id_graph():
         if len(pccs) >= MAX_NUM:
             break
 
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
     subinfr = parent_infr.subgraph(ut.flatten(pccs))
     subinfr._viz_image_config['thumbsize'] = 700
     subinfr._viz_image_config['grow'] = True
@@ -1153,27 +1153,27 @@ def show_id_graph():
 def intraoccurrence_connected():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller
+        python -m wbia.scripts.specialdraw intraoccurrence_connected --show
+        python -m wbia.scripts.specialdraw intraoccurrence_connected --show --smaller
 
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --precut --save=precut.jpg
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --postcut --save=postcut.jpg
+        python -m wbia.scripts.specialdraw intraoccurrence_connected --precut --save=precut.jpg
+        python -m wbia.scripts.specialdraw intraoccurrence_connected --postcut --save=postcut.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> result = intraoccurrence_connected()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis
-    import ibeis.plottool as pt
-    from ibeis.viz import viz_graph
+    import wbia
+    import wbia.plottool as pt
+    from wbia.viz import viz_graph
     import networkx as nx
     pt.ensureqt()
-    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ibs = wbia.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
         #4880: [3690, 3696, 3703, 3706, 3712, 3721],
         4880: [3690, 3696, 3703],
@@ -1407,23 +1407,23 @@ def scalespace():
         ?: imgBGRA_warped
 
     CommandLine:
-        python -m ibeis.scripts.specialdraw scalespace --show
+        python -m wbia.scripts.specialdraw scalespace --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> imgBGRA_warped = scalespace()
         >>> result = ('imgBGRA_warped = %s' % (ut.repr2(imgBGRA_warped),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import numpy as np
     # import matplotlib.pyplot as plt
     import cv2
     import vtool_ibeis as vt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.qt4ensure()
 
     #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
@@ -1540,7 +1540,7 @@ def event_space():
     venn3(subsets=subsets, set_labels=set_labels)
     plt.show()
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.ensureqt()
     from matplotlib_subsets import treesets_rectangles
     tree = (
@@ -1630,12 +1630,12 @@ def event_space():
 def draw_inconsistent_pcc():
     """
     CommandLine:
-        python -m ibeis.scripts.specialdraw draw_inconsistent_pcc --show
+        python -m wbia.scripts.specialdraw draw_inconsistent_pcc --show
     """
-    from ibeis.algo.graph import demo
-    import ibeis.plottool as pt
+    from wbia.algo.graph import demo
+    import wbia.plottool as pt
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
     infr = demo.demodata_infr(**kwargs)
@@ -1654,7 +1654,7 @@ def draw_inconsistent_pcc():
               pnum=(1, 2, 1), fnum=fnum)
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from ibeis.algo.graph.state import POSTV, NEGTV
+    from wbia.algo.graph.state import POSTV, NEGTV
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
@@ -1665,7 +1665,7 @@ def draw_inconsistent_pcc():
               pnum=(1, 2, 2), fnum=fnum)
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from ibeis.algo.graph.state import POSTV, NEGTV
+    from wbia.algo.graph.state import POSTV, NEGTV
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     pt.append_phantom_legend_label('hypothesis', infr._error_color, ax=ax)
@@ -1679,12 +1679,12 @@ def draw_inconsistent_pcc():
 def draw_graph_id():
     """
     CommandLine:
-        python -m ibeis.scripts.specialdraw draw_graph_id --show
+        python -m wbia.scripts.specialdraw draw_graph_id --show
     """
-    from ibeis.algo.graph import demo
-    import ibeis.plottool as pt
+    from wbia.algo.graph import demo
+    import wbia.plottool as pt
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=5, p_incon=0, size=4, size_std=1,
                   p_incomp=.2,
@@ -1698,7 +1698,7 @@ def draw_graph_id():
               wavy=False, groupby='name_label', pickable=True)
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
@@ -1709,17 +1709,17 @@ def draw_graph_id():
 
 def redun_demo2():
     r"""
-    python -m ibeis.scripts.specialdraw redun_demo2 --show
+    python -m wbia.scripts.specialdraw redun_demo2 --show
     """
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
-    from ibeis.algo.graph import demo
-    # from ibeis.algo.graph import nx_utils
-    import ibeis.plottool as pt
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from wbia.algo.graph import demo
+    # from wbia.algo.graph import nx_utils
+    import wbia.plottool as pt
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
 
     fnum = 1
@@ -1784,18 +1784,18 @@ def redun_demo2():
 
 def redun_demo3():
     r"""
-    python -m ibeis.scripts.specialdraw redun_demo3 --show
-    python -m ibeis.scripts.specialdraw redun_demo3 --saveparts=~/slides/incon_redun.jpg --dpi=300
+    python -m wbia.scripts.specialdraw redun_demo3 --show
+    python -m wbia.scripts.specialdraw redun_demo3 --saveparts=~/slides/incon_redun.jpg --dpi=300
     """
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph import nx_utils as nxu
-    import ibeis.plottool as pt
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph import nx_utils as nxu
+    import wbia.plottool as pt
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
 
     fnum = 1
@@ -1841,18 +1841,18 @@ def redun_demo3():
 def system_diagram():
     """
     CommandLine:
-        python -m ibeis.scripts.specialdraw system_diagram --show
+        python -m wbia.scripts.specialdraw system_diagram --show
 
     """
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph import nx_utils as nxu  # NOQA
-    import ibeis.plottool as pt
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph import nx_utils as nxu  # NOQA
+    import wbia.plottool as pt
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     mpl.rcParams.update(TMP_RC)
 
     # fnum = 1
@@ -1976,8 +1976,8 @@ def system_diagram():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw
-        python -m ibeis.scripts.specialdraw --allexamples
+        python -m wbia.scripts.specialdraw
+        python -m wbia.scripts.specialdraw --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

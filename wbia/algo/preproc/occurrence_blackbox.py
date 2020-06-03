@@ -55,7 +55,7 @@ def haversine(latlon1, latlon2):
         stackoverflow.com/questions/4913349/haversine-distance-gps-points
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> import scipy.spatial.distance as spdist
         >>> import functools
         >>> latlon1 = [-80.21895315, -158.81099213]
@@ -105,7 +105,7 @@ def timespace_distance_km(pt1, pt2, km_per_sec=KM_PER_SEC):
         float: distance in kilometers
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> import scipy.spatial.distance as spdist
         >>> import functools
         >>> km_per_sec = .02
@@ -195,10 +195,10 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         ndarray: arr_ -
 
     CommandLine:
-        python -m ibeis.algo.preproc.occurrence_blackbox prepare_data
+        python -m wbia.algo.preproc.occurrence_blackbox prepare_data
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> posixtimes = np.array([10, 50, np.nan, np.nan, 5, 80, np.nan, np.nan])
         >>> latlons = np.array([
         >>>     (42.727985, -73.683994),
@@ -303,10 +303,10 @@ def cluster_timespace_km(posixtimes, latlons, thresh_km, km_per_sec=KM_PER_SEC):
         http://www.darrinward.com/lat-long/?id=2009879
 
     CommandLine:
-        python -m ibeis.algo.preproc.occurrence_blackbox cluster_timespace_km
+        python -m wbia.algo.preproc.occurrence_blackbox cluster_timespace_km
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
         >>> # Nx3 matrix where each columns are (time, lat, lon)
@@ -354,7 +354,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         thresh_sec (float) : threshold in seconds
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
         >>> # Nx3 matrix where each columns are (time, lat, lon)
@@ -378,7 +378,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])
 
     Doctest:
-        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> from wbia.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
         >>> # Nx3 matrix where each columns are (time, lat, lon)
@@ -571,7 +571,7 @@ def main():
     """
     CommandLine:
         ib
-        cd ~/code/ibeis/ibeis/algo/preproc
+        cd ~/code/wbia/wbia/algo/preproc
         python occurrence_blackbox.py --lat 42.727985 42.657414 42.658333 42.654384 --lon -73.683994 -73.774448 -73.770993 -73.768919 --sec 0 0 0 0
         # Should return
         X_labels = [2, 1, 1, 1]
@@ -593,8 +593,8 @@ def main():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.preproc.occurrence_blackbox
-        python -m ibeis.algo.preproc.occurrence_blackbox --allexamples
+        python -m wbia.algo.preproc.occurrence_blackbox
+        python -m wbia.algo.preproc.occurrence_blackbox --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

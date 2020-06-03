@@ -4,36 +4,36 @@ Interaction for a single annoation.
 Also defines annotation context menu.
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+    python -m wbia.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
-import ibeis.plottool as pt  # NOQA
+import wbia.plottool as pt  # NOQA
 from functools import partial
-from ibeis import viz
-from ibeis.viz import viz_helpers as vh
-from ibeis.plottool import interact_helpers as ih
+from wbia import viz
+from wbia.viz import viz_helpers as vh
+from wbia.plottool import interact_helpers as ih
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     Returns:
         MultiImageInteraction: iteract_obj
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-interact_multichips --show
+        python -m wbia.viz.interact.interact_chip --exec-interact_multichips --show
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.viz.interact.interact_chip import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> iteract_obj = interact_multichips(ibs, aid_list)
         >>> iteract_obj.start()
@@ -42,7 +42,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         >>> ut.show_if_requested()
     """
     # FIXME: needs to be flushed out a little
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     show_chip_list = [
         partial(viz.show_chip, ibs, aid, config2_=config2_)
         for aid in aid_list
@@ -66,10 +66,10 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
     Used in other interactions like name_interaction and interact_query_decision
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+        python -m wbia.viz.interact.interact_chip --test-ishow_chip --show
 
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     callback_list = build_annot_context_options(
         ibs, aid, refresh_func=refresh_func,
         with_interact_name=with_interact_name,
@@ -86,7 +86,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     Build context options for things that select annotations in the IBEIS gui
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid (int):  annotation id
         refresh_func (None): (default = None)
         with_interact_name (bool): (default = True)
@@ -98,13 +98,13 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         list: callback_list
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-build_annot_context_options
+        python -m wbia.viz.interact.interact_chip --exec-build_annot_context_options
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.viz.interact.interact_chip import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid = ibs.get_valid_aids()[0]
         >>> refresh_func = None
         >>> with_interact_name = True
@@ -119,7 +119,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>> result = ('callback_list = %s' % (ut.repr2(callback_list, nl=4),))
         >>> print(result)
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
     def refresh_wrp(func):
@@ -135,7 +135,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     def newplot_wrp(func):
         def _wrp():
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             ret = func()
             pt.draw()
             return ret
@@ -177,12 +177,12 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ]
 
     if with_interact_name and not ibs.is_nid_unknown(nid):
-        #from ibeis.viz.interact import interact_name
+        #from wbia.viz.interact import interact_name
         #callback_list.append(
         #    ('Interact name', partial(interact_name.ishow_name, ibs,
         #                                        nid, fnum=None))
         #)
-        from ibeis.viz import viz_graph2
+        from wbia.viz import viz_graph2
         nid = ibs.get_annot_nids(aid)
         callback_list.append(
             ('New Split Interact (Annots)',
@@ -191,7 +191,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     if with_interact_image:
         gid = ibs.get_annot_gids(aid)
-        from ibeis.viz.interact import interact_annotations2
+        from wbia.viz.interact import interact_annotations2
         callback_list.append(
             ('Interact image',
              partial(
@@ -199,7 +199,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         )
 
     if True:
-        from ibeis import viz
+        from wbia import viz
         callback_list.append(
             ('Show foreground mask',
              newplot_wrp(lambda: viz.show_probability_chip(
@@ -252,7 +252,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     with_tags = True
     if with_tags:
-        from ibeis import tag_funcs
+        from wbia import tag_funcs
         case_list = tag_funcs.get_available_annot_tags()
         tags = ibs.get_annot_case_tags([aid])[0]
         tags = [_.lower() for _ in tags]
@@ -291,7 +291,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     ]
 
     def _setname_callback():
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         name = ibs.get_annot_name_texts([aid])[0]
         newname = gt.user_input(title='edit name', msg=name, text=name)
         if newname is not None:
@@ -361,7 +361,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             print('aid = %r' % (aid,))
             print('config2_ = %r' % (config2_,))
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
-            #import ibeis.plottool as pt
+            #import wbia.plottool as pt
             #pt.plt.ioff()
             # TODO need to disable matplotlib callbacks?
             # Causes can't re-enter readline error
@@ -386,7 +386,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 #        print('[ic] viztype=%r' % viztype)
 #        if viztype == 'chip':
 #            if event.button == 3:   # right-click
-#                from ibeis.viz.interact import interact_chip
+#                from wbia.viz.interact import interact_chip
 #                height = fig.canvas.geometry().height()
 #                qpoint = gt.newQPoint(event.x, height - event.y)
 #                refresh_func = partial(_chip_view, **kwargs)
@@ -405,21 +405,21 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         interact chip and interact chip features
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid (int):  annotation id
         fnum (int):  figure number
         fx (None):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+        python -m wbia.viz.interact.interact_chip --test-ishow_chip --show
+        python -m wbia.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.interact.interact_chip import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid = ut.get_argval('--aid', type_=int, default=1)
         >>> fnum = 2
         >>> fx = None
@@ -445,7 +445,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
     mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
-        from ibeis.plottool.viz_featrow import draw_feat_row
+        from wbia.plottool.viz_featrow import draw_feat_row
         # Get the fx-th keypiont
         chip = ibs.get_annot_chips(aid, config2_=config2_)
         kp = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
@@ -479,8 +479,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 _chip_view(**kwargs)
         else:
             if event.button == 3:   # right-click
-                import ibeis.guitool as gt
-                #from ibeis.viz.interact import interact_chip
+                import wbia.guitool as gt
+                #from wbia.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = gt.newQPoint(event.x, height - event.y)
                 refresh_func = partial(_chip_view, **kwargs)
@@ -534,8 +534,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip
-        python -m ibeis.viz.interact.interact_chip --allexamples
+        python -m wbia.viz.interact.interact_chip
+        python -m wbia.viz.interact.interact_chip --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-dev.py was moved to ibeis/dev.py
-Now runnable via python -m ibeis.dev
+dev.py was moved to wbia/dev.py
+Now runnable via python -m wbia.dev
 """
 from __future__ import absolute_import, division, print_function
 # try:
@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function
 # except (ImportError, AssertionError):
 #     print('Failed to initialize New Relic Performance Monitoring')
 #     pass
-from ibeis.dev import *  # NOQA
+from wbia.dev import *  # NOQA
 
 if __name__ == '__main__':
     import multiprocessing

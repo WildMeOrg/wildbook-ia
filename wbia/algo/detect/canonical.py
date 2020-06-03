@@ -534,7 +534,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
 
 def test(gpath_list, canonical_weight_filepath=None, **kwargs):
-    from ibeis.detecttools.directory import Directory
+    from wbia.detecttools.directory import Directory
 
     # Get correct weight if specified with shorthand
     archive_url = None
@@ -547,7 +547,7 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
 
     if canonical_weight_filepath in ARCHIVE_URL_DICT:
         archive_url = ARCHIVE_URL_DICT[canonical_weight_filepath]
-        archive_path = ut.grab_file_url(archive_url, appname='ibeis', check_hash=True)
+        archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
         raise RuntimeError('canonical_weight_filepath %r not recognized' % (canonical_weight_filepath, ))
 

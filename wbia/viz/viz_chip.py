@@ -1,39 +1,39 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import ibeis.plottool as pt
-from ibeis.plottool import plot_helpers as ph
-from ibeis.viz import viz_helpers as vh
-from ibeis.viz import viz_image
+import wbia.plottool as pt
+from wbia.plottool import plot_helpers as ph
+from wbia.viz import viz_helpers as vh
+from wbia.viz import viz_image
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def HARDCODE_SHOW_PB_PAIR():
     """
-    python -m ibeis.viz.viz_chip HARDCODE_SHOW_PB_PAIR --show
+    python -m wbia.viz.viz_chip HARDCODE_SHOW_PB_PAIR --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.viz.viz_chip import *  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.viz.viz_chip import *  # NOQA
+        >>> import wbia.plottool as pt
         >>> HARDCODE_SHOW_PB_PAIR()
         >>> pt.show_if_requested()
     """
     # TODO: generalize into testdata_annotmatches which filters ams propertly
     # Then a function to show these ams
-    import ibeis
-    import ibeis.viz
+    import wbia
+    import wbia.viz
     has_any = ut.get_argval('--has_any', default=['photobomb'])
     index = ut.get_argval('--index', default=0)
 
-    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ibs = wbia.opendb(defaultdb='PZ_Master1')
     ams = ibs._get_all_annotmatch_rowids()
     tags = ibs.get_annotmatch_case_tags(ams)
     flags = ut.filterflags_general_tags(tags, has_any=has_any)
     selected_ams = ut.compress(ams, flags)
     aid_pairs = ibs.get_annotmatch_aids(selected_ams)
     aid1, aid2 = aid_pairs[index]
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     fnum = 1
     if ut.get_argflag('--match'):
         request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])
@@ -49,8 +49,8 @@ def HARDCODE_SHOW_PB_PAIR():
 
 
 def testdata_showchip():
-    import ibeis
-    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    import wbia
+    ibs = wbia.opendb(defaultdb='PZ_MTEST')
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
     if aid_list is None:
         aid_list = ibs.get_valid_aids()[0:4]
@@ -64,7 +64,7 @@ def testdata_showchip():
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
     kwargs['draw_lbls'] = ut.get_argval('--draw_lbls', default=True)
     print('kwargs = ' + ut.repr4(kwargs, nl=True))
-    default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
+    default_config = dict(wbia.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
     print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
     config2_ = cfgdict
@@ -75,13 +75,13 @@ def testdata_showchip():
 def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=True):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_many_chips
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
+        python -m wbia.viz.viz_chip --test-show_many_chips
+        python -m wbia.viz.viz_chip --test-show_many_chips --show
+        python -m wbia.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> from wbia.viz.viz_chip import *  # NOQA
         >>> import numpy as np
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
@@ -104,7 +104,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     r""" Driver function to show chips
 
     Args:
-        ibs (ibeis.IBEISController):
+        ibs (wbia.IBEISController):
         aid (int): annotation rowid
         in_image (bool): displays annotation with the context of its source image
         annote (bool): enables overlay annoations
@@ -123,19 +123,19 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:
-        python -m ibeis.viz.viz_chip show_chip --show --ecc
-        python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
-        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
-        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m wbia.viz.viz_chip show_chip --show --ecc
+        python -c "import utool as ut; ut.print_auto_docstr('wbia.viz.viz_chip', 'show_chip')"
+        python -m wbia.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m wbia.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
 
-        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
-        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
+        python -m wbia.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
+        python -m wbia.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
 
-        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --ecc --draw_lbls=False --notitle --save=~/slides/lnbnn_query.jpg --dpi=300
+        python -m wbia.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --ecc --draw_lbls=False --notitle --save=~/slides/lnbnn_query.jpg --dpi=300
 
     Example:
         >>> # VIZ_TEST
-        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> from wbia.viz.viz_chip import *  # NOQA
         >>> import numpy as np
         >>> import vtool_ibeis as vt
         >>> in_image = False
@@ -143,7 +143,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> aid = aid_list[0]
         >>> if True:
         >>>     import matplotlib as mpl
-        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     from wbia.scripts.thesis import TMP_RC
         >>>     mpl.rcParams.update(TMP_RC)
         >>> if ut.get_argflag('--ecc'):
         >>>     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
@@ -254,9 +254,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_chip
-        python -m ibeis.viz.viz_chip --allexamples
-        python -m ibeis.viz.viz_chip --allexamples --noface --nosrc
+        python -m wbia.viz.viz_chip
+        python -m wbia.viz.viz_chip --allexamples
+        python -m wbia.viz.viz_chip --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

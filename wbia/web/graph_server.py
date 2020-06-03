@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 import utool as ut
 import concurrent
 import random
 import time
-# from ibeis.web import futures_utils as futures_actors
+# from wbia.web import futures_utils as futures_actors
 import futures_actors
 print, rrr, profile = ut.inject2(__name__)
 
 
 def double_review_test():
-    # from ibeis.web.graph_server import *
-    import ibeis
+    # from wbia.web.graph_server import *
+    import wbia
     actor = GraphActor()
     config = {
         'manual.n_peek'   : 1,
@@ -24,7 +24,7 @@ def double_review_test():
         'algo.hardcase' : True,
     }
     # Start the process
-    dbdir = ibeis.sysres.db_to_dbdir('PZ_MTEST')
+    dbdir = wbia.sysres.db_to_dbdir('PZ_MTEST')
     payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
                'config': config, 'init': 'annotmatch'}
     start_resp = actor.handle(payload)
@@ -58,10 +58,10 @@ def ut_to_json_encode(dict_):
 
 
 def testdata_start_payload(aids='all'):
-    import ibeis
+    import wbia
     payload = {
         'action'       : 'start',
-        'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
+        'dbdir'        : wbia.sysres.db_to_dbdir('PZ_MTEST'),
         'aids'         : aids,
         'config'       : {
             'manual.n_peek'   : 50,
@@ -99,10 +99,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     """
 
     CommandLine:
-        python -m ibeis.web.graph_server GraphActor
+        python -m wbia.web.graph_server GraphActor
 
     Doctest:
-        >>> from ibeis.web.graph_server import *
+        >>> from wbia.web.graph_server import *
         >>> actor = GraphActor()
         >>> payload = testdata_start_payload()
         >>> # Start the process
@@ -118,8 +118,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
 
     Doctest:
-        >>> from ibeis.web.graph_server import *
-        >>> import ibeis
+        >>> from wbia.web.graph_server import *
+        >>> import wbia
         >>> actor = GraphActor()
         >>> config = {
         >>>     'manual.n_peek'   : 1,
@@ -132,7 +132,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>>     'algo.hardcase' : True,
         >>> }
         >>> # Start the process
-        >>> dbdir = ibeis.sysres.db_to_dbdir('PZ_MTEST')
+        >>> dbdir = wbia.sysres.db_to_dbdir('PZ_MTEST')
         >>> payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
         >>>            'config': config, 'init': 'annotmatch'}
         >>> start_resp = actor.handle(payload)
@@ -195,15 +195,15 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
     def start(actor, dbdir, aids='all', config={},
               **kwargs):
-        import ibeis
+        import wbia
         assert dbdir is not None, 'must specify dbdir'
         assert actor.infr is None, ('AnnotInference already running')
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False,
+        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False,
                            force_serial=True)
 
         # Create the AnnotInference
         print('starting via actor with ibs = %r' % (ibs, ))
-        actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
         # Configure query_annot_infr
@@ -310,12 +310,12 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 class GraphClient(object):
     """
     CommandLine:
-        python -m ibeis.web.graph_server GraphClient
+        python -m wbia.web.graph_server GraphClient
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.web.graph_server import *
-        >>> import ibeis
+        >>> from wbia.web.graph_server import *
+        >>> import wbia
         >>> client = GraphClient(autoinit=True)
         >>> # Start the GraphActor in another proc
         >>> payload = testdata_start_payload()
@@ -335,8 +335,8 @@ class GraphClient(object):
         >>> #print(client.post({'action': 'logs'}).result())
 
     # Ignore:
-    #     >>> from ibeis.web.graph_server import *
-    #     >>> import ibeis
+    #     >>> from wbia.web.graph_server import *
+    #     >>> import wbia
     #     >>> client = GraphClient(autoinit=True)
     #     >>> # Start the GraphActor in another proc
     #     >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
@@ -565,8 +565,8 @@ class GraphClient(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.graph_server
-        python -m ibeis.web.graph_server --allexamples
+        python -m wbia.web.graph_server
+        python -m wbia.web.graph_server --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

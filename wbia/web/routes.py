@@ -7,11 +7,11 @@ import random
 import math
 import simplejson as json
 from flask import request, redirect, current_app, url_for
-from ibeis.control import controller_inject
-from ibeis import constants as const
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
-from ibeis.web import appfuncs as appf
-from ibeis.web import routes_ajax
+from wbia.control import controller_inject
+from wbia import constants as const
+from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
+from wbia.web import appfuncs as appf
+from wbia.web import routes_ajax
 import utool as ut
 import numpy as np
 import os
@@ -20,7 +20,7 @@ import os
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 THROW_TEST_AOI_TURKING = False
@@ -516,7 +516,7 @@ def view_advanced0(**kwargs):
     nid_list_count = list(set(nid_list_count_dup))
 
     # Calculate the Petersen-Lincoln index form the last two days
-    from ibeis.other import dbinfo as dbinfo_
+    from wbia.other import dbinfo as dbinfo_
     try:
         try:
             raise KeyError()
@@ -1519,8 +1519,8 @@ def view_graphs(sync=False, **kwargs):
     ibs = current_app.ibs
 
     if sync:
-        import ibeis
-        import ibeis.constants as const
+        import wbia
+        import wbia.constants as const
 
         aid_list_ = ibs.get_valid_aids()
 
@@ -1540,15 +1540,15 @@ def view_graphs(sync=False, **kwargs):
             aid_list = ibs.check_ggr_valid_aids(aid_list_, species=species, threshold=0.75)
             ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
 
-            infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
+            infr = wbia.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
             infr.reset_feedback('staging', apply=True)
             num_pccs = len(list(infr.positive_components()))
             print('\tproposing PCCs for %r: %d' % (species, num_pccs, ))
 
             infr.relabel_using_reviews(rectify=True)
-            infr.write_ibeis_staging_feedback()
-            infr.write_ibeis_annotmatch_feedback()
-            infr.write_ibeis_name_assignment(notify_wildbook=False)
+            infr.write_wbia_staging_feedback()
+            infr.write_wbia_annotmatch_feedback()
+            infr.write_wbia_name_assignment(notify_wildbook=False)
 
         ibs.delete_empty_nids()
         nid_list = ibs.get_valid_nids()
@@ -2004,9 +2004,9 @@ def _make_review_image_info(ibs, gid):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gid = ibs.get_valid_gids()[0]
     """
     # Shows how to use new object-like interface to populate data
@@ -2633,13 +2633,13 @@ def turk_detection_dynamic(**kwargs):
 def turk_annotation(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_annotation --db PZ_Master1
+        python -m wbia.web.app --exec-turk_annotation --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
         >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
         >>> ibs.start_web_annot_groupreview(aid_list)
@@ -3256,13 +3256,13 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
 def turk_viewpoint(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m wbia.web.app --exec-turk_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
         >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
         >>> ibs.start_web_annot_groupreview(aid_list)
@@ -3320,13 +3320,13 @@ def turk_viewpoint(**kwargs):
 def turk_viewpoint2(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m wbia.web.app --exec-turk_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
         >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
         >>> ibs.start_web_annot_groupreview(aid_list)
@@ -3443,23 +3443,23 @@ def turk_viewpoint3(**kwargs):
 def commit_current_query_object_names(query_object, ibs):
     r"""
     Args:
-        query_object (ibeis.AnnotInference):
-        ibs (ibeis.IBEISController):  image analysis api
+        query_object (wbia.AnnotInference):
+        ibs (wbia.IBEISController):  image analysis api
     """
     # Ensure connected components are used to relabel names
     query_object.relabel_using_reviews()
     # Transfers any remaining internal feedback into staging
     # TODO:  uncomment once buffer is dead
-    # query_object.write_ibeis_staging_feedback()
+    # query_object.write_wbia_staging_feedback()
     # Commit a delta of the current annotmatch
-    query_object.write_ibeis_annotmatch_feedback()
-    query_object.write_ibeis_name_assignment()
+    query_object.write_wbia_annotmatch_feedback()
+    query_object.write_wbia_name_assignment()
 
 
 def precompute_current_review_match_images(ibs, query_object,
                                            global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                                            view_orientation='vertical'):
-    from ibeis.web import apis_query
+    from wbia.web import apis_query
 
     review_aid1_list, review_aid2_list = query_object.get_filtered_edges(GLOBAL_FEEDBACK_CONFIG_DICT)
     qreq_ = query_object.qreq_
@@ -3496,7 +3496,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                       **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.routes _init_identification_query_object
+        python -m wbia.web.routes _init_identification_query_object
 
     Ignore:
         # mount lev to the home drive
@@ -3505,10 +3505,10 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         # unmount
         fusermount -u ~/lev
 
-        import ibeis
-        ibs = ibeis.opendb(ut.truepath('~/lev/media/hdd/work/EWT_Cheetahs'))
+        import wbia
+        ibs = wbia.opendb(ut.truepath('~/lev/media/hdd/work/EWT_Cheetahs'))
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
-        infr = ibeis.AnnotInference(ibs, aid_list, autoinit=True)
+        infr = wbia.AnnotInference(ibs, aid_list, autoinit=True)
         infr.reset_feedback('staging')
         infr.apply_feedback_edges()
         infr.exec_matching()
@@ -3517,16 +3517,16 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.web.routes import *  # NOQA
-        >>> from ibeis.web.routes import _init_identification_query_object
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.web.routes import *  # NOQA
+        >>> from wbia.web.routes import _init_identification_query_object
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> ut.exec_funckw(_init_identification_query_object, locals())
         >>> kwargs = {}
         >>> _init_identification_query_object(ibs)
 
     """
-    import ibeis
+    import wbia
 
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
@@ -3536,7 +3536,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
     # Initailize a graph with no edges.
-    query_object = ibeis.AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
+    query_object = wbia.AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
 
     # Load feedback from the staging database (does not change graph state)
     query_object.reset_feedback('staging', apply=True)
@@ -3619,9 +3619,9 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
     if current_app.QUERY_OBJECT_JOBID is None:
         current_app.QUERY_OBJECT = None
         current_app.QUERY_OBJECT_JOBID = ibs.start_web_query_all()
-        # import ibeis
-        # web_ibs = ibeis.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
-        # query_object_jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/')
+        # import wbia
+        # web_ibs = wbia.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
+        # query_object_jobid = web_ibs.send_wbia_request('/api/engine/query/graph/')
         # print('query_object_jobid = %r' % (query_object_jobid, ))
         # current_app.QUERY_OBJECT_JOBID = query_object_jobid
 
@@ -3645,23 +3645,23 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                         **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.routes turk_identification --db PZ_Master1
-        python -m ibeis.web.routes turk_identification --db PZ_MTEST
-        python -m ibeis.web.routes turk_identification --db testdb1 --show
+        python -m wbia.web.routes turk_identification --db PZ_Master1
+        python -m wbia.web.routes turk_identification --db PZ_MTEST
+        python -m wbia.web.routes turk_identification --db testdb1 --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')
         >>> resp = web_ibs.get('/turk/identification/lnbnn/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.render_html(resp.content)
         >>> ut.show_if_requested()
     """
-    from ibeis.web import apis_query
+    from wbia.web import apis_query
 
     with ut.Timer('[web.routes.turk_identification] Load query_object'):
         ibs = current_app.ibs
@@ -4108,7 +4108,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
 
     if ibs.dbname == 'ZEBRA_Kaia':
         if tier not in [0]:
-            from ibeis.algo.graph import mixin_loops
+            from wbia.algo.graph import mixin_loops
             mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(desired_species='zebra', tier=4)
 
         assert imgsetid in [3925, 3926]
@@ -4261,21 +4261,21 @@ def delete_query_chips_graph_v2_refer(graph_uuid):
 def turk_identification_hardcase(*args, **kwargs):
     """
     CommandLine:
-        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
-        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
+        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/
 
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('PZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('PZ_Master1')
         >>> resp = web_ibs.get('/turk/identification/hardcase/')
         >>> web_ibs.terminate2()
 
     Ignore:
-        import ibeis
-        ibs, aids = ibeis.testdata_aids('PZ_Master1', a=':species=zebra_plains')
+        import wbia
+        ibs, aids = wbia.testdata_aids('PZ_Master1', a=':species=zebra_plains')
         print(len(aids))
-        infr = ibeis.AnnotInference(ibs, aids=aids, autoinit='staging')
+        infr = wbia.AnnotInference(ibs, aids=aids, autoinit='staging')
         infr.load_published()
         print(ut.repr4(infr.status()))
         infr.qt_review_loop()
@@ -4288,13 +4288,13 @@ def turk_identification_hardcase(*args, **kwargs):
         hardness = 1 - verif.easiness(edges, real)
 
     """
-    import ibeis
+    import wbia
     ibs = current_app.ibs
 
     # HACKS
     kwargs['hardcase'] = True
     if 'annot_uuid_list' not in kwargs:
-        aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
+        aids = wbia.testdata_aids(ibs=ibs, a=':species=primary')
         kwargs['annot_uuid_list'] = ibs.annots(aids).uuids
 
     return turk_identification_graph(*args, **kwargs)
@@ -4310,21 +4310,21 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.routes turk_identification_graph --db PZ_Master1
-        python -m ibeis.web.routes turk_identification_graph --db PZ_MTEST
-        python -m ibeis.web.routes turk_identification_graph --db testdb1 --show
+        python -m wbia.web.routes turk_identification_graph --db PZ_Master1
+        python -m wbia.web.routes turk_identification_graph --db PZ_MTEST
+        python -m wbia.web.routes turk_identification_graph --db testdb1 --show
 
-        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/ --noengine
+        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/ --noengine
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')
         >>> resp = web_ibs.get('/turk/identification/graph/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.render_html(resp.content)
         >>> ut.show_if_requested()
     """
@@ -4412,8 +4412,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
         if graph_uuid is None:
             if annot_uuid_list is None:
-                import ibeis
-                aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
+                import wbia
+                aids = wbia.testdata_aids(ibs=ibs, a=':species=primary')
                 annot_uuid_list = ibs.annots(aids).uuids
 
             print('[routes] Starting graph turk of {} annotations'.format(
@@ -4784,15 +4784,15 @@ def turk_quality(**kwargs):
     1302
 
     CommandLine:
-        python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
-        python -m ibeis.web.app --exec-turk_quality --db GZ_Master1
-        python -m ibeis.web.app --exec-turk_quality --db GIRM_Master1
+        python -m wbia.web.app --exec-turk_quality --db PZ_Master1
+        python -m wbia.web.app --exec-turk_quality --db GZ_Master1
+        python -m wbia.web.app --exec-turk_quality --db GIRM_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(qual=True)
         >>> valid_views = ['primary', 'primary1', 'primary-1']
         >>> aid_list = ibs.filter_aids_to_viewpoint(aid_list_, valid_views, unknown_ok=False)
@@ -5140,9 +5140,9 @@ def error404(exception=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

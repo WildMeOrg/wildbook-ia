@@ -91,12 +91,12 @@ class ResultMetadata(object):
 def make_metadata_custom_api(metadata):
     r"""
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --test-make_metadata_custom_api --show
+        python -m wbia.expt.experiment_drawing --test-make_metadata_custom_api --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.expt.experiment_drawing import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qapp()
         >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
         >>> metadata = ResultMetadata(metadata_fpath, autoconnect=True)
@@ -106,8 +106,8 @@ def make_metadata_custom_api(metadata):
         >>> wgt.raise_()
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
-    import ibeis.guitool
-    from ibeis.guitool.__PYQT__ import QtCore
+    import wbia.guitool
+    from wbia.guitool.__PYQT__ import QtCore
 
     class MetadataViewer(guitool.APIItemWidget):
         def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
@@ -185,7 +185,7 @@ def make_metadata_custom_api(metadata):
 
 
 def make_test_result_custom_api(ibs, testres):
-    import ibeis.guitool
+    import wbia.guitool
     guitool.ensure_qapp()
     cfgx = 0
     cfgres_info = testres.cfgx2_cmsinfo[cfgx]
@@ -252,14 +252,14 @@ def draw_results(ibs, testres):
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
 
-        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn
-        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
-        python -m ibeis.expt.old_storage --test-draw_results --show --db PZ_MTEST --gv
+        python -m wbia.expt.experiment_drawing --test-draw_results --show --vn
+        python -m wbia.expt.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
+        python -m wbia.expt.old_storage --test-draw_results --show --db PZ_MTEST --gv
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.old_storage import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.old_storage import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_results(ibs, testres)
         >>> # verify results
@@ -293,7 +293,7 @@ def draw_results(ibs, testres):
     #avuuids = ibs.get_annot_visual_uuids(qaids)
     #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
-    #import ibeis.guitool
+    #import wbia.guitool
 
     # ut.argv_flag_dec(draw_rank_cmc)(ibs, testres)
 
@@ -303,7 +303,7 @@ def draw_results(ibs, testres):
 
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):
-        import ibeis.guitool
+        import wbia.guitool
         guitool.ensure_qapp()
         #wgt = make_test_result_custom_api(ibs, testres)
         wgt = make_metadata_custom_api(metadata)
@@ -319,8 +319,8 @@ def draw_results(ibs, testres):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.expt.old_storage
-        python -m ibeis.expt.old_storage --allexamples
+        python -m wbia.expt.old_storage
+        python -m wbia.expt.old_storage --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

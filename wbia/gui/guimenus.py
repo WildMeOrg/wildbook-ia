@@ -6,8 +6,8 @@ as well as their callbacks in guiback
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
-from ibeis import constants as const
-import ibeis.guitool as gt
+from wbia import constants as const
+import wbia.guitool as gt
 ut.noinject(__name__, '[guimenus]')
 
 
@@ -27,16 +27,16 @@ class DummyBack(object):
 def setup_dummy_menus():
     r"""
     CommandLine:
-        python -m ibeis.gui.guimenus --test-setup_dummy_menus
+        python -m wbia.gui.guimenus --test-setup_dummy_menus
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.guimenus import *  # NOQA
+        >>> from wbia.gui.guimenus import *  # NOQA
         >>> result = setup_dummy_menus()
         >>> print(result)
     """
     #import unittest
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     gt.ensure_qapp()  # must be ensured before any embeding
     mainwin = gt.QtWidgets.QMainWindow()
     back = DummyBack()
@@ -306,7 +306,7 @@ def setup_help_menu(mainwin, back):
     """ HELP MENU """
     mainwin.menuHelp = mainwin.menubar.newMenu('Help')
     menu = mainwin.menuHelp
-    #from ibeis.control import DB_SCHEMA_CURRENT
+    #from wbia.control import DB_SCHEMA_CURRENT
     #version = DB_SCHEMA_CURRENT.VERSION_CURRENT
     menu.newAction(
         name='actionAbout',
@@ -581,10 +581,10 @@ def setup_zebra_menu(mainwin, back):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.guimenus --test-setup_dummy_menus
-        python -m ibeis.gui.guimenus
-        python -m ibeis.gui.guimenus --allexamples
-        python -m ibeis.gui.guimenus --allexamples --noface --nosrc
+        python -m wbia.gui.guimenus --test-setup_dummy_menus
+        python -m wbia.gui.guimenus
+        python -m wbia.gui.guimenus --allexamples
+        python -m wbia.gui.guimenus --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

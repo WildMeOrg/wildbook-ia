@@ -12,7 +12,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip
-from ibeis.algo.hots import pgm_ext
+from wbia.algo.hots import pgm_ext
 
 print, rrr, profile = ut.inject2(__name__)
 
@@ -94,7 +94,7 @@ def temp_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                   soft_evidence=soft_evidence,
                   **query_results)
 
-    from ibeis.algo.hots import pgm_viz
+    from wbia.algo.hots import pgm_viz
     pgm_viz.show_model(model, **showkw)
     return (model, evidence, query_results)
     # pgm_ext.print_ascii_graph(model)
@@ -106,13 +106,13 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
                     special_names=None):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --no-cnn
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --show --no-cnn
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --num-annots=3
+        python -m wbia.algo.hots.bayes --exec-make_name_model --no-cnn
+        python -m wbia.algo.hots.bayes --exec-make_name_model --show --no-cnn
+        python -m wbia.algo.hots.bayes --exec-make_name_model --num-annots=3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> defaults = dict(num_annots=2, num_names=2, verbose=True)
         >>> modeltype = ut.get_argval('--modeltype', default='bayes')
         >>> kw = ut.argparse_funckw(make_name_model, defaults)
@@ -224,11 +224,11 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
     r"""
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-update_model_evidence
+        python -m wbia.algo.hots.bayes --exec-update_model_evidence
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
         >>> name_evidence = [0, 0, 1, 1, None]
@@ -613,7 +613,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
                   method=None, operation='maximize'):
     """
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-cluster_query --show
+        python -m wbia.algo.hots.bayes --exec-cluster_query --show
 
     GridParams:
         >>> param_grid = dict(
@@ -626,7 +626,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         >>> method, = ut.dict_take(combos[index], keys)
 
     GridSetup:
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
         >>> name_evidence = [1, None, None, 0]
@@ -647,7 +647,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         >>>                               method=method)
         >>> print(ut.repr2(query_results['top_assignments'], nl=1))
         >>> ut.quit_if_noshow()
-        >>> from ibeis.algo.hots import pgm_viz
+        >>> from wbia.algo.hots import pgm_viz
         >>> pgm_viz.show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
     """
@@ -713,7 +713,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
 
 
 def draw_tree_model(model, **kwargs):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import networkx as netx
     if not ut.get_argval('--hackjunc'):
         fnum = pt.ensure_fnum(None)
@@ -828,25 +828,25 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-show_model --show
+        python -m wbia.algo.hots.bayes --exec-show_model --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> model = '?'
         >>> evidence = {}
         >>> soft_evidence = {}
         >>> result = show_model(model, evidence, soft_evidence)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
         draw_tree_model(model, **kwargs)
         return
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import networkx as netx
     fnum = pt.ensure_fnum(None)
     netx_graph = (model)
@@ -1086,8 +1086,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.bayes
-        python -m ibeis.algo.hots.bayes --allexamples
+        python -m wbia.algo.hots.bayes
+        python -m wbia.algo.hots.bayes --allexamples
     """
     if ut.VERBOSE:
         print('[hs] bayes')

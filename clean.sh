@@ -3,7 +3,7 @@
 rm -rf _skbuild
 rm -rf dist
 rm -rf build
-rm -rf ibeis.egg-info
+rm -rf wbia.egg-info
 
 rm -rf mb_work
 rm -rf wheelhouse

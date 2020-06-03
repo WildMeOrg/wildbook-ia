@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.guitool_decorators import signal_, slot_
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.guitool_decorators import signal_, slot_
 import utool as ut
-from ibeis.guitool import api_item_view
+from wbia.guitool import api_item_view
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -62,13 +62,13 @@ class APITreeView(API_VIEW_BASE):
         """ Header behavior
 
         CommandLine:
-            python -m ibeis.guitool.api_tree_view --test-_init_header_behavior
+            python -m wbia.guitool.api_tree_view --test-_init_header_behavior
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> # TODO figure out how to test these
-            >>> from ibeis.guitool.api_tree_view import *  # NOQA
-            >>> import ibeis.guitool as gt
+            >>> from wbia.guitool.api_tree_view import *  # NOQA
+            >>> import wbia.guitool as gt
             >>> app = gt.ensure_qapp()
             >>> view = APITreeView()
             >>> view._init_header_behavior()
@@ -122,13 +122,13 @@ class APITreeView(API_VIEW_BASE):
 def testdata_tree_view():
     r"""
     CommandLine:
-        python -m ibeis.guitool.api_tree_view testdata_tree_view
-        python -m ibeis.guitool.api_tree_view testdata_tree_view --show
+        python -m wbia.guitool.api_tree_view testdata_tree_view
+        python -m wbia.guitool.api_tree_view testdata_tree_view --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import ibeis.guitool as gt
-        >>> from ibeis.guitool.api_tree_view import *  # NOQA
+        >>> import wbia.guitool as gt
+        >>> from wbia.guitool.api_tree_view import *  # NOQA
         >>> wgt = testdata_tree_view()
         >>> view = wgt.view
         >>> rows = view.selectedRows()
@@ -137,7 +137,7 @@ def testdata_tree_view():
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=wgt)
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     gt.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {
@@ -192,9 +192,9 @@ def testdata_tree_view():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.api_tree_view
-        python -m ibeis.guitool.api_tree_view --allexamples
-        python -m ibeis.guitool.api_tree_view --allexamples --noface --nosrc
+        python -m wbia.guitool.api_tree_view
+        python -m wbia.guitool.api_tree_view --allexamples
+        python -m wbia.guitool.api_tree_view --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

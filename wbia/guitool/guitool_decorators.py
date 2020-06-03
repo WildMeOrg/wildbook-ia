@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import functools
-from ibeis.guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from ibeis.guitool.__PYQT__.QtCore import Qt      # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt      # NOQA
 import utool as ut
 from utool._internal import meta_util_six
 ut.noinject(__name__, '[guitool.decorators]', DEBUG=False)

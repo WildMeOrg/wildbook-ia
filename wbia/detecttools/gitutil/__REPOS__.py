@@ -19,7 +19,7 @@ IBEIS_REPOS_URLS, IBEIS_REPOS = repo_list([
     'https://github.com/Erotemic/plottool.git',
     'https://github.com/Erotemic/vtool.git',
     'https://github.com/Erotemic/hesaff.git',
-    'https://github.com/Erotemic/ibeis.git',
+    'https://github.com/Erotemic/wbia.git',
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/bluemellophone/detecttools.git',
 ], CODE_DIR)

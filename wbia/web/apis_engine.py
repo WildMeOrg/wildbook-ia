@@ -6,25 +6,25 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import utool as ut
 import uuid  # NOQA
-from ibeis.control import accessor_decors, controller_inject
-import ibeis.constants as const
+from wbia.control import accessor_decors, controller_inject
+import wbia.constants as const
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 def ensure_simple_server(port=5832):
     r"""
     CommandLine:
-        python -m ibeis.web.apis_engine --exec-ensure_simple_server
+        python -m wbia.web.apis_engine --exec-ensure_simple_server
         python -m utool.util_web --exec-start_simple_webserver
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
+        >>> from wbia.web.apis_engine import *  # NOQA
         >>> result = ensure_simple_server()
         >>> print(result)
     """
@@ -95,19 +95,19 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
 def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_list=[]):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         image_uuid_list (list): (default = [])
         qannot_uuid_list (list): (default = [])
         dannot_uuid_list (list): (default = [])
 
     CommandLine:
-        python -m ibeis.web.apis_engine --exec-web_check_uuids --show
+        python -m wbia.web.apis_engine --exec-web_check_uuids --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> image_uuid_list = []
         >>> qannot_uuid_list = ibs.get_annot_uuids([1, 1, 2, 3, 2, 4])
         >>> dannot_uuid_list = ibs.get_annot_uuids([1, 2, 3])
@@ -199,26 +199,26 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     CommandLine:
         # Run as main process
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:0
+        python -m wbia.web.apis_engine --exec-start_identify_annots:0
         # Run using server process
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1
+        python -m wbia.web.apis_engine --exec-start_identify_annots:1
 
         # Split into multiple processes
-        python -m ibeis.web.apis_engine --main --bg
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --fg
+        python -m wbia.web.apis_engine --main --bg
+        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --fg
 
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88
+        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88
 
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --duuids=[]
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
+        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --duuids=[]
+        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> from ibeis.web import apis_engine
-        >>> import ibeis
-        >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> from wbia.web import apis_engine
+        >>> import wbia
+        >>> ibs, qaids, daids = wbia.testdata_expanded_aids(
         >>>     defaultdb='PZ_MTEST', a=['default:qsize=2,dsize=10'])
         >>> qannot_uuid_list = ibs.get_annot_uuids(qaids)
         >>> dannot_uuid_list = ibs.get_annot_uuids(daids)
@@ -233,9 +233,9 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')  # , domain='http://52.33.105.88')
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = ibs.get_valid_aids()[0:2]
         >>> qaids = aids[0:1]
         >>> daids = aids
@@ -247,11 +247,11 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:2]
+        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> data = dict(
@@ -262,7 +262,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> # Start callback server
         >>> bgserver = ensure_simple_server()
         >>> # --
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/annot/rowid/', **data)
+        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/annot/rowid/', **data)
         >>> status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])
         >>> print('status_response = %s' % (status_response,))
         >>> result_response = web_ibs.read_engine_results(jobid)
@@ -279,8 +279,8 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     # Check UUIDs
     ibs.web_check_uuids([], qannot_uuid_list, dannot_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     qannot_uuid_list = ensure_uuid_list(qannot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(dannot_uuid_list)
@@ -412,20 +412,20 @@ def start_identify_annots_query(ibs,
 
     CommandLine:
         # Normal mode
-        python -m ibeis.web.apis_engine start_identify_annots_query
+        python -m wbia.web.apis_engine start_identify_annots_query
         # Split mode
-        ibeis --web
-        python -m ibeis.web.apis_engine start_identify_annots_query --show --domain=localhost
+        wbia --web
+        python -m wbia.web.apis_engine start_identify_annots_query --show --domain=localhost
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> import wbia
         >>> #domain = 'localhost'
         >>> domain = None
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', domain=domain)  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:3]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', domain=domain)  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:3]
+        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {
@@ -435,7 +435,7 @@ def start_identify_annots_query(ibs,
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
+        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/graph/', **data)
         >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
@@ -504,8 +504,8 @@ def start_identify_annots_query(ibs,
         database_annot_uuid_list, dname_list = vals
     ibs.web_check_uuids([], query_annot_uuid_list, database_annot_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
 
     qannot_uuid_list = ensure_uuid_list(query_annot_uuid_list)
@@ -583,8 +583,8 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
@@ -614,8 +614,8 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
@@ -636,8 +636,8 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -660,8 +660,8 @@ def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_m
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -705,8 +705,8 @@ def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callbac
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
@@ -747,15 +747,15 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
         callback_url (url) : url that will be called when detection succeeds or fails
 
     CommandLine:
-        python -m ibeis.web.apis_engine start_predict_ws_injury_interim_svm
+        python -m wbia.web.apis_engine start_predict_ws_injury_interim_svm
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_engine import *  # NOQA
-        >>> from ibeis.web import apis_engine
-        >>> import ibeis
-        >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(
+        >>> from wbia.web.apis_engine import *  # NOQA
+        >>> from wbia.web import apis_engine
+        >>> import wbia
+        >>> ibs, qaids, daids = wbia.testdata_expanded_aids(
         >>>     defaultdb='WS_ALL', a=['default:qsize=2,dsize=10'])
         >>> annot_uuid_list = ibs.get_annot_uuids(qaids)
         >>> ibs.initialize_job_manager()
@@ -769,8 +769,8 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import ibeis
-    #from ibeis.web import apis_engine
+    #import wbia
+    #from wbia.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     annots = ibs.annots(uuids=annot_uuid_list)
@@ -813,8 +813,8 @@ def start_flukebook_sync(ibs, **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.web.apis_engine
-        python -m ibeis.web.apis_engine --allexamples
+        python -m wbia.web.apis_engine
+        python -m wbia.web.apis_engine --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

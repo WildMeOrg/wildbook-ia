@@ -12,9 +12,9 @@ import utool as ut
 import numpy as np
 from six.moves import map
 import six  # NOQA
-from ibeis import constants as const
-from ibeis.init import sysres
-from ibeis.algo.hots import hstypes
+from wbia import constants as const
+from wbia.init import sysres
+from wbia.algo.hots import hstypes
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -39,24 +39,24 @@ def testdata_distinctiveness():
     """
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
     """
-    import ibeis
+    import wbia
     # build test data
     db = ut.get_argval('--db', str, 'testdb1')
     species = ut.get_argval('--species', str, None)
     aid = ut.get_argval('--aid', int, None)
-    ibs = ibeis.opendb(db)
+    ibs = wbia.opendb(db)
     if aid is not None:
         species = ibs.get_annot_species_texts(aid)
     if species is None:
         if db == 'testdb1':
-            species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+            species = wbia.const.TEST_SPECIES.ZEB_PLAIN
     daids = ibs.get_valid_aids(species=species)
     qaids = [aid] if aid is not None else daids
     qreq_ = ibs.new_query_request(qaids, daids)
-    dstcnvs_normer = request_ibeis_distinctiveness_normalizer(qreq_)
+    dstcnvs_normer = request_wbia_distinctiveness_normalizer(qreq_)
     return dstcnvs_normer, qreq_
 
 
@@ -114,11 +114,11 @@ class DistinctivnessNormalizer(ut.Cachable):
             cachedir (str):
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-publish
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-publish
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+            >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer = testdata_distinctiveness()[0]
             >>> dstcnvs_normer.rebuild()
             >>> dstcnvs_normer.save()
@@ -159,11 +159,11 @@ class DistinctivnessNormalizer(ut.Cachable):
             flag: load_success
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-exists
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-exists
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+            >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
             >>> # build test data
             >>> dstcnvs_normer = testdata_distinctiveness()[0]
             >>> assert dstcnvs_normer.exists()
@@ -253,18 +253,18 @@ class DistinctivnessNormalizer(ut.Cachable):
             qfx2_vec (ndarray):  mapping from query feature index to vec
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --db GZ_ALL --show
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .25
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .5
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .1
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 1&
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 2&
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --db GZ_ALL --show
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .25
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .5
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .1
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 1&
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 2&
+            python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+            >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.qaids[0]
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.qparams)
@@ -276,7 +276,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> assert np.all(qfx2_dstncvs) >= 0
             >>> ut.quit_if_noshow()
             >>> # Show distinctivness on an animal and a corresponding graph
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> chip = qreq_.ibs.get_annot_chips(qaid)
             >>> qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)
             >>> show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
@@ -350,7 +350,7 @@ def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs
 
 
 def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.figure(fnum, pnum=pnum)
     ax = pt.gca()
     divider = pt.ensure_divider(ax)
@@ -386,25 +386,25 @@ def download_baseline_distinctiveness_normalizer(cachedir, species):
     #ut.assert_eq(ut.unixpath(cachedir), dir_)
 
 
-def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
+def request_wbia_distinctiveness_normalizer(qreq_, verbose=True):
     r"""
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-request_ibeis_distinctiveness_normalizer
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-request_wbia_distinctiveness_normalizer
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> ibs = wbia.opendb('testdb1')
+        >>> daids = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(qaids, daids)
         >>> # execute function
-        >>> dstcnvs_normer = request_ibeis_distinctiveness_normalizer(qreq_)
+        >>> dstcnvs_normer = request_wbia_distinctiveness_normalizer(qreq_)
         >>> # verify results
         >>> assert dstcnvs_normer is not None
     """
@@ -456,11 +456,11 @@ def list_distinctivness_cache():
 def list_published_distinctivness():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-list_published_distinctivness
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-list_published_distinctivness
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> published_fpaths = list_published_distinctivness()
         >>> print(ut.repr2(published_fpaths))
     """
@@ -471,11 +471,11 @@ def list_published_distinctivness():
 def view_distinctiveness_model_dir():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-view_distinctiveness_model_dir
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-view_distinctiveness_model_dir
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> view_distinctiveness_model_dir()
     """
     global_distinctdir = sysres.get_global_distinctiveness_modeldir()
@@ -485,11 +485,11 @@ def view_distinctiveness_model_dir():
 def view_publish_dir():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-view_publish_dir
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-view_publish_dir
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> view_publish_dir()
     """
     ut.vd(PUBLISH_DIR)
@@ -499,16 +499,16 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     r"""
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
-        >>> import ibeis.plottool as pt
-        >>> import ibeis
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> import wbia.plottool as pt
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
+        >>> ibs = wbia.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
         >>> aid = ut.get_argval('--aid', type_=int, default=1)
         >>> # execute function
         >>> test_single_annot_distinctiveness_params(ibs, aid)
@@ -518,11 +518,11 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     # TODO: Also paramatarize the downweighting based on the keypoint size
     ####
     # HACK IN ABILITY TO SET CONFIG
-    from ibeis.init.main_commands import postload_commands
-    from ibeis.algo import Config
+    from wbia.init.main_commands import postload_commands
+    from wbia.algo import Config
     postload_commands(ibs, None)
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     #cfglbl_list = cfgdict_list
     #ut.all_dict_combinations_lbls(varied_dict)
@@ -572,13 +572,13 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
 def dev_train_distinctiveness(species=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         species (None):
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
+        python -m wbia.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
 
-        alias dev_train_distinctiveness='python -m ibeis.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness'
+        alias dev_train_distinctiveness='python -m wbia.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness'
         # Publishing (uses cached normalizers if available)
         dev_train_distinctiveness --species GZ --publish
         dev_train_distinctiveness --species PZ --publish
@@ -586,19 +586,19 @@ def dev_train_distinctiveness(species=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
+        >>> import wbia
         >>> species = ut.get_argval('--species', str, 'zebra_grevys')
         >>> dev_train_distinctiveness(species)
     """
-    import ibeis
+    import wbia
     #if 'species' not in vars() or species is None:
     #    species = 'zebra_grevys'
     if species == 'zebra_grevys':
         dbname = 'GZ_ALL'
     elif species == 'zebra_plains':
         dbname = 'PZ_Master0'
-    ibs = ibeis.opendb(dbname)
+    ibs = wbia.opendb(dbname)
     global_distinctdir = ibs.get_global_distinctiveness_modeldir()
     cachedir = global_distinctdir
     dstcnvs_normer = DistinctivnessNormalizer(species, cachedir=cachedir)
@@ -652,9 +652,9 @@ def dev_train_distinctiveness(species=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer
-        python -m ibeis.algo.hots.distinctiveness_normalizer --allexamples
-        python -m ibeis.algo.hots.distinctiveness_normalizer --allexamples --noface --nosrc
+        python -m wbia.algo.hots.distinctiveness_normalizer
+        python -m wbia.algo.hots.distinctiveness_normalizer --allexamples
+        python -m wbia.algo.hots.distinctiveness_normalizer --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

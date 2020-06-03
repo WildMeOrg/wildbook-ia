@@ -26,21 +26,21 @@ import functools
 import traceback  # NOQA
 import utool as ut
 import ubelt as ub
-import ibeis.guitool as gt
-from ibeis.guitool import slot_, signal_, cast_from_qt
-from ibeis.guitool.__PYQT__ import QtCore, QtGui, QtWidgets
-from ibeis import constants as const
-from ibeis.other import ibsfuncs
-from ibeis import sysres
-from ibeis import viz
-from ibeis.control import IBEISControl
-from ibeis.gui import clock_offset_gui
-from ibeis.gui import guiexcept
-from ibeis.gui import guiheaders as gh
-from ibeis.gui import newgui
-from ibeis.viz import interact
+import wbia.guitool as gt
+from wbia.guitool import slot_, signal_, cast_from_qt
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QtWidgets
+from wbia import constants as const
+from wbia.other import ibsfuncs
+from wbia import sysres
+from wbia import viz
+from wbia.control import IBEISControl
+from wbia.gui import clock_offset_gui
+from wbia.gui import guiexcept
+from wbia.gui import guiheaders as gh
+from wbia.gui import newgui
+from wbia.viz import interact
 from os.path import exists, join, dirname, normpath
-from ibeis.plottool import fig_presenter
+from wbia.plottool import fig_presenter
 from six.moves import zip
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 
@@ -117,17 +117,17 @@ def blocking_slot(*types_):
 class CustomAnnotCfgSelector(gt.GuitoolWidget):
     """
     CommandLine:
-        python -m ibeis.gui.guiback CustomAnnotCfgSelector --show
-        python -m ibeis.gui.guiback CustomAnnotCfgSelector --show --db PZ_MTEST
-        python -m ibeis.gui.guiback CustomAnnotCfgSelector --show --debugwidget
-        python -m ibeis.gui.guiback show_advanced_id_interface --show
+        python -m wbia.gui.guiback CustomAnnotCfgSelector --show
+        python -m wbia.gui.guiback CustomAnnotCfgSelector --show --db PZ_MTEST
+        python -m wbia.gui.guiback CustomAnnotCfgSelector --show --debugwidget
+        python -m wbia.gui.guiback show_advanced_id_interface --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.guiback import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.guiback import *  # NOQA
+        >>> import wbia
         >>> gt.ensure_qtapp()
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> self = CustomAnnotCfgSelector(ibs)
         >>> rect = gt.QtWidgets.QDesktopWidget().availableGeometry(screen=0)
         >>> self.move(rect.x(), rect.y())
@@ -137,10 +137,10 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
     def __init__(self, ibs):
-        from ibeis.expt import annotation_configs
-        from ibeis import dtool
-        from ibeis.guitool import PrefWidget2
-        from ibeis.guitool.__PYQT__.QtCore import Qt
+        from wbia.expt import annotation_configs
+        from wbia import dtool
+        from wbia.guitool import PrefWidget2
+        from wbia.guitool.__PYQT__.QtCore import Qt
         super(CustomAnnotCfgSelector, self).__init__()
         self.ibs = ibs
 
@@ -201,7 +201,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             cfg['reviewed'] = True
             cfg['multiple'] = False
             #cfg['min_pername'] = 0
-            #from ibeis.other import ibsfuncs
+            #from wbia.other import ibsfuncs
             cfg['species'] = self.ibs.get_primary_database_species()
             cfg['require_viewpoint'] = True
             cfg['view'] = ibsfuncs.get_primary_species_viewpoint(cfg['species'])
@@ -323,8 +323,8 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         utool.embed()
 
     def make_commandline_str(self):
-        from ibeis.expt import experiment_helpers
-        from ibeis.expt import annotation_configs
+        from wbia.expt import experiment_helpers
+        from wbia.expt import annotation_configs
         cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
             ['default:'], ibs=self.ibs)
         default_pcfg = dict(pipecfg_list[0].parse_items())
@@ -332,16 +332,16 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         p = ut.get_cfg_lbl(self.pcfg.asdict(), name='default', default_cfg=default_pcfg)
         a = 'default' + annotation_configs.get_varied_acfg_labels([self.acfg, annotation_configs.default])[0]
         dbdir = self.ibs.get_dbdir()
-        ibeis_part = ['python', '-m', 'ibeis']
+        wbia_part = ['python', '-m', 'wbia']
         data_part = ['--dbdir', dbdir, '-a', a, '-t', p]
-        cmd_parts = ibeis_part + ['draw_rank_cmc'] + data_part + ['--show']
+        cmd_parts = wbia_part + ['draw_rank_cmc'] + data_part + ['--show']
         cmdstr = ' '.join(cmd_parts)
         return cmdstr
 
     def populate_table(self):
         #data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
         print('Updating saved query table')
-        from ibeis.guitool.__PYQT__.QtCore import Qt
+        from wbia.guitool.__PYQT__.QtCore import Qt
         self.table_data = self.get_saved_queries()
         horHeaders = ['fname', 'num_qaids', 'num_daids', 'has_bc']
         data = self.table_data
@@ -400,7 +400,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
     def update_config_info(self, extra=None):
         ibs = self.ibs
-        from ibeis.algo.Config import QueryConfig
+        from wbia.algo.Config import QueryConfig
         # use defaults instead of back's ibs.cfg
         query_cfg = QueryConfig()
         self.qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
@@ -508,7 +508,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         # us to re-load that query even if its slightly invalid
 
         if qreq_ is None and test:
-            from ibeis.algo.Config import QueryConfig
+            from wbia.algo.Config import QueryConfig
             query_cfg = QueryConfig()
             qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
                                                cfgdict=self.pcfg, query_cfg=query_cfg)
@@ -577,7 +577,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             else:
                 raise guiexcept.UserCancel()
         self.accept_flag = True
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
 
         review_cfg = self.review_cfg.asdict().copy()
 
@@ -601,7 +601,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             self.populate_table()
 
     def load_bc(self):
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
         review_cfg = self.review_cfg.asdict().copy()
         bc_dpath, bc_fname, bc_cfgstr = self.bc_info
         qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
@@ -626,11 +626,11 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         parent (None): (default = None)
 
     CommandLine:
-        python -m ibeis.gui.guiback NewDatabaseWidget --show
+        python -m wbia.gui.guiback NewDatabaseWidget --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> from wbia.gui.guiback import *  # NOQA
         >>> gt.ensure_qtapp()
         >>> self = NewDatabaseWidget(back=None)
         >>> self.resize(400, 200)
@@ -731,8 +731,8 @@ class NewDatabaseWidget(gt.GuitoolWidget):
             self.workdir_row.edit.setText(new_workdir)
             self.update_state()
             if self.back is not None:
-                import ibeis
-                ibeis.sysres.set_workdir(work_dir=new_workdir, allow_gui=False)
+                import wbia
+                wbia.sysres.set_workdir(work_dir=new_workdir, allow_gui=False)
 
     def create_in_workdir(self):
         print('Create in Workdir')
@@ -774,15 +774,15 @@ class MainWindowBackend(GUIBACK_BASE):
     Sends and recieves signals to and from the frontend
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api(default = None)
+        ibs (wbia.IBEISController):  image analysis api(default = None)
 
     CommandLine:
-        python -m ibeis.gui.guiback MainWindowBackend --show
+        python -m wbia.gui.guiback MainWindowBackend --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.guiback import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.guiback import *  # NOQA
+        >>> import wbia
         >>> back = testdata_guiback(defaultdb=None)
         >>> ut.quit_if_noshow()
         >>> ut.quit_if_noshow()
@@ -825,7 +825,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibswgt = back.front  # Alias
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
-        # register self with the ibeis controller
+        # register self with the wbia controller
         back.register_self()
         #back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
 
@@ -865,7 +865,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     #@ut.indent_func
     def notify_controller_killed(back):
-        """ Observer's notify function that the ibeis controller has been killed. """
+        """ Observer's notify function that the wbia controller has been killed. """
         back.ibs = None
 
     def register_self(back):
@@ -1026,7 +1026,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def review_queries(back, cm_list, qreq_=None, review_cfg={}, query_title=''):
         # Qt QueryResults Interaction
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
         ibs = back.ibs
 
         def finished_review_callback():
@@ -1069,18 +1069,18 @@ class MainWindowBackend(GUIBACK_BASE):
         back.front.update_tables()
         back.ibswgt.update_species_available(reselect=True)
 
-    def connect_ibeis_control(back, ibs):
+    def connect_wbia_control(back, ibs):
         if ut.VERBOSE:
-            print('[back] connect_ibeis(ibs=%r)' % (ibs,))
+            print('[back] connect_wbia(ibs=%r)' % (ibs,))
         if ibs is None:
             return None
         back.ibs = ibs
-        # register self with the ibeis controller
+        # register self with the wbia controller
         back.register_self()
         # deselect
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_imgsetids=[None])
-        back.front.connect_ibeis_control(ibs)
+        back.front.connect_wbia_control(ibs)
         exemplar_gsid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
         num_exemplars = len(ibsfuncs._get_gids_in_imgsetid(ibs, exemplar_gsid))
         if num_exemplars == 0:
@@ -1369,17 +1369,17 @@ class MainWindowBackend(GUIBACK_BASE):
         """ Action -> Delete Annotation
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-delete_annot --show
-            python -m ibeis.gui.guiback --test-delete_annot --show --no-api-cache
-            python -m ibeis.gui.guiback --test-delete_annot --show --assert-api-cache
-            python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
+            python -m wbia.gui.guiback --test-delete_annot --show
+            python -m wbia.gui.guiback --test-delete_annot --show --no-api-cache
+            python -m wbia.gui.guiback --test-delete_annot --show --assert-api-cache
+            python -m wbia.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 
         SeeAlso:
             manual_annot_funcs.delete_annots
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
             >>> imgsetid_list = back.ibs.get_valid_imgsetids()
@@ -1526,7 +1526,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def train_rf_with_imageset(back, **kwargs):
-        from ibeis.algo.detect import randomforest
+        from wbia.algo.detect import randomforest
         imgsetid = back._eidfromkw(kwargs)
         if imgsetid < 0:
             gid_list = back.ibs.get_valid_gids()
@@ -1688,20 +1688,20 @@ class MainWindowBackend(GUIBACK_BASE):
         Group Step for computing occurrneces
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
+            python -m wbia.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
             >>> back.do_group_occurrence_step()
             >>> ut.quit_if_noshow()
         """
         print('[back] do_group_occurrence_step')
-        from ibeis import dtool
+        from wbia import dtool
         #class TmpConfig(dtool.Config):
         #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
         ibs = back.ibs
@@ -1793,13 +1793,13 @@ class MainWindowBackend(GUIBACK_BASE):
             refresh (bool): (default = True)
 
         CommandLine:
-            python -m ibeis.gui.guiback run_detection_step --show
+            python -m wbia.gui.guiback run_detection_step --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.run_detection_step, globals())
             >>> back.run_detection_step()
@@ -1825,7 +1825,7 @@ class MainWindowBackend(GUIBACK_BASE):
         review_in_web = True
         comp_name = ut.get_computer_name()
         db_name = ibs.dbname
-        is_lewa = comp_name in ['ibeis.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
+        is_lewa = comp_name in ['wbia.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
         if is_lewa:
             review_in_web_mode = 'annotations'
         else:
@@ -1834,7 +1834,7 @@ class MainWindowBackend(GUIBACK_BASE):
         assert review_in_web_mode in ['detections', 'annotations']
         if True:
             # TODO better confirm dialog
-            from ibeis import dtool
+            from wbia import dtool
             species_text = ibs.get_all_species_texts()
             species_nice = ibs.get_all_species_nice()
             class TmpDetectConfig(dtool.Config):
@@ -1949,23 +1949,23 @@ class MainWindowBackend(GUIBACK_BASE):
     def show_advanced_id_interface(back):
         """
         CommandLine:
-            python -m ibeis.gui.guiback show_advanced_id_interface --show
+            python -m wbia.gui.guiback show_advanced_id_interface --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.show_advanced_id_interface, globals())
             >>> back.show_advanced_id_interface()
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
             >>> #gt.ensure_qapp()  # must be ensured before any embeding
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> gt.qtapp_loop(qwin=back)
         """
-        #from ibeis.init import filter_annots
+        #from wbia.init import filter_annots
         #filter_kw = filter_annots.get_default_annot_filter_form()
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
@@ -1997,7 +1997,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         # TODO better confirm dialog
         if True:
-            from ibeis import dtool
+            from wbia import dtool
             ibs = back.ibs   # NOQA
             #class TmpIDConfig(dtool.Config):
             #    _param_info_list = [
@@ -2075,18 +2075,18 @@ class MainWindowBackend(GUIBACK_BASE):
             ./reset_dbs.py && ./main.py --query 1 -y
             ./reset_dbs.py --reset-mtest && ./main.py --query 1 -y --db PZ_MTEST --progtext
             ./main.py --query 1 -y
-            python -m ibeis --query 1 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=32 -y
+            python -m wbia --query 1 -y
+            python -m wbia --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
+            python -m wbia --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
+            python -m wbia --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m wbia --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m wbia --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=32 -y
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(db='testdb2')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(db='testdb2')
             >>> back = main_locals['back']
             >>> ibs = back.ibs
             >>> query_is_known = None
@@ -2269,13 +2269,13 @@ class MainWindowBackend(GUIBACK_BASE):
                                 query_title=None):
         r"""
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
+            python -m wbia.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.make_confirm_query_msg2, globals())
             >>> imgsetid = ibs.get_imageset_imgsetids_from_text('*All Images')
@@ -2375,11 +2375,11 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list (int):  list of annotation ids
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
+            python -m wbia.gui.guiback --test-MainWindowBackend.run_annot_splits --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
             >>> aids_list, nids = back.ibs.group_annots_by_name(back.ibs.get_valid_aids())
@@ -2414,7 +2414,7 @@ class MainWindowBackend(GUIBACK_BASE):
                             review_cfg=review_cfg)
 
         if False:
-            from ibeis.viz import viz_graph2
+            from wbia.viz import viz_graph2
             import imp
             imp.reload(viz_graph2)
             win = viz_graph2.make_qt_graph_review(qreq_, cm_list,
@@ -2426,11 +2426,11 @@ class MainWindowBackend(GUIBACK_BASE):
         Checks for missed matches within a group of annotations
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-run_merge_checks --show
+            python -m wbia.gui.guiback --test-run_merge_checks --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> result = back.run_merge_checks()
             >>> print(result)
@@ -2459,7 +2459,7 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        from ibeis import dtool
+        from wbia import dtool
         config = dtool.Config.from_dict({
             'K': 1,
             'Knorm': 5,
@@ -2696,24 +2696,24 @@ class MainWindowBackend(GUIBACK_BASE):
             refresh (bool): (default = True)
 
         CommandLine:
-            python -m ibeis.gui.guiback commit_to_wb_step --show
+            python -m wbia.gui.guiback commit_to_wb_step --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
+            >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
             >>> dry = True
             >>> back.do_group_occurrence_step(dry=dry)
 
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> refresh = True
             >>> result = back.commit_to_wb_step(refresh)
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> ut.show_if_requested()
         """
         imgsetid = back.get_selected_imgsetid()
@@ -2855,7 +2855,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def view_app_files_dir(back):
         print('[back] view_app_files_dir')
-        ut.view_directory(ut.get_app_resource_dir('ibeis'))
+        ut.view_directory(ut.get_app_resource_dir('wbia'))
         pass
 
     @slot_()
@@ -2914,7 +2914,7 @@ class MainWindowBackend(GUIBACK_BASE):
         msg = ('[back] delete_global_prefs')
         if not back.are_you_sure(msg):
             return
-        ut.delete(ut.get_app_resource_dir('ibeis', 'global_cache'))
+        ut.delete(ut.get_app_resource_dir('wbia', 'global_cache'))
 
     @slot_()
     @backreport
@@ -2955,7 +2955,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.ibs is not None:
             back.ibs.reset_table_cache()
         back.refresh_state()
-        from ibeis.plottool import draw_func2 as df2
+        from wbia.plottool import draw_func2 as df2
         df2.update()
 
     @slot_()
@@ -2965,12 +2965,12 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs.export_to_xml()
 
     def start_web_server_parallel(back, browser=True):
-        import ibeis
+        import wbia
         ibs = back.ibs
         if back.web_ibs is None:
             print('[guiback] Starting web service')
-            # back.web_ibs = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
-            back.web_ibs = ibeis.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
+            # back.web_ibs = wbia.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
+            back.web_ibs = wbia.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
                                                browser=browser,
                                                start_job_queue=False)
             print('[guiback] Web service started')
@@ -3009,12 +3009,12 @@ class MainWindowBackend(GUIBACK_BASE):
             new_dbdir (None): (default = None)
 
         CommandLine:
-            python -m ibeis.gui.guiback new_database --show
+            python -m wbia.gui.guiback new_database --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
             >>> #back = testdata_guiback(defaultdb='testdb1')
             >>> back = testdata_guiback(defaultdb=None)
             >>> dbdir = None
@@ -3059,8 +3059,8 @@ class MainWindowBackend(GUIBACK_BASE):
                 print('[back] new_database(new_dbdir=%r)' % new_dbdir)
                 back.open_database(dbdir=new_dbdir)
             else:
-                from ibeis.guitool.__PYQT__.QtCore import Qt  # NOQA
-                from ibeis.guitool.__PYQT__ import QtGui  # NOQA
+                from wbia.guitool.__PYQT__.QtCore import Qt  # NOQA
+                from wbia.guitool.__PYQT__ import QtGui  # NOQA
                 dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
                                                   on_chosen=back.open_database,
                                                   mode='new')
@@ -3075,11 +3075,11 @@ class MainWindowBackend(GUIBACK_BASE):
             dbdir (None): (default = None)
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-open_database
+            python -m wbia.gui.guiback --test-open_database
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='testdb1')
             >>> testdb0 = sysres.db_to_dbdir('testdb0')
             >>> testdb1 = sysres.db_to_dbdir('testdb1')
@@ -3087,8 +3087,8 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.open_database(testdb1)
             >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
             >>> back.open_database(testdb0)
-            >>> import ibeis
-            >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
+            >>> import wbia
+            >>> #dbdir = join(wbia.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
             >>> dbdir = None
             >>> result = back.open_database(dbdir)
             >>> print(result)
@@ -3102,11 +3102,11 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] open_database(dbdir=%r)' % dbdir)
         with ut.Indenter(lbl='    [opendb]'):
             try:
-                # should this use ibeis.opendb? probably. at least it should be
+                # should this use wbia.opendb? probably. at least it should be
                 # be request IBEISControl
                 #ibs = IBEISControl.IBEISController(dbdir=dbdir)
                 ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
-                back.connect_ibeis_control(ibs)
+                back.connect_wbia_control(ibs)
             except Exception as ex:
                 ut.printex(ex, 'caught Exception while opening database')
                 raise
@@ -3244,13 +3244,13 @@ class MainWindowBackend(GUIBACK_BASE):
             list: gid_list
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show
-            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --auto
+            python -m wbia.gui.guiback --test-import_images_from_dir_with_smart --show
+            python -m wbia.gui.guiback --test-import_images_from_dir_with_smart --show --auto
 
         Example:
             >>> # DEV_GUI_DOCTEST
             >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='freshsmart_test', delete_ibsdir=True, allow_newdir=True)
             >>> ibs = back.ibs
             >>> defaultdir = ut.truepath('~/lewa-desktop/Desktop/GZ_Foal_Patrol_22_06_2015')
@@ -3576,7 +3576,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def update_species_nice_name(back):
-        from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
+        from wbia.control.manual_species_funcs import _convert_species_nice_to_code
         ibs = back.ibs
         species_text = back.get_selected_species()
         if species_text in [const.UNKNOWN, '']:
@@ -3639,7 +3639,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def run_tests(back):
-        from ibeis.tests import run_tests
+        from wbia.tests import run_tests
         run_tests.run_tests()
 
     @slot_()
@@ -3654,7 +3654,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def assert_modules(back):
-        from ibeis.tests import assert_modules
+        from wbia.tests import assert_modules
         detailed_msg = assert_modules.assert_modules()
         gt.msgbox(msg="Running checks", title="Module Checks", detailed_msg=detailed_msg)
 
@@ -3662,11 +3662,11 @@ class MainWindowBackend(GUIBACK_BASE):
     def display_dbinfo(back):
         r"""
         CommandLine:
-            python -m ibeis.gui.guiback --test-display_dbinfo
+            python -m wbia.gui.guiback --test-display_dbinfo
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> result = back.display_dbinfo()
             >>> print(result)
@@ -3677,17 +3677,17 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def show_about_message(back):
-        import ibeis
-        version = ibeis.__version__
-        about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
+        import wbia
+        version = wbia.__version__
+        about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://wbia.org/' % (version,)
         gt.msgbox(msg=about_msg, title='About')
 
     @slot_()
     def take_screenshot(back):
         """ dev command only """
         print('[back] TAKING SCREENSHOT')
-        from ibeis.guitool.__PYQT__.QtGui import QPixmap
-        #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
+        from wbia.guitool.__PYQT__.QtGui import QPixmap
+        #screengrab_fpath = ut.truepath('~/latex/wbia_userguide/figures/filemenu.jpg')
 
         # Find the focused window
         app = gt.get_qtapp()
@@ -3722,7 +3722,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def make_qt_graph_interface(back):
-        from ibeis.viz import viz_graph2
+        from wbia.viz import viz_graph2
         imgsetid = back.get_selected_imgsetid()
         aids = back.ibs.get_valid_aids(imgsetid=imgsetid)
         if len(aids) == 0:
@@ -3731,7 +3731,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def reconnect_controller(back):
-        back.connect_ibeis_control(back.ibs)
+        back.connect_wbia_control(back.ibs)
 
     @slot_()
     def browse_wildbook(back):
@@ -3740,18 +3740,18 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def install_wildbook(back):
-        import ibeis.control.wildbook_manager as wb_man
+        import wbia.control.wildbook_manager as wb_man
         wb_man.install_wildbook()
 
     @slot_()
     def startup_wildbook(back):
-        import ibeis.control.wildbook_manager as wb_man
+        import wbia.control.wildbook_manager as wb_man
         back.wb_server_running = True
         wb_man.startup_wildbook_server()
 
     @slot_()
     def shutdown_wildbook(back):
-        import ibeis.control.wildbook_manager as wb_man
+        import wbia.control.wildbook_manager as wb_man
         wb_man.shutdown_wildbook_server()
         back.wb_server_running = False
 
@@ -3761,24 +3761,24 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def set_workdir(back):
-        import ibeis
-        ibeis.sysres.set_workdir(work_dir=None, allow_gui=True)
+        import wbia
+        wbia.sysres.set_workdir(work_dir=None, allow_gui=True)
 
     @slot_()
     def ensure_demodata(back):
-        from ibeis import demodata
+        from wbia import demodata
         demodata.ensure_demodata()
 
     @slot_()
     def launch_ipy_notebook(back):
-        from ibeis.templates import generate_notebook
+        from wbia.templates import generate_notebook
         generate_notebook.autogen_ipynb(back.ibs, launch=True)
 
     @slot_()
     def update_source_install(back):
-        import ibeis
+        import wbia
         from os.path import dirname
-        repo_path = dirname(ut.truepath(ut.get_modpath(ibeis, prefer_pkg=True)))
+        repo_path = dirname(ut.truepath(ut.get_modpath(wbia, prefer_pkg=True)))
         with ut.ChdirContext(repo_path):
             command = ut.python_executable() + ' super_setup.py pull'
             ut.cmd(command)
@@ -3791,13 +3791,13 @@ class MainWindowBackend(GUIBACK_BASE):
 
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):
-    import ibeis
+    import wbia
     print('testdata guiback')
     if defaultdb is None:
-        back = ibeis.main_module._init_gui()
+        back = wbia.main_module._init_gui()
         #back = MainWindowBackend()
     else:
-        main_locals = ibeis.main(defaultdb=defaultdb, **kwargs)
+        main_locals = wbia.main(defaultdb=defaultdb, **kwargs)
         back = main_locals['back']
     return back
 
@@ -3805,7 +3805,7 @@ def testdata_guiback(defaultdb='testdb2', **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ibeis.gui.guiback
+        xdoctest -m wbia.gui.guiback
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

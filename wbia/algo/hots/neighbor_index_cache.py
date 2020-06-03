@@ -6,8 +6,8 @@ from os.path import join
 import six
 import utool as ut
 from six.moves import range, zip, map  # NOQA
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-from ibeis.algo.hots.neighbor_index import NeighborIndex, get_support_data
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -149,21 +149,21 @@ UUID_MAP_CACHE = UUIDMapHyrbridCache()
 def get_nnindexer_uuid_map_fpath(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache get_nnindexer_uuid_map_fpath
+        python -m wbia.algo.hots.neighbor_index_cache get_nnindexer_uuid_map_fpath
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fgw_thresh=.3')
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', p='default:fgw_thresh=.3')
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
 
-        .../_ibeis_cache/flann/uuid_map_mzwwsbjisbkdxorl.cPkl
-        .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees_fgwthrsh=0.3)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
-        .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
-        .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
+        .../_wbia_cache/flann/uuid_map_mzwwsbjisbkdxorl.cPkl
+        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees_fgwthrsh=0.3)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
+        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
+        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
     """
     flann_cachedir = qreq_.ibs.get_flann_cachedir()
     # Have uuid shelf conditioned on the baseline flann and feature parameters
@@ -197,14 +197,14 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         str: nnindex_cfgstr
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr
+        python -m wbia.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(db='testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> result = str(nnindex_cfgstr)
@@ -233,13 +233,13 @@ def clear_memcache():
 def clear_uuid_cache(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-clear_uuid_cache
+        python -m wbia.algo.hots.neighbor_index_cache --test-clear_uuid_cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=True')
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=True')
         >>> fgws_list = clear_uuid_cache(qreq_)
         >>> result = str(fgws_list)
         >>> print(result)
@@ -254,13 +254,13 @@ def clear_uuid_cache(qreq_):
 def print_uuid_cache(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-print_uuid_cache
+        python -m wbia.algo.hots.neighbor_index_cache --test-print_uuid_cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_Master0', p='default:fg_on=False')
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_Master0', p='default:fg_on=False')
         >>> print_uuid_cache(qreq_)
         >>> result = str(nnindexer)
         >>> print(result)
@@ -271,7 +271,7 @@ def print_uuid_cache(qreq_):
     print(candidate_uuids)
 
 
-def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
+def request_wbia_nnindexer(qreq_, verbose=True, **kwargs):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
     IBEIS interface into neighbor_index_cache
@@ -283,25 +283,25 @@ def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
         NeighborIndexer: nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache request_ibeis_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache request_wbia_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer(None)
-        >>> nnindexer = request_ibeis_nnindexer(qreq_)
+        >>> nnindexer = request_wbia_nnindexer(qreq_)
     """
     daid_list = qreq_.get_internal_daids()
     if not hasattr(qreq_.qparams, 'use_augmented_indexer'):
         qreq_.qparams.use_augmented_indexer = True
     if False and qreq_.qparams.use_augmented_indexer:
-        nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list, **kwargs)
+        nnindexer = request_augmented_wbia_nnindexer(qreq_, daid_list, **kwargs)
     else:
-        nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list, **kwargs)
+        nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list, **kwargs)
     return nnindexer
 
 
-def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
+def request_augmented_wbia_nnindexer(qreq_, daid_list, verbose=True,
                                       use_memcache=True, force_rebuild=False,
                                       memtrack=None):
     r"""
@@ -319,15 +319,15 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         str: nnindex_cfgstr
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_augmented_ibeis_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache --test-request_augmented_wbia_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ibs = wbia.opendb('testdb1')
         >>> use_memcache, max_covers, verbose = True, None, True
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:6]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
@@ -338,20 +338,20 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         >>> # LOAD 3 AIDS INTO CACHE
         >>> aid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
         >>> # Should fallback
-        >>> nnindexer = request_augmented_ibeis_nnindexer(qreq_, aid_list)
+        >>> nnindexer = request_augmented_wbia_nnindexer(qreq_, aid_list)
         >>> # assert the fallback
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result2 = uncovered_aids, covered_aids_list
         >>> ut.assert_eq(result2, ([4, 5, 6], [[1, 2, 3]]), 'pre augment')
         >>> # Should augment
-        >>> nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list)
+        >>> nnindexer = request_augmented_wbia_nnindexer(qreq_, daid_list)
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result3 = uncovered_aids, covered_aids_list
         >>> ut.assert_eq(result3, ([], [[1, 2, 3, 4, 5, 6]]), 'post augment')
         >>> # Should fallback
-        >>> nnindexer2 = request_augmented_ibeis_nnindexer(qreq_, daid_list)
+        >>> nnindexer2 = request_augmented_wbia_nnindexer(qreq_, daid_list)
         >>> assert nnindexer is nnindexer2
     """
     global NEIGHBOR_CACHE
@@ -373,7 +373,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                   (len(covered_aids), len(new_daid_list)))
         # Load the base covered indexer
         # THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED
-        base_nnindexer = request_memcached_ibeis_nnindexer(
+        base_nnindexer = request_memcached_wbia_nnindexer(
             qreq_, covered_aids, verbose=verbose, use_memcache=use_memcache)
         # Remove this indexer from the memcache because we are going to change it
         if NEIGHBOR_CACHE.has_key(base_nnindexer.cfgstr):  # NOQA
@@ -409,14 +409,14 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         if verbose:
             print('[aug] Nothing to augment, fallback to memcache')
         # Fallback
-        nnindexer = request_memcached_ibeis_nnindexer(
+        nnindexer = request_memcached_wbia_nnindexer(
             qreq_, daid_list, verbose=verbose, use_memcache=use_memcache,
             force_rebuild=force_rebuild, memtrack=memtrack
         )
         return nnindexer
 
 
-def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
+def request_memcached_wbia_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=ut.NOT_QUIET, veryverbose=False,
                                       force_rebuild=False, memtrack=None,
                                       prog_hook=None):
@@ -425,22 +425,22 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     takes custom daid list. might not be the same as what is in qreq_
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_memcached_ibeis_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache --test-request_memcached_wbia_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> qreq_.qparams.min_reindex_thresh = 3
-        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> verbose = True
         >>> use_memcache = True
         >>> # execute function
-        >>> nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache)
+        >>> nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list, use_memcache)
         >>> # verify results
         >>> result = str(nnindexer)
         >>> print(result)
@@ -463,7 +463,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
             print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
-        nnindexer = request_diskcached_ibeis_nnindexer(
+        nnindexer = request_diskcached_wbia_nnindexer(
             qreq_, daid_list, nnindex_cfgstr, verbose,
             force_rebuild=force_rebuild, memtrack=memtrack,
             prog_hook=prog_hook)
@@ -479,7 +479,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     return nnindexer
 
 
-def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None,
+def request_diskcached_wbia_nnindexer(qreq_, daid_list, nnindex_cfgstr=None,
                                        verbose=True, force_rebuild=False,
                                        memtrack=None, prog_hook=None):
     r"""
@@ -496,20 +496,20 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None,
         NeighborIndexer: nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_diskcached_ibeis_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache --test-request_diskcached_wbia_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> ibs = wbia.opendb('testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> verbose = True
         >>> # execute function
-        >>> nnindexer = request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)
+        >>> nnindexer = request_diskcached_wbia_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)
         >>> # verify results
         >>> result = str(nnindexer)
         >>> print(result)
@@ -555,14 +555,14 @@ def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-group_daids_by_cached_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache --test-group_daids_by_cached_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
+        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # Set the params a bit lower
@@ -578,7 +578,7 @@ def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
         >>> result1 = uncovered_aids, covered_aids_list
         >>> ut.assert_eq(result1, ([1, 2, 3], []), 'pre request')
         >>> # TEST 2: SHOULD MAKE 123 COVERED
-        >>> nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list)
+        >>> nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list)
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result2 = uncovered_aids, covered_aids_list
@@ -616,7 +616,7 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, 
                        cfgstr, force_rebuild=False, verbose=True,
                        memtrack=None, prog_hook=None):
     r"""
-    constructs neighbor index independent of ibeis
+    constructs neighbor index independent of wbia
 
     Args:
         daid_list (list):
@@ -631,13 +631,13 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, 
         nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-new_neighbor_index
+        python -m wbia.algo.hots.neighbor_index_cache --test-new_neighbor_index
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', a='default:species=zebra_plains', p='default:fgw_thresh=.999')
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', a='default:species=zebra_plains', p='default:fgw_thresh=.999')
         >>> daid_list = qreq_.daids
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> ut.exec_funckw(new_neighbor_index, globals())
@@ -672,28 +672,28 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
 
     Ignore:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.ensureqt()
         >>> pt.plt.imshow(S)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
-    import ibeis
+    import wbia
     daid_list = [7, 8, 9, 10, 11]
-    ibs = ibeis.opendb(db=dbname)
+    ibs = wbia.opendb(db=dbname)
     # use_memcache isn't use here because we aren't lazy loading the indexer
     cfgdict = dict(fg_on=False)
     qreq_ = ibs.new_query_request(daid_list, daid_list,
                                   use_memcache=use_memcache, cfgdict=cfgdict)
     if with_indexer:
         # we do an explicit creation of an indexer for these tests
-        nnindexer = request_ibeis_nnindexer(qreq_, use_memcache=use_memcache)
+        nnindexer = request_wbia_nnindexer(qreq_, use_memcache=use_memcache)
     else:
         nnindexer = None
     return nnindexer, qreq_, ibs
@@ -736,15 +736,15 @@ def request_background_nnindexer(qreq_, daid_list):
         daid_list (list):
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_background_nnindexer
+        python -m wbia.algo.hots.neighbor_index_cache --test-request_background_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> ibs = wbia.opendb('testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # execute function
         >>> request_background_nnindexer(qreq_, daid_list)
@@ -802,8 +802,8 @@ def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, fxs_list, f
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache
-        python -m ibeis.algo.hots.neighbor_index_cache --allexamples
+        python -m wbia.algo.hots.neighbor_index_cache
+        python -m wbia.algo.hots.neighbor_index_cache --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

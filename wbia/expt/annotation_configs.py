@@ -108,7 +108,7 @@ INDEPENDENT_DEFAULTS = {
 }
 
 # HACK
-from ibeis import tag_funcs  # NOQA  #
+from wbia import tag_funcs  # NOQA  #
 # Build Filters
 filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
 for key in filter_keys:
@@ -188,12 +188,12 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         dict: acfg
 
     CommandLine:
-        #python -m ibeis --tf compress_aidcfg
-        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg --show
+        #python -m wbia --tf compress_aidcfg
+        python -m wbia.expt.annotation_configs --exec-compress_aidcfg --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.annotation_configs import *  # NOQA
+        >>> from wbia.expt.annotation_configs import *  # NOQA
         >>> acfg = default
         >>> acfg = compress_aidcfg(acfg)
         >>> result = ('acfg = %s' % (ut.repr2(acfg),))
@@ -242,7 +242,7 @@ def partition_acfg_list(acfg_list):
 
 def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
     """
-        >>> from ibeis.expt.annotation_configs import *  # NOQA
+        >>> from wbia.expt.annotation_configs import *  # NOQA
 
     """
     #print(ut.repr2(varied_acfg_list, nl=2))
@@ -326,10 +326,10 @@ def flatten_acfg_list(acfg_list):
 def compress_acfg_list_for_printing(acfg_list):
     r"""
     CommandLine:
-        python -m ibeis --tf compress_acfg_list_for_printing
+        python -m wbia --tf compress_acfg_list_for_printing
 
     Ignore:
-        >>> from ibeis.expt.annotation_configs import *  # NOQA
+        >>> from wbia.expt.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
         >>> nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)
@@ -354,19 +354,19 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
     Args:
         acfg_list (list):
         expanded_aids_list (list): (default = None)
-        ibs (IBEISController):  ibeis controller object(default = None)
+        ibs (IBEISController):  wbia controller object(default = None)
         combined (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-print_acfg_list
+        python -m wbia.expt.annotation_configs --exec-print_acfg_list
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.annotation_configs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.expt.annotation_configs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> a = ['default']
-        >>> acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        >>> acfg_list, expanded_aids_list = wbia.expt.experiment_helpers.get_annotcfg_list(
         >>>     ibs, acfg_name_list=a, verbose=0)
         >>> combined = False
         >>> result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)
@@ -520,7 +520,7 @@ default2 = {
 
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a unctrl
+wbia -e print_acfg --db PZ_Master1 -a unctrl
 """
 unctrl = uncontrolled = {
     'qcfg': ut.augdict(
@@ -555,9 +555,9 @@ unctrl_comp =  {
 }
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a ctrl
-ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl:qpername=1,qview_ext=0
-ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl_comp
+wbia -e print_acfg --db PZ_Master1 -a ctrl
+wbia -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl:qpername=1,qview_ext=0
+wbia -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl_comp
 """
 ctrl = controlled = {
     'qcfg': ut.augdict(
@@ -578,7 +578,7 @@ ctrl = controlled = {
 
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a timectrl
+wbia -e print_acfg --db PZ_Master1 -a timectrl
 """
 timectrl = timecontrolled = apply_timecontrol(ctrl)
 timectrl1h = timecontrolled = apply_timecontrol(ctrl, '1h')
@@ -586,7 +586,7 @@ timectrl1h = timecontrolled = apply_timecontrol(ctrl, '1h')
 timectrlL = timecontrolled = apply_timecontrol(ctrl, require_timestamp=False)
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
+wbia -e print_acfg --db PZ_Master1 -a timequalctrl
 """
 timequalctrl = timequalcontrolled = apply_qualcontrol(timectrl)
 
@@ -629,9 +629,9 @@ varypername2_td = apply_timecontrol(varypername2)
 
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a ctrl2
-ibeis -e print_acfg --db PZ_Master1 -a timectrl2
-ibeis -e rank_cmc --db PZ_Master1 -a timectrl2 -t invarbest
+wbia -e print_acfg --db PZ_Master1 -a ctrl2
+wbia -e print_acfg --db PZ_Master1 -a timectrl2
+wbia -e rank_cmc --db PZ_Master1 -a timectrl2 -t invarbest
 """
 ctrl2 = {
     'qcfg': ut.augdict(
@@ -653,15 +653,15 @@ timectrl2 = apply_timecontrol(ctrl2)
 varypername_td = apply_timecontrol(varypername)
 varypername_td1h = apply_timecontrol(varypername, '1h')
 """
-ibeis -e print_acfg --db PZ_Master1 -a varypername_tdqual
+wbia -e print_acfg --db PZ_Master1 -a varypername_tdqual
 """
 varypername_tdqual = apply_qualcontrol(varypername_td)
 
 
 """
-python -m ibeis --tf get_num_annots_per_name --db PZ_Master1
-ibeis -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache
-ibeis -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache
+python -m wbia --tf get_num_annots_per_name --db PZ_Master1
+wbia -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache
+wbia -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache
 """
 
 varysize = {
@@ -686,7 +686,7 @@ varysize = {
 }
 
 """
-ibeis -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache
+wbia -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache
 """
 varysize_td = apply_timecontrol(varysize)
 varysize_td1h = apply_timecontrol(varysize, '1h')
@@ -726,20 +726,20 @@ varynannots_td1h = apply_timecontrol(varynannots, '1h')
 
 # Compare query of frontleft animals when database has only left sides
 """
-ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
-python -m ibeis --tf parse_acfg_combo_list -a viewpoint_compare
-python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
+wbia -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
+python -m wbia --tf parse_acfg_combo_list -a viewpoint_compare
+python -m wbia --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
         --verbtd
 # Check composition of names per viewpoint
-python -m ibeis --tf group_annots_by_multi_prop --db PZ_Master1 \
+python -m wbia --tf group_annots_by_multi_prop --db PZ_Master1 \
         --props=yaw_texts,name_rowids --keys1 frontleft
-python -m ibeis --tf get_annot_stats_dict --db PZ_Master1 \
+python -m wbia --tf get_annot_stats_dict --db PZ_Master1 \
         --per_name_vpedge=True
 
 
 TODO: Need to explicitly setup the common config I think?
-ibeis -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
-ibeis --tf get_annotcfg_list -a viewdiff:min_timedelta=1h --db PZ_Master1 \
+wbia -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
+wbia --tf get_annotcfg_list -a viewdiff:min_timedelta=1h --db PZ_Master1 \
         --verbtd --nocache-aid
 """
 viewpoint_compare = {
@@ -808,18 +808,18 @@ timectrlhard = viewpoint_compare = {
         }),
 }
 """
-ibeis -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True
-ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True
+wbia -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True
+wbia -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True
 """
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
 """
-ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
-ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
+wbia get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
+wbia get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),
 
-ibeis draw_rank_cmc --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
+wbia draw_rank_cmc --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
 
 """
 oxford = {
@@ -849,9 +849,9 @@ TEST_NAMES = set(include_vars) - set(exclude_vars)
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.annotation_configs
-        python -m ibeis.expt.annotation_configs --allexamples
-        python -m ibeis.expt.annotation_configs --allexamples --noface --nosrc
+        python -m wbia.expt.annotation_configs
+        python -m wbia.expt.annotation_configs --allexamples
+        python -m wbia.expt.annotation_configs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

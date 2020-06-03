@@ -60,22 +60,22 @@ ibsbuild = ''
 root_dir = os.getcwd()
 try:
     assert exists(join(root_dir, 'installers.py'))
-    assert exists('../ibeis')
+    assert exists('../wbia')
     assert exists('_installers')
-    assert exists('../ibeis/ibeis')
+    assert exists('../wbia/wbia')
     assert exists(root_dir)
 except AssertionError:
-    raise Exception('installers.py must be run from ibeis root')
+    raise Exception('installers.py must be run from wbia root')
 
 
 sys.path.append('_installers')
 
-import ibeis_pyinstaller_data_helper
+import wbia_pyinstaller_data_helper
 
 # Build data before running analysis for quick debugging
-pathex = ibeis_pyinstaller_data_helper.get_path_extensions()
-DATATUP_LIST, BINARYTUP_LIST, iconfile = ibeis_pyinstaller_data_helper.get_data_list()
-hiddenimports = ibeis_pyinstaller_data_helper.get_hidden_imports()
+pathex = wbia_pyinstaller_data_helper.get_path_extensions()
+DATATUP_LIST, BINARYTUP_LIST, iconfile = wbia_pyinstaller_data_helper.get_data_list()
+hiddenimports = wbia_pyinstaller_data_helper.get_hidden_imports()
 
 
 ##################################
@@ -93,7 +93,7 @@ exe_name = {'win32':  'build/IBEISApp.exe',
 print('[installer] Running Analysis')
 a = Analysis(  # NOQA
     #['main.py'],
-    ['../ibeis/__main__.py'],
+    ['../wbia/__main__.py'],
     pathex=pathex,
     hiddenimports=hiddenimports,
     hookspath=None,
@@ -124,7 +124,7 @@ exe_kwargs = {
 collect_kwargs = {
     'strip': None,
     'upx': True,
-    'name': join('dist', 'ibeis')
+    'name': join('dist', 'wbia')
 }
 
 # Windows only EXE options

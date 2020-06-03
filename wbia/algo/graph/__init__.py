@@ -15,14 +15,14 @@ def reassign_submodule_attributes(verbose=1):
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
-    import ibeis.algo.graph
+    import wbia.algo.graph
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
         if len(tup) > 2 and tup[2]:
             continue  # dont import package names
         submodname, fromimports = tup[0:2]
-        submod = getattr(ibeis.algo.graph, submodname)
+        submod = getattr(wbia.algo.graph, submodname)
         for attr in dir(submod):
             if attr.startswith('_'):
                 continue
@@ -32,13 +32,13 @@ def reassign_submodule_attributes(verbose=1):
                 # which is good
                 continue
             seen_.add(attr)
-            setattr(ibeis.algo.graph, attr, getattr(submod, attr))
+            setattr(wbia.algo.graph, attr, getattr(submod, attr))
 
 
 def reload_subs(verbose=1):
-    """ Reloads ibeis.algo.graph and submodules """
+    """ Reloads wbia.algo.graph and submodules """
     if verbose:
-        print('Reloading ibeis.algo.graph submodules')
+        print('Reloading wbia.algo.graph submodules')
     rrr(verbose > 1)
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
@@ -67,6 +67,6 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    cd /home/joncrall/code/ibeis/ibeis/algo/graph
-    makeinit.py --modname=ibeis.algo.graph
+    cd /home/joncrall/code/wbia/wbia/algo/graph
+    makeinit.py --modname=wbia.algo.graph
 """

@@ -6,11 +6,11 @@ CommandLine:
     python -m utool.util_inspect check_module_usage --pat="wildbook_manager.py"
 
 Utils:
-    # TODO go to http://localhost:8080/ibeis/createAssetStore.jsp
-    tail -f ~/.config/ibeis/tomcat/logs/catalina.out
-    cat ~/.config/ibeis/tomcat/logs/catalina.out
-    python -m ibeis shutdown_wildbook_server
-    python -m ibeis update_wildbook_install_config
+    # TODO go to http://localhost:8080/wbia/createAssetStore.jsp
+    tail -f ~/.config/wbia/tomcat/logs/catalina.out
+    cat ~/.config/wbia/tomcat/logs/catalina.out
+    python -m wbia shutdown_wildbook_server
+    python -m wbia update_wildbook_install_config
 
 """
 from __future__ import absolute_import, division, print_function
@@ -37,7 +37,7 @@ if ut.get_computer_name() == 'hyrule':
 def get_tomcat_startup_tmpdir():
     dpath_list = [
         #os.environ.get('CATALINA_TMPDIR', None),
-        ut.ensure_app_resource_dir('ibeis', 'tomcat', 'ibeis_startup_tmpdir'),
+        ut.ensure_app_resource_dir('wbia', 'tomcat', 'wbia_startup_tmpdir'),
     ]
     tomcat_startup_dir = ut.search_candidate_paths(dpath_list, verbose=True)
     return tomcat_startup_dir
@@ -55,11 +55,11 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         locate --regex "tomcat/webapps$"
 
     CommandLine:
-        python -m ibeis find_tomcat
+        python -m wbia find_tomcat
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> tomcat_dpath = find_tomcat()
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
         >>> print(result)
@@ -74,7 +74,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         # Number one preference is the CATALINA_HOME directory
         os.environ.get('CATALINA_HOME', None),
         # We put tomcat here if we can't find it
-        ut.get_app_resource_dir('ibeis', 'tomcat')
+        ut.get_app_resource_dir('wbia', 'tomcat')
     ]
     if ut.is_developer():
         # For my machine to use local catilina
@@ -98,11 +98,11 @@ def find_tomcat(verbose=ut.NOT_QUIET):
 @ut.tracefunc_xml
 def download_tomcat():
     """
-    Put tomcat into a directory controlled by ibeis
+    Put tomcat into a directory controlled by wbia
 
     CommandLine:
         # Reset
-        python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
+        python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('wbia'), 'tomcat'))"
     """
     print('Grabbing tomcat')
     # FIXME: need to make a stable link
@@ -110,7 +110,7 @@ def download_tomcat():
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36-windows-x86.zip'
     else:
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36.zip'
-    zip_fpath = ut.grab_file_url(tomcat_binary_url, appname='ibeis')
+    zip_fpath = ut.grab_file_url(tomcat_binary_url, appname='wbia')
     # Download tomcat into the IBEIS resource directory
     tomcat_dpath = join(dirname(zip_fpath), 'tomcat')
     if not ut.checkpath(tomcat_dpath, verbose=True):
@@ -140,11 +140,11 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
         str: tomcat_dpath
 
     CommandLine:
-        python -m ibeis find_installed_tomcat
+        python -m wbia find_installed_tomcat
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> check_unpacked = False
         >>> strict = False
         >>> tomcat_dpath = find_installed_tomcat(check_unpacked, strict)
@@ -160,9 +160,9 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
             print(msg)
             return None
     if check_unpacked:
-        import ibeis
+        import wbia
         # Check that webapps was unpacked
-        wb_target = ibeis.const.WILDBOOK_TARGET
+        wb_target = wbia.const.WILDBOOK_TARGET
         webapps_dpath = join(tomcat_dpath, 'webapps')
         unpacked_war_dpath = join(webapps_dpath, wb_target)
         ut.assertpath(unpacked_war_dpath)
@@ -178,12 +178,12 @@ def find_or_download_tomcat():
         # Reset
         python -m purge_local_wildbook
 
-        python -m ibeis --tf purge_local_wildbook
-        python -m ibeis --tf find_or_download_tomcat
+        python -m wbia --tf purge_local_wildbook
+        python -m wbia --tf find_or_download_tomcat
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> tomcat_dpath = find_or_download_tomcat()
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
         >>> print(result)
@@ -199,11 +199,11 @@ def find_or_download_tomcat():
 def find_java_jvm():
     r"""
     CommandLine:
-        python -m ibeis find_java_jvm
+        python -m wbia find_java_jvm
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> jvm_fpath = find_java_jvm()
         >>> result = ('jvm_fpath = %r' % (jvm_fpath,))
         >>> print(result)
@@ -219,15 +219,15 @@ def find_java_jvm():
 
 def find_or_download_wilbook_warfile(ensure=True, redownload=False):
     r"""
-    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war \
-            ~/Downloads/pachy_ibeis.war wget
-    http://dev.wildme.org/ibeis_data_dir/ibeis.war
+    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/wbia.war \
+            ~/Downloads/pachy_wbia.war wget
+    http://dev.wildme.org/wbia_data_dir/wbia.war
     """
-    #war_url = 'http://dev.wildme.org/ibeis_data_dir/ibeis.war'
+    #war_url = 'http://dev.wildme.org/wbia_data_dir/wbia.war'
     war_url = 'http://springbreak.wildbook.org/tools/latest.war'
-    war_fpath = ut.grab_file_url(war_url, appname='ibeis',
+    war_fpath = ut.grab_file_url(war_url, appname='wbia',
                                  ensure=ensure, redownload=redownload,
-                                 fname='ibeis.war')
+                                 fname='wbia.war')
     return war_fpath
 
 
@@ -236,19 +236,19 @@ def purge_local_wildbook():
     Shuts down the server and then purges the server on disk
 
     CommandLine:
-        python -m ibeis purge_local_wildbook
-        python -m ibeis purge_local_wildbook --purge-war
+        python -m wbia purge_local_wildbook
+        python -m wbia purge_local_wildbook --purge-war
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> purge_local_wildbook()
     """
     try:
         shutdown_wildbook_server()
     except ImportError:
         pass
-    ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))
+    ut.delete(ut.unixjoin(ut.get_app_resource_dir('wbia'), 'tomcat'))
     if ut.get_argflag('--purge-war'):
         war_fpath = find_or_download_wilbook_warfile(ensure=False)
         ut.delete(war_fpath)
@@ -257,11 +257,11 @@ def purge_local_wildbook():
 def ensure_wb_mysql():
     r"""
     CommandLine:
-        python -m ibeis ensure_wb_mysql
+        python -m wbia ensure_wb_mysql
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> result = ensure_wb_mysql()
     """
     print('Execute the following code to install mysql')
@@ -276,14 +276,14 @@ def ensure_wb_mysql():
         mysql_config_editor set --login-path=local --host=localhost --user=root --password
 
         # Initialize
-        mysql --login-path=local -e "create user 'ibeiswb'@'localhost' identified by 'somepassword';"
-        mysql --login-path=local -e "create database ibeiswbtestdb;"
-        mysql --login-path=local -e "grant all privileges on ibeiswbtestdb.* to 'ibeiswb'@'localhost';"
+        mysql --login-path=local -e "create user 'wbiawb'@'localhost' identified by 'somepassword';"
+        mysql --login-path=local -e "create database wbiawbtestdb;"
+        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'localhost';"
 
         # Reset
-        mysql --login-path=local -e "drop database ibeiswbtestdb"
-        mysql --login-path=local -e "create database ibeiswbtestdb"
-        mysql --login-path=local -e "grant all privileges on ibeiswbtestdb.* to 'ibeiswb'@'localhost'"
+        mysql --login-path=local -e "drop database wbiawbtestdb"
+        mysql --login-path=local -e "create database wbiawbtestdb"
+        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'localhost'"
 
         # Check if running
         mysqladmin --login-path=local status
@@ -300,11 +300,11 @@ def ensure_local_war(verbose=ut.NOT_QUIET):
     Ensures tomcat has been unpacked and the war is localized
 
     CommandLine:
-        ibeis ensure_local_war
+        wbia ensure_local_war
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> result = ensure_local_war()
         >>> print(result)
     """
@@ -349,23 +349,23 @@ def install_wildbook(verbose=ut.NOT_QUIET):
 
     CommandLine:
         # Reset
-        ibeis purge_local_wildbook
-        ibeis ensure_wb_mysql
-        ibeis ensure_local_war
+        wbia purge_local_wildbook
+        wbia ensure_wb_mysql
+        wbia ensure_local_war
         # Setup
-        ibeis install_wildbook
-        # ibeis install_wildbook --nomysql
+        wbia install_wildbook
+        # wbia install_wildbook --nomysql
         # Startup
-        ibeis startup_wildbook_server --show
+        wbia startup_wildbook_server --show
 
         Alternates:
-            ibeis install_wildbook --redownload-war
-            ibeis install_wildbook --assets
-            ibeis startup_wildbook_server --show
+            wbia install_wildbook --redownload-war
+            wbia install_wildbook --assets
+            wbia startup_wildbook_server --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> verbose = True
         >>> result = install_wildbook()
         >>> print(result)
@@ -446,16 +446,16 @@ def install_wildbook(verbose=ut.NOT_QUIET):
 def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
     """
     CommandLine:
-        python -m ibeis ensure_local_war
-        python -m ibeis update_wildbook_install_config
-        python -m ibeis update_wildbook_install_config --show
+        python -m wbia ensure_local_war
+        python -m wbia update_wildbook_install_config
+        python -m wbia update_wildbook_install_config --show
 
     Example:
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.wildbook_manager import *  # NOQA
+        >>> import wbia
         >>> tomcat_dpath = find_installed_tomcat()
         >>> webapps_dpath = join(tomcat_dpath, 'webapps')
-        >>> wb_target = ibeis.const.WILDBOOK_TARGET
+        >>> wb_target = wbia.const.WILDBOOK_TARGET
         >>> unpacked_war_dpath = join(webapps_dpath, wb_target)
         >>> locals_ = ut.exec_func_src(update_wildbook_install_config, globals())
         >>> #update_wildbook_install_config(webapps_dpath, unpacked_war_dpath)
@@ -515,9 +515,9 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         jdoconfig_text = ut.toggle_comment_lines(jdoconfig_text, 'mysql', False)
         jdoconfig_text = ut.toggle_comment_lines(jdoconfig_text, 'derby', 1)
         jdoconfig_text = ut.toggle_comment_lines(jdoconfig_text, 'sqlite', 1)
-        mysql_user = 'ibeiswb'
+        mysql_user = 'wbiawb'
         mysql_passwd = 'somepassword'
-        mysql_dbname = 'ibeiswbtestdb'
+        mysql_dbname = 'wbiawbtestdb'
         # Use mysql
         jdoconfig_text = re.sub(
             'datanucleus.ConnectionUserName = .*$',
@@ -563,7 +563,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
 def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     """
     #if use_config_file and wildbook_tomcat_path:
-    #    # Update the Wildbook configuration to see *THIS* ibeis database
+    #    # Update the Wildbook configuration to see *THIS* wbia database
     #    with lockfile.LockFile(lock_fpath):
     #        update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun)
     """
@@ -617,27 +617,27 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis startup_wildbook_server
-        python -m ibeis startup_wildbook_server  --show
+        python -m wbia startup_wildbook_server
+        python -m wbia startup_wildbook_server  --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> verbose = True
         >>> wb_url = startup_wildbook_server()
         >>> ut.quit_if_noshow()
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    import ibeis
+    import wbia
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://localhost:8080/' + ibeis.const.WILDBOOK_TARGET
-    # TODO go to http://localhost:8080/ibeis/createAssetStore.jsp
+    wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
+    # TODO go to http://localhost:8080/wbia/createAssetStore.jsp
     return wb_url
 
 
@@ -648,14 +648,14 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
         verbose (bool):  verbosity flag(default = True)
 
     Ignore:
-        tail -f ~/.config/ibeis/tomcat/logs/catalina.out
+        tail -f ~/.config/wbia/tomcat/logs/catalina.out
 
     CommandLine:
-        python -m ibeis shutdown_wildbook_server
+        python -m wbia shutdown_wildbook_server
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> verbose = True
         >>> wb_url = shutdown_wildbook_server()
         >>> ut.quit_if_noshow()
@@ -680,22 +680,22 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis monitor_wildbook_logs  --show
+        python -m wbia monitor_wildbook_logs  --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> monitor_wildbook_logs()
     """
     # TODO: allow custom specified tomcat directory
-    import ibeis
+    import wbia
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://localhost:8080/' + ibeis.const.WILDBOOK_TARGET
+    wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
     return wb_url
 
 
@@ -707,17 +707,17 @@ def tryout_wildbook_login():
         tuple: (wb_target, tomcat_dpath)
 
     CommandLine:
-        python -m ibeis tryout_wildbook_login
+        python -m wbia tryout_wildbook_login
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.wildbook_manager import *  # NOQA
+        >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> tryout_wildbook_login()
     """
     # Use selenimum to login to wildbook
-    import ibeis
+    import wbia
     manaul_login = False
-    wb_target = ibeis.const.WILDBOOK_TARGET
+    wb_target = wbia.const.WILDBOOK_TARGET
     wb_url = 'http://localhost:8080/' + wb_target
     if manaul_login:
         ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
@@ -769,8 +769,8 @@ def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.wildbook_manager
-        python -m ibeis.control.wildbook_manager --allexamples
+        python -m wbia.control.wildbook_manager
+        python -m wbia.control.wildbook_manager --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

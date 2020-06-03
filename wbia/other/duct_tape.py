@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import zip
-from ibeis import constants as const
+from wbia import constants as const
 (print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')
 
 

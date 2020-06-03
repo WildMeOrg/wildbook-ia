@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-from ibeis import _ibeis_object
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import _wbia_object
+from wbia.control.controller_inject import make_ibs_register_decorator
 (print, rrr, profile) = ut.inject2(__name__, '[images]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -11,16 +11,16 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 BASE_TYPE = type
 
 try:
-    from ibeis import _autogen_image_base
+    from wbia import _autogen_image_base
     IMAGE_BASE = _autogen_image_base._image_base_class
 except ImportError:
-    IMAGE_BASE = _ibeis_object.ObjectList1D
+    IMAGE_BASE = _wbia_object.ObjectList1D
 
 try:
-    from ibeis import _autogen_imageset_base
+    from wbia import _autogen_imageset_base
     IMAGESET_BASE = _autogen_imageset_base._imageset_base_class
 except ImportError:
-    IMAGESET_BASE = _ibeis_object.ObjectList1D
+    IMAGESET_BASE = _wbia_object.ObjectList1D
 
 
 @register_ibs_method
@@ -76,7 +76,7 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
         #     'gids_from_uuid',
         #]
         objname = 'image'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
+        _wbia_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
 # @ut.reloadable_class
@@ -87,13 +87,13 @@ class Images(IMAGE_BASE):
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.images Images --show
+        python -m wbia.images Images --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.images import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.images import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gids = ibs.get_valid_gids()
         >>> g = self = images = Images(gids, ibs)
         >>> print(g.widths)
@@ -136,7 +136,7 @@ class Images(IMAGE_BASE):
     def show(self, *args, **kwargs):
         if len(self) != 1:
             raise ValueError('Can only show one, got {}'.format(len(self)))
-        from ibeis.viz import viz_image
+        from wbia.viz import viz_image
         for gid in self:
             return viz_image.show_image(self._ibs, gid, *args, **kwargs)
 
@@ -145,12 +145,12 @@ class ImageSetAttrInjector(BASE_TYPE):
     """
     Example:
         >>> # SCRIPT
-        >>> from ibeis import _ibeis_object
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia import _wbia_object
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> objname = 'imageset'
         >>> blacklist = []
-        >>> _ibeis_object._find_ibeis_attrs(ibs, objname, blacklist)
+        >>> _wbia_object._find_wbia_attrs(ibs, objname, blacklist)
     """
     def __init__(metaself, name, bases, dct):
         super(ImageSetAttrInjector, metaself).__init__(name, bases, dct)
@@ -174,7 +174,7 @@ class ImageSetAttrInjector(BASE_TYPE):
         #     'gids_from_uuid',
         #]
         objname = 'imageset'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
+        _wbia_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
 # @ut.reloadable_class
@@ -185,13 +185,13 @@ class ImageSets(IMAGESET_BASE):
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.images ImageSets
+        python -m wbia.images ImageSets
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.images import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.images import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gsids = ibs._get_all_imgsetids()
         >>> self = ImageSets(gsids, ibs)
         >>> print(self)
@@ -212,8 +212,8 @@ class ImageSets(IMAGESET_BASE):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.images
-        python -m ibeis.images --allexamples
+        python -m wbia.images
+        python -m wbia.images --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

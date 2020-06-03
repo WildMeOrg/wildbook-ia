@@ -2,7 +2,7 @@
 """Interface to Lightnet object proposals."""
 from __future__ import absolute_import, division, print_function
 from os.path import expanduser, join
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
 import numpy as np
 import cv2
@@ -669,7 +669,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
 
 
 def test(gpath_list, classifier_weight_filepath=None, return_dict=False, multiclass=False, **kwargs):
-    from ibeis.detecttools.directory import Directory
+    from wbia.detecttools.directory import Directory
     # Get correct weight if specified with shorthand
     archive_url = None
 
@@ -681,7 +681,7 @@ def test(gpath_list, classifier_weight_filepath=None, return_dict=False, multicl
 
     if classifier_weight_filepath in ARCHIVE_URL_DICT:
         archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
-        archive_path = ut.grab_file_url(archive_url, appname='ibeis', check_hash=True)
+        archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
         print('classifier_weight_filepath %r not recognized' % (classifier_weight_filepath, ))
         raise RuntimeError

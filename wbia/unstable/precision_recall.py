@@ -94,13 +94,13 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.precision_recall --test-get_precision_recall_curve_ --show
+        python -m wbia.algo.hots.precision_recall --test-get_precision_recall_curve_ --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.hots_query_result import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.algo.hots.hots_query_result import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[14:15]
         >>> daids = ibs.get_valid_aids()
         >>> qres = ibs.query_chips(qaids, daids)[0]
@@ -162,7 +162,7 @@ def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
 
 
 def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None, fnum=1):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     if recall_range_ is None:
         recall_range_ = np.array([])
         p_interp_curve = np.array([])
@@ -185,9 +185,9 @@ def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.precision_recall
-        python -m ibeis.algo.hots.precision_recall --allexamples
-        python -m ibeis.algo.hots.precision_recall --allexamples --noface --nosrc
+        python -m wbia.algo.hots.precision_recall
+        python -m wbia.algo.hots.precision_recall --allexamples
+        python -m wbia.algo.hots.precision_recall --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

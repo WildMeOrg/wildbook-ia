@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import math
 from . import common as com
-from .ibeis_part import IBEIS_Part
+from .wbia_part import IBEIS_Part
 import six
 
 

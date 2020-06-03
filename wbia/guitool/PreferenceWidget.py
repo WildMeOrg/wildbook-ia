@@ -6,10 +6,10 @@ import sys
 import six
 import traceback
 from utool.Preferences import Pref, PrefNode, PrefChoice
-from ibeis.guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
-from ibeis.guitool.__PYQT__ import QtWidgets, QtCore
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.guitool import qtype
+from wbia.guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
+from wbia.guitool.__PYQT__ import QtWidgets, QtCore
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool import qtype
 import utool as ut
 from utool import util_type
 ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
@@ -345,18 +345,18 @@ class EditPrefWidget(QtWidgets.QWidget):
 def test_preference_gui():
     r"""
     CommandLine:
-        python -m ibeis.guitool.PreferenceWidget --exec-test_preference_gui --show
+        python -m wbia.guitool.PreferenceWidget --exec-test_preference_gui --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.PreferenceWidget import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.PreferenceWidget import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> scope = test_preference_gui()
         >>> ut.quit_if_noshow()
         >>> guitool.qtapp_loop(freq=10)
     """
-    from ibeis import dtool
+    from wbia import dtool
     class DtoolConfig(dtool.Config):
         _param_info_list = [
             ut.ParamInfo('str_option2', 'hello'),
@@ -380,7 +380,7 @@ def test_preference_gui():
         setattr(new_wrap, k, v)
     old.new = new_wrap
     epw = old.createQWidget()
-    from ibeis.plottool import fig_presenter
+    from wbia.plottool import fig_presenter
     fig_presenter.register_qt4_win(epw)
     #epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
     epw.show()
@@ -390,8 +390,8 @@ def test_preference_gui():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.guitool.PreferenceWidget
-        python -m ibeis.guitool.PreferenceWidget --allexamples
+        python -m wbia.guitool.PreferenceWidget
+        python -m wbia.guitool.PreferenceWidget --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

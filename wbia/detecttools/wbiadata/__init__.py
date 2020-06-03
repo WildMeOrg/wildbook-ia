@@ -2,9 +2,9 @@
 from __future__ import print_function
 
 import os
-from ibeis.detecttools.directory import Directory
-from ibeis.detecttools.ibeisdata import common as com
-from ibeis.detecttools.ibeisdata.ibeis_image import IBEIS_Image
+from wbia.detecttools.directory import Directory
+from wbia.detecttools.wbiadata import common as com
+from wbia.detecttools.wbiadata.wbia_image import IBEIS_Image
 from tqdm import tqdm
 
 

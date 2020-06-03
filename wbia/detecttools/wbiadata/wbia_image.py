@@ -7,7 +7,7 @@ import math
 import xml.etree.ElementTree as xml
 
 from . import common as com
-from .ibeis_object import IBEIS_Object
+from .wbia_object import IBEIS_Object
 
 
 class IBEIS_Image(object):  # NOQA

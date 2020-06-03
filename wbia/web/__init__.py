@@ -4,23 +4,23 @@ from __future__ import absolute_import, division, print_function
 import utool
 (print, rrr, profile) = utool.inject2(__name__, '[web]')
 
-from ibeis.web import apis_detect
-from ibeis.web import apis_engine
-from ibeis.web import apis_json
-from ibeis.web import apis_sync
-from ibeis.web import apis_query
-from ibeis.web import apis
-from ibeis.web import app
-from ibeis.web import appfuncs
-from ibeis.web import routes_ajax
-from ibeis.web import routes_demo
-from ibeis.web import routes_csv
-from ibeis.web import routes_experiments
-from ibeis.web import routes_submit
-from ibeis.web import routes
+from wbia.web import apis_detect
+from wbia.web import apis_engine
+from wbia.web import apis_json
+from wbia.web import apis_sync
+from wbia.web import apis_query
+from wbia.web import apis
+from wbia.web import app
+from wbia.web import appfuncs
+from wbia.web import routes_ajax
+from wbia.web import routes_demo
+from wbia.web import routes_csv
+from wbia.web import routes_experiments
+from wbia.web import routes_submit
+from wbia.web import routes
 
 
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 if controller_inject.MICROSOFT_API_ENABLED:
-    from ibeis.web import apis_microsoft
+    from wbia.web import apis_microsoft
 

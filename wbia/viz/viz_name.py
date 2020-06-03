@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import ibeis.plottool.draw_func2 as df2
+import wbia.plottool.draw_func2 as df2
 import numpy as np
-from ibeis.other import ibsfuncs
-from ibeis.plottool import plot_helpers as ph
-import ibeis.plottool as pt
+from wbia.other import ibsfuncs
+from wbia.plottool import plot_helpers as ph
+import wbia.plottool as pt
 import utool as ut
-from ibeis.viz import viz_chip
+from wbia.viz import viz_chip
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -17,8 +17,8 @@ def show_name_of(ibs, aid, **kwargs):
 
 
 def testdata_showname():
-    import ibeis
-    ibs = ibeis.opendb(defaultdb='testdb1')
+    import wbia
+    ibs = wbia.opendb(defaultdb='testdb1')
     default = None
     if ibs.dbname == 'testdb1':
         default = 'easy'
@@ -34,8 +34,8 @@ def testdata_showname():
 
 
 def testdata_multichips():
-    import ibeis
-    ibs = ibeis.opendb(defaultdb='testdb1')
+    import wbia
+    ibs = wbia.opendb(defaultdb='testdb1')
     nid = ut.get_argval('--nid', type_=int, default=None)
     tags = ut.get_argval('--tags', type_=list, default=None)
 
@@ -46,7 +46,7 @@ def testdata_multichips():
         aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
     else:
         #aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
-        aid_list = ibeis.testdata_aids(default_aids=[1, 2, 3], ibs=ibs)
+        aid_list = wbia.testdata_aids(default_aids=[1, 2, 3], ibs=ibs)
 
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
@@ -58,37 +58,37 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                         subtitle='', annote=False, **kwargs):
     """
     CommandLine:
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6435,9861,137,6563,9167,12547,9332,12598,13285 --no-inimage --notitle
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=137,6563,12547,9332,12598,13285 --no-inimage --notitle --adjust=.05
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6563,9332,13285,12598 --no-inimage --notitle --adjust=.05 --rc=1,4
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=1288 --no-inimage --notitle --adjust=.05
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --no-inimage
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6435,9861,137,6563,9167,12547,9332,12598,13285 --no-inimage --notitle
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=137,6563,12547,9332,12598,13285 --no-inimage --notitle --adjust=.05
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6563,9332,13285,12598 --no-inimage --notitle --adjust=.05 --rc=1,4
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=1288 --no-inimage --notitle --adjust=.05
+        python -m wbia.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
         --aids=1 --doboth --show --no-inimage
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
         --doboth
         --doboth --show
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=15419 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
+        python -m wbia.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=15419 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_name import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.viz_name import *  # NOQA
+        >>> import wbia
         >>> ibs, aid_list, in_image = testdata_multichips()
         >>> if True:
         >>>     import matplotlib as mpl
-        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     from wbia.scripts.thesis import TMP_RC
         >>>     mpl.rcParams.update(TMP_RC)
         >>> fnum = 0
         >>> sel_aids = []
@@ -310,7 +310,7 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
               annote=False, aid_list=None, index_list=None,  **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         nid (?):
         in_image (bool):
         fnum (int):  figure number
@@ -320,15 +320,15 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
 
     CommandLine:
 
-        python -m ibeis.viz.viz_name --test-show_name --dpath ~/latex/crall-candidacy-2015 --save 'figures/{name}.jpg' --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --diskshow
+        python -m wbia.viz.viz_name --test-show_name --dpath ~/latex/crall-candidacy-2015 --save 'figures/{name}.jpg' --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --diskshow
 
-        python -m ibeis.viz.viz_name --test-show_name --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --show
+        python -m wbia.viz.viz_name --test-show_name --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --show
 
-        python -m ibeis.viz.viz_name --test-show_name --show
+        python -m wbia.viz.viz_name --test-show_name --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_name import *  # NOQA
+        >>> from wbia.viz.viz_name import *  # NOQA
         >>> ibs, nid, in_image, index_list = testdata_showname()
         >>> fnum = 0
         >>> sel_aids = []
@@ -373,9 +373,9 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_name
-        python -m ibeis.viz.viz_name --allexamples
-        python -m ibeis.viz.viz_name --allexamples --noface --nosrc
+        python -m wbia.viz.viz_name
+        python -m wbia.viz.viz_name --allexamples
+        python -m wbia.viz.viz_name --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-implicit version of dependency cache from ibeis/templates/template_generator
+implicit version of dependency cache from wbia/templates/template_generator
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 import six
 from six.moves import zip
-from ibeis.dtool import sql_control
-from ibeis.dtool import depcache_table
-from ibeis.dtool import base
+from wbia.dtool import sql_control
+from wbia.dtool import depcache_table
+from wbia.dtool import base
 from collections import defaultdict
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -260,8 +260,8 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'fgweight'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
@@ -577,8 +577,8 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> kwargs = {}
@@ -596,7 +596,7 @@ class _CoreDependencyCache(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Test external / ensure getters
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> config = {}
             >>> depc = testdata_depc()
             >>> aids = [1,]
@@ -608,7 +608,7 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> root_rowids = [1, 2]
@@ -671,9 +671,9 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -688,9 +688,9 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -707,9 +707,9 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
@@ -804,7 +804,7 @@ class _CoreDependencyCache(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Simple test of get native
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> config = {}
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
@@ -814,7 +814,7 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> config = {}
             >>> tablename = 'chip'
@@ -883,7 +883,7 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> config1 = {'adapt_shape': False}
             >>> config2 = {'adapt_shape': True}
@@ -1111,25 +1111,25 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         CommandLine:
             python -m dtool --tf DependencyCache.make_graph --show --reduced
 
-            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced
+            python -m wbia.control.IBEISControl show_depc_annot_graph --show --reduced
 
-            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced --testmode
-            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --testmode
+            python -m wbia.control.IBEISControl show_depc_annot_graph --show --reduced --testmode
+            python -m wbia.control.IBEISControl show_depc_annot_graph --show --testmode
 
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
+            python -m wbia.control.IBEISControl --test-show_depc_image_graph --show --reduced
+            python -m wbia.control.IBEISControl --test-show_depc_image_graph --show
 
-            python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
+            python -m wbia.scripts.specialdraw double_depcache_graph --show --testmode
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> import utool as ut
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
@@ -1140,14 +1140,14 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> import utool as ut
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=True)
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
@@ -1178,7 +1178,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             'root': 'ellipse',
             #'root': 'rect',
         }
-        # import ibeis.plottool as pt
+        # import wbia.plottool as pt
         NEUTRAL_BLUE  = np.array((159, 159, 241, 255)) / 255.0
         RED           = np.array((255,   0,   0, 255)) / 255.0
         color_dict = {
@@ -1323,7 +1323,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
     def show_graph(depc, reduced=False, **kwargs):
         """ Helper "fluff" function """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         graph = depc.make_graph(reduced=reduced)
         if ut.is_developer():
             ut.ensureqt()
@@ -1353,8 +1353,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.delete_root), globals())
             >>> root_rowids = [1]
@@ -1466,7 +1466,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         The depcache needs to know about stateful properties of dynamic root
         objects in order to correctly compute their hashes.
 
-        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> #ibs = wbia.opendb(defaultdb='testdb1')
         >>> root_rowids = ibs._get_all_aids()
         >>> depc = ibs.depc_annot
         >>> info_props = ['image_uuid', 'verts', 'theta']
@@ -1496,8 +1496,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> source = depc.root
             >>> dest = 'fgweight'

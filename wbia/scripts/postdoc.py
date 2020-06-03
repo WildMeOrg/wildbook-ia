@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-import ibeis.plottool as pt
+import wbia.plottool as pt
 import utool as ut
-from ibeis.algo.verif import vsone
-from ibeis.scripts._thesis_helpers import DBInputs
-from ibeis.scripts.thesis import Sampler  # NOQA
-from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
-from ibeis.scripts._thesis_helpers import dbname_to_species_nice
-from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from wbia.algo.verif import vsone
+from wbia.scripts._thesis_helpers import DBInputs
+from wbia.scripts.thesis import Sampler  # NOQA
+from wbia.scripts._thesis_helpers import Tabular, upper_one, ave_str
+from wbia.scripts._thesis_helpers import dbname_to_species_nice
+from wbia.scripts._thesis_helpers import TMP_RC, W, H, DPI
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
 import ubelt as ub  # NOQA
 import itertools as it
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
-import ibeis.constants as const
+import wbia.constants as const
 import vtool_ibeis as vt
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -26,22 +26,22 @@ LNBNN = 'LNBNN'
 
 
 def turk_pz():
-    import ibeis
-    ibs = ibeis.opendb('GZ_Master1')
-    infr = ibeis.AnnotInference(ibs, aids='all')
+    import wbia
+    ibs = wbia.opendb('GZ_Master1')
+    infr = wbia.AnnotInference(ibs, aids='all')
     infr.reset_feedback('staging', apply=True)
     infr.relabel_using_reviews(rectify=True)
     # infr.apply_nondynamic_update()
     print(ut.repr4(infr.status()))
 
-    infr.ibeis_delta_info()
+    infr.wbia_delta_info()
 
     infr.match_state_delta()
-    infr.get_ibeis_name_delta()
+    infr.get_wbia_name_delta()
 
     infr.relabel_using_reviews(rectify=True)
-    infr.write_ibeis_annotmatch_feedback()
-    infr.write_ibeis_name_assignment()
+    infr.write_wbia_annotmatch_feedback()
+    infr.write_wbia_name_assignment()
     pass
 
 
@@ -71,10 +71,10 @@ class GraphExpt(DBInputs):
         \item OTHER SPECIES
 
     CommandLine:
-        python -m ibeis GraphExpt.measure all PZ_MTEST
+        python -m wbia GraphExpt.measure all PZ_MTEST
 
     Ignore:
-        >>> from ibeis.scripts.postdoc import *
+        >>> from wbia.scripts.postdoc import *
         >>> self = GraphExpt('PZ_MTEST')
         >>> self._precollect()
         >>> self._setup()
@@ -116,11 +116,11 @@ class GraphExpt(DBInputs):
 
     def _setup(self):
         """
-        python -m ibeis GraphExpt._setup
+        python -m wbia GraphExpt._setup
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> #self = GraphExpt('GZ_Master1')
             >>> self = GraphExpt('PZ_MTEST')
             >>> self = GraphExpt('PZ_Master1')
@@ -169,18 +169,18 @@ class GraphExpt(DBInputs):
     def measure_graphsim(self):
         """
         CommandLine:
-            python -m ibeis GraphExpt.measure graphsim GZ_Master1
+            python -m wbia GraphExpt.measure graphsim GZ_Master1
             1
 
         Ignore:
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> #self = GraphExpt('PZ_MTEST')
             >>> #self = GraphExpt('GZ_Master1')
             >>> self = GraphExpt.measure('graphsim', 'PZ_Master1')
             >>> self = GraphExpt.measure('graphsim', 'GZ_Master1')
             >>> self = GraphExpt.measure('graphsim', 'PZ_MTEST')
         """
-        import ibeis
+        import wbia
         self.ensure_setup()
 
         ibs = self.ibs
@@ -202,7 +202,7 @@ class GraphExpt(DBInputs):
             'enable_inference'   : True,
             'match_state_thresh' : graph_thresh,
         })
-        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
         infr1.enable_auto_prioritize_nonpos = True
         infr1.params['refresh.window'] = 20
@@ -257,15 +257,15 @@ class GraphExpt(DBInputs):
         """
         CommandLine:
 
-            python -m ibeis GraphExpt.measure graphsim GZ_Master1
-            python -m ibeis GraphExpt.draw graphsim GZ_Master1 --diskshow
+            python -m wbia GraphExpt.measure graphsim GZ_Master1
+            python -m wbia GraphExpt.draw graphsim GZ_Master1 --diskshow
 
-            python -m ibeis GraphExpt.draw graphsim PZ_MTEST --diskshow
-            python -m ibeis GraphExpt.draw graphsim GZ_Master1 --diskshow
-            python -m ibeis GraphExpt.draw graphsim PZ_Master1 --diskshow
+            python -m wbia GraphExpt.draw graphsim PZ_MTEST --diskshow
+            python -m wbia GraphExpt.draw graphsim GZ_Master1 --diskshow
+            python -m wbia GraphExpt.draw graphsim PZ_Master1 --diskshow
 
         Ignore:
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = GraphExpt('GZ_Master1')
             >>> self = GraphExpt('PZ_MTEST')
         """
@@ -343,13 +343,13 @@ class GraphExpt(DBInputs):
     def draw_graphsim2(self):
         """
         CommandLine:
-            python -m ibeis GraphExpt.draw graphsim2 --db PZ_MTEST --diskshow
-            python -m ibeis GraphExpt.draw graphsim2 GZ_Master1 --diskshow
-            python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --diskshow
+            python -m wbia GraphExpt.draw graphsim2 --db PZ_MTEST --diskshow
+            python -m wbia GraphExpt.draw graphsim2 GZ_Master1 --diskshow
+            python -m wbia GraphExpt.draw graphsim2 PZ_Master1 --diskshow
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = GraphExpt(dbname)
             >>> self.draw_graphsim2()
@@ -592,8 +592,8 @@ class GraphExpt(DBInputs):
 
 
 def draw_match_states():
-    import ibeis
-    infr = ibeis.AnnotInference('PZ_Master1', 'all')
+    import wbia
+    infr = wbia.AnnotInference('PZ_Master1', 'all')
 
     if infr.ibs.dbname == 'PZ_Master1':
         # [UUID('0cb1ebf5-2a4f-4b80-b172-1b449b8370cf'),
@@ -610,7 +610,7 @@ def draw_match_states():
             NEGTV: list(infr.neg_graph.edges())[0],
             INCMP: list(infr.incmp_graph.edges())[0],
         }
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
     for key, edge in chosen.items():
         match = infr._make_matches_from([edge], config={
@@ -625,7 +625,7 @@ def entropy_potential(infr, u, v, decision):
     """
     Returns the number of edges this edge would invalidate
 
-    from ibeis.algo.graph import demo
+    from wbia.algo.graph import demo
     infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
     infr.refresh_candidate_edges()
     infr.params['redun.neg'] = 1
@@ -764,21 +764,21 @@ class VerifierExpt(DBInputs):
     """
     Collect data from experiments to visualize
 
-    python -m ibeis VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
-    python -m ibeis VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
-    python -m ibeis VerifierExpt.measure all LF_ALL
-    python -m ibeis VerifierExpt.measure all PZ_Master1
+    python -m wbia VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
+    python -m wbia VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
+    python -m wbia VerifierExpt.measure all LF_ALL
+    python -m wbia VerifierExpt.measure all PZ_Master1
 
-    python -m ibeis VerifierExpt.measure all MantaMatcher
-    python -m ibeis VerifierExpt.draw all MantaMatcher
+    python -m wbia VerifierExpt.measure all MantaMatcher
+    python -m wbia VerifierExpt.draw all MantaMatcher
 
-    python -m ibeis VerifierExpt.draw rerank PZ_Master1
+    python -m wbia VerifierExpt.draw rerank PZ_Master1
 
-    python -m ibeis VerifierExpt.measure all RotanTurtles
-    python -m ibeis VerifierExpt.draw all RotanTurtles
+    python -m wbia VerifierExpt.measure all RotanTurtles
+    python -m wbia VerifierExpt.draw all RotanTurtles
 
     Ignore:
-        >>> from ibeis.scripts.postdoc import *
+        >>> from wbia.scripts.postdoc import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
@@ -804,32 +804,32 @@ class VerifierExpt(DBInputs):
     def _setup(self, quick=False):
         r"""
         CommandLine:
-            python -m ibeis VerifierExpt._setup --db GZ_Master1
+            python -m wbia VerifierExpt._setup --db GZ_Master1
 
-            python -m ibeis VerifierExpt._setup --db PZ_Master1 --eval
-            python -m ibeis VerifierExpt._setup --db PZ_MTEST
-            python -m ibeis VerifierExpt._setup --db PZ_PB_RF_TRAIN
+            python -m wbia VerifierExpt._setup --db PZ_Master1 --eval
+            python -m wbia VerifierExpt._setup --db PZ_MTEST
+            python -m wbia VerifierExpt._setup --db PZ_PB_RF_TRAIN
 
-            python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
+            python -m wbia VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
 
-            python -m ibeis VerifierExpt.measure all GZ_Master1
-            python -m ibeis VerifierExpt.measure all RotanTurtles --show
+            python -m wbia VerifierExpt.measure all GZ_Master1
+            python -m wbia VerifierExpt.measure all RotanTurtles --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = VerifierExpt(dbname)
             >>> self._setup()
 
         Ignore:
-            from ibeis.scripts.postdoc import *
+            from wbia.scripts.postdoc import *
             self = VerifierExpt('PZ_Master1')
 
-            from ibeis.scripts.postdoc import *
+            from wbia.scripts.postdoc import *
             self = VerifierExpt('PZ_PB_RF_TRAIN')
 
-            from ibeis.scripts.postdoc import *
+            from wbia.scripts.postdoc import *
             self = VerifierExpt('LF_ALL')
 
             self = VerifierExpt('RotanTurtles')
@@ -901,12 +901,12 @@ class VerifierExpt(DBInputs):
     def agg_dbstats(VerifierExpt):
         """
         CommandLine:
-            python -m ibeis VerifierExpt.agg_dbstats
-            python -m ibeis VerifierExpt.measure_dbstats
+            python -m wbia VerifierExpt.agg_dbstats
+            python -m wbia VerifierExpt.measure_dbstats
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *  # NOQA
+            >>> from wbia.scripts.postdoc import *  # NOQA
             >>> result = VerifierExpt.agg_dbstats()
             >>> print(result)
         """
@@ -950,14 +950,14 @@ class VerifierExpt(DBInputs):
     def agg_results(VerifierExpt, task_key):
         """
 
-        python -m ibeis VerifierExpt.agg_results
-        python -m ibeis VerifierExpt.agg_results --link link-paper-final
+        python -m wbia VerifierExpt.agg_results
+        python -m wbia VerifierExpt.agg_results --link link-paper-final
 
         GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *  # NOQA
+            >>> from wbia.scripts.postdoc import *  # NOQA
             >>> task_key = 'match_state'
             >>> result = VerifierExpt.agg_results(task_key)
             >>> print(result)
@@ -1135,7 +1135,7 @@ class VerifierExpt(DBInputs):
                 [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
             )
 
-            from ibeis.scripts import _thesis_helpers
+            from wbia.scripts import _thesis_helpers
             tabular = _thesis_helpers.Tabular(
                 all_stats, colfmt=colfmt, escape=False)
             tabular.add_multicolumn_header(multi_header)
@@ -1187,7 +1187,7 @@ class VerifierExpt(DBInputs):
                 [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
             )
 
-            from ibeis.scripts import _thesis_helpers
+            from wbia.scripts import _thesis_helpers
             tabular = _thesis_helpers.Tabular(
                 all_stats, colfmt=colfmt, escape=False)
             tabular.add_multicolumn_header(multi_header)
@@ -1498,7 +1498,7 @@ class VerifierExpt(DBInputs):
                             'classes are inconsistent')
                 agg_class_names = res.class_names
 
-            from ibeis.algo.verif import sklearn_utils
+            from wbia.algo.verif import sklearn_utils
             agg_report = sklearn_utils.classification_report2(
                 agg_y_true, agg_y_pred, agg_class_names, agg_sample_weight,
                 verbose=False)
@@ -1603,13 +1603,13 @@ class VerifierExpt(DBInputs):
     @profile
     def measure_dbstats(self):
         """
-        python -m ibeis VerifierExpt.measure dbstats GZ_Master1
-        python -m ibeis VerifierExpt.measure dbstats PZ_Master1
-        python -m ibeis VerifierExpt.measure dbstats MantaMatcher
-        python -m ibeis VerifierExpt.measure dbstats RotanTurtles
+        python -m wbia VerifierExpt.measure dbstats GZ_Master1
+        python -m wbia VerifierExpt.measure dbstats PZ_Master1
+        python -m wbia VerifierExpt.measure dbstats MantaMatcher
+        python -m wbia VerifierExpt.measure dbstats RotanTurtles
 
         Ignore:
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> #self = VerifierExpt('GZ_Master1')
             >>> self = VerifierExpt('MantaMatcher')
         """
@@ -1730,11 +1730,11 @@ class VerifierExpt(DBInputs):
     def measure_all(self):
         r"""
         CommandLine:
-            python -m ibeis VerifierExpt.measure all GZ_Master1,MantaMatcher,RotanTurtles,LF_ALL
-            python -m ibeis VerifierExpt.measure all GZ_Master1
+            python -m wbia VerifierExpt.measure all GZ_Master1,MantaMatcher,RotanTurtles,LF_ALL
+            python -m wbia VerifierExpt.measure all GZ_Master1
 
         Ignore:
-            from ibeis.scripts.postdoc import *
+            from wbia.scripts.postdoc import *
             self = VerifierExpt('PZ_MTEST')
             self.measure_all()
         """
@@ -1788,14 +1788,14 @@ class VerifierExpt(DBInputs):
     def draw_all(self):
         r"""
         CommandLine:
-            python -m ibeis VerifierExpt.draw_all --db PZ_MTEST
-            python -m ibeis VerifierExpt.draw_all --db PZ_PB_RF_TRAIN
-            python -m ibeis VerifierExpt.draw_all --db GZ_Master1
-            python -m ibeis VerifierExpt.draw_all --db PZ_Master1
+            python -m wbia VerifierExpt.draw_all --db PZ_MTEST
+            python -m wbia VerifierExpt.draw_all --db PZ_PB_RF_TRAIN
+            python -m wbia VerifierExpt.draw_all --db GZ_Master1
+            python -m wbia VerifierExpt.draw_all --db PZ_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -1824,10 +1824,10 @@ class VerifierExpt(DBInputs):
 
     def draw_roc(self, task_key='match_state'):
         """
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 match_state
+        python -m wbia VerifierExpt.draw roc GZ_Master1 photobomb_state
+        python -m wbia VerifierExpt.draw roc GZ_Master1 match_state
 
-        python -m ibeis VerifierExpt.draw roc PZ_MTEST
+        python -m wbia VerifierExpt.draw roc PZ_MTEST
         """
         mpl.rcParams.update(TMP_RC)
 
@@ -2010,7 +2010,7 @@ class VerifierExpt(DBInputs):
 
     def measure_rerank(self):
         """
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
             >>> self = VerifierExpt(defaultdb)
@@ -2034,7 +2034,7 @@ class VerifierExpt(DBInputs):
         else:
             viewpoint_aware = False
 
-        from ibeis.scripts import thesis
+        from wbia.scripts import thesis
         qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
             ibs, aids, viewpoint_aware=viewpoint_aware)
         daids = daids_list[0]
@@ -2102,7 +2102,7 @@ class VerifierExpt(DBInputs):
 
     def ranking_hyperparamm_search(self):
         """
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = VerifierExpt('humpbacks_fb')
 
             >>> self = VerifierExpt('MantaMatcher')
@@ -2132,7 +2132,7 @@ class VerifierExpt(DBInputs):
         # These are not gaurenteed to be comparable
         viewpoint_aware = (ibs.dbname == 'RotanTurtles')
 
-        from ibeis.scripts import thesis
+        from wbia.scripts import thesis
         qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
             ibs, aids, viewpoint_aware=viewpoint_aware)
         daids = daids_list[0]
@@ -2270,26 +2270,26 @@ class VerifierExpt(DBInputs):
         Find a failure case for each class
 
         CommandLine:
-            python -m ibeis VerifierExpt.measure hard_cases GZ_Master1 match_state
-            python -m ibeis VerifierExpt.measure hard_cases GZ_Master1 photobomb_state
-            python -m ibeis VerifierExpt.draw hard_cases GZ_Master1 match_state
-            python -m ibeis VerifierExpt.draw hard_cases GZ_Master1 photobomb_state
+            python -m wbia VerifierExpt.measure hard_cases GZ_Master1 match_state
+            python -m wbia VerifierExpt.measure hard_cases GZ_Master1 photobomb_state
+            python -m wbia VerifierExpt.draw hard_cases GZ_Master1 match_state
+            python -m wbia VerifierExpt.draw hard_cases GZ_Master1 photobomb_state
 
-            python -m ibeis VerifierExpt.measure hard_cases PZ_Master1 match_state
-            python -m ibeis VerifierExpt.measure hard_cases PZ_Master1 photobomb_state
-            python -m ibeis VerifierExpt.draw hard_cases PZ_Master1 match_state
-            python -m ibeis VerifierExpt.draw hard_cases PZ_Master1 photobomb_state
+            python -m wbia VerifierExpt.measure hard_cases PZ_Master1 match_state
+            python -m wbia VerifierExpt.measure hard_cases PZ_Master1 photobomb_state
+            python -m wbia VerifierExpt.draw hard_cases PZ_Master1 match_state
+            python -m wbia VerifierExpt.draw hard_cases PZ_Master1 photobomb_state
 
-            python -m ibeis VerifierExpt.measure hard_cases PZ_MTEST match_state
-            python -m ibeis VerifierExpt.draw hard_cases PZ_MTEST photobomb_state
+            python -m wbia VerifierExpt.measure hard_cases PZ_MTEST match_state
+            python -m wbia VerifierExpt.draw hard_cases PZ_MTEST photobomb_state
 
-            python -m ibeis VerifierExpt.draw hard_cases RotanTurtles match_state
-            python -m ibeis VerifierExpt.draw hard_cases MantaMatcher match_state
+            python -m wbia VerifierExpt.draw hard_cases RotanTurtles match_state
+            python -m wbia VerifierExpt.draw hard_cases MantaMatcher match_state
 
         Ignore:
             >>> task_key = 'match_state'
             >>> task_key = 'photobomb_state'
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = VerifierExpt('GZ_Master1')
             >>> self._setup()
         """
@@ -2453,14 +2453,14 @@ class VerifierExpt(DBInputs):
         """
         draw hard cases with and without overlay
 
-        python -m ibeis VerifierExpt.draw hard_cases GZ_Master1 match_state
-        python -m ibeis VerifierExpt.draw hard_cases PZ_Master1 match_state
-        python -m ibeis VerifierExpt.draw hard_cases PZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw hard_cases GZ_Master1 photobomb_state
+        python -m wbia VerifierExpt.draw hard_cases GZ_Master1 match_state
+        python -m wbia VerifierExpt.draw hard_cases PZ_Master1 match_state
+        python -m wbia VerifierExpt.draw hard_cases PZ_Master1 photobomb_state
+        python -m wbia VerifierExpt.draw hard_cases GZ_Master1 photobomb_state
 
-        python -m ibeis VerifierExpt.draw hard_cases RotanTurtles match_state
+        python -m wbia VerifierExpt.draw hard_cases RotanTurtles match_state
 
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_MTEST')
             >>> task_key = 'match_state'
             >>> self.draw_hard_cases(task_key)
@@ -2546,13 +2546,13 @@ class VerifierExpt(DBInputs):
         Writes confusion matricies
 
         CommandLine:
-            python -m ibeis VerifierExpt.draw metrics PZ_PB_RF_TRAIN match_state
-            python -m ibeis VerifierExpt.draw metrics GZ_Master1 photobomb_state
+            python -m wbia VerifierExpt.draw metrics PZ_PB_RF_TRAIN match_state
+            python -m wbia VerifierExpt.draw metrics GZ_Master1 photobomb_state
 
-            python -m ibeis VerifierExpt.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
+            python -m wbia VerifierExpt.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
 
         Ignore:
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_Master1')
             >>> task_key = 'match_state'
         """
@@ -2569,7 +2569,7 @@ class VerifierExpt(DBInputs):
         sample_weight = res.sample_weight
         target_names = res.class_names
 
-        from ibeis.algo.verif import sklearn_utils
+        from wbia.algo.verif import sklearn_utils
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
         metric_df = report['metrics']
@@ -2639,15 +2639,15 @@ class VerifierExpt(DBInputs):
 
     def write_sample_info(self):
         """
-        python -m ibeis VerifierExpt.draw sample_info GZ_Master1
+        python -m wbia VerifierExpt.draw sample_info GZ_Master1
 
         """
         results = self.ensure_results('sample_info')
         # results['aid_pool']
         # results['encoded_labels2d']
         # results['multihist']
-        import ibeis
-        infr = ibeis.AnnotInference.from_netx(results['graph'])
+        import wbia
+        infr = wbia.AnnotInference.from_netx(results['graph'])
         info = ut.odict()
         info['n_names'] = infr.pos_graph.number_of_components(),
         info['n_aids'] = len(results['pblm_aids']),
@@ -2768,11 +2768,11 @@ class VerifierExpt(DBInputs):
 
     def draw_mcc_thresh(self, task_key):
         """
-        python -m ibeis VerifierExpt.draw mcc_thresh GZ_Master1 match_state
-        python -m ibeis VerifierExpt.draw mcc_thresh PZ_Master1 match_state
+        python -m wbia VerifierExpt.draw mcc_thresh GZ_Master1 match_state
+        python -m wbia VerifierExpt.draw mcc_thresh PZ_Master1 match_state
 
-        python -m ibeis VerifierExpt.draw mcc_thresh GZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw mcc_thresh PZ_Master1 photobomb_state
+        python -m wbia VerifierExpt.draw mcc_thresh GZ_Master1 photobomb_state
+        python -m wbia VerifierExpt.draw mcc_thresh PZ_Master1 photobomb_state
 
         """
         mpl.rcParams.update(TMP_RC)
@@ -2826,9 +2826,9 @@ class VerifierExpt(DBInputs):
 
     @classmethod
     def draw_tagged_pair(VerifierExpt):
-        import ibeis
-        # ibs = ibeis.opendb(defaultdb='GZ_Master1')
-        ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        import wbia
+        # ibs = wbia.opendb(defaultdb='GZ_Master1')
+        ibs = wbia.opendb(defaultdb='PZ_Master1')
 
         query_tag = 'leftrightface'
 
@@ -2846,7 +2846,7 @@ class VerifierExpt(DBInputs):
 
         edge = edges[0]
         # for edge in ut.InteractiveIter(edges):
-        infr = ibeis.AnnotInference(ibs=ibs, aids=edge, verbose=10)
+        infr = wbia.AnnotInference(ibs=ibs, aids=edge, verbose=10)
         infr.reset_feedback('annotmatch', apply=True)
         match = infr._exec_pairwise_match([edge])[0]
 
@@ -2855,8 +2855,8 @@ class VerifierExpt(DBInputs):
             infr.add_feedback(
                 edge, 'match', tags=['facematch', 'leftrightface'],
                 user_id='qt-hack', confidence='pretty_sure')
-            infr.write_ibeis_staging_feedback()
-            infr.write_ibeis_annotmatch_feedback()
+            infr.write_wbia_staging_feedback()
+            infr.write_wbia_annotmatch_feedback()
             pass
 
         # THE DEPCACHE IS BROKEN FOR ANNOTMATCH APPARENTLY! >:(
@@ -2897,7 +2897,7 @@ class VerifierExpt(DBInputs):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_MTEST'
@@ -2911,10 +2911,10 @@ class VerifierExpt(DBInputs):
                 case = _case
                 break
 
-        import ibeis
-        ibs = ibeis.opendb(self.dbname)
+        import wbia
+        ibs = wbia.opendb(self.dbname)
 
-        from ibeis import core_annots
+        from wbia import core_annots
         config = {
             'augment_orientation': True,
             'ratio_thresh': .8,
@@ -2976,8 +2976,8 @@ class VerifierExpt(DBInputs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.postdoc
-        python -m ibeis.scripts.postdoc --allexamples
+        python -m wbia.scripts.postdoc
+        python -m wbia.scripts.postdoc --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-mkinit ~/code/ibeis/ibeis
+mkinit ~/code/wbia/wbia
 
 
 
@@ -39,31 +39,31 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import sys
 import numpy as np
-from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
+from wbia._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
-#from ibeis.algo.hots import smk
-import ibeis.plottool as pt
-import ibeis
+#from wbia.algo.hots import smk
+import wbia.plottool as pt
+import wbia
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
-#     ibeis._preload()
-#utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
+#     wbia._preload()
+#utool.util_importer.dynamic_import(__name__, ('_devcmds_wbia', None),
 #                                   developing=True)
-from ibeis._devscript import devcmd, devprecmd  # NOQA
+from wbia._devscript import devcmd, devprecmd  # NOQA
 from os.path import split, join, expanduser  # NOQA
-from ibeis.plottool import draw_func2 as df2  # NOQA
-from ibeis import sysres  # NOQA
-from ibeis.other import ibsfuncs  # NOQA
-from ibeis.dbio import ingest_hsdb  # NOQA
-from ibeis._devcmds_ibeis import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
+from wbia.plottool import draw_func2 as df2  # NOQA
+from wbia import sysres  # NOQA
+from wbia.other import ibsfuncs  # NOQA
+from wbia.dbio import ingest_hsdb  # NOQA
+from wbia._devcmds_wbia import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
 # IBEIS
-from ibeis.init import main_helpers  # NOQA
-from ibeis.other import dbinfo  # NOQA
-from ibeis.expt import experiment_configs  # NOQA
-from ibeis.expt import harness  # NOQA
-from ibeis import params  # NOQA
+from wbia.init import main_helpers  # NOQA
+from wbia.other import dbinfo  # NOQA
+from wbia.expt import experiment_configs  # NOQA
+from wbia.expt import harness  # NOQA
+from wbia import params  # NOQA
 print, rrr, profile = utool.inject2(__name__)
 
 
@@ -71,7 +71,7 @@ print, rrr, profile = utool.inject2(__name__)
 # DEV DEVELOPMENT
 #------------------
 # This is where you write all of the functions that will become pristine
-# and then go in _devcmds_ibeis.py
+# and then go in _devcmds_wbia.py
 
 
 """
@@ -84,21 +84,21 @@ print, rrr, profile = utool.inject2(__name__)
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('ibeis.expt.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
-    ('ibeis.expt.experiment_drawing', 'draw_match_cases', ['draw_cases', 'cases']),
-    ('ibeis.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
+    ('wbia.expt.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
+    ('wbia.expt.experiment_drawing', 'draw_match_cases', ['draw_cases', 'cases']),
+    ('wbia.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 
-    ('ibeis.expt.old_storage', 'draw_results'),
-    ('ibeis.expt.experiment_drawing', 'draw_rank_cmc', ['rank_cmc']),
-    ('ibeis.other.dbinfo', 'get_dbinfo'),
-    ('ibeis.other.dbinfo', 'latex_dbstats'),
-    ('ibeis.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),
-    ('ibeis.expt.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
-    ('ibeis.expt.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
-    ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
-    ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
-    ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.expt.experiment_drawing', 'draw_annot_scoresep', ['scores', 'scores_good', 'scores_all']),
+    ('wbia.expt.old_storage', 'draw_results'),
+    ('wbia.expt.experiment_drawing', 'draw_rank_cmc', ['rank_cmc']),
+    ('wbia.other.dbinfo', 'get_dbinfo'),
+    ('wbia.other.dbinfo', 'latex_dbstats'),
+    ('wbia.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),
+    ('wbia.expt.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
+    ('wbia.expt.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
+    ('wbia.expt.experiment_printres', 'print_results', ['printres', 'print']),
+    ('wbia.expt.experiment_printres', 'print_latexsum', ['latexsum']),
+    ('wbia.dbio.export_subset', 'export_annots'),
+    ('wbia.expt.experiment_drawing', 'draw_annot_scoresep', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -132,7 +132,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis._devscript import *  # NOQA
+        >>> from wbia._devscript import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> result = func_wrapper()
@@ -184,12 +184,12 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None
     """
-    from ibeis.algo.hots import automated_matcher
+    from wbia.algo.hots import automated_matcher
     ibs1 = ibs
     num_initial = ut.get_argval('--ninit', type_=int, default=0)
     return automated_matcher.incremental_test(ibs1, num_initial)
@@ -198,7 +198,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 @devcmd('inspect')
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
-    from ibeis.gui import inspect_gui
+    from wbia.gui import inspect_gui
     return inspect_gui.test_review_widget(ibs, qaid_list, daid_list)
 
 
@@ -464,12 +464,12 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
 #         python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
 
 #     Example:
-#         >>> import ibeis
-#         >>> ibs = ibeis.opendb('testdb1')
+#         >>> import wbia
+#         >>> ibs = wbia.opendb('testdb1')
 #         >>> qaid_list = [1]
 #     """
-#     from ibeis import viz
-#     from ibeis.expt import experiment_configs
+#     from wbia import viz
+#     from wbia.expt import experiment_configs
 #     import utool as ut
 
 #     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
@@ -550,10 +550,10 @@ def run_dev(ibs):
 
 EXAMPLE_TEXT = '''
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
-python -m ibeis.dev --t mtest
+python -m wbia.dev --t mtest
 python dev.py --t nauts
 ./resetdbs.sh  # FIXME
-python ibeis/dbio/ingest_database.py  <- see module for usage
+python wbia/dbio/ingest_database.py  <- see module for usage
 
 ### LIST AVAIABLE DATABASES ###
 python dev.py -t list_dbs
@@ -577,7 +577,7 @@ python dev.py --allgt -t nsum
 
 # Newstyle experiments
 # commmand             # annot settings            # test settings
-python -m ibeis.dev    -a default:qaids=allgt      -t best
+python -m wbia.dev    -a default:qaids=allgt      -t best
 
 
 ### COMPARE TWO CONFIGS ###
@@ -586,8 +586,8 @@ python dev.py --allgt -t nsum vsmany
 python dev.py --allgt -t nsum vsmany vsone smk
 
 ### VARY DATABASE SIZE
-python -m ibeis.dev -a default:qaids=allgt,dsize=100,qper_name=1,qmin_per_name=1 -t default --db PZ_MTEST
-python -m ibeis.dev -a candidacy:qsize=10,dsize=100 -t default --db PZ_MTEST --verbtd
+python -m wbia.dev -a default:qaids=allgt,dsize=100,qper_name=1,qmin_per_name=1 -t default --db PZ_MTEST
+python -m wbia.dev -a candidacy:qsize=10,dsize=100 -t default --db PZ_MTEST --verbtd
 
 
 ### VIZ A SET OF MATCHES ###
@@ -667,14 +667,14 @@ def devmain():
         --cmd  # ipython shell to play with variables
         -t     # run list of tests
     """
-    from ibeis import params
+    from wbia import params
     params.parse_args()
 
     print('DEVMAIN INIT - PRELOGGING')
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
     else:
-        ut.start_logging(appname='ibeis')
+        ut.start_logging(appname='wbia')
     print('DEVMAIN INIT - POSTLOGGING')
 
     helpstr = ut.codeblock(
@@ -714,7 +714,7 @@ def devmain():
     #
     # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
-    main_locals = ibeis.main(gui=ut.get_argflag('--gui'))
+    main_locals = wbia.main(gui=ut.get_argflag('--gui'))
     #utool.set_process_title('IBEIS_dev')
 
     #
@@ -748,7 +748,7 @@ def devmain():
     ut.show_if_requested()
     if ut.get_argflag(('--show', '--wshow')):
         pt.present()
-    main_execstr = ibeis.main_loop(main_locals, rungui=not NOGUI,
+    main_execstr = wbia.main_loop(main_locals, rungui=not NOGUI,
                                    ipy=(NOGUI or CMD))
     exec(main_execstr)
 
@@ -765,23 +765,23 @@ def devmain():
 def ggr_random_name_splits():
     """
     CommandLine:
-        python -m ibeis.viz.viz_graph2 ggr_random_name_splits --show
+        python -m wbia.viz.viz_graph2 ggr_random_name_splits --show
 
     Ignore:
         sshfs -o idmap=user lev:/ ~/lev
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     gt.ensure_qtapp()
     #nid_list = ibs.get_valid_nids(filter_empty=True)
-    import ibeis
+    import wbia
     dbdir = '/media/danger/GGR/GGR-IBEIS'
     dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+    ibs = wbia.opendb(dbdir=dbdir, allow_newdir=False)
 
     import datetime
     day1 = datetime.date(2016, 1, 30)
@@ -858,7 +858,7 @@ def ggr_random_name_splits():
 
     pop = len(grouped_annots)
     pername_list = ut.lmap(len, grouped_annots)
-    groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
+    groups = wbia.annots.AnnotGroups(grouped_annots, ibs)
     match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
     tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
     print('name_pop = %r' % (pop,))
@@ -891,7 +891,7 @@ def ggr_random_name_splits():
     annot_sample = annot_sample_filter
 
     win = None
-    from ibeis.viz import viz_graph2
+    from wbia.viz import viz_graph2
     for annots in ut.InteractiveIter(annot_sample):
         if win is not None:
             win.close()
@@ -899,7 +899,7 @@ def ggr_random_name_splits():
                                                  init_mode='rereview')
         print(win)
 
-    sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
+    sample_groups = wbia.annots.AnnotGroups(annot_sample, ibs)
 
     flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.match_tags]
 

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Example of interfacing with IBEIS getters
-First run ~/code/ibeis/reset_dbs.sh to ensure you have the testdata
+First run ~/code/wbia/reset_dbs.sh to ensure you have the testdata
 """
 from __future__ import absolute_import, division, print_function
 import os
 import sys
 import multiprocessing
-sys.path.append(os.path.expanduser('~/code/ibeis'))  # Put IBEIS in PYTHONPATH  # NOQA
-import ibeis  # IBEIS module
+sys.path.append(os.path.expanduser('~/code/wbia'))  # Put IBEIS in PYTHONPATH  # NOQA
+import wbia  # IBEIS module
 import utool  # Useful Utility Tools
 
 (print, rrr, profile) = utool.inject2(__name__)
@@ -55,7 +55,7 @@ def run_example(ibs):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
+    main_locals = wbia.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']  # IBEIS Controller
 
     # Run the example
@@ -63,6 +63,6 @@ if __name__ == '__main__':
     # Add local variables to main namespace
     exec(utool.execstr_dict(example_locals, 'example_locals'))
 
-    execstr = ibeis.main_loop(main_locals)
+    execstr = wbia.main_loop(main_locals)
     # Pass the --cmd flag to the program to run in IPython mode
     exec(execstr)

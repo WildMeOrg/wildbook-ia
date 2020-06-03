@@ -25,10 +25,10 @@ import utool as ut
 import ubelt as ub
 from utool._internal.meta_util_six import get_funcname, set_funcname
 import itertools as it
-from ibeis import constants as const
-from ibeis.control import accessor_decors
-from ibeis.control import controller_inject
-from ibeis import annotmatch_funcs  # NOQA
+from wbia import constants as const
+from wbia.control import accessor_decors
+from wbia.control import controller_inject
+from wbia import annotmatch_funcs  # NOQA
 from skimage import io
 import xml.etree.ElementTree as ET
 import datetime
@@ -45,7 +45,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
@@ -55,13 +55,13 @@ def postinject_func(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-postinject_func
+        python -m wbia.other.ibsfuncs --test-postinject_func
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_empty_nids()  # a test run before this forgot to do this
         >>> aids_list = ibs.get_name_aids(ibs.get_valid_nids())
         >>> # indirectly test postinject_func
@@ -89,8 +89,8 @@ def postinject_func(ibs):
 
 @register_ibs_method
 def export_to_hotspotter(ibs):
-    from ibeis.dbio import export_hsdb
-    export_hsdb.export_ibeis_to_hotspotter(ibs)
+    from wbia.dbio import export_hsdb
+    export_hsdb.export_wbia_to_hotspotter(ibs)
 
 
 @register_ibs_method
@@ -124,7 +124,7 @@ def filter_junk_annotations(ibs, aid_list):
     remove junk annotations from a list
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
@@ -132,9 +132,9 @@ def filter_junk_annotations(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> filtered_aid_list = filter_junk_annotations(ibs, aid_list)
         >>> result = str(filtered_aid_list)
@@ -290,19 +290,19 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
 def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', auuid_list=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         verbose (bool):  verbosity flag(default = False)
         veryverbose (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-assert_valid_aids
+        python -m wbia.other.ibsfuncs --test-assert_valid_aids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> verbose = False
         >>> veryverbose = False
@@ -367,18 +367,18 @@ def get_missing_gids(ibs, gid_list=None):
     Finds gids with broken links to the original data.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_missing_gids --db GZ_Master1
+        python -m wbia.other.ibsfuncs --exec-get_missing_gids --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> #ibs = ibeis.opendb('GZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> #ibs = wbia.opendb('GZ_Master1')
         >>> gid_list = ibs.get_valid_gids()
         >>> bad_gids = ibs.get_missing_gids(gid_list)
         >>> print('#bad_gids = %r / %r' % (len(bad_gids), len(gid_list)))
@@ -545,17 +545,17 @@ def delete_unregistered_images(ibs, verbose=True):
 def check_image_consistency(ibs, gid_list=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
+        python -m wbia.other.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gid_list = None
         >>> result = check_image_consistency(ibs, gid_list)
         >>> print(result)
@@ -581,16 +581,16 @@ def check_image_uuid_consistency(ibs, gid_list=None):
     VERY SLOW
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
+        python -m wbia.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
+        python -m wbia.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
+        python -m wbia.other.ibsfuncs --test-check_image_uuid_consistency
+        python -m wbia.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
 
     Example:
         >>> # SCRIPT
-        >>> import ibeis
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> images = ibs.images()
         >>> # Check only very the largest files
         >>> #bytes_list_ = [
@@ -599,7 +599,7 @@ def check_image_uuid_consistency(ibs, gid_list=None):
         >>> #sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
         >>> #images = images.take(sortx)
         >>> gid_list = list(images)
-        >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
+        >>> wbia.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
     if gid_list is None:
@@ -716,7 +716,7 @@ def check_image_duplcates(ibs, gid_list=None):
 
 
 def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
-    from ibeis.other.detectfuncs import general_overlap
+    from wbia.other.detectfuncs import general_overlap
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -786,13 +786,13 @@ def check_annot_consistency(ibs, aid_list=None):
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_annot_consistency
+        python -m wbia.other.ibsfuncs --test-check_annot_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = check_annot_consistency(ibs, aid_list)
         >>> print(result)
@@ -834,9 +834,9 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
     # import uuid
     # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
 
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> check_annot_corrupt_uuids(ibs, aid_list)
     """
@@ -861,17 +861,17 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
 def check_name_consistency(ibs, nid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_name_consistency
+        python -m wbia.other.ibsfuncs --test-check_name_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
         >>> result = check_name_consistency(ibs, nid_list)
         >>> print(result)
@@ -898,7 +898,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
     """ checks that all the aids grouped in a name ahave the same name """
     # DEBUGGING CODE
     try:
-        from ibeis import ibsfuncs
+        from wbia import ibsfuncs
         _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
         assert all(map(ut.allsame, _nids_list))
     except Exception as ex:
@@ -1027,9 +1027,9 @@ def fix_remove_visual_dupliate_annotations(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('GZ_ALL')
         >>> fix_remove_visual_dupliate_annotations(ibs)
     """
     aid_list = ibs.get_valid_aids()
@@ -1097,17 +1097,17 @@ def fix_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): list of image ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-fix_exif_data
+        python -m wbia.other.ibsfuncs --exec-fix_exif_data
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='lynx')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='lynx')
         >>> gid_list = ibs.get_valid_gids()
         >>> result = fix_exif_data(ibs, gid_list)
         >>> print(result)
@@ -1203,16 +1203,16 @@ def fix_invalid_nids(ibs):
     anually
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-fix_invalid_nids
+        python -m wbia.other.ibsfuncs --test-fix_invalid_nids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = fix_invalid_nids(ibs)
         >>> print(result)
     """
@@ -1243,16 +1243,16 @@ def fix_invalid_name_texts(ibs):
     Ensure  that no name text is empty or '____'
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-fix_invalid_names
+        python -m wbia.other.ibsfuncs --test-fix_invalid_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = fix_invalid_name_texts(ibs)
         >>> print(result)
 
@@ -1286,20 +1286,20 @@ def fix_invalid_name_texts(ibs):
 def copy_imagesets(ibs, imgsetid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imgsetid_list (list):
 
     Returns:
         list: new_imgsetid_list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-copy_imagesets
+        python -m wbia.other.ibsfuncs --test-copy_imagesets
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
@@ -1364,12 +1364,12 @@ def delete_cache(ibs, delete_imagesets=False):
     Can specify to delete encoutners as well.
 
     CommandLine:
-        python -m ibeis delete_cache --db testdb1
+        python -m wbia delete_cache --db testdb1
 
     Example:
         >>> # SCRIPT
-        >>> import ibeis
-        >>> ibs = ibeis.opendb()
+        >>> import wbia
+        >>> ibs = wbia.opendb()
         >>> result = ibs.delete_cache()
     """
     ibs.ensure_directories()
@@ -1385,13 +1385,13 @@ def delete_cachedir(ibs):
     Deletes the cache directory in the database directory.
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs delete_cachedir
-        python -m ibeis delete_cachedir --db testdb1
+        python -m wbia.other.ibsfuncs delete_cachedir
+        python -m wbia delete_cachedir --db testdb1
 
     Example:
         >>> # SCRIPT
-        >>> import ibeis
-        >>> ibs = ibeis.opendb()
+        >>> import wbia
+        >>> ibs = wbia.opendb()
         >>> result = ibs.delete_cachedir()
     """
     print('[ibs] delete_cachedir')
@@ -1410,18 +1410,18 @@ def delete_cachedir(ibs):
 def delete_qres_cache(ibs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis --tf delete_qres_cache
-        python -m ibeis --tf delete_qres_cache --db PZ_MTEST
-        python -m ibeis --tf delete_qres_cache --db PZ_Master1
+        python -m wbia --tf delete_qres_cache
+        python -m wbia --tf delete_qres_cache --db PZ_MTEST
+        python -m wbia --tf delete_qres_cache --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> result = delete_qres_cache(ibs)
         >>> print(result)
     """
@@ -1500,7 +1500,7 @@ def delete_flann_cachedir(ibs):
     ut.remove_files_in_dir(flann_cachedir)
 
 
-def delete_ibeis_database(dbdir):
+def delete_wbia_database(dbdir):
     _ibsdb = join(dbdir, const.PATH_NAMES._ibsdb)
     print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
@@ -1559,26 +1559,26 @@ def _overwrite_all_annot_species_to(ibs, species):
 
 def unflat_map(method, unflat_rowids, **kwargs):
     """
-    Uses an ibeis lookup function with a non-flat rowid list.
+    Uses an wbia lookup function with a non-flat rowid list.
     In essence this is equivilent to map(method, unflat_rowids).
     The utility of this function is that it only calls method once.
     This is more efficient for calls that can take a list of inputs
 
     Args:
-        method        (method):  ibeis controller method
+        method        (method):  wbia controller method
         unflat_rowids (list): list of rowid lists
 
     Returns:
         list of values: unflat_vals
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-unflat_map
+        python -m wbia.other.ibsfuncs --test-unflat_map
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> method = ibs.get_annot_name_rowids
         >>> unflat_rowids = ibs.get_name_aids(ibs.get_valid_nids())
         >>> unflat_vals = unflat_map(method, unflat_rowids)
@@ -1605,7 +1605,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
 
 
 def _make_unflat_getter_func(flat_getter):
-    """ makes an unflat version of an ibeis getter """
+    """ makes an unflat version of an wbia getter """
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
         func = ut.get_method_func(flat_getter)
@@ -1649,7 +1649,7 @@ def ensure_unix_gpaths(gpath_list):
 def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
         default (bool): (default = False)
 
@@ -1657,13 +1657,13 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         list: infodict_list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_info --tb
+        python -m wbia.other.ibsfuncs --exec-get_annot_info --tb
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> default = True
         >>> infodict_list = ibs.get_annot_info(1, default)
@@ -1871,13 +1871,13 @@ def get_special_imgsetids(ibs):
 def get_ungrouped_gids(ibs):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_ungrouped_gids
+        python -m wbia.other.ibsfuncs --test-get_ungrouped_gids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> ibs.update_special_imagesets()
@@ -1909,16 +1909,16 @@ def get_ungrouped_gids(ibs):
 def update_ungrouped_special_imageset(ibs):
     """
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-update_ungrouped_special_imageset
+        python -m wbia.other.ibsfuncs --test-update_ungrouped_special_imageset
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb9')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb9')
         >>> result = update_ungrouped_special_imageset(ibs)
         >>> print(result)
     """
@@ -1981,8 +1981,8 @@ def update_special_imagesets(ibs, use_more_special_imagesets=False):
 
 def _get_unreviewed_gids(ibs):
     """
-    >>> import ibeis  # NOQA
-    >>> ibs = ibeis.opendb('testdb1')
+    >>> import wbia  # NOQA
+    >>> ibs = wbia.opendb('testdb1')
     """
     # hack
     gid_list = ibs.get_valid_gids()
@@ -2052,7 +2052,7 @@ def _get_exemplar_gids(ibs):
 
 @register_ibs_method
 def print_dbinfo(ibs, **kwargs):
-    from ibeis.other import dbinfo
+    from wbia.other import dbinfo
     dbinfo.get_dbinfo(ibs, *kwargs)
 
 
@@ -2072,9 +2072,9 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[], include_columns
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> verbosity = 1
         >>> print_annotation_table(ibs, verbosity)
     """
@@ -2101,17 +2101,17 @@ def print_annotmatch_table(ibs):
     Dumps annotation match table to stdout
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table
-        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
+        python -m wbia.other.ibsfuncs --exec-print_annotmatch_table
+        python -m wbia.other.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> result = print_annotmatch_table(ibs)
         >>> print(result)
     """
@@ -2237,9 +2237,9 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> verbosity = 1
         >>> print_contributor_table(ibs, verbosity)
     """
@@ -2264,9 +2264,9 @@ def is_aid_unknown(ibs, aid_list):
 @register_ibs_method
 def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
                                          notify_wildbook=True, assert_wildbook=True):
-    import ibeis
+    import wbia
     wildbook_existing_name_list = []
-    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
+    if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
         wildbook_existing_name_list = ibs.wildbook_get_existing_names()
         if wildbook_existing_name_list is None:
             wildbook_existing_name_list = []
@@ -2300,7 +2300,7 @@ def get_location_text(ibs, location_text, default_location_text):
         # Check for Lewa server
         comp_name = ut.get_computer_name()
         db_name = ibs.dbname
-        is_lewa = comp_name in ['ibeis.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
+        is_lewa = comp_name in ['wbia.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
         if is_lewa:
             location_text = 'LWC'
         else:
@@ -2315,16 +2315,16 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
     Just creates the nams, but does not set them
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_consecutive_newname_list_via_species
+        python -m wbia.other.ibsfuncs --test-get_consecutive_newname_list_via_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs._clean_species()
         >>> imgsetid = None
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
@@ -2337,9 +2337,9 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs._clean_species()
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
@@ -2445,7 +2445,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
     add them
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         num (None):
         str_format (int): either 1 or 2
 
@@ -2453,15 +2453,15 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         str: next_name
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-make_next_name
+        python -m wbia.other.ibsfuncs --test-make_next_name
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs1 = ibeis.opendb('testdb1')
-        >>> ibs2 = ibeis.opendb('PZ_MTEST')
-        >>> ibs3 = ibeis.opendb('NAUT_test')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs1 = wbia.opendb('testdb1')
+        >>> ibs2 = wbia.opendb('PZ_MTEST')
+        >>> ibs3 = wbia.opendb('NAUT_test')
         >>> ibs1._clean_species()
         >>> ibs2._clean_species()
         >>> ibs3._clean_species()
@@ -2537,7 +2537,7 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
     This function is probably the fastest of its siblings
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
         distinguish_unknowns (bool):
 
@@ -2545,13 +2545,13 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
         tuple: grouped_aids, unique_nids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-group_annots_by_name
+        python -m wbia.other.ibsfuncs --test-group_annots_by_name
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
         >>> grouped_aids, unique_nids = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
@@ -2580,16 +2580,16 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     r"""
     FIXME; rectify this
-    #>>> import ibeis  # NOQA
+    #>>> import wbia  # NOQA
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-group_annots_by_known_names
+        python -m wbia.other.ibsfuncs --test-group_annots_by_known_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(db='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
         >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
@@ -2618,20 +2618,20 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
 def get_primary_species_viewpoint(species, plus=0):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         species (?):
 
     Returns:
         str: primary_viewpoint
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_primary_species_viewpoint
+        python -m wbia.other.ibsfuncs --exec-get_primary_species_viewpoint
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> aid_subset = get_primary_species_viewpoint(species, 0)
         >>> result = ('aid_subset = %s' % (str(aid_subset),))
         >>> print(result)
@@ -2658,7 +2658,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> yaw_text_list = ['left', 'right', 'back', 'front']
         >>> towards = 'front'
         >>> num1 = 1
@@ -2722,20 +2722,20 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
       * time delta restrictions
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
+        python -m wbia.other.ibsfuncs --test-get_two_annots_per_name_and_singletons
+        python -m wbia.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
+        python -m wbia.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
 
     Ignore:
         sys.argv.extend(['--db', 'PZ_MTEST'])
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master0')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master0')
         >>> aid_subset = get_two_annots_per_name_and_singletons(ibs, onlygt=ut.get_argflag('--onlygt'))
-        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
+        >>> wbia.other.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
         >>> result = str(aid_subset)
         >>> print(result)
     """
@@ -2780,18 +2780,18 @@ def get_num_annots_per_name(ibs, aid_list):
     Returns the number of annots per name (IN THIS LIST)
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name
-        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
+        python -m wbia.other.ibsfuncs --exec-get_num_annots_per_name
+        python -m wbia.other.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids(is_known=True)
         >>> num_annots_per_name, unique_nids = get_num_annots_per_name(ibs, aid_list)
         >>> per_name_hist = ut.dict_hist(num_annots_per_name)
@@ -2845,7 +2845,7 @@ def get_yaw_viewtexts(yaw_list):
         yaw_list (list of angles):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_yaw_viewtexts
+        python -m wbia.other.ibsfuncs --test-get_yaw_viewtexts
 
     TODO:
         rhombicubeoctehedron
@@ -2881,7 +2881,7 @@ def get_yaw_viewtexts(yaw_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import numpy as np
         >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
         >>> text_list = get_yaw_viewtexts(yaw_list)
@@ -2937,7 +2937,7 @@ def get_yaw_viewtexts(yaw_list):
 
 
 def get_species_dbs(species_prefix):
-    from ibeis.init import sysres
+    from wbia.init import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return ut.compress(ibs_dblist, isvalid_list)
@@ -2955,22 +2955,22 @@ def get_database_species(ibs, aid_list=None):
     r"""
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_database_species
+        python -m wbia.other.ibsfuncs --test-get_database_species
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = ut.repr2(ibs.get_database_species(), nl=False)
         >>> print(result)
         ['____', 'bear_polar', 'zebra_grevys', 'zebra_plains']
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> result = ut.repr2(ibs.get_database_species(), nl=False)
         >>> print(result)
         ['zebra_plains']
@@ -2989,13 +2989,13 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
         aid_list (list):  list of annotation ids (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_primary_database_species
+        python -m wbia.other.ibsfuncs --test-get_primary_database_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = None
         >>> primary_species = get_primary_database_species(ibs, aid_list)
         >>> result = primary_species
@@ -3030,13 +3030,13 @@ def get_dominant_species(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_dominant_species
+        python -m wbia.other.ibsfuncs --test-get_dominant_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_dominant_species(ibs, aid_list)
         >>> print(result)
@@ -3054,14 +3054,14 @@ def get_database_species_count(ibs, aid_list=None):
     """
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_database_species_count
+        python -m wbia.other.ibsfuncs --test-get_database_species_count
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> #print(ut.repr2(ibeis.opendb('PZ_Master0').get_database_species_count()))
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> #print(ut.repr2(wbia.opendb('PZ_Master0').get_database_species_count()))
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = ut.repr2(ibs.get_database_species_count(), nl=False)
         >>> print(result)
         {'____': 3, 'bear_polar': 2, 'zebra_grevys': 2, 'zebra_plains': 6}
@@ -3076,7 +3076,7 @@ def get_database_species_count(ibs, aid_list=None):
 
 @register_ibs_method
 def get_dbinfo_str(ibs):
-    from ibeis.other import dbinfo
+    from wbia.other import dbinfo
     return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
 
 
@@ -3085,12 +3085,12 @@ def get_infostr(ibs):
     """ Returns sort printable database information
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     Returns:
         str: infostr
     """
-    from ibeis.other import dbinfo
+    from wbia.other import dbinfo
     return dbinfo.get_short_infostr(ibs)
 
 
@@ -3107,8 +3107,8 @@ def get_dbnotes(ibs):
 @register_ibs_method
 def set_dbnotes(ibs, notes):
     """ sets notes for an entire database """
-    import ibeis
-    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+    import wbia
+    assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
     ut.write_to(ibs.get_dbnotes_fpath(), notes)
 
 
@@ -3121,18 +3121,18 @@ def annotstr(ibs, aid):
 def merge_names(ibs, merge_name, other_names):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         merge_name (str):
         other_names (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-merge_names
+        python -m wbia.other.ibsfuncs --test-merge_names
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> merge_name = 'zebra'
         >>> other_names = ['occl', 'jeff']
         >>> result = merge_names(ibs, merge_name, other_names)
@@ -3152,8 +3152,8 @@ def merge_names(ibs, merge_name, other_names):
 
 def inspect_nonzero_yaws(ibs):
     """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
-    from ibeis.viz import viz_chip
-    import ibeis.plottool as pt
+    from wbia.viz import viz_chip
+    import wbia.plottool as pt
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
@@ -3181,15 +3181,15 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
-        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
+        python -m wbia.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
+        python -m wbia.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb('PZ_MUGU_19')
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> #ibs = wbia.opendb('PZ_MUGU_19')
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> dry_run = True
         >>> verbose = False
         >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
@@ -3203,9 +3203,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> dry_run = True
         >>> verbose = False
         >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
@@ -3215,9 +3215,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 
     Example2:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb2')
         >>> dry_run = True
         >>> verbose = False
         >>> imgsetid = None
@@ -3266,14 +3266,14 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
                                        prog_hook=None, allow_unknown=False):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
+        python -m wbia.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
         >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = wbia.opendb('testdb2')
         >>> new_flag_list = get_annot_quality_viewpoint_subset(ibs)
         >>> result = sum(new_flag_list)
         >>> print(result)
@@ -3281,10 +3281,10 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
         >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = [1]
         >>> new_flag_list = get_annot_quality_viewpoint_subset(ibs, aid_list, allow_unknown=True)
         >>> result = sum(new_flag_list)
@@ -3605,7 +3605,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     DEPRICATE
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         minqual (str): qualtext
         unknown_ok (bool): (default = False)
@@ -3614,13 +3614,13 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
         iter: qual_flags
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_quality_filterflags
+        python -m wbia.other.ibsfuncs --exec-get_quality_filterflags
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:20]
         >>> minqual = 'junk'
         >>> unknown_ok = False
@@ -3650,7 +3650,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
 def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume_unique=False):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         valid_yaws (?):
         unknown_ok (bool): (default = True)
@@ -3659,14 +3659,14 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume
         int: aid_list -  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags
-        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
+        python -m wbia.other.ibsfuncs --exec-get_viewpoint_filterflags
+        python -m wbia.other.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='Spotted_Dolfin_Master')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='Spotted_Dolfin_Master')
         >>> aid_list = ibs.get_valid_aids()[0:20]
         >>> valid_yaws = ['left']
         >>> unknown_ok = False
@@ -3702,7 +3702,7 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 def flag_aids_count(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         pre_unixtime_sort (bool):
 
@@ -3710,13 +3710,13 @@ def flag_aids_count(ibs, aid_list):
         list:
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-flag_aids_count
+        python -m wbia.other.ibsfuncs --test-flag_aids_count
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> gzc_flag_list = flag_aids_count(ibs, aid_list)
         >>> result = gzc_flag_list
@@ -3785,7 +3785,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('testdb1')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
@@ -3807,7 +3807,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
@@ -4000,8 +4000,8 @@ def get_unflat_annots_speeds_list(ibs, aids_list):
 
 
 def testdata_ibs(defaultdb='testdb1'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     return ibs
 
 
@@ -4019,16 +4019,16 @@ def make_next_imageset_text(ibs):
     Creates what the next imageset name would be but does not add it to the database
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-make_next_imageset_text
+        python -m wbia.other.ibsfuncs --test-make_next_imageset_text
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> new_imagesettext = make_next_imageset_text(ibs)
         >>> result = new_imagesettext
         >>> print(result)
@@ -4055,13 +4055,13 @@ def create_new_imageset_from_images(ibs, gid_list, new_imgsetid=None):
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_images
+        python -m wbia.other.ibsfuncs --test-create_new_imageset_from_images
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[::2]
         >>> new_imgsetid = create_new_imageset_from_images(ibs, gid_list)
         >>> result = new_imgsetid
@@ -4091,13 +4091,13 @@ def create_new_imageset_from_names(ibs, nid_list):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_names
+        python -m wbia.other.ibsfuncs --test-create_new_imageset_from_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()[0:2]
         >>> new_imgsetid = ibs.create_new_imageset_from_names(nid_list)
         >>> # clean up
@@ -4116,20 +4116,20 @@ def create_new_imageset_from_names(ibs, nid_list):
 def prepare_annotgroup_review(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         tuple: (src_ag_rowid, dst_ag_rowid) - source and dest annot groups
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-prepare_annotgroup_review
+        python -m wbia.other.ibsfuncs --test-prepare_annotgroup_review
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = prepare_annotgroup_review(ibs, aid_list)
         >>> print(result)
@@ -4168,9 +4168,9 @@ def search_annot_notes(ibs, pattern, aid_list=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_Master0')
         >>> pattern = ['gash', 'injury', 'scar', 'wound']
         >>> valid_aid_list = ibs.search_annot_notes(pattern)
         >>> print(valid_aid_list)
@@ -4193,9 +4193,9 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
     """
     DEPRICATE
 
-        >>> import ibeis
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> import wbia
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> aid_list = ibs.get_valid_aids()
         >>> minqual = 'good'
         >>> x1 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=True)
@@ -4264,9 +4264,9 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> import wbia
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> annots = ibs.annots(aid_list)
         >>> aid_list1_ = ibs.filter_aids_without_name(aid_list)
@@ -4301,19 +4301,19 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     above the minimum timedelta requirement.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (?):
         min_timedelta (?):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta
-        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
+        python -m wbia.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta
+        python -m wbia.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> aid_list = ibs.filter_aids_without_timestamps(aid_list)
         >>> print('Before')
@@ -4323,8 +4323,8 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> print('After')
         >>> ibs.print_annot_stats(filtered_aids, min_name_hourdist=True)
         >>> ut.quit_if_noshow()
-        >>> ibeis.other.dbinfo.hackshow_names(ibs, aid_list)
-        >>> ibeis.other.dbinfo.hackshow_names(ibs, filtered_aids)
+        >>> wbia.other.dbinfo.hackshow_names(ibs, aid_list)
+        >>> wbia.other.dbinfo.hackshow_names(ibs, filtered_aids)
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -4389,7 +4389,7 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
 def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
     """
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         species (?):
 
@@ -4397,15 +4397,15 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         list: aid_list_
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-filter_aids_to_species
+        python -m wbia.other.ibsfuncs --exec-filter_aids_to_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_GREVY
+        >>> species = wbia.const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
@@ -4441,7 +4441,7 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     Used for grouping one-vs-one training pairs and corerspondence filtering
 
     Args:
-        ibs (ibeis.control.IBEISControl.IBEISController):  ibeis controller object
+        ibs (wbia.control.IBEISControl.IBEISController):  wbia controller object
         aid_list1 (int):  list of annotation ids
         aid_list2 (int):  list of annotation ids
 
@@ -4452,13 +4452,13 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
             the other list.
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-partition_annots_into_corresponding_groups
+        python -m wbia.other.ibsfuncs --exec-partition_annots_into_corresponding_groups
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> grouped_aids = list(map(list, ibs.group_annots_by_name(ibs.get_valid_aids())[0]))
         >>> grouped_aids = [aids for aids in grouped_aids if len(aids) > 3]
         >>> # Get some overlapping groups
@@ -4481,8 +4481,8 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         [[29, 30, 31, 32], [49]]
     """
     #ibs.
-    import ibeis.control.IBEISControl
-    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+    import wbia.control.IBEISControl
+    assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
     #ibs
     #ibs.get_ann
 
@@ -4622,7 +4622,7 @@ def group_annots_by_prop(ibs, aids, getter_func):
 @register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """
-    >>> from ibeis.other.ibsfuncs import *  # NOQA
+    >>> from wbia.other.ibsfuncs import *  # NOQA
     >>> aids = available_aids
     """
     getter_func = ibs.get_annot_viewpoints
@@ -4674,7 +4674,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
     Performs heirachical grouping of annotations based on properties
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aids (list):  list of annotation rowids
         getter_list (list):
 
@@ -4682,14 +4682,14 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         dict: multiprop2_aids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=viewpoint_code,name_rowids --keys1 frontleft
-        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop
+        python -m wbia.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=viewpoint_code,name_rowids --keys1 frontleft
+        python -m wbia.other.ibsfuncs --exec-group_annots_by_multi_prop
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids(is_known=True)
         >>> #getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_viewpoints]
         >>> props = ut.get_argval('--props', type_=list, default=['viewpoint_code', 'name_rowids'])
@@ -4719,7 +4719,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
 
 def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     """
-    from ibeis.other.ibsfuncs import *  # NOQA
+    from wbia.other.ibsfuncs import *  # NOQA
     getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
     size = 2
@@ -4758,7 +4758,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
     """ stats for a set of annots
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         aids (list):  list of annotation rowids
         prefix (str): (default = '')
 
@@ -4769,30 +4769,30 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         dict: aid_stats_dict
 
     CommandLine:
-        python -m ibeis get_annot_stats_dict --db WWF_Lynx --all
-        python -m ibeis get_annot_stats_dict --db EWT_Cheetahs --all
-        python -m ibeis get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
-        python -m ibeis get_annot_stats_dict --db PZ_Master1 --all
+        python -m wbia get_annot_stats_dict --db WWF_Lynx --all
+        python -m wbia get_annot_stats_dict --db EWT_Cheetahs --all
+        python -m wbia get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
+        python -m wbia get_annot_stats_dict --db PZ_Master1 --all
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_Master1 --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_Master1 --all
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.annots().aids
         >>> stats = ibs.get_annot_stats_dict(aids)
         >>> import ubelt as ub
@@ -4800,10 +4800,10 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aids = ibeis.testdata_aids(ibs=ibs)
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> aids = wbia.testdata_aids(ibs=ibs)
         >>> prefix = ''
         >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
         >>> #default = True if ut.get_argflag('--all') else None
@@ -5041,7 +5041,7 @@ def compare_nested_props(ibs, aids1_list,
         list(map(list, itertools.starmap(ut.iprod, zip(aids1_list, aids2_list))))
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aids1_list (list):
         aids2_list (list):
         getter_func (?):
@@ -5051,13 +5051,13 @@ def compare_nested_props(ibs, aids1_list,
         list of ndarrays:
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-compare_nested_props --show
+        python -m wbia.other.ibsfuncs --exec-compare_nested_props --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids1_list = [ibs.get_valid_aids()[8:11]]
         >>> aids2_list = [ibs.get_valid_aids()[8:11]]
         >>> getter_func = ibs.get_annot_image_unixtimes_asfloat
@@ -5065,7 +5065,7 @@ def compare_nested_props(ibs, aids1_list,
         >>> result = compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     def replace_none_with_nan(x):
@@ -5131,26 +5131,26 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
     The print function should do string conversions
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         qaids (list):  query annotation ids
         daids (list):  database annotation ids
 
     SeeAlso:
-        ibeis.dbinfo.print_qd_info
+        wbia.dbinfo.print_qd_info
         ibs.get_annot_stats_dict
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a default
-        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db testdb1  -a default
-        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled
-        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
-        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
+        python -m wbia.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a default
+        python -m wbia.other.ibsfuncs get_annotconfig_stats --db testdb1  -a default
+        python -m wbia.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled
+        python -m wbia.other.ibsfuncs get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
+        python -m wbia.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> kwargs = {'per_enc': True, 'enc_per_name': True}
         >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(
         ...    defaultdb='testdb1', a='default:qsize=3')
@@ -5318,16 +5318,16 @@ def find_unlabeled_name_members(ibs, **kwargs):
     Find annots where some members of a name have information but others do not.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-find_unlabeled_name_members --qual
+        python -m wbia.other.ibsfuncs --exec-find_unlabeled_name_members --qual
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> defaultdict = dict(ut.parse_func_kwarg_keys(find_unlabeled_name_members, with_vals=True))
         >>> kwargs = ut.argparse_dict(defaultdict)
         >>> result = find_unlabeled_name_members(ibs, **kwargs)
@@ -5404,20 +5404,20 @@ def find_unlabeled_name_members(ibs, **kwargs):
 def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         qaid (int):  query annotation id
         daid (?):
         qconfig2_ (dict): (default = None)
         dconfig2_ (dict): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_pair_lazy_dict
+        python -m wbia.other.ibsfuncs --exec-get_annot_pair_lazy_dict
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> qaid, daid = ibs.get_valid_aids()[0:2]
         >>> qconfig2_ = None
         >>> dconfig2_ = None
@@ -5435,7 +5435,7 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
 def get_annot_lazy_dict(ibs, aid, config2_=None):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aid (int):  annotation id
         config2_ (dict): (default = None)
 
@@ -5443,13 +5443,13 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict --show
+        python -m wbia.other.ibsfuncs --exec-get_annot_lazy_dict --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid = 1
         >>> config2_ = None
         >>> metadata = get_annot_lazy_dict(ibs, aid, config2_)
@@ -5480,7 +5480,7 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     # metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
     # metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
     try:
-        from ibeis.viz.interact import interact_chip
+        from wbia.viz.interact import interact_chip
         metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
     except ImportError:
         pass
@@ -5491,7 +5491,7 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
 def get_image_lazydict(ibs, gid, config=None):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aid (int):  annotation id
         config (dict): (default = None)
 
@@ -5499,16 +5499,16 @@ def get_image_lazydict(ibs, gid, config=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+        python -m wbia.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gid = 1
     """
-    #from ibeis.viz.interact import interact_chip
+    #from wbia.viz.interact import interact_chip
     metadata = ut.LazyDict({
         'gid': gid,
         'unixtime': lambda: ibs.get_image_unixtime(gid),
@@ -5546,7 +5546,7 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
     DEPRICATE FOR ibs.annots
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aid (int):  annotation id
         config (dict): (default = None)
 
@@ -5554,13 +5554,13 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+        python -m wbia.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid = 1
         >>> config = {'dim_size': 450}
         >>> metadata = get_annot_lazy_dict2(ibs, aid, config)
@@ -5578,7 +5578,7 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
             ibs.depc_annot, [aid], config)[0],
     }
     try:
-        from ibeis.viz.interact import interact_chip
+        from wbia.viz.interact import interact_chip
     except ImportError:
         pass
     else:
@@ -5661,7 +5661,7 @@ def _clean_species(ibs):
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
         from six.moves import input as raw_input_
-        from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
+        from wbia.control.manual_species_funcs import _convert_species_nice_to_code
         species_rowid_list = ibs._get_all_species_rowids()
         species_text_list = ibs.get_species_texts(species_rowid_list)
         species_nice_list = ibs.get_species_nice(species_rowid_list)
@@ -5720,20 +5720,20 @@ def get_annot_occurrence_text(ibs, aids):
     """ Occurrence identifier for annotations
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         aids (list):  list of annotation rowids
 
     Returns:
         list: occur_texts
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs get_annot_occurrence_text --show
+        python -m wbia.other.ibsfuncs get_annot_occurrence_text --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> occur_texts = get_annot_occurrence_text(ibs, aids)
         >>> result = ('occur_texts = %s' % (ut.repr2(occur_texts),))
@@ -5863,7 +5863,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
 @register_ibs_method
 def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
     """ Function to load and process a SMART patrol XML file """
-    # Get file and copy to ibeis database folder
+    # Get file and copy to wbia database folder
     xml_dir, xml_name = split(smart_xml_fpath)
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
     ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
@@ -5920,13 +5920,13 @@ def compute_occurrences(ibs, config=None):
     Clusters ungrouped images into imagesets representing occurrences
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-compute_occurrences
+        python -m wbia.control.IBEISControl --test-compute_occurrences
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> ibs.update_special_imagesets()
         >>> # Remove some images from a non-special imageset
@@ -5947,13 +5947,13 @@ def compute_occurrences(ibs, config=None):
         >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
         >>> assert(images_to_remove[0] not in ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0])
     """
-    from ibeis.algo.preproc import preproc_occurrence
+    from wbia.algo.preproc import preproc_occurrence
     print('[ibs] Computing and adding imagesets.')
     # Only ungrouped images are clustered
     gid_list = ibs.get_ungrouped_gids()
     #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
-        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+        flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
             ibs, gid_list, config=config)
         sortx = ut.argsort(flat_imgsetids)
         flat_imgsetids = ut.take(flat_imgsetids, sortx)
@@ -6388,11 +6388,11 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=None, **kwargs):
     Search for QR codes in each imageset.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imageset_rowid_list (list):  imageset rowid list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs search_ggr_qr_codes
+        python -m wbia.other.ibsfuncs search_ggr_qr_codes
 
     Reference:
         https://www.learnopencv.com/barcode-and-qr-code-scanner-using-zbar-and-opencv/
@@ -6418,11 +6418,11 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=None, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> ibs.search_ggr_qr_codes()
     """
     if imageset_rowid_list is None:
@@ -6600,19 +6600,19 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
     Inspect QR codes in each imageset.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imageset_rowid_list (list):  imageset rowid list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs inspect_ggr_qr_codes
+        python -m wbia.other.ibsfuncs inspect_ggr_qr_codes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> ibs.inspect_ggr_qr_codes()
     """
     filename_qr_json = join(ibs.dbdir, 'imageset_qr_dict.json')
@@ -6741,18 +6741,18 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
     Sync image time offsets using QR codes sync data
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs overwrite_ggr_unixtimes_from_gps
+        python -m wbia.other.ibsfuncs overwrite_ggr_unixtimes_from_gps
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> ibs.overwrite_ggr_unixtimes_from_gps()
     """
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
@@ -6791,18 +6791,18 @@ def overwrite_unixtimes_from_gps(ibs, gid_list, gmt_offset=3.0):
     Sync image time offsets using QR codes sync data
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs overwrite_unixtimes_from_gps
+        python -m wbia.other.ibsfuncs overwrite_unixtimes_from_gps
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> ibs.overwrite_unixtimes_from_gps()
     """
     # Check for GPS dates and use if available
@@ -6839,18 +6839,18 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
     Sync image time offsets using QR codes sync data
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs sync_ggr_with_qr_codes
+        python -m wbia.other.ibsfuncs sync_ggr_with_qr_codes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> ibs.sync_ggr_with_qr_codes()
     """
     import datetime
@@ -7196,7 +7196,7 @@ def commit_ggr_fix_gps(ibs, **kwargs):
 
 def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10):
     import itertools
-    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
 
     gt_dict = {}
     for aid in aid_list:
@@ -7273,7 +7273,7 @@ def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, ind
 
 
 def merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.25):
-    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
     from sklearn import cluster
     from scipy import sparse
 
@@ -7326,20 +7326,20 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
     Merge the staged annotations into a single set of actual annotations (with AoI)
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs merge_ggr_staged_annots
+        python -m wbia.other.ibsfuncs merge_ggr_staged_annots
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> from os.path import expanduser
-        >>> import ibeis  # NOQA
-        >>> # default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> import wbia  # NOQA
+        >>> # default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> default_dbdir = expanduser(join('~', 'data', 'GGR2-IBEIS'))
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> new_aid_list, broken_gid_list = ibs.merge_ggr_staged_annots()
         >>> print('Encountered %d invalid gids: %r' % (len(broken_gid_list), broken_gid_list, ))
     """
@@ -7524,17 +7524,17 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
 def create_ggr_match_trees(ibs):
     r"""
     CommandLine:
-        python -m ibeis.other.ibsfuncs create_ggr_match_trees
+        python -m wbia.other.ibsfuncs create_ggr_match_trees
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> from os.path import expanduser
-        >>> import ibeis  # NOQA
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> import wbia  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> # default_dbdir = expanduser(join('~', 'data', 'GGR2-IBEIS'))
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = wbia.opendb(dbdir=dbdir)
         >>> imageset_rowid_list = ibs.create_ggr_match_trees()
     """
     imageset_rowid_list = ibs.get_valid_imgsetids()
@@ -7693,12 +7693,12 @@ def partition_ordered_list_equal_sum(a, k):
         https://gist.github.com/laowantong/ee675108eee64640e5f94f00d8edbcb4
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs partition_ordered_list_equal_sum
+        python -m wbia.other.ibsfuncs partition_ordered_list_equal_sum
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> import random
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> a = [random.randint(0,20) for x in range(50)]
         >>> k = 10
         >>> print('Partitioning {0} into {1} partitions'.format(a, k))
@@ -8369,7 +8369,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
 
 @register_ibs_method
 def import_folder(ibs, path, recursive=True, **kwargs):
-    from ibeis.detecttools.directory import Directory
+    from wbia.detecttools.directory import Directory
     direct = Directory(path, recursive=recursive, images=True)
     gid_list = ibs.add_images(direct.files(), **kwargs)
     return gid_list
@@ -8390,7 +8390,7 @@ def export_ggr_folders(ibs, output_path=None):
 
         output_path_clean = '/media/jason.parham/princeton/GGR-2018-CLEAN/'
         output_path_census = '/media/jason.parham/princeton/GGR-2018-CENSUS/'
-        prefix = '/data/ibeis/GGR2/GGR2018data/'
+        prefix = '/data/wbia/GGR2/GGR2018data/'
         needle = 'GGR Special Zone -'
 
     gid_list = ibs.get_valid_gids()
@@ -8572,9 +8572,9 @@ def export_ggr_folders(ibs, output_path=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs
-        python -m ibeis.other.ibsfuncs --allexamples
-        python -m ibeis.other.ibsfuncs --allexamples --noface --nosrc
+        python -m wbia.other.ibsfuncs
+        python -m wbia.other.ibsfuncs --allexamples
+        python -m wbia.other.ibsfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

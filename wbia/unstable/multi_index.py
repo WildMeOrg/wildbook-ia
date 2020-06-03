@@ -11,8 +11,8 @@ from six.moves import zip, map, range
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
-from ibeis.algo.hots import neighbor_index_cache
-from ibeis.algo.hots import hstypes
+from wbia.algo.hots import neighbor_index_cache
+from wbia.algo.hots import hstypes
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -21,13 +21,13 @@ USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reinde
 
 
 def testdata_mindexer():
-    import ibeis
-    ibs = ibeis.opendb(db='PZ_MTEST')
+    import wbia
+    ibs = wbia.opendb(db='PZ_MTEST')
     daid_list = ibs.get_valid_aids()[1:60]
     cfgdict = dict(fg_on=False)
     qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
     index_method = 'name'
-    mxer = request_ibeis_mindexer(qreq_, index_method)
+    mxer = request_wbia_mindexer(qreq_, index_method)
     return mxer, qreq_, ibs
 
 
@@ -67,43 +67,43 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
 
 
 @profile
-def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
+def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.multi_index --test-request_ibeis_mindexer:2
+        python -m wbia.algo.hots.multi_index --test-request_wbia_mindexer:2
 
     Example0:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.multi_index import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> from wbia.algo.hots.multi_index import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(db='PZ_MTEST')
         >>> valid_aids = ibs.get_valid_aids()
         >>> daid_list = valid_aids[1:60]
         >>> cfgdict = dict(fg_on=False)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
-        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> mxer = request_wbia_mindexer(qreq_, index_method)
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.multi_index import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master0')
+        >>> from wbia.algo.hots.multi_index import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(db='PZ_Master0')
         >>> valid_aids = ibs.get_valid_aids()
         >>> daid_list = valid_aids[1:60]
         >>> cfgdict = dict(fg_on=False)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
-        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> mxer = request_wbia_mindexer(qreq_, index_method)
 
     Example2:
         >>> # DISABLE_DOCTEST
         >>> # Test background reindex
-        >>> from ibeis.algo.hots.multi_index import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.multi_index import *  # NOQA
+        >>> import wbia
         >>> import time
-        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> ibs = wbia.opendb(db='PZ_MTEST')
         >>> valid_aids = ibs.get_valid_aids()
         >>> # Remove all cached nnindexers
         >>> ibs.delete_flann_cachedir()
@@ -112,14 +112,14 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> cfgdict = dict(fg_on=False)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
-        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> mxer = request_wbia_mindexer(qreq_, index_method)
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one subindexer')
         >>> # The next request should trigger a background process
         >>> # and build two subindexer
         >>> daid_list = valid_aids[1:60]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
-        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> mxer = request_wbia_mindexer(qreq_, index_method)
         >>> # Do some work in the foreground to ensure that it doesnt block
         >>> # the background job
         >>> print('[FG] sleeping or doing bit compute')
@@ -133,7 +133,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> daid_list = valid_aids[1:60]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
-        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> mxer = request_wbia_mindexer(qreq_, index_method)
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one big subindexer')
 
     """
@@ -184,7 +184,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = neighbor_index_cache.request_memcached_ibeis_nnindexer(qreq_, aids)
+            nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -221,7 +221,7 @@ class MultiNeighborIndex(object):
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.multi_index import *  # NOQA
+        >>> from wbia.algo.hots.multi_index import *  # NOQA
         >>> mxer, qreq_, ibs = testdata_mindexer()
     """
 
@@ -242,7 +242,7 @@ class MultiNeighborIndex(object):
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -269,11 +269,11 @@ class MultiNeighborIndex(object):
         Polymorphic interface to knn, but uses the multindex backend
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-knn:0
+            python -m wbia.algo.hots.multi_index --test-knn:0
 
         Example1:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -285,7 +285,7 @@ class MultiNeighborIndex(object):
 
         Example2:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = np.empty((0, 128), dtype=mxer.get_dtype())
@@ -318,11 +318,11 @@ class MultiNeighborIndex(object):
             list:
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_offsets
+            python -m wbia.algo.hots.multi_index --test-get_offsets
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> offset_list = mxer.get_offsets()
             >>> #target = np.array([15257, 12769,  4819,  3542,  2694])
@@ -344,11 +344,11 @@ class MultiNeighborIndex(object):
             list : nIndexed_list
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nIndexed_list
+            python -m wbia.algo.hots.multi_index --test-get_nIndexed_list
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> nIndexed_list = mxer.get_nIndexed_list()
             >>> target = np.array([21384, 15243, 12808, 4809, 3542, 2696])
@@ -401,7 +401,7 @@ class MultiNeighborIndex(object):
         print('adding multi-indexer support')
         raise NotImplementedError()
 
-    def add_ibeis_support(mxer, qreq_, new_aid_list):
+    def add_wbia_support(mxer, qreq_, new_aid_list):
         """
         Chooses indexer with smallest number of annotations and reindexes it.
 
@@ -410,15 +410,15 @@ class MultiNeighborIndex(object):
             new_aid_list (list):
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-add_ibeis_support
+            python -m wbia.algo.hots.multi_index --test-add_wbia_support
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> new_aid_list = ibs.get_valid_aids()[70:80]
             >>> # execute function
-            >>> result = mxer.add_ibeis_support(qreq_, new_aid_list)
+            >>> result = mxer.add_wbia_support(qreq_, new_aid_list)
             >>> # verify results
             >>> print(result)
         """
@@ -433,7 +433,7 @@ class MultiNeighborIndex(object):
         prev_aids = nnindexer_old.get_indexed_aids()
         new_aid_list_ = np.append(prev_aids, new_aid_list)
         # Reindexed combined aids
-        nnindexer_new = neighbor_index_cache.request_memcached_ibeis_nnindexer(qreq_, new_aid_list_)
+        nnindexer_new = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, new_aid_list_)
         # Replace the old nnindexer with the new nnindexer
         mxer.nn_indexer_list[min_argx] = nnindexer_new
         mxer.min_reindex_thresh = qreq_.qparams.min_reindex_thresh
@@ -457,7 +457,7 @@ class MultiNeighborIndex(object):
         """
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> num_indexed = mxer.num_indexed_vecs()
             >>> ut.assert_inbounds(num_indexed, 60300, 60500)
@@ -469,7 +469,7 @@ class MultiNeighborIndex(object):
         """
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.num_indexed_annots()
             >>> print(result)
@@ -488,11 +488,11 @@ class MultiNeighborIndex(object):
             qfx2_imx (ndarray):
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-iter_subindexers
+            python -m wbia.algo.hots.multi_index --test-iter_subindexers
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -538,11 +538,11 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_aid
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_aids
+            python -m wbia.algo.hots.multi_index --test-get_nn_aids
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -575,11 +575,11 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_fx
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_featxs
+            python -m wbia.algo.hots.multi_index --test-get_nn_featxs
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -604,11 +604,11 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_fgw
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_fgws
+            python -m wbia.algo.hots.multi_index --test-get_nn_fgws
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -628,7 +628,7 @@ class MultiNeighborIndex(object):
         """
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.algo.hots.multi_index import *  # NOQA
+            >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -676,11 +676,11 @@ class MultiNeighborIndex(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.multi_index
-        python -m ibeis.algo.hots.multi_index --allexamples
-        python -m ibeis.algo.hots.multi_index --allexamples --noface --nosrc
+        python -m wbia.algo.hots.multi_index
+        python -m wbia.algo.hots.multi_index --allexamples
+        python -m wbia.algo.hots.multi_index --allexamples --noface --nosrc
 
-        utprof.sh ibeis/algo/hots/multi_index.py --allexamples
+        utprof.sh wbia/algo/hots/multi_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

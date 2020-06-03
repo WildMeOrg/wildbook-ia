@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-TODO: Rename to ibeis/init/commands.py
+TODO: Rename to wbia/init/commands.py
 
 TODO; remove params module
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import sys
-from ibeis import constants as const
-from ibeis import params
-from ibeis.other import ibsfuncs
-from ibeis.init import sysres
+from wbia import constants as const
+from wbia import params
+from wbia.other import ibsfuncs
+from wbia.init import sysres
 from os.path import join
 print, rrr, profile = ut.inject2(__name__)
 
@@ -34,8 +34,8 @@ def vwd():
 
 # def preload_convert_hsdb(dbdir):
 #     """ Convert the database before loading (A bit hacky) """
-#     from ibeis.dbio import ingest_hsdb
-#     ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
+#     from wbia.dbio import ingest_hsdb
+#     ingest_hsdb.convert_hsdb_to_wbia(dbdir, force_delete=params.args.force_delete)
 
 
 def preload_commands(dbdir, **kwargs):
@@ -67,7 +67,7 @@ def preload_commands(dbdir, **kwargs):
         print('got arg --vdq')
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):
-        ibsfuncs.delete_ibeis_database(dbdir)
+        ibsfuncs.delete_wbia_database(dbdir)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
         sys.exit(0)
@@ -75,10 +75,10 @@ def preload_commands(dbdir, **kwargs):
 
 def postload_commands(ibs, back):
     """
-    Postload commands deal with a specific ibeis database
+    Postload commands deal with a specific wbia database
 
-    ibeis --db PZ_MTEST --occur "*All Images" --query 1
-    ibeis --db PZ_MTEST --occur "*All Images" --query-intra
+    wbia --db PZ_MTEST --occur "*All Images" --query 1
+    wbia --db PZ_MTEST --occur "*All Images" --query-intra
 
     """
     if ut.NOT_QUIET:
@@ -135,7 +135,7 @@ def postload_commands(ibs, back):
 
     select_name = ut.get_argval('--select-name')
     if select_name is not None:
-        import ibeis.gui.guiheaders as gh
+        import wbia.gui.guiheaders as gh
         back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name,
                                                     allow_table_change=True)
 
@@ -177,7 +177,7 @@ def postload_commands(ibs, back):
         back.start_web_server_parallel()
 
     if ut.get_argflag('--name-tab'):
-        from ibeis.gui.guiheaders import NAMES_TREE
+        from wbia.gui.guiheaders import NAMES_TREE
         back.front.set_table_tab(NAMES_TREE)
         view = back.front.views[NAMES_TREE]
         model = view.model()
@@ -188,11 +188,11 @@ def postload_commands(ibs, back):
 
     screengrab_fpath = ut.get_argval('--screengrab')
     if screengrab_fpath:
-        from ibeis.guitool.__PYQT__.QtGui import QPixmap
+        from wbia.guitool.__PYQT__.QtGui import QPixmap
         from PyQt4.QtTest import QTest
         from PyQt4.QtCore import Qt
         fpath = ut.truepath(screengrab_fpath)
-        import ibeis.guitool
+        import wbia.guitool
         #ut.embed()
         timer2 = guitool.__PYQT__.QtCore.QTimer()
         done = [1000]

@@ -5,10 +5,10 @@ downloads standard test datasets. can delete them as well
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.init import sysres
-from ibeis.dbio import ingest_database
+from wbia.init import sysres
+from wbia.dbio import ingest_database
 from os.path import join
-import ibeis
+import wbia
 import six
 from itertools import cycle
 import utool as ut
@@ -22,8 +22,8 @@ def testdb2_stuff():
     """
     tar -zcvf testdb2.tar.gz testdb2/
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb2')
+    import wbia
+    ibs = wbia.opendb('testdb2')
 
     #ibs.ensure_contributor_rowids()
 
@@ -73,7 +73,7 @@ TEST_DBNAMES_MAP = {
 
 
 def delete_dbdir(dbname):
-    ut.delete(join(ibeis.sysres.get_workdir(), dbname), ignore_errors=False)
+    ut.delete(join(wbia.sysres.get_workdir(), dbname), ignore_errors=False)
 
 
 def ensure_smaller_testingdbs():
@@ -102,9 +102,9 @@ def ensure_smaller_testingdbs():
                 else:
                     gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
             return gpath_list
-        workdir = ibeis.sysres.get_workdir()
+        workdir = wbia.sysres.get_workdir()
         TESTDB0 = join(workdir, 'testdb0')
-        main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
+        main_locals = wbia.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
         ibs = main_locals['ibs']
         assert ibs is not None, str(main_locals)
         gpath_list = list(map(ut.unixpath, get_test_gpaths()))
@@ -129,18 +129,18 @@ def ensure_smaller_testingdbs():
             raise
 
     get_testdata_dir(True)
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb0'), verbose=True):
+    if not ut.checkpath(join(wbia.sysres.get_workdir(), 'testdb0'), verbose=True):
         print("\n\nMAKE TESTDB0\n\n")
         make_testdb0()
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb1'), verbose=True):
+    if not ut.checkpath(join(wbia.sysres.get_workdir(), 'testdb1'), verbose=True):
         print("\n\nMAKE TESTDB1\n\n")
         ingest_database.ingest_standard_database('testdb1')
 
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
-    import ibeis
-    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    import wbia
+    wbia.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
                     for key in six.iterkeys(TEST_DBNAMES_MAP)}
     default_args['reset_all'] = False
@@ -159,18 +159,18 @@ def reset_testdbs(**kwargs):
 
     # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
-    workdir = ibeis.sysres.get_workdir()
+    workdir = wbia.sysres.get_workdir()
     if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
-        ibeis.ensure_pz_mtest()
+        wbia.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
-        ibeis.ensure_nauts()
+        wbia.ensure_nauts()
     if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
-        ibeis.ensure_wilddogs()
+        wbia.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
-        ibeis.init.sysres.ensure_testdb2()
+        wbia.init.sysres.ensure_testdb2()
 
     # Step 4) testdb1 becomes the main database
-    workdir = ibeis.sysres.get_workdir()
+    workdir = wbia.sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
 
@@ -178,11 +178,11 @@ def reset_testdbs(**kwargs):
 def reset_mtest():
     r"""
     CommandLine:
-        python -m ibeis --tf reset_mtest
+        python -m wbia --tf reset_mtest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tests.reset_testdbs import *  # NOQA
+        >>> from wbia.tests.reset_testdbs import *  # NOQA
         >>> result = reset_mtest()
     """
     # Hack, this function does not have a utool main
@@ -192,16 +192,16 @@ def reset_mtest():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.tests.reset_testdbs
+        python -m wbia.tests.reset_testdbs
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tests.reset_testdbs import *  # NOQA
+        >>> from wbia.tests.reset_testdbs import *  # NOQA
         >>> result = reset_testdbs()
         >>> # verify results
         >>> print(result)
     """
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
-    #ibeis._preload()
+    #wbia._preload()
     reset_testdbs()

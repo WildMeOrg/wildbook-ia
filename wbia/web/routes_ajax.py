@@ -4,14 +4,14 @@ Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
 from flask import request, make_response, current_app
-from ibeis.control import controller_inject
-from ibeis.web import appfuncs as appf
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 import utool as ut
 import vtool_ibeis as vt
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 @register_route('/ajax/cookie/', methods=['GET'])
@@ -132,9 +132,9 @@ def part_src(part_rowid, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

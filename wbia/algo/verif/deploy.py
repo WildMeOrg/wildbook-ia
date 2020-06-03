@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from os.path import join, exists, basename
-from ibeis.algo.verif import sklearn_utils
-from ibeis.algo.verif import verifier
+from wbia.algo.verif import sklearn_utils
+from wbia.algo.verif import verifier
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
@@ -50,7 +50,7 @@ class Deployer(object):
 
     def _load_published(self, ibs, species, task_key):
         """
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> self = Deployer()
         >>> species = 'zebra_plains'
         >>> task_key = 'match_state'
@@ -62,7 +62,7 @@ class Deployer(object):
         task_fnames = self.published[species]
         fname = task_fnames[task_key]
 
-        grabkw = dict(appname='ibeis', check_hash=False, verbose=0)
+        grabkw = dict(appname='wbia', check_hash=False, verbose=0)
 
         meta_url = base_url + '/' + fname + self.meta_suffix
         meta_fpath = ut.grab_file_url(meta_url, **grabkw)  # NOQA
@@ -114,7 +114,7 @@ class Deployer(object):
             ut.load_data('_tree.pkl')
             ut.load_data('_nodes.pkl')
 
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> params = dict(sample_method='random')
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
             >>> pblm.setup(with_simple=False)
@@ -234,11 +234,11 @@ class Deployer(object):
         Used to update the published dict
 
         CommandLine:
-            python -m ibeis.algo.verif.vsone find_latest_remote
+            python -m wbia.algo.verif.vsone find_latest_remote
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> self = Deployer()
             >>> task_clf_names = self.find_latest_remote()
         """
@@ -435,7 +435,7 @@ class Deployer(object):
                 * PUBLISH TO /media/hdd/PUBLIC/models/pairclf
 
         Example:
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> params = dict(sample_method='random')
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
             >>> pblm.setup(with_simple=False)
@@ -470,8 +470,8 @@ class Deployer(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.deploy
-        python -m ibeis.algo.verif.deploy --allexamples
+        python -m wbia.algo.verif.deploy
+        python -m wbia.algo.verif.deploy --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

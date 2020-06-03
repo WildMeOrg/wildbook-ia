@@ -15,7 +15,7 @@ def compare_string_versions(a, b):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._sql_helpers import *  # NOQA
+        >>> from wbia.control._sql_helpers import *  # NOQA
         >>> a = '1.1.1'
         >>> b = '1.0.0'
         >>> result1 = compare_string_versions(a, b)
@@ -38,10 +38,10 @@ def compare_string_versions(a, b):
 
 
 def _devcheck_backups():
-    from ibeis import dtool as dt
+    from wbia import dtool as dt
     dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
-    sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*staging_back*.sqlite3'))
-    fpaths = sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*database_back*.sqlite3'))
+    sorted(ut.glob(join(dbdir, '_wbia_backups'), '*staging_back*.sqlite3'))
+    fpaths = sorted(ut.glob(join(dbdir, '_wbia_backups'), '*database_back*.sqlite3'))
     for fpath in fpaths:
         db = dt.SQLDatabaseController(fpath=fpath)
         print('fpath = %r' % (fpath,))
@@ -97,13 +97,13 @@ def revert_to_backup(ibs):
         db_dir (?):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --exec-revert_to_backup
+        python -m wbia.control._sql_helpers --exec-revert_to_backup
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control._sql_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='elephants')
+        >>> from wbia.control._sql_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='elephants')
         >>> result = revert_to_backup(ibs)
         >>> print(result)
     """
@@ -148,9 +148,9 @@ def get_backupdir(db_dir, db_fname):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._sql_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control._sql_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> db_dir = ibs.get_ibsdir()
         >>> db_fname = ibs.sqldb_fname
         >>> backup_dir = ibs.backupdir
@@ -174,7 +174,7 @@ def get_backup_fpaths(ibs):
 
 
 def copy_database(src_fpath, dst_fpath):
-    from ibeis import dtool
+    from wbia import dtool
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
     timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
@@ -240,7 +240,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._sql_helpers import *  # NOQA
+        >>> from wbia.control._sql_helpers import *  # NOQA
         >>> ibs = '?'
         >>> db = ibs.db
         >>> version_expected = ibs.db_version_expected
@@ -252,8 +252,8 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     Args:
         schema_spec (module): module of schema specifications
     """
-    from ibeis import constants as const
-    from ibeis import params
+    from wbia import constants as const
+    from wbia import params
     #print('[SQL_] ensure_correct_version')
     force_incremental = params.args.force_incremental_db_update
     want_base_version = version_expected == const.BASE_DATABASE_VERSION
@@ -417,12 +417,12 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         n (int):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --test-autogenerate_nth_schema_version
+        python -m wbia.control._sql_helpers --test-autogenerate_nth_schema_version
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._sql_helpers import *  # NOQA
-        >>> from ibeis.control import DB_SCHEMA
+        >>> from wbia.control._sql_helpers import *  # NOQA
+        >>> from wbia.control import DB_SCHEMA
         >>> # build test data
         >>> schema_spec = DB_SCHEMA
         >>> n = 1
@@ -440,12 +440,12 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     schema_spec_fname = splitext(schema_spec_fname)[0]
     # HACK TO GET AUTOGEN COMMAND
     # FIXME: Make this autogen command a bit more sane and not completely
-    # coupled with ibeis
+    # coupled with wbia
     autogen_cmd = ut.codeblock(
         '''
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
+        python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
+        python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
+        python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
         '''
     ).format(schema_spec_fname=schema_spec_fname, funcname=schema_spec_fname.lower())
     autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)
@@ -485,11 +485,11 @@ def get_nth_test_schema_version(schema_spec, n=-1):
         schema_spec (module): schema module to get nth version of
         n (int): version index (-1 is the latest)
     """
-    from ibeis.dtool.sql_control import SQLDatabaseController
+    from wbia.dtool.sql_control import SQLDatabaseController
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
-    cachedir = ut.ensure_app_resource_dir('ibeis_test')
+    cachedir = ut.ensure_app_resource_dir('wbia_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
     db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
@@ -500,9 +500,9 @@ def get_nth_test_schema_version(schema_spec, n=-1):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control._sql_helpers
-        python -m ibeis.control._sql_helpers --allexamples
-        python -m ibeis.control._sql_helpers --allexamples --noface --nosrc
+        python -m wbia.control._sql_helpers
+        python -m wbia.control._sql_helpers --allexamples
+        python -m wbia.control._sql_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

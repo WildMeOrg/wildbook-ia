@@ -25,10 +25,10 @@ import utool as ut
 import ubelt as ub
 import six
 import itertools as it
-from ibeis.dtool.sql_control import SQLDatabaseController
+from wbia.dtool.sql_control import SQLDatabaseController
 from six.moves import zip, range
 from os.path import join, exists
-from ibeis.dtool import __SQLITE__ as lite  # NOQA
+from wbia.dtool import __SQLITE__ as lite  # NOQA
 import networkx as nx
 import re
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -213,7 +213,7 @@ class _TableConfigHelper(object):
 
     def get_row_parent_rowid_map(table, rowid_list):
         """
-        >>> from ibeis.dtool.depcache_table import *  # NOQA
+        >>> from wbia.dtool.depcache_table import *  # NOQA
 
         parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
         key = parent_rowid_dict.keys()[0]
@@ -231,7 +231,7 @@ class _TableConfigHelper(object):
         be false if there might be parents with different configs for the same
         table.
 
-        >>> from ibeis.dtool.depcache_table import *  # NOQA
+        >>> from wbia.dtool.depcache_table import *  # NOQA
 
         parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
         key = parent_rowid_dict.keys()[0]
@@ -321,7 +321,7 @@ class _TableConfigHelper(object):
 
     def get_row_cfgid(table, rowid_list):
         """
-        >>> from ibeis.dtool.depcache_table import *  # NOQA
+        >>> from wbia.dtool.depcache_table import *  # NOQA
         """
         config_rowids = table.get_internal_columns(rowid_list, (CONFIG_ROWID,))
         return config_rowids
@@ -330,9 +330,9 @@ class _TableConfigHelper(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> rowid_list = depc.get_rowids('chip', [1, 2], config={})
@@ -436,8 +436,8 @@ class _TableDebugHelper(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> tablenames = ['labeler', 'vsone', 'neighbs', 'indexer']
             >>> for table in ut.take(depc, tablenames): # .tables:
@@ -505,8 +505,8 @@ class _TableDebugHelper(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> table = depc['keypoint']
             >>> config = table.configclass()
@@ -601,8 +601,8 @@ class _TableInternalSetup(ub.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> for table in depc.tables:
             >>>     print('----')
@@ -712,8 +712,8 @@ class _TableInternalSetup(ub.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> table = depc['vsone']
             >>> table = depc['smk_match']
@@ -724,8 +724,8 @@ class _TableInternalSetup(ub.NiceRepr):
             >>> print(result)
 
         Ignore:
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> depc.d.get_indexer_data([1, 2, 3])
             >>> import uuid
@@ -1094,11 +1094,11 @@ class _TableGeneralHelper(ub.NiceRepr):
         return children_tablenames
 
     def show_dep_subgraph(table, inter=None):
-        from ibeis.plottool.interactions import ExpandableInteraction
+        from wbia.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         graph = table.depc.explicit_graph
         nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
@@ -1118,17 +1118,17 @@ class _TableGeneralHelper(ub.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> table = depc['smk_match']
             >>> table.show_input_graph()
             >>> #print(depc['smk_match'].flat_compute_rmi_edges)
             >>> ut.show_if_requested()
         """
-        from ibeis.plottool.interactions import ExpandableInteraction
+        from wbia.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
@@ -1155,19 +1155,19 @@ class _TableGeneralHelper(ub.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import * # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import * # NOQA
             >>> depc = testdata_depc3()
             >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
             >>> # xdoctest: +REQUIRES(--show)
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.ensureqt()
             >>> table.show_input_graph()
             >>> pt.interactions.zoom_factory()
             >>> ut.show_if_requested()
         """
-        from ibeis.dtool import input_helpers
+        from wbia.dtool import input_helpers
         graph = table.depc.explicit_graph.copy()
         target = table.tablename
         exi_graph = input_helpers.make_expanded_input_graph(graph, target)
@@ -1181,8 +1181,8 @@ class _TableGeneralHelper(ub.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> #tablename = 'multitest_score'
             >>> tablename = 'smk_match'
@@ -1194,7 +1194,7 @@ class _TableGeneralHelper(ub.NiceRepr):
             >>> print(result)
             inputs = <TableInput [annot[t], vocab[t], inv_index[t]]>
         """
-        from ibeis.dtool import input_helpers
+        from wbia.dtool import input_helpers
         exi_graph = table.expanded_input_graph
         rootmost_inputs = input_helpers.get_rootmost_inputs(exi_graph, table)
         return rootmost_inputs
@@ -1259,8 +1259,8 @@ class _TableComputeHelper(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3(in_memory=False)
             >>> depc.clear_all()
             >>> tablename = 'labeler'
@@ -1486,9 +1486,9 @@ class _TableComputeHelper(object):
         convinience function around get_extern_fnames
 
         Exmaple:
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='testdb1')
             >>> depc = ibs.depc_annot
             >>> tablename = 'chips'
             >>> table = depc[tablename]
@@ -1613,8 +1613,8 @@ class _TableComputeHelper(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3(in_memory=False)
             >>> depc.clear_all()
             >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
@@ -1710,8 +1710,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.depcache_table import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.depcache_table import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> print(depc['vsmany'])
         >>> print(depc['spam'])
@@ -1821,8 +1821,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> table1 = depc['indexer']
             >>> table2 = depc['neighbs']
@@ -1864,8 +1864,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> table = depc['vsone']
             >>> exec(ut.execstr_funckw(table.get_rowid), globals())
@@ -1961,8 +1961,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         rowids into hashable UUIDS.
 
         Example:
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> depc.clear_all()
             >>> tablename = 'vocab'
@@ -1980,8 +1980,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             preproc_args = [[1, 2, 3]]
 
         Example1:
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> depc.clear_all()
             >>> tablename = 'vocab'
@@ -2073,8 +2073,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import testdata_depc3
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
             >>> table = depc['labeler']
             >>> exec(ut.execstr_funckw(table.get_rowid), globals())
@@ -2179,8 +2179,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> #table = depc['keypoint']
             >>> table = depc['chip']
@@ -2207,7 +2207,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> table.delete_rows(rowid_list)
         """
         #import networkx as nx
-        #from ibeis.dtool.algo.preproc import preproc_feat
+        #from wbia.dtool.algo.preproc import preproc_feat
         if table.on_delete is not None and not dry:
             table.on_delete()
         if delete_extern is None:
@@ -2341,8 +2341,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_table import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_table import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> exec(ut.execstr_funckw(table.get_row_data), globals())
@@ -2370,7 +2370,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Test external / ensure getters
-            >>> from ibeis.dtool.example_depcache import *  # NOQA
+            >>> from wbia.dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> exec(ut.execstr_funckw(table.get_row_data), globals())

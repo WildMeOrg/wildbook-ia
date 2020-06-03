@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import networkx as nx
 import itertools as it
-from ibeis.algo.graph.nx_utils import edges_inside, e_
+from wbia.algo.graph.nx_utils import edges_inside, e_
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -140,11 +140,11 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         https://en.wikipedia.org/wiki/Dynamic_connectivity#Fully_dynamic_connectivity
 
     CommandLine:
-        python -m ibeis.algo.graph.nx_dynamic_graph DynConnGraph
+        python -m wbia.algo.graph.nx_dynamic_graph DynConnGraph
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+        >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
         >>> self = DynConnGraph()
         >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
         >>> self.add_edges_from([(10, 20), (20, 30), (40, 50), (60, 70), (70, 40)])
@@ -160,7 +160,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         >>> assert self.connected_to(u) != self.connected_to(v)
         >>> ccs = list(self.connected_components())
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qtensure()
         >>> pt.show_nx(self)
 
@@ -199,7 +199,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])
             >>> assert self.node_label(2) == self.node_label(1)
@@ -217,7 +217,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])
             >>> ccs = list(self.connected_components())
@@ -283,7 +283,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
             >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}
@@ -318,7 +318,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
             >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}
@@ -352,11 +352,11 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
     def remove_node(self, n):
         r"""
         CommandLine:
-            python -m ibeis.algo.graph.nx_dynamic_graph remove_node
+            python -m wbia.algo.graph.nx_dynamic_graph remove_node
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> from wbia.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9)])
             >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7, 8, 9}}
@@ -392,9 +392,9 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph all
-        python -m ibeis.algo.graph.nx_dynamic_graph all
-        python -m ibeis.algo.graph.nx_dynamic_graph --allexamples
+        python -m wbia.algo.graph all
+        python -m wbia.algo.graph.nx_dynamic_graph all
+        python -m wbia.algo.graph.nx_dynamic_graph --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

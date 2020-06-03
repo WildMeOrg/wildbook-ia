@@ -131,12 +131,12 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         list: cfg_combos_list
 
     CommandLine:
-        python -m ibeis.expt.cfghelpers --exec-parse_cfgstr_list2
-        python -m ibeis.expt.cfghelpers --test-parse_cfgstr_list2
+        python -m wbia.expt.cfghelpers --exec-parse_cfgstr_list2
+        python -m wbia.expt.cfghelpers --test-parse_cfgstr_list2
 
     Example:
         >>> # ENABLE_DOCTET
-        >>> from ibeis.expt.cfghelpers import *  # NOQA
+        >>> from wbia.expt.cfghelpers import *  # NOQA
         >>> cfgstr_list = ['name', 'name:f=1', 'name:b=[1,2]', 'name1:f=1::name2:f=1,b=2']
         >>> #cfgstr_list = ['name', 'name1:f=1::name2:f=1,b=2']
         >>> named_defaults_dict = None
@@ -239,12 +239,12 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         list: cfg_list
 
     CommandLine:
-        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
-        python -m ibeis.expt.cfghelpers --test-parse_argv_cfg
+        python -m wbia.expt.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
+        python -m wbia.expt.cfghelpers --test-parse_argv_cfg
 
     Example:
         >>> # ENABLE_DOCTET
-        >>> from ibeis.expt.cfghelpers import *  # NOQA
+        >>> from wbia.expt.cfghelpers import *  # NOQA
         >>> argname = '--filt'
         >>> cfg_list = parse_argv_cfg(argname)
         >>> result = ('cfg_list = %s' % (str(cfg_list),))
@@ -268,9 +268,9 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.cfghelpers
-        python -m ibeis.expt.cfghelpers --allexamples
-        python -m ibeis.expt.cfghelpers --allexamples --noface --nosrc
+        python -m wbia.expt.cfghelpers
+        python -m wbia.expt.cfghelpers --allexamples
+        python -m wbia.expt.cfghelpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

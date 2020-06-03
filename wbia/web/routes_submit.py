@@ -4,10 +4,10 @@ Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
 from flask import request, redirect, url_for, current_app
-from ibeis.control import controller_inject
-from ibeis.web import appfuncs as appf
-from ibeis import constants as const
-from ibeis.web.routes import THROW_TEST_AOI_TURKING
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
+from wbia import constants as const
+from wbia.web.routes import THROW_TEST_AOI_TURKING
 import utool as ut
 import numpy as np
 import uuid
@@ -15,7 +15,7 @@ import six
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 @register_route('/submit/login/', methods=['POST'], __route_authenticate__=False)
@@ -1270,7 +1270,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
 @register_route('/submit/identification/', methods=['POST'])
 def submit_identification(**kwargs):
-    from ibeis.web.apis_query import process_graph_match_html
+    from wbia.web.apis_query import process_graph_match_html
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
@@ -1516,14 +1516,14 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
 def group_review_submit(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-group_review_submit
+        python -m wbia.web.app --exec-group_review_submit
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> import ibeis.web
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> import wbia.web
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
@@ -1599,9 +1599,9 @@ def submit_contour(**kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

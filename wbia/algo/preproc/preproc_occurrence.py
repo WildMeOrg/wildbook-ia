@@ -10,7 +10,7 @@ import sklearn.cluster
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 
 
-def ibeis_compute_occurrences(ibs, gid_list, config=None, verbose=None):
+def wbia_compute_occurrences(ibs, gid_list, config=None, verbose=None):
     """
     clusters occurrences togethers (by time, not yet space)
     An occurrence is a meeting, localized in time and space between a camera
@@ -20,19 +20,19 @@ def ibeis_compute_occurrences(ibs, gid_list, config=None, verbose=None):
     Does not modify database state, just returns cluster ids
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis --tf ibeis_compute_occurrences:0 --show
+        python -m wbia --tf wbia_compute_occurrences:0 --show
         TODO: FIXME: good example of autogen doctest return failure
     """
     if config is None:
         config = {'use_gps': False, 'seconds_thresh': 600}
-        #from ibeis.algo import Config
+        #from wbia.algo import Config
         #config = Config.OccurrenceConfig().asdict()
     occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, config,
                                                          verbose=verbose)
@@ -52,25 +52,25 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
                               verbose=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis compute_occurrence_groups
+        python -m wbia compute_occurrence_groups
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> verbose = True
         >>> images = ibs.images()
         >>> gid_list = images.gids
-        >>> config = {}  # ibeis.algo.Config.OccurrenceConfig().asdict()
-        >>> tup = ibeis_compute_occurrences(ibs, gid_list)
+        >>> config = {}  # wbia.algo.Config.OccurrenceConfig().asdict()
+        >>> tup = wbia_compute_occurrences(ibs, gid_list)
         >>> (flat_imgsetids, flat_gids)
         >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
         >>> metric = list(map(len, aids_list))
@@ -90,7 +90,7 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
     use_gps = config['use_gps']
     datas = prepare_X_data(ibs, gid_list, use_gps=use_gps)
 
-    from ibeis.algo.preproc import occurrence_blackbox
+    from wbia.algo.preproc import occurrence_blackbox
 
     cluster_algo           = config.get('cluster_algo', 'agglomerative')
     km_per_sec             = config.get('km_per_sec', occurrence_blackbox.KM_PER_SEC)
@@ -143,7 +143,7 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
 def compute_occurrence_unixtime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
     # TODO: account for -1
-    from ibeis.other import ibsfuncs
+    from wbia.other import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, occur_gids)
     time_arrs = list(map(np.array, unixtimes))
     occur_unixtimes = list(map(np.mean, time_arrs))
@@ -152,7 +152,7 @@ def compute_occurrence_unixtime(ibs, occur_gids):
 
 def _compute_occurrence_datetime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
-    #from ibeis.other import ibsfuncs
+    #from wbia.other import ibsfuncs
     occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
     occur_datetimes = list(map(ut.unixtime_to_datetimestr, occur_unixtimes))
     return occur_datetimes
@@ -164,11 +164,11 @@ def prepare_X_data(ibs, gid_list, use_gps=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> images = ibs.images()
-        >>> # ibeis.control.accessor_decors.DEBUG_GETTERS = True
+        >>> # wbia.control.accessor_decors.DEBUG_GETTERS = True
         >>> use_gps = True
         >>> gid_list = images.gids
         >>> datas = prepare_X_data(ibs, gid_list, use_gps)
@@ -219,7 +219,7 @@ def agglomerative_cluster_occurrences(X_data, thresh_sec):
         ndarray: (label_arr) - Length N array of cluster indexes
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
+        python -m wbia.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
 
     References:
         https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata
@@ -227,7 +227,7 @@ def agglomerative_cluster_occurrences(X_data, thresh_sec):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = '?'
         >>> thresh_sec = '?'
         >>> (occur_ids, occur_gids) = agglomerative_cluster_occurrences(X_data, thresh_sec)
@@ -251,11 +251,11 @@ def meanshift_cluster_occurrences(X_data, quantile):
         ndarray : Length N array of labels
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
+        python -m wbia.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = '?'
         >>> quantile = '?'
         >>> result = meanshift_cluster_occurrences(X_data, quantile)
@@ -344,11 +344,11 @@ def cluster_timespace(X_data, thresh):
             scipy.cluster.hierarchy.linkage.html
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence cluster_timespace --show
+        python -m wbia.algo.preproc.preproc_occurrence cluster_timespace --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = testdata_gps()
         >>> thresh = 10
         >>> X_labels = cluster_timespace(X_data, thresh)
@@ -424,9 +424,9 @@ def plot_gps_html(gps_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> images = ibs.images()
         >>> # Setup GPS points to draw
         >>> print('Setup GPS points')
@@ -439,7 +439,7 @@ def plot_gps_html(gps_list):
         >>> unixtime_list = unixtime_list_.compress(isvalid)  # NOQA
         >>> plot_image_gps(gps_list)
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import gmplot
     import matplotlib as mpl
     import vtool_ibeis as vt
@@ -529,8 +529,8 @@ def plot_gps_html(gps_list):
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.preproc.preproc_occurrence
-    python -m ibeis.algo.preproc.preproc_occurrence --allexamples
+    python -m wbia.algo.preproc.preproc_occurrence
+    python -m wbia.algo.preproc.preproc_occurrence --allexamples
     """
     import utool as ut
     import multiprocessing

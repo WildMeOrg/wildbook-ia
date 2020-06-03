@@ -5,8 +5,8 @@ Exports subset of an IBEIS database to a new IBEIS database
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from ibeis.other import ibsfuncs
-from ibeis import constants as const
+from wbia.other import ibsfuncs
+from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -53,21 +53,21 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis --test-merge_databases
+        python -m wbia --test-merge_databases
 
-        python -m ibeis merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
-        python -m ibeis merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
+        python -m wbia merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
+        python -m wbia merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
 
-        python -m ibeis merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
-        python -m ibeis merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
+        python -m wbia merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
+        python -m wbia merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
 
-        python -m ibeis merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
-        python -m ibeis merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
+        python -m wbia merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
+        python -m wbia merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.export_subset import *  # NOQA
+        >>> import wbia
         >>> db1 = ut.get_argval('--db1', str, default=None)
         >>> db2 = ut.get_argval('--db2', str, default=None)
         >>> dbdir1 = ut.get_argval('--dbdir1', str, default=None)
@@ -81,8 +81,8 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
         >>> # Open the source and destination database
         >>> assert db1 is not None or dbdir1 is not None
         >>> assert db2 is not None or dbdir2 is not None
-        >>> ibs_src = ibeis.opendb(db=db1, dbdir=dbdir1)
-        >>> ibs_dst = ibeis.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,
+        >>> ibs_src = wbia.opendb(db=db1, dbdir=dbdir1)
+        >>> ibs_dst = wbia.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,
         >>>                        delete_ibsdir=delete_ibsdir)
         >>> merge_databases(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
@@ -134,11 +134,11 @@ def make_new_dbpath(ibs, id_label, id_list):
     """
     Creates a new database path unique to the exported subset of ids.
     """
-    import ibeis
+    import wbia
     tag_hash = ut.hashstr_arr(id_list, hashlen=8, alphabet=ut.ALPHABET_27)
     base_fmtstr = ibs.get_dbname() + '_' + id_label + 's=' + \
         tag_hash.replace('(', '_').replace(')', '_') + '_%d'
-    dpath = ibeis.get_workdir()
+    dpath = wbia.get_workdir()
     new_dbpath = ut.non_existing_path(base_fmtstr, dpath)
     return new_dbpath
 
@@ -148,18 +148,18 @@ def export_names(ibs, nid_list, new_dbpath=None):
     exports a subset of names and other required info
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-export_names
+        python -m wbia.dbio.export_subset --test-export_names
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.export_subset import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = wbia.opendb('testdb2')
         >>> ibs.delete_empty_nids()
         >>> nid_list = ibs._get_all_known_nids()[0:2]
         >>> # execute function
@@ -225,7 +225,7 @@ def export_images(ibs, gid_list, new_dbpath=None):
         PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):  list of annotation rowids
         new_dbpath (None): (default = None)
 
@@ -251,7 +251,7 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         PZ_Master0
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
         new_dbpath (None): (default = None)
 
@@ -259,29 +259,29 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         str: new_dbpath
 
     CommandLine:
-        python -m ibeis.dbio.export_subset export_annots
-        python -m ibeis.dbio.export_subset export_annots --db NNP_Master3 \
+        python -m wbia.dbio.export_subset export_annots
+        python -m wbia.dbio.export_subset export_annots --db NNP_Master3 \
             -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
 
-        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 \
+        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 \
             --db NNP_Master3 \
             -a viewpoint_compare --nocache-aid --verbtd
-        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
             -a viewpoint_compare --nocache-aid --verbtd
-        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
             -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
-        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
             -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
 
-        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db PZ_Master1 \
+        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db PZ_Master1 \
             -a default:has_any=photobomb --acfginfo
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import experiment_helpers
-        >>> ibs = ibeis.opendb(defaultdb='NNP_Master3')
+        >>> from wbia.dbio.export_subset import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import experiment_helpers
+        >>> ibs = wbia.opendb(defaultdb='NNP_Master3')
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=[''])
         >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
         >>> aid_list = expanded_aids_list[0][0]
@@ -308,7 +308,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     exports a subset of data and other required info
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):  list of image rowids
         aid_list (list):  list of annotation rowids
         nid_list (list):  list of name rowids
@@ -319,7 +319,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     Returns:
         str: new_dbpath
     """
-    import ibeis
+    import wbia
 
     imgsetid_list = ut.unique_unordered(ut.flatten(ibs.get_image_imgsetids(gid_list)))
     gsgrid_list = ut.unique_unordered(
@@ -343,7 +343,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
         const.GSG_RELATION_TABLE: gsgrid_list,
         const.IMAGESET_TABLE: imgsetid_list,
     }
-    ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
+    ibs_dst = wbia.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
     merge_databases(ibs, ibs_dst, rowid_subsets=rowid_subsets)
     print('Exported to %r' % (new_dbpath,))
@@ -353,25 +353,25 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 def slow_merge_test():
     r"""
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-slow_merge_test
+        python -m wbia.dbio.export_subset --test-slow_merge_test
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> from wbia.dbio.export_subset import *  # NOQA
         >>> result = slow_merge_test()
         >>> print(result)
     """
-    from ibeis.dbio import export_subset
-    import ibeis
-    ibs1 = ibeis.opendb('testdb2')
+    from wbia.dbio import export_subset
+    import wbia
+    ibs1 = wbia.opendb('testdb2')
     ibs1.fix_invalid_annotmatches()
-    ibs_dst = ibeis.opendb(
+    ibs_dst = wbia.opendb(
         db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
     export_subset.merge_databases(ibs1, ibs_dst)
     #ibs_src = ibs1
     check_merge(ibs1, ibs_dst)
 
-    ibs2 = ibeis.opendb('testdb1')
+    ibs2 = wbia.opendb('testdb1')
     ibs1.print_dbinfo()
     ibs2.print_dbinfo()
     ibs_dst.print_dbinfo()
@@ -382,7 +382,7 @@ def slow_merge_test():
     #ibs_src = ibs2
     check_merge(ibs2, ibs_dst)
 
-    ibs3 = ibeis.opendb('PZ_MTEST')
+    ibs3 = wbia.opendb('PZ_MTEST')
     export_subset.merge_databases(ibs3, ibs_dst)
     #ibs_src = ibs2
     check_merge(ibs3, ibs_dst)
@@ -397,8 +397,8 @@ def slow_merge_test():
 
 
 def fix_bidirectional_annotmatch(ibs):
-    import ibeis
-    infr = ibeis.AnnotInference(ibs=ibs, aids='all', verbose=5)
+    import wbia
+    infr = wbia.AnnotInference(ibs=ibs, aids='all', verbose=5)
     infr.initialize_graph()
     annots = ibs.annots()
     aid_to_nid = ut.dzip(annots.aids, annots.nids)
@@ -422,7 +422,7 @@ def fix_bidirectional_annotmatch(ibs):
     d1 = df.loc[isect_edges1].reset_index(drop=False)
     d2 = df.loc[isect_edges2].reset_index(drop=False)
     flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
-    from ibeis.tag_funcs import _parse_tags
+    from wbia.tag_funcs import _parse_tags
     for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
         v1, v2 = r1[1], r2[1]
         aid1 = v1['annot_rowid1']
@@ -455,8 +455,8 @@ def fix_bidirectional_annotmatch(ibs):
 
     if len(fixme_edges) > 0:
         # need to manually fix these edges
-        fix_infr = ibeis.AnnotInference.from_pairs(fixme_edges, ibs=ibs, verbose=5)
-        feedback = fix_infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        fix_infr = wbia.AnnotInference.from_pairs(fixme_edges, ibs=ibs, verbose=5)
+        feedback = fix_infr.read_wbia_annotmatch_feedback(only_existing_edges=True)
         infr = fix_infr
 
         fix_infr.external_feedback = feedback
@@ -470,8 +470,8 @@ def fix_bidirectional_annotmatch(ibs):
 
         # MANUALLY CALL THIS ONCE FINISHED
         # TO ONLY CHANGE ANNOTMATCH EDGES
-        infr.write_ibeis_staging_feedback()
-        infr.write_ibeis_annotmatch_feedback()
+        infr.write_wbia_staging_feedback()
+        infr.write_wbia_annotmatch_feedback()
 
     # extra_.update(custom_)
     new_pairs = extra_.keys()
@@ -490,10 +490,10 @@ def fix_bidirectional_annotmatch(ibs):
     ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
     if False:
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         gt.ensure_qapp()
         ut.qtensure()
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
         inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
 
 
@@ -507,9 +507,9 @@ def fix_annotmatch_pzmaster1():
     current labeling so we can go forward with using the new AnnotInference
     object
     """
-    import ibeis
-    ibs = ibeis.opendb('PZ_Master1')
-    infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(), verbose=5)
+    import wbia
+    ibs = wbia.opendb('PZ_Master1')
+    infr = wbia.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(), verbose=5)
     infr.initialize_graph()
     annots = ibs.annots()
     aid_to_nid = ut.dzip(annots.aids, annots.nids)
@@ -562,7 +562,7 @@ def fix_annotmatch_pzmaster1():
         d1 = df.loc[isect_edges1].reset_index(drop=False)
         d2 = df.loc[isect_edges2].reset_index(drop=False)
         flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
-        from ibeis.tag_funcs import _parse_tags
+        from wbia.tag_funcs import _parse_tags
         for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
             v1, v2 = r1[1], r2[1]
             aid1 = v1['annot_rowid1']
@@ -612,10 +612,10 @@ def fix_annotmatch_pzmaster1():
         ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
         if False:
-            import ibeis.guitool as gt
+            import wbia.guitool as gt
             gt.ensure_qapp()
             ut.qtensure()
-            from ibeis.gui import inspect_gui
+            from wbia.gui import inspect_gui
             inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
 
         # pairs2 = pairs1.T[::-1].T
@@ -652,9 +652,9 @@ def fix_annotmatch_pzmaster1():
     aids1 = pb_disagree1['annot_rowid1'].values.tolist()
     aids2 = pb_disagree1['annot_rowid2'].values.tolist()
     aid_pairs = list(zip(aids1, aids2))
-    infr = ibeis.AnnotInference.from_pairs(aid_pairs, ibs=ibs, verbose=5)
+    infr = wbia.AnnotInference.from_pairs(aid_pairs, ibs=ibs, verbose=5)
     if False:
-        feedback = infr.read_ibeis_annotmatch_feedback(edges=infr.edges())
+        feedback = infr.read_wbia_annotmatch_feedback(edges=infr.edges())
         infr.external_feedback = feedback
         infr.apply_feedback_edges()
         infr.start_qt_interface(loop=False)
@@ -676,7 +676,7 @@ def fix_annotmatch_pzmaster1():
 
     # aid1, aid2 = 2585, 1875
     # # pd.unique(annotmatch['annotmatch_evidence_decision'])
-    # from ibeis.gui import inspect_gui
+    # from wbia.gui import inspect_gui
     # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
     # from vtool_ibeis import inspect_matches
 
@@ -702,31 +702,31 @@ def remerge_subset():
 
         # Load graph
         import ibei
-        ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
-        infr = ibeis.AnnotInference(aids='all', ibs=ibs, verbose=3)
+        ibs = wbia.opendb('PZ_PB_RF_TRAIN')
+        infr = wbia.AnnotInference(aids='all', ibs=ibs, verbose=3)
         infr.reset_feedback('staging', apply=True)
         infr.relabel_using_reviews()
 
         # Check deltas
-        infr.ibeis_name_group_delta_info()
-        infr.ibeis_delta_info()
+        infr.wbia_name_group_delta_info()
+        infr.wbia_delta_info()
 
         # Write if it looks good
-        infr.write_ibeis_annotmatch_feedback()
-        infr.write_ibeis_name_assignment()
+        infr.write_wbia_annotmatch_feedback()
+        infr.write_wbia_name_assignment()
 
     Ignore:
-        import ibeis
-        ibs = ibeis.opendb('PZ_Master1')
-        infr = ibeis.AnnotInference(ibs, 'all')
+        import wbia
+        ibs = wbia.opendb('PZ_Master1')
+        infr = wbia.AnnotInference(ibs, 'all')
         infr.reset_feedback('annotmatch', apply=True)
 
     CommandLine:
-        python -m ibeis.dbio.export_subset remerge_subset
+        python -m wbia.dbio.export_subset remerge_subset
     """
-    import ibeis
-    ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
-    ibs2 = ibeis.opendb('PZ_Master1')
+    import wbia
+    ibs1 = wbia.opendb('PZ_PB_RF_TRAIN')
+    ibs2 = wbia.opendb('PZ_Master1')
 
     gids1, gids2 = ibs1.images(), ibs2.images()
     idxs1, idxs2 = ut.isect_indices(gids1.uuids, gids2.uuids)
@@ -784,16 +784,16 @@ def remerge_subset():
         print('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
-    infr1 = ibeis.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
+    infr1 = wbia.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
                                  autoinit=False)
 
-    # infr2 = ibeis.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
+    # infr2 = wbia.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
     aids2 = ibs2.get_valid_aids(is_known=True)
-    infr2 = ibeis.AnnotInference(aids=aids2, ibs=ibs2, verbose=3)
+    infr2 = wbia.AnnotInference(aids=aids2, ibs=ibs2, verbose=3)
     infr2.reset_feedback('annotmatch', apply=True)
 
     # map feedback from ibs1 onto ibs2 using ibs2 aids.
-    fb1 = infr1.read_ibeis_annotmatch_feedback()
+    fb1 = infr1.read_wbia_annotmatch_feedback()
     fb1_t = {(to_aids2[u], to_aids2[v]): val for (u, v), val in fb1.items()}
     fb1_df_t = infr2._pandas_feedback_format(fb1_t).drop('am_rowid', axis=1)
 
@@ -801,7 +801,7 @@ def remerge_subset():
     infr2.add_feedback_from(fb1_df_t)
 
     # Now ensure that dummy connectivity exists to preserve origninal names
-    # from ibeis.algo.graph import nx_utils
+    # from wbia.algo.graph import nx_utils
     # for (u, v) in infr2.find_mst_edges('name_label'):
     #     infr2.draw_aids((u, v))
     #     cc1 = infr2.pos_graph.connected_to(u)
@@ -814,8 +814,8 @@ def remerge_subset():
     infr2.apply_nondynamic_update()
 
     if False:
-        infr2.ibeis_delta_info()
-        infr2.ibeis_name_group_delta_info()
+        infr2.wbia_delta_info()
+        infr2.wbia_name_group_delta_info()
 
     if len(list(infr2.inconsistent_components())) > 0:
         raise NotImplementedError('need to fix inconsistencies first')
@@ -823,9 +823,9 @@ def remerge_subset():
         infr2.prioritize()
         infr2.qt_review_loop()
     else:
-        infr2.write_ibeis_staging_feedback()
-        infr2.write_ibeis_annotmatch_feedback()
-        infr2.write_ibeis_name_assignment()
+        infr2.write_wbia_staging_feedback()
+        infr2.write_wbia_annotmatch_feedback()
+        infr2.write_wbia_name_assignment()
 
     # if False:
     #     # Fix any inconsistency
@@ -834,11 +834,11 @@ def remerge_subset():
     #                   5338, 2654]
     #     import networkx as nx
     #     nx.is_connected(infr2.graph.subgraph(test_nodes))
-    #     # infr = ibeis.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
+    #     # infr = wbia.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
 
     #     # randomly sample some new labels to verify
-    #     import ibeis.guitool as gt
-    #     from ibeis.gui import inspect_gui
+    #     import wbia.guitool as gt
+    #     from wbia.gui import inspect_gui
     #     gt.ensure_qapp()
     #     ut.qtensure()
     #     old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
@@ -846,7 +846,7 @@ def remerge_subset():
 
     #     new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
 
-    #     from ibeis.algo.hots import simulate
+    #     from wbia.algo.hots import simulate
     #     c = simulate.compare_groups(
     #         list(new_groups.values()),
     #         list(old_groups.values()),
@@ -863,9 +863,9 @@ def remerge_subset():
     #     infr2.start_qt_interface(loop=False)
 
     # if False:
-    #     # import ibeis
-    #     ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
-    #     infr1 = ibeis.AnnotInference(aids='all', ibs=ibs1, verbose=3)
+    #     # import wbia
+    #     ibs1 = wbia.opendb('PZ_PB_RF_TRAIN')
+    #     infr1 = wbia.AnnotInference(aids='all', ibs=ibs1, verbose=3)
     #     infr1.initialize_graph()
     #     # infr1.reset_feedback('staging')
     #     infr1.reset_feedback('annotmatch')
@@ -933,8 +933,8 @@ def find_overlap_annots(ibs1, ibs2, method='annots'):
     """
     Finds the aids of annotations in ibs1 that are also in ibs2
 
-    ibs1 = ibeis.opendb('PZ_Master1')
-    ibs2 = ibeis.opendb('PZ_MTEST')
+    ibs1 = wbia.opendb('PZ_Master1')
+    ibs2 = wbia.opendb('PZ_MTEST')
     """
     if method == 'images':
         images1, images2 = ibs1.images(), ibs2.images()
@@ -952,37 +952,37 @@ def find_overlap_annots(ibs1, ibs2, method='annots'):
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+        python -m wbia.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
         dev.py -t listdbs
-        python -m ibeis.dbio.export_subset check_database_overlap
+        python -m wbia.dbio.export_subset check_database_overlap
         --db PZ_MTEST --db2 PZ_MOTHERS
 
     CommandLine:
-        python -m ibeis.dbio.export_subset check_database_overlap
+        python -m wbia.dbio.export_subset check_database_overlap
 
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
+        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
+        python -m wbia.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
+        python -m wbia.dbio.export_subset check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
+        python -m wbia.dbio.export_subset check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
 
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
-        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_PB_RF_TRAIN --db2=PZ_Master1
+        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
+        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_PB_RF_TRAIN --db2=PZ_Master1
 
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.export_subset import *  # NOQA
+        >>> import wbia
         >>> import utool as ut
-        >>> #ibs1 = ibeis.opendb(db='PZ_Master0')
-        >>> #ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> #ibs1 = wbia.opendb(db='PZ_Master0')
+        >>> #ibs2 = wbia.opendb(dbdir='/raid/work2/Turk/PZ_Master')
         >>> db1 = ut.get_argval('--db1', str, default='PZ_MTEST')
         >>> db2 = ut.get_argval('--db2', str, default='testdb1')
         >>> dbdir1 = ut.get_argval('--dbdir1', str, default=None)
         >>> dbdir2 = ut.get_argval('--dbdir2', str, default=None)
-        >>> ibs1 = ibeis.opendb(db=db1, dbdir=dbdir1)
-        >>> ibs2 = ibeis.opendb(db=db2, dbdir=dbdir2)
+        >>> ibs1 = wbia.opendb(db=db1, dbdir=dbdir1)
+        >>> ibs2 = wbia.opendb(db=db2, dbdir=dbdir2)
         >>> check_database_overlap(ibs1, ibs2)
     """
     import numpy as np
@@ -1026,16 +1026,16 @@ def check_database_overlap(ibs1, ibs2):
             print('gids_isect2 = %r' % (gids_isect2,))
             if False:
                 # Debug code
-                import ibeis.viz
-                import ibeis.plottool as pt
+                import wbia.viz
+                import wbia.plottool as pt
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for gid1, gid2 in pairs:
-                        ibeis.viz.show_image(
+                        wbia.viz.show_image(
                             ibs1, gid1, pnum=pnum_(), fnum=fnum)
-                        ibeis.viz.show_image(
+                        wbia.viz.show_image(
                             ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
     # if False:
@@ -1067,16 +1067,16 @@ def check_database_overlap(ibs1, ibs2):
             print('gids_isect2 = %r' % (changed_gids1,))
             # if False:
             #     # Debug code
-            #     import ibeis.viz
-            #     import ibeis.plottool as pt
+            #     import wbia.viz
+            #     import wbia.plottool as pt
             #     gid_pairs = list(zip(changed_gids1, changed_gids2))
             #     pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
             #     for fnum, pairs in enumerate(pairs_iter, start=1):
             #         pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
             #         for gid1, gid2 in pairs:
-            #             ibeis.viz.show_image(
+            #             wbia.viz.show_image(
             #                 ibs1, gid1, pnum=pnum_(), fnum=fnum)
-            #             ibeis.viz.show_image(
+            #             wbia.viz.show_image(
             #                 ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
     # Check for overlapping annotations (visual info only) in general
@@ -1144,17 +1144,17 @@ def check_database_overlap(ibs1, ibs2):
             #    pass
             if False:
                 # Debug code
-                import ibeis.viz
-                import ibeis.plottool as pt
+                import wbia.viz
+                import wbia.plottool as pt
                 #aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
                 pairs_iter = ut.ichunks(aid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for aid1, aid2 in pairs:
-                        ibeis.viz.show_chip(
+                        wbia.viz.show_chip(
                             ibs1, aid1, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
-                        ibeis.viz.show_chip(
+                        wbia.viz.show_chip(
                             ibs2, aid2, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
 
     #
@@ -1170,28 +1170,28 @@ def check_database_overlap(ibs1, ibs2):
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
-    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+    print(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE), 10000))
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE), 10000))
 
-    from ibeis.dbio.export_subset import *  # NOQA
-    import ibeis
+    from wbia.dbio.export_subset import *  # NOQA
+    import wbia
     # Step 1
-    ibs_src1 = ibeis.opendb('GZC')
-    ibs_dst = ibeis.opendb('NNP_Master3', allow_newdir=True)
+    ibs_src1 = wbia.opendb('GZC')
+    ibs_dst = wbia.opendb('NNP_Master3', allow_newdir=True)
     merge_databases(ibs_src1, ibs_dst)
 
-    ibs_src2 = ibeis.opendb('NNP_initial')
+    ibs_src2 = wbia.opendb('NNP_initial')
     merge_databases(ibs_src2, ibs_dst)
 
     ## Step 2
-    #ibs_src = ibeis.opendb('GZC')
+    #ibs_src = wbia.opendb('GZC')
 
     ## Check
-    ibs1 = ibeis.opendb('NNP_initial')
-    ibs2 = ibeis.opendb('GZC')
+    ibs1 = wbia.opendb('NNP_initial')
+    ibs2 = wbia.opendb('GZC')
     ibs3 = ibs_dst
 
     #print(ibs1.get_image_time_statstr())
@@ -1202,8 +1202,8 @@ def MERGE_NNP_MASTER_SCRIPT():
 
 if __name__ == '__main__':
     """
-    python -m ibeis.dbio.export_subset
-    python -m ibeis.dbio.export_subset --allexamples
+    python -m wbia.dbio.export_subset
+    python -m wbia.dbio.export_subset --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

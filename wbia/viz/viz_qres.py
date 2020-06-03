@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import ibeis.plottool as pt
+import wbia.plottool as pt
 import utool as ut
 import numpy as np
-from ibeis.other import ibsfuncs
-from ibeis.viz import viz_helpers as vh
-from ibeis.viz import viz_chip
-from ibeis.viz import viz_matches  # NOQA
+from wbia.other import ibsfuncs
+from wbia.viz import viz_helpers as vh
+from wbia.viz import viz_chip
+from wbia.viz import viz_matches  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -44,7 +44,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         aid_list - show matches against aid_list (default top 3)
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         cm (ChipMatch):  object of feature correspondences and scores
         qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
 
@@ -52,13 +52,13 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score
 
     CommandLine:
-        python -m ibeis.viz.viz_qres --exec-show_qres_analysis --show
+        python -m wbia.viz.viz_qres --exec-show_qres_analysis --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.viz_qres import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(
+        >>> from wbia.viz.viz_qres import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(
         >>>     defaultdb='PZ_MTEST', default_qaids=[1],
         >>>     default_daids=[2, 3, 4, 5, 6, 7, 8, 9])
         >>> kwargs = dict(show_query=False, viz_name_score=True,
@@ -69,9 +69,9 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.viz_qres import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(
+        >>> from wbia.viz.viz_qres import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(
         >>>     defaultdb='PZ_MTEST', default_qaids=[1],
         >>>     default_daids=[2])
         >>> kwargs = dict(show_query=False, viz_name_score=True,
@@ -183,9 +183,9 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     Defaults to: query chip, groundtruth matches, and top matches
 
     Args:
-        ibs (ibeis.IBEISController): ibeis controller object
-        cm (ibeis.ChipMatch): object of feature correspondences and scores
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)
+        ibs (wbia.IBEISController): wbia controller object
+        cm (wbia.ChipMatch): object of feature correspondences and scores
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters(default = None)
 
     Kwargs:
         annot_mode, figtitle, make_figtitle, aug, top_aids, all_kpts,
@@ -204,16 +204,16 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     CommandLine:
         ./main.py --query 1 -y --db PZ_MTEST --noshow-qres
-        python -m ibeis.viz.viz_qres show_qres --show
-        python -m ibeis.viz.viz_qres show_qres --show --top-aids=10 --db=PZ_MTEST \
+        python -m wbia.viz.viz_qres show_qres --show
+        python -m wbia.viz.viz_qres show_qres --show --top-aids=10 --db=PZ_MTEST \
                 --sidebyside --annot_mode=0 --notitle --no-viz_name_score \
                 --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_qres import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> from wbia.viz.viz_qres import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> kwargs = dict(
         >>>     top_aids=ut.get_argval('--top-aids', type_=int, default=3),
         >>>     sidebyside=not ut.get_argflag('--no-sidebyside'),
@@ -460,9 +460,9 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_qres
-        python -m ibeis.viz.viz_qres --allexamples
-        python -m ibeis.viz.viz_qres --allexamples --noface --nosrc
+        python -m wbia.viz.viz_qres
+        python -m wbia.viz.viz_qres --allexamples
+        python -m wbia.viz.viz_qres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

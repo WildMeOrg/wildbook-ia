@@ -3,11 +3,11 @@ import six
 import numpy as np
 import utool as ut
 import networkx as nx
-from ibeis import constants as const
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV)
-from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
-from ibeis.algo.graph import mixin_loops
+from wbia import constants as const
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import (POSTV, NEGTV)
+from wbia.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
+from wbia.algo.graph import mixin_loops
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -20,8 +20,8 @@ class Priority(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.mixin_priority import *  # NOQA
-        >>> from ibeis.algo.graph import demo
+        >>> from wbia.algo.graph.mixin_priority import *  # NOQA
+        >>> from wbia.algo.graph import demo
         >>> infr = demo.demodata_infr(num_pccs=20)
     """
 
@@ -152,8 +152,8 @@ class Priority(object):
         Adds edges to the priority queue
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_priority import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_priority import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=7, size=5)
             >>> infr.ensure_cliques(meta_decision=SAME)
             >>> # Add a negative edge inside a PCC
@@ -178,8 +178,8 @@ class Priority(object):
             >>> assert np.all(scores2[2:] < 10)
 
         Example:
-            import ibeis
-            infr = ibeis.AnnotInference('PZ_MTEST', aids='all', autoinit='staging')
+            import wbia
+            infr = wbia.AnnotInference('PZ_MTEST', aids='all', autoinit='staging')
             infr.verbose = 1000
             infr.load_published()
             incon_edges = set(ut.iflatten(infr.nid_to_errors.values()))
@@ -382,8 +382,8 @@ class Priority(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_priority import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_priority import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=7, size=5)
             >>> infr.refresh_candidate_edges()
             >>> infr.peek_many(50)
@@ -426,8 +426,8 @@ class Priority(object):
         Checks if u and v are conneted by edges above a confidence threshold
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_priority import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_priority import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.make_demo_infr(ccs=[(1, 2), (3, 4), (5, 6), (7, 8)])
             >>> infr.add_feedback((1, 5), NEGTV)
             >>> infr.add_feedback((5, 8), NEGTV)
@@ -533,8 +533,8 @@ class Priority(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_priority
-        python -m ibeis.algo.graph.mixin_priority --allexamples
+        python -m wbia.algo.graph.mixin_priority
+        python -m wbia.algo.graph.mixin_priority --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

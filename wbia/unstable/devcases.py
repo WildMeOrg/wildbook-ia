@@ -9,7 +9,7 @@ TODO:
     Excplitict Negative Matches between chips
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.algo.hots import hstypes
+from wbia.algo.hots import hstypes
 from uuid import UUID
 import utool as ut
 import copy
@@ -20,11 +20,11 @@ print, rrr, profile = ut.inject2(__name__)
 def fix_pz_master():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-fix_pz_master --show
+        python -m wbia.algo.hots.devcases --test-fix_pz_master --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.devcases import *  # NOQA
+        >>> from wbia.algo.hots.devcases import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> result = fix_pz_master()
@@ -65,11 +65,11 @@ def fix_pz_master():
 
     qaids_ = map(int, filter(len, qaids_str.replace('\n', ' ').split(' ')))
 
-    import ibeis
-    ibeis._preload()
-    from ibeis.gui import inspect_gui
-    import ibeis.guitool
-    ibs = ibeis.opendb('PZ_Master0')
+    import wbia
+    wbia._preload()
+    from wbia.gui import inspect_gui
+    import wbia.guitool
+    ibs = wbia.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
 
@@ -118,24 +118,24 @@ def myquery():
     see how seperability changes as we very things
 
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-myquery
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 0
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 1
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 2
+        python -m wbia.algo.hots.devcases --test-myquery
+        python -m wbia.algo.hots.devcases --test-myquery --show --index 0
+        python -m wbia.algo.hots.devcases --test-myquery --show --index 1
+        python -m wbia.algo.hots.devcases --test-myquery --show --index 2
 
     References:
         http://en.wikipedia.org/wiki/Pareto_distribution <- look into
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.devcases import *  # NOQA
+        >>> from wbia.algo.hots.devcases import *  # NOQA
         >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
         >>> pt.show_if_requested()
     """
-    from ibeis.algo.hots import special_query  # NOQA
-    from ibeis.algo.hots import distinctiveness_normalizer  # NOQA
-    from ibeis import viz  # NOQA
-    import ibeis.plottool as pt
+    from wbia.algo.hots import special_query  # NOQA
+    from wbia.algo.hots import distinctiveness_normalizer  # NOQA
+    from wbia import viz  # NOQA
+    import wbia.plottool as pt
     index = ut.get_argval('--index', int, 0)
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
     qaids = [aid1]
@@ -289,11 +289,11 @@ def myquery():
     #plt.show()
     #print(ut.repr2()))
     # TODO: plot max variation dims
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     #pt.plot(p_list, diff_list)
     """
     viz.show_chip(ibs, aid1)
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.update()
     """
 
@@ -308,12 +308,12 @@ def testdata_my_exmaples(index):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.devcases import *  # NOQA
+        >>> from wbia.algo.hots.devcases import *  # NOQA
         >>> index = 1
     """
-    import ibeis
+    import wbia
     from uuid import UUID
-    ibs = ibeis.opendb('GZ_ALL')
+    ibs = wbia.opendb('GZ_ALL')
     vsone_pair_examples = [
         [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
         [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
@@ -375,17 +375,17 @@ def show_power_law_plots():
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-show_power_law_plots --show
+        python -m wbia.algo.hots.devcases --test-show_power_law_plots --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> #%pylab qt4
-        >>> from ibeis.algo.hots.devcases import *  # NOQA
+        >>> from wbia.algo.hots.devcases import *  # NOQA
         >>> show_power_law_plots()
         >>> pt.show_if_requested()
     """
     import numpy as np
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     xdata = np.linspace(0, 1, 1000)
     ydata = xdata
     fnum = 1
@@ -480,16 +480,16 @@ def get_pz_master_testcase():
 def load_gztest(ibs):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.special_query --test-load_gztest
+        python -m wbia.algo.hots.special_query --test-load_gztest
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.devcases import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> from wbia.algo.hots.devcases import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('GZ_ALL')
     """
     from os.path import join
-    from ibeis.algo.hots import match_chips4 as mc4
+    from wbia.algo.hots import match_chips4 as mc4
     dir_ = ut.get_module_dir(mc4)
     eval_text = ut.read_from(join(dir_,  'GZ_TESTTUP.txt'))
     testcases = eval(eval_text)
@@ -508,9 +508,9 @@ def load_gztest(ibs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.devcases
-        python -m ibeis.algo.hots.devcases --allexamples
-        python -m ibeis.algo.hots.devcases --allexamples --noface --nosrc
+        python -m wbia.algo.hots.devcases
+        python -m wbia.algo.hots.devcases --allexamples
+        python -m wbia.algo.hots.devcases --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

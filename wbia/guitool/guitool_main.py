@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
-from ibeis.guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
@@ -119,7 +119,7 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 
 
 #if '__PYQT__' in sys.modules:
-    #from ibeis.guitool.__PYQT__ import QtCore
+    #from wbia.guitool.__PYQT__ import QtCore
     #from IPython.lib.inputhook import enable_qt4
     #from IPython.lib.guisupport import start_event_loop_qt4
     #qapp = QtCore.QCoreApplication.instance()
@@ -144,7 +144,7 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
         init_signals (bool): if False, handle terminal signals yourself (default = True)
 
     CommandLine:
-        python -m ibeis.guitool.guitool_main --test-qtapp_loop
+        python -m wbia.guitool.guitool_main --test-qtapp_loop
     """
     global QAPP
     #if not QUIET and VERBOSE:

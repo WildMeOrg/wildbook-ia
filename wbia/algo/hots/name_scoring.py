@@ -5,8 +5,8 @@ import numpy as np
 import vtool_ibeis as vt
 import utool as ut
 import itertools
-from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 (print, rrr, profile) = ut.inject2(__name__, '[nscoring]')
 
@@ -15,7 +15,7 @@ NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
 
 
 def testdata_chipmatch():
-    from ibeis.algo.hots import chip_match
+    from wbia.algo.hots import chip_match
     # only the first indicies will matter in these test
     # feature matches
     fm_list = [
@@ -51,28 +51,28 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
 
 
     Args:
-        cm (ibeis.ChipMatch):
+        cm (wbia.ChipMatch):
 
     Returns:
         tuple: (unique_nids, nsum_score_list)
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:0
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
-        utprof.py -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
-        utprof.py -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        python -m wbia.algo.hots.name_scoring --test-compute_fmech_score
+        python -m wbia.algo.hots.name_scoring --test-compute_fmech_score:0
+        python -m wbia.algo.hots.name_scoring --test-compute_fmech_score:2
+        utprof.py -m wbia.algo.hots.name_scoring --test-compute_fmech_score:2
+        utprof.py -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> cm = testdata_chipmatch()
         >>> nsum_score_list = compute_fmech_score(cm)
         >>> assert np.all(nsum_score_list == [ 4.,  7.,  5.])
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_)
@@ -88,7 +88,7 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
         >>> cm.score_name_nsum(qreq_)
@@ -97,7 +97,7 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
 
     Example3:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
@@ -176,13 +176,13 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     Computes flags to desribe which features can or can not vote
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
+        python -m wbia.algo.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # FIXME: breaks when fg_on=True
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> from ibeis.algo.hots import name_scoring
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots import name_scoring
         >>> # Test to make sure name score and chips score are equal when per_name=1
         >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='PZ_MTEST', a=['default:dpername=1,qsize=1,dsize=10'], p=['default:K=1,fg_on=True'])
         >>> cm_list = args.cm_list_FILT
@@ -280,12 +280,12 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         nid2_nidx (dict): mapping from nids to index in name score list
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --test-align_name_scores_with_annots
-        python -m ibeis.algo.hots.name_scoring --test-align_name_scores_with_annots --show
+        python -m wbia.algo.hots.name_scoring --test-align_name_scores_with_annots
+        python -m wbia.algo.hots.name_scoring --test-align_name_scores_with_annots --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
         >>> cm.evaluate_csum_annot_score(qreq_)
@@ -313,7 +313,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
+        >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> annot_score_list = []
         >>> annot_aid_list   = []
         >>> daid2_idx        = {}
@@ -373,9 +373,9 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring
-        python -m ibeis.algo.hots.name_scoring --allexamples
-        python -m ibeis.algo.hots.name_scoring --allexamples --noface --nosrc
+        python -m wbia.algo.hots.name_scoring
+        python -m wbia.algo.hots.name_scoring --allexamples
+        python -m wbia.algo.hots.name_scoring --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

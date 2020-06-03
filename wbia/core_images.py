@@ -8,8 +8,8 @@ automatically
 
 
 Ex
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+    python -m wbia.control.IBEISControl --test-show_depc_image_graph --show
+    python -m wbia.control.IBEISControl --test-show_depc_image_graph --show --reduced
 
 
 TODO:
@@ -34,14 +34,14 @@ Needed Tables:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from ibeis import dtool
+from wbia import dtool
 import utool as ut
 import numpy as np
 import vtool_ibeis as vt
 import cv2
-from ibeis.control.controller_inject import register_preprocs
+from wbia.control.controller_inject import register_preprocs
 import sys
-import ibeis.constants as const
+import wbia.constants as const
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -70,7 +70,7 @@ def compute_thumbnails(depc, gid_list, config=None):
     r"""Compute the thumbnail for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -78,20 +78,20 @@ def compute_thumbnails(depc, gid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        ibeis --tf compute_thumbnails --show --db PZ_MTEST
+        wbia --tf compute_thumbnails --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(--weird)
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221}, recompute=True)
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.quit_if_noshow()
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)
         >>> iteract_obj.start()
@@ -190,7 +190,7 @@ def compute_web_src(depc, gid_list, config=None):
     r"""Compute the web src
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -198,14 +198,14 @@ def compute_web_src(depc, gid_list, config=None):
         (str): tup
 
     CommandLine:
-        ibeis --tf compute_web_src --show --db PZ_MTEST
+        wbia --tf compute_web_src --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('web_src', gid_list, 'src', recompute=True)
@@ -230,7 +230,7 @@ def compute_web_src(depc, gid_list, config=None):
 
 
 def draw_web_src(gpath, orient):
-    from ibeis.web.routes_ajax import image_src_path
+    from wbia.web.routes_ajax import image_src_path
     image_src = image_src_path(gpath, orient)
     return image_src
 
@@ -257,7 +257,7 @@ def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -265,14 +265,14 @@ def compute_classifications(depc, gid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_classifications
+        wbia compute_classifications
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> # depc.delete_property('classifier', gid_list)
@@ -301,7 +301,7 @@ def compute_classifications(depc, gid_list, config=None):
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     elif config['classifier_algo'] in ['svm']:
-        from ibeis.algo.detect.svm import classify
+        from wbia.algo.detect.svm import classify
         config_ = {
             'algo': 'resnet'
         }
@@ -309,7 +309,7 @@ def compute_classifications(depc, gid_list, config=None):
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
     elif config['classifier_algo'] in ['densenet']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
         config_ = {
             'draw_annots' : False,
             'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
@@ -347,7 +347,7 @@ def compute_classifications2(depc, gid_list, config=None):
     r"""Extract the multi-class classifications for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -355,14 +355,14 @@ def compute_classifications2(depc, gid_list, config=None):
         (np.ndarray, np.ndarray): tup
 
     CommandLine:
-        ibeis compute_classifications2
+        wbia compute_classifications2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> # depc.delete_property('classifier_two', gid_list)
@@ -383,7 +383,7 @@ def compute_classifications2(depc, gid_list, config=None):
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
     elif config['classifier_two_algo'] in ['rf']:
-        from ibeis.algo.detect.rf import classify
+        from wbia.algo.detect.rf import classify
         config_ = {
             'algo': 'resnet'
         }
@@ -391,7 +391,7 @@ def compute_classifications2(depc, gid_list, config=None):
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
     elif config['classifier_two_algo'] in ['densenet']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
         config_ = {
             'draw_annots' : False,
             'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
@@ -438,7 +438,7 @@ def compute_features(depc, gid_list, config=None):
     r"""Compute features on images using pre-trained state-of-the-art models in Keras.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -446,17 +446,17 @@ def compute_features(depc, gid_list, config=None):
         (np.ndarray, ): tup
 
     CommandLine:
-        ibeis compute_features
+        wbia compute_features
 
     CommandLine:
-        python -m ibeis.core_images compute_features --show
+        python -m wbia.core_images compute_features --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
@@ -528,7 +528,7 @@ def compute_features(depc, gid_list, config=None):
                 features = features.flatten()
             yield (features, )
     elif config['framework'] in ['torch']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
 
         if config['model'] in ['densenet']:
             config_ = {
@@ -576,7 +576,7 @@ def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -584,17 +584,17 @@ def compute_localizations_original(depc, gid_list, config=None):
         (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
 
     CommandLine:
-        ibeis compute_localizations_original
+        wbia compute_localizations_original
 
     CommandLine:
-        python -m ibeis.core_images compute_localizations_original --show
+        python -m wbia.core_images compute_localizations_original --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
@@ -754,55 +754,55 @@ def compute_localizations_original(depc, gid_list, config=None):
 
     ######################################################################################
     if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
-        from ibeis.algo.detect import yolo
+        from wbia.algo.detect import yolo
         print('[ibs] detecting using PyDarknet CNN YOLO v1')
         detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['lightnet']:
-        from ibeis.algo.detect import lightnet
+        from wbia.algo.detect import lightnet
         print('[ibs] detecting using Lightnet CNN YOLO v2')
         detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
     elif config['algo'] in ['azure']:
-        from ibeis.algo.detect import azure
+        from wbia.algo.detect import azure
         print('[ibs] detecting using Azure CustomVision')
         detect_gen = azure.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['rf']:
-        from ibeis.algo.detect import randomforest
+        from wbia.algo.detect import randomforest
         print('[ibs] detecting using Random Forests')
         assert config['species'] is not None
         base_key_list[6] = (config['species'], )  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['selective-search']:
-        from ibeis.algo.detect import selectivesearch
+        from wbia.algo.detect import selectivesearch
         print('[ibs] detecting using Selective Search')
         matlab_command = 'selective_search'
         detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
     ######################################################################################
     elif config['algo'] in ['selective-search-rcnn']:
-        from ibeis.algo.detect import selectivesearch
+        from wbia.algo.detect import selectivesearch
         print('[ibs] detecting using Selective Search (R-CNN)')
         matlab_command = 'selective_search_rcnn'
         detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
     ######################################################################################
     # elif config['algo'] in ['fast-rcnn']:
-    #     from ibeis.algo.detect import fasterrcnn
+    #     from wbia.algo.detect import fasterrcnn
     #     print('[ibs] detecting using CNN Fast R-CNN')
     #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['faster-rcnn']:
-        from ibeis.algo.detect import fasterrcnn
+        from wbia.algo.detect import fasterrcnn
         print('[ibs] detecting using CNN Faster R-CNN')
         detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['darknet']:
-        from ibeis.algo.detect import darknet
+        from wbia.algo.detect import darknet
         print('[ibs] detecting using Darknet CNN YOLO')
         detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['ssd']:
-        from ibeis.algo.detect import ssd
+        from wbia.algo.detect import ssd
         print('[ibs] detecting using CNN SSD')
         detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
     # ######################################################################################
@@ -858,7 +858,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
     r"""Extract the localizations for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -866,17 +866,17 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
         (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
 
     CommandLine:
-        ibeis compute_localizations
+        wbia compute_localizations
 
     CommandLine:
-        python -m ibeis.core_images compute_localizations --show
+        python -m wbia.core_images compute_localizations --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
@@ -927,7 +927,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
         # Apply NMS
         if config['nms']:
-            from ibeis.other import detectcore
+            from wbia.other import detectcore
             count_old = len(bboxes)
             if count_old > 0:
 
@@ -1442,7 +1442,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         loc_id_list (list):  list of localization rowids
         config (dict): (default = None)
 
@@ -1450,14 +1450,14 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_localizations_chips
+        wbia compute_localizations_chips
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> config = {'combined': True, 'localization_chip_masking': True}
@@ -1535,7 +1535,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         loc_id_list (list):  list of localization rowids
         config (dict): (default = None)
 
@@ -1543,14 +1543,14 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_localizations_classifications
+        wbia compute_localizations_classifications
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> config = {'algo': 'yolo'}
@@ -1645,7 +1645,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             )
             yield ret_tuple
     elif config['classifier_algo'] in ['svm']:
-        from ibeis.algo.detect.svm import classify
+        from wbia.algo.detect.svm import classify
         # from localizations get gids
         config_ = {
             'combined': True,
@@ -1733,7 +1733,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     r"""Compute features on images using pre-trained state-of-the-art models in Keras.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -1741,17 +1741,17 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         (np.ndarray, ): tup
 
     CommandLine:
-        ibeis compute_localizations_features
+        wbia compute_localizations_features
 
     CommandLine:
-        python -m ibeis.core_images compute_localizations_features --show
+        python -m wbia.core_images compute_localizations_features --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
@@ -1879,7 +1879,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         loc_id_list (list):  list of localization rowids
         config (dict): (default = None)
 
@@ -1887,14 +1887,14 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m ibeis.core_images --exec-compute_localizations_labels
+        python -m wbia.core_images --exec-compute_localizations_labels
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'giraffe_v1'}
@@ -1920,7 +1920,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     elif config['labeler_algo'] in ['azure']:
         raise NotImplementedError('Azure is not implemented for images')
     elif config['labeler_algo'] in ['densenet']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
         target_size = (densenet.INPUT_SIZE, densenet.INPUT_SIZE, )
         gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
                                                                 target_size=target_size,
@@ -1996,7 +1996,7 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         loc_id_list (list):  list of localization rowids
         config (dict): (default = None)
 
@@ -2004,14 +2004,14 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_localizations_labels
+        wbia compute_localizations_labels
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:100]
         >>> depc.delete_property('labeler', gid_list)
@@ -2086,7 +2086,7 @@ def compute_detections(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -2094,18 +2094,18 @@ def compute_detections(depc, gid_list, config=None):
         (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
 
     CommandLine:
-        ibeis compute_detections
+        wbia compute_detections
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> # dbdir = '/Users/bluemellophone/Desktop/GGR-IBEIS-TEST/'
         >>> # dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
-        >>> # ibs = ibeis.opendb(dbdir=dbdir)
+        >>> # ibs = wbia.opendb(dbdir=dbdir)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> depc.delete_property('detections', gid_list)
@@ -2278,8 +2278,8 @@ def compute_cameratrap_exif_worker(gpath, orient, bottom=80, psm=7, oem=1, white
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.core_images
-        python -m ibeis.core_images --allexamples
+        python -m wbia.core_images
+        python -m wbia.core_images --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

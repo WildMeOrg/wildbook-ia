@@ -9,8 +9,8 @@ import utool as ut
 import ubelt as ub
 import pandas as pd
 import itertools as it
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL)
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -59,7 +59,7 @@ class SimulationHelpers(object):
         infr.params['algo.max_outer_loops'] = max_outer_loops
 
     def init_test_mode(infr):
-        from ibeis.algo.graph import nx_dynamic_graph
+        from wbia.algo.graph import nx_dynamic_graph
         infr.print('init_test_mode')
         infr.test_mode = True
         # infr.edge_truth = {}
@@ -458,8 +458,8 @@ class UserOracle(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_simulation
-        python -m ibeis.algo.graph.mixin_simulation --allexamples
+        python -m wbia.algo.graph.mixin_simulation
+        python -m wbia.algo.graph.mixin_simulation --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

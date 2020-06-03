@@ -11,16 +11,16 @@ def sync_wildbook():
     """
     MAIN ENTRY POINT
 
-    Syncronizes our ibeis database with a wildbook database like whaleshark.org
+    Syncronizes our wbia database with a wildbook database like whaleshark.org
 
     #cd ~/work/WS_ALL
-    python -m ibeis.scripts.getshark
+    python -m wbia.scripts.getshark
 
     cd /media/raid/raw/WhaleSharks_WB/
 
-    >>> from ibeis.scripts.getshark import *  # NOQA
+    >>> from wbia.scripts.getshark import *  # NOQA
     """
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
 
     # Prepare the output directory for writing, if it doesn't exist
 
@@ -76,8 +76,8 @@ def sync_wildbook():
     info = getshark.postprocess_rectify_duplicates(unmerged)
 
     # Check these images against what currently exists in WS_ALL
-    import ibeis
-    ibs = ibeis.opendb(db, allow_newdir=True)
+    import wbia
+    ibs = wbia.opendb(db, allow_newdir=True)
     all_images = ibs.images()
 
     num_ia_unique = len(set(all_images.uuids) - set(info['uuid']))
@@ -517,7 +517,7 @@ def check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
     if is_set:
         flags = ut.or_lists(ia_empty, ia_is_subset)
     else:
-        # We can move populated info from wildbook into empty ibeis info
+        # We can move populated info from wildbook into empty wbia info
         flags = ia_empty
 
     new_info = sub_info.compress(flags)
@@ -835,9 +835,9 @@ def parse_whaleshark_org():
 
     Combines old and new
 
-    >>> from ibeis.scripts.getshark import *  # NOQA
+    >>> from wbia.scripts.getshark import *  # NOQA
     """
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
 
     parsed1 = getshark.parse_whaleshark_org_old()
     # Also parse using the keyword method
@@ -922,7 +922,7 @@ def parse_wildbook(images_url, keyword_url=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.getshark import *  # NOQA
+        >>> from wbia.scripts.getshark import *  # NOQA
         >>> url = images_url = 'http://www.mantamatcher.org/listImages.jsp'
 
     Example:
@@ -930,7 +930,7 @@ def parse_wildbook(images_url, keyword_url=None):
         >>> images_url = 'http://www.whaleshark.org/listImages.jsp'
         >>> keyword_url = 'http://www.whaleshark.org/getKeywordImages.jsp'
     """
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
 
     parsed1 = getshark.parse_wildbook_images(images_url)
     # Also parse using the keyword method
@@ -1007,7 +1007,7 @@ def parse_wildbook_images(url):
         >>> parse_wildbook_images(url)
     """
     from xml.dom.minidom import parseString
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
 
     number = None
 
@@ -1116,7 +1116,7 @@ def parse_whaleshark_org_keywords():
     #    #resp = requests.get(url)
     #    #resp.json()
 
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo3')
@@ -1252,7 +1252,7 @@ def postprocess_tags_build(parsed):
         parsed.compress(ut.and_lists(parsed['fname_tags'], parsed['keywords'])).print()
 
     # Filter to only images matching the appropriate tags
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
     parsed['fname_tags'] = getshark.parse_shark_fname_tags(parsed['orig_fname'])
 
     # Map keyword/fname tags to standard ia tags

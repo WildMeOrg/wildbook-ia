@@ -15,10 +15,10 @@ from os.path import exists, expanduser, join, abspath
 import numpy as np
 import utool as ut
 import cv2
-from ibeis.control import controller_inject
-from ibeis.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
+from wbia.control import controller_inject
+from wbia.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
                                      localizer_parse_pred, general_overlap)
-from ibeis.other.detectcore import nms, classifier_visualize_training_localizations, _bootstrap_mine
+from wbia.other.detectcore import nms, classifier_visualize_training_localizations, _bootstrap_mine
 
 
 # Inject utool functions
@@ -130,7 +130,7 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     # Save forest
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+        output_path = abspath(expanduser(join('~', 'code', 'wbia', 'models')))
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(output_path, scaler_filename)
@@ -165,7 +165,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     # Load forest
     if model_path is None:
-        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+        model_path = abspath(expanduser(join('~', 'code', 'wbia', 'models')))
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(model_path, scaler_filename)
@@ -185,7 +185,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
         'feature2_algo': 'resnet',
         'classify'     : True,
         'classifier_algo': 'svm',
-        'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
     print('\tGather Ground-Truth')
@@ -351,7 +351,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # args = (N, rounds, scheme, species_list_str, )
         # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
         output_path_ = 'models-bootstrap'
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
+        output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
     print('Using output_path = %r' % (output_path, ))
     if recompute:
         ut.delete(output_path)
@@ -591,7 +591,7 @@ def bootstrap2(ibs, species_list=['zebra'],
 
     if output_path is None:
         output_path_ = 'models-bootstrap'
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
+        output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
     print('Using output_path = %r' % (output_path, ))
 
     if recompute:
@@ -1183,7 +1183,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
 
     # Save model pickle
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+        output_path = abspath(expanduser(join('~', 'code', 'wbia', 'models')))
     ut.ensuredir(output_path)
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
@@ -1297,7 +1297,7 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
 
     # Save model pickle
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+        output_path = abspath(expanduser(join('~', 'code', 'wbia', 'models')))
     ut.ensuredir(output_path)
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
@@ -1529,7 +1529,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1540,7 +1540,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.10.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1551,7 +1551,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.20.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1562,7 +1562,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.30.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1573,7 +1573,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.40.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1584,7 +1584,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.50.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1595,7 +1595,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.60.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1606,7 +1606,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.70.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1617,7 +1617,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.80.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1628,7 +1628,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.90.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1639,7 +1639,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100.rbf.1.0',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.100.rbf.1.0',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
@@ -1651,7 +1651,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.0.5.pkl',
     # },
     # {
     #     'label'        : 'LINEAR,1.0',
@@ -1659,7 +1659,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.1.0.pkl',
     # },
     # {
     #     'label'        : 'LINEAR,2.0',
@@ -1667,7 +1667,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.2.0.pkl',
     # },
     # {
     #     'label'        : 'RBF,0.5',
@@ -1675,7 +1675,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.rbf.0.5.pkl',
     # },
     # {
     #     'label'        : 'RBF,1.0',
@@ -1683,7 +1683,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.1.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.rbf.1.0.pkl',
     # },
     # {
     #     'label'        : 'RBF,2.0',
@@ -1691,7 +1691,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.rbf.2.0.pkl',
     # },
     # {
     #     'label'        : 'LINEAR,0.5~0.5',
@@ -1699,7 +1699,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.0.5.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
@@ -1710,7 +1710,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.1.0.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
@@ -1721,7 +1721,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.linear.2.0.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
@@ -1732,7 +1732,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.rbf.0.5.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
@@ -1743,7 +1743,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.30,
     #     # 'line_dotted'  : True,
@@ -1754,7 +1754,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models/classifier.svm.image.zebra.rbf.2.0.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
@@ -1766,7 +1766,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     # },
 
     # {
@@ -1800,7 +1800,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
@@ -1811,7 +1811,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1824,7 +1824,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.50,
     #     # 'thresh'       : True,
@@ -1837,7 +1837,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.75,
     #     # 'thresh'       : True,
@@ -1852,7 +1852,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.10',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1865,7 +1865,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.20',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1878,7 +1878,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.30',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1891,7 +1891,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.40',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1904,7 +1904,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.50',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1917,7 +1917,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.60',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1930,7 +1930,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.70',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1943,7 +1943,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.80',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1956,7 +1956,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.90',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -1969,7 +1969,7 @@ config_list = [
     #     'species_set'  : species_set,
     #     'classify'     : True,
     #     'classifier_algo': 'svm',
-    #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
+    #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.localization.zebra.100',
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     #     # 'thresh'       : True,
@@ -2039,9 +2039,9 @@ config_list = [
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectgrave
-        python -m ibeis.other.detectgrave --allexamples
-        python -m ibeis.other.detectgrave --allexamples --noface --nosrc
+        python -m wbia.other.detectgrave
+        python -m wbia.other.detectgrave --allexamples
+        python -m wbia.other.detectgrave --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

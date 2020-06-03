@@ -10,11 +10,11 @@ import vtool_ibeis as vt
 from os.path import join
 from operator import xor
 import six
-from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import old_chip_match
-from ibeis.algo.hots import scoring
-from ibeis.algo.hots import name_scoring
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
+from wbia.algo.hots import old_chip_match
+from wbia.algo.hots import scoring
+from wbia.algo.hots import name_scoring
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -182,25 +182,25 @@ class _ChipMatchVisualization(object):
                               homog=ut.get_argflag('--homog'), **kwargs):
         r"""
         CommandLine:
-            python -m ibeis --tf ChipMatch.show_single_namematch --show
-            python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1
-            python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1 \
+            python -m wbia --tf ChipMatch.show_single_namematch --show
+            python -m wbia --tf ChipMatch.show_single_namematch --show --qaid 1
+            python -m wbia --tf ChipMatch.show_single_namematch --show --qaid 1 \
                 --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
 
-            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=0 --qaid=1 --save rank0.jpg
-            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=1 --qaid=1 --save rank1.jpg
-            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=2 --qaid=1 --save rank2.jpg
+            python -m wbia --tf _ChipMatchVisualization.show_single_namematch --show --rank=0 --qaid=1 --save rank0.jpg
+            python -m wbia --tf _ChipMatchVisualization.show_single_namematch --show --rank=1 --qaid=1 --save rank1.jpg
+            python -m wbia --tf _ChipMatchVisualization.show_single_namematch --show --rank=2 --qaid=1 --save rank2.jpg
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', default_qaids=[18])
             >>> if True:
             >>>     import matplotlib as mpl
-            >>>     from ibeis.scripts.thesis import TMP_RC
+            >>>     from wbia.scripts.thesis import TMP_RC
             >>>     mpl.rcParams.update(TMP_RC)
-            >>> from ibeis.viz import viz_matches
+            >>> from wbia.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
             >>> kwargs.pop('qaid', None)
@@ -211,7 +211,7 @@ class _ChipMatchVisualization(object):
             >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """
-        from ibeis.viz import viz_matches
+        from wbia.viz import viz_matches
         assert bool(dnid is None) != bool(rank is None), 'must choose one'
         if dnid is None:
             dnid = cm.get_rank_name(rank)
@@ -291,14 +291,14 @@ class _ChipMatchVisualization(object):
         TODO: rename daid to aid2
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match show_single_annotmatch:0 --show
-            python -m ibeis.algo.hots.chip_match show_single_annotmatch:1 --show
+            python -m wbia.algo.hots.chip_match show_single_annotmatch:0 --show
+            python -m wbia.algo.hots.chip_match show_single_annotmatch:1 --show
 
-            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
+            python -m wbia.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
@@ -309,7 +309,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> # Make sure we can show results against an aid that wasn't matched
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
@@ -321,7 +321,7 @@ class _ChipMatchVisualization(object):
 
             cm.compress_top_feature_matches(num=1)
         """
-        from ibeis.viz import viz_matches
+        from wbia.viz import viz_matches
         if aid2 is not None:
             assert daid is None, 'use aid2 instead of daid kwarg'
             daid = aid2
@@ -356,24 +356,24 @@ class _ChipMatchVisualization(object):
             fnum, figtitle, plottype, ...more
 
         SeeAlso:
-            ibeis.viz.viz_matches.show_matches2
-            ibeis.viz.viz_matches.show_name_matches
+            wbia.viz.viz_matches.show_matches2
+            wbia.viz.viz_matches.show_name_matches
 
         CommandLine:
-            python -m ibeis --tf ChipMatch.show_ranked_matches --show --qaid 1
-            python -m ibeis --tf ChipMatch.show_ranked_matches --qaid 86 --colorbar_=False --show
-            python -m ibeis --tf ChipMatch.show_ranked_matches:0 --qaid 86 --colorbar_=False --show
+            python -m wbia --tf ChipMatch.show_ranked_matches --show --qaid 1
+            python -m wbia --tf ChipMatch.show_ranked_matches --qaid 86 --colorbar_=False --show
+            python -m wbia --tf ChipMatch.show_ranked_matches:0 --qaid 86 --colorbar_=False --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> from ibeis.viz import viz_matches
-            >>> import ibeis
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.viz import viz_matches
+            >>> import wbia
             >>> if True:
             >>>     import matplotlib as mpl
-            >>>     from ibeis.scripts.thesis import TMP_RC
+            >>>     from wbia.scripts.thesis import TMP_RC
             >>>     mpl.rcParams.update(TMP_RC)
-            >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', [1])
+            >>> cm_list, qreq_ = wbia.testdata_cmlist('PZ_MTEST', [1])
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
             >>> ut.delete_dict_keys(kwargs, ['qaid'])
@@ -387,8 +387,8 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> from ibeis.viz import viz_matches
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
             >>> kwargs.pop('qaid', None)
@@ -410,7 +410,7 @@ class _ChipMatchVisualization(object):
 
     def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None,
                            plottype='annotmatch', **kwargs):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
         nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=False)
@@ -453,11 +453,11 @@ class _ChipMatchVisualization(object):
             aid2 (int):  annotation id(default = None)
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ishow_single_annotmatch --show
+            python -m wbia.algo.hots.chip_match --exec-ishow_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
@@ -466,7 +466,7 @@ class _ChipMatchVisualization(object):
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        from ibeis.viz.interact import interact_matches  # NOQA
+        from wbia.viz.interact import interact_matches  # NOQA
         #if aid == 'top':
         #    aid = cm.get_top_aids(ibs)
         kwshow = {
@@ -485,7 +485,7 @@ class _ChipMatchVisualization(object):
             ut.printex(ex, 'failed in cm.ishow_single_annotmatch', keys=['aid', 'qreq_'])
             raise
         #if not kwargs.get('noupdate', False):
-        #    import ibeis.plottool as pt
+        #    import wbia.plottool as pt
         #    pt.update()
 
     ishow_match = ishow_single_annotmatch
@@ -494,11 +494,11 @@ class _ChipMatchVisualization(object):
     def ishow_analysis(cm, qreq_, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
+            python -m wbia.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
             >>> cm = cm_list[0]
@@ -507,7 +507,7 @@ class _ChipMatchVisualization(object):
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """
-        from ibeis.viz.interact import interact_qres
+        from wbia.viz.interact import interact_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
@@ -516,7 +516,7 @@ class _ChipMatchVisualization(object):
         return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
     def show_analysis(cm, qreq_, **kwargs):
-        from ibeis.viz import viz_qres
+        from wbia.viz import viz_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
@@ -527,12 +527,12 @@ class _ChipMatchVisualization(object):
     def imwrite_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.imwrite_single_annotmatch --show
+            python -m wbia.algo.hots.chip_match --exec-ChipMatch.imwrite_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
             >>> kwargs = {}
             >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
             >>> kwargs['figsize'] = ut.get_argval('--figsize', list, None)
@@ -544,7 +544,7 @@ class _ChipMatchVisualization(object):
             >>> kwargs['in_image'] = ut.get_argflag('--in-image')
             >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
             >>> print('kwargs = %s' % (ut.repr2(kwargs),))
-            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> cm, qreq_ = wbia.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
             >>> img_fpath = cm.imwrite_single_annotmatch(qreq_, aid, **kwargs)
             >>> ut.quit_if_noshow()
@@ -552,7 +552,7 @@ class _ChipMatchVisualization(object):
             >>> ut.startfile(img_fpath, quote=True)
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
@@ -588,7 +588,7 @@ class _ChipMatchVisualization(object):
         """
         users newer rendering based code
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -626,14 +626,14 @@ class _ChipMatchVisualization(object):
     def render_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            python -m wbia.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m wbia.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m wbia.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
             >>> kwargs = {}
             >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
             >>> kwargs['draw_fmatches'] = False
@@ -644,9 +644,9 @@ class _ChipMatchVisualization(object):
             >>> kwargs['in_image'] = False
             >>> kwargs['draw_lbl'] = False
             >>> print('kwargs = %s' % (ut.repr2(kwargs),))
-            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> cm, qreq_ = wbia.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> tt = ut.tic('render image')
             >>> img = cm.render_single_annotmatch(qreq_, aid, **kwargs)
             >>> ut.toc(tt)
@@ -656,7 +656,7 @@ class _ChipMatchVisualization(object):
         """
         import io
         import cv2
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -693,7 +693,7 @@ class _ChipMatchVisualization(object):
     def qt_inspect_gui(cm, ibs, ranks_top=6, qreq_=None, name_scoring=False):
         r"""
         Args:
-            ibs (IBEISController):  ibeis controller object
+            ibs (IBEISController):  wbia controller object
             ranks_top (int): (default = 6)
             qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
             name_scoring (bool): (default = False)
@@ -702,11 +702,11 @@ class _ChipMatchVisualization(object):
             QueryResult: qres_wgt -  object of feature correspondences and scores
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-qt_inspect_gui --show
+            python -m wbia.algo.hots.chip_match --exec-qt_inspect_gui --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
@@ -714,12 +714,12 @@ class _ChipMatchVisualization(object):
             >>> name_scoring = False
             >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.guitool
+            >>> import wbia.guitool
             >>> guitool.qtapp_loop(qwin=qres_wgt)
         """
         print('[cm] qt_inspect_gui')
-        from ibeis.gui import inspect_gui
-        import ibeis.guitool
+        from wbia.gui import inspect_gui
+        import wbia.guitool
         guitool.ensure_qapp()
         cm_list = [cm]
         print('[inspect_matches] make_qres_widget')
@@ -751,7 +751,7 @@ class _ChipMatchScorers(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.scoring import *  # NOQA
+            >>> from wbia.algo.hots.scoring import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.evaluate_dnids(qreq_)
@@ -796,12 +796,12 @@ class _ChipMatchScorers(object):
     def score_annot_csum(cm, qreq_):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
+            python -m wbia.algo.hots.chip_match --test-score_annot_csum --show
+            python -m wbia.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
             >>> cm = cm_list[0]
             >>> cm.score_annot_csum(qreq_)
@@ -829,12 +829,12 @@ class _ChipMatchScorers(object):
         This is fmech from the thesis
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 1
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 18 -t default:normsum=True
+            python -m wbia.algo.hots.chip_match --test-score_name_nsum --show --qaid 1
+            python -m wbia.algo.hots.chip_match --test-score_name_nsum --show --qaid 18 -t default:normsum=True
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST',
             >>>                                a=['default'], qaid_override=[18])
             >>> cm = args.cm_list_SVER[0]
@@ -875,16 +875,16 @@ class MatchBaseIO(object):
     def save_to_fpath(cm, fpath, verbose=ut.VERBOSE):
         """
         CommandLine:
-            python ibeis --tf MatchBaseIO.save_to_fpath --verbtest --show
+            python wbia --tf MatchBaseIO.save_to_fpath --verbtest --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
-            >>> dpath = ut.get_app_resource_dir('ibeis')
+            >>> dpath = ut.get_app_resource_dir('wbia')
             >>> fpath = join(dpath, 'tmp_chipmatch.cPkl')
             >>> ut.delete(fpath)
             >>> cm.save_to_fpath(fpath)
@@ -933,7 +933,7 @@ class _BaseVisualization(object):
 
     def show_analysis(cm, qreq_, **kwargs):
         # HACK FOR ANNOT MATCH (HUMPBACKS)
-        from ibeis.viz import viz_qres
+        from wbia.viz import viz_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
@@ -945,7 +945,7 @@ class _BaseVisualization(object):
 
     def ishow_analysis(cm, qreq_, **kwargs):
         # HACK FOR ANNOT MATCH (HUMPBACKS)
-        from ibeis.viz.interact import interact_qres
+        from wbia.viz.interact import interact_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
@@ -961,7 +961,7 @@ class _BaseVisualization(object):
         # HACK FOR ANNOT MATCH (HUMPBACKS)
         #print('\n')
         #print("???? HACK SHOW SINGLE NAME MATCH")
-        from ibeis.viz import viz_matches
+        from wbia.viz import viz_matches
         qaid = cm.qaid
         if cm.nid2_nidx is None:
             raise AssertionError('cm.nid2_nidx has not been evaluated yet')
@@ -1124,7 +1124,7 @@ class _AnnotMatchConvenienceGetter(object):
     # def get_ranked_nids_and_aids(cm):
     #     """ Hacky func
     #     Returns:
-    #         ibeis.algo.hots.name_scoring.NameScoreTup
+    #         wbia.algo.hots.name_scoring.NameScoreTup
     #     """
     #     sortx = cm.name_score_list.argsort()[::-1]
     #     sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
@@ -1279,7 +1279,7 @@ class _AnnotMatchConvenienceGetter(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
@@ -1295,7 +1295,7 @@ class _AnnotMatchConvenienceGetter(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
@@ -1522,11 +1522,11 @@ class _ChipMatchConvenienceGetter(object):
             dict: info_
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_flat_fm_info --show
+            python -m wbia.algo.hots.chip_match --exec-get_flat_fm_info --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
             >>>     defaultdb='PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
@@ -1632,13 +1632,13 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_inspect_str
+            python -m wbia.algo.hots.chip_match --exec-get_inspect_str
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_inspect_str(qreq_)
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
@@ -1701,13 +1701,13 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match get_rawinfostr
+            python -m wbia.algo.hots.chip_match get_rawinfostr
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_rawinfostr()
             >>> result = ('varinfo = %s' % (varinfo,))
             >>> print(result)
@@ -1785,7 +1785,7 @@ class _ChipMatchDebugger(object):
         r"""
         Args:
             numtop (int): (default = 6)
-            ibs (IBEISController):  ibeis controller object(default = None)
+            ibs (IBEISController):  wbia controller object(default = None)
             sort (bool): (default = True)
 
         Returns:
@@ -1802,11 +1802,11 @@ class _ChipMatchDebugger(object):
             makes very little sense
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-get_cvs_str --force-serial
+            python -m wbia.algo.hots.chip_match --test-get_cvs_str --force-serial
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
             >>> cm = cm_list[0]
             >>> numtop = 6
@@ -2228,21 +2228,21 @@ class ChipMatch(_ChipMatchVisualization,
         aids
 
         Args:
-            qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+            qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
             other_aids (None): (default = None)
 
         Returns:
-            ibeis.ChipMatch: out
+            wbia.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-extend_results --show
+            python -m wbia.algo.hots.chip_match --exec-extend_results --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:SV=False')
             >>> assert len(cm.daid_list) == 9
@@ -2312,7 +2312,7 @@ class ChipMatch(_ChipMatchVisualization,
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.core_annots import *  # NOQA
+            >>> from wbia.core_annots import *  # NOQA
             >>> ibs, depc, aid_list = testdata_core(size=4)
             >>> request = depc.new_request('vsone', [1], [2, 3, 4], {'dim_size': 450})
             >>> rawres_list2 = request.execute(postprocess=False)
@@ -2363,13 +2363,13 @@ class ChipMatch(_ChipMatchVisualization,
         Keeps results only for the selected annotation indices.
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match take_annots
+            python -m wbia.algo.hots.chip_match take_annots
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:sv=False')
             >>> idx_list = list(range(cm.num_daids))
@@ -2384,9 +2384,9 @@ class ChipMatch(_ChipMatchVisualization,
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:SV=False')
             >>> idx_list = [0, 2]
@@ -2454,16 +2454,16 @@ class ChipMatch(_ChipMatchVisualization,
             inplace (bool): (default = False)
 
         Returns:
-            ibeis.ChipMatch: out
+            wbia.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-take_feature_matches --show
+            python -m wbia.algo.hots.chip_match --exec-take_feature_matches --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> indicies_list = [list(range(i + 1)) for i in range(cm.num_daids)]
             >>> inplace = False
             >>> keepscores = True
@@ -2568,13 +2568,13 @@ class ChipMatch(_ChipMatchVisualization,
 
         CommandLine:
             # FIXME: util_test is broken with classmethods
-            python -m ibeis.algo.hots.chip_match --test-from_json --show
+            python -m wbia.algo.hots.chip_match --test-from_json --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm1, qreq_ = ibeis.testdata_cm()
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm1, qreq_ = wbia.testdata_cm()
             >>> json_str = cm1.to_json()
             >>> cm = ChipMatch.from_json(json_str)
             >>> ut.quit_if_noshow()
@@ -2622,16 +2622,16 @@ class ChipMatch(_ChipMatchVisualization,
         Serialize ChipMatch object as JSON string
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:0
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:1 --show
+            python -m wbia.algo.hots.chip_match --test-ChipMatch.to_json:0
+            python -m wbia.algo.hots.chip_match --test-ChipMatch.to_json
+            python -m wbia.algo.hots.chip_match --test-ChipMatch.to_json:1 --show
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Simple doctest demonstrating the json format
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm()
             >>> cm.compress_top_feature_matches(num=4, rng=np.random.RandomState(0))
             >>> # Serialize
             >>> print('\n\nRaw ChipMatch JSON:\n')
@@ -2647,9 +2647,9 @@ class ChipMatch(_ChipMatchVisualization,
         Example:
             >>> # ENABLE_DOCTEST
             >>> # test to convert back and forth from json
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> from wbia.algo.hots.chip_match import *  # NOQA
+            >>> import wbia
+            >>> cm, qreq_ = wbia.testdata_cm()
             >>> cm1 = cm
             >>> # Serialize
             >>> json_str = cm.to_json()
@@ -2771,11 +2771,11 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
                         MAX_FNAME_LEN=MAX_FNAME_LEN):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.chip_match --test-get_chipmatch_fname
+        python -m wbia.algo.hots.chip_match --test-get_chipmatch_fname
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
+        >>> from wbia.algo.hots.chip_match import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('spatial_verification',
         >>>                                defaultdb='PZ_MTEST', qaid_override=[18],
         >>>                                p='default:sqrd_dist_on=True')
@@ -2808,9 +2808,9 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.chip_match
-        python -m ibeis.algo.hots.chip_match --allexamples
-        python -m ibeis.algo.hots.chip_match --allexamples --noface --nosrc
+        python -m wbia.algo.hots.chip_match
+        python -m wbia.algo.hots.chip_match --allexamples
+        python -m wbia.algo.hots.chip_match --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

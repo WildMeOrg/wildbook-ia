@@ -39,10 +39,10 @@ def parse_imageinfo(gpath):
             for SQL columns on else returns None
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
+        python -m wbia.algo.preproc.preproc_image --exec-parse_imageinfo
 
     Doctest:
-        >>> from ibeis.algo.preproc.preproc_image import *  # NOQA
+        >>> from wbia.algo.preproc.preproc_image import *  # NOQA
         >>> gpath = ut.grab_test_imgpath('patsy.jpg')
         >>> param_tup = parse_imageinfo(gpath)
         >>> result = ('param_tup = %s' % (str(param_tup),))
@@ -188,11 +188,11 @@ def parse_imageinfo(gpath):
 #         generator: params_gen
 
 #     CommandLine:
-#         python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
+#         python -m wbia.algo.preproc.preproc_image --exec-add_images_params_gen
 
 #     Example0:
 #         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.algo.preproc.preproc_image import *   # NOQA
+#         >>> from wbia.algo.preproc.preproc_image import *   # NOQA
 #         >>> from vtool_ibeis.tests import grabdata
 #         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
 #         >>> params_list = list(add_images_params_gen(gpath_list))
@@ -211,8 +211,8 @@ def on_delete(ibs, featweight_rowid_list, qreq_=None):
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.preproc.preproc_image
-    python -m ibeis.algo.preproc.preproc_image --allexamples
+    python -m wbia.algo.preproc.preproc_image
+    python -m wbia.algo.preproc.preproc_image --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

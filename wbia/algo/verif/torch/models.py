@@ -8,7 +8,7 @@ class Siamese(torch.nn.Module):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.siamese import *
+        >>> from wbia.algo.verif.siamese import *
         >>> self = Siamese()
     """
 
@@ -91,7 +91,7 @@ def visualize():
     params = model.state_dict()
     G = make_nx(y, params)
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.dump_nx_ondisk(G, './pytorch_network.png')
     ut.startfile( './pytorch_network.png')
     # pt.show_nx(G, arrow_width=1)

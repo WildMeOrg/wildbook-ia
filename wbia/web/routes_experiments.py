@@ -3,8 +3,8 @@
 Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
-from ibeis.control import controller_inject
-from ibeis.web import appfuncs as appf
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 from os.path import abspath, expanduser, join
 import utool as ut
 import vtool_ibeis as vt
@@ -15,8 +15,8 @@ import cv2
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 DBDIR_PREFIX = '/Datasets'
@@ -25,14 +25,14 @@ DBDIR_PREFIX = '/Datasets'
 
 DB_DICT = {}
 DBDIR_DICT = {
-    'demo-jasonp'  : '/data2/ibeis/DEMO2-JASONP',
-    'demo-chuck'   : '/data2/ibeis/DEMO2-CHUCK',
-    'demo-hendrik' : '/data2/ibeis/DEMO2-HENDRIK',
-    'demo-jonv'    : '/data2/ibeis/DEMO2-JONV',
-    'demo-jasonh'  : '/data2/ibeis/DEMO2-JASONH',
-    'demo-dan'     : '/data2/ibeis/DEMO2-DAN',
-    'demo-kaia'    : '/data2/ibeis/DEMO2-KAIA',
-    'demo-tanya'   : '/data2/ibeis/DEMO2-TANYA',
+    'demo-jasonp'  : '/data2/wbia/DEMO2-JASONP',
+    'demo-chuck'   : '/data2/wbia/DEMO2-CHUCK',
+    'demo-hendrik' : '/data2/wbia/DEMO2-HENDRIK',
+    'demo-jonv'    : '/data2/wbia/DEMO2-JONV',
+    'demo-jasonh'  : '/data2/wbia/DEMO2-JASONH',
+    'demo-dan'     : '/data2/wbia/DEMO2-DAN',
+    'demo-kaia'    : '/data2/wbia/DEMO2-KAIA',
+    'demo-tanya'   : '/data2/wbia/DEMO2-TANYA',
     'voting'       : join(DBDIR_PREFIX, 'DETECT_TEAM'),
     'voting-team1' : join(DBDIR_PREFIX, 'DETECT_TEAM1'),
     'voting-team2' : join(DBDIR_PREFIX, 'DETECT_TEAM2'),
@@ -54,10 +54,10 @@ def view_experiments(**kwargs):
 
 
 def experiment_init_db(tag):
-    import ibeis
+    import wbia
     if tag in DBDIR_DICT:
         dbdir = abspath(expanduser(DBDIR_DICT[tag]))
-        DB_DICT[tag] = ibeis.opendb(dbdir=dbdir, web=False)
+        DB_DICT[tag] = wbia.opendb(dbdir=dbdir, web=False)
     return DB_DICT.get(tag, None)
 
 
@@ -82,7 +82,7 @@ def experiments_image_src(tag=None, **kwargs):
 @register_route('/experiments/interest/', methods=['GET'])
 def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
     from uuid import UUID
-    from ibeis.other.detectfuncs import general_overlap, general_parse_gt
+    from wbia.other.detectfuncs import general_overlap, general_parse_gt
 
     dbtag1 = str(dbtag1)
     dbtag2 = str(dbtag2)
@@ -590,9 +590,9 @@ def experiments_voting(**kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

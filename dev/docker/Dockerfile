@@ -70,7 +70,7 @@ FROM com.wildme.wildbook-image-curation.base as com.wildme.wildbook-image-curati
 RUN mkdir -p /root/.ssh
 
 # Add deploy keys and SSH keys for Github with this container
-ADD dev/keys/deploy-ibeis /root/.ssh/deploy-ibeis
+ADD dev/keys/deploy-wbia /root/.ssh/deploy-wbia
 
 ADD dev/keys/deploy-ibeis_cnn /root/.ssh/deploy-ibeis_cnn
 
@@ -81,9 +81,9 @@ ADD dev/keys/deploy-ibeis-curvrank-module /root/.ssh/deploy-ibeis-curvrank-modul
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 RUN echo """\n\
-Host ibeis.github.com\n\
+Host wbia.github.com\n\
 HostName github.com\n\
-IdentityFile /root/.ssh/deploy-ibeis\n\
+IdentityFile /root/.ssh/deploy-wbia\n\
 User git\n\n\
 Host ibeis_cnn.github.com\n\
 HostName github.com\n\
@@ -102,28 +102,28 @@ User git\
 RUN chmod -R 600 /root/.ssh/
 
 # Clone
-RUN    git clone https://github.com/opencv/opencv.git               /ibeis/opencv \
-    && git clone https://github.com/opencv/opencv_contrib.git       /ibeis/opencv_contrib \
-    && git clone https://github.com/Theano/libgpuarray.git          /ibeis/libgpuarray \
-    && git clone https://github.com/Theano/Theano.git               /ibeis/Theano \
-    && git clone https://github.com/Lasagne/Lasagne.git             /ibeis/Lasagne \
-    && git clone https://github.com/networkx/networkx.git           /ibeis/networkx \
-    && git clone https://github.com/WildbookOrg/utool.git           /ibeis/utool \
-    && git clone https://github.com/WildbookOrg/ubelt.git           /ibeis/ubelt
+RUN    git clone https://github.com/opencv/opencv.git               /wbia/opencv \
+    && git clone https://github.com/opencv/opencv_contrib.git       /wbia/opencv_contrib \
+    && git clone https://github.com/Theano/libgpuarray.git          /wbia/libgpuarray \
+    && git clone https://github.com/Theano/Theano.git               /wbia/Theano \
+    && git clone https://github.com/Lasagne/Lasagne.git             /wbia/Lasagne \
+    && git clone https://github.com/networkx/networkx.git           /wbia/networkx \
+    && git clone https://github.com/WildbookOrg/utool.git           /wbia/utool \
+    && git clone https://github.com/WildbookOrg/ubelt.git           /wbia/ubelt
 
-RUN    git clone git@ibeis.github.com:WildbookOrg/ibeis.git         /ibeis/ibeis \
-    && git clone git@ibeis_cnn.github.com:WildbookOrg/ibeis_cnn.git /ibeis/ibeis_cnn \
-    && git clone git@ibeis-flukematch-module.github.com:WildbookOrg/ibeis-flukematch-module.git /ibeis/ibeis-flukematch-module \
-    && git clone git@ibeis-curvrank-module.github.com:WildbookOrg/ibeis-curvrank-module.git /ibeis/ibeis-curvrank-module
+RUN    git clone git@wbia.github.com:WildbookOrg/wbia.git         /wbia/wbia \
+    && git clone git@ibeis_cnn.github.com:WildbookOrg/ibeis_cnn.git /wbia/ibeis_cnn \
+    && git clone git@ibeis-flukematch-module.github.com:WildbookOrg/ibeis-flukematch-module.git /wbia/ibeis-flukematch-module \
+    && git clone git@ibeis-curvrank-module.github.com:WildbookOrg/ibeis-curvrank-module.git /wbia/ibeis-curvrank-module
 
 # Build and install utool and ubelt
-RUN cd /ibeis/utool \
+RUN cd /wbia/utool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ubelt \
+    && cd /wbia/ubelt \
     && /virtualenv/env3/bin/pip install -e .
 
-# Clone all other public ibeis repositories and update
-RUN cd /ibeis/ibeis \
+# Clone all other public wbia repositories and update
+RUN cd /wbia/wbia \
     && /virtualenv/env3/bin/python super_setup.py --pull \
     && /virtualenv/env3/bin/python super_setup.py --checkout next \
     && /virtualenv/env3/bin/python super_setup.py --pull
@@ -137,12 +137,12 @@ RUN /virtualenv/env3/bin/pip install \
     numpy==1.14.2
 
 # Install OpenCV
-RUN    cd /ibeis/opencv \
+RUN    cd /wbia/opencv \
     && git checkout 3.4.0 \
-    && cd /ibeis/opencv_contrib \
+    && cd /wbia/opencv_contrib \
     && git checkout 3.4.0 \
-    && mkdir -p /ibeis/opencv/build \
-    && cd /ibeis/opencv/build \
+    && mkdir -p /wbia/opencv/build \
+    && cd /wbia/opencv/build \
     && cmake -j4 \
         -D CMAKE_BUILD_TYPE=RELEASE \
         -D CMAKE_INSTALL_PREFIX=/virtualenv/env3 \
@@ -168,28 +168,28 @@ RUN    cd /ibeis/opencv \
         -D CUDA_FAST_MATH=1 \
         -D INSTALL_C_EXAMPLES=OFF \
         -D INSTALL_PYTHON_EXAMPLES=OFF \
-        -D OPENCV_EXTRA_MODULES_PATH=/ibeis/opencv_contrib/modules \
+        -D OPENCV_EXTRA_MODULES_PATH=/wbia/opencv_contrib/modules \
         .. \
     && make -j4 \
     && make install \
     && cd .. \
-    && rm -rf /ibeis/opencv/build
+    && rm -rf /wbia/opencv/build
 
 RUN /virtualenv/env3/bin/pip install \
     cython==0.28.1
 
 # Install libgpuarray (pygpu)
-RUN    cd /ibeis/libgpuarray \
+RUN    cd /wbia/libgpuarray \
     && git checkout 04c2892 \
-    && mkdir -p /ibeis/libgpuarray/build \
-    && cd /ibeis/libgpuarray/build \
+    && mkdir -p /wbia/libgpuarray/build \
+    && cd /wbia/libgpuarray/build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/virtualenv/env3 \
     && make -j4 \
     && make install \
     && cd .. \
     && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
     && /virtualenv/env3/bin/pip install -e . \
-    && rm -rf /ibeis/libgpuarray/build
+    && rm -rf /wbia/libgpuarray/build
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN /virtualenv/env3/bin/pip install \
@@ -206,100 +206,100 @@ RUN    /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Fla
     && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
 # Checkout specific versions of each repository
-RUN    cd /ibeis/ibeis \
+RUN    cd /wbia/wbia \
     && git checkout next \
     && /virtualenv/env3/bin/python super_setup.py --pull \
     # Double pull is important because super_setup.py could have just been updated as well
     && /virtualenv/env3/bin/python super_setup.py --pull \
-    # Checkout specific version of ibeis
+    # Checkout specific version of wbia
     && git checkout 2cfb0ac4 \
     # Checkout specific version of all other repos
-    && cd /ibeis/Theano \
+    && cd /wbia/Theano \
     && git checkout 61b514a \
-    && cd /ibeis/Lasagne \
+    && cd /wbia/Lasagne \
     && git checkout 37ca134 \
-    && cd /ibeis/networkx \
+    && cd /wbia/networkx \
     && git checkout networkx-2.1 \
-    && cd /ibeis/utool \
+    && cd /wbia/utool \
     && git checkout 6ec8e7b \
-    && cd /ibeis/vtool \
+    && cd /wbia/vtool \
     && git checkout 123ef03 \
-    && cd /ibeis/dtool \
+    && cd /wbia/dtool \
     && git checkout fcf7345 \
-    && cd /ibeis/ubelt \
+    && cd /wbia/ubelt \
     && git checkout c0eb1c7  \
-    && cd /ibeis/detecttools \
+    && cd /wbia/detecttools \
     && git checkout f885410 \
-    && cd /ibeis/plottool \
+    && cd /wbia/plottool \
     && git checkout c3be3ec \
-    && cd /ibeis/guitool \
+    && cd /wbia/guitool \
     && git checkout 5107bd0 \
-    && cd /ibeis/flann \
+    && cd /wbia/flann \
     && git checkout 6146453 \
-    && cd /ibeis/hesaff \
+    && cd /wbia/hesaff \
     && git checkout 28e8ef5 \
-    && cd /ibeis/ibeis_cnn \
+    && cd /wbia/ibeis_cnn \
     && git checkout 09d166c \
-    && cd /ibeis/pydarknet \
+    && cd /wbia/pydarknet \
     && git checkout f36e935 \
-    && cd /ibeis/ibeis-flukematch-module \
+    && cd /wbia/ibeis-flukematch-module \
     && git checkout fd1e028 \
-    && cd /ibeis/ibeis-curvrank-module \
+    && cd /wbia/ibeis-curvrank-module \
     && git checkout 99b6115 \
-    && cd /ibeis/pyrf \
+    && cd /wbia/pyrf \
     && git checkout 8802d3a
 
 # Install Python dependencies
-RUN    cd /ibeis/Theano \
+RUN    cd /wbia/Theano \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/Lasagne \
+    && cd /wbia/Lasagne \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/networkx \
+    && cd /wbia/networkx \
     && /virtualenv/env3/bin/pip install -e .
 
 # Build Python repositories with external codebases
 RUN . /virtualenv/env3/bin/activate \
-    && cd /ibeis/flann \
+    && cd /wbia/flann \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/hesaff \
+    && cd /wbia/hesaff \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/ibeis-flukematch-module \
+    && cd /wbia/ibeis-flukematch-module \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/ibeis-curvrank-module \
+    && cd /wbia/ibeis-curvrank-module \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/pydarknet \
+    && cd /wbia/pydarknet \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/pyrf \
+    && cd /wbia/pyrf \
     && /bin/bash unix_build.sh \
-    && cd /ibeis/vtool \
+    && cd /wbia/vtool \
     && /bin/bash unix_build.sh
 
 # Install Python repositories
-RUN    cd /ibeis/detecttools \
+RUN    cd /wbia/detecttools \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/dtool \
+    && cd /wbia/dtool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ibeis_cnn \
+    && cd /wbia/ibeis_cnn \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/guitool \
+    && cd /wbia/guitool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/hesaff \
+    && cd /wbia/hesaff \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ibeis-flukematch-module \
+    && cd /wbia/ibeis-flukematch-module \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ibeis-curvrank-module \
+    && cd /wbia/ibeis-curvrank-module \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/plottool \
+    && cd /wbia/plottool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/pydarknet \
+    && cd /wbia/pydarknet \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/pyrf \
+    && cd /wbia/pyrf \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ubelt \
+    && cd /wbia/ubelt \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/vtool \
+    && cd /wbia/vtool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/ibeis \
+    && cd /wbia/wbia \
     && /virtualenv/env3/bin/pip install -e .
 
 ##########################################################################################
@@ -307,7 +307,7 @@ FROM com.wildme.wildbook-image-curation.base as com.wildme.wildbook-image-curati
 
 COPY --from=com.wildme.wildbook-image-curation.build /virtualenv /virtualenv
 
-COPY --from=com.wildme.wildbook-image-curation.build /ibeis /ibeis
+COPY --from=com.wildme.wildbook-image-curation.build /wbia /wbia
 
 RUN    ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
     && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
@@ -340,21 +340,21 @@ ldflags = -llapack -lblas\n\
 
 RUN mkdir /data
 
-RUN /virtualenv/env3/bin/python /ibeis/ibeis/dev.py --set-workdir /data
+RUN /virtualenv/env3/bin/python /wbia/wbia/dev.py --set-workdir /data
 
 ##########################################################################################
 FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.test
 
-RUN /virtualenv/env3/bin/python /ibeis/ibeis/reset_dbs.py --reset-all
+RUN /virtualenv/env3/bin/python /wbia/wbia/reset_dbs.py --reset-all
 
 VOLUME /data
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "/ibeis/ibeis/run_tests.py"]
+ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wbia/run_tests.py"]
 
 ##########################################################################################
 FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.deploy
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "/ibeis/ibeis/dev.py"]
+ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wbia/dev.py"]
 
 CMD ["--dbdir", "/data/container", "--web", "--port", "5000", "--web-deterministic-ports"]
 

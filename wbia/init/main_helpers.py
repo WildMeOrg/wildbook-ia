@@ -9,7 +9,7 @@ TODO: standardize function signatures
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-#from ibeis.init import old_main_helpers
+#from wbia.init import old_main_helpers
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 
@@ -23,7 +23,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 
 
 def testdata_filtcfg(default=None):
-    from ibeis.expt import cfghelpers
+    from wbia.expt import cfghelpers
     print('[main_helpers] testdata_filtcfg')
     if default is None:
         default = ['']
@@ -46,13 +46,13 @@ def testdata_expts(defaultdb='testdb1',
 
 
     CommandLine:
-        python -m ibeis.init.main_helpers testdata_expts
+        python -m wbia.init.main_helpers testdata_expts
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs, testres = ibeis.testdata_expts(defaultdb='pz_mtest',
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs, testres = wbia.testdata_expts(defaultdb='pz_mtest',
         >>>                                     a='timectrl:qsize=2',
         >>>                                     t='invar:ai=[false],ri=false',
         >>>                                     use_cache=false)
@@ -60,8 +60,8 @@ def testdata_expts(defaultdb='testdb1',
     """
     if ut.VERBOSE:
         print('[main_helpers] testdata_expts')
-    import ibeis
-    from ibeis.expt import harness
+    import wbia
+    from wbia.expt import harness
     if a is not None:
         default_acfgstr_name_list = a
     if t is not None and p is None:
@@ -74,11 +74,11 @@ def testdata_expts(defaultdb='testdb1',
     if isinstance(default_test_cfg_name_list, six.string_types):
         default_test_cfg_name_list = [default_test_cfg_name_list]
 
-    #from ibeis.expt import experiment_helpers
+    #from wbia.expt import experiment_helpers
     if dbdir is not None:
         dbdir = ut.truepath(dbdir)
     if ibs is None:
-        ibs = ibeis.opendb(defaultdb=defaultdb, dbdir=dbdir)
+        ibs = wbia.opendb(defaultdb=defaultdb, dbdir=dbdir)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=default_test_cfg_name_list)
@@ -94,7 +94,7 @@ def testdata_expts(defaultdb='testdb1',
     #use_bulk_cache = True
     if use_bulk_cache:
         from os.path import dirname
-        cache_dir = ut.ensuredir((dirname(ut.get_module_dir(ibeis)), 'BULK_TESTRES'))
+        cache_dir = ut.ensuredir((dirname(ut.get_module_dir(wbia)), 'BULK_TESTRES'))
         _cache_wrp = ut.cached_func('testreslist', cache_dir=cache_dir)
         _load_testres = _cache_wrp(harness.run_expt)
     else:
@@ -118,30 +118,30 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     Grabs default testdata for functions, but is command line overrideable
 
     CommandLine:
-        python -m ibeis testdata_aids --verbtd --db PZ_ViewPoints
-        python -m ibeis testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
-        python -m ibeis testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
-        python -m ibeis testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist
-        python -m ibeis testdata_aids --show
+        python -m wbia testdata_aids --verbtd --db PZ_ViewPoints
+        python -m wbia testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m wbia testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m wbia testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
+        python -m wbia.other.dbinfo --test-latex_dbstats --dblist
+        python -m wbia testdata_aids --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> from ibeis.expt import annotation_configs
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.init.main_helpers import *  # NOQA
+        >>> from wbia.expt import annotation_configs
+        >>> import wbia
+        >>> #ibs = wbia.opendb(defaultdb='PZ_ViewPoints')
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> a = None
         >>> adefault = 'default:is_known=True'
         >>> aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)
         >>> print('\n RESULT:')
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
-    import ibeis
-    from ibeis.init import filter_annots
-    from ibeis.expt import annotation_configs
-    from ibeis.expt import cfghelpers
+    import wbia
+    from wbia.init import filter_annots
+    from wbia.expt import annotation_configs
+    from wbia.expt import cfghelpers
 
     if verbose is None or verbose >= 1:
         print('[main_helpers] testdata_aids')
@@ -154,7 +154,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
         return_ibs = True
         if defaultdb is None:
             defaultdb = 'testdb1'
-        ibs = ibeis.opendb(defaultdb=defaultdb)
+        ibs = wbia.opendb(defaultdb=defaultdb)
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
                                        annotation_configs.TEST_NAMES)
 
@@ -196,8 +196,8 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         dict: pcfgdict
 
     CommandLine:
-        python -m ibeis testdata_pipecfg
-        python -m ibeis testdata_pipecfg -t default:AI=False
+        python -m wbia testdata_pipecfg
+        python -m wbia testdata_pipecfg -t default:AI=False
 
     Ignore:
         from jedi.evaluate import docstrings
@@ -208,7 +208,7 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> from wbia.init.main_helpers import *  # NOQA
         >>> pcfgdict = testdata_pipecfg()
         >>> result = ('pcfgdict = %s' % (ut.repr2(pcfgdict),))
         >>> print(result)
@@ -221,7 +221,7 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
     if p is None:
         p = ['default']
 
-    from ibeis.expt import experiment_helpers
+    from wbia.expt import experiment_helpers
     test_cfg_name_list, _spec = ut.get_argval(('-t', '-p'), type_=list, default=p,
                                               return_was_specified=True)
     if not _spec and isinstance(p, dict):
@@ -243,7 +243,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         default_qaids (list): (default = [1])
         default_daids (str): (default = 'all')
         defaultdb (str): (default = 'testdb1')
-        ibs (IBEISController):  ibeis controller object(default = None)
+        ibs (IBEISController):  wbia controller object(default = None)
         verbose (bool):  verbosity flag(default = False)
         return_annot_info (bool): (default = False)
 
@@ -251,16 +251,16 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         ibs, qaid_list, daid_list, annot_info:
 
     CommandLine:
-        python -m ibeis.init.main_helpers testdata_expanded_aids
-        python -m ibeis.init.main_helpers testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata
-        python -m ibeis.init.main_helpers testdata_expanded_aids --db PZ_MTEST --qaid 3
-        python -m ibeis.init.main_helpers testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
+        python -m wbia.init.main_helpers testdata_expanded_aids
+        python -m wbia.init.main_helpers testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata
+        python -m wbia.init.main_helpers testdata_expanded_aids --db PZ_MTEST --qaid 3
+        python -m wbia.init.main_helpers testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.expt import annotation_configs
+        >>> from wbia.init.main_helpers import *  # NOQA
+        >>> import wbia
+        >>> from wbia.expt import annotation_configs
         >>> ibs, qaid_list, daid_list, aidcfg = testdata_expanded_aids(return_annot_info=True)
         >>> print('Printing annot config')
         >>> annotation_configs.print_acfg(aidcfg)
@@ -283,12 +283,12 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 
     if defaultdb is None:
         defaultdb = 'testdb1'
-    import ibeis
+    import wbia
     if ibs is None:
-        ibs = ibeis.opendb(defaultdb=defaultdb)
+        ibs = wbia.opendb(defaultdb=defaultdb)
 
     # TODO: rectify command line with function arguments
-    from ibeis.expt import experiment_helpers
+    from wbia.expt import experiment_helpers
     _specified2 = True
     if a is None:
         _specified2 = False
@@ -333,7 +333,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 
     if ut.VERYVERBOSE:
         ibs.print_annotconfig_stats(qaid_list, daid_list)
-        #ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
+        #wbia.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
     if return_annot_info:
         return ibs, qaid_list, daid_list, aidcfg
     else:
@@ -356,14 +356,14 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
         verbose, use_cache
 
     Returns:
-        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
+        wbia.QueryRequest: qreq_ -  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis testdata_qreq_ --show --qaid 3
+        python -m wbia testdata_qreq_ --show --qaid 3
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> from wbia.init.main_helpers import *  # NOQA
         >>> kwargs = {}
         >>> p = None
         >>> a = None
@@ -402,7 +402,7 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
                     t=None, p=None, a=None, verbose=None):
     """
     Returns:
-        list, ibeis.QueryRequest: cm_list, qreq_
+        list, wbia.QueryRequest: cm_list, qreq_
     """
     if verbose is None or verbose >= 1:
         print('[main_helpers] testdata_cmlist')
@@ -415,12 +415,12 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
 def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, p=None, a=None):
     r"""
     CommandLine:
-        python -m ibeis.init.main_helpers --test-testdata_cm
-        python -m ibeis.init.main_helpers --test-testdata_cm --show
+        python -m wbia.init.main_helpers --test-testdata_cm
+        python -m wbia.init.main_helpers --test-testdata_cm --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> from wbia.init.main_helpers import *  # NOQA
         >>> cm, qreq_ = testdata_cm()
         >>> cm.print_csv(ibs=qreq_.ibs)
         >>> ut.quit_if_noshow()
@@ -457,7 +457,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         print(ut.repr3(ut.lmap(ut.get_timedelta_str,
                                sorted(name_mindeltas))))
     """
-    from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
+    from wbia.algo.preproc.occurrence_blackbox import cluster_timespace_sec
     import numpy as np
     import datetime
     if len(aids) == 0:
@@ -517,7 +517,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
 
 
 def unmonkeypatch_encounters(ibs):
-    from ibeis.other import ibsfuncs
+    from wbia.other import ibsfuncs
     ut.inject_func_as_method(ibs, ibsfuncs.get_annot_encounter_text,
                              'get_annot_encounter_text', force=True)
     ut.inject_func_as_method(ibs, ibsfuncs.get_annot_occurrence_text,
@@ -527,9 +527,9 @@ def unmonkeypatch_encounters(ibs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.init.main_helpers
-        python -m ibeis.init.main_helpers --allexamples
-        python -m ibeis.init.main_helpers --allexamples --noface --nosrc
+        python -m wbia.init.main_helpers
+        python -m wbia.init.main_helpers --allexamples
+        python -m wbia.init.main_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -7,23 +7,23 @@ import itertools as it
 import copy
 import six
 import collections
-from ibeis import constants as const
-from ibeis.algo.graph import nx_dynamic_graph
-# from ibeis.algo.graph import _dep_mixins
-from ibeis.algo.graph import mixin_viz
-from ibeis.algo.graph import mixin_helpers
-from ibeis.algo.graph import mixin_dynamic
-from ibeis.algo.graph import mixin_priority
-from ibeis.algo.graph import mixin_loops
-from ibeis.algo.graph import mixin_matching
-from ibeis.algo.graph import mixin_groundtruth
-from ibeis.algo.graph import mixin_simulation
-from ibeis.algo.graph import mixin_ibeis
-from ibeis.algo.graph import nx_utils as nxu
+from wbia import constants as const
+from wbia.algo.graph import nx_dynamic_graph
+# from wbia.algo.graph import _dep_mixins
+from wbia.algo.graph import mixin_viz
+from wbia.algo.graph import mixin_helpers
+from wbia.algo.graph import mixin_dynamic
+from wbia.algo.graph import mixin_priority
+from wbia.algo.graph import mixin_loops
+from wbia.algo.graph import mixin_matching
+from wbia.algo.graph import mixin_groundtruth
+from wbia.algo.graph import mixin_simulation
+from wbia.algo.graph import mixin_wbia
+from wbia.algo.graph import nx_utils as nxu
 import pandas as pd
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from ibeis.algo.graph.state import UNINFERABLE
-from ibeis.algo.graph.state import SAME, DIFF, NULL
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
+from wbia.algo.graph.state import UNINFERABLE
+from wbia.algo.graph.state import SAME, DIFF, NULL
 import networkx as nx
 import logging
 print, rrr, profile = ut.inject2(__name__)
@@ -100,11 +100,11 @@ class Feedback(object):
         Gets a decision on an edge, either explicitly or implicitly
 
         CommandLine:
-            python -m ibeis.algo.graph.core edge_decision
+            python -m wbia.algo.graph.core edge_decision
 
         Doctest:
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=1, p_incon=1)
             >>> decision = infr.edge_decision((1, 2))
             >>> print('decision = %r' % (decision,))
@@ -148,7 +148,7 @@ class Feedback(object):
                      timestamp=None, verbose=None, priority=None):
         r"""
         Doctest:
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), POSTV)
             >>> infr.add_feedback((5, 6), NEGTV, tags=['photobomb'])
@@ -300,10 +300,10 @@ class Feedback(object):
         Transforms the feedback dictionaries into nx graph edge attributes
 
         CommandLine:
-            python -m ibeis.algo.graph.core apply_feedback_edges
+            python -m wbia.algo.graph.core apply_feedback_edges
 
         Doctest:
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
             >>> infr.params['inference.enabled'] = False
@@ -426,9 +426,9 @@ class Feedback(object):
         infr.print('reset_feedback mode=%r' % (mode,), 1)
         infr.clear_feedback()
         if mode == 'annotmatch':
-            infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
+            infr.external_feedback = infr.read_wbia_annotmatch_feedback()
         elif mode == 'staging':
-            infr.external_feedback = infr.read_ibeis_staging_feedback()
+            infr.external_feedback = infr.read_wbia_staging_feedback()
         else:
             raise ValueError('no mode=%r' % (mode,))
         infr.internal_feedback = ut.ddict(list)
@@ -440,8 +440,8 @@ class Feedback(object):
         Removes all edges from graph and resets name labels.
 
         Ignore:
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=5)
             >>> assert len(list(infr.edges())) > 0
             >>> infr.reset(state='empty')
@@ -499,7 +499,7 @@ class NameRelabel(object):
         new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
         """
         infr.print('rectifying name lists', 3)
-        from ibeis.scripts import name_recitifer
+        from wbia.scripts import name_recitifer
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         unique_newlabels = list(newlabel_to_oldnames.keys())
         grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
@@ -527,7 +527,7 @@ class NameRelabel(object):
         Reuses as many names as possible
         """
         # Determine which names can be reused
-        from ibeis.scripts import name_recitifer
+        from wbia.scripts import name_recitifer
         infr.print('grouping names for rectification', 3)
         grouped_oldnames_ = [
             list(nx.get_node_attributes(subgraph, 'name_label').values())
@@ -568,7 +568,7 @@ class NameRelabel(object):
         PCC will be assigned an arbitrary name.
 
         Note:
-            if something messes up you can call infr.reset_labels_to_ibeis() to
+            if something messes up you can call infr.reset_labels_to_wbia() to
             reset node labels to their original values --- this will almost
             always put the graph in an inconsistent state --- but then you can
             this with rectify=True to fix everything up.
@@ -632,11 +632,11 @@ class NameRelabel(object):
             dict: num_inconsistent, num_names_max
 
         CommandLine:
-            python -m ibeis.algo.graph.core connected_component_status
+            python -m wbia.algo.graph.core connected_component_status
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback_from([(2, 3, NEGTV), (5, 6, NEGTV), (1, 2, POSTV)])
             >>> status = infr.connected_component_status()
@@ -741,10 +741,10 @@ class MiscHelpers(object):
     def add_aids(infr, aids, nids=None):
         """
         CommandLine:
-            python -m ibeis.algo.graph.core add_aids --show
+            python -m wbia.algo.graph.core add_aids --show
 
         Doctest:
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> aids_ = [1, 2, 3, 4, 5, 6, 7, 9]
             >>> infr = AnnotInference(ibs=None, aids=aids_, autoinit=True)
             >>> aids = [2, 22, 7, 9, 8]
@@ -1012,8 +1012,8 @@ class AnnotInference(ut.NiceRepr,
                      mixin_viz.GraphVisualization,
                      # plugging into IBEIS
                      mixin_groundtruth.Groundtruth,
-                     mixin_ibeis.IBEISIO,
-                     mixin_ibeis.IBEISGroundtruth,
+                     mixin_wbia.IBEISIO,
+                     mixin_wbia.IBEISGroundtruth,
                      # _dep_mixins._AnnotInfrDepMixin,
                      ):
     """
@@ -1022,17 +1022,17 @@ class AnnotInference(ut.NiceRepr,
     Terminology and Concepts:
 
     CommandLine:
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
-        ibeis AnnotInference:0 --show
-        ibeis AnnotInference:1 --show
-        ibeis AnnotInference:2 --show
+        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
+        wbia AnnotInference:0 --show
+        wbia AnnotInference:1 --show
+        wbia AnnotInference:2 --show
 
-        ibeis AnnotInference:0 --loginfr
+        wbia AnnotInference:0 --loginfr
 
     Doctest:
-        >>> from ibeis.algo.graph.core import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.graph.core import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6]
         >>> infr = AnnotInference(ibs, aids, autoinit=True, verbose=1000)
         >>> result = ('infr = %s' % (infr,))
@@ -1047,9 +1047,9 @@ class AnnotInference(ut.NiceRepr,
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.graph.core import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.graph.core import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
         >>> infr = AnnotInference(ibs, aids, autoinit=True)
         >>> result = ('infr = %s' % (infr,))
@@ -1070,9 +1070,9 @@ class AnnotInference(ut.NiceRepr,
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.graph.core import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.graph.core import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
         >>> infr = AnnotInference(ibs, aids, autoinit=True)
         >>> result = ('infr = %s' % (infr,))
@@ -1096,10 +1096,10 @@ class AnnotInference(ut.NiceRepr,
         >>> ut.show_if_requested()
 
     Ignore:
-        >>> import ibeis
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> infr = ibeis.AnnotInference(ibs, 'all')
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
+        >>> infr = wbia.AnnotInference(ibs, 'all')
         >>> class_ = infr
         >>> fpath = None
         >>> static_attrs = ut.check_static_member_vars(class_, fpath)
@@ -1124,12 +1124,12 @@ class AnnotInference(ut.NiceRepr,
         infr.name = None
         infr.verbose = verbose
 
-        # ibeis controller and initial nodes
+        # wbia controller and initial nodes
         # TODO: aids can be abstracted as a property that simply looks at the
         # nodes in infr.graph.
         if isinstance(ibs, six.string_types):
-            import ibeis
-            ibs = ibeis.opendb(ibs)
+            import wbia
+            ibs = wbia.opendb(ibs)
 
         # setup logging
         infr.logger = None
@@ -1361,9 +1361,9 @@ class AnnotInference(ut.NiceRepr,
         The returned dict does not contain the prefix
 
         Doctest:
-            >>> from ibeis.algo.graph.core import *
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference(None)
+            >>> from wbia.algo.graph.core import *
+            >>> import wbia
+            >>> infr = wbia.AnnotInference(None)
             >>> result = ut.repr2(infr.subparams('refresh'))
             >>> print(result)
             {'method': 'binomial', 'patience': 72, 'thresh': 0.052, 'window': 20}
@@ -1472,8 +1472,8 @@ class AnnotInference(ut.NiceRepr,
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     aids = [1, 2, 3, 4, 5, 6]
     infr = AnnotInference(ibs, aids, autoinit=True)
     return infr
@@ -1482,12 +1482,12 @@ def testdata_infr(defaultdb='PZ_MTEST'):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
-        python -m ibeis.algo.graph.core
+        python -m wbia.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
+        python -m wbia.algo.graph.core
 
-        python -m ibeis.algo.graph all
+        python -m wbia.algo.graph all
 
-        python -m ibeis.algo.graph.core --allexamples
+        python -m wbia.algo.graph.core --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

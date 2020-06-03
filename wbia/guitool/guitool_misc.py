@@ -1,13 +1,13 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore, QtGui
-from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 import six
 import utool
 import sys
 import logging
 from six.moves import range
-from ibeis.guitool.guitool_decorators import slot_
-from ibeis.guitool import guitool_main
+from wbia.guitool.guitool_decorators import slot_
+from wbia.guitool import guitool_main
 import utool as ut
 ut.noinject(__name__)
 
@@ -73,11 +73,11 @@ def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
         list: hotlinked_name_list
 
     CommandLine:
-        python -m ibeis.guitool.guitool_misc --exec-make_word_hotlinks
+        python -m wbia.guitool.guitool_misc --exec-make_word_hotlinks
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_misc import *  # NOQA
+        >>> from wbia.guitool.guitool_misc import *  # NOQA
         >>> name_list = ['occlusion', 'occlusion:large', 'occlusion:medium', 'occlusion:small', 'lighting', 'lighting:shadowed', 'lighting:overexposed', 'lighting:underexposed']
         >>> used_chars = []
         >>> hotlinked_name_list = make_word_hotlinks(name_list, used_chars)

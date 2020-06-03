@@ -11,29 +11,29 @@ CHECK   = '--nocheck' not in sys.argv
 
 
 # Get IBEIS git repository URLS and their local path
-ibeis_repo_urls = __REPOS__.CODE_REPO_URLS
-ibeis_repo_dirs = __REPOS__.CODE_REPOS
+wbia_repo_urls = __REPOS__.CODE_REPO_URLS
+wbia_repo_dirs = __REPOS__.CODE_REPOS
 
 
-def checkout_ibeis_repos():
+def checkout_wbia_repos():
     """ Checkout IBEIS repos out if they don't exist """
-    util_git.checkout_repos(ibeis_repo_urls, ibeis_repo_dirs)
+    util_git.checkout_repos(wbia_repo_urls, wbia_repo_dirs)
 
 
-def pull_ibeis_repos():
+def pull_wbia_repos():
     """ Pull IBEIS repos """
-    util_git.pull_repos(ibeis_repo_dirs)
+    util_git.pull_repos(wbia_repo_dirs)
 
 
-def setup_develop_ibeis_repos():
+def setup_develop_wbia_repos():
     """ Install with setuptools using the develop flag """
-    util_git.setup_develop_repos(ibeis_repo_dirs)
+    util_git.setup_develop_repos(wbia_repo_dirs)
 
 
 if __name__ == '__main__':
     if CHECK:
-        checkout_ibeis_repos()
+        checkout_wbia_repos()
     if PULL:
-        pull_ibeis_repos()
+        pull_wbia_repos()
     if DEVELOP:
-        setup_develop_ibeis_repos()
+        setup_develop_wbia_repos()

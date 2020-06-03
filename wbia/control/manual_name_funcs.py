@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"  # NOQA
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs  # NOQA
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex  # NOQA
 
@@ -11,13 +11,13 @@ import uuid
 import functools
 import six  # NOQA
 #from six.moves import range
-from ibeis import constants as const
-from ibeis.other import ibsfuncs
+from wbia import constants as const
+from wbia.other import ibsfuncs
 import numpy as np
 import vtool_ibeis as vt
-from ibeis.control import accessor_decors, controller_inject  # NOQA
+from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 import os
 print, rrr, profile = ut.inject2(__name__)
 
@@ -25,7 +25,7 @@ print, rrr, profile = ut.inject2(__name__)
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 ANNOT_ROWID         = 'annot_rowid'
@@ -41,8 +41,8 @@ NAME_TEMP_FLAG  = 'name_temp_flag'
 
 
 def testdata_ibs(defaultdb='testdb1'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
@@ -212,13 +212,13 @@ def get_empty_nids(ibs, _nid_list=None):
         an nid is not invalid if it has a valid alias
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_empty_nids
+        python -m wbia.control.manual_name_funcs --test-get_empty_nids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> new_nid_list = ibs.make_next_nids(num=2)
         >>> empty_nids = ibs.get_empty_nids()
         >>> assert len(empty_nids) == 2, 'get_empty_nids fails1'
@@ -301,9 +301,9 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> # Map annotations to name ids
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list = ibs.get_annot_name_rowids(aid_list)
@@ -319,12 +319,12 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         >>> print(ut.repr2(groupid2_items, newlines=False))
 
     Ignore;
-        from ibeis.control.manual_name_funcs import *  # NOQA
-        import ibeis
-        #ibs = ibeis.opendb('testdb1')
-        #ibs = ibeis.opendb('PZ_MTEST')
-        ibs = ibeis.opendb('PZ_Master0')
-        #ibs = ibeis.opendb('GZ_ALL')
+        from wbia.control.manual_name_funcs import *  # NOQA
+        import wbia
+        #ibs = wbia.opendb('testdb1')
+        #ibs = wbia.opendb('PZ_MTEST')
+        ibs = wbia.opendb('PZ_Master0')
+        #ibs = wbia.opendb('GZ_ALL')
 
         nid_list = ibs.get_valid_nids()
         nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
@@ -573,7 +573,7 @@ def get_name_exemplar_aids(ibs, nid_list):
 
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_exemplar_aids
+        python -m wbia.control.manual_name_funcs --test-get_name_exemplar_aids
 
     RESTful:
         Method: GET
@@ -581,9 +581,9 @@ def get_name_exemplar_aids(ibs, nid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list = ibs.get_annot_name_rowids(aid_list)
         >>> exemplar_aids_list = ibs.get_name_exemplar_aids(nid_list)
@@ -626,9 +626,9 @@ def get_name_gids(ibs, nid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
         >>> gids_list = ibs.get_name_gids(nid_list)
         >>> result = gids_list
@@ -730,7 +730,7 @@ def get_name_num_annotations(ibs, nid_list):
         list_ (list):  the number of annotations for each name
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_num_annotations
+        python -m wbia.control.manual_name_funcs --test-get_name_num_annotations
 
     RESTful:
         Method: GET
@@ -738,9 +738,9 @@ def get_name_num_annotations(ibs, nid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
         >>> result = get_name_num_annotations(ibs, nid_list)
         >>> print(result)
@@ -785,7 +785,7 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
         tbl = name
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_temp_flag
+        python -m wbia.control.manual_name_funcs --test-get_name_temp_flag
 
     RESTful:
         Method: GET
@@ -793,7 +793,7 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> name_rowid_list = ibs._get_all_name_rowids()
         >>> eager = True
@@ -841,10 +841,10 @@ def get_name_alias_texts(ibs, name_rowid_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m wbia.control.manual_name_funcs --test-get_name_texts
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_alias_texts
+        python -m wbia.control.manual_name_funcs --test-get_name_alias_texts
 
     RESTful:
         Method: GET
@@ -852,10 +852,10 @@ def get_name_alias_texts(ibs, name_rowid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> name_rowid_list = ibs.get_valid_nids()
         >>> # execute function
         >>> name_alias_text_list = get_name_alias_texts(ibs, name_rowid_list)
@@ -878,7 +878,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m wbia.control.manual_name_funcs --test-get_name_texts
 
     RESTful:
         Method: PUT
@@ -899,7 +899,7 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         list_ (list): text names
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m wbia.control.manual_name_funcs --test-get_name_texts
 
     RESTful:
         Method: GET
@@ -907,9 +907,9 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> name_rowid_list = ibs._get_all_known_name_rowids()
         >>> name_text_list = get_name_texts(ibs, name_rowid_list)
         >>> result = ut.repr2(name_text_list)
@@ -939,13 +939,13 @@ def get_num_names(ibs, **kwargs):
     Number of valid names
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_num_names
+        python -m wbia.control.manual_name_funcs --test-get_num_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = get_num_names(ibs)
         >>> print(result)
         7
@@ -960,7 +960,7 @@ def get_num_names(ibs, **kwargs):
 def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         name_text_list (list):
         ensure (bool): adds as new names if non-existant (default = True)
 
@@ -968,8 +968,8 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         name_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:0
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:1
+        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text:0
+        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text:1
 
     TODO:
         should ensure be defaulted to False?
@@ -980,10 +980,10 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> name_text_list = [u'Fred', u'Sue', '____', u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
@@ -1014,21 +1014,21 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
 def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         name_text_list (list):
 
     Returns:
         name_rowid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text_
+        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text_
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
         >>> import utool as ut  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> name_text_list = [u'Fred', 'easy', u'Sue', '____', u'zebra_grevys', 'TYPO', 'jeff']
         >>> name_rowid_list = ibs.get_name_rowids_from_text_(name_text_list)
         >>> ibs.print_name_table()
@@ -1050,7 +1050,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 def get_name_rowids_from_uuid(ibs, uuid_list, nid_hack=False, ensure=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         name_text_list (list):
 
     Returns:
@@ -1162,7 +1162,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
     Effectively just changes the TEXT UUID
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-set_name_texts
+        python -m wbia.control.manual_name_funcs --test-set_name_texts
 
     RESTful:
         Method: PUT
@@ -1170,18 +1170,18 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs.get_valid_nids()[0:2]
         >>> name_list = ibs.get_name_texts(nid_list)
         >>> result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
-    import ibeis
+    import wbia
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
-    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
+    if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
         print('[ibs] notifying WildBook of name text changes')
         status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
 
@@ -1262,7 +1262,7 @@ def get_name_sex(ibs, name_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> name_rowid_list = ibs._get_all_name_rowids()
         >>> eager = True
@@ -1402,13 +1402,13 @@ def get_name_imgset_uuids(ibs, nid_list):
 def get_name_has_split(ibs, nid_list):
     r"""
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+        python -m wbia.other.ibsfuncs --test-get_name_speeds
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
         >>> splits_list = ibs.get_name_has_split(nid_list)
         >>> result = str(splits_list)
@@ -1434,13 +1434,13 @@ def get_name_has_split(ibs, nid_list):
 def get_name_speeds(ibs, nid_list):
     r"""
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+        python -m wbia.other.ibsfuncs --test-get_name_speeds
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
         >>> speeds_list = get_name_speeds(ibs, nid_list)
         >>> result = str(speeds_list)
@@ -1459,13 +1459,13 @@ def get_name_speeds(ibs, nid_list):
 def get_name_hourdiffs(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
+        python -m wbia.other.ibsfuncs --test-get_name_hourdiffs
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
         >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
         >>> result = hourdiffs_list
@@ -1493,13 +1493,13 @@ def get_name_max_hourdiff(ibs, nid_list):
 def get_name_max_speed(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
+        python -m wbia.other.ibsfuncs --test-get_name_max_speed
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
         >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
         >>> result = maxspeed_list
@@ -1514,15 +1514,15 @@ def get_name_max_speed(ibs, nid_list):
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
+        python -m wbia.other.ibsfuncs --test-get_name_gps_tracks
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_name_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> #ibs = ibeis.opendb('PZ_Master0')
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> #ibs = wbia.opendb('PZ_Master0')
+        >>> ibs = wbia.opendb('testdb1')
         >>> #nid_list = ibs.get_valid_nids()
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
@@ -1556,10 +1556,10 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_name_funcs
-        python -m ibeis.control.manual_name_funcs --allexamples
+        python -m wbia.control.manual_name_funcs
+        python -m wbia.control.manual_name_funcs --allexamples
 
-        python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_name_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

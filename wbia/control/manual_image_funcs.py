@@ -8,24 +8,24 @@ CommandLine:
     # Autogenerate ImageSet Functions
     # key should be the table name
     # the write flag makes a file, but dont use that
-    python -m ibeis.templates.template_generator --key image --onlyfn
-    python -m ibeis.templates.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs  # NOQA
-    python -m ibeis.templates.template_generator --key image --fnfilt location --modfname manual_image_funcs  # NOQA
-    python -m ibeis.templates.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs  # NOQA
+    python -m wbia.templates.template_generator --key image --onlyfn
+    python -m wbia.templates.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs  # NOQA
+    python -m wbia.templates.template_generator --key image --fnfilt location --modfname manual_image_funcs  # NOQA
+    python -m wbia.templates.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs  # NOQA
 
     image_timedelta_posix
 
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia.control.controller_inject import make_ibs_register_decorator
 #from os.path import join, exists, abspath, normpath, isabs
 from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
-from ibeis.web import routes_ajax
+from wbia.web import routes_ajax
 import six
 print, rrr, profile = ut.inject2(__name__)
 
@@ -35,7 +35,7 @@ DEBUG_THUMB = False
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 IMAGE_TIME_POSIX      = 'image_time_posix'
@@ -82,11 +82,11 @@ def _get_all_image_rowids(ibs):
         tbl = image
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-_get_all_image_rowids
+        python -m wbia.control.manual_image_funcs --test-_get_all_image_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> all_image_rowids = ibs._get_all_image_rowids()
         >>> result = str(all_image_rowids)
@@ -104,7 +104,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
                    require_gps=None, reviewed=None, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imgsetid (None):
         require_unixtime (bool):
         reviewed (None):
@@ -113,7 +113,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
         list: gid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_valid_gids
+        python -m wbia.control.manual_image_funcs --test-get_valid_gids
 
     RESTful:
         Method: GET
@@ -121,10 +121,10 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> imgsetid = None
         >>> require_unixtime = False
         >>> reviewed = None
@@ -174,13 +174,13 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
     """ self verifier
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --exec-get_image_gid
+        python -m wbia.control.manual_image_funcs --exec-get_image_gid
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids() + [None, -1, 10434320432]
         >>> gid_list_ = ibs.get_image_gid(gid_list)
         >>> assert [r is None for r in gid_list_[-3:]]
@@ -226,8 +226,8 @@ def get_num_images(ibs, **kwargs):
 
 @register_ibs_method
 def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
-    from ibeis.algo.preproc import preproc_image
-    from ibeis.other import ibsfuncs
+    from wbia.algo.preproc import preproc_image
+    from wbia.other import ibsfuncs
 
     #print('[ibs] gpath_list = %r' % (gpath_list,))
     # Processing an image might fail, yeilding a None instead of a tup
@@ -309,13 +309,13 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         URL:    /api/image/
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-add_images
+        python -m wbia.control.manual_image_funcs --test-add_images
 
     Doctest:
         >>> # Test returns None on fail to add
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gpath_list = ['doesnotexist.jpg']
         >>> assert not ut.checkpath(gpath_list[0])
         >>> gid_list = ibs.add_images(gpath_list)
@@ -324,9 +324,9 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
 
     Doctest:
         >>> # test double add
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> new_gpath_list = [ut.grab_test_imgpath('carl.jpg')]
         >>> new_gids1 = ibs.add_images(new_gpath_list, auto_localize=False)
         >>> new_gids2 = ibs.add_images(new_gpath_list, auto_localize=False)
@@ -382,7 +382,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     all_valid_gid_list = list(all_valid_gid_set)
 
     if auto_localize:
-        # Move to ibeis database local cache
+        # Move to wbia database local cache
         ibs.localize_images(all_valid_gid_list)
 
     # Check for duplicates
@@ -455,22 +455,22 @@ def get_image_exif_original(ibs, gid_list):
 @register_ibs_method
 def localize_images(ibs, gid_list_=None):
     r"""
-    Moves the images into the ibeis image cache.
+    Moves the images into the wbia image cache.
     Images are renamed to img_uuid.ext
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list_ (list):
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-localize_images
+        python -m wbia.control.manual_image_funcs --test-localize_images
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
         >>> gid_list_   = ibs.add_images(gpath_list, auto_localize=False)
         >>> gpath_list2 = ibs.get_image_paths(gid_list_)
@@ -527,7 +527,7 @@ def localize_images(ibs, gid_list_=None):
 
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)
-    # Build list of image names based on uuid in the ibeis imgdir
+    # Build list of image names based on uuid in the wbia imgdir
     guuid_strs = (str(guuid) for guuid in guuid_list)
     loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
@@ -590,7 +590,7 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
     Sets the image URIs to a new local path.
     This is used when localizing or unlocalizing images.
     An absolute path can either be on this machine or on the cloud
-    A relative path is relative to the ibeis image cache on this machine.
+    A relative path is relative to the wbia image cache on this machine.
 
     RESTful:
         Method: PUT
@@ -724,15 +724,15 @@ def set_image_metadata(ibs, gid_list, metadata_dict_list):
         URL:    /api/image/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-set_image_metadata
+        python -m wbia.control.manual_image_funcs --test-set_image_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:1]
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
@@ -771,16 +771,16 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
         URL:    /api/image/unixtime/
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-set_image_unixtime
+        python -m wbia.control.manual_image_funcs --test-set_image_unixtime
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> import time
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:5]
         >>> unixtime_list = [
         >>>     random.randint(1, int(time.time()))
@@ -795,12 +795,12 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> import time
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:5]
         >>> gid_list = gid_list + gid_list
         >>> unixtime_list = [
@@ -815,12 +815,12 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> import time
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:5]
         >>> unixtime_list = [
         >>>     random.randint(1, int(time.time()))
@@ -1109,21 +1109,21 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
         list_ (list): a list of images in numpy matrix form by gid
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: image_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_images
+        python -m wbia.control.manual_image_funcs --test-get_images
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:1]
         >>> # execute function
         >>> image_list = get_images(ibs, gid_list)
@@ -1233,14 +1233,14 @@ def get_image_uuids(ibs, gid_list):
         list_ (list): a list of image uuids by gid
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+        python -m wbia.control.manual_image_funcs --test-get_image_uuids
 
     RESTful:
         Method: GET
@@ -1248,10 +1248,10 @@ def get_image_uuids(ibs, gid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> # execute function
         >>> image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -1287,13 +1287,13 @@ def get_valid_image_uuids(ibs):
         list_ (list): a list of image uuids for all valid gids
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     Returns:
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+        python -m wbia.control.manual_image_funcs --test-get_image_uuids
     """
     gid_list = ibs.get_valid_gids()
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -1322,7 +1322,7 @@ def get_image_contributor_rowid(ibs, gid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -1419,14 +1419,14 @@ def get_image_missing_uuid(ibs, uuid_list):
 def get_image_paths(ibs, gid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): a list of image absolute paths to img_dir
 
     Returns:
         list: gpath_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_paths
+        python -m wbia.control.manual_image_funcs --test-get_image_paths
 
     RESTful:
         Method: GET
@@ -1434,10 +1434,10 @@ def get_image_paths(ibs, gid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> #gid_list = ibs.get_valid_gids()
         >>> #gpath_list = get_image_paths(ibs, gid_list)
         >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
@@ -1483,14 +1483,14 @@ def get_image_paths(ibs, gid_list):
 def get_image_hash(ibs, gid_list=None, algo='md5'):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): a list of image absolute paths to img_dir
 
     Returns:
         list: hash_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_hash
+        python -m wbia.control.manual_image_funcs --test-get_image_hash
 
     RESTful:
         Method: GET
@@ -1498,10 +1498,10 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[:1]
         >>> image_path = ibs.get_image_paths(gid_list)
         >>> print('Hashing: %r' % (image_path, ))
@@ -1556,7 +1556,7 @@ def get_image_detectpaths(ibs, gid_list):
     Returns:
         list_ (list): a list of image paths resized to a constant area for detection
     """
-    from ibeis import dtool
+    from wbia import dtool
     depc = ibs.depc_image
     config = {
         'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
@@ -1585,7 +1585,7 @@ def get_image_gnames(ibs, gid_list):
         list: gname_list - a list of original image names
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_gnames
+        python -m wbia.control.manual_image_funcs --test-get_image_gnames
 
     RESTful:
         Method: GET
@@ -1593,10 +1593,10 @@ def get_image_gnames(ibs, gid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> # execute function
         >>> gname_list = get_image_gnames(ibs, gid_list)
@@ -1955,14 +1955,14 @@ def get_image_nids(ibs, gid_list):
     r"""
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: nids_list - the name ids associated with an image id
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+        python -m wbia.control.manual_image_funcs --test-get_image_nids
 
     RESTful:
         Method: GET
@@ -1970,10 +1970,10 @@ def get_image_nids(ibs, gid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> # execute function
         >>> nids_list = ibs.get_image_nids(gid_list)
@@ -1994,14 +1994,14 @@ def get_image_name_uuids(ibs, gid_list):
     r"""
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: name_uuids_list - the name uuids associated with an image id
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+        python -m wbia.control.manual_image_funcs --test-get_image_nids
 
     RESTful:
         Method: GET
@@ -2119,14 +2119,14 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         list_ (list): a list of aids for each image by gid
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     Returns:
         list: aids_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_aids
+        python -m wbia.control.manual_image_funcs --test-get_image_aids
 
     RESTful:
         Method: GET
@@ -2134,10 +2134,10 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_annot_gids(ibs.get_valid_aids())
         >>> gid_list = gid_list + gid_list[::5]
         >>> # execute function
@@ -2156,7 +2156,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         print('len(gidscol) = %r' % (len(gidscol),))
         print('len(unique_gids) = %r' % (len(unique_gids),))
     """
-    from ibeis.control.manual_annot_funcs import ANNOT_STAGED_FLAG
+    from wbia.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
@@ -2512,7 +2512,7 @@ def get_image_timedelta_posix(ibs, gid_list, eager=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2579,7 +2579,7 @@ def get_image_location_codes(ibs, gid_list, eager=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2641,7 +2641,7 @@ def get_image_party_rowids(ibs, gid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2676,7 +2676,7 @@ def get_image_party_tag(ibs, gid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2733,7 +2733,7 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2750,8 +2750,8 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
 def testdata_ibs():
     r"""
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
 
@@ -2759,9 +2759,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_image_funcs
-        python -m ibeis.control.manual_image_funcs --allexamples
-        python -m ibeis.control.manual_image_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_image_funcs
+        python -m wbia.control.manual_image_funcs --allexamples
+        python -m wbia.control.manual_image_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

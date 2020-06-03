@@ -10,14 +10,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import ubelt as ub
 import numpy as np
-from ibeis import dtool as dt
+from wbia import dtool as dt
 import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.ensemble
 import sklearn.pipeline
 import sklearn.neural_network
-from ibeis.algo.verif import sklearn_utils
+from wbia.algo.verif import sklearn_utils
 from six.moves import range
 print, rrr, profile = ut.inject2(__name__)
 
@@ -71,7 +71,7 @@ class ClfProblem(ut.NiceRepr):
         Evaluates by learning classifiers using cross validation.
         Do not use this to learn production classifiers.
 
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
 
         Example:
 
@@ -80,7 +80,7 @@ class ClfProblem(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+            >>> from wbia.algo.verif.clf_helpers import *  # NOQA
             >>> pblm = IrisProblem()
             >>> pblm.setup()
             >>> pblm.verbose = True
@@ -180,7 +180,7 @@ class ClfProblem(ut.NiceRepr):
         Learns a cross-validated classifier on the dataset
 
         Ignore:
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem()
             >>> pblm.load_features()
             >>> pblm.load_samples()
@@ -392,7 +392,7 @@ class ClfProblem(ut.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             #>>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm.load_samples()
@@ -404,7 +404,7 @@ class ClfProblem(ut.NiceRepr):
         from sklearn.model_selection import RandomizedSearchCV  # NOQA
         from sklearn.model_selection import GridSearchCV  # NOQA
         from sklearn.ensemble import RandomForestClassifier
-        from ibeis.algo.verif import sklearn_utils
+        from wbia.algo.verif import sklearn_utils
 
         if data_key is None:
             data_key = pblm.default_data_key
@@ -529,7 +529,7 @@ class ClfProblem(ut.NiceRepr):
         print('uncal_score = %r' % (uncal_score,))
         print('cal_score = %r' % (cal_score,))
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         ut.qtensure()
         pt.figure()
         ax = pt.gca()
@@ -870,7 +870,7 @@ class ClfResult(ut.NiceRepr):
 
             if warmup is not None:
                 """
-                python -m ibeis.plottool.draw_func2 plot_func --show --range=0,1 \
+                python -m wbia.plottool.draw_func2 plot_func --show --range=0,1 \
                         --func="lambda x: np.maximum(0, (x - .6) / (1 - .6))"
                 """
                 # If n_support < warmup: then interpolate to learned thresh
@@ -1031,7 +1031,7 @@ class ClfResult(ut.NiceRepr):
 
     def ishow_roc(res):
         import vtool_ibeis as vt
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         ut.qtensure()
         y_test_bin = res.target_bin_df.values
         # The maximum allowed false positive rate
@@ -1108,11 +1108,11 @@ class MultiTaskSamples(ut.NiceRepr):
     non-mutually exclusive subclassification labels
 
     CommandLine:
-        python -m ibeis.algo.verif.clf_helpers MultiTaskSamples
+        python -m wbia.algo.verif.clf_helpers MultiTaskSamples
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+        >>> from wbia.algo.verif.clf_helpers import *  # NOQA
         >>> samples = MultiTaskSamples([0, 1, 2, 3])
         >>> tasks_to_indicators = ut.odict([
         >>>     ('task1', ut.odict([
@@ -1401,7 +1401,7 @@ class MultiClassLabels(ut.NiceRepr):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+            >>> from wbia.algo.verif.clf_helpers import *  # NOQA
             >>> indicator = ut.odict([
             >>>         ('state1', [0, 0, 0, 1]),
             >>>         ('state2', [0, 0, 1, 0]),
@@ -1487,7 +1487,7 @@ class IrisProblem(ClfProblem):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+            >>> from wbia.algo.verif.clf_helpers import *  # NOQA
             >>> pblm = IrisProblem()
             >>> pblm.setup()
             >>> pblm.samples
@@ -1516,8 +1516,8 @@ class IrisProblem(ClfProblem):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.samples
-        python -m ibeis.algo.verif.samples --allexamples
+        python -m wbia.algo.verif.samples
+        python -m wbia.algo.verif.samples --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

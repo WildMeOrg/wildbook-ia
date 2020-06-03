@@ -4,21 +4,21 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
-ut.noinject(__name__, '[ibeis.control.__init__]', DEBUG=False)
+ut.noinject(__name__, '[wbia.control.__init__]', DEBUG=False)
 
 
-from ibeis.control import DB_SCHEMA
-from ibeis.control import IBEISControl
-from ibeis.control import _sql_helpers
-from ibeis.control import accessor_decors
-from ibeis.control import controller_inject
-from ibeis.control import docker_control
+from wbia.control import DB_SCHEMA
+from wbia.control import IBEISControl
+from wbia.control import _sql_helpers
+from wbia.control import accessor_decors
+from wbia.control import controller_inject
+from wbia.control import docker_control
 import utool
 print, rrr, profile = utool.inject2(__name__)
 
 
 def reload_subs(verbose=True):
-    """ Reloads ibeis.control and submodules """
+    """ Reloads wbia.control and submodules """
     rrr(verbose=verbose)
     getattr(DB_SCHEMA, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(IBEISControl, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -39,6 +39,6 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    cd /home/joncrall/code/ibeis/ibeis/control
-    makeinit.py -x DBCACHE_SCHEMA_CURRENT DB_SCHEMA_CURRENT _grave_template manual_ibeiscontrol_funcs template_definitions templates _autogen_ibeiscontrol_funcs
+    cd /home/joncrall/code/wbia/wbia/control
+    makeinit.py -x DBCACHE_SCHEMA_CURRENT DB_SCHEMA_CURRENT _grave_template manual_wbiacontrol_funcs template_definitions templates _autogen_wbiacontrol_funcs
 """

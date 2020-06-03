@@ -38,17 +38,17 @@
 def demo_single_pairwise_feature_vector():
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.vsone demo_single_pairwise_feature_vector
+        python -m wbia.algo.verif.vsone demo_single_pairwise_feature_vector
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> match = demo_single_pairwise_feature_vector()
         >>> print(match)
     """
     import vtool_ibeis as vt
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     qaid, daid = 1, 2
     annot1 = ibs.annots([qaid])[0]._make_lazy_dict()
     annot2 = ibs.annots([daid])[0]._make_lazy_dict()
@@ -75,13 +75,13 @@ def demo_single_pairwise_feature_vector():
     def demo_classes(pblm):
         r"""
         CommandLine:
-            python -m ibeis.algo.verif.vsone demo_classes --saveparts --save=classes.png --clipwhite
+            python -m wbia.algo.verif.vsone demo_classes --saveparts --save=classes.png --clipwhite
 
-            python -m ibeis.algo.verif.vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
+            python -m wbia.algo.verif.vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
             >>> pblm.load_features()
             >>> pblm.load_samples()
@@ -135,8 +135,8 @@ def demo_single_pairwise_feature_vector():
             edge = series.name
             class_to_edge[class_name] = edge
 
-        import ibeis.plottool as pt
-        import ibeis.guitool as gt
+        import wbia.plottool as pt
+        import wbia.guitool as gt
         gt.ensure_qapp()
         pt.qtensure()
 
@@ -171,7 +171,7 @@ def demo_single_pairwise_feature_vector():
         """
         script to help find the correct value for the ratio threshold
 
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
         """
@@ -185,7 +185,7 @@ def demo_single_pairwise_feature_vector():
         config = {'ratio_thresh': 1.0, 'sv_on': False}
         matches = infr._exec_pairwise_match(edges, config)
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         pt.qtensure()
         thresholds = np.linspace(0, 1.0, 100)
         pos_truth = task.y_bin.T[pos_idx]

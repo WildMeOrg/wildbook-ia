@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from ibeis.guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
-from ibeis.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 import os
 from os.path import dirname
 import platform
@@ -16,12 +16,12 @@ SELDIR_CACHEID = 'guitool_selected_directory'
 
 def _guitool_cache_write(key, val):
     """ Writes to global IBEIS cache """
-    util_cache.global_cache_write(key, val, appname='ibeis')  # HACK, user should specify appname
+    util_cache.global_cache_write(key, val, appname='wbia')  # HACK, user should specify appname
 
 
 def _guitool_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return util_cache.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
+    return util_cache.global_cache_read(key, appname='wbia', **kwargs)  # HACK, user should specify appname
 
 
 def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
@@ -56,13 +56,13 @@ def user_option(parent=None, msg='msg', title='user_option',
         str: reply
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-user_option
+        python -m wbia.guitool.guitool_dialogs --test-user_option
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> parent = None
         >>> msg = 'msg'
@@ -143,17 +143,17 @@ def user_input(parent=None, msg='msg', title='user_input', text=''):
         str:
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-user_input --show
+        python -m wbia.guitool.guitool_dialogs --test-user_input --show
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_input'
         >>> text = 'default text'
-        >>> import ibeis.guitool as gt
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> dpath = user_input(parent, msg, title, text)
         >>> result = str(dpath)
@@ -194,12 +194,12 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
         ?: qdlg
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs newFileDialog --show
+        python -m wbia.guitool.guitool_dialogs newFileDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> directory_ = '.'
         >>> _dialog_class_ = QtWidgets.QFileDialog
@@ -289,13 +289,13 @@ def select_directory(caption='Select Directory', directory=None,
         str: dpath
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-select_directory
+        python -m wbia.guitool.guitool_dialogs --test-select_directory
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Directory'
@@ -341,13 +341,13 @@ def select_directories(caption='Select Folder(s)', directory=None,
         str: dpath
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-select_directory
+        python -m wbia.guitool.guitool_dialogs --test-select_directory
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Directory'
@@ -399,13 +399,13 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
         http://qt-project.org/doc/qt-4.8/qfiledialog.html
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-select_files
+        python -m wbia.guitool.guitool_dialogs --test-select_files
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Files'
@@ -515,15 +515,15 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
     """ Make a non modal critical QtWidgets.QMessageBox.
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-msgbox
-        python -m ibeis.guitool.guitool_dialogs --test-msgbox --show
+        python -m wbia.guitool.guitool_dialogs --test-msgbox
+        python -m wbia.guitool.guitool_dialogs --test-msgbox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis.guitool
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> from ibeis.guitool.guitool_dialogs import _register_msgbox  # NOQA
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> from wbia.guitool.guitool_dialogs import _register_msgbox  # NOQA
         >>> # build test data
         >>> msg = 'Hello World!'
         >>> detailed_msg = 'I have a detailed message for you.'
@@ -603,16 +603,16 @@ def popup_menu(widget, pos, context_options):
         tuple: (selection, actions)
 
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs --test-popup_menu
-        python -m ibeis.guitool.guitool_dialogs --test-popup_menu --show
+        python -m wbia.guitool.guitool_dialogs --test-popup_menu
+        python -m wbia.guitool.guitool_dialogs --test-popup_menu --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_dialogs import *  # NOQA
-        >>> import ibeis.guitool
-        >>> import ibeis.plottool as pt
+        >>> from wbia.guitool.guitool_dialogs import *  # NOQA
+        >>> import wbia.guitool
+        >>> import wbia.plottool as pt
         >>> import functools
-        >>> from ibeis.plottool import interact_helpers as ih
+        >>> from wbia.plottool import interact_helpers as ih
         >>> fig = pt.figure()
         >>> def spam(x=''):
         ...    print('spam' + str(x))
@@ -643,9 +643,9 @@ def popup_menu(widget, pos, context_options):
         >>> pos = guitool.newQPoint(10, 10)
         >>> # Hacky way to get a right click to span a context menu
         >>> def figure_clicked(event, fig=fig, context_options=context_options):
-        ...     import ibeis.guitool
-        ...     import ibeis.plottool as pt
-        ...     from ibeis.plottool import interact_helpers as ih
+        ...     import wbia.guitool
+        ...     import wbia.plottool as pt
+        ...     from wbia.plottool import interact_helpers as ih
         ...     pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
         ...     widget = fig.canvas
         ...     (selection, actions) = popup_menu(widget, pos, context_options)
@@ -714,9 +714,9 @@ def _getQtImageNameFilter():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.guitool_dialogs
-        python -m ibeis.guitool.guitool_dialogs --allexamples
-        python -m ibeis.guitool.guitool_dialogs --allexamples --noface --nosrc
+        python -m wbia.guitool.guitool_dialogs
+        python -m wbia.guitool.guitool_dialogs --allexamples
+        python -m wbia.guitool.guitool_dialogs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

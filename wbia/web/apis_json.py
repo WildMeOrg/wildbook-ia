@@ -6,14 +6,14 @@ from __future__ import absolute_import, division, print_function
 # from os.path import splitext, basename
 import uuid
 import six
-from ibeis.web.routes_ajax import image_src
-from ibeis.control import controller_inject
+from wbia.web.routes_ajax import image_src
+from wbia.control import controller_inject
 import utool as ut
-import ibeis.constants as const
+import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_api('/api/imageset/json/', methods=['POST'])
@@ -106,17 +106,17 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
 #         **kwargs : key-value pairs passed to the ibs.add_images() function.
 
 #     CommandLine:
-#         python -m ibeis.web.apis_json --test-add_images_json
+#         python -m wbia.web.apis_json --test-add_images_json
 
 
 #         ,"bucket":"flukebook-prod-asset-store","key":""
 
 #     Example:
 #         >>> # WEB_DOCTEST
-#         >>> from ibeis.control.IBEISControl import *  # NOQA
-#         >>> import ibeis
+#         >>> from wbia.control.IBEISControl import *  # NOQA
+#         >>> import wbia
 #         >>> import uuid
-#         >>> web_instance = ibeis.opendb(db='testdb1')
+#         >>> web_instance = wbia.opendb(db='testdb1')
 #         >>> _payload = {
 #         >>>     'image_uri_list': [
 #         >>>         'https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg',
@@ -145,7 +145,7 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
 #         >>>         500,
 #         >>>     ],
 #         >>> }
-#         >>> gid_list = ibeis.web.apis_json.add_images_json(web_instance, **_payload)
+#         >>> gid_list = wbia.web.apis_json.add_images_json(web_instance, **_payload)
 #         >>> print(gid_list)
 #         >>> print(web_instance.get_image_uuids(gid_list))
 #         >>> print(web_instance.get_image_uris(gid_list))
@@ -333,17 +333,17 @@ def add_images_json(ibs, image_uri_list,
         **kwargs : key-value pairs passed to the ibs.add_images() function.
 
     CommandLine:
-        python -m ibeis.web.apis_json --test-add_images_json
+        python -m wbia.web.apis_json --test-add_images_json
 
 
         ,"bucket":"flukebook-prod-asset-store","key":""
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
         >>> import uuid
-        >>> web_instance = ibeis.opendb(db='testdb1')
+        >>> web_instance = wbia.opendb(db='testdb1')
         >>> _payload = {
         >>>     'image_uri_list': [
         >>>         'https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg',
@@ -372,7 +372,7 @@ def add_images_json(ibs, image_uri_list,
         >>>         500,
         >>>     ],
         >>> }
-        >>> gid_list = ibeis.web.apis_json.add_images_json(web_instance, **_payload)
+        >>> gid_list = wbia.web.apis_json.add_images_json(web_instance, **_payload)
         >>> print(gid_list)
         >>> print(web_instance.get_image_uuids(gid_list))
         >>> print(web_instance.get_image_uris(gid_list))
@@ -535,13 +535,13 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
 
     CommandLine:
-        python -m ibeis.web.app --test-add_annots_json
+        python -m wbia.web.app --test-add_annots_json
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import ibeis
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> web_instance = ibeis.opendb(db='testdb1')
+        >>> import wbia
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> web_instance = wbia.opendb(db='testdb1')
         >>> _payload = {
         >>>     'image_uuid_list': [
         >>>         uuid.UUID('7fea8101-7dec-44e3-bf5d-b8287fd231e2'),
@@ -556,7 +556,7 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
         >>>         [0, 0, 1194, 401],
         >>>     ],
         >>> }
-        >>> aid_list = ibeis.web.app.add_annots_json(web_instance, **_payload)
+        >>> aid_list = wbia.web.app.add_annots_json(web_instance, **_payload)
         >>> print(aid_list)
         >>> print(web_instance.get_annot_image_uuids(aid_list))
         >>> print(web_instance.get_annot_uuids(aid_list))
@@ -2039,9 +2039,9 @@ def delete_name_json(ibs, name_uuid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

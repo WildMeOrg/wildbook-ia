@@ -1,36 +1,36 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-from ibeis.algo.verif import vsone
-from ibeis.scripts._thesis_helpers import DBInputs
-from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
-from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
-import ibeis.constants as const
-from ibeis.algo.graph import nx_utils as nxu
+from wbia.algo.verif import vsone
+from wbia.scripts._thesis_helpers import DBInputs
+from wbia.scripts._thesis_helpers import Tabular, upper_one, ave_str
+from wbia.scripts._thesis_helpers import TMP_RC, W, H, DPI
+import wbia.constants as const
+from wbia.algo.graph import nx_utils as nxu
 import ubelt as ub
 import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists  # NOQA
 import utool as ut
-import ibeis.plottool as pt
+import wbia.plottool as pt
 import vtool_ibeis as vt
 import pathlib
 import matplotlib as mpl
 import random
 import sys
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 @ut.reloadable_class
 class Chap5(DBInputs):
     """
-    python -m ibeis Chap5.measure all GZ_Master1
-    python -m ibeis Chap5.measure all PZ_Master1
-    python -m ibeis Chap5.draw all GZ_Master1
-    python -m ibeis Chap5.draw all PZ_Master1 --comp Leviathan
+    python -m wbia Chap5.measure all GZ_Master1
+    python -m wbia Chap5.measure all PZ_Master1
+    python -m wbia Chap5.draw all GZ_Master1
+    python -m wbia Chap5.draw all PZ_Master1 --comp Leviathan
 
-    python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
-    python -m ibeis Chap5.draw error_graph_analysis PZ_Master1 --comp Leviathan
+    python -m wbia Chap5.draw error_graph_analysis GZ_Master1
+    python -m wbia Chap5.draw error_graph_analysis PZ_Master1 --comp Leviathan
 
 
     """
@@ -43,14 +43,14 @@ class Chap5(DBInputs):
     def draw_all(self):
         r"""
         CommandLine:
-            python -m ibeis Chap5.draw all GZ_Master1
-            python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+            python -m wbia Chap5.draw all GZ_Master1
+            python -m wbia Chap5.draw error_graph_analysis GZ_Master1
 
-            python -m ibeis Chap5.draw all PZ_Master1
-            python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
+            python -m wbia Chap5.draw all PZ_Master1
+            python -m wbia Chap5.draw error_graph_analysis PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap4('GZ_Master1')
         """
         self.ensure_results('simulation')
@@ -58,7 +58,7 @@ class Chap5(DBInputs):
         self.draw_refresh()
         self.write_dbstats()
         self.write_error_tables()
-        # python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+        # python -m wbia Chap5.draw error_graph_analysis GZ_Master1
 
     def _precollect(self):
         if self.ibs is None:
@@ -116,11 +116,11 @@ class Chap5(DBInputs):
 
     def _setup(self):
         """
-        python -m ibeis Chap5._setup
+        python -m wbia Chap5._setup
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> #self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
             >>> #self = Chap5('PZ_MTEST')
@@ -199,11 +199,11 @@ class Chap5(DBInputs):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('PZ_Master1')
             >>> self = Chap5('GZ_Master1')
         """
-        import ibeis
+        import wbia
         self.ensure_setup()
 
         task_key = 'match_state'
@@ -254,7 +254,7 @@ class Chap5(DBInputs):
             'match_state_thresh' : graph_thresh,
         })
 
-        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
 
         estimate = []
@@ -320,14 +320,14 @@ class Chap5(DBInputs):
     def measure_simulation(self):
         """
         CommandLine:
-            python -m ibeis Chap5.measure simulation GZ_Master1
-            python -m ibeis Chap5.measure simulation PZ_Master1
+            python -m wbia Chap5.measure simulation GZ_Master1
+            python -m wbia Chap5.measure simulation PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
         """
-        import ibeis
+        import wbia
         self.ensure_setup()
 
         ibs = self.ibs
@@ -350,7 +350,7 @@ class Chap5(DBInputs):
             'enable_inference'   : True,
             'match_state_thresh' : graph_thresh,
         })
-        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
         infr1.enable_auto_prioritize_nonpos = True
         infr1._refresh_params['window'] = 20
@@ -372,7 +372,7 @@ class Chap5(DBInputs):
             'enable_inference'   : False,
             'match_state_thresh' : rankclf_thresh,
         })
-        infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+        infr2 = wbia.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
         infr2.init_simulation(classifiers=classifiers, **dials2)
         infr2.init_test_mode()
@@ -391,7 +391,7 @@ class Chap5(DBInputs):
             'enable_inference'   : False,
             'match_state_thresh' : None,
         })
-        infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+        infr3 = wbia.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
         infr3.init_simulation(classifiers=None, **dials3)
         infr3.init_test_mode()
@@ -440,13 +440,13 @@ class Chap5(DBInputs):
     @profile
     def measure_dbstats(self):
         """
-        python -m ibeis Chap5.draw dbstats GZ_Master1
+        python -m wbia Chap5.draw dbstats GZ_Master1
 
-        python -m ibeis Chap5.measure dbstats PZ_Master1
-        python -m ibeis Chap5.draw dbstats PZ_Master1
+        python -m wbia Chap5.measure dbstats PZ_Master1
+        python -m wbia Chap5.draw dbstats PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
         """
         self.ensure_setup()
@@ -484,8 +484,8 @@ class Chap5(DBInputs):
             'notes': ut.textblock(
                 '''
                 if this (the real training data) is different from the parents
-                (ibeis) info, that means the staging database is ahead of
-                annotmatch. Report the ibeis one for clarity. Num annots should
+                (wbia) info, that means the staging database is ahead of
+                annotmatch. Report the wbia one for clarity. Num annots should
                 always be the same though.
                 ''')
         }
@@ -499,14 +499,14 @@ class Chap5(DBInputs):
         # TODO: write info about what dataset was used
 
         CommandLine:
-            python -m ibeis Chap5.measure dbstats PZ_Master1
-            python -m ibeis Chap5.measure dbstats PZ_Master1
+            python -m wbia Chap5.measure dbstats PZ_Master1
+            python -m wbia Chap5.measure dbstats PZ_Master1
 
-            python -m ibeis Chap5.measure simulation GZ_Master1
-            python -m ibeis Chap5.draw dbstats --db GZ_Master1 --diskshow
+            python -m wbia Chap5.measure simulation GZ_Master1
+            python -m wbia Chap5.draw dbstats --db GZ_Master1 --diskshow
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
         """
         dbstats = self.ensure_results('dbstats')
@@ -537,7 +537,7 @@ class Chap5(DBInputs):
     def print_error_analysis(self):
         """
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
         """
@@ -588,16 +588,16 @@ class Chap5(DBInputs):
     def draw_error_graph_analysis(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
-            python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
+            python -m wbia Chap5.draw error_graph_analysis GZ_Master1
+            python -m wbia Chap5.draw error_graph_analysis PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
         """
-        import ibeis
-        import ibeis.plottool as pt
+        import wbia
+        import wbia.plottool as pt
         sim_results = self.ensure_results('simulation')
         key = 'graph'
 
@@ -624,8 +624,8 @@ class Chap5(DBInputs):
         graph = sim_results[key]['graph']
 
         # Manage data using a read-only inference object
-        ibs = ibeis.opendb(db=self.dbname)
-        infr = ibeis.AnnotInference.from_netx(graph, ibs=ibs)
+        ibs = wbia.opendb(db=self.dbname)
+        infr = wbia.AnnotInference.from_netx(graph, ibs=ibs)
         infr.readonly = True
         infr._viz_image_config['thumbsize'] = 700
         infr._viz_image_config['grow'] = True
@@ -748,12 +748,12 @@ class Chap5(DBInputs):
     def write_error_tables(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw error_tables PZ_Master1
-            python -m ibeis Chap5.draw error_tables GZ_Master1
+            python -m wbia Chap5.draw error_tables PZ_Master1
+            python -m wbia Chap5.draw error_tables GZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
-            >>> from ibeis.scripts.thesis import _ranking_hist, _ranking_cdf
+            >>> from wbia.scripts.thesis import *
+            >>> from wbia.scripts.thesis import _ranking_hist, _ranking_cdf
             >>> self = Chap5('GZ_Master1')
         """
         sim_results = self.ensure_results('simulation')
@@ -972,12 +972,12 @@ class Chap5(DBInputs):
     def draw_simulation(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw simulation PZ_MTEST --diskshow
-            python -m ibeis Chap5.draw simulation GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw simulation PZ_Master1 --diskshow
+            python -m wbia Chap5.draw simulation PZ_MTEST --diskshow
+            python -m wbia Chap5.draw simulation GZ_Master1 --diskshow
+            python -m wbia Chap5.draw simulation PZ_Master1 --diskshow
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap5('GZ_Master')
         """
         sim_results = self.ensure_results('simulation')
@@ -1032,8 +1032,8 @@ class Chap5(DBInputs):
     def draw_refresh(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw refresh GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw refresh PZ_Master1 --diskshow
+            python -m wbia Chap5.draw refresh GZ_Master1 --diskshow
+            python -m wbia Chap5.draw refresh PZ_Master1 --diskshow
         """
         sim_results = self.ensure_results('simulation')
 
@@ -1070,13 +1070,13 @@ class Chap5(DBInputs):
     def draw_simulation2(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw_simulation2 --db PZ_MTEST --show
-            python -m ibeis Chap5.draw_simulation2 --db GZ_Master1 --show
-            python -m ibeis Chap5.draw_simulation2 --db PZ_Master1 --show
+            python -m wbia Chap5.draw_simulation2 --db PZ_MTEST --show
+            python -m wbia Chap5.draw_simulation2 --db GZ_Master1 --show
+            python -m wbia Chap5.draw_simulation2 --db PZ_Master1 --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap5(dbname)
             >>> self.draw_simulation2()
@@ -1306,7 +1306,7 @@ class Chap4(DBInputs):
     TODO: redo save/loading of measurments
 
     Ignore:
-        >>> from ibeis.scripts.thesis import *
+        >>> from wbia.scripts.thesis import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
@@ -1323,38 +1323,38 @@ class Chap4(DBInputs):
     def _setup(self):
         r"""
         CommandLine:
-            python -m ibeis Chap4._setup --db GZ_Master1
+            python -m wbia Chap4._setup --db GZ_Master1
 
-            python -m ibeis Chap4._setup --db PZ_Master1 --eval
-            python -m ibeis Chap4._setup --db PZ_MTEST
-            python -m ibeis Chap4._setup --db PZ_PB_RF_TRAIN
+            python -m wbia Chap4._setup --db PZ_Master1 --eval
+            python -m wbia Chap4._setup --db PZ_MTEST
+            python -m wbia Chap4._setup --db PZ_PB_RF_TRAIN
 
-            python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
+            python -m wbia Chap4.measure_all --db PZ_PB_RF_TRAIN
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap4(dbname)
             >>> self._setup()
 
         Ignore:
-            from ibeis.scripts.thesis import *
+            from wbia.scripts.thesis import *
             self = Chap4('PZ_Master1')
 
-            from ibeis.scripts.thesis import *
+            from wbia.scripts.thesis import *
             self = Chap4('PZ_PB_RF_TRAIN')
 
             self.ibs.print_annot_stats(aids, prefix='P')
         """
-        import ibeis
+        import wbia
         self._precollect()
         ibs = self.ibs
 
         if ibs.dbname == 'PZ_Master1':
             # FIND ALL PHOTOBOMB / INCOMPARABLE CASES
             if False:
-                infr = ibeis.AnnotInference(ibs, aids='all')
+                infr = wbia.AnnotInference(ibs, aids='all')
                 infr.reset_feedback('staging', apply=True)
                 print(ut.repr4(infr.status()))
 
@@ -1425,15 +1425,15 @@ class Chap4(DBInputs):
     def measure_all(self):
         r"""
         CommandLine:
-            python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
-            python -m ibeis Chap4.measure_all --db PZ_MTEST
-            python -m ibeis Chap4.measure_all
+            python -m wbia Chap4.measure_all --db PZ_PB_RF_TRAIN
+            python -m wbia Chap4.measure_all --db PZ_MTEST
+            python -m wbia Chap4.measure_all
 
-            python -m ibeis Chap4.measure_all --db GZ_Master1
+            python -m wbia Chap4.measure_all --db GZ_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -1494,14 +1494,14 @@ class Chap4(DBInputs):
     def draw_all(self):
         r"""
         CommandLine:
-            python -m ibeis Chap4.draw_all --db PZ_MTEST
-            python -m ibeis Chap4.draw_all --db PZ_PB_RF_TRAIN
-            python -m ibeis Chap4.draw_all --db GZ_Master1
-            python -m ibeis Chap4.draw_all --db PZ_Master1
+            python -m wbia Chap4.draw_all --db PZ_MTEST
+            python -m wbia Chap4.draw_all --db PZ_PB_RF_TRAIN
+            python -m wbia Chap4.draw_all --db GZ_Master1
+            python -m wbia Chap4.draw_all --db PZ_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -1548,13 +1548,13 @@ class Chap4(DBInputs):
 
     def measure_prune(self):
         """
-        >>> from ibeis.scripts.thesis import *
+        >>> from wbia.scripts.thesis import *
         >>> self = Chap4('GZ_Master1')
         >>> self = Chap4('PZ_Master1')
         >>> self = Chap4('PZ_MTEST')
         """
         # from sklearn.feature_selection import SelectFromModel
-        from ibeis.scripts import clf_helpers
+        from wbia.scripts import clf_helpers
         if getattr(self, 'pblm', None) is None:
             self._setup()
 
@@ -1620,7 +1620,7 @@ class Chap4(DBInputs):
 
     def measure_rerank(self):
         """
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
             >>> self = Chap4(defaultdb)
@@ -1708,25 +1708,25 @@ class Chap4(DBInputs):
         Find a failure case for each class
 
         CommandLine:
-            python -m ibeis Chap4.measure hard_cases GZ_Master1 match_state
-            python -m ibeis Chap4.measure hard_cases GZ_Master1 photobomb_state
-            python -m ibeis Chap4.draw hard_cases GZ_Master1 match_state
-            python -m ibeis Chap4.draw hard_cases GZ_Master1 photobomb_state
+            python -m wbia Chap4.measure hard_cases GZ_Master1 match_state
+            python -m wbia Chap4.measure hard_cases GZ_Master1 photobomb_state
+            python -m wbia Chap4.draw hard_cases GZ_Master1 match_state
+            python -m wbia Chap4.draw hard_cases GZ_Master1 photobomb_state
 
-            python -m ibeis Chap4.measure hard_cases PZ_Master1 match_state
-            python -m ibeis Chap4.measure hard_cases PZ_Master1 photobomb_state
-            python -m ibeis Chap4.draw hard_cases PZ_Master1 match_state
-            python -m ibeis Chap4.draw hard_cases PZ_Master1 photobomb_state
+            python -m wbia Chap4.measure hard_cases PZ_Master1 match_state
+            python -m wbia Chap4.measure hard_cases PZ_Master1 photobomb_state
+            python -m wbia Chap4.draw hard_cases PZ_Master1 match_state
+            python -m wbia Chap4.draw hard_cases PZ_Master1 photobomb_state
 
-            python -m ibeis Chap4.measure hard_cases PZ_MTEST match_state
-            python -m ibeis Chap4.draw hard_cases PZ_MTEST photobomb_state
+            python -m wbia Chap4.measure hard_cases PZ_MTEST match_state
+            python -m wbia Chap4.draw hard_cases PZ_MTEST photobomb_state
 
-            python -m ibeis Chap4.measure hard_cases MantaMatcher match_state
+            python -m wbia Chap4.measure hard_cases MantaMatcher match_state
 
         Ignore:
             >>> task_key = 'match_state'
             >>> task_key = 'photobomb_state'
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap4('GZ_Master1')
             >>> self._setup()
         """
@@ -1888,14 +1888,14 @@ class Chap4(DBInputs):
         """
         draw hard cases with and without overlay
 
-        python -m ibeis Chap4.draw hard_cases GZ_Master1 match_state
-        python -m ibeis Chap4.draw hard_cases PZ_Master1 match_state
-        python -m ibeis Chap4.draw hard_cases PZ_Master1 photobomb_state
-        python -m ibeis Chap4.draw hard_cases GZ_Master1 photobomb_state
+        python -m wbia Chap4.draw hard_cases GZ_Master1 match_state
+        python -m wbia Chap4.draw hard_cases PZ_Master1 match_state
+        python -m wbia Chap4.draw hard_cases PZ_Master1 photobomb_state
+        python -m wbia Chap4.draw hard_cases GZ_Master1 photobomb_state
 
 
 
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap4('PZ_MTEST')
             >>> task_key = 'match_state'
             >>> self.draw_hard_cases(task_key)
@@ -1964,11 +1964,11 @@ class Chap4(DBInputs):
     def write_metrics2(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis Chap4.draw metrics PZ_PB_RF_TRAIN match_state
-            python -m ibeis Chap4.draw metrics2 PZ_Master1 photobomb_state
-            python -m ibeis Chap4.draw metrics2 GZ_Master1 photobomb_state
+            python -m wbia Chap4.draw metrics PZ_PB_RF_TRAIN match_state
+            python -m wbia Chap4.draw metrics2 PZ_Master1 photobomb_state
+            python -m wbia Chap4.draw metrics2 GZ_Master1 photobomb_state
 
-            python -m ibeis Chap4.draw metrics2 GZ_Master1 photobomb_state
+            python -m wbia Chap4.draw metrics2 GZ_Master1 photobomb_state
         """
         results = self.ensure_results('all')
         task_combo_res = results['task_combo_res']
@@ -1977,7 +1977,7 @@ class Chap4(DBInputs):
 
         res = task_combo_res[task_key][clf_key][data_key]
 
-        from ibeis.scripts import sklearn_utils
+        from wbia.scripts import sklearn_utils
         threshes = res.get_thresholds('mcc', 'max')
         y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
                                                   force=True)
@@ -2052,13 +2052,13 @@ class Chap4(DBInputs):
     def write_metrics(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis Chap4.draw metrics PZ_PB_RF_TRAIN match_state
-            python -m ibeis Chap4.draw metrics GZ_Master1 photobomb_state
+            python -m wbia Chap4.draw metrics PZ_PB_RF_TRAIN match_state
+            python -m wbia Chap4.draw metrics GZ_Master1 photobomb_state
 
-            python -m ibeis Chap4.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
+            python -m wbia Chap4.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap4('PZ_Master1')
             >>> task_key = 'match_state'
         """
@@ -2075,7 +2075,7 @@ class Chap4(DBInputs):
         sample_weight = res.sample_weight
         target_names = res.class_names
 
-        from ibeis.scripts import sklearn_utils
+        from wbia.scripts import sklearn_utils
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
         metric_df = report['metrics']
@@ -2138,15 +2138,15 @@ class Chap4(DBInputs):
 
     def write_sample_info(self):
         """
-        python -m ibeis Chap4.draw sample_info GZ_Master1
+        python -m wbia Chap4.draw sample_info GZ_Master1
 
         """
         results = self.ensure_results('sample_info')
         # results['aid_pool']
         # results['encoded_labels2d']
         # results['multihist']
-        import ibeis
-        infr = ibeis.AnnotInference.from_netx(results['graph'])
+        import wbia
+        infr = wbia.AnnotInference.from_netx(results['graph'])
         info = ut.odict()
         info['n_names'] = infr.pos_graph.number_of_components(),
         info['n_aids'] = len(results['pblm_aids']),
@@ -2173,13 +2173,13 @@ class Chap4(DBInputs):
 
     def write_importance(self, task_key):
         """
-        python -m ibeis Chap4.draw importance GZ_Master1,PZ_Master1 match_state
+        python -m wbia Chap4.draw importance GZ_Master1,PZ_Master1 match_state
 
-        python -m ibeis Chap4.draw importance GZ_Master1 match_state
-        python -m ibeis Chap4.draw importance PZ_Master1 match_state
+        python -m wbia Chap4.draw importance GZ_Master1 match_state
+        python -m wbia Chap4.draw importance PZ_Master1 match_state
 
-        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state
-        python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
+        python -m wbia Chap4.draw importance GZ_Master1 photobomb_state
+        python -m wbia Chap4.draw importance PZ_Master1 photobomb_state
         """
         # Print info for latex table
         results = self.ensure_results('all')
@@ -2224,15 +2224,15 @@ class Chap4(DBInputs):
     def draw_prune(self):
         """
         CommandLine:
-            python -m ibeis Chap4.draw importance GZ_Master1
+            python -m wbia Chap4.draw importance GZ_Master1
 
-            python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
-            python -m ibeis Chap4.draw importance PZ_Master1 match_state
+            python -m wbia Chap4.draw importance PZ_Master1 photobomb_state
+            python -m wbia Chap4.draw importance PZ_Master1 match_state
 
-            python -m ibeis Chap4.draw prune GZ_Master1,PZ_Master1
-            python -m ibeis Chap4.draw prune PZ_Master1
+            python -m wbia Chap4.draw prune GZ_Master1,PZ_Master1
+            python -m wbia Chap4.draw prune PZ_Master1
 
-        >>> from ibeis.scripts.thesis import *
+        >>> from wbia.scripts.thesis import *
         >>> self = Chap4('PZ_Master1')
         >>> self = Chap4('GZ_Master1')
         >>> self = Chap4('PZ_MTEST')
@@ -2253,7 +2253,7 @@ class Chap4(DBInputs):
         ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
                              for rs in sub_reports])
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
 
         mpl.rcParams.update(TMP_RC)
         fig = pt.figure(fnum=1, doclf=True)
@@ -2448,11 +2448,11 @@ class Chap4(DBInputs):
 
     def draw_mcc_thresh(self, task_key):
         """
-        python -m ibeis Chap4.draw mcc_thresh GZ_Master1 match_state
-        python -m ibeis Chap4.draw mcc_thresh PZ_Master1 match_state
+        python -m wbia Chap4.draw mcc_thresh GZ_Master1 match_state
+        python -m wbia Chap4.draw mcc_thresh PZ_Master1 match_state
 
-        python -m ibeis Chap4.draw mcc_thresh GZ_Master1 photobomb_state
-        python -m ibeis Chap4.draw mcc_thresh PZ_Master1 photobomb_state
+        python -m wbia Chap4.draw mcc_thresh GZ_Master1 photobomb_state
+        python -m wbia Chap4.draw mcc_thresh PZ_Master1 photobomb_state
 
         """
         mpl.rcParams.update(TMP_RC)
@@ -2506,8 +2506,8 @@ class Chap4(DBInputs):
 
     def draw_roc(self, task_key):
         """
-        python -m ibeis Chap4.draw roc GZ_Master1 photobomb_state
-        python -m ibeis Chap4.draw roc GZ_Master1 match_state
+        python -m wbia Chap4.draw roc GZ_Master1 photobomb_state
+        python -m wbia Chap4.draw roc GZ_Master1 match_state
         """
         mpl.rcParams.update(TMP_RC)
 
@@ -2563,7 +2563,7 @@ class Chap4(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_wordcloud(self, task_key):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         results = self.ensure_results('all')
         importances = ut.map_keys(feat_alias, results['importance'][task_key])
 
@@ -2576,9 +2576,9 @@ class Chap4(DBInputs):
 
     @classmethod
     def draw_tagged_pair(Chap4):
-        import ibeis
-        # ibs = ibeis.opendb(defaultdb='GZ_Master1')
-        ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        import wbia
+        # ibs = wbia.opendb(defaultdb='GZ_Master1')
+        ibs = wbia.opendb(defaultdb='PZ_Master1')
 
         query_tag = 'leftrightface'
 
@@ -2596,7 +2596,7 @@ class Chap4(DBInputs):
 
         edge = edges[0]
         # for edge in ut.InteractiveIter(edges):
-        infr = ibeis.AnnotInference(ibs=ibs, aids=edge, verbose=10)
+        infr = wbia.AnnotInference(ibs=ibs, aids=edge, verbose=10)
         infr.reset_feedback('annotmatch', apply=True)
         match = infr._exec_pairwise_match([edge])[0]
 
@@ -2605,8 +2605,8 @@ class Chap4(DBInputs):
             infr.add_feedback(
                 edge, 'match', tags=['facematch', 'leftrightface'],
                 user_id='qt-hack', confidence='pretty_sure')
-            infr.write_ibeis_staging_feedback()
-            infr.write_ibeis_annotmatch_feedback()
+            infr.write_wbia_staging_feedback()
+            infr.write_wbia_annotmatch_feedback()
             pass
 
         # THE DEPCACHE IS BROKEN FOR ANNOTMATCH APPARENTLY! >:(
@@ -2646,7 +2646,7 @@ class Chap4(DBInputs):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_MTEST'
@@ -2660,10 +2660,10 @@ class Chap4(DBInputs):
                 case = _case
                 break
 
-        import ibeis
-        ibs = ibeis.opendb(self.dbname)
+        import wbia
+        ibs = wbia.opendb(self.dbname)
 
-        from ibeis import core_annots
+        from wbia import core_annots
         config = {
             'augment_orientation': True,
             'ratio_thresh': .8,
@@ -2726,7 +2726,7 @@ class Chap4(DBInputs):
 class Chap3Measures(object):
     def measure_baseline(self):
         """
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap3('GZ_Master1')
             >>> self._precollect()
         """
@@ -2768,8 +2768,8 @@ class Chap3Measures(object):
 
     def draw_foregroundness_intra(self):
         """
-        python -m ibeis Chap3.measure foregroundness_intra --dbs=GZ_Master1,PZ_Master1
-        python -m ibeis Chap3.draw foregroundness_intra --dbs=GZ_Master1,PZ_Master1 --diskshow
+        python -m wbia Chap3.measure foregroundness_intra --dbs=GZ_Master1,PZ_Master1
+        python -m wbia Chap3.draw foregroundness_intra --dbs=GZ_Master1,PZ_Master1 --diskshow
         """
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         expt_name = 'foregroundness_intra'
@@ -2854,11 +2854,11 @@ class Chap3Measures(object):
 
     def measure_smk(self):
         """
-        python -m ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
-        python -m ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
+        python -m wbia Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
+        python -m wbia Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
         """
-        from ibeis.algo.smk.smk_pipeline import SMKRequest
-        # ibs = ibeis.opendb('PZ_MTEST')
+        from wbia.algo.smk.smk_pipeline import SMKRequest
+        # ibs = wbia.opendb('PZ_MTEST')
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
             self.ibs, self.aids_pool,
@@ -2890,10 +2890,10 @@ class Chap3Measures(object):
 
     def measure_nsum(self):
         """
-        python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-        python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1 --diskshow
+        python -m wbia Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        python -m wbia Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1 --diskshow
 
-        from ibeis.scripts.thesis import *
+        from wbia.scripts.thesis import *
         self = Chap3('GZ_Master1')
         self = Chap3('PZ_Master1')
         self = Chap3('PZ_MTEST')
@@ -3087,8 +3087,8 @@ class Chap3Draw(object):
 
     def draw_smk(self):
         """
-        ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw smk --dbs=GZ_Master1,PZ_Master1
         """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
@@ -3108,8 +3108,8 @@ class Chap3Draw(object):
 
     def draw_foregroundness(self):
         """
-        ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1
         """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
@@ -3129,8 +3129,8 @@ class Chap3Draw(object):
 
     def draw_invar(self):
         """
-        ibeis Chap3.measure invar --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw invar --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.measure invar --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw invar --dbs=GZ_Master1,PZ_Master1
         """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
@@ -3162,8 +3162,8 @@ class Chap3Draw(object):
 
     def draw_nsum(self):
         """
-        ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
         """
         mpl.rcParams.update(TMP_RC)
         # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
@@ -3189,11 +3189,11 @@ class Chap3Draw(object):
 
     def draw_nsum_simple(self):
         """
-        ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
         """
         raise Exception("hacked")
@@ -3227,8 +3227,8 @@ class Chap3Draw(object):
 
     def draw_kexpt(self):
         """
-        ibeis Chap3.measure kexpt --dbs=GZ_Master1,PZ_Master1
-        ibeis Chap3.draw kexpt --dbs=GZ_Master1,PZ_Master1 --diskshow
+        wbia Chap3.measure kexpt --dbs=GZ_Master1,PZ_Master1
+        wbia Chap3.draw kexpt --dbs=GZ_Master1,PZ_Master1 --diskshow
         """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
@@ -3239,7 +3239,7 @@ class Chap3Draw(object):
         df = pd.DataFrame.from_records(infos)
         df['cdfs'] = cdfs
         df['K'] = ut.take_column(pcfgs, 'K')
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         # groups = list(df.groupby(('dsize', 't_denc_pername')))
         df = df[df['K'] != 10]
 
@@ -3271,11 +3271,11 @@ class Chap3Draw(object):
     def draw_all(self):
         """
         CommandLine:
-            python -m ibeis Chap3.draw_all --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
+            python -m wbia Chap3.draw_all --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -3309,15 +3309,15 @@ class Chap3Draw(object):
     def draw_time_distri(self):
         """
         CommandLine:
-            python -m ibeis Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis Chap3.draw_time_distri --dbs=GIRM_Master1
-            python -m ibeis Chap3.draw_time_distri --dbs=GZ_Master1
-            python -m ibeis Chap3.draw_time_distri --dbs=PZ_Master1
-            python -m ibeis Chap3.draw_time_distri --dbs=humpbacks_fb
+            python -m wbia Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m wbia Chap3.draw_time_distri --dbs=GIRM_Master1
+            python -m wbia Chap3.draw_time_distri --dbs=GZ_Master1
+            python -m wbia Chap3.draw_time_distri --dbs=PZ_Master1
+            python -m wbia Chap3.draw_time_distri --dbs=humpbacks_fb
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -3419,7 +3419,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     def run_all(Chap3):
         """
         CommandLine:
-            python -m ibeis Chap3.run_all
+            python -m wbia Chap3.run_all
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
                        'humpbacks_fb']
@@ -3436,7 +3436,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     def measure_all(self):
         """
         Example:
-            from ibeis.scripts.thesis import *
+            from wbia.scripts.thesis import *
             self = Chap3('PZ_Master1')
             self.measure_all()
             self = Chap3('GZ_Master1')
@@ -3459,12 +3459,12 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     def agg_dbstats(Chap3):
         """
         CommandLine:
-            python -m ibeis Chap3.agg_dbstats
-            python -m ibeis Chap3.measure_dbstats
+            python -m wbia Chap3.agg_dbstats
+            python -m wbia Chap3.measure_dbstats
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> result = Chap3.agg_dbstats()
             >>> print(result)
         """
@@ -3548,11 +3548,11 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     def draw_agg_baseline(Chap3):
         """
         CommandLine:
-            python -m ibeis Chap3.draw_agg_baseline --diskshow
+            python -m wbia Chap3.draw_agg_baseline --diskshow
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> Chap3.draw_agg_baseline()
         """
         agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
@@ -3583,7 +3583,7 @@ class Sampler(object):
     @staticmethod
     def _same_occur_split(ibs, aids):
         """
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
         """
@@ -3641,7 +3641,7 @@ class Sampler(object):
 
         # Need to find multiple disjoint exact covers of the nids
         # Greedy solution because this is NP-hard
-        from ibeis.algo.graph import nx_dynamic_graph
+        from wbia.algo.graph import nx_dynamic_graph
         G = nx_dynamic_graph.DynConnGraph()
         G.add_nodes_from(occur_nids.keys())
         occur_ids = ut.sortedby(
@@ -3686,7 +3686,7 @@ class Sampler(object):
     @staticmethod
     def _same_enc_split(ibs, aids):
         """
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
         """
@@ -3725,7 +3725,7 @@ class Sampler(object):
     def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
         """ This can be used for cross validation """
         # Find a split of query/database encounters and confusors
-        from ibeis.init.filter_annots import encounter_crossval
+        from wbia.init.filter_annots import encounter_crossval
         enc_splits, nid_to_confusors = encounter_crossval(
             ibs, aids, qenc_per_name=1, annots_per_enc=1,
             denc_per_name=denc_per_name_, rebalance=True, rng=0, early=True)
@@ -3775,7 +3775,7 @@ class Sampler(object):
                 same and consistent across different runs of this experiment.
         """
         # Group annotations by encounter
-        # from ibeis.other import ibsfuncs
+        # from wbia.other import ibsfuncs
         # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
 
         annots = ibs.annots(aids)
@@ -3882,7 +3882,7 @@ class Sampler(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> from wbia.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
             >>> ibs = self.ibs
@@ -4121,8 +4121,8 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.thesis
-        python -m ibeis.scripts.thesis --allexamples
+        python -m wbia.scripts.thesis
+        python -m wbia.scripts.thesis --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -14,4 +14,4 @@
 
 export FLAKE8_IGNORE="--ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501"
 
-flake8 $FLAKE8_IGNORE ~/code/ibeis
+flake8 $FLAKE8_IGNORE ~/code/wbia

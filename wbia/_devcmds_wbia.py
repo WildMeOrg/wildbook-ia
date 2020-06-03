@@ -5,16 +5,16 @@ DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
-from ibeis._devscript import devcmd, devprecmd
+from wbia._devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
-from ibeis.plottool import draw_func2 as df2
+from wbia.plottool import draw_func2 as df2
 import numpy as np
 import utool
 import vtool_ibeis.keypoint as ktool
-from ibeis import sysres
-from ibeis.other import ibsfuncs
-from ibeis.dbio import ingest_hsdb
+from wbia import sysres
+from wbia.other import ibsfuncs
+from wbia.dbio import ingest_hsdb
 
 (print, rrr, profile) = utool.inject2(__name__)
 
@@ -45,14 +45,14 @@ def openworkdirs_test():
         '/raid/work/Rhinos_Stewart', '/raid/work/Elephants_Stewart',
         '/raid/work/NAUT_test',
     ]
-    import ibeis
-    from ibeis.init import sysres
+    import wbia
+    from wbia.init import sysres
     import os
     import utool as ut  # NOQA
     from os.path import join
-    from ibeis.dbio import ingest_hsdb
-    import ibeis.other.dbinfo
-    ibeis.other.dbinfo.rrr()
+    from wbia.dbio import ingest_hsdb
+    import wbia.other.dbinfo
+    wbia.other.dbinfo.rrr()
     workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = [join(workdir, name) for name in dbname_list]
@@ -64,7 +64,7 @@ def openworkdirs_test():
         if hsdb_dpath in canskip:
             continue
         try:
-            ibs = ibeis.opendb(hsdb_dpath)  # NOQA
+            ibs = wbia.opendb(hsdb_dpath)  # NOQA
             print('Succesfully opened hsdb: ' + hsdb_dpath)
             print(ibs.get_dbinfo_str())
         except Exception as ex:
@@ -81,7 +81,7 @@ def vdd(ibs=None, qaid_list=None):
 
 @devcmd('show')
 def show_aids(ibs, qaid_list):
-    from ibeis.viz import interact
+    from wbia.viz import interact
     for aid in qaid_list:
         interact.ishow_chip(ibs, aid, fnum=df2.next_fnum())
 
@@ -110,12 +110,12 @@ def query_aids(ibs, qaid_list, daid_list=None):
         python dev.py -w --show -t query --db PZ_MTEST --qaid 72
 
     """
-    import ibeis
+    import wbia
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     cm_list = ibs.query_chips(qaid_list, daid_list)
     for cm in cm_list:
-        assert isinstance(cm, ibeis.algo.hots.hots_query_result.QueryResult)
+        assert isinstance(cm, wbia.algo.hots.hots_query_result.QueryResult)
         cm.ishow_top(ibs, fnum=df2.next_fnum(), annot_mode=1, make_figtitle=True)
 
 
@@ -127,7 +127,7 @@ def sver_aids(ibs, qaid_list, daid_list=None):
         python dev.py -w --show -t sver --db PZ_MTEST --qaid 1
 
     """
-    from ibeis.viz import interact
+    from wbia.viz import interact
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     cm_list = ibs.query_chips(qaid_list, daid_list)
@@ -176,8 +176,8 @@ def ensure_mtest():
     CommandLine:
         python dev.py -t mtest
     """
-    import ibeis
-    ibeis.ensure_pz_mtest()
+    import wbia
+    wbia.ensure_pz_mtest()
 
 
 @devprecmd('nauts')
@@ -186,8 +186,8 @@ def ensure_nauts():
     CommandLine:
         python dev.py -t nauts
     """
-    import ibeis
-    ibeis.ensure_nauts()
+    import wbia
+    wbia.ensure_nauts()
 
 
 @devprecmd('wds')
@@ -196,8 +196,8 @@ def ensure_wilddogs():
     CommandLine:
         python dev.py -t wds
     """
-    import ibeis
-    ibeis.ensure_wilddogs()
+    import wbia
+    wbia.ensure_wilddogs()
 
 
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [
@@ -229,7 +229,7 @@ def export(ibs, aid_pairs=None):
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
         cm_list, qreq_ = ibs.query_chips(aid_pair, aid_pair)
-        #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
+        #wbia.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
         for cm in cm_list:

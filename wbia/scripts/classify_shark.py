@@ -21,18 +21,18 @@ from os.path import join
 def shark_net(dry=False):
     """
     CommandLine:
-        python -m ibeis.scripts.classify_shark shark_net
-        python -m ibeis.scripts.classify_shark shark_net --dry
-        python -m ibeis.scripts.classify_shark shark_net --vd --monitor
+        python -m wbia.scripts.classify_shark shark_net
+        python -m wbia.scripts.classify_shark shark_net --dry
+        python -m wbia.scripts.classify_shark shark_net --vd --monitor
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> from wbia.scripts.classify_shark import *  # NOQA
         >>> shark_net()
     """
-    from ibeis.scripts import classify_shark
-    import ibeis
-    ibs = ibeis.opendb('WS_ALL')  # NOQA
+    from wbia.scripts import classify_shark
+    import wbia
+    ibs = wbia.opendb('WS_ALL')  # NOQA
     config = {
         'dim_size': (224, 224),
         'resize_dim': 'wh'
@@ -148,8 +148,8 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> from ibeis.scripts import classify_shark
+        >>> from wbia.scripts.classify_shark import *  # NOQA
+        >>> from wbia.scripts import classify_shark
         >>> ds = classify_shark.get_sharks_dataset('binary', 'chip')
         >>> problem = classify_shark.ClfProblem(ds)
         >>> problem.print_support_info()
@@ -292,15 +292,15 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         r"""
 
         CommandLine:
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch --show
+            python -m wbia.scripts.classify_shark WhaleSharkInjuryModel.init_arch
+            python -m wbia.scripts.classify_shark WhaleSharkInjuryModel.init_arch --show
 
-            python -m ibeis.scripts.classify_shark shark_net --dry --show
-            python -m ibeis.scripts.classify_shark shark_net --vd
+            python -m wbia.scripts.classify_shark shark_net --dry --show
+            python -m wbia.scripts.classify_shark shark_net --vd
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.classify_shark import *  # NOQA
+            >>> from wbia.scripts.classify_shark import *  # NOQA
             >>> verbose = True
             >>> data_shape = tuple(ut.get_argval('--datashape', type_=list,
             >>>                                  default=(224, 224, 3)))
@@ -350,7 +350,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         Xb_, yb_ = model.augment(Xb)
         yb_ = None
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qt4ensure()
         >>> from ibeis_cnn import augment
         >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
@@ -380,13 +380,13 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
 
 def get_shark_dataset(target_type='binary', data_type='chip'):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
+    >>> from wbia.scripts.classify_shark import *  # NOQA
     >>> target_type = 'binary'
     >>> data_type = 'hog'
     >>> dataset = get_shark_dataset(target_type)
     """
     from ibeis_cnn.dataset import DataSet
-    from ibeis.scripts import classify_shark
+    from wbia.scripts import classify_shark
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
     ibs, annots, target, target_names, config, metadata, enc = tup
     data_shape = config['dim_size'] + (3,)
@@ -489,13 +489,13 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
+    >>> from wbia.scripts.classify_shark import *  # NOQA
     >>> target_type = 'multiclass3'
     >>> data_type = 'hog'
     """
-    import ibeis
+    import wbia
     if ibs is None:
-        ibs = ibeis.opendb('WS_ALL')
+        ibs = wbia.opendb('WS_ALL')
     if config is None:
         config = {
             #'dim_size': (256, 256),
@@ -518,7 +518,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     if target_type is None:
         target_type = TARGET_TYPE
 
-    from ibeis.scripts import getshark
+    from wbia.scripts import getshark
     category_tags = getshark.get_injur_categories(all_annots)
     print('Base Category Tags tags')
     print(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
@@ -661,8 +661,8 @@ class ClfProblem(object):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.classify_shark import *  # NOQA
-            >>> from ibeis.scripts import classify_shark
+            >>> from wbia.scripts.classify_shark import *  # NOQA
+            >>> from wbia.scripts import classify_shark
             >>> ds = classify_shark.get_sharks_dataset('binary')
             >>> problem = classify_shark.ClfProblem(ds)
             >>> problem.print_support_info()
@@ -728,7 +728,7 @@ class ClfProblem(object):
             y_data_min = ydata_mean - y_data_std
 
             #pt.plot(xdata, ydata, '-rx')
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             pt.figure(fnum=pt.ensure_fnum(None))
             ax = pt.gca()
             ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
@@ -738,7 +738,7 @@ class ClfProblem(object):
             #ydata_mean = c_ydata
             #y_data_max = ydata_mean + y_data_std
             #y_data_min = ydata_mean - y_data_std
-            ##import ibeis.plottool as pt
+            ##import wbia.plottool as pt
             ##pt.figure(fnum=pt.ensure_fnum(None))
             #ax = pt.gca()
             #ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
@@ -979,16 +979,16 @@ def shark_svm():
         * Change unreviewed healthy tags to healthy-likely
 
     CommandLine:
-        python -m ibeis.scripts.classify_shark shark_svm --show
-        python -m ibeis.scripts.classify_shark shark_svm
+        python -m wbia.scripts.classify_shark shark_svm --show
+        python -m wbia.scripts.classify_shark shark_svm
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> from wbia.scripts.classify_shark import *  # NOQA
         >>> shark_svm()
         >>> ut.show_if_requested()
     """
-    from ibeis.scripts import classify_shark
+    from wbia.scripts import classify_shark
 
     target_type = 'binary'
     #target_type = 'multiclass3'
@@ -1161,7 +1161,7 @@ def shark_svm():
     result_list = [result]
 
     import pandas as pd
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     # Combine information from results
     df = pd.concat([r.df for r in result_list])
     df['hardness'] = 1 / df['easiness']
@@ -1233,7 +1233,7 @@ def shark_svm():
 
 def inspect_results(ds, result_list):
     import pandas as pd
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pd.set_option("display.max_rows", 20)
     pt.qt4ensure()
 
@@ -1342,8 +1342,8 @@ def inspect_results(ds, result_list):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.classify_shark
-        python -m ibeis.scripts.classify_shark --allexamples
+        python -m wbia.scripts.classify_shark
+        python -m wbia.scripts.classify_shark --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

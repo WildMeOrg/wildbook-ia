@@ -102,7 +102,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
     Kwargs (optional): refer to the Lightnet documentation for configuration settings
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         gid_list (list of int): the list of IBEIS image_rowids that need detection
 
     Kwargs:

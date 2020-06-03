@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-TODO: move to ibeis/scripts
+TODO: move to wbia/scripts
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
@@ -11,7 +11,7 @@ import utool as ut
 
 def draw_em_graph(P, Pn, PL, gam, num_labels):
     """
-    python -m ibeis.algo.hots.testem test_em --show --no-cnn
+    python -m wbia.algo.hots.testem test_em --show --no-cnn
     """
     num_labels = PL.shape[1]
     name_nodes = ['N%d' % x for x in list(range(1, num_labels + 1))]
@@ -44,7 +44,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         else:
             dup_edges.append((u, v))
     graph.remove_edges_from(dup_edges)
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import networkx as nx
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
@@ -131,18 +131,18 @@ def random_test_annot(num_names=5, rng=np.random):
         rng (module):  random number generator (default = numpy.random)
 
     CommandLine:
-        python -m ibeis.algo.hots.testem random_test_annot --show
+        python -m wbia.algo.hots.testem random_test_annot --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.testem import *  # NOQA
+        >>> from wbia.algo.hots.testem import *  # NOQA
         >>> num_names = 5
         >>> rng = np.random.RandomState(0)
         >>> result = random_test_annot(num_names, rng)
         >>> print(result)
         {u'qual': 1, u'yaw': 0.0, u'nfeats': 1529, u'name': 0, u'view': u'R'}
     """
-    from ibeis import constants as const
+    from wbia import constants as const
     # num_names = 10
     valid_names = list(range(num_names))
     valid_views = list(const.YAWALIAS.values())
@@ -168,11 +168,11 @@ def random_case_set():
         tuple: (labels, pairwise_feats)
 
     CommandLine:
-        python -m ibeis.algo.hots.testem random_case_set --show
+        python -m wbia.algo.hots.testem random_case_set --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.testem import *  # NOQA
+        >>> from wbia.algo.hots.testem import *  # NOQA
         >>> (labels, pairwise_feats) = random_case_set()
         >>> result = ('(labels, pairwise_feats) = %s' % (ut.repr2((labels, pairwise_feats)),))
         >>> print(result)
@@ -316,15 +316,15 @@ def make_test_pairwise_labels2(cases1, cases2):
 def try_em():
     """
     CommandLine:
-        python -m ibeis.algo.hots.testem test_em --show
-        python -m ibeis.algo.hots.testem test_em --show --no-cnn
+        python -m wbia.algo.hots.testem test_em --show
+        python -m wbia.algo.hots.testem test_em --show --no-cnn
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.testem import *  # NOQA
+        >>> from wbia.algo.hots.testem import *  # NOQA
         >>> P, Pn, PL, gam, num_labels = test_em()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qt4ensure()
         >>> draw_em_graph(P, Pn, PL, gam, num_labels)
         >>> ut.show_if_requested()
@@ -351,7 +351,7 @@ def try_em():
         #    False: {'mu': 0.1, 'sigma': .4}
         #}
         # tau = np.pi * 2
-        from ibeis import constants as const
+        from wbia import constants as const
         # view_to_ori = const.VIEWTEXT_TO_YAW_RADIANS
         view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
         # view_to_ori = {
@@ -601,8 +601,8 @@ def try_em2(prob_names, prob_annots=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.testem
-        python -m ibeis.algo.hots.testem --allexamples
+        python -m wbia.algo.hots.testem
+        python -m wbia.algo.hots.testem --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -6,8 +6,8 @@ Converts a hotspostter database to IBEIS
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
-from ibeis import constants as const
-from ibeis.init import sysres
+from wbia import constants as const
+from wbia.init import sysres
 from six.moves import zip, map
 import utool as ut
 import re
@@ -15,7 +15,7 @@ import csv
 print, rrr, profile = ut.inject2(__name__)
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
+SUCCESS_FLAG_FNAME = '_hsdb_to_wbia_convert_success'
 
 
 def is_hsdb(dbdir):
@@ -60,11 +60,11 @@ def get_unconverted_hsdbs(workdir=None):
         workdir (None): (default = None)
 
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
+        python -m wbia.dbio.ingest_hsdb --test-get_unconverted_hsdbs
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> from wbia.dbio.ingest_hsdb import *  # NOQA
         >>> workdir = None
         >>> result = get_unconverted_hsdbs(workdir)
         >>> print(result)
@@ -85,7 +85,7 @@ def ingest_unconverted_hsdbs_in_workdir():
     needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
     for hsdb in needs_convert_hsdbs:
         try:
-            convert_hsdb_to_ibeis(hsdb)
+            convert_hsdb_to_wbia(hsdb)
         except Exception as ex:
             ut.printex(ex)
             raise
@@ -103,11 +103,11 @@ def testdata_ensure_unconverted_hsdb():
     Makes an unconverted test datapath
 
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
+        python -m wbia.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> from wbia.dbio.ingest_hsdb import *  # NOQA
         >>> result = testdata_ensure_unconverted_hsdb()
         >>> print(result)
     """
@@ -121,30 +121,30 @@ def testdata_ensure_unconverted_hsdb():
     return hsdb_dir
 
 
-def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
+def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
     r"""
     Args
         hsdir (str): Directory to folder *containing* _hsdb
         dbdir (str): Output directory (defaults to same as  hsdb)
 
     CommandLine:
-        python -m ibeis convert_hsdb_to_ibeis --dbdir ~/work/Frogs
-        python -m ibeis convert_hsdb_to_ibeis --hsdir "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
+        python -m wbia convert_hsdb_to_wbia --dbdir ~/work/Frogs
+        python -m wbia convert_hsdb_to_wbia --hsdir "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
 
     Ignore:
-        from ibeis.dbio.ingest_hsdb import *  # NOQA
+        from wbia.dbio.ingest_hsdb import *  # NOQA
         hsdir = "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
         dbdir = "~/work/RotanTurtles"
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> from wbia.dbio.ingest_hsdb import *  # NOQA
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=None)
         >>> hsdir = ut.get_argval('--hsdir', type_=str, default=dbdir)
-        >>> result = convert_hsdb_to_ibeis(hsdir)
+        >>> result = convert_hsdb_to_wbia(hsdir)
         >>> print(result)
     """
-    from ibeis.control import IBEISControl
+    from wbia.control import IBEISControl
     import utool as ut
 
     if dbdir is None:
@@ -154,7 +154,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     assert is_hsdb(hsdir), 'not a hotspotter database. cannot even force convert: hsdir=%r' % (hsdir,)
     assert not is_succesful_convert(dbdir), 'hsdir=%r is already converted' % (hsdir,)
     #print('FORCE DELETE: %r' % (hsdir,))
-    #ibsfuncs.delete_ibeis_database(hsdir)
+    #ibsfuncs.delete_wbia_database(hsdir)
     imgdir = join(hsdir, 'images')
 
     internal_dir = get_hsinternal(hsdir)
@@ -381,9 +381,9 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb
-        python -m ibeis.dbio.ingest_hsdb --allexamples
-        python -m ibeis.dbio.ingest_hsdb --allexamples --noface --nosrc
+        python -m wbia.dbio.ingest_hsdb
+        python -m wbia.dbio.ingest_hsdb --allexamples
+        python -m wbia.dbio.ingest_hsdb --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

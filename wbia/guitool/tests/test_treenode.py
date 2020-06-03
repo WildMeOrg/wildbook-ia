@@ -1,23 +1,23 @@
 from __future__ import absolute_import, division, print_function
 try:
-    from ibeis.guitool import api_tree_node_cython
+    from wbia.guitool import api_tree_node_cython
     if 'api_tree_node_cython' not in globals():
         raise ImportError('')
     print('[test_treenode] cython ON')
 except ImportError:
     print('[test_treenode] cython OFF')
-from ibeis.guitool import api_tree_node
+from wbia.guitool import api_tree_node
 
 
 def test_build_internal_structure():
     """
 
     CommandLine:
-        python -m ibeis.guitool.tests.test_treenode --test-test_build_internal_structure
+        python -m wbia.guitool.tests.test_treenode --test-test_build_internal_structure
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.tests.test_treenode import *  # NOQA
+        >>> from wbia.guitool.tests.test_treenode import *  # NOQA
         >>> test_build_internal_structure()
     """
     if 'api_tree_node_cython' in globals():
@@ -81,9 +81,9 @@ def _test_build_internal_structure(_module, lang):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.tests.test_treenode
-        python -m ibeis.guitool.tests.test_treenode --allexamples
-        python -m ibeis.guitool.tests.test_treenode --allexamples --noface --nosrc
+        python -m wbia.guitool.tests.test_treenode
+        python -m wbia.guitool.tests.test_treenode --allexamples
+        python -m wbia.guitool.tests.test_treenode --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

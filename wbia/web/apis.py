@@ -9,20 +9,20 @@ import time
 from io import BytesIO
 from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
-from ibeis.control import controller_inject
-from ibeis.web import appfuncs as appf
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 import utool as ut
 import vtool_ibeis as vt
 import uuid as uuid_module
 import six
-from ibeis.web.app import PROMETHEUS
+from wbia.web.app import PROMETHEUS
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 @register_api('/api/embed/', methods=['GET'])
@@ -30,7 +30,7 @@ def web_embed(*args, **kwargs):
     ibs = current_app.ibs  # NOQA
 
     if False:
-        from ibeis.algo.graph.state import POSTV
+        from wbia.algo.graph.state import POSTV
 
         payload = {
             'action'      : 'update_task_thresh',
@@ -60,10 +60,10 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_ibeis_request('/api/image/src/', type_='get', gid=1)
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
         >>> print(resp)
         >>> web_ibs.terminate2()
 
@@ -112,10 +112,10 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_ibeis_request('/api/annot/src/', type_='get', aid=1)
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
         >>> print(resp)
         >>> web_ibs.terminate2()
 
@@ -154,10 +154,10 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_ibeis_request('/api/annot/src/', type_='get', aid=1)
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
         >>> print(resp)
         >>> web_ibs.terminate2()
 
@@ -196,10 +196,10 @@ def image_src_api_json(uuid=None, **kwargs):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_ibeis_request('/api/image/src/', type_='get', gid=1)
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
         >>> print(resp)
         >>> web_ibs.terminate2()
 
@@ -212,8 +212,8 @@ def image_src_api_json(uuid=None, **kwargs):
         if isinstance(uuid, six.string_types):
             uuid = uuid_module.UUID(uuid)
     except Exception:
-        from ibeis.control.controller_inject import translate_ibeis_webreturn
-        return translate_ibeis_webreturn(None, success=False, code=500,
+        from wbia.control.controller_inject import translate_wbia_webreturn
+        return translate_wbia_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')
     gid = ibs.get_image_gids_from_uuid(uuid)
     return image_src_api(gid, **kwargs)
@@ -260,8 +260,8 @@ def image_conv_feature_api_json(uuid=None, model='resnet50', **kwargs):
             uuid = uuid_module.UUID(uuid)
         assert uuid is not None
     except Exception:
-        from ibeis.control.controller_inject import translate_ibeis_webreturn
-        return translate_ibeis_webreturn(None, success=False, code=500,
+        from wbia.control.controller_inject import translate_wbia_webreturn
+        return translate_wbia_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')
     gid = ibs.get_image_gids_from_uuid(uuid)
     return _image_conv_feature(ibs, gid, model)
@@ -371,7 +371,7 @@ def image_upload_zip(**kwargs):
     """
     test to ensure Directory and utool do the same thing
 
-    from ibeis.detecttools.directory import Directory
+    from wbia.detecttools.directory import Directory
     upload_path = ut.truepath('~/Pictures')
     gpath_list1 = sorted(ut.list_images(upload_path, recursive=False, full=True))
 
@@ -394,25 +394,25 @@ def image_upload_zip(**kwargs):
 def hello_world(*args, **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis --exec-hello_world:0
-        python -m ibeis.web.apis --exec-hello_world:1
+        python -m wbia.web.apis --exec-hello_world:0
+        python -m wbia.web.apis --exec-hello_world:1
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
         >>> print('web_ibs = %r' % (web_ibs,))
         >>> print('Server will run until control c')
         >>> #web_ibs.terminate2()
 
     Example1:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
         >>> import requests
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
         >>> web_port = ibs.get_web_port_via_scan()
         >>> if web_port is None:
         >>>     raise ValueError('IA web server is not running on any expected port')
@@ -479,9 +479,9 @@ def api_test_datasets_id(ibs, dataset, *args, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -89,7 +89,7 @@ class ReviewCanceled(Exception):
 
     # def manual_review(infr, edge):
     #     # OLD
-    #     from ibeis.viz import viz_graph2
+    #     from wbia.viz import viz_graph2
     #     dlg = viz_graph2.AnnotPairDialog.as_dialog(
     #         infr=infr, edge=edge, standalone=False)
     #     # dlg.resize(700, 500)

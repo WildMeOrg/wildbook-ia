@@ -25,7 +25,7 @@ from networkx.utils import not_implemented_for
 from collections import defaultdict, namedtuple
 
 # Patch
-from ibeis.algo.graph import nx_edge_kcomponents as nx_ec  # NOQA
+from wbia.algo.graph import nx_edge_kcomponents as nx_ec  # NOQA
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 

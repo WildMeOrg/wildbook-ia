@@ -16,7 +16,7 @@ import threading
 from functools import partial
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
-from ibeis.dtool import __SQLITE__ as lite  # NOQA
+from wbia.dtool import __SQLITE__ as lite  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -348,7 +348,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> ut.exec_funckw(SQLDatabaseController.__init__, locals())
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
@@ -563,7 +563,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> import uuid
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> uuid_ = db.get_db_init_uuid()
@@ -768,7 +768,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
@@ -992,7 +992,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])
@@ -1052,7 +1052,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])
@@ -1362,8 +1362,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache import testdata_depc
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> db = testdata_depc()['notch'].db
             >>> metadata_items = db.get_metadata_items()
             >>> result = ('metadata_items = %s' % (ut.repr2(sorted(metadata_items)),))
@@ -1452,8 +1452,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -1830,8 +1830,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -1854,7 +1854,7 @@ class SQLDatabaseController(object):
         line_list.append('# -*- coding: utf-8 -*-')
         #line_list.append('from __future__ import absolute_import, division, print_function')
         line_list.append('from __future__ import absolute_import, division, print_function, unicode_literals')
-        # line_list.append('from ibeis import constants as const')
+        # line_list.append('from wbia import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')
         line_list.append('# Schema Version Current')
@@ -1925,7 +1925,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
@@ -1960,7 +1960,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
@@ -2032,7 +2032,7 @@ class SQLDatabaseController(object):
         for parsing out the database schema or for consice visual
         representation.
         """
-        app_resource_dir = ut.get_app_resource_dir('ibeis')
+        app_resource_dir = ut.get_app_resource_dir('wbia')
         dump_fpath = join(app_resource_dir, 'schema.txt')
         with open(dump_fpath, 'w') as file_:
             for tablename in sorted(db.get_table_names()):
@@ -2080,14 +2080,14 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m dtool.sql_control --test-get_table_superkey_colnames
-            python -m ibeis --tf get_table_superkey_colnames --tablename=contributors
-            python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
-            python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
+            python -m wbia --tf get_table_superkey_colnames --tablename=contributors
+            python -m wbia --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
+            python -m wbia --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> db = depc['chip'].db
             >>> superkeys = db.get_table_superkey_colnames('chip')
@@ -2142,8 +2142,8 @@ class SQLDatabaseController(object):
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2187,8 +2187,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2262,8 +2262,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2295,7 +2295,7 @@ class SQLDatabaseController(object):
             ?: new_transferdata
 
         CommandLine:
-            python -m ibeis --tf sql_control.make_json_table_definition
+            python -m wbia --tf sql_control.make_json_table_definition
 
         CommandLine:
             python -m utool --tf iter_module_doctestable --modname=dtool.sql_control
@@ -2304,8 +2304,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2356,8 +2356,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
@@ -2374,10 +2374,10 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> db = ibs.db
             >>> exclude_columns = []
             >>> tablename_list = ibs.db.get_table_names()
@@ -2392,10 +2392,10 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> db = ibs.db
             >>> exclude_columns = []
             >>> tablename = ibs.const.IMAGE_TABLE
@@ -2534,13 +2534,13 @@ class SQLDatabaseController(object):
 
         Example0:
             >>> # DISABLE_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
-            >>> ibs_src = ibeis.opendb(db='testdb1')
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> import wbia
+            >>> #ibs_dst = wbia.opendb(dbdir='testdb_dst')
+            >>> ibs_src = wbia.opendb(db='testdb1')
             >>> # OPEN A CLEAN DATABASE
-            >>> ibs_dst = ibeis.opendb(dbdir='test_sql_merge_dst1', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_dst = wbia.opendb(dbdir='test_sql_merge_dst1', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
             >>> # build test data
             >>> db = ibs_dst.db
@@ -2551,12 +2551,12 @@ class SQLDatabaseController(object):
 
         Example1:
             >>> # DISABLE_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs_src = ibeis.opendb(db='testdb2')
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> import wbia
+            >>> ibs_src = wbia.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
-            >>> ibs_dst = ibeis.opendb(dbdir='test_sql_merge_dst2', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_dst = wbia.opendb(dbdir='test_sql_merge_dst2', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
             >>> # build test data
             >>> db = ibs_dst.db
@@ -2568,13 +2568,13 @@ class SQLDatabaseController(object):
 
         Example2:
             >>> # DISABLE_DOCTEST
-            >>> # xdoctest: +REQUIRES(module:ibeis)
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs_src = ibeis.opendb(db='testdb2')
+            >>> # xdoctest: +REQUIRES(module:wbia)
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> import wbia
+            >>> ibs_src = wbia.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
             >>> ibs_src.fix_invalid_annotmatches()
-            >>> ibs_dst = ibeis.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_dst = wbia.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
             >>> # build test data
             >>> db = ibs_dst.db
@@ -2801,8 +2801,8 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.sql_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.sql_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc.clear_all()
             >>> rowids = depc.get_rowids('notch', [1, 2, 3])

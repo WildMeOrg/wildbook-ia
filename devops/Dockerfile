@@ -1,4 +1,4 @@
-FROM wildme/ibeis-provision:latest as org.wildme.ibeis.build
+FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -12,70 +12,70 @@ RUN git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me Development Nightly Build (Azure CI)"
 
 # TODO Temporarily disabled: Checkout latest version of all other repos
-#RUN cd /ibeis/ibeis \
+#RUN cd /wbia/wbia \
 # && /virtualenv/env3/bin/python super_setup.py pull \
 # && /virtualenv/env3/bin/python super_setup.py pull
 
-RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank/ \
+RUN cd /wbia/ibeis-curvrank-module/ibeis_curvrank/ \
  && rm -rf __init__.py \
  && git pull \
- && cd /ibeis/ibeis-kaggle7-module/ibeis_kaggle7/ \
+ && cd /wbia/ibeis-kaggle7-module/wbia_kaggle7/ \
  && git pull
 
-RUN cd /ibeis/ibeis \
+RUN cd /wbia/wbia \
  && git checkout ${BRANCH} \
  && git pull \
- && cd /ibeis/ibeis_cnn \
+ && cd /wbia/ibeis_cnn \
  && git checkout ${BRANCH} \
  && git pull
 
-RUN cd /ibeis/ibeis_cnn \
+RUN cd /wbia/ibeis_cnn \
  && rm -rf .git \
- && cd /ibeis/hesaff \
+ && cd /wbia/hesaff \
  && rm -rf .git \
- && cd /ibeis/lightnet \
+ && cd /wbia/lightnet \
  && rm -rf .git \
- && cd /ibeis/brambox \
+ && cd /wbia/brambox \
  && rm -rf .git \
- && cd /ibeis/ibeis-flukematch-module \
+ && cd /wbia/ibeis-flukematch-module \
  && rm -rf .git \
- && cd /ibeis/ibeis-curvrank-module/ibeis_curvrank \
+ && cd /wbia/ibeis-curvrank-module/ibeis_curvrank \
  && rm -rf .git \
- && cd /ibeis/ibeis-curvrank-module \
+ && cd /wbia/ibeis-curvrank-module \
  && rm -rf .git \
- && cd /ibeis/ibeis-deepsense-module \
+ && cd /wbia/ibeis-deepsense-module \
  && rm -rf .git \
- && cd /ibeis/ibeis-finfindr-module \
+ && cd /wbia/ibeis-finfindr-module \
  && rm -rf .git \
- && cd /ibeis/ibeis-kaggle7-module/ibeis_kaggle7 \
+ && cd /wbia/ibeis-kaggle7-module/wbia_kaggle7 \
  && rm -rf .git \
- && cd /ibeis/ibeis-kaggle7-module \
+ && cd /wbia/ibeis-kaggle7-module \
  && rm -rf .git \
- && cd /ibeis/ibeis-2d-orientation-module/ibeis_2d_orientation \
+ && cd /wbia/wbia-2d-orientation-module/wbia_2d_orientation \
  && rm -rf .git \
- && cd /ibeis/ibeis-2d-orientation-module \
+ && cd /wbia/wbia-2d-orientation-module \
  && rm -rf .git \
- && cd /ibeis/pydarknet \
+ && cd /wbia/pydarknet \
  && rm -rf .git \
- && cd /ibeis/pyrf \
+ && cd /wbia/pyrf \
  && rm -rf .git \
- && cd /ibeis/ubelt \
+ && cd /wbia/ubelt \
  && rm -rf .git \
- && cd /ibeis/utool \
+ && cd /wbia/utool \
  && rm -rf .git \
- && cd /ibeis/vtool \
+ && cd /wbia/vtool \
  && rm -rf .git \
- && cd /ibeis/ibeis \
+ && cd /wbia/wbia \
  && rm -rf .git
 
 RUN /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-python-headless
 
 ##########################################################################################
-FROM wildme.azurecr.io/ibeis/base:latest as org.wildme.ibeis.install
+FROM wildme.azurecr.io/wbia/base:latest as org.wildme.wbia.install
 
-COPY --from=org.wildme.ibeis.build /virtualenv /virtualenv
+COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
-COPY --from=org.wildme.ibeis.build /ibeis /ibeis
+COPY --from=org.wildme.wbia.build /wbia /wbia
 
 RUN ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
  && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
@@ -97,12 +97,12 @@ RUN mkdir /data
 
 VOLUME /data
 
-RUN /virtualenv/env3/bin/python /ibeis/ibeis/dev.py --set-workdir /data
+RUN /virtualenv/env3/bin/python /wbia/wbia/dev.py --set-workdir /data
 
 ##########################################################################################
-FROM org.wildme.ibeis.install as org.wildme.ibeis.deploy
+FROM org.wildme.wbia.install as org.wildme.wbia.deploy
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "/ibeis/ibeis/dev.py", "--dbdir", "/data/docker", "--logdir", "/data/docker/_ibsdb/_ibeis_logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
+ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wbia/dev.py", "--dbdir", "/data/docker", "--logdir", "/data/docker/_ibsdb/_wbia_logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
 
 # Ports for the frontend web server
 EXPOSE 5000
@@ -115,6 +115,6 @@ LABEL autoheal=true
 STOPSIGNAL SIGTERM
 
 ##########################################################################################
-FROM org.wildme.ibeis.deploy as org.wildme.ibeis.configure
+FROM org.wildme.wbia.deploy as org.wildme.wbia.configure
 
 CMD []

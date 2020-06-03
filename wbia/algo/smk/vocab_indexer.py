@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis import dtool
+from wbia import dtool
 import utool as ut
 import vtool_ibeis as vt
 from vtool_ibeis._pyflann_backend import pyflann as pyflann
-from ibeis.algo.smk import pickle_flann
+from wbia.algo.smk import pickle_flann
 import numpy as np
 import warnings
-from ibeis.control.controller_inject import register_preprocs
+from wbia.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -116,20 +116,20 @@ class VisualVocab(ut.NiceRepr):
         This is a quick visualization of the entire vocabulary.
 
         CommandLine:
-            python -m ibeis.algo.smk.vocab_indexer render_vocab --show
+            python -m wbia.algo.smk.vocab_indexer render_vocab --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+            >>> from wbia.algo.smk.vocab_indexer import *  # NOQA
             >>> vocab = testdata_vocab('PZ_MTEST', num_words=64)
             >>> all_words = vocab.render_vocab()
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         wx_list = list(range(len(vocab)))
         # wx_list = ut.strided_sample(wx_list, 64)
         wx_list = ut.strided_sample(wx_list, 64)
@@ -156,19 +156,19 @@ def compute_vocab(depc, fid_list, config):
     Depcache method for computing a new visual vocab
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis show_depc_annot_table_input --show --tablename=neighbor_index
+        python -m wbia.core_annots --exec-compute_neighbor_index --show
+        python -m wbia show_depc_annot_table_input --show --tablename=neighbor_index
 
-        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:0
-        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:1
+        python -m wbia.algo.smk.vocab_indexer --exec-compute_vocab:0
+        python -m wbia.algo.smk.vocab_indexer --exec-compute_vocab:1
 
         # FIXME make util_tests register
-        python -m ibeis.algo.smk.vocab_indexer compute_vocab:0
+        python -m wbia.algo.smk.vocab_indexer compute_vocab:0
 
     Ignore:
         >>> # Lev Oxford Debug Example
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('Oxford')
+        >>> import wbia
+        >>> ibs = wbia.opendb('Oxford')
         >>> depc = ibs.depc
         >>> table = depc['vocab']
         >>> # Check what currently exists in vocab table
@@ -176,7 +176,7 @@ def compute_vocab(depc, fid_list, config):
         >>> table.print_table()
         >>> table.print_internal_info()
         >>> # Grab aids used to compute vocab
-        >>> from ibeis.expt.experiment_helpers import get_annotcfg_list
+        >>> from wbia.expt.experiment_helpers import get_annotcfg_list
         >>> expanded_aids_list = get_annotcfg_list(ibs, ['oxford'])[1]
         >>> qaids, daids = expanded_aids_list[0]
         >>> vocab_aids = daids
@@ -190,10 +190,10 @@ def compute_vocab(depc, fid_list, config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+        >>> from wbia.algo.smk.vocab_indexer import *  # NOQA
         >>> # Test depcache access
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> import wbia
+        >>> ibs, aid_list = wbia.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
         >>> input_tuple = [aid_list]
         >>> rowid_kw = {}
@@ -206,9 +206,9 @@ def compute_vocab(depc, fid_list, config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> from wbia.algo.smk.vocab_indexer import *  # NOQA
+        >>> import wbia
+        >>> ibs, aid_list = wbia.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
         >>> fid_list = depc.get_rowids('feat', aid_list)
         >>> config = VocabConfig()
@@ -218,7 +218,7 @@ def compute_vocab(depc, fid_list, config):
         >>> ut.quit_if_noshow()
         >>> data = train_vecs
         >>> centroids = vocab.wx_to_word
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> vt.plot_centroids(data, centroids, num_pca_dims=2)
         >>> ut.show_if_requested()
         >>> #config = ibs.depc_annot['vocab'].configclass()
@@ -291,12 +291,12 @@ def compute_vocab(depc, fid_list, config):
 
 def testdata_vocab(defaultdb='testdb1', **kwargs):
     """
-    >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+    >>> from wbia.algo.smk.vocab_indexer import *  # NOQA
     >>> defaultdb='testdb1'
     >>> kwargs = {'num_words': 1000}
     """
-    import ibeis
-    ibs, aids = ibeis.testdata_aids(defaultdb=defaultdb)
+    import wbia
+    ibs, aids = wbia.testdata_aids(defaultdb=defaultdb)
     config = kwargs
     # vocab = new_load_vocab(ibs, aid_list, kwargs)
     # Hack in depcache info to the loaded vocab class
@@ -314,9 +314,9 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/algo/smk
-        python ~/code/ibeis/ibeis/algo/smk/vocab_indexer.py
-        python ~/code/ibeis/ibeis/algo/smk/vocab_indexer.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/smk
+        python ~/code/wbia/wbia/algo/smk/vocab_indexer.py
+        python ~/code/wbia/wbia/algo/smk/vocab_indexer.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

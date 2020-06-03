@@ -5,10 +5,10 @@ import vtool_ibeis as vt
 import numpy as np
 import ubelt as ub
 import pandas as pd
-from ibeis import dtool as dt
+from wbia import dtool as dt
 from os.path import join
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.core_annots import ChipConfig
+from wbia.algo.graph import nx_utils as nxu
+from wbia.core_annots import ChipConfig
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -60,7 +60,7 @@ class MatchConfig(dt.Config):
 class PairwiseFeatureExtractor(object):
     r"""
     Args:
-        ibs (ibeis.IBEISController): image analysis api
+        ibs (wbia.IBEISController): image analysis api
         match_config (dict): config for building feature correspondences
         pairfeat_cfg (dict): config for making the pairwise feat vec
         global_keys (list): global keys to use
@@ -71,13 +71,13 @@ class PairwiseFeatureExtractor(object):
         verbose (int):  verbosity flag (default = 1)
 
     CommandLine:
-        python -m ibeis.algo.verif.pairfeat PairwiseFeatureExtractor
+        python -m wbia.algo.verif.pairfeat PairwiseFeatureExtractor
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.verif.pairfeat import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.algo.verif.pairfeat import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> extr = PairwiseFeatureExtractor(ibs)
         >>> edges = [(1, 2), (2, 3)]
         >>> X = extr.transform(edges)
@@ -144,13 +144,13 @@ class PairwiseFeatureExtractor(object):
         This establishes the feature correspondences.
 
         CommandLine:
-            python -m ibeis.algo.verif.pairfeat _exec_pairwise_match --show
+            python -m wbia.algo.verif.pairfeat _exec_pairwise_match --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.verif.pairfeat import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.algo.verif.pairfeat import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> match_config = dict(histeq=True)
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
             >>> edges = [(1, 2), (2, 3)]
@@ -175,9 +175,9 @@ class PairwiseFeatureExtractor(object):
         match_list = ibs.depc.get('pairwise_match', (qaids, daids), 'match',
                                   config=match_config)
 
-        # Hack: Postprocess matches to re-add ibeis annotation info
+        # Hack: Postprocess matches to re-add wbia annotation info
         # in lazy-dict format
-        from ibeis import core_annots
+        from wbia import core_annots
         config = ut.hashdict(match_config)
         qannot_cfg = dannot_cfg = config
         preload = True
@@ -196,7 +196,7 @@ class PairwiseFeatureExtractor(object):
         larger database to enrich the matches with database-level
         distinctiveness.
         """
-        from ibeis.algo.hots import nn_weights
+        from wbia.algo.hots import nn_weights
         raise NotImplementedError('havent tested since the re-work. '
                                   'Need to ensure that things work correctly.')
         ibs = extr.ibs
@@ -261,9 +261,9 @@ class PairwiseFeatureExtractor(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.verif.pairfeat import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.algo.verif.pairfeat import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> match_config = {
             >>>     'K': 1, 'Knorm': 3, 'affine_invariance': True,
             >>>     'augment_orientation': True, 'checks': 20, 'ratio_thresh': 0.8,
@@ -308,11 +308,11 @@ class PairwiseFeatureExtractor(object):
         Construct matches and their pairwise features
 
         CommandLine:
-            python -m ibeis.algo.verif.pairfeat _make_pairwise_features
+            python -m wbia.algo.verif.pairfeat _make_pairwise_features
 
         Doctest:
-            >>> from ibeis.algo.verif.pairfeat import *
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.verif.pairfeat import *
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> extr = PairwiseFeatureExtractor(ibs=infr.ibs)
             >>> match_config = {'K': 1, 'Knorm': 3, 'affine_invariance': True,
@@ -486,8 +486,8 @@ class PairwiseFeatureExtractor(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.pairfeat
-        python -m ibeis.algo.verif.pairfeat --allexamples
+        python -m wbia.algo.verif.pairfeat
+        python -m wbia.algo.verif.pairfeat --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

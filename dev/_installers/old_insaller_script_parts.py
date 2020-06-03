@@ -16,14 +16,14 @@
 #    Example0:
 #        >>> # DISABLE_DOCTEST
 #        >>> from utool.util_cplat import *  # NOQA
-#        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-ibeis.spec') #, '-y'
+#        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-wbia.spec') #, '-y'
 #        >>> result = fix_command_tuple(command_tuple)
 #        >>> print(result)
 #
 #    Example1:
 #        >>> # DISABLE_DOCTEST
 #        >>> from utool.util_cplat import *  # NOQA
-#        >>> command_tuple = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
+#        >>> command_tuple = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-wbia.spec -y'
 #        >>> result = fix_command_tuple(command_tuple)
 #        >>> print(result)
 #    """
@@ -82,7 +82,7 @@
 #        >>> # DISABLE_DOCTEST
 #        >>> from utool.util_cplat import *  # NOQA
 #        >>> # build test data
-#        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-ibeis.spec') #, '-y'
+#        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-wbia.spec') #, '-y'
 #        >>> detatch = False
 #        >>> sudo = False
 #        >>> shell = False

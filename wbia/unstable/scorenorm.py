@@ -30,41 +30,41 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-from ibeis import dtool
+from wbia import dtool
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
 import six  # NOQA
 from functools import partial
 from os.path import join
-from ibeis import constants as const
-from ibeis.init import sysres
+from wbia import constants as const
+from wbia.init import sysres
 print, rrr, profile = ut.inject2(__name__)
 
 
 def compare_score_pdfs(testres):
     """
     CommandLine:
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present --nocache
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present -a timectrl:qindex=0:50
+        python -m wbia.expt.test_result --exec-compare_score_pdfs --show --present
+        python -m wbia.expt.test_result --exec-compare_score_pdfs --show --present --nocache
+        python -m wbia.expt.test_result --exec-compare_score_pdfs --show --present -a timectrl:qindex=0:50
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.test_result import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.expt.test_result import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
         >>> defaultdb = 'PZ_Master1'
-        >>> ibs, testres = ibeis.testdata_expts(
+        >>> ibs, testres = wbia.testdata_expts(
         >>>     defaultdb=defaultdb, a=['timectrl'], t=['best'])
         >>> testres.compare_score_pdfs()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    #from ibeis.init import main_helpers
+    #from wbia.init import main_helpers
     import utool as ut
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     ut.ensureqt()
 
     testres.draw_annot_scoresep(f='fail=False')
@@ -87,48 +87,48 @@ def compare_score_pdfs(testres):
 
 
 def draw_annot_scoresep(testres, f=None):
-    from ibeis.expt import experiment_drawing
+    from wbia.expt import experiment_drawing
     experiment_drawing.draw_annot_scoresep(testres.ibs, testres, f=f)
 
 
 def draw_feat_scoresep(testres, f=None, disttype=None):
     r"""
     SeeAlso:
-        ibeis.algo.hots.scorenorm.train_featscore_normalizer
+        wbia.algo.hots.scorenorm.train_featscore_normalizer
 
     CommandLine:
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show -t default:sv_on=[True,False]
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift,fg
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=True
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=False
+        python -m wbia --tf TestResult.draw_feat_scoresep --show
+        python -m wbia --tf TestResult.draw_feat_scoresep --show -t default:sv_on=[True,False]
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift,fg
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=True
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=False
 
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift -t best:SV=False
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift -t best:SV=False
 
-        utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
-        utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
-        utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
+        utprof.py -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+        utprof.py -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
+        utprof.py -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
 
-        utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
+        utprof.py -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
 
         # We want to query the oxford annots taged query
         # and we want the database to contain
         # K correct images per query, as well as the distractors
 
-        python -m ibeis --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=ok
-        python -m ibeis --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=good
+        python -m wbia --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=ok
+        python -m wbia --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=good
 
-        python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
+        python -m wbia --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=ratio
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=ratio
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.expt.test_result import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.test_result import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> disttype = ut.get_argval('--disttype', type_=list, default=None)
         >>> ibs, testres = main_helpers.testdata_expts(
         >>>     defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
@@ -137,14 +137,14 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         >>> ut.show_if_requested()
     """
     print('[testres] draw_feat_scoresep')
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     def load_feat_scores(qreq_, qaids):
-        import ibeis  # NOQA
+        import wbia  # NOQA
         from os.path import dirname, join  # NOQA
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
+        cache_dir = join(dirname(dirname(wbia.__file__)), 'TMP_FEATSCORE_CACHE')
         namemode = ut.get_argval('--namemode', default=True)
         fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
                              default=slice(None, None, None))
@@ -158,7 +158,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
                         use_cache=True)
         def get_cfgx_feat_scores(qreq_, qaids):
-            from ibeis.algo.hots import scorenorm
+            from wbia.algo.hots import scorenorm
             cm_list = qreq_.execute(qaids)
             # print('Done loading cached chipmatches')
             tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
@@ -245,22 +245,22 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         str: species_cachedir
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
+        python -m wbia.control.IBEISControl --test-get_global_species_scorenorm_cachedir
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> species_text = ibeis.const.TEST_SPECIES.ZEB_GREVY
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
+        >>> species_text = wbia.const.TEST_SPECIES.ZEB_GREVY
         >>> ensure = True
         >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
-        >>> resourcedir = ibs.get_ibeis_resource_dir()
+        >>> resourcedir = ibs.get_wbia_resource_dir()
         >>> result = ut.relpath_unix(species_cachedir, resourcedir)
         >>> print(result)
         scorenorm/zebra_grevys
     """
-    scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(),
+    scorenorm_cachedir = join(ibs.get_wbia_resource_dir(),
                               const.PATH_NAMES.scorenormdir)
     species_cachedir = join(scorenorm_cachedir, species_text)
     if ensure:
@@ -315,63 +315,63 @@ def compare_featscores():
     """
     CommandLine:
 
-        ibeis --tf compare_featscores  --db PZ_MTEST \
+        wbia --tf compare_featscores  --db PZ_MTEST \
             --nfscfg :disttype=[L2_sift,lnbnn],top_percent=[None,.5,.1] -a timectrl \
             -p default:K=[1,2],normalizer_rule=name \
             --save featscore{db}.png --figsize=13,20 --diskshow
 
-        ibeis --tf compare_featscores  --db PZ_MTEST \
+        wbia --tf compare_featscores  --db PZ_MTEST \
             --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5] -a timectrl \
             -p default:K=[1],normalizer_rule=name,sv_on=[True,False] \
             --save featscore{db}.png --figsize=13,10 --diskshow
 
-        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+        wbia --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
             -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 \
             --save featscore{db}.png  --figsize=13,13 --diskshow
 
-        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+        wbia --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
             -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL \
             --save featscore{db}.png  --figsize=13,13 --diskshow
 
-        ibeis --tf compare_featscores  --db GIRM_Master1 \
+        wbia --tf compare_featscores  --db GIRM_Master1 \
             --nfscfg ':disttype=fg,L2_sift,normdist,lnbnn' \
             -a timectrl -p default:K=1,normalizer_rule=name \
             --save featscore{db}.png  --figsize=13,13
 
-        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+        wbia --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
             -a timectrl -p default:K=[1,2,3],normalizer_rule=name,sv_on=False \
             --db PZ_Master1 --save featscore{db}.png  \
                 --dpi=128 --figsize=15,20 --diskshow
 
-        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_MTEST
-        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GZ_ALL
-        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_Master1
-        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GIRM_Master1
+        wbia --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_MTEST
+        wbia --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GZ_ALL
+        wbia --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_Master1
+        wbia --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GIRM_Master1
 
-        ibeis --tf compare_featscores  --db PZ_MTEST \
+        wbia --tf compare_featscores  --db PZ_MTEST \
             --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5,.2] -a timectrl \
             -p default:K=[1],normalizer_rule=name \
             --save featscore{db}.png --figsize=13,20 --diskshow
 
-        ibeis --tf compare_featscores  --db PZ_MTEST \
+        wbia --tf compare_featscores  --db PZ_MTEST \
             --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5,.2] -a timectrl \
             -p default:K=[1],normalizer_rule=name \
             --save featscore{db}.png --figsize=13,20 --diskshow
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
         >>> result = compare_featscores()
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
-    import ibeis
+    import wbia.plottool as pt
+    import wbia
     nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}
-    ibs, testres = ibeis.testdata_expts(
+    ibs, testres = wbia.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
     print('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
 
@@ -430,19 +430,19 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
     Takes the result of queries and trains a score encoder
 
     Args:
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
 
     Returns:
         vtool_ibeis.ScoreNormalizer: encoder
 
     CommandLine:
-        python -m ibeis --tf learn_annotscore_normalizer --show
+        python -m wbia --tf learn_annotscore_normalizer --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
         >>> encoder = learn_annotscore_normalizer(qreq_)
         >>> ut.quit_if_noshow()
@@ -473,13 +473,13 @@ def load_featscore_normalizer(normer_cfgstr):
         normer_cfgstr (?):
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
+        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show
+        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
+        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
         >>> normer_cfgstr = ut.get_argval('--cfgstr', default='featscore')
         >>> encoder = load_featscore_normalizer(normer_cfgstr)
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
@@ -494,43 +494,43 @@ def load_featscore_normalizer(normer_cfgstr):
 def train_featscore_normalizer():
     r"""
     CommandLine:
-        python -m ibeis --tf train_featscore_normalizer --show
+        python -m wbia --tf train_featscore_normalizer --show
 
         # Write Encoder
-        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
+        python -m wbia --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
 
         # Visualize encoder score adjustment
-        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normer=lnbnn_fg_featscore --show --nocache --nocache-hs
+        python -m wbia --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normer=lnbnn_fg_featscore --show --nocache --nocache-hs
 
         # Compare ranking with encoder vs without
-        python -m ibeis --tf draw_rank_cmc --db PZ_MTEST -a timectrl -t best:lnbnn_normer=[None,wulu] --show
-        python -m ibeis --tf draw_rank_cmc --db PZ_MTEST -a default  -t best:lnbnn_normer=[None,wulu] --show
+        python -m wbia --tf draw_rank_cmc --db PZ_MTEST -a timectrl -t best:lnbnn_normer=[None,wulu] --show
+        python -m wbia --tf draw_rank_cmc --db PZ_MTEST -a default  -t best:lnbnn_normer=[None,wulu] --show
 
         # Compare in ipynb
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore]
+        python -m wbia --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore]
 
         # Big Test
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,lovb],lnbnn_norm_thresh=.5 --show
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=.1 --show
-        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=0 --show
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,lovb],lnbnn_norm_thresh=.5 --show
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=.1 --show
+        python -m wbia --tf draw_rank_cmc --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=0 --show
 
 
         # Big Train
-        python -m ibeis --tf learn_featscore_normalizer --db PZ_Master1 -a timectrl -t best:K=1 --fsvx=0 --threshx=1 --show
-        python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show --ainfo
-        python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show
-        python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=3 --fsvx=0 --threshx=1 --show
+        python -m wbia --tf learn_featscore_normalizer --db PZ_Master1 -a timectrl -t best:K=1 --fsvx=0 --threshx=1 --show
+        python -m wbia --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show --ainfo
+        python -m wbia --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show
+        python -m wbia --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=3 --fsvx=0 --threshx=1 --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
         >>> encoder = train_featscore_normalizer()
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    import ibeis
+    import wbia
     # TODO: training / loading / general external models
-    qreq_ = ibeis.testdata_qreq_(
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
     datakw = NormFeatScoreConfig.from_argv_dict()
     #datakw = dict(
@@ -551,38 +551,38 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     Takes the result of queries and trains a score encoder
 
     Args:
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
 
     Returns:
         vtool_ibeis.ScoreNormalizer: encoder
 
     CommandLine:
-        python -m ibeis --tf learn_featscore_normalizer --show -t default:
-        python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
-        python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
+        python -m wbia --tf learn_featscore_normalizer --show -t default:
+        python -m wbia --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
+        python -m wbia --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -t default:K=1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=ratio
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=lnbnn
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=L2_sift -t default:K=1
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio -a timectrl -t default:K=1 --db PZ_Master1
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn -a timectrl -t default:K=1 --db PZ_Master1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=ratio -a timectrl -t default:K=1 --db PZ_Master1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=lnbnn -a timectrl -t default:K=1 --db PZ_Master1
 
         # LOOK AT THIS
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1
-        #python -m ibeis --tf learn_featscore_normalizer --show --disttype=parzen -a timectrl -t default:K=1 --db PZ_Master1
-        #python -m ibeis --tf learn_featscore_normalizer --show --disttype=norm_parzen -a timectrl -t default:K=1 --db PZ_Master1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1
+        #python -m wbia --tf learn_featscore_normalizer --show --disttype=parzen -a timectrl -t default:K=1 --db PZ_Master1
+        #python -m wbia --tf learn_featscore_normalizer --show --disttype=norm_parzen -a timectrl -t default:K=1 --db PZ_Master1
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn --db PZ_Master1 -a timectrl -t best
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=lnbnn --db PZ_Master1 -a timectrl -t best
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
         >>> learnkw = {}
         >>> datakw = NormFeatScoreConfig.from_argv_dict()
-        >>> qreq_ = ibeis.testdata_qreq_(
+        >>> qreq_ = wbia.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
         >>> encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
         >>> ut.quit_if_noshow()
@@ -602,7 +602,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
 
     # Maintain regen command info: TODO: generalize and integrate
     encoder._regen_info = {
-        'cmd': 'python -m ibeis --tf learn_featscore_normalizer',
+        'cmd': 'python -m wbia --tf learn_featscore_normalizer',
         'scorecfg': scorecfg,
         'learnkw': learnkw,
         'datakw': datakw,
@@ -677,7 +677,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
     annotations.
 
     Args:
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
         cm_list (list):
         disttype (None): (default = None)
         namemode (bool): (default = True)
@@ -692,13 +692,13 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         tuple: (tp_scores, tn_scores, scorecfg)
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_featscores
+        python -m wbia.algo.hots.scorenorm --exec-get_training_featscores
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> cm_list, qreq_ = wbia.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
         >>> disttype = None
         >>> namemode = True
         >>> fsvx = None
@@ -780,17 +780,17 @@ def get_topannot_training_idxs(cm, num=2):
     """ top annots version
 
     Args:
-        cm (ibeis.ChipMatch):  object of feature correspondences and scores
+        cm (wbia.ChipMatch):  object of feature correspondences and scores
         num (int): number of top annots per TP/TN (default = 2)
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_topannot_training_idxs --show
+        python -m wbia.algo.hots.scorenorm --exec-get_topannot_training_idxs --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> num = 2
         >>> cm.score_annot_csum(qreq_)
         >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
@@ -830,7 +830,7 @@ def get_topname_training_idxs(cm, num=5):
     groundfalse names.
 
     Args:
-        cm (ibeis.ChipMatch):  object of feature correspondences and scores
+        cm (wbia.ChipMatch):  object of feature correspondences and scores
         num(int): number of false names (default = 5)
 
     Returns:
@@ -841,13 +841,13 @@ def get_topname_training_idxs(cm, num=5):
                annotations in the top `num_false` incorrect names.
 
     CommandLine:
-        python -m ibeis --tf get_topname_training_idxs --show
+        python -m wbia --tf get_topname_training_idxs --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
         >>> num = 1
         >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
@@ -889,14 +889,14 @@ def get_topname_training_idxs(cm, num=5):
 def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_fsv --show
+        python -m wbia.algo.hots.scorenorm --exec-get_training_fsv --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
         >>> num = None
-        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
+        >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
         >>> (tp_fsv, tn_fsv) = get_training_fsv(cm, namemode=False)
         >>> result = ('(tp_fsv, tn_fsv) = %s' % (ut.repr2((tp_fsv, tn_fsv), nl=1),))
         >>> print(result)
@@ -935,26 +935,26 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     computes custom distances on prematched descriptors
 
     SeeAlso:
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=ratio
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1 --save pzmaster_normdist.png
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_MTEST --save pzmtest_normdist.png
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db GZ_ALL
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1 --save pzmaster_normdist.png
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_MTEST --save pzmtest_normdist.png
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db GZ_ALL
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_MTEST
-        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_MTEST
+        python -m wbia --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
 
-        python -m ibeis --tf compare_featscores --show --disttype=L2_sift,normdist -a timectrl -t default:K=1 --db GZ_ALL
+        python -m wbia --tf compare_featscores --show --disttype=L2_sift,normdist -a timectrl -t default:K=1 --db GZ_ALL
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist:1
+        python -m wbia.algo.hots.scorenorm --exec-get_training_desc_dist
+        python -m wbia.algo.hots.scorenorm --exec-get_training_desc_dist:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> fsv_col_lbls = ['ratio', 'lnbnn', 'L2_sift']
         >>> namemode = False
         >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls,
@@ -964,9 +964,9 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> fsv_col_lbls = cm.fsv_col_lbls
         >>> num = None
         >>> namemode = False
@@ -1110,9 +1110,9 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm
-        python -m ibeis.algo.hots.scorenorm --allexamples
-        python -m ibeis.algo.hots.scorenorm --allexamples --noface --nosrc
+        python -m wbia.algo.hots.scorenorm
+        python -m wbia.algo.hots.scorenorm --allexamples
+        python -m wbia.algo.hots.scorenorm --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore, QtGui
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
+from wbia.guitool.__PYQT__ import QtCore, QtGui
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
 ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 

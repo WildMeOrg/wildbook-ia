@@ -4,8 +4,8 @@ import utool as ut
 import numpy as np
 import vtool_ibeis as vt
 import functools
-from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import _pipeline_helpers as plh
+from wbia.algo.hots import hstypes
+from wbia.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
@@ -66,7 +66,7 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
         >>> nns_list, nnvalid0_list = args
@@ -93,11 +93,11 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     foreground feature match weighting
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-fg_match_weighter
+        python -m wbia.algo.hots.nn_weights --exec-fg_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
@@ -139,11 +139,11 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         list: weights_list
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights nn_normalized_weight --show
+        python -m wbia.algo.hots.nn_weights nn_normalized_weight --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors',
@@ -161,7 +161,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> qreq_, args = plh.testdata_pre('weight_neighbors',
         >>>                                defaultdb='PZ_MTEST')
@@ -197,7 +197,7 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
         >>>            'dim_size': 450, 'resize_dim': 'area'}
         >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
@@ -244,12 +244,12 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         ndarray: neighb_normweight
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-apply_normweight
+        python -m wbia.algo.hots.nn_weights --test-apply_normweight
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots import nn_weights
         >>> #cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
         >>> #           'dim_size': 450, 'resize_dim': 'area'}
         >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
@@ -284,7 +284,7 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
 
     Args:
         qaid (int): query annotation id
-        qreq_ (ibeis.QueryRequest): hyper-parameters
+        qreq_ (wbia.QueryRequest): hyper-parameters
         Knorm (int):
         neighb_idx (ndarray):
 
@@ -293,8 +293,8 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots import nn_weights
         >>> #cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
         >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
@@ -346,11 +346,11 @@ def mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid):
         neighb_selnorm - index of the selected normalizer for each query feature
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-mark_name_valid_normalizers
+        python -m wbia.algo.hots.nn_weights --exec-mark_name_valid_normalizers
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> qnid = 1
         >>> neighb_topnid = np.array([[1, 1, 1, 1, 1],
         ...                         [1, 2, 1, 1, 1],
@@ -421,7 +421,7 @@ def lnbnn_fn(vdist, ndist):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = lnbnn_fn(vdist, ndist)
         >>> result = ut.hz_str('lnbnn  = ', ut.repr2(out, precision=2))
@@ -447,7 +447,7 @@ def ratio_fn(vdist, ndist):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = ratio_fn(vdist, ndist)
         >>> result = ut.hz_str('ratio = ', ut.repr2(out, precision=2))
@@ -471,7 +471,7 @@ def bar_l2_fn(vdist, ndist):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = bar_l2_fn(vdist, ndist)
         >>> result = ut.hz_str('barl2  = ', ut.repr2(out, precision=2))
@@ -495,7 +495,7 @@ def loglnbnn_fn(vdist, ndist):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = loglnbnn_fn(vdist, ndist)
         >>> result = ut.hz_str('loglnbnn  = ', ut.repr2(out, precision=2))
@@ -514,7 +514,7 @@ def logratio_fn(vdist, ndist):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = normonly_fn(vdist, ndist)
         >>> result = ut.repr2(out)
@@ -533,7 +533,7 @@ def normonly_fn(vdist, ndist):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> out = normonly_fn(vdist, ndist)
         >>> result = ut.repr2(out)
@@ -557,7 +557,7 @@ def testdata_vn_dists(nfeats=5, K=3):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
         >>> result = (ut.hz_str('vdist = ', ut.repr2(vdist))) + '\n'
         >>> result += (ut.hz_str('ndist = ', ut.repr2(ndist)))
@@ -614,14 +614,14 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
 def all_normalized_weights_test():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-all_normalized_weights_test
+        python -m wbia.algo.hots.nn_weights --exec-all_normalized_weights_test
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> all_normalized_weights_test()
     """
-    from ibeis.algo.hots import nn_weights
+    from wbia.algo.hots import nn_weights
     import six
     #ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
 
@@ -654,8 +654,8 @@ def all_normalized_weights_test():
 
 if __name__ == '__main__':
     r"""
-    python -m ibeis.algo.hots.nn_weights --allexamples
-    python -m ibeis.algo.hots.nn_weights
+    python -m wbia.algo.hots.nn_weights --allexamples
+    python -m wbia.algo.hots.nn_weights
     """
     import multiprocessing
     multiprocessing.freeze_support()

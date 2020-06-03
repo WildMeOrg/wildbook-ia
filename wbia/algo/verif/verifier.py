@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import pandas as pd
 import utool as ut
-from ibeis.algo.verif import pairfeat
-from ibeis.algo.verif import sklearn_utils
+from wbia.algo.verif import pairfeat
+from wbia.algo.verif import sklearn_utils
 import vtool_ibeis as vt
 # import itertools as it
 # from os.path import join
@@ -67,9 +67,9 @@ class Verifier(BaseVerifier):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.algo.verif.vsone import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> speceis = 'zebra_plains'
         >>> task_key = 'match_state'
         >>> verif = Deployer()._load_published(ibs, species, task_key)
@@ -142,7 +142,7 @@ class IntraVerifier(BaseVerifier):
         }
 
         # Make an ensemble of the evaluation classifiers
-        from ibeis.algo.verif import deploy
+        from wbia.algo.verif import deploy
         deployer = deploy.Deployer(pblm=verif.pblm)
         verif.ensemble = deployer._make_ensemble_verifier(
             verif.task_key, verif.clf_key, verif.data_key)
@@ -209,8 +209,8 @@ class IntraVerifier(BaseVerifier):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.verifier
-        python -m ibeis.algo.verif.verifier --allexamples
+        python -m wbia.algo.verif.verifier
+        python -m wbia.algo.verif.verifier --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

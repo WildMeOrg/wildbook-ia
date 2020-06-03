@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from ibeis.algo.graph import demo
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
+from wbia.algo.graph import demo
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -138,11 +138,11 @@ def test_pos_neg():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/algo/graph/tests
-        python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py test_pos_neg
-        python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py test_unrev_inference
-        python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py test_incomp_inference
-        python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/graph/tests
+        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_pos_neg
+        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_unrev_inference
+        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_incomp_inference
+        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

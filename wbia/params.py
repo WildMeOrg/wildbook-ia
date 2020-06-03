@@ -13,11 +13,11 @@ nnkj/enerate this module automagically from
     import utool as ut
     utool_parse_codeblock = ut.util_arg.autogen_argparse_block(extra_args=parsed_args)
     ut.util_arg.reset_argrecord()
-    import ibeis
-    parsed_args = ut.util_arg.parse_used_arg_flags_and_vals(ibeis, recursive=True)
-    ibeis_parse_codeblock = ut.util_arg.autogen_argparse_block(extra_args=parsed_args)
+    import wbia
+    parsed_args = ut.util_arg.parse_used_arg_flags_and_vals(wbia, recursive=True)
+    wbia_parse_codeblock = ut.util_arg.autogen_argparse_block(extra_args=parsed_args)
 
-    ut.util_arg.autogenerate_parse_py([utool_parse_codeblock, ibeis_parse_codeblock])
+    ut.util_arg.autogenerate_parse_py([utool_parse_codeblock, wbia_parse_codeblock])
 
     utool_parse_codeblock
     ut.util_arg

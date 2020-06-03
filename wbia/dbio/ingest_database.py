@@ -5,13 +5,13 @@ This module lists known raw databases and how to ingest them.
 
 Specify arguments and run the following command to ingest a database
 
-python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
-python -m ibeis --tf ingest_rawdata --db PZ_OlPej2016 --imgdir /raid/raw/OlPejPZ_June_2016 --ingest-type=named_folders --species=zebra_plains
+python -m wbia --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
+python -m wbia --tf ingest_rawdata --db PZ_OlPej2016 --imgdir /raid/raw/OlPejPZ_June_2016 --ingest-type=named_folders --species=zebra_plains
 
 # --- GET DATA ---
 rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
 # --- RUN INGEST SCRIPT ---
-python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+python -m wbia --tf ingest_rawdata --db <new-wbia-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 
 
 Example:
@@ -19,7 +19,7 @@ Example:
     >>> # The scripts in this file essentiall do this:
     >>> dbdir = '<your new database directory>'
     >>> gpath_list = '<path to your images>'
-    >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    >>> ibs = wbia.opendb(dbdir=dbdir, allow_newdir=True)
     >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
     >>> # use whole images as annotations
     >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
@@ -32,11 +32,11 @@ Example:
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
-import ibeis
+import wbia
 import os
 from os.path import relpath, dirname, exists, join, realpath, basename, abspath
-from ibeis.other import ibsfuncs
-from ibeis import constants as const
+from wbia.other import ibsfuncs
+from wbia import constants as const
 import utool as ut
 import vtool_ibeis as vt
 import parse
@@ -47,7 +47,7 @@ import parse
 """
 New Lynx
 
-python -m ibeis --tf ingest_rawdata --db lynx2  --imgdir "/media/raid/raw/WildME-WWF-lynx-Sept-2016/CARPETAS CATALOGO INDIVIDUOS" --ingest-type=named_folders --species=lynx --dry
+python -m wbia --tf ingest_rawdata --db lynx2  --imgdir "/media/raid/raw/WildME-WWF-lynx-Sept-2016/CARPETAS CATALOGO INDIVIDUOS" --ingest-type=named_folders --species=lynx --dry
 
 """
 
@@ -75,10 +75,10 @@ class Ingestable(object):
         return ut.repr2(self.__dict__)
 
     def ensure_feasibility(self):
-        rawdir  = ibeis.sysres.get_rawdir()
+        rawdir  = wbia.sysres.get_rawdir()
         if self.img_dir is None:
             # Try to find data either the raw or work dir
-            self.img_dir = ibeis.sysres.db_to_dbdir(
+            self.img_dir = wbia.sysres.db_to_dbdir(
                 self.dbname, extra_workdirs=[rawdir], allow_newdir=True)
         msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
         assert self.img_dir is not None, msg
@@ -101,7 +101,7 @@ class Ingestable2(object):
         self.imgpath_list = imgpath_list
         self.postingest_func = postingest_func
 
-        from ibeis import dtool
+        from wbia import dtool
         # valid_species = None
         valid_species = ['____']
 
@@ -149,7 +149,7 @@ class Ingestable2(object):
         def list_images(img_dir):
             """ lists images that are not in an internal cache """
             import utool as ut  # NOQA
-            ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+            ignore_list = ['_hsdb', '.hs_internals', '_wbia_cache', '_ibsdb']
             gpath_list = ut.list_images(img_dir, fullpath=True, recursive=True,
                                         ignore_list=ignore_list)
             return gpath_list
@@ -218,10 +218,10 @@ class Ingestable2(object):
 
 def ingest_rawdata(ibs, ingestable, localize=False):
     """
-    Ingests rawdata into an ibeis database.
+    Ingests rawdata into an wbia database.
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         ingestable (Ingestable):
         localize (bool): (default = False)
 
@@ -235,18 +235,18 @@ def ingest_rawdata(ibs, ingestable, localize=False):
             Converts imgname structure where imgnames = name_id.ext, to ibsdb
 
     CommandLine:
-        python ibeis/dbio/ingest_database.py --db seals_drop2
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+        python wbia/dbio/ingest_database.py --db seals_drop2
+        python -m wbia.dbio.ingest_database --exec-ingest_rawdata
+        python -m wbia.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
-        python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
-        python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=named_folders --species=humpback
+        python -m wbia --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
+        python -m wbia --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=named_folders --species=humpback
 
     Example:
         >>> # SCRIPT
         >>> # General ingest script
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.ingest_database import *  # NOQA
+        >>> import wbia
         >>> dbname = ut.get_argval('--db', str, None)  # 'snow-leopards')
         >>> force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
         >>> img_dir = ut.get_argval('--imgdir', type_=str, default=None)
@@ -262,11 +262,11 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>>     dbname, img_dir=img_dir, ingest_type=ingest_type,
         >>>     fmtkey=fmtkey, species=species, images_as_annots=images_as_annots,
         >>>     adjust_percent=0.00)
-        >>> from ibeis.control import IBEISControl
-        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True)
+        >>> from wbia.control import IBEISControl
+        >>> dbdir = wbia.sysres.db_to_dbdir(dbname, allow_newdir=True)
         >>> ut.ensuredir(dbdir, verbose=True)
         >>> if force_delete:
-        >>>     ibsfuncs.delete_ibeis_database(dbdir)
+        >>>     ibsfuncs.delete_wbia_database(dbdir)
         >>> ibs = IBEISControl.request_IBEISController(dbdir)
         >>> localize = False
         >>> gid_list = ingest_rawdata(ibs, ingestable, localize)
@@ -276,7 +276,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     print('[ingest_rawdata] Ingestable' + str(ingestable))
 
     if ingestable.zipfile is not None:
-        zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
+        zipfile_fpath = ut.truepath(join(wbia.sysres.get_workdir(), ingestable.zipfile))
         ingestable.img_dir = ut.unarchive_file(zipfile_fpath)
 
     img_dir         = realpath(ingestable.img_dir)
@@ -309,7 +309,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     def list_images(img_dir):
         """ lists images that are not in an internal cache """
         import utool as ut  # NOQA
-        ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+        ignore_list = ['_hsdb', '.hs_internals', '_wbia_cache', '_ibsdb']
         gpath_list = ut.list_images(img_dir,
                                     fullpath=True,
                                     recursive=True,
@@ -398,7 +398,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     TURTLE_HURISTIC = 'turtles' in img_dir
     if TURTLE_HURISTIC:
         """
-        python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
+        python -m wbia --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
         """
         aid_list = ibs.get_valid_aids()
         parent_gids = ibs.get_annot_gids(aid_list)
@@ -489,11 +489,11 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         list: name_list - based on the parent folder of each image
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+        python -m wbia.dbio.ingest_database --test-get_name_texts_from_gnames
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> gpath_list = ['e_f0273_f.jpg', 'f0001_f.jpg', 'f0259_l_3.jpg', 'f0259_f_1.jpg',  'f0259_f (1).jpg', 'f0058_u16_f.jpg']
         >>> img_dir = ''
         >>> fmtkey = FMT_KEYS.elephant_fmt
@@ -628,20 +628,20 @@ def ingest_testdb1(dbname):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> import utool as ut
-        >>> from ibeis import demodata
-        >>> import ibeis
+        >>> from wbia import demodata
+        >>> import wbia
         >>> demodata.ensure_testdata()
         >>> # DELETE TESTDB1
-        >>> TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), 'testdb1')
+        >>> TESTDB1 = ut.unixjoin(wbia.sysres.get_workdir(), 'testdb1')
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from ibeis import demodata  # TODO: remove and use utool appdir
+    from wbia import demodata  # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
-        from ibeis import constants as const
+        from wbia import constants as const
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
 
@@ -680,7 +680,7 @@ def ingest_testdb1(dbname):
         unname_aids = ut.compress(aid_list, flag_list)
         ibs.delete_annot_nids(unname_aids)
         # Add all annotations with names as exemplars
-        #from ibeis.control.IBEISControl import IBEISController
+        #from wbia.control.IBEISControl import IBEISController
         #assert isinstance(ibs, IBEISController)
         unflagged_aids = ut.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
@@ -772,7 +772,7 @@ def ingest_polar_bears(dbname):
 def ingest_wilddog_peter(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
+        python -m wbia.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
     """
     return Ingestable(dbname, ingest_type='unknown',
                       img_dir='/raid/raw_rsync/african-dogs',
@@ -784,7 +784,7 @@ def ingest_wilddog_peter(dbname):
 def ingest_lynx(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+        python -m wbia.dbio.ingest_database --exec-injest_main --db lynx
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='/raid/raw_rsync/iberian-lynx/CARPETAS CATALOGO INDIVIDUOS/',
@@ -797,7 +797,7 @@ def ingest_lynx(dbname):
 def ingest_whale_sharks(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+        python -m wbia.dbio.ingest_database --exec-injest_main --db WS_ALL
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='named-left-sharkimages',
@@ -871,19 +871,19 @@ def ingest_standard_database(dbname, force_delete=False):
         force_delete (bool):
 
     Ignore:
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> dbname = 'testdb1'
         >>> force_delete = False
         >>> result = ingest_standard_database(dbname, force_delete)
         >>> print(result)
     """
-    from ibeis.control import IBEISControl
+    from wbia.control import IBEISControl
     print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
     ingestable = get_standard_ingestable(dbname)
-    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
+    dbdir = wbia.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
     ut.ensuredir(dbdir, verbose=True)
     if force_delete:
-        ibsfuncs.delete_ibeis_database(dbdir)
+        ibsfuncs.delete_wbia_database(dbdir)
     ibs = IBEISControl.request_IBEISController(dbdir)
     ingest_rawdata(ibs, ingestable)
 
@@ -900,25 +900,25 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+        python -m wbia.dbio.ingest_database --exec-ingest_oxford_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> dbdir = '/raid/work/Oxford'
         >>> dryrun = True
         >>> ingest_oxford_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
 
     Ignore:
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.dbio.ingest_database import *  # NOQA
+        >>> import wbia
         >>> dbdir = '/raid/work/Oxford'
         >>> dbdir = '/raid/work/Paris'
         >>>
-        #>>> ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)
+        #>>> wbia.dbio.convert_db.ingest_oxford_style_db(dbdir)
     """
     print('Loading Oxford Style Images from: ' + dbdir)
 
@@ -1045,9 +1045,9 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     # Build IBEIS database
 
     if not dryrun:
-        ibs = ibeis.opendb(dbdir, allow_newdir=True)
+        ibs = wbia.opendb(dbdir, allow_newdir=True)
         print('adding to table: ')
-        # Add images to ibeis
+        # Add images to wbia
         gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
         gid_list = ibs.add_images(gpath_list, auto_localize=False)
 
@@ -1090,7 +1090,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     if update:
         # TODO: integrate this into normal ingest pipeline
         'Oxford'
-        ibs = ibeis.opendb(dbdir)
+        ibs = wbia.opendb(dbdir)
         aid_list = ibs.get_valid_aids()
         notes_list = ibs.get_annot_notes(aid_list)
         _dict = {
@@ -1104,13 +1104,13 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         ibs._overwrite_all_annot_species_to('building')
 
         tags_list = [[note] if note in ['query', 'distractor'] else [] for note in notes_list]
-        from ibeis import tag_funcs
+        from wbia import tag_funcs
         tag_funcs.append_annot_case_tags(ibs, aid_list, tags_list)
         #ibs._set
         # tags_ = ibs.get_annot_case_tags(aid_list)
         # pass
         """
-        python -m ibeis --tf filter_annots_general --db Oxford --has_any=[query]
+        python -m wbia --tf filter_annots_general --db Oxford --has_any=[query]
         """
     if False:
         """
@@ -1138,7 +1138,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         query_df2 = pd.DataFrame(query_annot_rows, columns=['gname', 'bbox', 'name', 'num'])
 
         # Fix query bounding boxes
-        ibs = ibeis.opendb(dbdir)
+        ibs = wbia.opendb(dbdir)
         qaids = ibs.filter_annots_general(has_any='query')
         qannots = ibs.annots(qaids)
 
@@ -1182,16 +1182,16 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_coco_style_db --show
+        python -m wbia.dbio.ingest_database --exec-ingest_coco_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> dbdir = '/Datasets/coco'
         >>> dryrun = True
         >>> ingest_coco_style_db(dbdir)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import simplejson as json
@@ -1458,7 +1458,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         image_imagesets_list.append(image_imageset_list)
 
     if not dryrun:
-        ibs = ibeis.opendb(dbdir, allow_newdir=True)
+        ibs = wbia.opendb(dbdir, allow_newdir=True)
 
         # Add images to the database
         gid_list = ibs.add_images(image_filepath_list)
@@ -1538,20 +1538,20 @@ def ingest_serengeti_mamal_cameratrap(species):
         species (?):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
+        python -m wbia.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
+        python -m wbia.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> import ibeis
-        >>> species = ut.get_argval('--species', type_=str, default=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> from wbia.dbio.ingest_database import *  # NOQA
+        >>> import wbia
+        >>> species = ut.get_argval('--species', type_=str, default=wbia.const.TEST_SPECIES.ZEB_PLAIN)
         >>> # species = ut.get_argval('--species', type_=str, default='cheetah')
         >>> result = ingest_serengeti_mamal_cameratrap(species)
         >>> print(result)
     """
     'https://snapshotserengeti.s3.msi.umn.edu/'
-    import ibeis
+    import wbia
 
     if species is None:
         code = 'ALL'
@@ -1572,7 +1572,7 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     dbname = code + '_Serengeti'
     print('dbname = %r' % (dbname,))
-    dbdir = ut.ensuredir(join(ibeis.sysres.get_workdir(), dbname))
+    dbdir = ut.ensuredir(join(wbia.sysres.get_workdir(), dbname))
     print('dbdir = %r' % (dbdir,))
     image_dir = ut.ensuredir(join(dbdir, 'images'))
 
@@ -1661,7 +1661,7 @@ def ingest_serengeti_mamal_cameratrap(species):
     image_url_info_list = chosen_url_infos
     chosen_path_list = download_image_urls(chosen_url_infos)
 
-    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    ibs = wbia.opendb(dbdir=dbdir, allow_newdir=True)
     gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)  # NOQA
 
     #if False:
@@ -1678,27 +1678,27 @@ def ingest_serengeti_mamal_cameratrap(species):
 def injest_main():
     r"""
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-injest_main
-        python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
+        python -m wbia.dbio.ingest_database --test-injest_main
+        python -m wbia.dbio.ingest_database --test-injest_main --db snow-leopards
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> injest_main()
     """
     print('__main__ = ingest_database.py')
     print(ut.unindent(
         '''
         usage:
-        python ibeis/ingest/ingest_database.py --db [dbname]
+        python wbia/ingest/ingest_database.py --db [dbname]
 
         Valid dbnames:''') + ut.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
     dbname = ut.get_argval('--db', str, None)
     force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
     ibs = ingest_standard_database(dbname, force_delete)  # NOQA
     print('finished db injest')
-    #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
-    #main_locals = ibeis.main(dbdir=img_dir, gui=False)
+    #img_dir = join(wbia.sysres.get_workdir(), 'polar_bears')
+    #main_locals = wbia.main(dbdir=img_dir, gui=False)
     #ibs = main_locals['ibs']
     #ingest_rawdata(ibs, img_dir)
 
@@ -1706,7 +1706,7 @@ def injest_main():
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ibeis.dbio.ingest_database
+        xdoctest -m wbia.dbio.ingest_database
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

@@ -6,37 +6,37 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import itertools as it
 import numpy as np
 import utool as ut
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
-from ibeis.algo.graph.state import SAME, DIFF, NULL  # NOQA
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
 def make_dummy_infr(annots_per_name):
-    import ibeis
+    import wbia
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
-    infr = ibeis.AnnotInference(None, aids, nids=nids, autoinit=True,
+    infr = wbia.AnnotInference(None, aids, nids=nids, autoinit=True,
                                 verbose=1)
     return infr
 
 
 def demodata_mtest_infr(state='empty'):
-    import ibeis
-    ibs = ibeis.opendb(db='PZ_MTEST')
+    import wbia
+    ibs = wbia.opendb(db='PZ_MTEST')
     annots = ibs.annots()
     names = list(annots.group_items(annots.nids).values())
     ut.shuffle(names, rng=321)
     test_aids = ut.flatten(names[1::2])
-    infr = ibeis.AnnotInference(ibs, test_aids, autoinit=True)
+    infr = wbia.AnnotInference(ibs, test_aids, autoinit=True)
     infr.reset(state=state)
     return infr
 
 
 def demodata_infr2(defaultdb='PZ_MTEST'):
     defaultdb = 'PZ_MTEST'
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     annots = ibs.annots()
     names = list(annots.group_items(annots.nids).values())[0:20]
     def dummy_phi(c, n):
@@ -50,7 +50,7 @@ def demodata_infr2(defaultdb='PZ_MTEST'):
         for c in range(1, 4)
     }
     aids = ut.flatten(names)
-    infr = ibeis.AnnotInference(ibs, aids, autoinit=True)
+    infr = wbia.AnnotInference(ibs, aids, autoinit=True)
     infr.init_termination_criteria(phis)
     infr.init_refresh_criteria()
 
@@ -68,18 +68,18 @@ def demodata_infr2(defaultdb='PZ_MTEST'):
 def demo2():
     """
     CommandLine:
-        python -m ibeis.algo.graph.demo demo2 --viz
-        python -m ibeis.algo.graph.demo demo2
+        python -m wbia.algo.graph.demo demo2 --viz
+        python -m wbia.algo.graph.demo demo2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.graph.demo import *  # NOQA
+        >>> from wbia.algo.graph.demo import *  # NOQA
         >>> result = demo2()
         >>> print(result)
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
     mpl.rcParams.update(TMP_RC)
 
@@ -402,13 +402,13 @@ def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
     Depricate in favor of demodata_infr
     """
 
-    import ibeis
+    import wbia
     import networkx as nx
 
     if nx.__version__.startswith('1'):
         nx.add_path = nx.Graph.add_path
 
-    G = ibeis.AnnotInference._graph_cls()
+    G = wbia.AnnotInference._graph_cls()
     G.add_nodes_from(nodes)
     for cc in ccs:
         if len(cc) == 1:
@@ -419,7 +419,7 @@ def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
     #     u, v, d = edge if len(edge) == 3 else tuple(edge) + ({},)
 
     G.add_edges_from(edges)
-    infr = ibeis.AnnotInference.from_netx(G, infer=infer)
+    infr = wbia.AnnotInference.from_netx(G, infer=infer)
     infr.verbose = 3
 
     infr.relabel_using_reviews(rectify=False)
@@ -440,13 +440,13 @@ def demodata_infr(**kwargs):
     kwargs = {}
 
     CommandLine:
-        python -m ibeis.algo.graph.demo demodata_infr --show
-        python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
-        python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=100
+        python -m wbia.algo.graph.demo demodata_infr --show
+        python -m wbia.algo.graph.demo demodata_infr --num_pccs=25
+        python -m wbia.algo.graph.demo demodata_infr --profile --num_pccs=100
 
     Ignore:
-        >>> from ibeis.algo.graph.demo import *  # NOQA
-        >>> from ibeis.algo.graph import demo
+        >>> from wbia.algo.graph.demo import *  # NOQA
+        >>> from wbia.algo.graph import demo
         >>> import networkx as nx
         >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
         >>> kwargs = ut.argparse_dict(kwargs)
@@ -471,7 +471,7 @@ def demodata_infr(**kwargs):
     """
     import networkx as nx
     import vtool_ibeis as vt
-    from ibeis.algo.graph import nx_utils
+    from wbia.algo.graph import nx_utils
 
     def kwalias(*args):
         params = args[0:-1]
@@ -647,12 +647,12 @@ def demodata_infr(**kwargs):
     else:
         print('ignoring pairs')
 
-    import ibeis
-    G = ibeis.AnnotInference._graph_cls()
+    import wbia
+    G = wbia.AnnotInference._graph_cls()
     G.add_nodes_from(pos_g.nodes(data=True))
     G.add_edges_from(pos_g.edges(data=True))
     G.add_edges_from(neg_edges)
-    infr = ibeis.AnnotInference.from_netx(G, infer=kwargs.get('infer', True))
+    infr = wbia.AnnotInference.from_netx(G, infer=kwargs.get('infer', True))
     infr.verbose = 3
 
     infr.relabel_using_reviews(rectify=False)
@@ -698,12 +698,12 @@ class DummyVerif(object):
     generates dummy scores between edges (not necesarilly in the graph)
 
     CommandLine:
-        python -m ibeis.algo.graph.demo DummyVerif:1
+        python -m wbia.algo.graph.demo DummyVerif:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.demo import *  # NOQA
-        >>> from ibeis.algo.graph import demo
+        >>> from wbia.algo.graph.demo import *  # NOQA
+        >>> from wbia.algo.graph import demo
         >>> import networkx as nx
         >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
         >>> infr = demo.demodata_infr(**kwargs)
@@ -729,18 +729,18 @@ class DummyVerif(object):
     def show_score_probs(verif):
         """
         CommandLine:
-            python -m ibeis.algo.graph.demo DummyVerif.show_score_probs --show
+            python -m wbia.algo.graph.demo DummyVerif.show_score_probs --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.demo import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference(None)
+            >>> from wbia.algo.graph.demo import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference(None)
             >>> verif = DummyVerif(infr)
             >>> verif.show_score_probs()
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         dist = verif.score_dist
         n = 100000
         for key in verif.dummy_params.keys():
@@ -793,8 +793,8 @@ class DummyVerif(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.demo import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.demo import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> import networkx as nx
             >>> kwargs = dict(num_pccs=40, size=2)
             >>> infr = demo.demodata_infr(**kwargs)
@@ -821,12 +821,12 @@ class DummyVerif(object):
     def predict_proba_df(verif, edges):
         """
         CommandLine:
-            python -m ibeis.algo.graph.demo DummyVerif.predict_edges
+            python -m wbia.algo.graph.demo DummyVerif.predict_edges
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.demo import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.demo import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> import networkx as nx
             >>> kwargs = dict(num_pccs=40, size=2)
             >>> infr = demo.demodata_infr(**kwargs)
@@ -860,7 +860,7 @@ class DummyVerif(object):
                 for edge, probs in zip(group, zip(probs0, probs1, probs2)):
                     prob_cache[edge] = ut.dzip(states, probs)
 
-        from ibeis.algo.graph import nx_utils as nxu
+        from wbia.algo.graph import nx_utils as nxu
         import pandas as pd
         probs = pd.DataFrame(
             ut.take(prob_cache, edges),
@@ -875,11 +875,11 @@ class DummyVerif(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph
-        python -m ibeis.algo.graph.demo demo2
-        python -m ibeis.algo.graph.demo
-        python -m ibeis.algo.graph.demo --allexamples
-        python -m ibeis.algo.graph.demo --allexamples --show
+        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph
+        python -m wbia.algo.graph.demo demo2
+        python -m wbia.algo.graph.demo
+        python -m wbia.algo.graph.demo --allexamples
+        python -m wbia.algo.graph.demo --allexamples --show
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

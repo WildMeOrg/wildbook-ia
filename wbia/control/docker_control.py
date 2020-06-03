@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 import utool as ut
 import time
 (print, rrr, profile) = ut.inject2(__name__)
@@ -159,7 +159,7 @@ def docker_pull_image(ibs, image_name):
 
     Verify login with “cat ~/.docker/config.json | jq ".auths" and look for “wildme.azurecr.io”
 
-    docker pull wildme.azurecr.io/ibeis/example-image:latest
+    docker pull wildme.azurecr.io/wbia/example-image:latest
 
     Pull latest nightly image
     """
@@ -333,7 +333,7 @@ def docker_get_config(ibs, container_name):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.docker_control --allexamples
+        python -m wbia.control.docker_control --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

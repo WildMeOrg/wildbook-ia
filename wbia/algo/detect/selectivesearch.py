@@ -44,7 +44,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
     Kwargs (optional): refer to the Selective Search documentation for configuration settings
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         gid_list (list of int): the list of IBEIS image_rowids that need detection
         downsample (bool, optional): a flag to indicate if the original image
                 sizes should be used; defaults to True
@@ -56,14 +56,14 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         tuple: (gid, gpath, result_list)
 
     CommandLine:
-        python -m ibeis.algo.detect.selectivesearch detect_gid_list --show
+        python -m wbia.algo.detect.selectivesearch detect_gid_list --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.selectivesearch import *  # NOQA
-        >>> from ibeis.core_images import LocalizerConfig
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.algo.detect.selectivesearch import *  # NOQA
+        >>> from wbia.core_images import LocalizerConfig
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> config = {'matlab_command': 'selective_search', 'verbose': True}
         >>> downsample = False
@@ -78,7 +78,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
 
     Yields:

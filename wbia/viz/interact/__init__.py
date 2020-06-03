@@ -4,27 +4,27 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
-ut.noinject(__name__, '[ibeis.viz.interact.__init__]', DEBUG=False)
+ut.noinject(__name__, '[wbia.viz.interact.__init__]', DEBUG=False)
 
-from ibeis.plottool import interact_helpers as ih
+from wbia.plottool import interact_helpers as ih
 
-from ibeis.viz.interact import interact_annotations2
-from ibeis.viz.interact import interact_chip
-from ibeis.viz.interact import interact_image
-from ibeis.viz.interact import interact_matches
-from ibeis.viz.interact import interact_name
-from ibeis.viz.interact import interact_qres
-from ibeis.viz.interact import interact_sver
+from wbia.viz.interact import interact_annotations2
+from wbia.viz.interact import interact_chip
+from wbia.viz.interact import interact_image
+from wbia.viz.interact import interact_matches
+from wbia.viz.interact import interact_name
+from wbia.viz.interact import interact_qres
+from wbia.viz.interact import interact_sver
 
-from ibeis.viz.interact.interact_image import ishow_image
-from ibeis.viz.interact.interact_chip import ishow_chip
-from ibeis.viz.interact.interact_name import ishow_name
-from ibeis.viz.interact.interact_sver import ishow_sver
+from wbia.viz.interact.interact_image import ishow_image
+from wbia.viz.interact.interact_chip import ishow_chip
+from wbia.viz.interact.interact_name import ishow_name
+from wbia.viz.interact.interact_sver import ishow_sver
 
 import utool
 
 print, rrr, profile = utool.inject2(
-    __name__, '[ibeis.viz.interact]')
+    __name__, '[wbia.viz.interact]')
 
 
 def reassign_submodule_attributes(verbose=True):
@@ -35,14 +35,14 @@ def reassign_submodule_attributes(verbose=True):
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
-    import ibeis.viz.interact
+    import wbia.viz.interact
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
         if len(tup) > 2 and tup[2]:
             continue  # dont import package names
         submodname, fromimports = tup[0:2]
-        submod = getattr(ibeis.viz.interact, submodname)
+        submod = getattr(wbia.viz.interact, submodname)
         for attr in dir(submod):
             if attr.startswith('_'):
                 continue
@@ -52,11 +52,11 @@ def reassign_submodule_attributes(verbose=True):
                 # which is good
                 continue
             seen_.add(attr)
-            setattr(ibeis.viz.interact, attr, getattr(submod, attr))
+            setattr(wbia.viz.interact, attr, getattr(submod, attr))
 
 
 def reload_subs(verbose=True):
-    """ Reloads ibeis.viz.interact and submodules """
+    """ Reloads wbia.viz.interact and submodules """
     rrr(verbose=verbose)
     def fbrrr(*args, **kwargs):
         """ fallback reload """
@@ -88,6 +88,6 @@ IMPORT_TUPLES = [
 
 """
 Regen Command:
-    cd /home/joncrall/code/ibeis/ibeis/viz/interact
+    cd /home/joncrall/code/wbia/wbia/viz/interact
     makeinit.py
 """

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"
 sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
-from ibeis.control.accessor_decors import (getter_1to1, getter_1toM, deleter)
+from wbia.control.accessor_decors import (getter_1to1, getter_1toM, deleter)
 import utool as ut
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -42,12 +42,12 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
         leaf = feat
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-delete_annot_feats
-        python -m ibeis.control.manual_feat_funcs --test-delete_annot_feats --verb-control
+        python -m wbia.control.manual_feat_funcs --test-delete_annot_feats
+        python -m wbia.control.manual_feat_funcs --test-delete_annot_feats --verb-control
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
+        >>> from wbia.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[:1]
         >>> fids_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)
@@ -67,13 +67,13 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
                           config2_=None, num_retries=1):
     """
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs get_annot_feat_rowids --show
+        python -m wbia.control.manual_feat_funcs get_annot_feat_rowids --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.query_request import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.algo.hots.query_request import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()[0:3]
         >>> config2_ = {}
         >>> ibs.delete_annot_feats(aids, config2_=config2_)  # Remove the chips
@@ -103,25 +103,25 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         kpts_list (list): annotation descriptor keypoints
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20
+        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128
         ipython -i -- --show --feat_type=hesaff+siam128
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
+        >>> from wbia.control.manual_feat_funcs import *  # NOQA
         >>> import vtool_ibeis as vt
         >>> import numpy as np
-        >>> import ibeis
-        >>> import ibeis.viz.interact
+        >>> import wbia
+        >>> import wbia.viz.interact
         >>> # build test data
-        >>> qreq1_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=['default:RI=True'])
-        >>> qreq2_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=['default:RI=False'])
+        >>> qreq1_ = wbia.testdata_qreq_(defaultdb='testdb1', p=['default:RI=True'])
+        >>> qreq2_ = wbia.testdata_qreq_(defaultdb='testdb1', p=['default:RI=False'])
         >>> ibs = qreq1_.ibs
         >>> aid_list = qreq1_.get_external_qaids()
         >>> with ut.Indenter('[TEST_GET_ANNOT_KPTS]'):
@@ -146,9 +146,9 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> assert not np.all(vt.get_oris(kpts1_list[0]) == 0)
         >>> assert np.all(vt.get_oris(kpts2_list[0]) == 0)
         >>> ut.quit_if_noshow()
-        >>> #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.extern_query_config2, ori=True, fnum=1)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.extern_query_config2, ori=True, fnum=2)
+        >>> #wbia.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)
+        >>> wbia.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.extern_query_config2, ori=True, fnum=1)
+        >>> wbia.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.extern_query_config2, ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
     return ibs.depc_annot.get('feat', aid_list, 'kpts', config=config2_,
@@ -179,16 +179,16 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         nFeats_list (list): num descriptors per annotation
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_num_feats
+        python -m wbia.control.manual_feat_funcs --test-get_annot_num_feats
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # this test might fail on different machines due to
         >>> # determenism bugs in hesaff maybe? or maybe jpeg...
         >>> # in which case its hopeless
-        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_feat_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True, config2_=config2_, _debug=True)
@@ -211,8 +211,8 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
 
 
 def testdata_ibs():
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
 
@@ -220,9 +220,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs
-        python -m ibeis.control.manual_feat_funcs --allexamples
-        python -m ibeis.control.manual_feat_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_feat_funcs
+        python -m wbia.control.manual_feat_funcs --allexamples
+        python -m wbia.control.manual_feat_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

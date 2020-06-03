@@ -11,8 +11,8 @@ import itertools as it
 from functools import partial
 from six import next
 from six.moves import zip, range, map, reduce
-from ibeis.expt import cfghelpers
-from ibeis.expt import experiment_helpers
+from wbia.expt import cfghelpers
+from wbia.expt import experiment_helpers
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -33,29 +33,29 @@ def build_cmsinfo(cm_list, qreq_):
         dict: cmsinfo - info about multiple chip matches cm_list
 
     CommandLine:
-        python -m ibeis get_query_result_info
-        python -m ibeis get_query_result_info:0 --db lynx \
+        python -m wbia get_query_result_info
+        python -m wbia get_query_result_info:0 --db lynx \
             -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1
-        python -m ibeis get_query_result_info:0 --db lynx \
+        python -m wbia get_query_result_info:0 --db lynx \
             -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1 --cmd
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.test_result import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=[':qindex=0:3,dindex=0:5'])
+        >>> from wbia.expt.test_result import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(a=[':qindex=0:3,dindex=0:5'])
         >>> cm_list = qreq_.execute()
         >>> cmsinfo = build_cmsinfo(cm_list, qreq_)
         >>> print(ut.repr2(cmsinfo))
 
     Ignore:
-        ibeis -e rank_cmc --db humpbacks -a :has_any=hasnotch,mingt=2 \
+        wbia -e rank_cmc --db humpbacks -a :has_any=hasnotch,mingt=2 \
                 -t :proot=BC_DTW --show --nocache-big
 
-        ibeis -e rank_cmc --db humpbacks -a :is_known=True,mingt=2 \
+        wbia -e rank_cmc --db humpbacks -a :is_known=True,mingt=2 \
                 -t :pipeline_root=BC_DTW
 
-        ibeis -e rank_cmc --db humpbacks -a :is_known=True \
+        wbia -e rank_cmc --db humpbacks -a :is_known=True \
                 -t :pipeline_root=BC_DTW \
                 --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 \
                 --show --debug-depc
@@ -162,20 +162,20 @@ def combine_testres_list(ibs, testres_list):
     A cfgx corresponds to a unique query request
 
     CommandLine:
-        python -m ibeis --tf combine_testres_list
+        python -m wbia --tf combine_testres_list
 
-        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show
-        python -m ibeis --tf -draw_rank_cmc --db PZ_Master1 --show
-        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
+        python -m wbia --tf -draw_rank_cmc --db PZ_MTEST --show
+        python -m wbia --tf -draw_rank_cmc --db PZ_Master1 --show
+        python -m wbia --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
+        python -m wbia --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
 
     >>> # DISABLE_DOCTEST
-    >>> from ibeis.expt.test_result import *  # NOQA
-    >>> from ibeis.expt import harness
+    >>> from wbia.expt.test_result import *  # NOQA
+    >>> from wbia.expt import harness
     >>> ibs, testres = harness.testdata_expts('PZ_MTEST', ['varysize'])
     """
     import copy
-    from ibeis.expt import annotation_configs
+    from wbia.expt import annotation_configs
 
     acfg_list = [tr.acfg for tr in testres_list]
     acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
@@ -240,12 +240,12 @@ class TestResult(ut.NiceRepr):
     """
     CommandLine:
         export SMK_PIPE="smk:nwords=[64000],sv=[False]"
-        ibeis TestResult --db PZ_MTEST -a ctrl -p $SMK_PIPE
-        ibeis TestResult --db Oxford   -a oxford -p $SMK_PIPE
+        wbia TestResult --db PZ_MTEST -a ctrl -p $SMK_PIPE
+        wbia TestResult --db Oxford   -a oxford -p $SMK_PIPE
 
     Example:
         >>> # Script
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.init import main_helpers
         >>> import utool as ut
         >>> ibs, testres = main_helpers.testdata_expts()
         >>> testres.help()
@@ -426,8 +426,8 @@ class TestResult(ut.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('testdb1', a=['default'])
             >>> bins = 'dense'
             >>> key = 'qnx2_gt_name_rank'
@@ -473,19 +473,19 @@ class TestResult(ut.NiceRepr):
             tuple: (config_cdfs, edges)
 
         CommandLine:
-            python -m ibeis --tf TestResult.get_rank_percentage_cumhist
-            python -m ibeis --tf TestResult.get_rank_percentage_cumhist \
+            python -m wbia --tf TestResult.get_rank_percentage_cumhist
+            python -m wbia --tf TestResult.get_rank_percentage_cumhist \
                 -t baseline -a unctrl ctrl
 
-            python -m ibeis --tf TestResult.get_rank_percentage_cumhist \
+            python -m wbia --tf TestResult.get_rank_percentage_cumhist \
                 --db lynx \
                 -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 -t default:K=1 --show --cmd
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts(
             >>>     'testdb1', a=['default:num_names=1,name_offset=[0,1]'])
             >>> bins = u'dense'
@@ -517,7 +517,7 @@ class TestResult(ut.NiceRepr):
             >>>     'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
             >>>     'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
             >>> ]
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.init import main_helpers
             >>> #a = 'default:minqual=good,require_timestamp=True,crossval_enc=True,view=[right,left]'
             >>> t = 'default:K=[1]'
             >>> ibs, testres = main_helpers.testdata_expts('WWF_Lynx_Copy', a=a, t=t)
@@ -528,8 +528,8 @@ class TestResult(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts(
             >>>    'PZ_MTEST',
             >>>     a=['default:qnum_names=1,qname_offset=[0,1],joinme=1,dpername=1',
@@ -597,13 +597,13 @@ class TestResult(ut.NiceRepr):
             list: varied_params
 
         CommandLine:
-            python -m ibeis TestResult.get_all_varied_params
+            python -m wbia TestResult.get_all_varied_params
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> testres = ibeis.testdata_expts(
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> testres = wbia.testdata_expts(
             >>>     'PZ_MTEST', t='default:K=[1,2]')[1]
             >>> varied_params = sorted(testres.get_all_varied_params())
             >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
@@ -702,7 +702,7 @@ class TestResult(ut.NiceRepr):
         CommandLine:
             # TODO: More robust fix
             # To reproduce the error
-            ibeis -e rank_cmc --db humpbacks_fb -a default:mingt=2,qsize=10,dsize=100 default:qmingt=2,qsize=10,dsize=100 -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_score_weight=0.5 --show
+            wbia -e rank_cmc --db humpbacks_fb -a default:mingt=2,qsize=10,dsize=100 default:qmingt=2,qsize=10,dsize=100 -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_score_weight=0.5 --show
         """
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
@@ -812,13 +812,13 @@ class TestResult(ut.NiceRepr):
         cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
 
         CommandLine:
-            python -m ibeis --tf TestResult.get_short_cfglbls
+            python -m wbia --tf TestResult.get_short_cfglbls
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl:size=10'],
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_MTEST', a=['ctrl:size=10'],
             >>>                                     t=['default:dim_size=[450,550]'])
             >>> cfg_lbls = testres.get_short_cfglbls()
             >>> result = ('cfg_lbls = %s' % (ut.repr2(cfg_lbls),))
@@ -828,7 +828,7 @@ class TestResult(ut.NiceRepr):
                 'default:dim_size=550+ctrl',
             ]
         """
-        from ibeis.expt import annotation_configs
+        from wbia.expt import annotation_configs
         if False:
             acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in testres.cfgx2_acfg]
             pcfg_names = [pcfg['_cfgstr'] for pcfg in testres.cfgx2_pcfg]
@@ -902,15 +902,15 @@ class TestResult(ut.NiceRepr):
         Helper for consistent figure titles
 
         CommandLine:
-            python -m ibeis --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
-            python -m ibeis --tf TestResult.make_figtitle
-            python -m ibeis TestResult.get_varied_labels
+            python -m wbia --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
+            python -m wbia --tf TestResult.make_figtitle
+            python -m wbia TestResult.get_varied_labels
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts(
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts(
             >>>     'PZ_MTEST', t='default:K=[1,2]',
             >>>     #a=['timectrl:qsize=[1,2],dsize=[3,4]']
             >>>     a=[
@@ -920,7 +920,7 @@ class TestResult(ut.NiceRepr):
             >>>        'default:qsize=4,dsize=5,joinme=2,view=primary',
             >>>       ]
             >>> )
-            >>> # >>> ibs, testres = ibeis.testdata_expts(
+            >>> # >>> ibs, testres = wbia.testdata_expts(
             >>> # >>>     'WWF_Lynx_Copy', t='default:K=1',
             >>> # >>>     a=[
             >>> # >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
@@ -937,7 +937,7 @@ class TestResult(ut.NiceRepr):
 
             varied_lbls = [u'K=1+qsize=1', u'K=2+qsize=1', u'K=1+qsize=2', u'K=2+qsize=2']
         """
-        from ibeis.expt import annotation_configs
+        from wbia.expt import annotation_configs
         varied_acfgs = annotation_configs.get_varied_acfg_labels(
             testres.cfgx2_acfg, checkname=True)
         # print('varied_acfgs = %s' % (ut.repr2(varied_acfgs, nl=2),))
@@ -1051,14 +1051,14 @@ class TestResult(ut.NiceRepr):
         Helper for consistent figure titles
 
         CommandLine:
-            python -m ibeis --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
-            python -m ibeis --tf TestResult.make_figtitle
+            python -m wbia --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
+            python -m wbia --tf TestResult.make_figtitle
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_MTEST')
             >>> plotname = ''
             >>> figtitle = testres.make_figtitle(plotname)
             >>> result = ('figtitle = %r' % (figtitle,))
@@ -1091,13 +1091,13 @@ class TestResult(ut.NiceRepr):
             str: title_aug
 
         CommandLine:
-            python -m ibeis --tf TestResult.get_title_aug --db PZ_Master1 -a timequalctrl::timectrl
+            python -m wbia --tf TestResult.get_title_aug --db PZ_Master1 -a timequalctrl::timectrl
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_MTEST')
             >>> with_size = True
             >>> title_aug = testres.get_title_aug(with_size)
             >>> res = u'title_aug = %s' % (title_aug,)
@@ -1193,7 +1193,7 @@ class TestResult(ut.NiceRepr):
         """
         Prints verbose information about each pipeline configuration
 
-            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> from wbia.expt.test_result import *  # NOQA
         """
         # TODO: Rectify with other printers
         # for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
@@ -1212,7 +1212,7 @@ class TestResult(ut.NiceRepr):
         configuration
 
         CommandLine:
-            python -m ibeis --tf TestResult.print_acfg_info
+            python -m wbia --tf TestResult.print_acfg_info
 
         Kwargs:
             see ibs.get_annot_stats_dict
@@ -1221,16 +1221,16 @@ class TestResult(ut.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST',
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_MTEST',
             >>>                                     a=['ctrl::unctrl_comp'],
             >>>                                     t=['candk:K=[1,2]'])
             >>> ibs = None
             >>> result = testres.print_acfg_info()
             >>> print(result)
         """
-        from ibeis.expt import annotation_configs
+        from wbia.expt import annotation_configs
         ibs = testres.ibs
         # Get unique annotation configs
         cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(testres.cfgx2_acfg)
@@ -1243,16 +1243,16 @@ class TestResult(ut.NiceRepr):
     def print_unique_annot_config_stats(testres, ibs=None):
         r"""
         Args:
-            ibs (IBEISController): ibeis controller object(default = None)
+            ibs (IBEISController): wbia controller object(default = None)
 
         CommandLine:
-            python -m ibeis TestResult.print_unique_annot_config_stats
+            python -m wbia TestResult.print_unique_annot_config_stats
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> testres = wbia.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
             >>> ibs = None
             >>> result = testres.print_unique_annot_config_stats(ibs)
             >>> print(result)
@@ -1286,17 +1286,17 @@ class TestResult(ut.NiceRepr):
     def print_results(testres, **kwargs):
         r"""
         CommandLine:
-            python -m ibeis --tf TestResult.print_results
+            python -m wbia --tf TestResult.print_results
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.expt import harness
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.expt import harness
             >>> ibs, testres = harness.testdata_expts('PZ_MTEST')
             >>> result = testres.print_results()
             >>> print(result)
         """
-        from ibeis.expt import experiment_printres
+        from wbia.expt import experiment_printres
         ibs = testres.ibs
         experiment_printres.print_results(ibs, testres, **kwargs)
 
@@ -1322,14 +1322,14 @@ class TestResult(ut.NiceRepr):
     def get_all_tags(testres):
         r"""
         CommandLine:
-            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :
-            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
-            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h,max_gt_rank=5
+            python -m wbia --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :
+            python -m wbia --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
+            python -m wbia --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h,max_gt_rank=5
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = testres.case_sample2(filt_cfg)
@@ -1338,7 +1338,7 @@ class TestResult(ut.NiceRepr):
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
             >>> print(ut.repr2(ut.dict_hist(flat_tags), key_order_metric='val'))
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
             >>> pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
             >>> pt.set_figtitle(ut.get_cfg_lbl(filt_cfg))
@@ -1355,12 +1355,12 @@ class TestResult(ut.NiceRepr):
             list: case_pos_list
 
         CommandLine:
-            python -m ibeis --tf TestResult.get_gf_tags --db PZ_Master1 --show
+            python -m wbia --tf TestResult.get_gf_tags --db PZ_Master1 --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = testres.case_sample2(filt_cfg)
@@ -1412,18 +1412,18 @@ class TestResult(ut.NiceRepr):
             list: case_pos_list (list of (qx, cfgx)) or isvalid mask
 
         CommandLine:
-            python -m ibeis TestResult.case_sample2
-            python -m ibeis TestResult.case_sample2:0
-            python -m ibeis TestResult.case_sample2:1 --db GZ_ALL --filt :min_tags=1
-            python -m ibeis TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
+            python -m wbia TestResult.case_sample2
+            python -m wbia TestResult.case_sample2:0
+            python -m wbia TestResult.case_sample2:1 --db GZ_ALL --filt :min_tags=1
+            python -m wbia TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
 
-            python -m ibeis TestResult.case_sample2:2 --db PZ_Master1
+            python -m wbia TestResult.case_sample2:2 --db PZ_Master1
 
         Example0:
             >>> # ENABLE_DOCTEST
             >>> # The same results is achievable with different filter config settings
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> verbose = True
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
@@ -1454,8 +1454,8 @@ class TestResult(ut.NiceRepr):
 
         Example1:
             >>> # SCRIPT
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = testres.case_sample2(filt_cfg)
@@ -1468,8 +1468,8 @@ class TestResult(ut.NiceRepr):
 
         Example1:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'], t=['default:K=[1,2,3]'])
             >>> ut.exec_funckw(testres.case_sample2, globals())
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
@@ -1498,7 +1498,7 @@ class TestResult(ut.NiceRepr):
             print('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
             print('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
         """
-        from ibeis.expt import cfghelpers
+        from wbia.expt import cfghelpers
         if verbose is None:
             verbose = ut.NOT_QUIET
         if verbose:
@@ -1525,7 +1525,7 @@ class TestResult(ut.NiceRepr):
         is_valid = participates.copy()
 
         def unflat_tag_filterflags(tags_list, **kwargs):
-            from ibeis import tag_funcs
+            from wbia import tag_funcs
             flat_tags, cumsum = ut.invertible_flatten2(tags_list)
             flat_flags = tag_funcs.filterflags_general_tags(flat_tags, **kwargs)
             flags = np.array(ut.unflatten2(flat_flags, cumsum))
@@ -1824,18 +1824,18 @@ class TestResult(ut.NiceRepr):
             tuple: (truth2_prop, prop2_mat)
 
         CommandLine:
-            python -m ibeis.expt.test_result --exec-get_truth2_prop --show
+            python -m wbia.expt.test_result --exec-get_truth2_prop --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
             >>> result = '(truth2_prop, prop2_mat) = %s' % str((truth2_prop, prop2_mat))
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> ut.show_if_requested()
         """
 
@@ -1976,27 +1976,27 @@ class TestResult(ut.NiceRepr):
         r"""
 
         CommandLine:
-            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db PZ_Master1
-            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db GZ_Master1
-            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td1h -t best --db GIRM_Master1
+            python -m wbia --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db PZ_Master1
+            python -m wbia --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db GZ_Master1
+            python -m wbia --tf TestResult.draw_score_diff_disti --show -a varynannots_td1h -t best --db GIRM_Master1
 
-            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td:qmin_pername=3,dpername=2 -t best --db PZ_Master1
+            python -m wbia --tf TestResult.draw_score_diff_disti --show -a varynannots_td:qmin_pername=3,dpername=2 -t best --db PZ_Master1
 
-            python -m ibeis --tf get_annotcfg_list -a varynannots_td -t best --db PZ_Master1
+            python -m wbia --tf get_annotcfg_list -a varynannots_td -t best --db PZ_Master1
             13502
-            python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
-            python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td -t best  --show
+            python -m wbia --tf draw_match_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
+            python -m wbia --tf draw_match_cases --db PZ_Master1 -a varynannots_td -t best  --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_Master1', a=['varynannots_td'], t=['best'])
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('PZ_Master1', a=['varynannots_td'], t=['best'])
             >>> result = testres.draw_score_diff_disti()
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import vtool_ibeis as vt
 
         # dont look at filtered cases
@@ -2118,23 +2118,23 @@ class TestResult(ut.NiceRepr):
         """
         Wrapper
         """
-        from ibeis.expt import experiment_drawing
+        from wbia.expt import experiment_drawing
         experiment_drawing.draw_rank_cmc(testres.ibs, testres)
 
     def draw_match_cases(testres, **kwargs):
         """
         Wrapper
         """
-        from ibeis.expt import experiment_drawing
+        from wbia.expt import experiment_drawing
         experiment_drawing.draw_match_cases(testres.ibs, testres, **kwargs)
 
     def draw_failure_cases(testres, **kwargs):
         """
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs, testres = ibeis.testdata_expts(defaultdb='PZ_MTEST', a='timectrl:qsize=2', t='invar:AI=[False],RI=False', use_cache=False)
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs, testres = wbia.testdata_expts(defaultdb='PZ_MTEST', a='timectrl:qsize=2', t='invar:AI=[False],RI=False', use_cache=False)
         """
-        from ibeis.expt import experiment_drawing
+        from wbia.expt import experiment_drawing
         #kwargs = kwargs.copy()
         orig_filter = ':'
         kwargs['f'] = orig_filter + 'fail'
@@ -2147,11 +2147,11 @@ class TestResult(ut.NiceRepr):
         DUPLICATE CODE
         rectify with experiment_drawing
         """
-        #import ibeis.plottool as pt
+        #import wbia.plottool as pt
         import vtool_ibeis as vt
         if ut.VERBOSE:
             print('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
-        #from ibeis.expt import cfghelpers
+        #from wbia.expt import cfghelpers
 
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
         cfgx = 0
@@ -2198,7 +2198,7 @@ class TestResult(ut.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> from wbia.expt.test_result import *  # NOQA
         """
         ibs = testres.ibs
         qaids = testres.get_test_qaids()
@@ -2309,12 +2309,12 @@ class TestResult(ut.NiceRepr):
                     testres.qaids, config2_=qreq_.query_config2_))[:, 0].mean()
                     for qreq_ in testres.cfgx2_qreq_]
 
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             #pt.plt.imshow(-y, interpolation='none', cmap='hot')
             #pt.plt.colorbar()
 
             def label_ticks():
-                import ibeis.plottool as pt
+                import wbia.plottool as pt
                 ax = pt.gca()
                 labels = testres.get_varied_labels()
                 ax.set_xticks(list(range(len(labels))))
@@ -2365,12 +2365,12 @@ class TestResult(ut.NiceRepr):
         Then take the mean of all average precisions to obtain the mAP.
 
         Script:
-            >>> #ibs = ibeis.opendb('Oxford')
-            >>> #ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True],can_match_sameimg=True')
-            >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
+            >>> #ibs = wbia.opendb('Oxford')
+            >>> #ibs, testres = wbia.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True],can_match_sameimg=True')
+            >>> import wbia
+            >>> ibs, testres = wbia.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
         """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
@@ -2393,7 +2393,7 @@ class TestResult(ut.NiceRepr):
 
         for cm_list, qreq_ in zip(cfgx2_cms, testres.cfgx2_qreq_):
             if PLOT:
-                import ibeis.plottool as pt
+                import wbia.plottool as pt
                 pt.qt4ensure()
                 fnum = pt.ensure_fnum(None)
                 pt.figure(fnum=fnum)
@@ -2445,12 +2445,12 @@ class TestResult(ut.NiceRepr):
     def embed_testres(testres):
         """
         CommandLine:
-            python -m ibeis TestResults.embed_testres
+            python -m wbia TestResults.embed_testres
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
+            >>> from wbia.expt.test_result import *  # NOQA
+            >>> from wbia.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts(defaultdb='PZ_MTEST')
             >>> embed_testres(testres)
         """
@@ -2476,7 +2476,7 @@ class TestResult(ut.NiceRepr):
 
     def help(testres):
         # list functions that accept the standard interface
-        prefix = 'ibeis'
+        prefix = 'wbia'
         suffix = testres.reconstruct_test_flags()
         func_list = testres.get_options()
         funcname_list = [ut.get_funcname(func) for func in func_list]
@@ -2490,9 +2490,9 @@ class TestResult(ut.NiceRepr):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.test_result
-        python -m ibeis.expt.test_result --allexamples
-        python -m ibeis.expt.test_result --allexamples --noface --nosrc
+        python -m wbia.expt.test_result
+        python -m wbia.expt.test_result --allexamples
+        python -m wbia.expt.test_result --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

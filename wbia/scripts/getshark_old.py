@@ -7,7 +7,7 @@ from os.path import join, dirname, basename
 
 def get_injured_sharks():
     """
-    >>> from ibeis.scripts.getshark import *  # NOQA
+    >>> from wbia.scripts.getshark import *  # NOQA
     """
     import requests
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
@@ -202,8 +202,8 @@ def get_injured_sharks():
     flags = ut.lmap(ut.fpath_has_imgext, clist['gpath'])
     clist = clist.compress(flags)
 
-    import ibeis
-    ibs = ibeis.opendb('WS_Injury', allow_newdir=True)
+    import wbia
+    ibs = wbia.opendb('WS_Injury', allow_newdir=True)
 
     gid_list = ibs.add_images(clist['gpath'])
     clist['gid'] = gid_list
@@ -224,8 +224,8 @@ def get_injured_sharks():
                                                  tags_list=clist['tags'])
         aid_list
 
-    import ibeis.plottool as pt
-    from ibeis import core_annots
+    import wbia.plottool as pt
+    from wbia import core_annots
     pt.qt4ensure()
     #annots = ibs.annots()
     #aids = [1, 2]
@@ -254,14 +254,14 @@ def get_injured_sharks():
     #            ut.move(fpath, join(dirname(fpath), fname))
     #            print('fpath = %r' % (fpath,))
 
-    #import ibeis
-    #from ibeis.dbio import ingest_dataset
-    #dbdir = ibeis.sysres.lookup_dbdir('WS_ALL')
+    #import wbia
+    #from wbia.dbio import ingest_dataset
+    #dbdir = wbia.sysres.lookup_dbdir('WS_ALL')
     #self = ingest_dataset.Ingestable2(dbdir)
 
     if False:
         # Show overlap matrix
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import pandas as pd
         import numpy as np
         dict_ = overlaps
@@ -273,7 +273,7 @@ def get_injured_sharks():
         label_texts = df.columns.values
 
         def label_ticks(label_texts):
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             truncated_labels = [repr(lbl[0:100]) for lbl in label_texts]
             ax = pt.gca()
             ax.set_xticks(list(range(len(label_texts))))
@@ -316,7 +316,7 @@ def get_injured_sharks():
 
     from skimage.feature import hog
     from skimage import data, color, exposure
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     image2 = color.rgb2gray(data.astronaut())  # NOQA
 
     fpath = './GOPR1120.JPG'
@@ -354,8 +354,8 @@ def get_injured_sharks():
 
 
 def detect_sharks(ibs, gids):
-    #import ibeis
-    #ibs = ibeis.opendb('WS_ALL')
+    #import wbia
+    #ibs = wbia.opendb('WS_ALL')
     config = {
         'algo'            : 'yolo',
         'sensitivity'     : 0.2,
@@ -409,7 +409,7 @@ def detect_sharks(ibs, gids):
     ibs.set_annot_bboxes(old_annots.aids, bboxes)
 
     if False:
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         pt.qt4ensure()
 
         inter = pt.MultiImageInteraction(
@@ -438,8 +438,8 @@ def train_part_detector():
 
     We will run this on healthy sharks to find the parts of
     """
-    import ibeis
-    ibs = ibeis.opendb('WS_ALL')
+    import wbia
+    ibs = wbia.opendb('WS_ALL')
     imgset = ibs.imagesets(text='Injured Sharks')
     injured_annots = imgset.annots[0]  # NOQA
 
@@ -508,8 +508,8 @@ def purge_ensure_one_annot_per_images(ibs):
 
 
 def shark_misc():
-    import ibeis
-    ibs = ibeis.opendb('WS_ALL')
+    import wbia
+    ibs = wbia.opendb('WS_ALL')
     aid_list = ibs.get_valid_aids()
     flag_list = ibs.get_annot_been_adjusted(aid_list)
     adjusted_aids = ut.compress(aid_list, flag_list)

@@ -45,11 +45,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range, map
 import numpy as np
 import vtool_ibeis as vt
-from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import chip_match
-from ibeis.algo.hots import nn_weights
-from ibeis.algo.hots import scoring
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
+from wbia.algo.hots import chip_match
+from wbia.algo.hots import nn_weights
+from wbia.algo.hots import scoring
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
@@ -123,7 +123,7 @@ class Neighbors(ut.NiceRepr):
 
 
 #@profile
-def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
+def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     r""" Driver logic of query pipeline
 
     Note:
@@ -131,37 +131,37 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         in this function.
 
     Args:
-        ibs (ibeis.IBEISController): IBEIS database object to be queried.
+        ibs (wbia.IBEISController): IBEIS database object to be queried.
             technically this object already lives inside of qreq_.
-        qreq_ (ibeis.QueryRequest): hyper-parameters. use
+        qreq_ (wbia.QueryRequest): hyper-parameters. use
             ``ibs.new_query_request`` to create one
 
     Returns:
-        list: cm_list containing ``ibeis.ChipMatch`` objects
+        list: cm_list containing ``wbia.ChipMatch`` objects
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --show
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show
 
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb1 --qaid 325
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb3 --qaid 325
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db testdb1 --qaid 325
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db testdb3 --qaid 325
         # background match
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db NNP_Master3 --qaid 12838
 
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_MTEST -a timectrl:qindex=0:256
-        python    -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
-        utprof.py -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0
+        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_MTEST -a timectrl:qindex=0:256
+        python    -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        utprof.py -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.init.main_helpers.testdata_qreq_(a=['default:qindex=0:2,dindex=0:10'])
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.init.main_helpers.testdata_qreq_(a=['default:qindex=0:2,dindex=0:10'])
         >>> ibs = qreq_.ibs
         >>> print(qreq_.qparams.query_cfgstr)
         >>> verbose = True
-        >>> cm_list = request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
+        >>> cm_list = request_wbia_query_L0(ibs, qreq_, verbose=verbose)
         >>> cm = cm_list[0]
         >>> ut.quit_if_noshow()
         >>> cm.ishow_analysis(qreq_, fnum=0, make_figtitle=True)
@@ -177,7 +177,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     ibs.assert_valid_aids(qreq_.get_internal_daids(), msg='pipeline daids')
 
     if qreq_.qparams.pipeline_root == 'smk':
-        from ibeis.algo.hots.smk import smk_match
+        from wbia.algo.hots.smk import smk_match
         # Alternative to naive bayes matching:
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
@@ -250,13 +250,13 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-build_impossible_daids_list
+        python -m wbia.algo.hots.pipeline --test-build_impossible_daids_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(
         >>>     defaultdb='testdb1',
         >>>     a='default:species=zebra_plains,qhackerrors=True',
         >>>     p='default:use_k_padding=True,can_match_sameimg=False,can_match_samename=False')
@@ -353,18 +353,18 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         tuple: (nn_mid_cacheid_list, nn_cachedir)
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --exec-nearest_neighbor_cacheid2
-        python -m ibeis.algo.hots.pipeline --exec-nearest_neighbor_cacheid2 --superstrict
+        python -m wbia.algo.hots.pipeline --exec-nearest_neighbor_cacheid2
+        python -m wbia.algo.hots.pipeline --exec-nearest_neighbor_cacheid2 --superstrict
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
         >>> verbose = True
         >>> cfgdict = dict(K=4, Knorm=1, checks=800, use_k_padding=False)
         >>> # test 1
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
-        >>> qreq_ = ibeis.testdata_qreq_(
+        >>> qreq_ = wbia.testdata_qreq_(
         >>>     defaultdb='testdb1', p=[p], qaid_override=[1, 2],
         >>>     daid_override=[1, 2, 3, 4, 5])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
@@ -376,7 +376,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> cfgdict2 = dict(K=2, Knorm=3, use_k_padding=True)
         >>> p2 = 'default' + ut.get_cfg_lbl(cfgdict)
         >>> ibs = qreq_.ibs
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p2], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', p=[p2], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
@@ -393,7 +393,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
             'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
         ]
     """
-    from ibeis.algo import Config
+    from wbia.algo import Config
     chip_cfgstr    = qreq_.qparams.chip_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
@@ -411,7 +411,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     if requery:
         query_hashid_list = qreq_.get_qreq_pcc_uuids(internal_qaids)
     else:
-        # TODO: get attribute from qreq_, not ibeis
+        # TODO: get attribute from qreq_, not wbia
         query_hashid_list = qreq_.get_qreq_annot_visual_uuids(internal_qaids)
 
     HACK_KCFG = True
@@ -562,16 +562,16 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
     Tries to load nearest neighbors from a cache instead of recomputing them.
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-nearest_neighbors
-        python -m ibeis.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
-        utprof.py -m ibeis.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
+        python -m wbia.algo.hots.pipeline --test-nearest_neighbors
+        python -m wbia.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
+        utprof.py -m wbia.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
         >>> verbose = True
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, impossible_daids_list = ut.dict_take(
         >>>     locals_, ['Kpad_list', 'impossible_daids_list'])
@@ -588,10 +588,10 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
         >>> verbose = True
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, impossible_daids_list = ut.dict_take(
         >>>     locals_, ['Kpad_list', 'impossible_daids_list'])
@@ -608,11 +608,11 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
         >>> verbose = True
         >>> custom_nid_lookup = {a: a for a in range(14)}
-        >>> qreq1_ = ibeis.testdata_qreq_(
+        >>> qreq1_ = wbia.testdata_qreq_(
         >>>     defaultdb='testdb1', t=['default:K=2,requery=True,can_match_samename=False'],
         >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1], custom_nid_lookup=custom_nid_lookup)
@@ -627,7 +627,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> assert np.all(nnvalid0_list1[0]), (
         >>>  'requery should never produce impossible results')
         >>> # Compare versus not using requery
-        >>> qreq2_ = ibeis.testdata_qreq_(
+        >>> qreq2_ = wbia.testdata_qreq_(
         >>>     defaultdb='testdb1', t=['default:K=2,requery=False'],
         >>>     daid_override=[1, 2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1])
@@ -642,10 +642,10 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
+        >>> import wbia
         >>> verbose = True
-        >>> qreq1_ = ibeis.testdata_qreq_(
+        >>> qreq1_ = wbia.testdata_qreq_(
         >>>     defaultdb='testdb1', t=['default:K=5,requery=True,can_match_samename=False'],
         >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1])
@@ -702,11 +702,11 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     Removes matches to self, the same image, or the same name.
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter
+        python -m wbia.algo.hots.pipeline --test-baseline_neighbor_filter
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *   # NOQA
+        >>> from wbia.algo.hots.pipeline import *   # NOQA
         >>> qreq_, args = plh.testdata_pre(
         >>>     'baseline_neighbor_filter', defaultdb='testdb1',
         >>>     qaid_override=[1, 2, 3, 4],
@@ -754,16 +754,16 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     assigns weights to feature matches based on the active filter list
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:1 --show
+        python -m wbia.algo.hots.pipeline --test-weight_neighbors
+        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose
+        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --show
+        python -m wbia.algo.hots.pipeline --test-weight_neighbors:1 --show
 
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9
+        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
         >>>     'weight_neighbors', defaultdb='testdb1',
         >>>     a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
@@ -772,7 +772,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> verbose = True
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> verbose = True
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -785,7 +785,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
         >>>     'weight_neighbors', defaultdb='testdb1',
         >>>     a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
@@ -805,7 +805,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(filtvalids_list, [[None, None], [None, None], [None, None]])
         >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.BARL2])
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> verbose = True
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -964,14 +964,14 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     annotation match.
 
     CommandLine:
-        python -m ibeis build_chipmatches
-        python -m ibeis build_chipmatches:0 --show
-        python -m ibeis build_chipmatches:1 --show
-        python -m ibeis build_chipmatches:2 --show
+        python -m wbia build_chipmatches
+        python -m wbia build_chipmatches:0 --show
+        python -m wbia build_chipmatches:1 --show
+        python -m wbia build_chipmatches:2 --show
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
         >>>     'build_chipmatches', p=['default:codename=vsmany'])
         >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -992,7 +992,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> # Test to make sure filtering by feature weights works
         >>> qreq_, args = plh.testdata_pre(
         >>>     'build_chipmatches',
@@ -1015,7 +1015,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
         >>>     'build_chipmatches', p=['default:requery=True'], a='default')
         >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
@@ -1064,14 +1064,14 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
             list corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg --show
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show
+        python -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg --show
+        python -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show
 
-        utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
+        utprof.py -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
         >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
@@ -1186,13 +1186,13 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         list: cm_listSVER - new list of spatially verified chipmatches
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification --show
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification --show --qaid 1
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification:0
+        python -m wbia.algo.hots.pipeline --test-spatial_verification --show
+        python -m wbia.algo.hots.pipeline --test-spatial_verification --show --qaid 1
+        python -m wbia.algo.hots.pipeline --test-spatial_verification:0
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
         >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> cm = cm_list[0]
@@ -1213,7 +1213,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         >>> ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), 'feature matches were not filtered'
         >>> ut.quit_if_noshow()
         >>> cmSV.show_daids_matches(qreq_, gt_daids)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> #homog_tup = (refined_inliers, H)
         >>> #aff_tup = (aff_inliers, Aff)
         >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
@@ -1233,7 +1233,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
 def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     """
     make only spatially valid features survive
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
     """
     if verbose:
         print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
@@ -1272,48 +1272,48 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         cm (ChipMatch):
 
     Returns:
-        ibeis.ChipMatch: cmSV
+        wbia.ChipMatch: cmSV
 
     CommandLine:
-        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
+        python -m wbia draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] \
             -a timectrlhard ---acfginfo --veryverbtd
 
-        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
+        python -m wbia draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] \
             -a timectrlhard ---acfginfo --veryverbtd
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:full_homog_checks=True -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=affine -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=cv2-homog -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=cv2-homog,full_homog_checks=True -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=cv2-homog,full_homog_checks=False -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=cv2-lmeds-homog,full_homog_checks=False -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:refine_method=cv2-ransac-homog,full_homog_checks=False -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show \
+        python -m wbia sver_single_chipmatch --show \
             -t default:full_homog_checks=False -a default --qaid 18
 
-        python -m ibeis sver_single_chipmatch --show --qaid=18 --y=0
-        python -m ibeis sver_single_chipmatch --show --qaid=18 --y=1
+        python -m wbia sver_single_chipmatch --show --qaid=18 --y=0
+        python -m wbia sver_single_chipmatch --show --qaid=18 --y=1
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # Visualization
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='PZ_MTEST')  #, qaid_list=[18])
         >>> cm_list = args.cm_list_FILT
         >>> ibs = qreq_.ibs
@@ -1352,9 +1352,9 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.extern_query_config2)
         >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.extern_data_config2)
         >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.extern_data_config2)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> import matplotlib as mpl
-        >>> from ibeis.scripts.thesis import TMP_RC
+        >>> from wbia.scripts.thesis import TMP_RC
         >>> mpl.rcParams.update(TMP_RC)
         >>> show_aff = not ut.get_argflag('--noaff')
         >>> refine_method = qreq_.qparams.refine_method if not ut.get_argflag('--norefinelbl') else ''
@@ -1480,11 +1480,11 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     matching chips
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-compute_matching_dlen_extent
+        python -m wbia.algo.hots.pipeline --test-compute_matching_dlen_extent
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST')
         >>> verbose = True
         >>> cm = cm_list[0]
@@ -1508,18 +1508,18 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.hots.pipeline --verb-test
-    python -m ibeis.algo.hots.pipeline --test-build_chipmatches
-    python -m ibeis.algo.hots.pipeline --test-spatial-verification
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0 --show
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --show --db NAUT_test
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --db NAUT_test --noindent
-    python -m ibeis.algo.hots.pipeline --allexamples
+    python -m wbia.algo.hots.pipeline --verb-test
+    python -m wbia.algo.hots.pipeline --test-build_chipmatches
+    python -m wbia.algo.hots.pipeline --test-spatial-verification
+    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0 --show
+    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show
+    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show --db NAUT_test
+    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --db NAUT_test --noindent
+    python -m wbia.algo.hots.pipeline --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
     ut.doctest_funcs()
     # if ut.get_argflag('--show'):
-    #     import ibeis.plottool as pt
+    #     import wbia.plottool as pt
     #     exec(pt.present())

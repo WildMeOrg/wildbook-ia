@@ -13,12 +13,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import utool as ut
 import vtool_ibeis as vt
-from ibeis import dtool
+from wbia import dtool
 import numpy as np  # NOQA
 import itertools
-from ibeis.plottool.abstract_interaction import AbstractInteraction
-import ibeis.plottool as pt
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP)
+from wbia.plottool.abstract_interaction import AbstractInteraction
+import wbia.plottool as pt
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP)
 #import sys
 #from os.path import join
 try:
@@ -79,7 +79,7 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     graph = nx.DiGraph()
     graph.add_nodes_from(netx_nodes)
     graph.add_edges_from(netx_edges)
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     #nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE)
     return graph
 
@@ -112,14 +112,14 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
                                     temp_nids=None, allow_directed=False):
     r"""
     Args:
-        ibs (ibeis.IBEISController): image analysis api
+        ibs (wbia.IBEISController): image analysis api
         aids_list (list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.viz.viz_graph import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids_list = [[1, 2, 3, 4], [5, 6, 7]]
         >>> invis_edges = [(1, 5)]
         >>> only_reviewed_matches = True
@@ -175,7 +175,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     nx.set_node_attributes(graph, name='nid',
                            value=ut.dzip(graph.nodes(), unique_nids))
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     ensure_names_are_connected(graph, aids_list)
 
     # Color edges by nid
@@ -205,7 +205,7 @@ def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
 def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     """ Colors edges and nodes by nid """
     # TODO use ut.color_nodes
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
 
     ensure_graph_nid_labels(graph, unique_nids, ibs=ibs)
     node_to_nid = nx.get_node_attributes(graph, 'nid')
@@ -236,7 +236,7 @@ def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
 
 
 def augment_graph_mst(ibs, graph):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     #spantree_aids1_ = []
     #spantree_aids2_ = []
     # Add edges between all names
@@ -296,7 +296,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
     DEPRICATE or improve
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         graph (nx.DiGraph):
         fnum (int):  figure number(default = None)
         use_image (bool): (default = False)
@@ -306,20 +306,20 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
         ?: pos
 
     CommandLine:
-        python -m ibeis --tf viz_netx_chipgraph --show
+        python -m wbia --tf viz_netx_chipgraph --show
 
     Cand:
-        ibeis review_tagged_joins --save figures4/mergecase.png --figsize=15,15
+        wbia review_tagged_joins --save figures4/mergecase.png --figsize=15,15
             --clipwhite --diskshow
-        ibeis compute_occurrence_groups --save figures4/occurgraph.png
+        wbia compute_occurrence_groups --save figures4/occurgraph.png
             --figsize=40,40 --clipwhite --diskshow
-        ~/code/ibeis/ibeis/algo/preproc/preproc_occurrence.py
+        ~/code/wbia/wbia/algo/preproc/preproc_occurrence.py
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.viz.viz_graph import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> nid_list = ibs.get_valid_nids()[0:10]
         >>> fnum = None
         >>> use_image = True
@@ -327,7 +327,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
         >>> make_name_graph_interaction(ibs, nid_list, prog='neato')
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     print('[viz_graph] drawing chip graph')
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
@@ -392,7 +392,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def make_hud(self):
         """ Creates heads up display """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         hl_slot, hr_slot = pt.make_bbox_positioners(
             y=.01, w=.10, h=.03, xpad=.01, startx=0, stopx=1)
 
@@ -474,7 +474,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def plot_weights(self, event=None):
         scalars = self.infr.get_scalars()
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         inter = pt.ExpandableInteraction(fnum=1)
         for px, (key, vals) in enumerate(scalars.items()):
             print(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
@@ -486,9 +486,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         pt.update()
 
     def edit_config(self, event):
-        import ibeis.guitool
+        import wbia.guitool
         guitool.ensure_qtapp()
-        from ibeis.guitool import PrefWidget2
+        from wbia.guitool import PrefWidget2
         self.widget = PrefWidget2.EditConfigWidget(config=self.config)
         self.widget.show()
         #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
@@ -548,9 +548,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def show_selected(self, event):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         print('show_selected')
-        from ibeis.viz import viz_chip
+        from wbia.viz import viz_chip
         fnum = pt.ensure_fnum(10)
         print('fnum = %r' % (fnum,))
         pt.figure(fnum=fnum)
@@ -603,7 +603,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         print('Finished Plot')
 
     def highlight_aid(self, aid, color=None):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         node = self.aid2_node[aid]
         frame = self.plotinfo['patch_frame_dict'][node]
         framewidth = self.infr.graph.node[node]['framewidth']
@@ -621,7 +621,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         frame.set_edgecolor(color)
 
     def toggle_selected_aid(self, aid):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         if aid in self.selected_aids:
             self.selected_aids.remove(aid)
             #self.highlight_aid(aid, pt.WHITE)
@@ -685,7 +685,7 @@ class AnnotGraphInteraction(AbstractInteraction):
                 if len(self.selected_aids) != 2:
                     print('This funciton only work if exactly 2 are selected')
                 else:
-                    from ibeis.gui import inspect_gui
+                    from wbia.gui import inspect_gui
                     context_shown = True
                     aid1, aid2 = (self.selected_aids)
                     qres = None
@@ -708,7 +708,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
             if self.event.button == 3 and not context_shown:
                 # right click
-                from ibeis.viz.interact import interact_chip
+                from wbia.viz.interact import interact_chip
                 context_shown = True
                 #refresh_func = functools.partial(viz.show_name, ibs, nid,
                 #fnum=fnum, sel_aids=sel_aids)
@@ -733,20 +733,20 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 temp_nids=None, **kwargs):
     r"""
     CommandLine:
-        python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
+        python -m wbia --tf make_name_graph_interaction --db PZ_MTEST \
             --aids=1,2,3,4,5,6,7,8,9 --show
 
-        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits \
+        python -m wbia --tf make_name_graph_interaction --db LEWA_splits \
                 --nids=1 --show --split
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> import ibeis
-        >>> import ibeis.plottool as pt
+        >>> from wbia.viz.viz_graph import *  # NOQA
+        >>> import wbia
+        >>> import wbia.plottool as pt
         >>> exec(ut.execstr_funckw(make_name_graph_interaction), globals())
         >>> defaultdb='testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> nids = ut.get_argval('--nids', type_=list, default=ibs.get_valid_nids()[0:5])
         >>> nids = None if aids is not None else nids
@@ -768,12 +768,12 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     #aids = aids[0:10]
 
     nids = ibs.get_annot_name_rowids(aids)
-    #from ibeis.algo.graph import graph_iden
+    #from wbia.algo.graph import graph_iden
     #infr = graph_iden.AnnotInference(aids, nids, temp_nids)  # NOQA
     #import utool
     #utool.embed()
 
-    from ibeis.algo.graph import graph_iden
+    from wbia.algo.graph import graph_iden
     infr = graph_iden.AnnotInference(ibs, aids, nids, temp_nids)
     infr.initialize_graph()
     #infr.apply_scores()
@@ -781,7 +781,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     if ut.get_argflag('--cut'):
         infr.apply_all()
 
-    #import ibeis.guitool as gt
+    #import wbia.guitool as gt
     #gt.ensure_qtapp()
     #print('infr = %r' % (infr,))
     #win = test_qt_graphs(infr=infr, use_image=use_image)
@@ -813,7 +813,7 @@ def tryout_web_graphs(self, infr):
     mpld3.save_json(fig, open('fig.json', 'w'))
     fig = pt.gcf()
     """
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     # http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
     from networkx.readwrite import json_graph
 
@@ -832,7 +832,7 @@ def tryout_with_qt():
     import sys
     from PyQt4 import QtCore, QtWebKit, QtWidgets
     from os.path import join, dirname
-    import ibeis.viz
+    import wbia.viz
 
     class Browser(QtWebKit.QWebView):
 
@@ -849,7 +849,7 @@ def tryout_with_qt():
 
     view = Browser()
     view.show()
-    path = join(dirname(ibeis.viz.__file__), 'd3_example.html')
+    path = join(dirname(wbia.viz.__file__), 'd3_example.html')
     view.load(QtCore.QUrl(path))
     view.page().settings().setAttribute(
         QtWebKit.QWebSettings.DeveloperExtrasEnabled, True
@@ -865,9 +865,9 @@ def tryout_with_qt():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_graph
-        python -m ibeis.viz.viz_graph --allexamples
-        python -m ibeis.viz.viz_graph --allexamples --noface --nosrc
+        python -m wbia.viz.viz_graph
+        python -m wbia.viz.viz_graph --allexamples
+        python -m wbia.viz.viz_graph --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

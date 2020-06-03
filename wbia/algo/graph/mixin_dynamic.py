@@ -21,11 +21,11 @@ import numpy as np
 import utool as ut
 import itertools as it
 import networkx as nx
-from ibeis import constants as const
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
+from wbia import constants as const
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
                                     UNINFERABLE)
-from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
+from wbia.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 DECISION_LEVEL = 4
@@ -281,8 +281,8 @@ class DynamicUpdate(object):
         same.
 
         Ignore:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> kwargs = dict(num_pccs=3, p_incon=0, size=100)
             >>> infr = demo.demodata_infr(infer=False, **kwargs)
             >>> infr.apply_nondynamic_update()
@@ -532,11 +532,11 @@ class Recovery(object):
             bool: flag
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_dynamic is_recovering
+            python -m wbia.algo.graph.mixin_dynamic is_recovering
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=4, size=4, ignore_pair=True)
             >>> infr.ensure_cliques(meta_decision=SAME)
             >>> a, b, c, d = map(list, infr.positive_components())
@@ -719,7 +719,7 @@ class Consistency(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=1, p_incon=1)
             >>> assert not infr.is_consistent(next(infr.positive_components()))
             >>> infr = demo.demodata_infr(num_pccs=1, p_incon=0)
@@ -802,8 +802,8 @@ class _RedundancyComputers(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
             >>> infr.params['redun.pos'] = 2
             >>> cc = infr.pos_graph.connected_to(1)
@@ -841,8 +841,8 @@ class _RedundancyComputers(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.make_demo_infr(ccs=[(1, 2), (3, 4)])
             >>> infr.params['redun.neg'] = 2
             >>> cc1 = infr.pos_graph.connected_to(1)
@@ -904,9 +904,9 @@ class _RedundancyComputers(object):
         """
         Get PCCs that are k-negative redundant with `cc`
 
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> import ibeis.plottool as pt
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
+            >>> import wbia.plottool as pt
             >>> pt.qtensure()
             >>> infr = demo.demodata_infr2()
             >>> node = 20
@@ -951,8 +951,8 @@ class _RedundancyComputers(object):
         Get pairs of PCCs that are not complete.
 
         Ignore:
-            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_matching import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(pcc_sizes=[1, 1, 2, 3, 5, 8], ignore_pair=True)
             >>> non_neg_pccs = list(infr.find_non_neg_redun_pccs(k=2))
             >>> assert len(non_neg_pccs) == (6 * 5) / 2
@@ -1017,8 +1017,8 @@ class Redundancy(_RedundancyComputers):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=1, size=4)
             >>> infr.clear_edges()
             >>> infr.ensure_cliques()
@@ -1277,12 +1277,12 @@ class NonDynamicUpdate(object):
         This ensures that subsequent dyanmic inference can be applied.
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_dynamic apply_nondynamic_update
+            python -m wbia.algo.graph.mixin_dynamic apply_nondynamic_update
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> num_pccs = 250
             >>> kwargs = dict(num_pccs=100, p_incon=.3)
             >>> infr = demo.demodata_infr(infer=False, **kwargs)
@@ -1409,12 +1409,12 @@ class NonDynamicUpdate(object):
         the dynamic state is lost.
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_dynamic categorize_edges --profile
+            python -m wbia.algo.graph.mixin_dynamic categorize_edges --profile
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> num_pccs = 250 if ut.get_argflag('--profile') else 100
             >>> kwargs = dict(num_pccs=100, p_incon=.3)
             >>> infr = demo.demodata_infr(infer=False, **kwargs)
@@ -1530,8 +1530,8 @@ class NonDynamicUpdate(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_dynamic
-        python -m ibeis.algo.graph.mixin_dynamic --allexamples
+        python -m wbia.algo.graph.mixin_dynamic
+        python -m wbia.algo.graph.mixin_dynamic --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

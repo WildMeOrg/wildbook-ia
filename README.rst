@@ -19,7 +19,7 @@ Installation Instructions (updated 2020-May-03)
 -----------------------------------------------
 
 The IBEIS software is now available on `pypi
-<https://pypi.org/project/ibeis/>`_ for Linux systems. This means if you have
+<https://pypi.org/project/wbia/>`_ for Linux systems. This means if you have
 `Python installed
 <https://xdoctest.readthedocs.io/en/latest/installing_python.html>`_. You can
 simply run:
@@ -27,14 +27,14 @@ simply run:
 
 .. code:: bash
 
-    pip install ibeis
+    pip install wbia
 
 to install the software. Then the command to run the GUI is:
 
 
 .. code:: bash
 
-    ibeis
+    wbia
 
 On Windows / OSX I recommend using a Linux virtual machine. However, if you are
 computer savvy it is possible to build all of the requirements on from source.
@@ -43,7 +43,7 @@ dependencies: ``pyhesaff`` and ``vtool_ibeis``. If you have these built then
 the rest of the dependencies can be installed from pypi even on OSX / Windows.
 
 
-Running the ``ibeis`` command will open the GUI:
+Running the ``wbia`` command will open the GUI:
 
 
 If you have already made a database, it will automatically open the most recently used database.
@@ -107,7 +107,7 @@ and deep neural networks for detection and localization.
 
 The core of IBEIS is the IBEISController class. It provides an API into IBEIS
 data management and algorithms. The IBEIS API Documentation can be found here:
-`http://erotemic.github.io/ibeis`
+`http://erotemic.github.io/wbia`
 
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
@@ -163,7 +163,7 @@ Name Scoring
 
 .. code:: bash
 
-    python -m ibeis.algo.hots.chip_match show_single_namematch --qaid 1 --show
+    python -m wbia.algo.hots.chip_match show_single_namematch --qaid 1 --show
 
 Identification Ranking 
 ----------------------
@@ -175,7 +175,7 @@ Identification Ranking
 
 .. code:: bash
 
-    python -m ibeis.algo.hots.chip_match show_ranked_matches --show --qaid 86
+    python -m wbia.algo.hots.chip_match show_ranked_matches --show --qaid 86
 
 Inference
 ---------
@@ -188,7 +188,7 @@ Inference
 .. code:: bash
 
     # broken
-    # python -m ibeis.algo.preproc.preproc_encounter compute_encounter_groups --show
+    # python -m wbia.algo.preproc.preproc_encounter compute_encounter_groups --show
 
 Internal Modules
 ----------------
@@ -217,14 +217,14 @@ bluemellophone's IBEIS Image Analysis modules
 
 The IBEIS module itself: 
 
-* https://github.com/WildbookOrg/ibeis
+* https://github.com/WildbookOrg/wbia
 
 IBEIS Development Environment Setup 
 ------------------------------------
 
 .. code:: bash
 
-    # The following install script install ibeis and all dependencies. 
+    # The following install script install wbia and all dependencies. 
     # If it doesnt you can look at the older instructions which follow
     # and try to figure it out. After running this you should have a code
     # directory with all of the above repos. 
@@ -235,8 +235,8 @@ IBEIS Development Environment Setup
     cd $CODE_DIR
 
     # Clone IBEIS
-    git clone https://github.com/Erotemic/ibeis.git
-    cd ibeis
+    git clone https://github.com/Erotemic/wbia.git
+    cd wbia
 
     # Install the requirements for super_setup
     pip install -r requirements/super_setup.txt
@@ -259,16 +259,16 @@ IBEIS Development Environment Setup
     python setup.py develop
 
     # Optional: set a workdir and download a test dataset
-    .python -m ibeis.dev 
-    .python -m ibeis.dev -t mtest 
-    python -m ibeis.dev -t nauts 
+    .python -m wbia.dev 
+    .python -m wbia.dev -t mtest 
+    python -m wbia.dev -t nauts 
     ./reset_dbs.py
 
-    python -m ibeis --set-workdir ~/data/work --preload-exit
-    python -m ibeis -e ensure_mtest
+    python -m wbia --set-workdir ~/data/work --preload-exit
+    python -m wbia -e ensure_mtest
 
     # make sure everyhing is set up correctly
-    python -m ibeis --db PZ_MTEST
+    python -m wbia --db PZ_MTEST
 
 
 Running Tests
@@ -327,15 +327,15 @@ Example usage
     #--------------------
     # Main Commands
     #--------------------
-    python -m ibeis.main <optional-arguments> [--help]
-    python -m ibeis.dev <optional-arguments> [--help]
+    python -m wbia.main <optional-arguments> [--help]
+    python -m wbia.dev <optional-arguments> [--help]
     # main is the standard entry point to the program
     # dev is a more advanced developer entry point
 
     # ** NEW 7-23-2015 **: the following commands are now equivalent and do not
-    # have to be specified from the ibeis source dir if ibeis is installed
-    python -m ibeis <optional-arguments> [--help]
-    python -m ibeis.dev <optional-arguments> [--help]
+    # have to be specified from the wbia source dir if wbia is installed
+    python -m wbia <optional-arguments> [--help]
+    python -m wbia.dev <optional-arguments> [--help]
 
     # Useful flags.
     # Read code comments in dev.py for more info.
@@ -358,16 +358,16 @@ Example usage
     # IBEIS uses the idea of a work directory for databases.
     # Use --set-workdir <path> to set your own, or a gui will popup and ask you about it
     ./main.py --set-workdir /raid/work --preload-exit
-    ./main.py --set-logdir /raid/logs/ibeis --preload-exit
+    ./main.py --set-logdir /raid/logs/wbia --preload-exit
 
-    python -m ibeis.dev --set-workdir ~/data/work --preload-exit
+    python -m wbia.dev --set-workdir ~/data/work --preload-exit
 
     # use --db to specify a database in your WorkDir
     # --setdb makes that directory your default directory
-    python -m ibeis.dev --db <dbname> --setdb
+    python -m wbia.dev --db <dbname> --setdb
 
     # Or just use the absolute path
-    python -m ibeis.dev --dbdir <full-dbpath>
+    python -m wbia.dev --dbdir <full-dbpath>
 
 
     #--------------------
@@ -376,22 +376,22 @@ Example usage
     #--------------------
     # Run the queries for each roi with groundtruth in the PZ_MTEST database
     # using the best known configuration of parameters
-    python -m ibeis.dev --db PZ_MTEST --allgt -t best
-    python -m ibeis.dev --db PZ_MTEST --allgt -t score
+    python -m wbia.dev --db PZ_MTEST --allgt -t best
+    python -m wbia.dev --db PZ_MTEST --allgt -t score
 
 
     # View work dir
-    python -m ibeis.dev --vwd --prequit
+    python -m wbia.dev --vwd --prequit
 
     # List known databases
-    python -m ibeis.dev -t list_dbs
+    python -m wbia.dev -t list_dbs
 
 
     # Dump/Print contents of params.args as a dict
-    python -m ibeis.dev --prequit --dump-argv
+    python -m wbia.dev --prequit --dump-argv
 
     # Dump Current SQL Schema to stdout 
-    python -m ibeis.dev --dump-schema --postquit
+    python -m wbia.dev --dump-schema --postquit
 
 
     #------------------
@@ -399,16 +399,16 @@ Example usage
     #------------------
 
     # NEW: You can simply open a hotspotter database and it will be converted to IBEIS
-    python -m ibeis convert_hsdb_to_ibeis --dbdir <path_to_hsdb>
+    python -m wbia convert_hsdb_to_wbia --dbdir <path_to_hsdb>
 
     # This script will exlicitly conver the hsdb
-    python -m ibeis convert_hsdb_to_ibeis --hsdir <path_to_hsdb> --dbdir <path_to_newdb>
+    python -m wbia convert_hsdb_to_wbia --hsdir <path_to_hsdb> --dbdir <path_to_newdb>
 
     #---------
     # Ingest examples
     #---------
     # Ingest raw images
-    python -m ibeis.dbio.ingest_database --db JAG_Kieryn
+    python -m wbia.dbio.ingest_database --db JAG_Kieryn
 
     #---------
     # Run Tests
@@ -419,74 +419,74 @@ Example usage
     # Test Commands
     #----------------
     # Set a default DB First
-    python -m ibeis.dev --setdb --dbdir /path/to/your/DBDIR
-    python -m ibeis.dev --setdb --db YOURDB
-    python -m ibeis.dev --setdb --db PZ_MTEST
-    python -m ibeis.dev --setdb --db PZ_FlankHack
+    python -m wbia.dev --setdb --dbdir /path/to/your/DBDIR
+    python -m wbia.dev --setdb --db YOURDB
+    python -m wbia.dev --setdb --db PZ_MTEST
+    python -m wbia.dev --setdb --db PZ_FlankHack
 
     # List all available tests
-    python -m ibeis.dev -t help
+    python -m wbia.dev -t help
     # Minimal Database Statistics
-    python -m ibeis.dev --allgt -t info
+    python -m wbia.dev --allgt -t info
     # Richer Database statistics
-    python -m ibeis.dev --allgt -t dbinfo
+    python -m wbia.dev --allgt -t dbinfo
     # Print algorithm configurations
-    python -m ibeis.dev -t printcfg
+    python -m wbia.dev -t printcfg
     # Print database tables
-    python -m ibeis.dev -t tables
+    python -m wbia.dev -t tables
     # Print only the image table
-    python -m ibeis.dev -t imgtbl
+    python -m wbia.dev -t imgtbl
     # View data directory in explorer/finder/nautilus
-    python -m ibeis.dev -t vdd
+    python -m wbia.dev -t vdd
 
     # List all IBEIS databases
-    python -m ibeis list_dbs
+    python -m wbia list_dbs
     # Delete cache
-    python -m ibeis delete_cache --db testdb1
+    python -m wbia delete_cache --db testdb1
 
 
     # Show a single annotations
-    python -m ibeis.viz.viz_chip show_chip --db PZ_MTEST --aid 1 --show
+    python -m wbia.viz.viz_chip show_chip --db PZ_MTEST --aid 1 --show
     # Show annotations 1, 3, 5, and 11
-    python -m ibeis.viz.viz_chip show_many_chips --db PZ_MTEST --aids=1,3,5,11 --show
+    python -m wbia.viz.viz_chip show_many_chips --db PZ_MTEST --aids=1,3,5,11 --show
 
 
     # Database Stats for all our important datasets:
-    python -m ibeis.dev --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
+    python -m wbia.dev --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
 
     # Some mass editing of metadata
-    python -m ibeis.dev --db PZ_FlankHack --edit-notes
-    python -m ibeis.dev --db GZ_Siva --edit-notes
-    python -m ibeis.dev --db GIR_Tanya --edit-notes
-    python -m ibeis.dev --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
+    python -m wbia.dev --db PZ_FlankHack --edit-notes
+    python -m wbia.dev --db GZ_Siva --edit-notes
+    python -m wbia.dev --db GIR_Tanya --edit-notes
+    python -m wbia.dev --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
 
     # Current Experiments:
 
     # Main experiments
-    python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST -a default -t best --show
-    python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
+    python -m wbia --tf draw_annot_scoresep --db PZ_MTEST -a default -t best --show
+    python -m wbia.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
     # Show disagreement cases
-    ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
+    wbia --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
         -t default:K=[1,4] \
         --filt :disagree=True,index=0:4 --show
 
     # SMK TESTS
-    python -m ibeis.dev -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-    python -m ibeis.dev -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
+    python -m wbia.dev -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
+    python -m wbia.dev -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
 
     # Feature Tuning
-    python -m ibeis.dev -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
+    python -m wbia.dev -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
 
-    python -m ibeis.dev -t featparams -w --show --db PZ_MTEST --allgt
-    python -m ibeis.dev -t featparams_big -w --show --db PZ_MTEST --allgt
+    python -m wbia.dev -t featparams -w --show --db PZ_MTEST --allgt
+    python -m wbia.dev -t featparams_big -w --show --db PZ_MTEST --allgt
 
     # NEW DATABASE TEST
-    python -m ibeis.dev -t best --db seals2 --allgt
+    python -m wbia.dev -t best --db seals2 --allgt
 
     # Testing Distinctivness Parameters
-    python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
-    python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
-    python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
+    python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
+    python -m wbia.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
+    python -m wbia.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
 
     # 2D Gaussian Curves
     python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show
@@ -501,19 +501,19 @@ Example usage
     python -m vtool_ibeis.coverage_grid --test-gridsearch_coverage_grid --show
 
     # Test Spatially Constrained Scoring
-    python -m ibeis.algo.hots.vsone_pipeline --test-compute_query_constrained_matches --show
-    python -m ibeis.algo.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
+    python -m wbia.algo.hots.vsone_pipeline --test-compute_query_constrained_matches --show
+    python -m wbia.algo.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
 
     # Test VsMany ReRanking
-    python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show
-    python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog
+    python -m wbia.algo.hots.vsone_pipeline --test-vsone_reranking --show
+    python -m wbia.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog
 
     # Problem cases with the back spot
-    python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
-    python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
-    python -m ibeis.dev -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
+    python -m wbia.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
+    python -m wbia.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
+    python -m wbia.dev -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
     # Shows vsone results with some of the competing cases
-    python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
+    python -m wbia.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
     # More rerank vsone tests
     python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
@@ -523,7 +523,7 @@ Example usage
     #----
     # Turning back on name scoring and feature scoring and restricting to rerank a subset
     # This gives results that are closer to what we should actually expect
-    python -m ibeis.dev --allgt -t custom \
+    python -m wbia.dev --allgt -t custom \
         custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1 \
         custom:rrvsone_on=True,prior_coeff=0.5,unconstrained_coeff=0.5,fs_lnbnn_min=0,fs_lnbnn_max=1 \
         custom:rrvsone_on=True,prior_coeff=0.1,unconstrained_coeff=0.9,fs_lnbnn_min=0,fs_lnbnn_max=1 \
@@ -532,7 +532,7 @@ Example usage
 
     #----
     # VsOneRerank Tuning: Tune linar combination
-    python -m ibeis.dev --allgt -t \
+    python -m wbia.dev --allgt -t \
         custom:fg_weight=0.0 \
     \
         custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
@@ -544,24 +544,24 @@ Example usage
     #----
 
     # Testing no affine invaraiance and rotation invariance
-    python -m ibeis.dev -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
+    python -m wbia.dev -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
 
 Caveats / Things we are not currently doing
 -------------------------------------------
 
 * We do not add or remove points from kdtrees. They are always rebuilt
 
-.. |CircleCI| image:: https://circleci.com/gh/Erotemic/ibeis.svg?style=svg
-    :target: https://circleci.com/gh/Erotemic/ibeis
-.. |Travis| image:: https://img.shields.io/travis/Erotemic/ibeis/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/Erotemic/ibeis?branch=master
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ibeis?branch=master&svg=True
-   :target: https://ci.appveyor.com/project/Erotemic/ibeis/branch/master
-.. |Codecov| image:: https://codecov.io/github/Erotemic/ibeis/badge.svg?branch=master&service=github
-   :target: https://codecov.io/github/Erotemic/ibeis?branch=master
-.. |Pypi| image:: https://img.shields.io/pypi/v/ibeis.svg
-   :target: https://pypi.python.org/pypi/ibeis
-.. |Downloads| image:: https://img.shields.io/pypi/dm/ibeis.svg
-   :target: https://pypistats.org/packages/ibeis
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/ibeis/badge/?version=latest
-    :target: http://ibeis.readthedocs.io/en/latest/
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/wbia.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/wbia
+.. |Travis| image:: https://img.shields.io/travis/Erotemic/wbia/master.svg?label=Travis%20CI
+   :target: https://travis-ci.org/Erotemic/wbia?branch=master
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/wbia?branch=master&svg=True
+   :target: https://ci.appveyor.com/project/Erotemic/wbia/branch/master
+.. |Codecov| image:: https://codecov.io/github/Erotemic/wbia/badge.svg?branch=master&service=github
+   :target: https://codecov.io/github/Erotemic/wbia?branch=master
+.. |Pypi| image:: https://img.shields.io/pypi/v/wbia.svg
+   :target: https://pypi.python.org/pypi/wbia
+.. |Downloads| image:: https://img.shields.io/pypi/dm/wbia.svg
+   :target: https://pypistats.org/packages/wbia
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/wbia/badge/?version=latest
+    :target: http://wbia.readthedocs.io/en/latest/

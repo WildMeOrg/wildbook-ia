@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    ibeis make_qt_graph_interface --show
-    ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
+    wbia make_qt_graph_interface --show
+    wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
-from ibeis import dtool
+from wbia import dtool
 import networkx as nx
 import itertools as it
-import ibeis.guitool as gt
-import ibeis.plottool as pt
-import ibeis.constants as const
-from ibeis.plottool import abstract_interaction
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.guitool import mpl_widget
-from ibeis.guitool import PrefWidget2
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+import wbia.guitool as gt
+import wbia.plottool as pt
+import wbia.constants as const
+from wbia.plottool import abstract_interaction
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool import mpl_widget
+from wbia.guitool import PrefWidget2
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -45,27 +45,27 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 
 class AnnotPairDialog(gt.GuitoolWidget):
     r"""
-    ibeis AnnotPairDialog --show
-    python -m ibeis.algo.graph.mixin_loops qt_review_loop --show
+    wbia AnnotPairDialog --show
+    python -m wbia.algo.graph.mixin_loops qt_review_loop --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> win = AnnotPairDialog(ibs=ibs, edge=(1, 2),
         >>>                       info_text='text describing this match')
         >>> gt.qtapp_loop(qwin=win, freq=10)
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis
-        >>> import ibeis.guitool as gt
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()
-        >>> infr = ibeis.AnnotInference('PZ_Master1', 'all')
+        >>> infr = wbia.AnnotInference('PZ_Master1', 'all')
         >>> infr.reset_feedback('staging')
         >>> edges = [(86, 16273), (86, 5245), (92, 16273), (559, 16240),
         >>>         (559, 2111),]
@@ -86,7 +86,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         #     standalone (bool):
 
         """
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
         self.infr = infr
 
         self.history = ut.oset()
@@ -341,15 +341,15 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
 class AnnotStateDialog(gt.GuitoolWidget):
     """
-    python -m ibeis.viz.viz_graph2 AnnotStateDialog --show
+    python -m wbia.viz.viz_graph2 AnnotStateDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aid = 1
         >>> self = AnnotStateDialog(ibs=ibs, aid=aid)
         >>> gt.qtapp_loop(qwin=self, freq=10)
@@ -429,11 +429,11 @@ class AnnotStateDialog(gt.GuitoolWidget):
     #     return form_box
 
     def set_aid(self, aid):
-        # read ibeis state
+        # read wbia state
         # TODO: allow read from infr graph node attributes
         # Set qt state
         import datetime
-        annot_state = self.ibeis_read(aid)
+        annot_state = self.wbia_read(aid)
 
         unixtime = annot_state['image_unixtimes_asfloat']
         if unixtime is not None and not np.isnan(unixtime):
@@ -450,7 +450,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
         self.ismulti_cb.setChecked(bool(annot_state['multiple']))
         self.tag_edit.setTags(annot_state['case_tags'])
 
-    def ibeis_read(self, aid):
+    def wbia_read(self, aid):
         ibs = self.ibs
         annot = ibs.annots([aid])[0]
         annot_dict = annot._make_lazy_dict()
@@ -477,12 +477,12 @@ class AnnotStateDialog(gt.GuitoolWidget):
 class EdgeReviewDialog(gt.GuitoolWidget):
     r"""
 
-    python -m ibeis.viz.viz_graph2 EdgeReviewDialog --show
+    python -m wbia.viz.viz_graph2 EdgeReviewDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()
         >>> self = EdgeReviewDialog(edge=(1, 2))
         >>> gt.qtapp_loop(qwin=self, freq=10)
@@ -501,15 +501,15 @@ class EdgeReviewDialog(gt.GuitoolWidget):
 
     def initialize(self, edge=None, edge_data=None, conf_editor='hybrid',
                    with_confirm=True, user_id=None):
-        # from ibeis.guitool.__PYQT__ import QtWidgets
-        import ibeis
+        # from wbia.guitool.__PYQT__ import QtWidgets
+        import wbia
 
         if user_id is None:
             user_id = ut.get_user_name() + '@' + ut.get_computer_name() + ':qt'
 
-        EVIDENCE_DECISION = ibeis.const.EVIDENCE_DECISION
+        EVIDENCE_DECISION = wbia.const.EVIDENCE_DECISION
         # TODO: meta decision
-        CONFIDENCE = ibeis.const.CONFIDENCE
+        CONFIDENCE = wbia.const.CONFIDENCE
 
         match_state_codes = list(EVIDENCE_DECISION.CODE_TO_INT.keys())
         user_conf_codes = list(CONFIDENCE.CODE_TO_INT.keys())
@@ -673,15 +673,15 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         self.close()
 
     def feedback_dict(self):
-        import ibeis
+        import wbia
         decision_nice = self.match_state_combo.currentText()
         conf_nice = self.conf_combo.currentText()
-        decision_code = ibeis.const.EVIDENCE_DECISION.NICE_TO_CODE[decision_nice]
+        decision_code = wbia.const.EVIDENCE_DECISION.NICE_TO_CODE[decision_nice]
         tags = [key for key, check in self.tag_checkboxes.items()
                 if check.checkState()]
         tags += self.pairtag_edit.tags()
         tags = [t for t in tags if len(t) != 0]
-        confidence = ibeis.const.CONFIDENCE.NICE_TO_CODE[conf_nice]
+        confidence = wbia.const.CONFIDENCE.NICE_TO_CODE[conf_nice]
         user_id = self.user_edit.text()
         feedback = {
             'edge': self.edge,
@@ -745,8 +745,8 @@ class DevGraphWidget(gt.GuitoolWidget):
 
         small_graph = len(self_parent.infr.aids) < 20
 
-        import ibeis
-        GraphVizConfig = ibeis.AnnotInference.make_viz_config(use_image, small_graph)
+        import wbia
+        GraphVizConfig = wbia.AnnotInference.make_viz_config(use_image, small_graph)
 
         def on_graphviz_config_changed(key=None):
             if key == 'pin_positions':
@@ -983,7 +983,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
             if event.button == 3 and not context_shown:
                 # right click
-                from ibeis.viz.interact import interact_chip
+                from wbia.viz.interact import interact_chip
                 context_shown = True
                 #refresh_func = functools.partial(viz.show_name, ibs, nid,
                 #fnum=fnum, sel_aids=sel_aids)
@@ -1180,7 +1180,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         key = 'Debug'
         menu = self.menus[key] = self.menubar.newMenu(key)
-        menu.newAction(triggered=self.use_ibeis_names)
+        menu.newAction(triggered=self.use_wbia_names)
         menu.newAction(triggered=self.reset_staging)
         menu.newAction(triggered=self.reset_annotmatch)
         menu.newAction(triggered=self.ensure_full)
@@ -1328,7 +1328,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             with ut.Timer('reset_feedback'):
                 infr.reset_feedback('staging', apply=True)
             with ut.Timer('reinit_name_labels'):
-                infr.reset_labels_to_ibeis()
+                infr.reset_labels_to_wbia()
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
             with ut.Timer('ensure_mst'):
@@ -1514,7 +1514,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         """
         Context-menu options for annotation nodes
         """
-        from ibeis.viz.interact import interact_chip
+        from wbia.viz.interact import interact_chip
         options = []
         if len(aids) == 1:
             options += interact_chip.build_annot_context_options(
@@ -1552,7 +1552,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             options += [
                 ('&Custom Review', lambda: self.custom_review(aid_pairs)),
             ]
-            from ibeis.gui import inspect_gui
+            from wbia.gui import inspect_gui
             ibs = self.infr.ibs
             aid1, aid2 = aid_pairs[0]
             qreq_ = self.infr.qreq_
@@ -1658,7 +1658,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def commit_to_staging(self):
         print('[graph] commit to staging')
-        self.infr.write_ibeis_staging_feedback()
+        self.infr.write_wbia_staging_feedback()
 
     def print_deltas(self):
         pairs = [('external', 'internal'),
@@ -1670,11 +1670,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             print('new = %r' % (new,))
             print(self.infr.match_state_delta(old, new))
 
-    def use_ibeis_names(self):
+    def use_wbia_names(self):
         # Hack
         infr = self.infr
         num_names, num_inconsistent = infr.relabel_using_reviews()
-        aid_to_newname = infr.get_ibeis_name_delta()
+        aid_to_newname = infr.get_wbia_name_delta()
         nx.set_node_attributes(infr.graph, name='name_label', values=aid_to_newname['new_name'].to_dict())
 
     def hack_keep_old_tags(self):
@@ -1711,11 +1711,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr.relabel_using_reviews(rectify=True)
 
         edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-        name_delta_df = infr.get_ibeis_name_delta()
+        name_delta_df = infr.get_wbia_name_delta()
         name_stats_df = infr.name_group_stats()
-        name_delta_stats_df = infr.ibeis_name_group_delta_info()
+        name_delta_stats_df = infr.wbia_name_group_delta_info()
 
-        info = infr.ibeis_delta_info(edge_delta_df, name_delta_df)
+        info = infr.wbia_delta_info(edge_delta_df, name_delta_df)
         import utool
         with utool.embed_on_exception_context:
             assert info['num_edges_added'] ==  info['num_edges_added_to_am'], (
@@ -1761,9 +1761,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('\n'.join(lines))
 
         # Write to staging then write to annotmatch and names
-        self.infr.write_ibeis_staging_feedback()
-        self.infr.write_ibeis_annotmatch_feedback(edge_delta_df)
-        self.infr.write_ibeis_name_assignment(name_delta_df)
+        self.infr.write_wbia_staging_feedback()
+        self.infr.write_wbia_annotmatch_feedback(edge_delta_df)
+        self.infr.write_wbia_name_assignment(name_delta_df)
         gt.user_info(self, 'Name Change Complete')
 
     def sizeHint(self):
@@ -1830,8 +1830,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         annots = ibs.annots(aids)
         aids = annots.get_name_image_closure()
         nids = ibs.get_annot_nids(aids)
-        import ibeis
-        new_infr = ibeis.AnnotInference(ibs, aids, nids,
+        import wbia
+        new_infr = wbia.AnnotInference(ibs, aids, nids,
                                         verbose=self.infr.verbose)
         new_infr.initialize_graph()
         self.infr = new_infr
@@ -2119,7 +2119,7 @@ class EdgeAPIHelper(object):
             cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
         except KeyError:
             return None
-        from ibeis.gui import id_review_api
+        from wbia.gui import id_review_api
         if cm is None:
             # HACK: check if a PairwiseMatch exists
             match = self.infr.vsone_matches.get((aid1, aid2))
@@ -2402,15 +2402,15 @@ def make_name_node_api(infr, review_cfg={}):
 def make_qt_graph_review(qreq_, cm_list):
     r"""
     CommandLine:
-        ibeis make_qt_graph_review --show
+        wbia make_qt_graph_review --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis.guitool as gt
-        >>> import ibeis
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia.guitool as gt
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb=defaultdb)
         >>> cm_list = qreq_.execute()
         >>> gt.ensure_qtapp()
         >>> win = make_qt_graph_review(qreq_, cm_list)
@@ -2418,8 +2418,8 @@ def make_qt_graph_review(qreq_, cm_list):
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
     gt.ensure_qtapp()
-    import ibeis
-    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list)
+    import wbia
+    infr = wbia.AnnotInference.from_qreq_(qreq_, cm_list)
 
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
@@ -2433,39 +2433,39 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
                             init_mode='review', graph_tab=False):
     r"""
     CommandLine:
-        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graphtab
-        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graphtab
+        wbia make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graphtab
+        wbia make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graphtab
 
-        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --graph-tab --aids=2587,2398
-        ibeis make_qt_graph_interface --show
-        ibeis make_qt_graph_interface --show --db PZ_PB_RF_TRAIN
+        wbia make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --graph-tab --aids=2587,2398
+        wbia make_qt_graph_interface --show
+        wbia make_qt_graph_interface --show --db PZ_PB_RF_TRAIN
 
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
-        ibeis make_qt_graph_interface --show
+        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
+        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
+        wbia make_qt_graph_interface --show
 
-        ibeis make_qt_graph_interface --show --db RotanTurtles --aids=610,716
+        wbia make_qt_graph_interface --show --db RotanTurtles --aids=610,716
 
-        ibeis make_qt_graph_interface --db LEWA_splits --nids=1 --show --sample
+        wbia make_qt_graph_interface --db LEWA_splits --nids=1 --show --sample
 
-        ibeis make_qt_graph_interface --db PZ_MTEST --nids=1 --show --init-mode=rereview
+        wbia make_qt_graph_interface --db PZ_MTEST --nids=1 --show --init-mode=rereview
 
-        ibeis make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
-        ibeis make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=4617 --show
+        wbia make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
+        wbia make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=4617 --show
 
         # unmount
         fusermount -u ~/lev
         # mount
         sshfs -o idmap=user lev:/ ~/lev
-        ibeis make_qt_graph_interface --dbdir=/home/joncrall/lev/media/hdd/work/EWT_Cheetahs --show -a default:view=right;frontright;backright
+        wbia make_qt_graph_interface --dbdir=/home/joncrall/lev/media/hdd/work/EWT_Cheetahs --show -a default:view=right;frontright;backright
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph2 import *  # NOQA
-        >>> import ibeis.guitool as gt
-        >>> import ibeis
+        >>> from wbia.viz.viz_graph2 import *  # NOQA
+        >>> import wbia.guitool as gt
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> nids = ut.get_argval('--nids', type_=list, default=None)
         >>> gids = ut.get_argval('--gids', type_=list, default=None)
@@ -2485,8 +2485,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if nids is not None and aids is None:
         aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
-        # import ibeis
-        # aids = ibeis.testdata_aids(ibs=ibs)
+        # import wbia
+        # aids = wbia.testdata_aids(ibs=ibs)
         # ['right', 'frontright', 'backright']
         aids = ibs.get_valid_aids()
         # aids = ibs.filter_annots_general(max_pername=2, min_pername=2)
@@ -2498,9 +2498,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
 
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
-    import ibeis
-    # infr = ibeis.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
-    infr = ibeis.AnnotInference(ibs, aids, nids, verbose=5)
+    import wbia
+    # infr = wbia.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
+    infr = wbia.AnnotInference(ibs, aids, nids, verbose=5)
     infr.initialize_graph()
 
     gt.ensure_qtapp()
@@ -2530,11 +2530,11 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_graph2
-        python -m ibeis.viz.viz_graph2 --allexamples
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph
+        python -m wbia.viz.viz_graph2
+        python -m wbia.viz.viz_graph2 --allexamples
+        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph
 
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
+        python -m wbia.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

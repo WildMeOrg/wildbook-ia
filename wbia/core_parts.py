@@ -6,8 +6,8 @@ Extracts parts chips from image and applies optional image normalizations.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-from ibeis.control.controller_inject import register_preprocs, register_subprops
-from ibeis import core_annots
+from wbia.control.controller_inject import register_preprocs, register_subprops
+from wbia import core_annots
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -33,7 +33,7 @@ def compute_part_chip(depc, part_rowid_list, config=None):
     Extracts the part chip from the bounding box
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         part_rowid_list (list):  list of part rowids
         config (dict): (default = None)
 
@@ -41,14 +41,14 @@ def compute_part_chip(depc, part_rowid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        ibeis --tf compute_part_chip
+        wbia --tf compute_part_chip
 
     Doctest:
-        >>> from ibeis.core_parts import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_parts import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> defaultdb = 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_part
         >>> config = {'dim_size': None}
         >>> aid_list = ibs.get_valid_aids()
@@ -84,9 +84,9 @@ def compute_part_chip(depc, part_rowid_list, config=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.core_parts
-        python -m ibeis.core_parts --allexamples
-        utprof.py -m ibeis.core_parts --allexamples
+        python -m wbia.core_parts
+        python -m wbia.core_parts --allexamples
+        utprof.py -m wbia.core_parts --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

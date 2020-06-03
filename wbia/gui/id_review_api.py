@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m ibeis.gui.inspect_gui --test-test_review_widget --show
+    python -m wbia.gui.inspect_gui --test-test_review_widget --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
-from ibeis.viz import viz_helpers as vh
-import ibeis.guitool as gt
+from wbia.viz import viz_helpers as vh
+import wbia.guitool as gt
 import numpy as np
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
@@ -47,14 +47,14 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         tuple: review_edges = (qaid_arr, daid_arr, score_arr, rank_arr)
 
     CommandLine:
-        python -m ibeis.gui.id_review_api get_review_edges:0
+        python -m wbia.gui.id_review_api get_review_edges:0
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_()
         >>> cm_list = qreq_.execute()
         >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
         >>>                   filter_true_matches=True)
@@ -63,9 +63,9 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     Example1:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=5,dsize=20')
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> cm_list, qreq_ = wbia.testdata_cmlist('PZ_MTEST', a='default:qsize=5,dsize=20')
         >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
@@ -73,9 +73,9 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     Example3:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=1,dsize=100')
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> cm_list, qreq_ = wbia.testdata_cmlist('PZ_MTEST', a='default:qsize=1,dsize=100')
         >>> review_cfg = dict(ranks_top=1, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
@@ -83,9 +83,9 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     Example4:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=10,dsize=10')
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> cm_list, qreq_ = wbia.testdata_cmlist('PZ_MTEST', a='default:qsize=10,dsize=10')
         >>> ranks_top = 3
         >>> review_cfg = dict(ranks_top=3, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
@@ -93,7 +93,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
     """
     import vtool_ibeis as vt
-    from ibeis.algo.hots import chip_match
+    from wbia.algo.hots import chip_match
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
     automatch_kw = ut.update_existing(automatch_kw, review_cfg)
     print('[resorg] get_review_edges(%s)' % (ut.repr2(automatch_kw)))
@@ -227,16 +227,16 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
     Builds columns which are displayable in a ColumnListTableWidget
 
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-test_review_widget --show
-        python -m ibeis.gui.id_review_api --test-make_review_api
+        python -m wbia.gui.id_review_api --test-test_review_widget --show
+        python -m wbia.gui.id_review_api --test-make_review_api
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> import ibeis.guitool as gt
-        >>> from ibeis.gui import id_review_api
-        >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> import wbia.guitool as gt
+        >>> from wbia.gui import id_review_api
+        >>> cm_list, qreq_ = wbia.main_helpers.testdata_cmlist()
         >>> tblname = 'chipmatch'
         >>> name_scoring = False
         >>> ranks_top = 5
@@ -519,13 +519,13 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
                           draw_matches=True, draw_heatmask=False):
     """
     CommandLine:
-        python -m ibeis.gui.id_review_api --exec-get_match_thumb_fname
+        python -m wbia.gui.id_review_api --exec-get_match_thumb_fname
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST')
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST')
         >>> thumbsize = (128, 128)
         >>> daid = cm.get_top_aids()[0]
         >>> match_thumb_fname = get_match_thumb_fname(cm, daid, qreq_)
@@ -544,14 +544,14 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
 def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m wbia.gui.id_review_api --test-ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> daid = cm.get_top_aids()[0]
         >>> match_thumbtup_cache = {}
         >>> # execute function
@@ -609,14 +609,14 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
 def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m wbia.gui.id_review_api --test-ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.id_review_api import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> ibs = qreq_.ibs
         >>> daid = cm.get_top_aids()[0]
         >>> match_thumbtup_cache = {}
@@ -628,11 +628,11 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         >>> ut.quit_if_noshow()
         >>> ut.startfile(match_thumb_fpath_, quote=True)
     """
-    #import ibeis.viz
-    from ibeis.viz import viz_matches
+    #import wbia.viz
+    from wbia.viz import viz_matches
     import cv2
     import io
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
     import matplotlib as mpl
 
@@ -816,11 +816,11 @@ def get_photobomber_map(ibs, aids, aid_to_nid=None):
     """
     Builds map of which names that photobomb other names.
 
-    python -m ibeis.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
+    python -m wbia.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
 
-    >>> import ibeis
+    >>> import wbia
     >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-    >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+    >>> ibs = wbia.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
     >>> filter_kw = {
     >>>     'multiple': False,
     >>>     'minqual': 'good',
