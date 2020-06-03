@@ -27,12 +27,12 @@ Notes:
 
 
 CommandLine:
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=gdk
-    python -m ibeis.plottool.draw_func2 --exec-imshow --show --mplbe=cairo
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=gdk
+    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=cairo
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -73,7 +73,7 @@ def get_pyqt():
     have_guitool = ut.check_module_installed('guitool')
     try:
         if have_guitool:
-            from ibeis.guitool import __PYQT__ as PyQt
+            from wbia.guitool import __PYQT__ as PyQt
             pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
         else:
             try:

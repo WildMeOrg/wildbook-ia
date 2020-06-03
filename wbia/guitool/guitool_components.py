@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import map, range  # NOQA
-from ibeis.guitool.__PYQT__ import QtCore, QtGui
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
-from ibeis.guitool import guitool_dialogs
+from wbia.guitool import guitool_dialogs
 import weakref
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -39,11 +39,11 @@ def rectifyQtEnum(type_, value, default=ut.NoParam):
     TODO: move to qt_enums?
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components rectifyQtEnum
+        python -m wbia.guitool.guitool_components rectifyQtEnum
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> newvals = []
         >>> newvals.append(rectifyQtEnum('Orientation', 'vert'))
         >>> newvals.append(rectifyQtEnum('Orientation', 'Horizontal'))
@@ -389,12 +389,12 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         level (int): (default = 0)
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components ProgHook --show  --progtext
+        python -m wbia.guitool.guitool_components ProgHook --show  --progtext
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> parent = newWidget()
         >>> parent.show()
@@ -425,7 +425,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> app.processEvents()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     progress_changed_signal = QtCore.pyqtSignal(float, str)
@@ -533,8 +533,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.guitool.guitool_components import *  # NOQA
-            >>> import ibeis.guitool as gt
+            >>> from wbia.guitool.guitool_components import *  # NOQA
+            >>> import wbia.guitool as gt
             >>> app = gt.ensure_qtapp()[0]
             >>> hook = ProgHook(None)
             >>> subhook_list = hook.subdivide(num=4)
@@ -674,7 +674,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
     def force_event_update(hook):
         # major hack
-        import ibeis.guitool
+        import wbia.guitool
         qtapp = guitool.get_qtapp()
         flag = QtCore.QEventLoop.ExcludeUserInputEvents
         return_status = qtapp.processEvents(flag)
@@ -695,19 +695,19 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         QProgressBar: progressBar
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:0
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:0 --show
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:1
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:2
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:1 --progtext
-        python -m ibeis.guitool.guitool_components --test-newProgressBar:2 --progtext
+        python -m wbia.guitool.guitool_components --test-newProgressBar:0
+        python -m wbia.guitool.guitool_components --test-newProgressBar:0 --show
+        python -m wbia.guitool.guitool_components --test-newProgressBar:1
+        python -m wbia.guitool.guitool_components --test-newProgressBar:2
+        python -m wbia.guitool.guitool_components --test-newProgressBar:1 --progtext
+        python -m wbia.guitool.guitool_components --test-newProgressBar:2 --progtext
 
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> # build test data
-        >>> import ibeis.guitool
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> parent = None
         >>> visible = True
@@ -731,9 +731,9 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> # build test data
-        >>> import ibeis.guitool
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> parent = None
         >>> visible = True
@@ -760,9 +760,9 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     Example:
         >>> # GUI_DOCTEST
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> # build test data
-        >>> import ibeis.guitool
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> parent = None
         >>> visible = True
@@ -795,9 +795,9 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
 
 
     Ignore:
-        from ibeis.guitool.guitool_components import *  # NOQA
+        from wbia.guitool.guitool_components import *  # NOQA
         # build test data
-        import ibeis.guitool
+        import wbia.guitool
         guitool.ensure_qtapp()
 
     """
@@ -811,7 +811,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     #def utool_prog_hook(count, length):
     #    progressBar.setProperty('value', int(100 * count / length))
     #    # major hack
-    #    import ibeis.guitool
+    #    import wbia.guitool
     #    qtapp = guitool.get_qtapp()
     #    qtapp.processEvents()
     #    pass
@@ -824,7 +824,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
     if visible:
         # hack to make progres bar show up immediately
-        import ibeis.guitool
+        import wbia.guitool
         progressBar.show()
         qtapp = guitool.get_qtapp()
         qtapp.processEvents()
@@ -832,7 +832,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
 
 
 def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
-    from ibeis.guitool.guitool_misc import QLoggedOutput
+    from wbia.guitool.guitool_misc import QLoggedOutput
     outputLog = QLoggedOutput(parent, visible=visible)
     sizePolicy = newSizePolicy(outputLog,
                                #verticalSizePolicy=QSizePolicy.Preferred,
@@ -864,12 +864,12 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={},
         ?: label
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components --exec-newLabel --show
+        python -m wbia.guitool.guitool_components --exec-newLabel --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
         >>> parent = None
         >>> text = ''
@@ -992,7 +992,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> parent = None
         >>> text = None
         >>> visible = True
@@ -1040,12 +1040,12 @@ class TagEdit(QtWidgets.QLineEdit):
             editor_mode (str): (default = 'line')
 
         CommandLine:
-            python -m ibeis.guitool.guitool_components TagEdit
+            python -m wbia.guitool.guitool_components TagEdit
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.guitool.guitool_components import *  # NOQA
-            >>> import ibeis.guitool as gt
+            >>> from wbia.guitool.guitool_components import *  # NOQA
+            >>> import wbia.guitool as gt
             >>> gt.ensure_qtapp()
             >>> self = TagEdit(tags=['a', 'b', 'c'])
             >>> self.show()
@@ -1093,8 +1093,8 @@ def _inject_new_widget_methods(self):
     Layouts are specified in the addNew constructors.
     As such, this is less flexible, but quicker to get started.
     """
-    import ibeis.guitool as gt
-    from ibeis.guitool import PrefWidget2
+    import wbia.guitool as gt
+    from wbia.guitool import PrefWidget2
     # Creates addNewWidget and newWidget
 
     def _make_new_widget_func(widget_cls):
@@ -1295,12 +1295,12 @@ def newSpacer(w=0, h=0, hPolicy=None, vPolicy=None):
 class GuitoolWidget(WIDGET_BASE):
     """
     CommandLine:
-        python -m ibeis.guitool.guitool_components GuitoolWidget --show
+        python -m wbia.guitool.guitool_components GuitoolWidget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> ut.exec_funckw(newWidget, globals())
         >>> widget = GuitoolWidget(parent)
@@ -1499,12 +1499,12 @@ class ConfigConfirmWidget(GuitoolWidget):
     r"""
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components ConfigConfirmWidget --show
+        python -m wbia.guitool.guitool_components ConfigConfirmWidget --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool
         >>> import dtool
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> tablename = None
@@ -1521,7 +1521,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         >>> self = dlg.widget
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> dlg.show()
         >>> guitool.qtapp_loop(qwin=dlg)
         >>> updated_config = self.config  # NOQA
@@ -1537,7 +1537,7 @@ class ConfigConfirmWidget(GuitoolWidget):
 
     def initialize(self, title, msg, config, options=None, default=None, detailed_msg=None, with_spoiler=True):
         #import copy
-        from ibeis.guitool import PrefWidget2
+        from wbia.guitool import PrefWidget2
         self.msg = msg
         self.orig_config = config
         self.config = config.deepcopy()
@@ -1784,14 +1784,14 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
        QtWidgets.QPushButton
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components --exec-newButton
-        python -m ibeis.guitool.guitool_components --test-newButton
-        python -m ibeis.guitool.guitool_components newButton --show
+        python -m wbia.guitool.guitool_components --exec-newButton
+        python -m wbia.guitool.guitool_components --test-newButton
+        python -m wbia.guitool.guitool_components newButton --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> exec(ut.execstr_funckw(newButton), globals())
         >>> button = newButton(text='button')
@@ -1883,12 +1883,12 @@ def newComboBox(parent=None, options=None, changed=None, default=None,
         QtWidgets.QComboBox: combo
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components --test-newComboBox --show
+        python -m wbia.guitool.guitool_components --test-newComboBox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> exec(ut.execstr_funckw(newComboBox), globals())
         >>> parent = None
@@ -2033,12 +2033,12 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False,
     wrapper around QtWidgets.QCheckBox
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components newCheckBox
+        python -m wbia.guitool.guitool_components newCheckBox
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> parent = newWidget()
         >>> cb1 = gt.newCheckBox(parent, text='check_text1',
@@ -2114,13 +2114,13 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
     fmtdict = {}
     if bgcolor is not None:
         if isinstance(bgcolor, six.string_types):
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             bgcolor = getattr(pt, bgcolor.upper())[0:3] * 255
         style_list.append('background-color: rgb({bgcolor})')
         fmtdict['bgcolor'] = ','.join(map(str, bgcolor))
     if fgcolor is not None:
         if isinstance(fgcolor, six.string_types):
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             fgcolor = getattr(pt, fgcolor.upper())[0:3] * 255
         style_list.append('color: rgb({fgcolor})')
         fmtdict['fgcolor'] = ','.join(map(str, fgcolor))
@@ -2169,14 +2169,14 @@ class Spoiler(WIDGET_BASE):
         http://stackoverflow.com/questions/32476006/how-to-make-an-expandable-collapsable-section-widget-in-qt
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components Spoiler --show
+        python -m wbia.guitool.guitool_components Spoiler --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
+        >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> # build test data
-        >>> import ibeis.guitool
-        >>> import ibeis.guitool as gt
+        >>> import wbia.guitool
+        >>> import wbia.guitool as gt
         >>> guitool.ensure_qtapp()
         >>> #ut.exec_funckw(newWidget, globals())
         >>> parent = None
@@ -2515,12 +2515,12 @@ class FlowLayout(QtWidgets.QLayout):
         https://gist.github.com/Cysu/7461066
 
     CommandLine:
-        python -m ibeis.guitool.guitool_components FlowLayout
+        python -m wbia.guitool.guitool_components FlowLayout
 
     Ignore:
         >>> import sys
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> #
         >>> class Window(QtWidgets.QWidget):
@@ -2647,12 +2647,12 @@ class FlowLayout(QtWidgets.QLayout):
 class ComboRadioHybrid(GuitoolWidget):
     """
     CommandLine:
-        python -m ibeis.guitool.guitool_components ComboRadioHybrid --show
+        python -m wbia.guitool.guitool_components ComboRadioHybrid --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.guitool_components import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> parent = None
         >>> options = ['red', 'blue', 'green', 'blue', 'black', 'blah']
@@ -2786,9 +2786,9 @@ class ComboRadioHybrid(GuitoolWidget):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.guitool_components
-        python -m ibeis.guitool.guitool_components --allexamples
-        python -m ibeis.guitool.guitool_components --allexamples --noface --nosrc
+        python -m wbia.guitool.guitool_components
+        python -m wbia.guitool.guitool_components --allexamples
+        python -m wbia.guitool.guitool_components --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

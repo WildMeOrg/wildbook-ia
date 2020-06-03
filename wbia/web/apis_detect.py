@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
 from __future__ import absolute_import, division, print_function
-from ibeis.control import accessor_decors, controller_inject
-from ibeis import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia import constants as const
 import utool as ut
 import simplejson as json
 from os.path import join, dirname, abspath, exists
 from flask import url_for, request, current_app
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
-from ibeis.web import appfuncs as appf
+from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
+from wbia.web import appfuncs as appf
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 @register_ibs_method
@@ -67,7 +67,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_random_forest --show
+        python -m wbia.web.apis_detect --test-detect_random_forest --show
 
     RESTful:
         Method: PUT, GET
@@ -75,16 +75,16 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:2]
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> aids_list = ibs.detect_random_forest(gid_list, species)
         >>> # Visualize results
         >>> if ut.show_was_requested():
-        >>>     import ibeis.plottool as pt
-        >>>     from ibeis.viz import viz_image
+        >>>     import wbia.plottool as pt
+        >>>     from wbia.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
         >>>     pt.show_if_requested()
@@ -427,13 +427,13 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
         results_dict (list): dict of detection results (not annotations)
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_json
+        python -m wbia.web.apis_detect --test-detect_cnn_yolo_json
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> results_dict = ibs.detect_cnn_yolo_json(gid_list)
         >>> print(results_dict)
@@ -490,7 +490,7 @@ def detect_cnn_json_wrapper(ibs, image_uuid_list, detect_func, **kwargs):
     Args:
         image_uuid_list (list) : list of image uuids to detect on.
     """
-    from ibeis.web.apis_engine import ensure_uuid_list
+    from wbia.web.apis_engine import ensure_uuid_list
 
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
@@ -531,7 +531,7 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo --show
+        python -m wbia.web.apis_detect --test-detect_cnn_yolo --show
 
     RESTful:
         Method: PUT, GET
@@ -539,14 +539,14 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()[:5]
         >>> aids_list = ibs.detect_cnn_yolo(gid_list)
         >>> if ut.show_was_requested():
-        >>>     import ibeis.plottool as pt
-        >>>     from ibeis.viz import viz_image
+        >>>     import wbia.plottool as pt
+        >>>     from wbia.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
         >>>     pt.show_if_requested()
@@ -603,7 +603,7 @@ def models_cnn_lightnet(ibs, **kwargs):
     def identity(x):
         return x
 
-    from ibeis.algo.detect.lightnet import CONFIG_URL_DICT, _parse_class_list
+    from wbia.algo.detect.lightnet import CONFIG_URL_DICT, _parse_class_list
     model_dict = ibs.models_cnn(CONFIG_URL_DICT, identity, _parse_class_list, **kwargs)
     return model_dict
 
@@ -637,7 +637,7 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
             config_url = config_dict[config_tag]
             classes_url = parse_classes_func(config_url)
             try:
-                classes_filepath = ut.grab_file_url(classes_url, appname='ibeis',
+                classes_filepath = ut.grab_file_url(classes_url, appname='wbia',
                                                     check_hash=check_hash)
                 assert exists(classes_filepath)
             except (urllib.error.HTTPError, AssertionError):
@@ -725,7 +725,7 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
             the image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_exists
+        python -m wbia.web.apis_detect --test-detect_cnn_yolo_exists
 
     RESTful:
         Method: GET
@@ -733,9 +733,9 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()
         >>> depc = ibs.depc_image
         >>> aids_list = ibs.detect_cnn_yolo(gid_list[:3], testing=True)
@@ -789,7 +789,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_lightnet --show
+        python -m wbia.web.apis_detect --test-detect_cnn_lightnet --show
 
     RESTful:
         Method: PUT, GET
@@ -797,14 +797,14 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.apis_detect import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.web.apis_detect import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()[:5]
         >>> aids_list = ibs.detect_cnn_lightnet(gid_list)
         >>> if ut.show_was_requested():
-        >>>     import ibeis.plottool as pt
-        >>>     from ibeis.viz import viz_image
+        >>>     import wbia.plottool as pt
+        >>>     from wbia.viz import viz_image
         >>>     for fnum, gid in enumerate(gid_list):
         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
         >>>     pt.show_if_requested()
@@ -1126,16 +1126,16 @@ def detect_ws_injury(ibs, gid_list):
             confidences is a list of floats of correspoinding cofidence to the prediction
 
     """
-    from ibeis.scripts import labelShark
+    from wbia.scripts import labelShark
     labels = labelShark.classifyShark(ibs, gid_list)
     return labels
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -104,8 +104,8 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
 
 
 def testdata_preproc_annot():
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     aid_list = ibs.get_valid_aids()
     return ibs, aid_list
 
@@ -122,11 +122,11 @@ def postget_annot_verts(vertstr_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.template_generator --tbls annotations --Tflags getters native
+        python -m wbia.control.template_generator --tbls annotations --Tflags getters native
 
-        python -m ibeis.algo.preproc.preproc_annot
-        python -m ibeis.algo.preproc.preproc_annot --allexamples
-        python -m ibeis.algo.preproc.preproc_annot --allexamples --noface --nosrc
+        python -m wbia.algo.preproc.preproc_annot
+        python -m wbia.algo.preproc.preproc_annot --allexamples
+        python -m wbia.algo.preproc.preproc_annot --allexamples --noface --nosrc
 
     """
     import multiprocessing

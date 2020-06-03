@@ -123,12 +123,12 @@ SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 
 class PATH_NAMES(object):
     """ Path names for internal IBEIS database """
-    sqldb       = '_ibeis_database.sqlite3'
-    sqlstaging  = '_ibeis_staging.sqlite3'
+    sqldb       = '_wbia_database.sqlite3'
+    sqlstaging  = '_wbia_staging.sqlite3'
     _ibsdb      = '_ibsdb'
-    cache       = '_ibeis_cache'
-    backups     = '_ibeis_backups'
-    logs        = '_ibeis_logs'
+    cache       = '_wbia_cache'
+    backups     = '_wbia_backups'
+    logs        = '_wbia_logs'
     chips       = 'chips'
     figures     = 'figures'
     flann       = 'flann'
@@ -160,7 +160,7 @@ class REL_PATHS(object):
     trees       = join(_ibsdb, PATH_NAMES.trees)
     nets        = join(_ibsdb, PATH_NAMES.nets)
     uploads     = join(_ibsdb, PATH_NAMES.uploads)
-    # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+    # All computed dirs live in <dbdir>/_ibsdb/_wbia_cache
     chips       = join(cache, PATH_NAMES.chips)
     thumbs      = join(cache, PATH_NAMES.thumbs)
     flann       = join(cache, PATH_NAMES.flann)
@@ -176,8 +176,8 @@ EXCLUDE_COPY_REL_DIRS = [
     REL_PATHS.backups,
     REL_PATHS.figures,
     REL_PATHS.nets,
-    join(PATH_NAMES._ibsdb, '_ibeis_cache*'),
-    #'_ibsdb/_ibeis_cache',
+    join(PATH_NAMES._ibsdb, '_wbia_cache*'),
+    #'_ibsdb/_wbia_cache',
     '_ibsdb/chips',  # old path for caches
     './images',  # the hotspotter images dir
 ]
@@ -311,14 +311,14 @@ HARD_NOTE_TAG = '<HARDCASE>'
 
 # HACK
 COMPUTER_NAME = ut.get_computer_name()
-if COMPUTER_NAME in ['ibeis.cs.uic.edu']:
+if COMPUTER_NAME in ['wbia.cs.uic.edu']:
     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
 elif COMPUTER_NAME in ['Leviathan']:
     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
 elif COMPUTER_NAME in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']:
     _DEFAULT_WILDBOOK_TARGET = 'quagga.princeton.edu'
 else:
-    _DEFAULT_WILDBOOK_TARGET = 'ibeis'
+    _DEFAULT_WILDBOOK_TARGET = 'wbia'
 WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT_WILDBOOK_TARGET,
                                 help_='specify the Wildbook target deployment')
 
@@ -337,7 +337,7 @@ class ZIPPED_URLS(object):
 
 
 # Turn off features at Lewa :(
-SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_argflag('--simplify')
+SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'wbia.cs.uic.edu') or ut.get_argflag('--simplify')
 
 
 # For candidacy document
@@ -641,7 +641,7 @@ class META_DECISION(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.constants import *  # NOQA
+        >>> from wbia.constants import *  # NOQA
         >>> assert hasattr(META_DECISION, 'CODE')
         >>> assert hasattr(META_DECISION, 'NICE')
         >>> code1 = META_DECISION.INT_TO_CODE[META_DECISION.NULL]
@@ -952,8 +952,8 @@ class VIEW(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.constants
-        python -m ibeis.constants --allexamples
+        python -m wbia.constants
+        python -m wbia.constants --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

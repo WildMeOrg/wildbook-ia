@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import six
 import itertools as it
-from ibeis import _ibeis_object
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import _wbia_object
+from wbia.control.controller_inject import make_ibs_register_decorator
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -118,12 +118,12 @@ ANNOT_SETTABLE_ATTRS = [
 class _AnnotPropInjector(BASE_TYPE):
     """
     Ignore:
-        >>> from ibeis import _ibeis_object
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia import _wbia_object
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> objname = 'annot'
         >>> blacklist = ['annot_pair']
-        >>> _ibeis_object._find_ibeis_attrs(ibs, objname, blacklist)
+        >>> _wbia_object._find_wbia_attrs(ibs, objname, blacklist)
     """
     def __init__(metaself, name, bases, dct):
         super(_AnnotPropInjector, metaself).__init__(name, bases, dct)
@@ -186,7 +186,7 @@ class _AnnotPropInjector(BASE_TYPE):
         }
 
         objname = 'annot'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
+        _wbia_object._inject_getter_attrs(metaself, objname, attrs,
                                            configurable_attrs, 'depc_annot',
                                            depcache_attrs, settable_attrs,
                                            aliased_attrs)
@@ -200,10 +200,10 @@ class _AnnotPropInjector(BASE_TYPE):
 
 
 try:
-    from ibeis import _autogen_annot_base
+    from wbia import _autogen_annot_base
     BASE = _autogen_annot_base._annot_base_class
 except ImportError:
-    BASE = _ibeis_object.ObjectList1D
+    BASE = _wbia_object.ObjectList1D
 
 
 # @ut.reloadable_class
@@ -214,13 +214,13 @@ class Annots(BASE):
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.annots Annots
+        python -m wbia.annots Annots
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> a = self = annots = Annots(aids, ibs)
         >>> a.preload('vecs', 'kpts', 'nids')
@@ -230,9 +230,9 @@ class Annots(BASE):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> a = self = annots = Annots(aids, ibs)
         >>> a.preload('vecs', 'kpts', 'nids')
@@ -332,7 +332,7 @@ class Annots(BASE):
 
     @property
     def hog_img(self):
-        from ibeis import core_annots
+        from wbia import core_annots
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
     def append_tags(self, tags):
@@ -363,7 +363,7 @@ class Annots(BASE):
     def show(self, *args, **kwargs):
         if len(self) != 1:
             raise ValueError('Can only show one, got {}'.format(len(self)))
-        from ibeis.viz import viz_chip
+        from wbia.viz import viz_chip
         for aid in self:
             return viz_chip.show_chip(self._ibs, aid, *args, **kwargs)
 
@@ -373,7 +373,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
         super(_AnnotGroupPropInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
 
-        # TODO: move to ibeis object as a group call
+        # TODO: move to wbia object as a group call
         def _make_unflat_getter(objname, attrname):
             ibs_funcname = 'get_%s_%s' % (objname, attrname)
             def ibs_unflat_getter(self, *args, **kwargs):
@@ -443,12 +443,12 @@ class _AnnotMatchPropInjector(BASE_TYPE):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis import _ibeis_object
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia import _wbia_object
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> objname = 'annotmatch'
         >>> blacklist = []
-        >>> tup = _ibeis_object._find_ibeis_attrs(ibs, objname, blacklist)
+        >>> tup = _wbia_object._find_wbia_attrs(ibs, objname, blacklist)
         >>> attrs, settable_attrs = tup
         >>> print('attrs = ' + ut.repr4(attrs))
         >>> print('settable_attrs = ' + ut.repr4(settable_attrs))
@@ -472,7 +472,7 @@ class _AnnotMatchPropInjector(BASE_TYPE):
         aliased_attrs = {}
 
         objname = 'annotmatch'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
+        _wbia_object._inject_getter_attrs(metaself, objname, attrs,
                                            configurable_attrs, None,
                                            depcache_attrs, settable_attrs,
                                            aliased_attrs)
@@ -485,13 +485,13 @@ class AnnotMatches(BASE):
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.annots Annots
+        python -m wbia.annots Annots
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> annots = Annots(aids, ibs)
         >>> ams = annots.get_am_rowids()
@@ -525,8 +525,8 @@ class AnnotMatches(BASE):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.annot
-        python -m ibeis.annot --allexamples
+        python -m wbia.annot
+        python -m wbia.annot --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

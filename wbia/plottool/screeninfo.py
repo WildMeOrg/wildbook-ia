@@ -5,9 +5,9 @@ import sys
 import utool as ut
 import numpy as np
 try:
-    import ibeis.guitool as gt
-    from ibeis.guitool.__PYQT__ import QtWidgets
-    from ibeis.guitool.__PYQT__ import QtCore
+    import wbia.guitool as gt
+    from wbia.guitool.__PYQT__ import QtWidgets
+    from wbia.guitool.__PYQT__ import QtCore
 except ImportError:
     try:
         from PyQt4 import QtGui as QtWidgets
@@ -102,19 +102,19 @@ def get_resolution_info(monitor_num=0):
         dict: info
 
     CommandLine:
-        python -m ibeis.plottool.screeninfo get_resolution_info --show
+        python -m wbia.plottool.screeninfo get_resolution_info --show
         xrandr | grep ' connected'
         grep "NVIDIA" /var/log/Xorg.0.log
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.screeninfo import *  # NOQA
+        >>> from wbia.plottool.screeninfo import *  # NOQA
         >>> monitor_num = 1
         >>> for monitor_num in range(get_number_of_monitors()):
         >>>     info = get_resolution_info(monitor_num)
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     app = gt.ensure_qtapp()[0]  # NOQA
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
@@ -251,11 +251,11 @@ def get_monitor_geom(monitor_num=0):
         tuple: geom
 
     CommandLine:
-        python -m ibeis.plottool.screeninfo get_monitor_geom --show
+        python -m wbia.plottool.screeninfo get_monitor_geom --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.screeninfo import *  # NOQA
+        >>> from wbia.plottool.screeninfo import *  # NOQA
         >>> monitor_num = 0
         >>> geom = get_monitor_geom(monitor_num)
         >>> result = ('geom = %s' % (ut.repr2(geom),))
@@ -368,8 +368,8 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.plottool.screeninfo
-        python -m ibeis.plottool.screeninfo --allexamples
+        python -m wbia.plottool.screeninfo
+        python -m wbia.plottool.screeninfo --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

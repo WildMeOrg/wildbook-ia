@@ -2,8 +2,8 @@
 """
 CommandLine;
     # Reset IBEIS database (can skip if done)
-    python -m ibeis.tests.reset_testdbs --reset_mtest
-    python -m ibeis --tf reset_mtest
+    python -m wbia.tests.reset_testdbs --reset_mtest
+    python -m wbia --tf reset_mtest
 
 Notes:
     Moving components: java, tomcat, wildbook.war.
@@ -13,39 +13,39 @@ Notes:
 
 CommandLine;
     # Start IA server
-    python -m ibeis --web --db PZ_MTEST
+    python -m wbia --web --db PZ_MTEST
 
     # Reset Wildbook database
-    python -m ibeis purge_local_wildbook
+    python -m wbia purge_local_wildbook
 
     # Install Wildbook
-    python -m ibeis install_wildbook
+    python -m wbia install_wildbook
 
     # Startup Wildbook
-    python -m ibeis startup_wildbook_server
+    python -m wbia startup_wildbook_server
     --show
 
     # Poll wildbook info
-    python -m ibeis get_wildbook_ia_url
+    python -m wbia get_wildbook_ia_url
 
     # Login to wildbook (can skip)
-    python -m ibeis test_wildbook_login
+    python -m wbia test_wildbook_login
 
     # Ship ImageSets to wildbook
-    python -m ibeis wildbook_signal_imgsetid_list
+    python -m wbia wildbook_signal_imgsetid_list
 
     # Change annotations names to a single name
-    python -m ibeis wildbook_signal_annot_name_changes:1
+    python -m wbia wildbook_signal_annot_name_changes:1
 
     # Change annotations names back to normal
-    python -m ibeis wildbook_signal_annot_name_changes:2
+    python -m wbia wildbook_signal_annot_name_changes:2
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import requests
-from ibeis.control import controller_inject
-from ibeis.control import wildbook_manager as wb_man  # NOQA
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control import controller_inject
+from wbia.control import wildbook_manager as wb_man  # NOQA
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -55,7 +55,7 @@ DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 #PREFERED_BROWSER = 'chrome'
@@ -127,13 +127,13 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     Where does wildbook expect us to be?
 
     CommandLine:
-        python -m ibeis get_wildbook_ia_url
+        python -m wbia get_wildbook_ia_url
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.control.manual_wildbook_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> ia_url = ibs.get_wildbook_ia_url()
         >>> print('ia_url = %r' % (ia_url,))
     """
@@ -166,10 +166,10 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
         dryrun (bool): (default = False)
 
     CommandLine:
-        python -m ibeis wildbook_signal_annot_name_changes:0 --dryrun
-        python -m ibeis wildbook_signal_annot_name_changes:1 --dryrun
-        python -m ibeis wildbook_signal_annot_name_changes:1
-        python -m ibeis wildbook_signal_annot_name_changes:2
+        python -m wbia wildbook_signal_annot_name_changes:0 --dryrun
+        python -m wbia wildbook_signal_annot_name_changes:1 --dryrun
+        python -m wbia wildbook_signal_annot_name_changes:1
+        python -m wbia wildbook_signal_annot_name_changes:2
 
     Setup:
         >>> wb_target = None
@@ -177,9 +177,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.control.manual_wildbook_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> #gid_list = ibs.get_valid_gids()[0:10]
         >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
@@ -192,9 +192,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.control.manual_wildbook_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> #gid_list = ibs.get_valid_gids()[0:10]
         >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
@@ -212,9 +212,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.control.manual_wildbook_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         >>> old_nid_list = [1, 2]
@@ -274,10 +274,10 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         dryrun (bool): (default = False)
 
     CommandLine:
-        python -m ibeis wildbook_signal_name_changes:0 --dryrun
-        python -m ibeis wildbook_signal_name_changes:1 --dryrun
-        python -m ibeis wildbook_signal_name_changes:1
-        python -m ibeis wildbook_signal_name_changes:2
+        python -m wbia wildbook_signal_name_changes:0 --dryrun
+        python -m wbia wildbook_signal_name_changes:1 --dryrun
+        python -m wbia wildbook_signal_name_changes:1
+        python -m wbia wildbook_signal_name_changes:2
 
     Setup:
         >>> wb_target = None
@@ -373,50 +373,50 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         cd $CODE_DIR/Wildbook/tmp
 
         # Ensure IA server is up
-        python -m ibeis --web --db PZ_MTEST
+        python -m wbia --web --db PZ_MTEST
 
         # Reset IBEIS database
-        python -m ibeis.tests.reset_testdbs --reset_mtest
-        python -m ibeis  reset_mtest
+        python -m wbia.tests.reset_testdbs --reset_mtest
+        python -m wbia  reset_mtest
 
         # Completely remove Wildbook database
-        python -m ibeis  purge_local_wildbook
+        python -m wbia  purge_local_wildbook
 
         # Install Wildbook
-        python -m ibeis  install_wildbook
+        python -m wbia  install_wildbook
 
         # Startup Wildbook
-        python -m ibeis  startup_wildbook_server
+        python -m wbia  startup_wildbook_server
 
         # Login to wildbook
-        python -m ibeis  test_wildbook_login
+        python -m wbia  test_wildbook_login
 
         # Ship ImageSets to wildbook
-        python -m ibeis  wildbook_signal_imgsetid_list
+        python -m wbia  wildbook_signal_imgsetid_list
 
         # Change annotations names to a single name
-        python -m ibeis  wildbook_signal_annot_name_changes:1
+        python -m wbia  wildbook_signal_annot_name_changes:1
 
         # Change annotations names back to normal
-        python -m ibeis  wildbook_signal_annot_name_changes:2
+        python -m wbia  wildbook_signal_annot_name_changes:2
 
     CommandLine:
-        python -m ibeis wildbook_signal_imgsetid_list
-        python -m ibeis wildbook_signal_imgsetid_list --dryrun
-        python -m ibeis wildbook_signal_imgsetid_list --break
+        python -m wbia wildbook_signal_imgsetid_list
+        python -m wbia wildbook_signal_imgsetid_list --dryrun
+        python -m wbia wildbook_signal_imgsetid_list --break
 
     SeeAlso:
         ~/local/build_scripts/init_wildbook.sh
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> from wbia.control.manual_wildbook_funcs import *  # NOQA
         >>> dryrun = ut.get_argflag('--dryrun')
         >>> wb_target = None
-        >>> import ibeis
+        >>> import wbia
         >>> # Need to start a web server for wildbook to hook into
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> #gid_list = ibs.get_valid_gids()[0:10]
         >>> gid_list = ibs.get_valid_gids()[3:6]
         >>> new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA
@@ -430,7 +430,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         >>> set_shipped_flag = True
         >>> open_url_on_complete = True
         >>> if ut.get_argflag('--bg'):
-        >>>     web_ibs = ibeis.opendb_bg_web(defaultdb)
+        >>>     web_ibs = wbia.opendb_bg_web(defaultdb)
         >>> result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)
         >>> # cleanup
         >>> #ibs.delete_imagesets(new_imgsetid)
@@ -524,7 +524,7 @@ def get_flukebook_image_uuids(ibs):
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
     filename = 'flukebook.image.admid.%s.json' % (timestamp, )
-    filepath = ut.grab_file_url(url, appname='ibeis', fname=filename)
+    filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
@@ -580,7 +580,7 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
     filename = 'flukebook.annot.admid.%s.json' % (timestamp, )
-    filepath = ut.grab_file_url(url, appname='ibeis', fname=filename)
+    filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
@@ -638,7 +638,7 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
 
 @register_ibs_method
 def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
-    from ibeis import constants as const
+    from wbia import constants as const
     flukebook_annot_uuid_list, flukebook_annot_species_list = ibs.get_flukebook_annot_uuids()
 
     aid_list = ibs.get_valid_aids()
@@ -722,9 +722,9 @@ def flukebook_sync(ibs, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs
-        python -m ibeis.control.manual_wildbook_funcs --allexamples
-        python -m ibeis.control.manual_wildbook_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_wildbook_funcs
+        python -m wbia.control.manual_wildbook_funcs --allexamples
+        python -m wbia.control.manual_wildbook_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -119,9 +119,9 @@ def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', a='default')
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', a='default')
         >>> qreq_.load_indexer()
         >>> indexer = qreq_.indexer
         >>> qannot = qreq_.internal_qannots[1]
@@ -144,8 +144,8 @@ def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],
         >>> assert np.all(np.diff(qfx2_dist, axis=1) >= 0)
 
     Ignore:
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> from ibeis.algo.hots.requery_knn import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+        >>> from wbia.algo.hots.requery_knn import *  # NOQA
         >>> max_k = 9
         >>> n_pts = 5
         >>> num_neighbs = 3

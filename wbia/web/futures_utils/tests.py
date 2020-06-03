@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.web import futures_utils
+from wbia.web import futures_utils
 from concurrent import futures
 import utool as ut
 
@@ -200,7 +200,7 @@ def test_multiple(ActorClass):
 
 def main():
     """
-    from ibeis.web.futures_utils.tests import *
+    from wbia.web.futures_utils.tests import *
     ActorClass = TestProcessActor
     ActorClass = TestThreadActor
 
@@ -219,6 +219,6 @@ def main():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.web.futures_utils.tests
+        python -m wbia.web.futures_utils.tests
     """
     main()

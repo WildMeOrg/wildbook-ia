@@ -6,15 +6,15 @@ SeeAlso:
     routes.turk_identification
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.control import accessor_decors, controller_inject
-from ibeis.algo.hots import pipeline
+from wbia.control import accessor_decors, controller_inject
+from wbia.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
 from os.path import join, dirname, abspath, exists
 import cv2
 import numpy as np   # NOQA
 import utool as ut
-from ibeis.web import appfuncs as appf
-from ibeis import constants as const
+from wbia.web import appfuncs as appf
+from wbia import constants as const
 import traceback
 import requests
 import six
@@ -24,8 +24,8 @@ from datetime import datetime
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 GRAPH_CLIENT_PEEK = 100
@@ -63,16 +63,16 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         query_chips
 
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:1
+        python -m wbia.web.apis_query --test-query_chips_simple_dict:0
+        python -m wbia.web.apis_query --test-query_chips_simple_dict:1
 
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
+        python -m wbia.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> #qaid = ibs.get_valid_aids()[0:3]
         >>> qaids = ibs.get_valid_aids()
         >>> daids = ibs.get_valid_aids()
@@ -92,12 +92,12 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from wbia.control.IBEISControl import *  # NOQA
         >>> import time
-        >>> import ibeis
+        >>> import wbia
         >>> import requests
         >>> # Start up the web instance
-        >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
+        >>> web_instance = wbia.opendb_in_background(db='testdb1', web=True, browser=False)
         >>> time.sleep(10)
         >>> web_port = ibs.get_web_port_via_scan()
         >>> if web_port is None:
@@ -195,13 +195,13 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
     Create the review image for a pair of annotations
 
     CommandLine:
-        python -m ibeis.web.apis_query ensure_review_image --show
+        python -m wbia.web.apis_query ensure_review_image --show
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.web.apis_query import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
+        >>> from wbia.web.apis_query import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
         >>> ibs = qreq_.ibs
         >>> aid = cm.get_top_aids()[0]
         >>> tt = ut.tic('make image')
@@ -211,11 +211,11 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> print('image.shape = %r' % (image.shape,))
         >>> print('image.dtype = %r' % (image.dtype,))
         >>> ut.print_object_size(image)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
-    from ibeis.gui import id_review_api
+    from wbia.gui import id_review_api
     # Get thumb path
     match_thumb_path = ibs.get_match_thumbdir()
     match_thumb_filename = id_review_api.get_match_thumb_fname(cm, aid, qreq_,
@@ -275,7 +275,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                             view_orientation='vertical', include_jquery=False):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         review_pair (dict): pair of annot uuids
         cm_dict (dict):
         query_config_dict (dict):
@@ -286,18 +286,18 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         include_jquery (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.web.apis_query review_graph_match_html --show
+        python -m wbia.web.apis_query review_graph_match_html --show
 
-        ibeis --web
-        python -m ibeis.web.apis_query review_graph_match_html --show --domain=localhost
+        wbia --web
+        python -m wbia.web.apis_query review_graph_match_html --show --domain=localhost
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.apis_query import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        >>> from wbia.web.apis_query import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:2]
+        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
@@ -307,7 +307,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
+        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/graph/', **data)
         >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
@@ -317,8 +317,8 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> quuid = quuid_list[0]
         >>> class_dict = auuid2_cm[str(quuid)]
         >>> # Get information in frontend
-        >>> #ibs = ibeis.opendb('testdb1')
-        >>> #cm = match_obj = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
+        >>> #ibs = wbia.opendb('testdb1')
+        >>> #cm = match_obj = wbia.ChipMatch.from_dict(class_dict, ibs=ibs)
         >>> #match_obj.print_rawinfostr()
         >>> # Make the dictionary a bit more managable
         >>> #match_obj.compress_top_feature_matches(num=2)
@@ -336,22 +336,22 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>     _internal_state=None,
         >>>     callback_url = None,
         >>> )
-        >>> html_str = web_ibs.send_ibeis_request('/api/review/query/graph/', type_='get', **kw)
+        >>> html_str = web_ibs.send_wbia_request('/api/review/query/graph/', type_='get', **kw)
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
 
     Example2:
         >>> # DISABLE_DOCTEST
         >>> # This starts off using web to get information, but finishes the rest in python
-        >>> from ibeis.web.apis_query import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.web.apis_query import *  # NOQA
+        >>> import wbia
         >>> ut.exec_funckw(review_graph_match_html, globals())
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:2]
+        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
@@ -361,7 +361,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
+        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/graph/', **data)
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> web_ibs.terminate2()
@@ -371,8 +371,8 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> quuid = quuid_list[0]
         >>> class_dict = auuid2_cm[str(quuid)]
         >>> # Get information in frontend
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cm = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
+        >>> ibs = wbia.opendb('testdb1')
+        >>> cm = wbia.ChipMatch.from_dict(class_dict, ibs=ibs)
         >>> cm.print_rawinfostr()
         >>> # Make the dictionary a bit more managable
         >>> cm.compress_top_feature_matches(num=1)
@@ -385,12 +385,12 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>>                             query_config_dict, _internal_state=None,
         >>>                             callback_url=None)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
     """
-    from ibeis.algo.hots import chip_match
-    # from ibeis.algo.hots.query_request import QueryRequest
+    from wbia.algo.hots import chip_match
+    # from wbia.algo.hots.query_request import QueryRequest
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
@@ -457,7 +457,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     if False:
-        from ibeis.web import apis_query
+        from wbia.web import apis_query
         root_path = dirname(abspath(apis_query.__file__))
     else:
         root_path = dirname(abspath(__file__))
@@ -501,12 +501,12 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 def review_query_chips_test(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis_query review_query_chips_test --show
+        python -m wbia.web.apis_query review_query_chips_test --show
 
     Example:
         >>> # SCRIPT
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web(
         >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')
     """
     ibs = current_app.ibs
@@ -575,7 +575,7 @@ def review_query_chips_test(**kwargs):
 @register_ibs_method
 @register_api('/api/review/query/chip/best/', methods=['GET'])
 def review_query_chips_best(ibs, aid, **kwargs):
-    # from ibeis.algo.hots import chip_match
+    # from wbia.algo.hots import chip_match
 
     # query_config_dict = {}
 
@@ -663,14 +663,14 @@ def review_query_chips_best(ibs, aid, **kwargs):
 def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis_query query_chips_test
+        python -m wbia.web.apis_query query_chips_test
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1')
         >>> ibs = qreq_.ibs
         >>> result_dict = ibs.query_chips_test()
         >>> print(result_dict)
@@ -727,7 +727,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True,
                       cache_images=True, n=16, view_orientation='horizontal',
                       return_summary=True, **kwargs):
-    from ibeis.unstable.orig_graph_iden import OrigAnnotInference
+    from wbia.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
     import uuid
 
@@ -747,7 +747,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
     if curvrank_daily_tag is not None:
         if len(curvrank_daily_tag) > 144:
             curvrank_daily_tag_ = ut.hashstr27(curvrank_daily_tag)
-            curvrank_daily_tag_ = 'ibeis-shortened-%s' % (curvrank_daily_tag_, )
+            curvrank_daily_tag_ = 'wbia-shortened-%s' % (curvrank_daily_tag_, )
             print('[WARNING] curvrank_daily_tag too long (Probably an old job)')
             print('[WARNING] Original: %r' % (curvrank_daily_tag, ))
             print('[WARNING] Shortened: %r' % (curvrank_daily_tag_, ))
@@ -923,7 +923,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             'dannot_uuid_list'        : ibs.get_annot_uuids(cm.daid_list),
             # 'dnid_list'               : cm.dnid_list,
             'dname_uuid_list'         : [convert_to_uuid(nid) for nid in cm.dnid_list],
-            # FIXME: use qreq_ state not ibeis state
+            # FIXME: use qreq_ state not wbia state
             'dname_list'              : ibs.get_name_texts(cm.dnid_list),
             'score_list'              : cm.score_list,
             'annot_score_list'        : cm.annot_score_list,
@@ -932,7 +932,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             # Non-corresponding lists to above
             # 'unique_nids'             : cm.unique_nids,
             'unique_name_uuid_list'   : [convert_to_uuid(nid) for nid in cm.unique_nids],
-            # FIXME: use qreq_ state not ibeis state
+            # FIXME: use qreq_ state not wbia state
             'unique_name_list'        : ibs.get_name_texts(cm.unique_nids),
             'name_score_list'         : cm.name_score_list,
             # Placeholders for the reinitialization of the ChipMatch object
@@ -1092,24 +1092,24 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         URL:    /api/query/chip/
 
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips
+        python -m wbia.web.apis_query --test-query_chips
 
         # Test speed of single query
-        python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
+        python -m wbia --tf IBEISController.query_chips --db PZ_Master1 \
             -a default:qindex=0:1,dindex=0:500 --nocache-hs
 
-        python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
+        python -m wbia --tf IBEISController.query_chips --db PZ_Master1 \
             -a default:qindex=0:1,dindex=0:3000 --nocache-hs
 
-        python -m ibeis.web.apis_query --test-query_chips:1 --show
-        python -m ibeis.web.apis_query --test-query_chips:2 --show
+        python -m wbia.web.apis_query --test-query_chips:1 --show
+        python -m wbia.web.apis_query --test-query_chips:2 --show
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_()
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> cm = cm_list[0]
@@ -1120,11 +1120,11 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> import ibeis
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> from wbia.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> ibs = ibeis.opendb_test(db='testdb1')
+        >>> ibs = wbia.opendb_test(db='testdb1')
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
         >>> cm = ibs.query_chips(qaid_list, daid_list, use_cache=False, qreq_=qreq_)[0]
         >>> ut.quit_if_noshow()
@@ -1134,11 +1134,11 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
     Example1:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> import ibeis
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> from wbia.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> ibs = ibeis.opendb_test(db='testdb1')
+        >>> ibs = wbia.opendb_test(db='testdb1')
         >>> cfgdict = {'pipeline_root':'BC_DTW'}
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
         >>> cm = ibs.query_chips(qreq_=qreq_)[0]
@@ -1203,7 +1203,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
 
 def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     render_config = {
         'overlay'    : overlay,
         'show_ell'   : draw_matches,
@@ -1219,7 +1219,7 @@ def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
 
 
 def query_graph_v2_callback(graph_client, callback_type):
-    from ibeis.web.graph_server import ut_to_json_encode
+    from wbia.web.graph_server import ut_to_json_encode
     assert callback_type in ['review', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
@@ -1253,45 +1253,45 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
+        python -m wbia.web.apis_query --test-query_chips_graph_v2:0
 
-        python -m ibeis reset_mtest_graph
+        python -m wbia reset_mtest_graph
 
-        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
-        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
+        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.apis_query import *
-        >>> import ibeis
+        >>> from wbia.web.apis_query import *
+        >>> import wbia
         >>> # Open local instance
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> uuid_list = ibs.annots().uuids[0:10]
         >>> # Start up the web instance
-        >>> web_ibs = ibeis.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
+        >>> web_ibs = wbia.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
         >>> data = dict(annot_uuid_list=uuid_list)
-        >>> resp = web_ibs.send_ibeis_request('/api/query/graph/v2/', **data)
+        >>> resp = web_ibs.send_wbia_request('/api/query/graph/v2/', **data)
         >>> print('resp = %r' % (resp,))
         >>> #cmdict_list = json_dict['response']
         >>> #assert 'score_list' in cmdict_list[0]
 
     Example:
         >>> # DEBUG_SCRIPT
-        >>> from ibeis.web.apis_query import *
+        >>> from wbia.web.apis_query import *
         >>> # Hack a flask context
         >>> current_app = ut.DynStruct()
         >>> current_app.GRAPH_CLIENT_DICT = {}
         >>> old = query_chips_graph_v2.__globals__.get('current_app', None)
         >>> query_chips_graph_v2.__globals__['current_app'] = current_app
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> #ut.exec_funckw(query_chips_graph_v2, globals())
         >>> # Run function in main process
         >>> query_chips_graph_v2(ibs)
         >>> # Reset context
         >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
-    from ibeis.web.graph_server import GraphClient
+    from wbia.web.graph_server import GraphClient
     print('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
@@ -1378,7 +1378,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 @register_ibs_method
 def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
                                  view_orientation='vertical', view_version=1):
-    from ibeis.algo.verif import pairfeat
+    from wbia.algo.verif import pairfeat
     from flask import session
 
     EDGES_KEY = '_EDGES_'
@@ -1488,7 +1488,7 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url=None,
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     if False:
-        from ibeis.web import apis_query
+        from wbia.web import apis_query
         root_path = dirname(abspath(apis_query.__file__))
     else:
         root_path = dirname(abspath(__file__))
@@ -1622,18 +1622,18 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
-    import ibeis
+    import wbia
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     # Create the AnnotInference
-    infr = ibeis.AnnotInference(ibs=ibs, aids=graph_client.aids, autoinit=True)
+    infr = wbia.AnnotInference(ibs=ibs, aids=graph_client.aids, autoinit=True)
     for key in graph_client.config:
         infr.params[key] = graph_client.config[key]
     infr.reset_feedback('staging', apply=True)
 
     infr.relabel_using_reviews(rectify=True)
     edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-    name_delta_df = infr.get_ibeis_name_delta()
+    name_delta_df = infr.get_wbia_name_delta()
 
     ############################################################################
 
@@ -1679,9 +1679,9 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
         'name_dict'   : name_dict,
     }
 
-    infr.write_ibeis_staging_feedback()
-    infr.write_ibeis_annotmatch_feedback(edge_delta_df)
-    infr.write_ibeis_name_assignment(name_delta_df)
+    infr.write_wbia_staging_feedback()
+    infr.write_wbia_annotmatch_feedback(edge_delta_df)
+    infr.write_wbia_name_assignment(name_delta_df)
     edge_delta_df.reset_index()
 
     return ret_dict
@@ -1795,9 +1795,9 @@ def query_graph_v2_on_request_review(future):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

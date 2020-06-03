@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This module defines the entry point into the IBEIS system
-ibeis.opendb and ibeis.main are the main entry points
+wbia.opendb and wbia.main are the main entry points
 """
 from __future__ import absolute_import, division, print_function
 #from six.moves import builtins
@@ -26,14 +26,14 @@ USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
-    print('[ibeis.main_module] Caught ctrl+c in %s' % (proc_name,))
+    print('[wbia.main_module] Caught ctrl+c in %s' % (proc_name,))
     sys.exit(0)
     # try:
     #     _close_parallel()
     # except Exception as ex:
     #     print('Something very bad happened' + repr(ex))
     # finally:
-    #     print('[ibeis.main_module] sys.exit(0)')
+    #     print('[wbia.main_module] sys.exit(0)')
     #     sys.exit(0)
 
 #-----------------------
@@ -51,43 +51,43 @@ def _reset_signals():
 
 
 def _parse_args():
-    from ibeis import params
+    from wbia import params
     params.parse_args()
 
 
 def _init_matplotlib():
-    from ibeis.plottool import __MPL_INIT__
+    from wbia.plottool import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
 
 
 def _init_gui(activate=True):
-    import ibeis.guitool
+    import wbia.guitool
     if NOT_QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
     #if USE_OLD_BACKEND:
-    from ibeis.gui import guiback
+    from wbia.gui import guiback
     back = guiback.MainWindowBackend()
     #else:
-    #    from ibeis.gui import newgui
+    #    from wbia.gui import newgui
     #    back = newgui.IBEISGuiWidget()
     if activate:
         guitool.activate_qwindow(back.mainwin)
     return back
 
 
-def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
+def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     """
-    Private function that calls code to create an ibeis controller
+    Private function that calls code to create an wbia controller
     """
     import utool as ut
-    from ibeis import params
-    from ibeis.control import IBEISControl
+    from wbia import params
+    from wbia.control import IBEISControl
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose and NOT_QUIET:
-        print('[main] _init_ibeis()')
+        print('[main] _init_wbia()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         ibs = None
@@ -105,9 +105,9 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
                                  help_='automatically launch the web app / web api')
             #web = params.args.webapp
         if web:
-            from ibeis.web import app
+            from wbia.web import app
             port = params.args.webport
-            app.start_from_ibeis(ibs, port=port, **kwargs)
+            app.start_from_wbia(ibs, port=port, **kwargs)
     return ibs
 
 
@@ -116,7 +116,7 @@ def _init_parallel():
     if ut.VERBOSE:
         print('_init_parallel')
     from utool import util_parallel
-    from ibeis import params
+    from wbia import params
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
     #from utool import util_sysreq
@@ -125,7 +125,7 @@ def _init_parallel():
     #util_sysreq.ensure_in_pythonpath('code')
     #import pyhesaff  # NOQA
     #import pyrf  # NOQA
-    from ibeis import core_annots  # NOQA
+    from wbia import core_annots  # NOQA
     #.algo.preproc import preproc_chip  # NOQA
     util_parallel.set_num_procs(params.args.num_procs)
     #if PREINIT_MULTIPROCESSING_POOLS:
@@ -176,8 +176,8 @@ def _init_numpy():
 
 
 def _guitool_loop(main_locals, ipy=False):
-    import ibeis.guitool
-    from ibeis import params
+    import wbia.guitool
+    from wbia import params
     print('[main] guitool loop')
     back = main_locals.get('back', None)
     if back is not None:
@@ -196,11 +196,11 @@ def set_newfile_permissions():
     sets this processes default permission bits when creating new files
 
     CommandLine:
-        python -m ibeis.main_module --test-set_newfile_permissions
+        python -m wbia.main_module --test-set_newfile_permissions
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.main_module import *  # NOQA
+        >>> from wbia.main_module import *  # NOQA
         >>> import os
         >>> import utool as ut
         >>> # write before umask
@@ -252,8 +252,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     """
     _preload()
     set_newfile_permissions()
-    from ibeis.init import main_commands
-    from ibeis.init import sysres
+    from wbia.init import main_commands
+    from wbia.init import sysres
     # Display a visible intro message
     msg = '''
     _____ ______  _______ _____ _______
@@ -266,31 +266,31 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     ibs = None
     back = None
     if NOT_QUIET:
-        print('[main] ibeis.main_module.main()')
+        print('[main] wbia.main_module.main()')
     DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
         import utool as ut
-        import ibeis
+        import wbia
         print('[main] MAIN DIAGNOSTICS')
         print('[main]  * username = %r' % (ut.get_user_name()))
-        print('[main]  * ibeis.__version__ = %r' % (ibeis.__version__,))
+        print('[main]  * wbia.__version__ = %r' % (wbia.__version__,))
         print('[main]  * computername = %r' % (ut.get_computer_name()))
         print('[main]  * cwd = %r' % (os.getcwd(),))
         print('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
     if defaultdb in ['testdb1', 'testdb0']:
-        from ibeis.tests.reset_testdbs import ensure_smaller_testingdbs
+        from wbia.tests.reset_testdbs import ensure_smaller_testingdbs
         ensure_smaller_testingdbs()
         #
     dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
                                   allow_newdir=allow_newdir, db=db,
                                   dbdir=dbdir)
     if delete_ibsdir is True:
-        from ibeis.other import ibsfuncs
+        from wbia.other import ibsfuncs
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
-        ibsfuncs.delete_ibeis_database(dbdir)
+        ibsfuncs.delete_wbia_database(dbdir)
 
     #limit = sys.getrecursionlimit()
     #if limit == 1000:
@@ -300,10 +300,10 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:
         # Build IBEIS Control object
-        ibs = _init_ibeis(dbdir)
+        ibs = _init_wbia(dbdir)
         if gui and USE_GUI:
             back = _init_gui(activate=kwargs.get('activate', True))
-            back.connect_ibeis_control(ibs)
+            back.connect_wbia_control(ibs)
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
@@ -346,11 +346,11 @@ def opendb_bg_web(*args, **kwargs):
         web_ibs - this is a KillableProcess object with special functions
 
     CommandLine:
-        python -m ibeis.main_module opendb_bg_web
+        python -m wbia.main_module opendb_bg_web
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.main_module import *  # NOQA
+        >>> from wbia.main_module import *  # NOQA
         >>> args = tuple()
         >>> kwargs = {}
         >>> print('Opening a web_ibs')
@@ -361,7 +361,7 @@ def opendb_bg_web(*args, **kwargs):
         >>> web_ibs.terminate2()
     """
     import utool as ut
-    from ibeis.web import appfuncs
+    from wbia.web import appfuncs
     domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
     port = kwargs.pop('port', appfuncs.DEFAULT_WEB_API_PORT)
 
@@ -397,7 +397,7 @@ def opendb_bg_web(*args, **kwargs):
         import requests
         return requests.post(baseurl + suffix)
 
-    def send_ibeis_request(suffix, type_='post', **kwargs):
+    def send_wbia_request(suffix, type_='post', **kwargs):
         """
         Posts a request to a url suffix
         """
@@ -430,23 +430,23 @@ def opendb_bg_web(*args, **kwargs):
         """
         for _ in ut.delayed_retry_gen(delays):
             print('Waiting for jobid = %s' % (jobid,))
-            status_response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
+            status_response = web_ibs.send_wbia_request('/api/engine/job/status/', jobid=jobid)
             if status_response['jobstatus'] == 'completed':
                 break
         return status_response
 
     def read_engine_results(jobid):
-        result_response = web_ibs.send_ibeis_request('/api/engine/job/result/', jobid=jobid)
+        result_response = web_ibs.send_wbia_request('/api/engine/job/result/', jobid=jobid)
         return result_response
 
     def send_request_and_wait(suffix, type_='post', timeout=None, **kwargs):
-        jobid = web_ibs.send_ibeis_request(suffix, type_=type_, **kwargs)
+        jobid = web_ibs.send_wbia_request(suffix, type_=type_, **kwargs)
         status_response = web_ibs.wait_for_results(jobid, timeout)  # NOQA
         result_response = web_ibs.read_engine_results(jobid)
         #>>> cmdict = ut.from_json(result_response['json_result'])[0]
         return result_response
 
-    web_ibs.send_ibeis_request = send_ibeis_request
+    web_ibs.send_wbia_request = send_wbia_request
     web_ibs.wait_for_results = wait_for_results
     web_ibs.read_engine_results = read_engine_results
     web_ibs.send_request_and_wait = send_request_and_wait
@@ -460,7 +460,7 @@ def opendb_bg_web(*args, **kwargs):
             if True or ut.VERBOSE:
                 print('Waiting for server to be up. count=%r' % (count,))
             try:
-                web_ibs.send_ibeis_request('/api/test/heartbeat/', type_='get')
+                web_ibs.send_wbia_request('/api/test/heartbeat/', type_='get')
                 break
             except requests.ConnectionError:
                 pass
@@ -471,12 +471,12 @@ def opendb_bg_web(*args, **kwargs):
 def opendb_fg_web(*args, **kwargs):
     """
     Ignore:
-        >>> from ibeis.main_module import *  # NOQA
+        >>> from wbia.main_module import *  # NOQA
         >>> kwargs = {'db': 'testdb1'}
         >>> args = tuple()
 
-        >>> import ibeis
-        >>> ibs = ibeis.opendb_fg_web()
+        >>> import wbia
+        >>> ibs = wbia.opendb_fg_web()
 
     """
     # Gives you context inside the web app for testing
@@ -484,7 +484,7 @@ def opendb_fg_web(*args, **kwargs):
     kwargs['web'] = True
     kwargs['browser'] = False
     ibs = opendb(*args, **kwargs)
-    from ibeis.control import controller_inject
+    from wbia.control import controller_inject
     app = controller_inject.get_flask_app()
     ibs.app = app
     return ibs
@@ -512,11 +512,11 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
             controller
 
     Returns:
-        ibeis.IBEISController: ibs
+        wbia.IBEISController: ibs
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.main_module import *  # NOQA
+        >>> from wbia.main_module import *  # NOQA
         >>> db = None
         >>> dbdir = None
         >>> defaultdb = 'cache'
@@ -529,16 +529,16 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         >>> result = str(ibs)
         >>> print(result)
     """
-    from ibeis.init import sysres
-    from ibeis.other import ibsfuncs
+    from wbia.init import sysres
+    from wbia.other import ibsfuncs
     dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
                                   allow_newdir=allow_newdir, db=db,
                                   dbdir=dbdir)
     if delete_ibsdir is True:
         assert allow_newdir, (
             'must be making new directory if you are deleting everything!')
-        ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web,
+        ibsfuncs.delete_wbia_database(dbdir)
+    ibs = _init_wbia(dbdir, verbose=verbose, use_cache=use_cache, web=web,
                       **kwargs)
     return ibs
 
@@ -551,34 +551,34 @@ def start(*args, **kwargs):
 def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
                 db=None):
     """ alias for main() """  # + main.__doc__
-    from ibeis.init import sysres
+    from wbia.init import sysres
     _preload()
     dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
                                   allow_newdir=allow_newdir, db=db,
                                   dbdir=dbdir)
-    ibs = _init_ibeis(dbdir)
+    ibs = _init_wbia(dbdir)
     return ibs
 
 
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool as ut
-    #from ibeis.init import main_helpers
-    # from ibeis import params
-    # from ibeis.init import sysres
+    #from wbia.init import main_helpers
+    # from wbia import params
+    # from wbia.init import sysres
     if multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
-        print('[ibeis] _preload')
+        print('[wbia] _preload')
     _parse_args()
     # mpl backends
     # if logging and not params.args.nologging:
     #     if params.args.logdir is not None:
     #         sysres.set_logdir(params.args.logdir)
     #     else:
-    #         # Log in the configured ibeis log dir (which is maintained by utool)
+    #         # Log in the configured wbia log dir (which is maintained by utool)
     #         # fix this to be easier to figure out where the logs actually are
-    #         ut.start_logging(appname='ibeis')
+    #         ut.start_logging(appname='wbia')
     if mpl:
         _init_matplotlib()
     # numpy print settings
@@ -614,8 +614,8 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     Returns:
         str: execstr
     """
-    print('[main] ibeis.main_module.main_loop()')
-    from ibeis import params
+    print('[main] wbia.main_module.main_loop()')
+    from wbia import params
     import utool as ut
     #print('current process = %r' % (multiprocessing.current_process().name,))
     #== 'MainProcess':
@@ -647,9 +647,9 @@ def main_close(main_locals=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.main_module
-        python -m ibeis.main_module --allexamples
-        python -m ibeis.main_module --allexamples --noface --nosrc
+        python -m wbia.main_module
+        python -m wbia.main_module --allexamples
+        python -m wbia.main_module --allexamples --noface --nosrc
     """
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA

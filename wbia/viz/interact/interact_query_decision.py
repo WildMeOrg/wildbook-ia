@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
-from ibeis.plottool import interact_helpers as ih
-import ibeis.plottool as pt
+from wbia.plottool import interact_helpers as ih
+import wbia.plottool as pt
 from functools import partial
-from ibeis.viz import viz_chip
-from ibeis.viz import viz_matches
-from ibeis.plottool.abstract_interaction import AbstractInteraction
+from wbia.viz import viz_chip
+from wbia.viz import viz_matches
+from wbia.plottool.abstract_interaction import AbstractInteraction
 
 ut.noinject(__name__, '[interact_query_decision]')
 
@@ -22,14 +22,14 @@ NUM_TOP = 3
 class QueryVerificationInteraction(AbstractInteraction):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
-        python -m ibeis --imgsetid 2 --inc-query --yes
+        python -m wbia.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
+        python -m wbia --imgsetid 2 --inc-query --yes
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_query_decision import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> from wbia.viz.interact.interact_query_decision import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> comp_aids = cm.get_top_aids(NUM_TOP)
         >>> suggest_aids = comp_aids[0:1]
         >>> qvi = QueryVerificationInteraction(
@@ -218,7 +218,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         # can cause freezes should be False
         INTERACT_EXAMINE = False
         if INTERACT_EXAMINE:
-            # from ibeis.viz.interact import interact_matches
+            # from wbia.viz.interact import interact_matches
             #fig = interact_matches.ishow_matches(self.ibs, self.cm, aid, figtitle=figtitle, fnum=fnum)
             fig = self.cm.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
             print('Finished interact')
@@ -306,15 +306,15 @@ class QueryVerificationInteraction(AbstractInteraction):
         """
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_query_decision --test-confirm
+            python -m wbia.viz.interact.interact_query_decision --test-confirm
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_query_decision import *  # NOQA
+            >>> from wbia.viz.interact.interact_query_decision import *  # NOQA
             >>> import utool as ut
             >>> # build test data
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> self = ibs
             >>> self.ibs = ibs
             >>> selected_aids = ut.get_list_column(ibs.get_name_aids(ibs.get_valid_nids()), 0)
@@ -324,7 +324,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             >>> # verify results
             >>> #print(result)
         """
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         print('[interact_query_decision] Confirming selected animals.')
 
         selected_aids = [aid for aid in self.comp_aids
@@ -383,8 +383,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         print('[interact_query_decision] sent name_decision_callback(chosen_names=%r)' % (chosen_names,))
 
     def figure_clicked(self, event=None):
-        from ibeis.viz import viz_helpers as vh
-        import ibeis.guitool as gt
+        from wbia.viz import viz_helpers as vh
+        import wbia.guitool as gt
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
@@ -392,7 +392,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    from ibeis.viz.interact import interact_chip
+                    from wbia.viz.interact import interact_chip
                     height = self.fig.canvas.geometry().height()
                     qpoint = gt.newQPoint(event.x, height - event.y)
                     if self.qreq_ is None:
@@ -415,9 +415,9 @@ class QueryVerificationInteraction(AbstractInteraction):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_query_decision
-        python -m ibeis.viz.interact.interact_query_decision --allexamples
-        python -m ibeis.viz.interact.interact_query_decision --allexamples --noface --nosrc
+        python -m wbia.viz.interact.interact_query_decision
+        python -m wbia.viz.interact.interact_query_decision --allexamples
+        python -m wbia.viz.interact.interact_query_decision --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

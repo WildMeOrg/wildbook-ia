@@ -36,13 +36,13 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         **kwargs: nRows, nCols
 
     CommandLine:
-        python -m ibeis.plottool.interactions --exec-ExpandableInteraction --show
+        python -m wbia.plottool.interactions --exec-ExpandableInteraction --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.interactions import *  # NOQA
+        >>> from wbia.plottool.interactions import *  # NOQA
         >>> import numpy as np
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> inter = pt.interactions.ExpandableInteraction()
         >>> inter.append_plot(ut.partial(pt.plot_func, np.sin, stop=np.pi * 2))
         >>> inter.append_plot(ut.partial(pt.plot_func, np.cos, stop=np.pi * 2))
@@ -119,7 +119,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     def show_page(self):
         if self.fig is None:
             raise AssertionError('fig is None, did you run interction.start()?')
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         fig = ih.begin_interaction('expandable', self.fnum)
         if not any(self.pnum_list):
             # If no pnum was given, find a set that agrees with constraints
@@ -278,7 +278,7 @@ class PanEvents(object):
         self.cidScroll = None
         self.ax = ax
         #if ax is None:
-        #    import ibeis.plottool as pt
+        #    import wbia.plottool as pt
         #    ax = pt.gca()
         #self.ax = ax
         #self.connect()
@@ -321,8 +321,8 @@ class PanEvents(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.plottool.interactions
-        python -m ibeis.plottool.interactions --allexamples
+        python -m wbia.plottool.interactions
+        python -m wbia.plottool.interactions --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

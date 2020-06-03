@@ -5,7 +5,7 @@ from six.moves import zip, map
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -164,13 +164,13 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
     Script to update tags to newest values
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-rename_and_reduce_tags --db PZ_Master1
+        python -m wbia.tag_funcs --exec-rename_and_reduce_tags --db PZ_Master1
 
     Ignore:
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> #ibs = wbia.opendb(defaultdb='PZ_Master1')
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> annotmatch_rowids = filter_annotmatch_by_tags(ibs, min_num=1)
         >>> rename_and_reduce_tags(ibs, annotmatch_rowids)
     """
@@ -209,15 +209,15 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
     DEPRICATE
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --db GZ_Master1 --min_num=1  --dpath /media/raid
+        python -m wbia.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
+        python -m wbia.tag_funcs --exec-export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
+        python -m wbia.tag_funcs --exec-export_tagged_chips --db GZ_Master1 --min_num=1  --dpath /media/raid
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=ut.ddict(list, logic=str))
         >>> ut.print_dict(kwargs, 'filter args')
         >>> aid_list = ibs.filter_annots_by_tags(**kwargs)
@@ -241,19 +241,19 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
     Filter / Find / Search for annotations with particular tags
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --helpx
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --min_num=1
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --has_any=lighting --has_all=lighting:underexposed --show
+        python -m wbia.tag_funcs --exec-filter_annots_by_tags --helpx
+        python -m wbia.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1
+        python -m wbia.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --min_num=1
+        python -m wbia.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --has_any=lighting --has_all=lighting:underexposed --show
 
     SeeAlso:
-        python -m ibeis.init.filter_annots --exec-filter_annots_general
+        python -m wbia.init.filter_annots --exec-filter_annots_general
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=ut.ddict(list, logic=str))
         >>> ut.print_dict(kwargs, 'filter args')
@@ -266,8 +266,8 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
         >>> print('len(aid_list) = %r' % (len(aid_list),))
         >>> print('sum(tags) = %r' % (sum(filtered_tag_hist.values()),))
         >>> ut.quit_if_noshow()
-        >>> import ibeis.viz.interact
-        >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list)
+        >>> import wbia.viz.interact
+        >>> wbia.viz.interact.interact_chip.interact_multichips(ibs, aid_list)
         >>> ut.show_if_requested()
     """
     if aid_list is None:
@@ -292,7 +292,7 @@ def filterflags_annot_tags(ibs, aid_list, **kwargs):
 def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid1_list (list):
         aid2_list (list):
         directed (bool): (default = True)
@@ -301,13 +301,13 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         list: tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_aidpair_tags --db PZ_Master1 --tags Hard interesting
+        python -m wbia.tag_funcs --exec-get_aidpair_tags --db PZ_Master1 --tags Hard interesting
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> has_any = ut.get_argval('--tags', type_=list, default=None)
         >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
         >>> aid_pairs = filter_aidpairs_by_tags(ibs, has_any=has_any, min_num=1)
@@ -371,30 +371,30 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
     ignores case
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         flags (?):
 
     Returns:
         list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --min-num=1
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags JoinCase
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SplitCase
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags occlusion
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SceneryMatch
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags Photobomb
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --min-num=1
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags JoinCase
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SplitCase
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags occlusion
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SceneryMatch
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags Photobomb
 
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db GZ_Master1 --tags needswork
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db GZ_Master1 --tags needswork
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> #ibs = wbia.opendb(defaultdb='testdb1')
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> #tags = ['Photobomb', 'SceneryMatch']
         >>> has_any = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
         >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
@@ -416,7 +416,7 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         >>> # Show timedelta info
         >>> ut.quit_if_noshow()
         >>> timedelta_list = ibs.get_annot_pair_timedelta(aid1_list, aid2_list)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (has_any,))
         >>> ut.show_if_requested()
     """
@@ -456,17 +456,17 @@ def filterflags_general_tags(tags_list,
         max_num (None): (default = None)
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --helpx
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --none_match n
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --has_none=n,o
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:1
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:2
+        python -m wbia.tag_funcs --exec-filterflags_general_tags
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:0  --helpx
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:0
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:0  --none_match n
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:0  --has_none=n,o
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:1
+        python -m wbia.tag_funcs --exec-filterflags_general_tags:2
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P', 'o'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['q', 'v'], ['n'], ['n'], ['N']]
         >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=list)
         >>> print('kwargs = %r' % (kwargs,))
@@ -477,7 +477,7 @@ def filterflags_general_tags(tags_list,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
         >>> has_all = 'n'
         >>> min_num = 1
@@ -487,7 +487,7 @@ def filterflags_general_tags(tags_list,
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
         >>> kwargs = {
         >>>     'any_endswith': 'n',
@@ -590,20 +590,20 @@ def filterflags_general_tags(tags_list,
 def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         annotmatch_rowids (?):
 
     Returns:
         list: filtered_aid_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annotmatch_case_tags
+        python -m wbia.tag_funcs --exec-get_annotmatch_case_tags
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
         >>> annotmatch_rowids = ibs._get_all_annotmatch_rowids()
         >>> tags_list = get_annotmatch_case_tags(ibs, annotmatch_rowids)
         >>> result = ('tags_list = %s' % (str(tags_list),))
@@ -616,7 +616,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     #NEW = False
     #if NEW:
     #    # hack for faster tag parsing
-    #    from ibeis.control import _autogen_annotmatch_funcs as _aaf
+    #    from wbia.control import _autogen_annotmatch_funcs as _aaf
     #    import itertools
     #    colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,
     #                _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)
@@ -661,14 +661,14 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         list: filtered_aid_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annotmatch_prop
+        python -m wbia.tag_funcs --exec-get_annotmatch_prop
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # Test setting and getting standard keys
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> prop = 'hard'
         >>> annotmatch_rowids = ibs._get_all_annotmatch_rowids()
         >>> flag_list = get_annotmatch_prop(ibs, prop, annotmatch_rowids)
@@ -681,9 +681,9 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
     Example:
         >>> # DISABLE_DOCTEST
         >>> # Test setting and getting non-standard keys
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> prop = 'occlusion'
         >>> annotmatch_rowids = ibs._get_all_annotmatch_rowids()
         >>> flag_list = get_annotmatch_prop(ibs, prop, annotmatch_rowids)
@@ -911,21 +911,21 @@ def get_annot_case_tags(ibs, aid_list):
         rename to get_annot_unary_tags
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     Returns:
         list: tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_case_tags
+        python -m wbia.tag_funcs --exec-get_annot_case_tags
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> from ibeis.tag_funcs import _parse_tags # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> from wbia.tag_funcs import _parse_tags # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> tags_list = get_annot_case_tags(ibs, aid_list)
         >>> result = ('tags_list = %s' % (str(tags_list),))
@@ -985,7 +985,7 @@ def get_annot_case_tags(ibs, aid_list):
         }
 
     Ignore:
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
+        python -m wbia.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
 
     """
     text_list = ibs.get_annot_tag_text(aid_list)
@@ -998,20 +998,20 @@ def get_annot_case_tags(ibs, aid_list):
 def get_annot_annotmatch_tags(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     Returns:
         list: annotmatch_tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_annotmatch_tags --db GZ_Master1
+        python -m wbia.tag_funcs --exec-get_annot_annotmatch_tags --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> all_tags = ut.flatten(get_annot_annotmatch_tags(ibs, aid_list))
         >>> tag_hist = ut.dict_hist(all_tags)
@@ -1029,13 +1029,13 @@ def get_annot_annotmatch_tags(ibs, aid_list):
 def get_annot_all_tags(ibs, aid_list=None):
     """
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_all_tags --db GZ_Master1
+        python -m wbia.tag_funcs --exec-get_annot_all_tags --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> all_tags = ut.flatten(ibs.get_annot_all_tags(aid_list))
         >>> tag_hist = ut.dict_hist(all_tags)
@@ -1055,9 +1055,9 @@ def get_annot_all_tags(ibs, aid_list=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.tag_funcs
-        python -m ibeis.tag_funcs --allexamples
-        python -m ibeis.tag_funcs --allexamples --noface --nosrc
+        python -m wbia.tag_funcs
+        python -m wbia.tag_funcs --allexamples
+        python -m wbia.tag_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -37,7 +37,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
     Kwargs (optional): refer to the PyDarknet documentation for configuration settings
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         gid_list (list of int): the list of IBEIS image_rowids that need detection
         downsample (bool, optional): a flag to indicate if the original image
                 sizes should be used; defaults to True
@@ -49,14 +49,14 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         tuple: (gid, gpath, result_list)
 
     CommandLine:
-        python -m ibeis.algo.detect.yolo detect_gid_list --show
+        python -m wbia.algo.detect.yolo detect_gid_list --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.yolo import *  # NOQA
-        >>> from ibeis.core_images import LocalizerConfig
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='WS_ALL')
+        >>> from wbia.algo.detect.yolo import *  # NOQA
+        >>> from wbia.core_images import LocalizerConfig
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='WS_ALL')
         >>> gid_list = ibs.images()._rowids[0:1]
         >>> kwargs = config = LocalizerConfig(**{
         >>>     'weights_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights',
@@ -69,7 +69,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
 
     Yields:
@@ -116,10 +116,10 @@ def detect(gpath_list, detector=None, config_filepath=None, weights_filepath=Non
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.yolo import *  # NOQA
-        >>> from ibeis.core_images import LocalizerConfig
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='WS_ALL')
+        >>> from wbia.algo.detect.yolo import *  # NOQA
+        >>> from wbia.core_images import LocalizerConfig
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='WS_ALL')
         >>> gid_list = ibs.images()._rowids[0:1]
         >>> gpath_list = ibs.get_image_paths(gid_list)
         >>> dpath = '/media/raid/work/WS_ALL/localizer_backup/'

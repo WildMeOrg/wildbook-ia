@@ -6,11 +6,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import six
 import copy
-#from ibeis import dtool
+#from wbia import dtool
 from os.path import join
 from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
-from ibeis import constants as const
+from wbia import constants as const
 from utool._internal.meta_util_six import get_funcname
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 
@@ -26,18 +26,18 @@ def parse_config_items(cfg):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.algo.Config import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> param_list = parse_config_items(cfg)
     """
-    # import ibeis
+    # import wbia
     param_list = []
     seen = set([])
     for item in cfg.items():
         key, val = item
-        # if isinstance(val, ibeis.algo.Config.ConfigBase):
+        # if isinstance(val, wbia.algo.Config.ConfigBase):
         if isinstance(val, ConfigBase):
             child_cfg = val
             param_list.extend(parse_config_items(child_cfg))
@@ -67,7 +67,7 @@ def make_config_metaclass():
 
 
     Example:
-        from ibeis.algo.Config import *  # NOQA
+        from wbia.algo.Config import *  # NOQA
         @six.add_metaclass(ConfigMetaclass)
         class FooConfig(ConfigBase):
             def __init__(cfg):
@@ -203,11 +203,11 @@ class GenericConfig(ConfigBase):
 class NNConfig(ConfigBase):
     r"""
     CommandLine:
-        python -m ibeis.algo.Config --exec-NNConfig
+        python -m wbia.algo.Config --exec-NNConfig
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> nn_cfg = NNConfig()
         >>> nn_cfg = NNConfig(requery=True)
         >>> result = nn_cfg.get_cfgstr()
@@ -415,11 +415,11 @@ class FlannConfig(ConfigBase):
 class NNWeightConfig(ConfigBase):
     r"""
     CommandLine:
-        python -m ibeis.algo.Config --test-NNWeightConfig
+        python -m wbia.algo.Config --test-NNWeightConfig
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> cfg_list = [
         ...     NNWeightConfig(),
         ...     NNWeightConfig(can_match_sameimg=True, can_match_samename=False),
@@ -475,11 +475,11 @@ class FeatureWeightConfig(ConfigBase):
     """
 
     CommandLine:
-        python -m ibeis.algo.Config --exec-FeatureWeightConfig
+        python -m wbia.algo.Config --exec-FeatureWeightConfig
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> featweight_cfg = FeatureWeightConfig(fw_detector='rf',
         >>>                                      featweight_enabled=True)
         >>> result = featweight_cfg.get_cfgstr()
@@ -501,7 +501,7 @@ class FeatureWeightConfig(ConfigBase):
         featweight_cfg.update(**kwargs)
 
     def get_param_info_list(self):
-        from ibeis import core_annots
+        from wbia import core_annots
         return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
 
 
@@ -512,8 +512,8 @@ class QueryConfig(ConfigBase):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
         >>> print(cfgstr)
@@ -690,12 +690,12 @@ class FeatureConfig(ConfigBase):
     TODO depcirate for core_annots.FeatConfig
 
     CommandLine:
-        python -m ibeis.algo.Config --test-FeatureConfig
+        python -m wbia.algo.Config --test-FeatureConfig
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo import Config  # NOQA
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo import Config  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> feat_cfg = Config.FeatureConfig()
         >>> result = (feat_cfg.get_cfgstr())
         >>> print(result)
@@ -719,7 +719,7 @@ class FeatureConfig(ConfigBase):
         feat_cfg.update(**kwargs)
 
     def get_param_info_list(self):
-        from ibeis import core_annots
+        from wbia import core_annots
         return core_annots.FeatConfig().get_param_info_list()
 
     def get_config_name(self):
@@ -752,7 +752,7 @@ class ChipConfig(ConfigBase):
         cc_cfg.update(**kwargs)
 
     def get_param_info_list(self):
-        from ibeis import core_annots
+        from wbia import core_annots
         return core_annots.ChipConfig._param_info_list
 
 
@@ -760,11 +760,11 @@ class ChipConfig(ConfigBase):
 class DetectionConfig(ConfigBase):
     """
     CommandLine:
-        python -m ibeis.algo.Config --test-DetectionConfig
+        python -m wbia.algo.Config --test-DetectionConfig
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> detect_cfg = DetectionConfig()
         >>> result = (detect_cfg.get_cfgstr())
         >>> print(result)
@@ -795,11 +795,11 @@ class OccurrenceConfig(ConfigBase):
     """ OccurrenceConfig
 
     CommandLine:
-        python -m ibeis.algo.Config --exec-OccurrenceConfig --show
+        python -m wbia.algo.Config --exec-OccurrenceConfig --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import *  # NOQA
         >>> occur_cfg = OccurrenceConfig()
         >>> print(occur_cfg.get_cfgstr())
     """
@@ -918,14 +918,14 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         Config: cfg
 
     CommandLine:
-        python -m ibeis.algo.Config --test-load_named_config
+        python -m wbia.algo.Config --test-load_named_config
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> from ibeis.algo.Config import _default_config  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> from wbia.algo.Config import *  # NOQA
+        >>> from wbia.algo.Config import _default_config  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_Master0')
         >>> #ibs.cfg.save()
         >>> # build test data
         >>> cfgname = 'zebra_plains'
@@ -1071,8 +1071,8 @@ def _default_named_config(cfg, cfgname):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.Config
-        python -m ibeis.algo.Config --allexamples
+        python -m wbia.algo.Config
+        python -m wbia.algo.Config --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

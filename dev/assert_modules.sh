@@ -1,2 +1,2 @@
 #!/bin/bash
-python ~/code/ibeis/ibeis/tests/assert_modules.py $@
+python ~/code/wbia/wbia/tests/assert_modules.py $@

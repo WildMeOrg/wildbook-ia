@@ -6,7 +6,7 @@ SeeAlso:
     routes.turk_identification
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 from flask import url_for, request, current_app  # NOQA
 import numpy as np   # NOQA
 import utool as ut
@@ -19,7 +19,7 @@ import json
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 REMOTE_TESTING = True
@@ -525,9 +525,9 @@ def detect_remote_sync_images(ibs, gid_list=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

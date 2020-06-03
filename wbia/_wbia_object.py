@@ -3,36 +3,36 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np  # NOQA
 from six.moves import range
-(print, rrr, profile) = ut.inject2(__name__, '[_ibeis_object]')
+(print, rrr, profile) = ut.inject2(__name__, '[_wbia_object]')
 
 
-def _find_ibeis_attrs(ibs, objname, blacklist=[]):
+def _find_wbia_attrs(ibs, objname, blacklist=[]):
     r"""
     Developer function to help figure out what attributes are available
 
     Args:
-        ibs (ibeis.IBEISController):  images analysis api
+        ibs (wbia.IBEISController):  images analysis api
 
     CommandLine:
-        python -m ibeis.images _find_ibeis_attrs
+        python -m wbia.images _find_wbia_attrs
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis._ibeis_object import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia._wbia_object import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> objname = 'images'
         >>> blacklist = []
-        >>> _find_ibeis_attrs(ibs, objname, blacklist)
+        >>> _find_wbia_attrs(ibs, objname, blacklist)
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis._ibeis_object import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia._wbia_object import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> objname = 'annot'
         >>> blacklist = ['annot_pair']
-        >>> _find_ibeis_attrs(ibs, objname, blacklist)
+        >>> _find_wbia_attrs(ibs, objname, blacklist)
     """
     import re
     getter_prefix = 'get_' + objname + '_'
@@ -255,10 +255,10 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             explicit_lines.append(source)
 
         explicit_source = '\n'.join([
-            'from ibeis import _ibeis_object',
+            'from wbia import _wbia_object',
             '',
             '',
-            'class _%s_base_class(_ibeis_object.ObjectList1D):',
+            'class _%s_base_class(_wbia_object.ObjectList1D):',
             '    __needs_inject__ = False',
             '',
         ]) % (objname,)
@@ -298,13 +298,13 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
     def _make_lazy_dict(self):
         """
         CommandLine:
-            python -m ibeis._ibeis_object ObjectScalar0D._make_lazy_dict
+            python -m wbia._wbia_object ObjectScalar0D._make_lazy_dict
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis._ibeis_object import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia._wbia_object import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('testdb1')
             >>> annots = ibs.annots()
             >>> subset = annots.take([0, 2, 5])
             >>> scalar = annots[0]
@@ -325,7 +325,7 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
 #@ut.reloadable_class
 class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
     """
-    An object that efficiently operates on a list of ibeis objects using
+    An object that efficiently operates on a list of wbia objects using
     vectorized code. Single instances can be returned as ObjectScalar0D's
     """
     def __init__(self, rowids, ibs, config=None, caching=False,
@@ -483,9 +483,9 @@ class ObjectView1D(ut.NiceRepr):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis._ibeis_object import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia._wbia_object import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> a = self = annots = ibs.annots(aids)
         >>> rowids = [1, 1, 3, 2, 1, 2]
@@ -558,9 +558,9 @@ class ObjectView1D(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis._ibeis_object import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> from wbia._wbia_object import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='testdb1')
             >>> aids = ibs.get_valid_aids()
             >>> annots = ibs.annots(aids)
             >>> self = annots.view(annots._rowids)
@@ -586,8 +586,8 @@ class ObjectView1D(ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis._ibeis_object
-        python -m ibeis._ibeis_object --allexamples
+        python -m wbia._wbia_object
+        python -m wbia._wbia_object --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

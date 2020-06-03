@@ -10,27 +10,27 @@ from os.path import exists, join, realpath
 import utool as ut
 import ubelt as ub
 from six.moves import input, zip, map
-from ibeis import constants as const
-from ibeis import params
+from wbia import constants as const
+from wbia import params
 (print, rrr, profile) = ut.inject2(__name__)
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 LOGDIR_CACHEID = ut.logdir_cacheid
-__APPNAME__ = 'ibeis'
+__APPNAME__ = 'wbia'
 
 ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
-def get_ibeis_resource_dir():
-    return ub.ensure_app_cache_dir('ibeis')
+def get_wbia_resource_dir():
+    return ub.ensure_app_cache_dir('wbia')
 
 
-def _ibeis_cache_dump():
+def _wbia_cache_dump():
     ut.global_cache_dump(appname=__APPNAME__)
 
 
-def _ibeis_cache_write(key, val):
+def _wbia_cache_write(key, val):
     """ Writes to global IBEIS cache
     TODO: Use text based config file
     """
@@ -38,7 +38,7 @@ def _ibeis_cache_write(key, val):
     ut.global_cache_write(key, val, appname=__APPNAME__)
 
 
-def _ibeis_cache_read(key, **kwargs):
+def _wbia_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
     return ut.global_cache_read(key, appname=__APPNAME__, **kwargs)
 
@@ -48,11 +48,11 @@ def _ibeis_cache_read(key, **kwargs):
 def set_default_dbdir(dbdir):
     if ut.DEBUG2:
         print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
-    _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
+    _wbia_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
 
 def get_default_dbdir():
-    dbdir = _ibeis_cache_read(DEFAULTDB_CAHCEID, default=None)
+    dbdir = _wbia_cache_read(DEFAULTDB_CAHCEID, default=None)
     if ut.DEBUG2:
         print('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
     return dbdir
@@ -63,7 +63,7 @@ def get_workdir(allow_gui=True):
     Returns the work directory set for this computer.  If allow_gui is true,
     a dialog will ask a user to specify the workdir if it does not exist.
 
-    python -c "import ibeis; print(ibeis.get_workdir())"
+    python -c "import wbia; print(wbia.get_workdir())"
 
     Args:
         allow_gui (bool): (default = True)
@@ -72,18 +72,18 @@ def get_workdir(allow_gui=True):
         str: work_dir
 
     CommandLine:
-        python -m ibeis.init.sysres get_workdir
+        python -m wbia.init.sysres get_workdir
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> allow_gui = True
         >>> work_dir = get_workdir(allow_gui)
         >>> result = ('work_dir = %s' % (str(work_dir),))
         >>> print(result)
     """
-    work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
-    print('[ibeis.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
+    work_dir = _wbia_cache_read(WORKDIR_CACHEID, default='.')
+    print('[wbia.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
     if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
@@ -100,14 +100,14 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         allow_gui (bool): (default = True)
 
     CommandLine:
-        python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
-        python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
+        python -c "import wbia; wbia.sysres.set_workdir('/raid/work2')"
+        python -c "import wbia; wbia.sysres.set_workdir('/raid/work')"
 
-        python -m ibeis.init.sysres set_workdir
+        python -m wbia.init.sysres set_workdir
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> print('current_work_dir = %s' % (str(get_workdir(False)),))
         >>> work_dir = ut.get_argval('--workdir', type_=str, default=None)
         >>> allow_gui = True
@@ -123,7 +123,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
             work_dir = ut.truepath(input('specify a workdir: '))
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
-    _ibeis_cache_write(WORKDIR_CACHEID, work_dir)
+    _wbia_cache_write(WORKDIR_CACHEID, work_dir)
 
 
 def set_logdir(log_dir):
@@ -131,12 +131,12 @@ def set_logdir(log_dir):
     log_dir = realpath(expanduser(log_dir))
     ut.ensuredir(log_dir, verbose=True)
     ut.stop_logging()
-    _ibeis_cache_write(LOGDIR_CACHEID, log_dir)
+    _wbia_cache_write(LOGDIR_CACHEID, log_dir)
     ut.start_logging(appname=__APPNAME__)
 
 
 def get_logdir_global():
-    return _ibeis_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='ibeis'))
+    return _wbia_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='wbia'))
 
 
 def get_rawdir():
@@ -148,7 +148,7 @@ def get_rawdir():
 
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
-    import ibeis.guitool
+    import wbia.guitool
     guitool.ensure_qtapp()
     # Gui selection
     work_dir = guitool.select_directory('Select a work directory')
@@ -287,11 +287,11 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
         str: dbdir
 
     CommandLine:
-        python -m ibeis.init.sysres get_args_dbdir
+        python -m wbia.init.sysres get_args_dbdir
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> dir1 = get_args_dbdir(None, False, 'testdb1', None)
         >>> print('dir1 = %r' % (dir1,))
         >>> dir2 = get_args_dbdir(None, False, dir1, None)
@@ -346,27 +346,27 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
 lookup_dbdir = db_to_dbdir
 
 
-def is_ibeisdb(path):
+def is_wbiadb(path):
     """ Checks to see if path contains the IBEIS internal dir """
     return exists(join(path, const.PATH_NAMES._ibsdb))
 
 
 def get_ibsdb_list(workdir=None):
     r"""
-    Lists the available valid ibeis databases inside of a work directory
+    Lists the available valid wbia databases inside of a work directory
 
     Args:
         workdir (None):
 
     Returns:
-        IBEISController: ibsdb_list -  ibeis controller object
+        IBEISController: ibsdb_list -  wbia controller object
 
     CommandLine:
-        python -m ibeis.init.sysres --test-get_ibsdb_list
+        python -m wbia.init.sysres --test-get_ibsdb_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> workdir = None
         >>> ibsdb_list = get_ibsdb_list(workdir)
         >>> result = str('\n'.join(ibsdb_list))
@@ -377,7 +377,7 @@ def get_ibsdb_list(workdir=None):
         workdir = get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
-    is_ibs_list = np.array(list(map(is_ibeisdb, dbpath_list)))
+    is_ibs_list = np.array(list(map(is_wbiadb, dbpath_list)))
     ibsdb_list  = dbpath_list[is_ibs_list].tolist()
     return ibsdb_list
 
@@ -396,27 +396,27 @@ def ensure_pz_mtest():
     Ensures that you have the PZ_MTEST dataset
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_pz_mtest
-        python -m ibeis --tf ensure_pz_mtest
+        python -m wbia.init.sysres --exec-ensure_pz_mtest
+        python -m wbia --tf ensure_pz_mtest
 
     Ignore:
-        from ibeis.tests.reset_testdbs import delete_dbdir
+        from wbia.tests.reset_testdbs import delete_dbdir
         delete_dbdir('PZ_MTEST')
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> ensure_pz_mtest()
     """
     print('ensure_pz_mtest')
-    from ibeis import sysres
+    from wbia import sysres
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
     mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
-    import ibeis
-    ibs = ibeis.opendb('PZ_MTEST')
+    import wbia
+    ibs = wbia.opendb('PZ_MTEST')
     print('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
     valid_aids = ibs.get_valid_aids()
@@ -465,29 +465,29 @@ def reset_mtest_graph():
     Resets the annotmatch and stating table
 
     CommandLine:
-        python -m ibeis reset_mtest_graph
+        python -m wbia reset_mtest_graph
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> reset_mtest_graph()
     """
     if True:
         # Delete the graph databases to and set them up for tests
-        import ibeis
-        ibs = ibeis.opendb('PZ_MTEST')
+        import wbia
+        ibs = wbia.opendb('PZ_MTEST')
         annotmatch = ibs.db['annotmatch']
         staging = ibs.staging['reviews']
         annotmatch.clear()
         staging.clear()
 
     # Make this CC connected using positive edges
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
-    from ibeis.algo.graph import nx_utils as nxu
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
+    from wbia.algo.graph import nx_utils as nxu
     import itertools as it
 
     # Add some graph properties to MTEST
-    infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+    infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
     # Connect the names with meta decisions
     infr.ensure_mst(meta_decision=SAME)
 
@@ -512,7 +512,7 @@ def reset_mtest_graph():
                 infr.add_feedback(edge, NEGTV, user_id='user:setup3')
 
     # Make some small PCCs k-positive-redundant
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
     cand = list(infr.find_pos_redun_candidate_edges())
     for edge in cand[0:2]:
         infr.add_feedback(edge, evidence_decision=POSTV, user_id='user:setup4')
@@ -520,8 +520,8 @@ def reset_mtest_graph():
     assert infr.status()['nInconsistentCCs'] == 0
 
     # Write consistent state to both annotmatch and staging
-    infr.write_ibeis_staging_feedback()
-    infr.write_ibeis_annotmatch_feedback()
+    infr.write_wbia_staging_feedback()
+    infr.write_wbia_annotmatch_feedback()
 
     # Add an 2 inconsistencies to the staging database ONLY
     cand = list(infr.find_pos_redun_candidate_edges())
@@ -529,7 +529,7 @@ def reset_mtest_graph():
         infr.add_feedback(edge, evidence_decision=NEGTV, user_id='user:voldemort')
 
     assert infr.status()['nInconsistentCCs'] == 2
-    infr.write_ibeis_staging_feedback()
+    infr.write_wbia_staging_feedback()
 
     infr.reset_feedback('annotmatch', apply=True)
     assert infr.status()['nInconsistentCCs'] == 0
@@ -537,11 +537,11 @@ def reset_mtest_graph():
     # print(ibs.staging['reviews'].as_pandas())
 
 
-def copy_ibeisdb(source_dbdir, dest_dbdir):
+def copy_wbiadb(source_dbdir, dest_dbdir):
     # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
-    import ibeis
-    exclude_dirs_ = (ibeis.const.EXCLUDE_COPY_REL_DIRS +
+    import wbia
+    exclude_dirs_ = (wbia.const.EXCLUDE_COPY_REL_DIRS +
                      ['_hsdb', '.hs_internals'])
     exclude_dirs = [ut.ensure_unixslash(normpath(rel))
                     for rel in exclude_dirs_]
@@ -568,18 +568,18 @@ def copy_ibeisdb(source_dbdir, dest_dbdir):
 def ensure_pz_mtest_batchworkflow_test():
     r"""
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+        python -m wbia.init.sysres --test-ensure_pz_mtest_batchworkflow_test
+        python -m wbia.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+        python -m wbia.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> ensure_pz_mtest_batchworkflow_test()
     """
-    import ibeis
-    ibeis.ensure_pz_mtest()
-    workdir = ibeis.sysres.get_workdir()
+    import wbia
+    wbia.ensure_pz_mtest()
+    workdir = wbia.sysres.get_workdir()
     mtest_dbpath = join(workdir, 'PZ_MTEST')
 
     source_dbdir = mtest_dbpath
@@ -591,9 +591,9 @@ def ensure_pz_mtest_batchworkflow_test():
     if ut.checkpath(dest_dbdir):
         return
     else:
-        copy_ibeisdb(source_dbdir, dest_dbdir)
+        copy_wbiadb(source_dbdir, dest_dbdir)
 
-    ibs = ibeis.opendb('PZ_BATCH_WORKFLOW_MTEST')
+    ibs = wbia.opendb('PZ_BATCH_WORKFLOW_MTEST')
     assert len(ibs.get_valid_aids()) == 119
     assert len(ibs.get_valid_nids()) == 41
 
@@ -676,16 +676,16 @@ def ensure_pz_mtest_mergesplit_test():
     Make a test database for MERGE and SPLIT cases
 
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
+        python -m wbia.init.sysres --test-ensure_pz_mtest_mergesplit_test
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
+        >>> from wbia.init.sysres import *  # NOQA
         >>> ensure_pz_mtest_mergesplit_test()
     """
-    import ibeis
-    ibeis.ensure_pz_mtest()
-    workdir = ibeis.sysres.get_workdir()
+    import wbia
+    wbia.ensure_pz_mtest()
+    workdir = wbia.sysres.get_workdir()
     mtest_dbpath = join(workdir, 'PZ_MTEST')
 
     source_dbdir = mtest_dbpath
@@ -696,9 +696,9 @@ def ensure_pz_mtest_mergesplit_test():
     if ut.checkpath(dest_dbdir):
         return
 
-    copy_ibeisdb(source_dbdir, dest_dbdir)
+    copy_wbiadb(source_dbdir, dest_dbdir)
 
-    ibs = ibeis.opendb('PZ_MERGESPLIT_MTEST')
+    ibs = wbia.opendb('PZ_MERGESPLIT_MTEST')
     assert len(ibs.get_valid_aids()) == 119
     assert len(ibs.get_valid_nids()) == 41
 
@@ -785,8 +785,8 @@ def ensure_testdb_kaggle7():
 
 
 def ensure_db_from_url(zipped_db_url):
-    """ SeeAlso ibeis.init.sysres """
-    from ibeis import sysres
+    """ SeeAlso wbia.init.sysres """
+    from wbia import sysres
     workdir = sysres.get_workdir()
     dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
@@ -795,7 +795,7 @@ def ensure_db_from_url(zipped_db_url):
 
 def get_global_distinctiveness_modeldir(ensure=True):
     # DEPRICATE
-    resource_dir = get_ibeis_resource_dir()
+    resource_dir = get_wbia_resource_dir()
     global_distinctdir = join(resource_dir, const.PATH_NAMES.distinctdir)
     if ensure:
         ut.ensuredir(global_distinctdir)
@@ -805,7 +805,7 @@ def get_global_distinctiveness_modeldir(ensure=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ibeis.init.sysres
+        xdoctest -m wbia.init.sysres
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

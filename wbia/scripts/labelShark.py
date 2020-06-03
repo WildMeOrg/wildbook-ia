@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import splitext, join, exists, commonprefix
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
-import ibeis
-from ibeis.scripts import classify_shark
+import wbia
+from wbia.scripts import classify_shark
 import numpy as np
 import vtool_ibeis as vt
 

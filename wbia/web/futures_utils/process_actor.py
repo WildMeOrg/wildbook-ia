@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
 from concurrent.futures import process
 from multiprocessing.connection import wait
-from ibeis.web.futures_utils import _base_actor
+from wbia.web.futures_utils import _base_actor
 import os
 import queue
 import weakref

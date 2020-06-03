@@ -8,7 +8,7 @@ def plottool_main():
     ignore_suffix = []
     import utool as ut
     try:
-        import ibeis.plottool as pt  # NOQA
+        import wbia.plottool as pt  # NOQA
     except ImportError:
         raise
     # allows for --tf
@@ -16,7 +16,7 @@ def plottool_main():
 
 if __name__ == '__main__':
     """
-    python -m ibeis.plottool --tf show_chipmatch2
+    python -m wbia.plottool --tf show_chipmatch2
     """
     print('Checking plottool main')
     plottool_main()

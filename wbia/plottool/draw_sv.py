@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
 from . import draw_func2 as df2
-from ibeis.plottool import custom_constants
+from wbia.plottool import custom_constants
 #from vtool_ibeis import keypoint as ktool
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
 ut.noinject(__name__, '[viz_sv]')
@@ -30,7 +30,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
 
     """
     import vtool_ibeis as vt
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
@@ -83,7 +83,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         df2.show_chipmatch2(chip1, chip2, kpts1_m, kpts2_m, __fm, **dmkwargs)
         return px + 1
 
-    from ibeis.plottool import color_funcs
+    from wbia.plottool import color_funcs
     colors = df2.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0], colors[1]
     color1_dark = color_funcs.darken_rgb(color1, .2)
@@ -160,11 +160,11 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
     """
 
     CommandLine:
-        python -m ibeis.plottool.draw_sv --test-show_sv_simple --show
+        python -m wbia.plottool.draw_sv --test-show_sv_simple --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.draw_sv import *  # NOQA
+        >>> from wbia.plottool.draw_sv import *  # NOQA
         >>> import vtool_ibeis as vt
         >>> kpts1, kpts2, fm, aff_inliers, chip1, chip2, xy_thresh_sqrd = vt.testdata_matching_affine_inliers()
         >>> inliers = aff_inliers
@@ -173,10 +173,10 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
         >>> vert = None  # ut.get_argval('--vert', type_=bool, default=None)
         >>> result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum, vert=vert)
         >>> print(result)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
     colors = pt.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0:2]
@@ -201,9 +201,9 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.plottool.draw_sv
-        python -m ibeis.plottool.draw_sv --allexamples
-        python -m ibeis.plottool.draw_sv --allexamples --noface --nosrc
+        python -m wbia.plottool.draw_sv
+        python -m wbia.plottool.draw_sv --allexamples
+        python -m wbia.plottool.draw_sv --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

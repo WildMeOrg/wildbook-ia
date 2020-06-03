@@ -6,28 +6,28 @@ import utool as ut
 import numpy as np
 import vtool_ibeis as vt  # NOQA
 import six
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISIO(object):
     """
-    Direct interface into ibeis tables and delta statistics
+    Direct interface into wbia tables and delta statistics
     """
 
     def add_annots(infr, aid_list):
         pass
 
-    def ibeis_delta_info(infr, edge_delta_df=None, name_delta_df=None):
+    def wbia_delta_info(infr, edge_delta_df=None, name_delta_df=None):
         if name_delta_df is None:
-            name_delta_df = infr.get_ibeis_name_delta()
+            name_delta_df = infr.get_wbia_name_delta()
 
         name_stats_df = infr.name_group_stats()
-        name_delta_stats_df = infr.ibeis_name_group_delta_info()
+        name_delta_stats_df = infr.wbia_name_group_delta_info()
 
-        edge_delta_info = infr.ibeis_edge_delta_info(edge_delta_df)
+        edge_delta_info = infr.wbia_edge_delta_info(edge_delta_df)
 
         info = ut.odict([
             ('num_annots_with_names_changed' , len(name_delta_df)),
@@ -39,7 +39,7 @@ class IBEISIO(object):
             info['num_' + key] = int(val['size'])
         return info
 
-    def ibeis_edge_delta_info(infr, edge_delta_df=None):
+    def wbia_edge_delta_info(infr, edge_delta_df=None):
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
 
@@ -77,7 +77,7 @@ class IBEISIO(object):
         df =  infr.name_group_delta_stats(old_ccs, new_ccs)
         return df
 
-    def ibeis_name_group_delta_info(infr, verbose=None):
+    def wbia_name_group_delta_info(infr, verbose=None):
         """
         infr.relabel_using_reviews(rectify=False)
         """
@@ -132,11 +132,11 @@ class IBEISIO(object):
     def find_unjustified_splits(infr):
         """
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
-            >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='GZ_Master1')
+            >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
+            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.reset_feedback('staging', apply=True)
             >>> infr.relabel_using_reviews(rectify=False)
             >>> unjustified = infr.find_unjustified_splits()
@@ -188,12 +188,12 @@ class IBEISIO(object):
         return unjustified
 
     @profile
-    def reset_labels_to_ibeis(infr):
+    def reset_labels_to_wbia(infr):
         """ Sets to IBEIS de-facto labels if available """
         nids = infr.ibs.get_annot_nids(infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
-    def _prepare_write_ibeis_staging_feedback(infr, feedback):
+    def _prepare_write_wbia_staging_feedback(infr, feedback):
         r"""
         builds data that will be sent to ibs.add_review
 
@@ -201,18 +201,18 @@ class IBEISIO(object):
             tuple: (aid_1_list, aid_2_list, add_review_kw)
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_ibeis _prepare_write_ibeis_staging_feedback
+            python -m wbia.algo.graph.mixin_wbia _prepare_write_wbia_staging_feedback
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
             >>> infr.add_feedback((6, 7), NEGTV, user_id='user:foobar')
             >>> infr.add_feedback((5, 8), NEGTV, tags=['photobomb'])
             >>> infr.add_feedback((4, 5), POSTV, confidence='absolutely_sure')
             >>> feedback = infr.internal_feedback
-            >>> tup = infr._prepare_write_ibeis_staging_feedback(feedback)
+            >>> tup = infr._prepare_write_wbia_staging_feedback(feedback)
             >>> (aid_1_list, aid_2_list, add_review_kw) = tup
             >>> expected = set(ut.get_func_argspec(infr.ibs.add_review).args)
             >>> got = set(add_review_kw.keys())
@@ -268,13 +268,13 @@ class IBEISIO(object):
                 add_review_kw[review_key].append(value)
         return aid_1_list, aid_2_list, add_review_kw
 
-    def _write_ibeis_staging_feedback(infr, feedback):
+    def _write_wbia_staging_feedback(infr, feedback):
         """
         feedback = infr.internal_feedback
         ibs.staging.get_table_as_pandas('reviews')
         """
-        infr.print('write_ibeis_staging_feedback {}'.format(len(feedback)), 1)
-        tup = infr._prepare_write_ibeis_staging_feedback(feedback)
+        infr.print('write_wbia_staging_feedback {}'.format(len(feedback)), 1)
+        tup = infr._prepare_write_wbia_staging_feedback(feedback)
         aid_1_list, aid_2_list, add_review_kw = tup
 
         ibs = infr.ibs
@@ -286,7 +286,7 @@ class IBEISIO(object):
                 ' row. ' + str(duplicates)
             )
 
-    def write_ibeis_staging_feedback(infr):
+    def write_wbia_staging_feedback(infr):
         """
         Commit all reviews in internal_feedback into the staging table.  The
         edges are removed from interal_feedback and added to external feedback.
@@ -298,17 +298,17 @@ class IBEISIO(object):
         called automatically by `infr.accept`.
         """
         if len(infr.internal_feedback) == 0:
-            infr.print('write_ibeis_staging_feedback 0', 1)
+            infr.print('write_wbia_staging_feedback 0', 1)
             return
         # Write internal feedback to disk
-        infr._write_ibeis_staging_feedback(infr.internal_feedback)
+        infr._write_wbia_staging_feedback(infr.internal_feedback)
         # Copy internal feedback into external
         for edge, feedbacks in infr.internal_feedback.items():
             infr.external_feedback[edge].extend(feedbacks)
         # Delete internal feedback
         infr.internal_feedback = ut.ddict(list)
 
-    def write_ibeis_annotmatch_feedback(infr, edge_delta_df=None):
+    def write_wbia_annotmatch_feedback(infr, edge_delta_df=None):
         """
         Commits the current state in external and internal into the annotmatch
         table. Annotmatch only stores the final review in the history of reviews.
@@ -324,7 +324,7 @@ class IBEISIO(object):
         """
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-        infr.print('write_ibeis_annotmatch_feedback %r' % (
+        infr.print('write_wbia_annotmatch_feedback %r' % (
             len(edge_delta_df)))
         ibs = infr.ibs
         edge_delta_df_ = edge_delta_df.reset_index()
@@ -358,7 +358,7 @@ class IBEISIO(object):
         ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
         # ibs.set_annotmatch_count(am_rowids, new_timestamp) TODO
 
-    def write_ibeis_name_assignment(infr, name_delta_df=None, **kwargs):
+    def write_wbia_name_assignment(infr, name_delta_df=None, **kwargs):
         """
         Write the name delta to the annotations table.
 
@@ -371,17 +371,17 @@ class IBEISIO(object):
 
         Args:
             name_delta_df (pd.DataFrame): if None, the value is computed using
-                `get_ibeis_name_delta`. Note you should ensure this delta is made
+                `get_wbia_name_delta`. Note you should ensure this delta is made
                 after nodes have been relabeled using reviews.
         """
         if name_delta_df is None:
-            name_delta_df = infr.get_ibeis_name_delta()
-        infr.print('write_ibeis_name_assignment id %d' % len(name_delta_df))
+            name_delta_df = infr.get_wbia_name_delta()
+        infr.print('write_wbia_name_assignment id %d' % len(name_delta_df))
         aid_list = name_delta_df.index.values
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list, **kwargs)
 
-    def get_ibeis_name_delta(infr, ignore_unknown=True, relabel=True):
+    def get_wbia_name_delta(infr, ignore_unknown=True, relabel=True):
         """
         Rectifies internal name_labels with the names stored in the name table.
 
@@ -396,19 +396,19 @@ class IBEISIO(object):
 
         Returns:
             pd.DataFrame - name_delta_df - data frame where each row specifies
-                an aid and its `old_name` which is in the ibeis database and
+                an aid and its `old_name` which is in the wbia database and
                 the `new_name` which is what we infer it should be renamed to.
 
         Example:
-            infr.write_ibeis_name_assignment
+            infr.write_wbia_name_assignment
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_ibeis get_ibeis_name_delta
+            python -m wbia.algo.graph.mixin_wbia get_wbia_name_delta
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
             >>> pccs1 = list(infr.positive_components())
             >>> print('pccs1 = %r' % (pccs1,))
@@ -425,7 +425,7 @@ class IBEISIO(object):
             >>> pccs2 = sorted(pccs2)
             >>> assert pccs2 == [{9}, {1}, {2, 3, 4, 5, 6}, {7, 8}]
             >>> print(list(infr.gen_node_values('name_label', infr.aids)))
-            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> name_delta_df = infr.get_wbia_name_delta()
             >>> result = str(name_delta_df)
             >>> print(result)
                 old_name       new_name
@@ -435,13 +435,13 @@ class IBEISIO(object):
             6     07_061         06_410
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
             >>> infr.add_feedback_from([(1, 2), (1, 3), (1, 4)], evidence_decision=NEGTV)
             >>> infr.add_feedback((4, 5), POSTV)
-            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> name_delta_df = infr.get_wbia_name_delta()
             >>> result = str(name_delta_df)
             >>> print(result)
                 old_name new_name
@@ -451,11 +451,11 @@ class IBEISIO(object):
             4     06_410   07_061
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
-            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> name_delta_df = infr.get_wbia_name_delta()
             >>> result = str(name_delta_df)
             >>> print(result)
             Empty DataFrame
@@ -512,7 +512,7 @@ class IBEISIO(object):
         infr.print('finished making name delta', 3)
         return name_delta_df
 
-    def read_ibeis_staging_feedback(infr, edges=None):
+    def read_wbia_staging_feedback(infr, edges=None):
         """
         Reads feedback from review staging table.
 
@@ -523,25 +523,25 @@ class IBEISIO(object):
             ?: feedback
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_ibeis read_ibeis_staging_feedback
+            python -m wbia.algo.graph.mixin_wbia read_wbia_staging_feedback
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('GZ_Master1')
-            >>> infr = ibeis.AnnotInference(ibs=ibs, aids='all')
-            >>> feedback = infr.read_ibeis_staging_feedback()
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb('GZ_Master1')
+            >>> infr = wbia.AnnotInference(ibs=ibs, aids='all')
+            >>> feedback = infr.read_wbia_staging_feedback()
             >>> result = ('feedback = %s' % (ut.repr2(feedback),))
             >>> print(result)
         """
 
         # TODO: READ ONLY AFTER THE LATEST ANNOTMATCH TIME STAMP
 
-        infr.print('read_ibeis_staging_feedback', 1)
+        infr.print('read_wbia_staging_feedback', 1)
         ibs = infr.ibs
 
-        from ibeis.control.manual_review_funcs import hack_create_aidpair_index
+        from wbia.control.manual_review_funcs import hack_create_aidpair_index
         hack_create_aidpair_index(ibs)
 
         if edges:
@@ -553,7 +553,7 @@ class IBEISIO(object):
 
         infr.print('read %d staged reviews' % (len(review_ids)), 2)
 
-        from ibeis.control.manual_review_funcs import (
+        from wbia.control.manual_review_funcs import (
             # REVIEW_UUID,
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_EVIDENCE_DECISION,
             REVIEW_META_DECISION, REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
@@ -602,7 +602,7 @@ class IBEISIO(object):
             feedback[edge].append(feedback_item)
         return feedback
 
-    def read_ibeis_annotmatch_feedback(infr, edges=None):
+    def read_wbia_annotmatch_feedback(infr, edges=None):
         r"""
         Reads feedback from annotmatch table and returns the result.
         Internal state is not changed.
@@ -611,13 +611,13 @@ class IBEISIO(object):
             only_existing_edges (bool): if True only reads info existing edges
 
         CommandLine:
-            python -m ibeis.algo.graph.core read_ibeis_annotmatch_feedback
+            python -m wbia.algo.graph.core read_wbia_annotmatch_feedback
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> feedback = infr.read_ibeis_annotmatch_feedback()
+            >>> feedback = infr.read_wbia_annotmatch_feedback()
             >>> items = feedback[(2, 3)]
             >>> result = ('feedback = %s' % (ut.repr2(feedback, nl=2),))
             >>> print(result)
@@ -625,7 +625,7 @@ class IBEISIO(object):
             >>> assert len(items) == 1, '2-3 should have one review'
             >>> assert items[0]['evidence_decision'] == POSTV, '2-3 must match'
         """
-        infr.print('read_ibeis_annotmatch_feedback', 1)
+        infr.print('read_wbia_annotmatch_feedback', 1)
         ibs = infr.ibs
         if edges is not None:
             matches = ibs.matches(edges=edges)
@@ -662,10 +662,10 @@ class IBEISIO(object):
         """
         Make sure staging has all info that annotmatch has.
         """
-        staging_feedback = infr.read_ibeis_staging_feedback()
+        staging_feedback = infr.read_wbia_staging_feedback()
         if len(staging_feedback) == 0:
-            infr.internal_feedback = infr.read_ibeis_annotmatch_feedback()
-            infr.write_ibeis_staging_feedback()
+            infr.internal_feedback = infr.read_wbia_annotmatch_feedback()
+            infr.write_wbia_staging_feedback()
         else:
             infr.external_feedback = staging_feedback
         infr.internal_feedback = ut.ddict(list)
@@ -712,15 +712,15 @@ class IBEISIO(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> import pandas as pd
             >>> infr = testdata_infr('testdb1')
             >>> assert 'meta_decision' in infr._feedback_df('annotmatch').columns
         """
         if key == 'annotmatch':
-            feedback = infr.read_ibeis_annotmatch_feedback()
+            feedback = infr.read_wbia_annotmatch_feedback()
         elif key == 'staging':
-            feedback = infr.read_ibeis_staging_feedback()
+            feedback = infr.read_wbia_staging_feedback()
         elif key == 'all':
             feedback = infr.all_feedback()
         elif key == 'internal':
@@ -763,12 +763,12 @@ class IBEISIO(object):
                 of the changed edge attributes.
 
         CommandLine:
-            python -m ibeis.algo.graph.core match_state_delta
+            python -m wbia.algo.graph.core match_state_delta
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
             >>> # Split a PCC and then merge two other PCCs
             >>> infr.add_feedback((1, 2), NEGTV)
@@ -798,12 +798,12 @@ class IBEISIO(object):
     def _make_state_delta(AnnotInference, old_feedback, new_feedback):
         r"""
         CommandLine:
-            python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta
-            python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta:0
+            python -m wbia.algo.graph.mixin_wbia IBEISIO._make_state_delta
+            python -m wbia.algo.graph.mixin_wbia IBEISIO._make_state_delta:0
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['evidence_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> new_feedback = old_feedback = pd.DataFrame([
@@ -819,7 +819,7 @@ class IBEISIO(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['evidence_decision', 'meta_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> old_feedback = pd.DataFrame([
@@ -848,7 +848,7 @@ class IBEISIO(object):
             102  103        NaN          NaN      nomatch      NaN       []   True
             107  109        NaN          NaN      notcomp      NaN       []   True
         """
-        import ibeis
+        import wbia
         import pandas as pd
         from six.moves import reduce
         import operator as op
@@ -865,7 +865,7 @@ class IBEISIO(object):
         isect_old = old_feedback.loc[isect_edges]
 
         # If any important column is different we mark the row as changed
-        data_columns = ibeis.AnnotInference.feedback_data_keys
+        data_columns = wbia.AnnotInference.feedback_data_keys
         important_columns = ['meta_decision', 'evidence_decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
@@ -938,7 +938,7 @@ class IBEISIO(object):
         print(df_a)
 
         print('AnnotMatch Feedback')
-        print(infr._pandas_feedback_format(infr.read_ibeis_staging_feedback([edge])))
+        print(infr._pandas_feedback_format(infr.read_wbia_staging_feedback([edge])))
 
         print('----')
 
@@ -962,7 +962,7 @@ class IBEISIO(object):
         print(df_s)
 
         print('Staging Feedback')
-        print(infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback([edge])))
+        print(infr._pandas_feedback_format(infr.read_wbia_annotmatch_feedback([edge])))
         print('____')
 
 
@@ -973,7 +973,7 @@ class IBEISGroundtruth(object):
     """
 
     @profile
-    def ibeis_guess_if_comparable(infr, aid_pairs):
+    def wbia_guess_if_comparable(infr, aid_pairs):
         """
         Takes a guess as to which annots are not comparable based on scores and
         viewpoints. If either viewpoints is null assume they are comparable.
@@ -988,14 +988,14 @@ class IBEISGroundtruth(object):
         is_comp_guess = comp_by_viewpoint
         return is_comp_guess
 
-    def ibeis_is_comparable(infr, aid_pairs, allow_guess=True):
+    def wbia_is_comparable(infr, aid_pairs, allow_guess=True):
         """
         Guesses by default when real comparable information is not available.
         """
         ibs = infr.ibs
         if allow_guess:
             # Guess if comparability information is unavailable
-            is_comp_guess = infr.ibeis_guess_if_comparable(aid_pairs)
+            is_comp_guess = infr.wbia_guess_if_comparable(aid_pairs)
             is_comp = is_comp_guess.copy()
         else:
             is_comp = np.full(len(aid_pairs), np.nan)
@@ -1010,14 +1010,14 @@ class IBEISGroundtruth(object):
         is_comp[is_comp_have] = True
         return is_comp
 
-    def ibeis_is_photobomb(infr, aid_pairs):
+    def wbia_is_photobomb(infr, aid_pairs):
         ibs = infr.ibs
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         am_tags = ibs.get_annotmatch_case_tags(am_rowids)
         is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
         return is_pb
 
-    def ibeis_is_same(infr, aid_pairs):
+    def wbia_is_same(infr, aid_pairs):
         aids1, aids2 = np.asarray(aid_pairs).T
         nids1 = infr.ibs.get_annot_nids(aids1)
         nids2 = infr.ibs.get_annot_nids(aids2)
@@ -1032,9 +1032,9 @@ def _update_staging_to_annotmatch(infr):
     """
     BE VERY CAREFUL WITH THIS FUNCTION
 
-    >>> import ibeis
-    >>> ibs = ibeis.opendb('PZ_Master1')
-    >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
+    >>> import wbia
+    >>> ibs = wbia.opendb('PZ_Master1')
+    >>> infr = wbia.AnnotInference(ibs, aids=ibs.get_valid_aids())
 
     infr.reset_feedback('annotmatch', apply=True)
     infr.status()
@@ -1049,7 +1049,7 @@ def _update_staging_to_annotmatch(infr):
     df = infr.match_state_delta('staging', 'annotmatch')
     print('There are {}/{} annotmatch items that do not exist in staging'.format(
         sum(df['is_new']), len(df)))
-    print(ut.repr4(infr.ibeis_edge_delta_info(df)))
+    print(ut.repr4(infr.wbia_edge_delta_info(df)))
 
     # Find places that exist in annotmatch but not in staging
     flags = pd.isnull(df['old_evidence_decision'])
@@ -1059,10 +1059,10 @@ def _update_staging_to_annotmatch(infr):
     missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
     feedback = missing_feedback
 
-    infr._write_ibeis_staging_feedback(feedback)
+    infr._write_wbia_staging_feedback(feedback)
 
-    # am_fb = infr.read_ibeis_annotmatch_feedback()
-    # staging_fb = infr.read_ibeis_staging_feedback()
+    # am_fb = infr.read_wbia_annotmatch_feedback()
+    # staging_fb = infr.read_wbia_staging_feedback()
     # set(am_fb.keys()) - set(staging_fb.keys())
     # set(staging_fb.keys()) == set(am_fb.keys())
 
@@ -1071,9 +1071,9 @@ def fix_annotmatch_to_undirected_upper(ibs):
     """
     Enforce that all items in annotmatch are undirected upper
 
-    import ibeis
-    # ibs = ibeis.opendb('PZ_Master1')
-    ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+    import wbia
+    # ibs = wbia.opendb('PZ_Master1')
+    ibs = wbia.opendb('PZ_PB_RF_TRAIN')
     """
     df = ibs.db.get_table_as_pandas('annotmatch')
     df.set_index(['annot_rowid1', 'annot_rowid2'], inplace=True, drop=False)
@@ -1184,8 +1184,8 @@ def _is_staging_above_annotmatch(infr):
     n_stage = ibs.staging.get_row_count(ibs.const.REVIEW_TABLE)
     n_annotmatch = ibs.db.get_row_count(ibs.const.ANNOTMATCH_TABLE)
     return n_stage >= n_annotmatch
-    # stage_fb = infr.read_ibeis_staging_feedback()
-    # match_fb = infr.read_ibeis_annotmatch_feedback()
+    # stage_fb = infr.read_wbia_staging_feedback()
+    # match_fb = infr.read_wbia_annotmatch_feedback()
     # set(match_fb.keys()) - set(stage_fb.keys())
     # set(stage_fb.keys()) == set(match_fb.keys())
 
@@ -1200,8 +1200,8 @@ def needs_conversion(infr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_ibeis
-        python -m ibeis.algo.graph.mixin_ibeis --allexamples
+        python -m wbia.algo.graph.mixin_wbia
+        python -m wbia.algo.graph.mixin_wbia --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

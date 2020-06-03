@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from ibeis.plottool import interact_annotations
-import ibeis.plottool as pt  # NOQA
+from wbia.plottool import interact_annotations
+import wbia.plottool as pt  # NOQA
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
@@ -13,19 +13,19 @@ DESTROY_OLD_WINDOW = False
 def ishow_image2(ibs, gid, fnum=None, dodraw=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid (int):
         dodraw (bool):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
+        python -m wbia.viz.interact.interact_annotations2 --test-ishow_image2 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_annotations2 import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.interact.interact_annotations2 import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> gid = 2
         >>> dodraw = True
         >>> # execute function
@@ -166,9 +166,9 @@ class ANNOTATION_Interaction2(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_annotations2
-        python -m ibeis.viz.interact.interact_annotations2 --allexamples
-        python -m ibeis.viz.interact.interact_annotations2 --allexamples --noface --nosrc
+        python -m wbia.viz.interact.interact_annotations2
+        python -m wbia.viz.interact.interact_annotations2 --allexamples
+        python -m wbia.viz.interact.interact_annotations2 --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

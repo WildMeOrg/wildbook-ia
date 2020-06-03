@@ -3,9 +3,9 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range, input
 from os.path import join, expanduser, exists, basename  # NOQA
-from ibeis.control import IBEISControl
-from ibeis.other import ibsfuncs
-from ibeis.detecttools.directory import Directory
+from wbia.control import IBEISControl
+from wbia.other import ibsfuncs
+from wbia.detecttools.directory import Directory
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         return string
 
     dbdir = join(prefix, 'converted')
-    ibsfuncs.delete_ibeis_database(dbdir)
+    ibsfuncs.delete_wbia_database(dbdir)
     ibs = IBEISControl.IBEISController(dbdir=dbdir)
     image_gpath_list = [item[0] for item in processed]
     notes_list = [','.join( [basename(item[0])] + item[2:5] ) for item in processed]

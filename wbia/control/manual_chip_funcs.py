@@ -4,16 +4,16 @@ import six
 import utool as ut
 from six.moves import zip
 from os.path import join
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 ANNOT_ROWID   = 'annot_rowid'
@@ -56,7 +56,7 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
 def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         ensure (bool):  eager evaluation if True
         config2_ (QueryRequest):  query request object with hyper-parameters
@@ -66,7 +66,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs get_annot_chips
+        python -m wbia.control.manual_chip_funcs get_annot_chips
 
     RESTful:
         Method: GET
@@ -74,9 +74,9 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:5]
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> chip_list = get_annot_chips(ibs, aid_list, config2_)
@@ -96,7 +96,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
         ensure (bool):  eager evaluation if True
 
@@ -104,14 +104,14 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         list: chipsz_list - the (width, height) of computed annotation chips.
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs get_annot_chip_sizes
+        python -m wbia.control.manual_chip_funcs get_annot_chip_sizes
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> ensure = True
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
@@ -129,14 +129,14 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
 def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
 
     Returns:
         list: topx2_dlen_sqrd
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs get_annot_chip_dlensqrd
+        python -m wbia.control.manual_chip_funcs get_annot_chip_dlensqrd
 
     RESTful:
         Method: GET
@@ -144,9 +144,9 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, config2_=config2_)
@@ -200,7 +200,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+        python -m wbia.control.manual_chip_funcs --test-get_annot_chip_thumbtup
 
     RESTful:
         Method: GET
@@ -208,9 +208,9 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
@@ -255,7 +255,7 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+        python -m wbia.control.manual_chip_funcs --test-get_annot_chip_thumbtup
 
     RESTful:
         Method: GET
@@ -263,9 +263,9 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
@@ -306,7 +306,7 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
 def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         part_rowid_list (int):  list of part ids
         ensure (bool):  eager evaluation if True
         config2_ (QueryRequest):  query request object with hyper-parameters
@@ -316,7 +316,7 @@ def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=Fal
 
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs get_part_chips
+        python -m wbia.control.manual_chip_funcs get_part_chips
 
     RESTful:
         Method: GET
@@ -324,9 +324,9 @@ def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=Fal
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_chip_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> aid_list = aid_list[:10]
         >>> bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -364,8 +364,8 @@ def delete_part_chips(ibs, part_rowid_list, config2_=None):
 def testdata_ibs():
     r"""
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
 
@@ -373,9 +373,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs
-        python -m ibeis.control.manual_chip_funcs --allexamples
-        python -m ibeis.control.manual_chip_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_chip_funcs
+        python -m wbia.control.manual_chip_funcs --allexamples
+        python -m wbia.control.manual_chip_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -8,8 +8,8 @@ import utool as ut
 import networkx as nx
 import itertools as it
 import vtool_ibeis as vt  # NOQA
-# import ibeis.algo.graph.nx_edge_kconnectivity as nx_ec
-from ibeis.algo.graph import nx_edge_augmentation as nx_aug
+# import wbia.algo.graph.nx_edge_kconnectivity as nx_ec
+from wbia.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict
 print, rrr, profile = ut.inject2(__name__)
 
@@ -71,7 +71,7 @@ def edges_outgoing(graph, nodes):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> from wbia.algo.graph.nx_utils import *  # NOQA
         >>> import utool as ut
         >>> G = demodata_bridge()
         >>> nodes = {1, 2, 3, 4}
@@ -110,11 +110,11 @@ def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
             returned twice (default=False)
 
     CommandLine:
-        python -m ibeis.algo.graph.nx_utils --test-edges_between
+        python -m wbia.algo.graph.nx_utils --test-edges_between
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> from wbia.algo.graph.nx_utils import *  # NOQA
         >>> import utool as ut
         >>> edges = [
         >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234
@@ -339,14 +339,14 @@ def demodata_bridge():
 def demodata_tarjan_bridge():
     """
     CommandLine:
-        python -m ibeis.algo.graph.nx_utils demodata_tarjan_bridge --show
+        python -m wbia.algo.graph.nx_utils demodata_tarjan_bridge --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> from wbia.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_tarjan_bridge()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.show_nx(G)
         >>> ut.show_if_requested()
     """
@@ -398,8 +398,8 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis.plottool as pt
-        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> import wbia.plottool as pt
+        >>> from wbia.algo.graph.nx_utils import *  # NOQA
         >>> size, k, p = 25, 3, .1
         >>> rng = ut.ensure_rng(0)
         >>> gs = []
@@ -453,8 +453,8 @@ def edge_df(graph, edges, ignore=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.nx_utils
-        python -m ibeis.algo.graph.nx_utils --allexamples
+        python -m wbia.algo.graph.nx_utils
+        python -m wbia.algo.graph.nx_utils --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

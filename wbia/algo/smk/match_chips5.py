@@ -5,7 +5,7 @@ annotation clusters if any form of name scoring is used.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
-from ibeis.algo.hots import chip_match
+from wbia.algo.hots import chip_match
 import utool as ut
 import numpy as np
 (print, rrr, profile) = ut.inject2(__name__, '[mc5]')
@@ -41,9 +41,9 @@ class EstimatorRequest(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.smk.match_chips5 import *  # NOQA
-            >>> import ibeis
-            >>> ibeis, smk, qreq_ = testdata_smk()
+            >>> from wbia.algo.smk.match_chips5 import *  # NOQA
+            >>> import wbia
+            >>> wbia, smk, qreq_ = testdata_smk()
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)
             >>> assert qreq_.daids is qreq2_.daids, 'should be the same'
             >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
@@ -128,7 +128,7 @@ class EstimatorRequest(ut.NiceRepr):
 
     @ut.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
-        # uses own internal state to grab name rowids instead of using ibeis.
+        # uses own internal state to grab name rowids instead of using wbia.
         if not hasattr(qreq_, 'aid_to_idx'):
             qreq_.ensure_nids()
         idxs = ut.take(qreq_.aid_to_idx, aids)
@@ -138,7 +138,7 @@ class EstimatorRequest(ut.NiceRepr):
     @ut.accepts_numpy
     def get_qreq_annot_gids(qreq_, aids):
         # Hack uses own internal state to grab name rowids
-        # instead of using ibeis.
+        # instead of using wbia.
         return qreq_.ibs.get_annot_gids(aids)
 
     @property

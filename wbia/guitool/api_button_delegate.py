@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtGui, QtCore  # NOQA
-from ibeis.guitool.__PYQT__ import QtWidgets  # NOQA
-from ibeis.guitool import guitool_components
+from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool import guitool_components
 import utool
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut

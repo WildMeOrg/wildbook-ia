@@ -297,12 +297,12 @@ def main():
         python -m sklearn.ensemble.tests.test_forest test_multioutput
 
     CommandLine:
-        python -m ibeis toy_classify_nans
-        python -m ibeis toy_classify_nans --toy1 --save "rf_nan_toy1.jpg" --figsize=10,10
-        python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy2.jpg" --figsize=10,10
-        python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy3.jpg" --figsize=10,10 --extra
-        python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy4.jpg" --figsize=10,10 --extra --nanrate=0
-        python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy5.jpg" --figsize=10,10 --nanrate=0
+        python -m wbia toy_classify_nans
+        python -m wbia toy_classify_nans --toy1 --save "rf_nan_toy1.jpg" --figsize=10,10
+        python -m wbia toy_classify_nans --toy2 --save "rf_nan_toy2.jpg" --figsize=10,10
+        python -m wbia toy_classify_nans --toy2 --save "rf_nan_toy3.jpg" --figsize=10,10 --extra
+        python -m wbia toy_classify_nans --toy2 --save "rf_nan_toy4.jpg" --figsize=10,10 --extra --nanrate=0
+        python -m wbia toy_classify_nans --toy2 --save "rf_nan_toy5.jpg" --figsize=10,10 --nanrate=0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -333,7 +333,7 @@ def main():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.toy_nan_rf --show
+        python -m wbia.algo.hots.toy_nan_rf --show
     """
     main()
     import matplotlib.pyplot as plt

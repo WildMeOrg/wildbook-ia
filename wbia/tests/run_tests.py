@@ -7,29 +7,29 @@ import utool as ut
 
 
 def ensure_testing_data():
-    from ibeis.tests import reset_testdbs
+    from wbia.tests import reset_testdbs
     print('Making sure test data exists')
-    import ibeis
+    import wbia
     from os.path import join
     ut.change_term_title('ENSURE IBEIS TETSDATA')
     reset_testdbs.reset_testdbs()
-    workdir = ibeis.get_workdir()
+    workdir = wbia.get_workdir()
     if not ut.checkpath(join(workdir, 'PZ_MTEST')):
-        ibeis.ensure_pz_mtest()
+        wbia.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test')):
-        ibeis.ensure_nauts()
+        wbia.ensure_nauts()
     if not ut.checkpath(join(workdir, 'wd_peter2')):
-        ibeis.ensure_wilddogs()
+        wbia.ensure_wilddogs()
 
 
 def dynamic_doctest_modnames():
     r"""
     CommandLine:
-        python -m ibeis.tests.run_tests dynamic_doctest_modnames --show
+        python -m wbia.tests.run_tests dynamic_doctest_modnames --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.tests.run_tests import *  # NOQA
+        >>> from wbia.tests.run_tests import *  # NOQA
         >>> doctest_modname_list_ = dynamic_doctest_modnames()
         >>> result = ('doctest_modname_list_ = %s' % (ut.repr3(doctest_modname_list_),))
         >>> print(result)
@@ -41,99 +41,99 @@ def dynamic_doctest_modnames():
     ])
     exclude_dirs = ['_broken', 'old', 'tests', 'timeits', '_scripts',
                     '_timeits', '_doc', 'notebook', ]
-    dpath_list = ['ibeis']
+    dpath_list = ['wbia']
     doctest_modname_list_ = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
     return doctest_modname_list_
 
 
 def static_doctest_modnames():
     doctest_modname_list_ = [
-        'ibeis',
-        'ibeis.annots', 'ibeis.core_annots', 'ibeis.main_module',
-        'ibeis.new_annots', 'ibeis.tag_funcs', 'ibeis.core_images',
-        'ibeis.annotmatch_funcs', 'ibeis.images',
-        'ibeis.viz.viz_graph2', 'ibeis.viz.viz_helpers', 'ibeis.viz.viz_hough',
-        'ibeis.viz.viz_chip', 'ibeis.viz.viz_image', 'ibeis.viz.viz_name',
-        'ibeis.viz.viz_matches', 'ibeis.viz.viz_graph2', 'ibeis.viz.viz_sver',
-        'ibeis.viz.viz_other', 'ibeis.viz.viz_nearest_descriptors',
-        'ibeis.viz.viz_qres', 'ibeis.viz.interact.interact_matches',
-        'ibeis.viz.interact.interact_annotations2',
-        'ibeis.viz.interact.interact_name',
-        'ibeis.viz.interact.interact_query_decision',
-        'ibeis.viz.interact.interact_chip', 'ibeis.viz.interact.interact_qres',
-        'ibeis.templates.generate_notebook',
-        'ibeis.scripts.classify_shark',
-        'ibeis.scripts.specialdraw',
-        'ibeis.scripts.gen_cand_expts',
-        'ibeis.control.manual_annot_funcs', 'ibeis.control.manual_chip_funcs',
-        'ibeis.control.manual_species_funcs',
-        'ibeis.control.manual_ibeiscontrol_funcs',
-        'ibeis.control._autogen_party_funcs',
-        'ibeis.control.manual_garelate_funcs',
-        'ibeis.control.manual_name_funcs', 'ibeis.control.accessor_decors',
-        'ibeis.control._sql_helpers', 'ibeis.control.manual_wildbook_funcs',
-        'ibeis.control.controller_inject',
-        'ibeis.control.manual_lblimage_funcs', 'ibeis.control.IBEISControl',
-        'ibeis.control.manual_feat_funcs', 'ibeis.control.wildbook_manager',
-        'ibeis.control.manual_annotmatch_funcs',
-        'ibeis.control.manual_gsgrelate_funcs',
-        'ibeis.control.manual_meta_funcs',
-        'ibeis.control.manual_lblannot_funcs',
-        'ibeis.control.manual_featweight_funcs', 'ibeis.control.DB_SCHEMA',
-        'ibeis.control.manual_lbltype_funcs',
-        'ibeis.control.manual_image_funcs',
-        'ibeis.control.manual_imageset_funcs',
-        'ibeis.control.manual_annotgroup_funcs',
-        'ibeis.algo.Config',
-        'ibeis.unstable.demobayes', 'ibeis.algo.hots._pipeline_helpers',
-        'ibeis.algo.hots.name_scoring', 'ibeis.algo.hots.devcases',
-        'ibeis.algo.hots.neighbor_index', 'ibeis.algo.hots.pgm_viz',
-        'ibeis.algo.hots.pgm_ext', 'ibeis.algo.hots.bayes',
-        'ibeis.algo.hots.nn_weights',
-        'ibeis.algo.hots.pipeline',
-        'ibeis.algo.hots.orig_graph_iden', 'ibeis.algo.hots.query_request',
-        'ibeis.algo.hots.chip_match', 'ibeis.algo.hots.multi_index',
-        'ibeis.algo.hots.testem', 'ibeis.algo.hots.query_params',
-        'ibeis.algo.hots.precision_recall', 'ibeis.algo.hots.hstypes',
-        'ibeis.algo.hots.match_chips4', 'ibeis.algo.hots.neighbor_index_cache',
-        'ibeis.algo.graph.core',
-        'ibeis.algo.hots.scoring',
-        'ibeis.algo.preproc.preproc_annot',
-        'ibeis.algo.preproc.preproc_occurrence',
-        'ibeis.algo.preproc.preproc_image',
-        'ibeis.algo.preproc.preproc_residual', 'ibeis.algo.detect.grabmodels',
-        'ibeis.other.dbinfo', 'ibeis.other.ibsfuncs',
-        'ibeis.other.detectfuncs',
-        'ibeis.other.detectcore',
-        'ibeis.other.detectgrave',
-        'ibeis.other.detecttrain',
-        'ibeis.init.main_helpers', 'ibeis.init.filter_annots',
-        'ibeis.init.sysres',
-        'ibeis.gui.guimenus', 'ibeis.gui.guiback', 'ibeis.gui.inspect_gui',
-        'ibeis.gui.newgui', 'ibeis.gui.dbfix_widget',
-        'ibeis.gui.clock_offset_gui',
-        'ibeis.dbio.export_subset', 'ibeis.dbio.ingest_hsdb',
-        'ibeis.dbio.export_hsdb', 'ibeis.dbio.ingest_database',
-        'ibeis.expt.harness', 'ibeis.expt.old_storage',
-        'ibeis.expt.experiment_helpers', 'ibeis.expt.annotation_configs',
-        'ibeis.expt.experiment_drawing', 'ibeis.expt.experiment_printres',
-        'ibeis.expt.test_result', 'ibeis.expt.cfghelpers',
-        'ibeis.web.routes_ajax', 'ibeis.web.routes', 'ibeis.web.apis_query',
-        'ibeis.web.app', 'ibeis.web.job_engine', 'ibeis.web.apis_json',
-        'ibeis.web.apis_detect', 'ibeis.web.apis_engine', 'ibeis.web.test_api',
-        'ibeis.web.apis', 'ibeis.web.routes_csv', 'ibeis.web.routes_submit',
+        'wbia',
+        'wbia.annots', 'wbia.core_annots', 'wbia.main_module',
+        'wbia.new_annots', 'wbia.tag_funcs', 'wbia.core_images',
+        'wbia.annotmatch_funcs', 'wbia.images',
+        'wbia.viz.viz_graph2', 'wbia.viz.viz_helpers', 'wbia.viz.viz_hough',
+        'wbia.viz.viz_chip', 'wbia.viz.viz_image', 'wbia.viz.viz_name',
+        'wbia.viz.viz_matches', 'wbia.viz.viz_graph2', 'wbia.viz.viz_sver',
+        'wbia.viz.viz_other', 'wbia.viz.viz_nearest_descriptors',
+        'wbia.viz.viz_qres', 'wbia.viz.interact.interact_matches',
+        'wbia.viz.interact.interact_annotations2',
+        'wbia.viz.interact.interact_name',
+        'wbia.viz.interact.interact_query_decision',
+        'wbia.viz.interact.interact_chip', 'wbia.viz.interact.interact_qres',
+        'wbia.templates.generate_notebook',
+        'wbia.scripts.classify_shark',
+        'wbia.scripts.specialdraw',
+        'wbia.scripts.gen_cand_expts',
+        'wbia.control.manual_annot_funcs', 'wbia.control.manual_chip_funcs',
+        'wbia.control.manual_species_funcs',
+        'wbia.control.manual_wbiacontrol_funcs',
+        'wbia.control._autogen_party_funcs',
+        'wbia.control.manual_garelate_funcs',
+        'wbia.control.manual_name_funcs', 'wbia.control.accessor_decors',
+        'wbia.control._sql_helpers', 'wbia.control.manual_wildbook_funcs',
+        'wbia.control.controller_inject',
+        'wbia.control.manual_lblimage_funcs', 'wbia.control.IBEISControl',
+        'wbia.control.manual_feat_funcs', 'wbia.control.wildbook_manager',
+        'wbia.control.manual_annotmatch_funcs',
+        'wbia.control.manual_gsgrelate_funcs',
+        'wbia.control.manual_meta_funcs',
+        'wbia.control.manual_lblannot_funcs',
+        'wbia.control.manual_featweight_funcs', 'wbia.control.DB_SCHEMA',
+        'wbia.control.manual_lbltype_funcs',
+        'wbia.control.manual_image_funcs',
+        'wbia.control.manual_imageset_funcs',
+        'wbia.control.manual_annotgroup_funcs',
+        'wbia.algo.Config',
+        'wbia.unstable.demobayes', 'wbia.algo.hots._pipeline_helpers',
+        'wbia.algo.hots.name_scoring', 'wbia.algo.hots.devcases',
+        'wbia.algo.hots.neighbor_index', 'wbia.algo.hots.pgm_viz',
+        'wbia.algo.hots.pgm_ext', 'wbia.algo.hots.bayes',
+        'wbia.algo.hots.nn_weights',
+        'wbia.algo.hots.pipeline',
+        'wbia.algo.hots.orig_graph_iden', 'wbia.algo.hots.query_request',
+        'wbia.algo.hots.chip_match', 'wbia.algo.hots.multi_index',
+        'wbia.algo.hots.testem', 'wbia.algo.hots.query_params',
+        'wbia.algo.hots.precision_recall', 'wbia.algo.hots.hstypes',
+        'wbia.algo.hots.match_chips4', 'wbia.algo.hots.neighbor_index_cache',
+        'wbia.algo.graph.core',
+        'wbia.algo.hots.scoring',
+        'wbia.algo.preproc.preproc_annot',
+        'wbia.algo.preproc.preproc_occurrence',
+        'wbia.algo.preproc.preproc_image',
+        'wbia.algo.preproc.preproc_residual', 'wbia.algo.detect.grabmodels',
+        'wbia.other.dbinfo', 'wbia.other.ibsfuncs',
+        'wbia.other.detectfuncs',
+        'wbia.other.detectcore',
+        'wbia.other.detectgrave',
+        'wbia.other.detecttrain',
+        'wbia.init.main_helpers', 'wbia.init.filter_annots',
+        'wbia.init.sysres',
+        'wbia.gui.guimenus', 'wbia.gui.guiback', 'wbia.gui.inspect_gui',
+        'wbia.gui.newgui', 'wbia.gui.dbfix_widget',
+        'wbia.gui.clock_offset_gui',
+        'wbia.dbio.export_subset', 'wbia.dbio.ingest_hsdb',
+        'wbia.dbio.export_hsdb', 'wbia.dbio.ingest_database',
+        'wbia.expt.harness', 'wbia.expt.old_storage',
+        'wbia.expt.experiment_helpers', 'wbia.expt.annotation_configs',
+        'wbia.expt.experiment_drawing', 'wbia.expt.experiment_printres',
+        'wbia.expt.test_result', 'wbia.expt.cfghelpers',
+        'wbia.web.routes_ajax', 'wbia.web.routes', 'wbia.web.apis_query',
+        'wbia.web.app', 'wbia.web.job_engine', 'wbia.web.apis_json',
+        'wbia.web.apis_detect', 'wbia.web.apis_engine', 'wbia.web.test_api',
+        'wbia.web.apis', 'wbia.web.routes_csv', 'wbia.web.routes_submit',
     ]
     return doctest_modname_list_
 
 
 def run_tests():
     """
-    >>> from ibeis.tests.run_tests import *  # NOQA
+    >>> from wbia.tests.run_tests import *  # NOQA
     """
     # starts logging for tests
-    import ibeis
+    import wbia
 
-    ibeis._preload()
+    wbia._preload()
     # Build module list and run tests
     import sys
     if True:
@@ -180,7 +180,7 @@ def run_tests():
     doctest_modname_list2 = []
 
     try:
-        import ibeis.guitool  # NOQA
+        import wbia.guitool  # NOQA
     except ImportError:
         HAVE_GUI = False
     else:
@@ -230,7 +230,7 @@ def run_tests():
 
     # Write to py.test / nose format
     if ut.get_argflag('--tonose'):
-        convert_tests_from_ibeis_to_nose(module_list)
+        convert_tests_from_wbia_to_nose(module_list)
         return 0
 
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
@@ -249,7 +249,7 @@ def run_tests():
         return 0
 
 
-def convert_tests_from_ibeis_to_nose(module_list):
+def convert_tests_from_wbia_to_nose(module_list):
     # PARSE OUT TESTABLE DOCTESTTUPS
     #import utool as ut
     testtup_list = []
@@ -301,7 +301,7 @@ def convert_tests_from_ibeis_to_nose(module_list):
         autogen_test_src_funcs.append(func_src)
 
     autogen_test_src = '\n'.join(topimport_list) + '\n\n\n' + '\n\n\n'.join(autogen_test_src_funcs) + '\n'
-    from ibeis import tests
+    from wbia import tests
     from os.path import join
     moddir = ut.get_module_dir(tests)
     ut.writeto(join(moddir, 'test_autogen_nose_tests.py'), autogen_test_src)
@@ -310,7 +310,7 @@ def convert_tests_from_ibeis_to_nose(module_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ibeis.tests.run_tests
+        xdoctest -m wbia.tests.run_tests
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

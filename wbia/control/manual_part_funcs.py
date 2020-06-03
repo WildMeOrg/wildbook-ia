@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Autogen:
-    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
+    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=age_m  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA
@@ -10,18 +10,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import uuid
 import numpy as np
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
-from ibeis.web import routes_ajax
+from wbia.control.controller_inject import make_ibs_register_decorator
+from wbia.web import routes_ajax
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 PART_NOTE               = 'part_note'
@@ -279,7 +279,7 @@ def delete_parts(ibs, part_rowid_list):
         URL:    /api/part/
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         part_rowid_list (int):  list of part ids
     """
     if ut.VERBOSE:
@@ -381,9 +381,9 @@ def get_part_gids(ibs, part_rowid_list, assume_unique=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_gids(ibs, part_rowid_list)
         >>> print(result)
@@ -425,9 +425,9 @@ def get_part_aids(ibs, part_rowid_list, assume_unique=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_aids(ibs, part_rowid_list)
         >>> print(result)
@@ -457,7 +457,7 @@ def get_part_thetas(ibs, part_rowid_list):
         theta_list (list): a list of floats describing the angles of each part
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_thetas
+        python -m wbia.control.manual_part_funcs --test-get_part_thetas
 
     RESTful:
         Method: GET
@@ -465,9 +465,9 @@ def get_part_thetas(ibs, part_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('NAUT_test')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_thetas(ibs, part_rowid_list)
         >>> print(result)
@@ -518,7 +518,7 @@ def get_part_verts(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/vert/
     """
-    from ibeis.algo.preproc import preproc_part
+    from wbia.algo.preproc import preproc_part
     vertstr_list = ibs.db.get(const.PART_TABLE, ('part_verts',), part_rowid_list)
     vert_list = preproc_part.postget_part_verts(vertstr_list)
     #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
@@ -636,7 +636,7 @@ def get_part_qualities(ibs, part_rowid_list, eager=True):
         tbl = part
 
     SeeAlso:
-        ibeis.const.QUALITY_INT_TO_TEXT
+        wbia.const.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: GET
@@ -644,7 +644,7 @@ def get_part_qualities(ibs, part_rowid_list, eager=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> part_rowid_list = ibs._get_all_part_rowids()
         >>> eager = True
@@ -720,7 +720,7 @@ def get_part_tag_text(ibs, part_rowid_list, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> part_rowid_list = ibs._get_all_part_rowids()
         >>> eager = True
@@ -743,14 +743,14 @@ def get_part_staged_flags(ibs, part_rowid_list):
     returns if an part is staged
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         part_rowid_list (int):  list of part ids
 
     Returns:
         list: part_staged_flag_list - True if part is staged
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_staged_flags
+        python -m wbia.control.manual_part_funcs --test-get_part_staged_flags
 
     RESTful:
         Method: GET
@@ -758,9 +758,9 @@ def get_part_staged_flags(ibs, part_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> gid_list = get_part_staged_flags(ibs, part_rowid_list)
         >>> result = str(gid_list)
@@ -795,14 +795,14 @@ def get_part_staged_user_ids(ibs, part_rowid_list):
     returns if an part is staged
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         part_rowid_list (int):  list of part ids
 
     Returns:
         list: part_staged_user_id_list - True if part is staged
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_staged_user_ids
+        python -m wbia.control.manual_part_funcs --test-get_part_staged_user_ids
 
     RESTful:
         Method: GET
@@ -810,9 +810,9 @@ def get_part_staged_user_ids(ibs, part_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> gid_list = get_part_staged_user_ids(ibs, part_rowid_list)
         >>> result = str(gid_list)
@@ -859,7 +859,7 @@ def _update_part_rotate_fix_bbox(bbox):
 
 
 def update_part_rotate_90(ibs, part_rowid_list, direction):
-    from ibeis.constants import PI, TAU
+    from wbia.constants import PI, TAU
 
     if isinstance(direction, six.string_types):
         direction = direction.lower()
@@ -1098,7 +1098,7 @@ def set_part_qualities(ibs, part_rowid_list, part_quality_list):
         part_quality_list
 
     SeeAlso:
-        ibeis.const.QUALITY_INT_TO_TEXT
+        wbia.const.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: PUT
@@ -1207,15 +1207,15 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         URL:    /api/part/staged/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_staged_metadata
+        python -m wbia.control.manual_part_funcs --test-set_part_staged_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
         >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
@@ -1279,15 +1279,15 @@ def set_part_metadata(ibs, part_rowid_list, metadata_dict_list):
         URL:    /api/part/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_metadata
+        python -m wbia.control.manual_part_funcs --test-set_part_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
         >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
@@ -1351,15 +1351,15 @@ def set_part_contour(ibs, part_rowid_list, contour_dict_list):
         URL:    /api/part/contour/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_contour
+        python -m wbia.control.manual_part_funcs --test-set_part_contour
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_part_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
         >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
@@ -1397,8 +1397,8 @@ def testdata_ibs():
     r"""
     Auto-docstr for 'testdata_ibs'
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
 
@@ -1406,9 +1406,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_part_funcs
-        python -m ibeis.control.manual_part_funcs --allexamples
-        python -m ibeis.control.manual_part_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_part_funcs
+        python -m wbia.control.manual_part_funcs --allexamples
+        python -m wbia.control.manual_part_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

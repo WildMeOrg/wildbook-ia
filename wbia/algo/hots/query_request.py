@@ -8,20 +8,20 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
-from ibeis import dtool
+from wbia import dtool
 import itertools as it
 import hashlib
 import vtool_ibeis as vt
 import utool as ut
 import numpy as np
-from ibeis.algo.hots import neighbor_index_cache
-#from ibeis.algo.hots import multi_index
-# from ibeis.algo.hots import scorenorm
-# from ibeis.algo.hots import distinctiveness_normalizer
-from ibeis.algo.hots import query_params
-from ibeis.algo.hots import chip_match
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-import ibeis.constants as const
+from wbia.algo.hots import neighbor_index_cache
+#from wbia.algo.hots import multi_index
+# from wbia.algo.hots import scorenorm
+# from wbia.algo.hots import distinctiveness_normalizer
+from wbia.algo.hots import query_params
+from wbia.algo.hots import chip_match
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+import wbia.constants as const
 #import warnings
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -31,25 +31,25 @@ VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 def testdata_newqreq(defaultdb='testdb1'):
     """
     Returns:
-        (ibeis.IBEISController, list, list)
+        (wbia.IBEISController, list, list)
     """
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     qaid_list = [1]
     daid_list = [1, 2, 3, 4, 5]
     return ibs, qaid_list, daid_list
 
 
 @profile
-def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
+def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             verbose=None, unique_species=None,
                             use_memcache=True,
                             query_cfg=None, custom_nid_lookup=None):
     """
-    ibeis entry point to create a new query request object
+    wbia entry point to create a new query request object
 
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (wbia.IBEISController):  image analysis api
         qaid_list (list): query ids
         daid_list (list): database ids
         cfgdict (dict): pipeline dictionary config
@@ -59,20 +59,20 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         verbose (bool):  verbosity flag(default = True)
 
     Returns:
-        ibeis.QueryRequest
+        wbia.QueryRequest
 
     CommandLine:
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:0
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:1
+        python -m wbia.algo.hots.query_request --test-new_wbia_query_request:0
+        python -m wbia.algo.hots.query_request --test-new_wbia_query_request:1
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.query_request import *  # NOQA
+        >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'fw_detector': 'rf'}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> qreq_ = new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> print(qreq_.get_cfgstr())
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
@@ -82,12 +82,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.query_request import *  # NOQA
+        >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('NAUT_test')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': True, 'fg_on': True}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> qreq_ = new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> assert qreq_.query_config2_.featweight_enabled is False
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
@@ -99,12 +99,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.query_request import *  # NOQA
+        >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'query_rotation_heuristic': True}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> qreq_ = new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is False, (
@@ -120,7 +120,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         dcfg = qreq_.extern_data_config2
         qcfg = qreq_.extern_query_config2
         ut.dict_intersection(qcfg.__dict__, dcfg.__dict__)
-        from ibeis.expt import cfghelpers
+        from wbia.expt import cfghelpers
         cfg_list = [qcfg.__dict__, dcfg.__dict__]
         nonvaried_cfg, varied_cfg_list = ut.partition_varied_cfg_list(
             cfg_list, recursive=True)
@@ -152,7 +152,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     if verbose > 2:
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
-        from ibeis.algo.smk import smk_pipeline
+        from wbia.algo.smk import smk_pipeline
         if query_cfg is None:
             config = cfgdict
         else:
@@ -314,8 +314,8 @@ class QueryRequest(ut.NiceRepr):
         try:
             qreq_.ibs = None
         except Exception:
-            import ibeis
-            qreq_.ibs = ibeis.IBEISController()
+            import wbia
+            qreq_.ibs = wbia.IBEISController()
 
         qreq_.indexer = None  # The nearest neighbor mechanism
         qreq_.normalizer = None  # The scoring normalization mechanism
@@ -351,11 +351,11 @@ class QueryRequest(ut.NiceRepr):
             daid_list (list):
             qparams (QueryParams):  query hyper-parameters
             qresdir (str):
-            ibs (ibeis.IBEISController):  image analysis api
+            ibs (wbia.IBEISController):  image analysis api
             _indexer_request_params (dict):
 
         Returns:
-            ibeis.QueryRequest
+            wbia.QueryRequest
         """
         qreq_ = cls()
         qreq_.ibs = ibs
@@ -418,15 +418,15 @@ class QueryRequest(ut.NiceRepr):
     def _make_anygroup_hashes(annots, nids):
         """ helper function
 
-            import ibeis
-            qreq_ = ibeis.testdata_qreq_(
+            import wbia
+            qreq_ = wbia.testdata_qreq_(
                 defaultdb='PZ_MTEST',
                 qaid_override=[1, 2, 3, 4, 5, 6, 10, 11],
                 daid_override=[2, 3, 5, 6, 20, 21, 22, 23, 24],
                 )
 
-            import ibeis
-            qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_Master1')
+            import wbia
+            qreq_ = wbia.testdata_qreq_(defaultdb='PZ_Master1')
             %timeit qreq_._make_namegroup_data_hashes()
             %timeit qreq_._make_namegroup_data_uuids()
 
@@ -484,16 +484,16 @@ class QueryRequest(ut.NiceRepr):
         only considers grouping of database names
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-get_qreq_pcc_hashid:0
+            python -m wbia.algo.hots.query_request --test-get_qreq_pcc_hashid:0
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
             >>> p = ['default:K=2,nameknn=True']
             >>> defaultdb = 'testdb1'
             >>> # Test that UUIDS change when you change the name lookup
-            >>> new_ = ut.partial(ibeis.testdata_qreq_, defaultdb=defaultdb, p=p,
+            >>> new_ = ut.partial(wbia.testdata_qreq_, defaultdb=defaultdb, p=p,
             >>>                   verbose=False)
             >>> # All diff names
             >>> qreq1 = new_(daid_override=[2, 3, 5, 6],
@@ -549,14 +549,14 @@ class QueryRequest(ut.NiceRepr):
         Make QueryRequest pickleable
 
         CommandLine:
-            python -m ibeis.dev -t candidacy --db testdb1
+            python -m wbia.dev -t candidacy --db testdb1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
             >>> from six.moves import cPickle as pickle
-            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> qreq_ = wbia.testdata_qreq_()
             >>> qreq_dump = pickle.dumps(qreq_)
             >>> qreq2_ = pickle.loads(qreq_dump)
         """
@@ -576,18 +576,18 @@ class QueryRequest(ut.NiceRepr):
         # qreq_._unique_annots = _annots.view(_annots.aids)
         # qreq_._unique_dannots = qreq_._unique_annots.view(sorted(qreq_.daids))
 
-        # Hack for the actual ibeis object
+        # Hack for the actual wbia object
         # (The ibs object itself should now do this hack)
         #state['dbdir'] = qreq_.ibs.get_dbdir()
         return state
 
     def __setstate__(qreq_, state):
-        # Hack for the actual ibeis object
+        # Hack for the actual wbia object
         # (The ibs object itself should now do this hack)
-        #import ibeis
+        #import wbia
         #dbdir = state['dbdir']
         #del state['dbdir']
-        #state['ibs'] = ibeis.opendb(dbdir=dbdir, web=False)
+        #state['ibs'] = wbia.opendb(dbdir=dbdir, web=False)
         qreq_.__dict__.update(state)
 
         # Internal caching objects and views
@@ -599,13 +599,13 @@ class QueryRequest(ut.NiceRepr):
     def _custom_str(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-_custom_str --show
+            python -m wbia.algo.hots.query_request --exec-_custom_str --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_()
             >>> print(repr(qreq_))
         """
         typestr = qreq_.__class__.__name__
@@ -686,13 +686,13 @@ class QueryRequest(ut.NiceRepr):
         qx and dx objects.  used to generate chunks of vsmany queries
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request QueryRequest.shallowcopy
+            python -m wbia.algo.hots.query_request QueryRequest.shallowcopy
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2])
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_(default_qaids=[1, 2])
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)
             >>> assert qreq_.daids is qreq2_.daids, 'should be the same'
             >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
@@ -722,15 +722,15 @@ class QueryRequest(ut.NiceRepr):
     #    rebuild.  Should only be done between query pipeline runs.
 
     #    CommandLine:
-    #        python -m ibeis.algo.hots.query_request --test-remove_internal_daids
+    #        python -m wbia.algo.hots.query_request --test-remove_internal_daids
 
     #    Example:
     #        >>> # ENABLE_DOCTEST
-    #        >>> from ibeis.algo.hots.query_request import *  # NOQA
-    #        >>> import ibeis
+    #        >>> from wbia.algo.hots.query_request import *  # NOQA
+    #        >>> import wbia
     #        >>> # build test data
-    #        >>> ibs = ibeis.opendb('testdb1')
-    #        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+    #        >>> ibs = wbia.opendb('testdb1')
+    #        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
     #        >>> daids = ibs.get_valid_aids(species=species, is_exemplar=True)
     #        >>> qaids = ibs.get_valid_aids(species=species, is_exemplar=False)
     #        >>> qreq_ = ibs.new_query_request(qaids, daids)
@@ -755,7 +755,7 @@ class QueryRequest(ut.NiceRepr):
     #    # TODO: multi-indexer delete support
     #    if qreq_.indexer is not None:
     #        warnings.warn('Implement point removal from trees')
-    #        qreq_.indexer.remove_ibeis_support(qreq_, remove_daids)
+    #        qreq_.indexer.remove_wbia_support(qreq_, remove_daids)
 
     #def add_internal_daids(qreq_, new_daids):
     #    """
@@ -774,7 +774,7 @@ class QueryRequest(ut.NiceRepr):
     #    # TODO: multi-indexer add support
     #    if qreq_.indexer is not None:
     #        #qreq_.load_indexer(verbose=True)
-    #        qreq_.indexer.add_ibeis_support(qreq_, new_daids)
+    #        qreq_.indexer.add_wbia_support(qreq_, new_daids)
 
     def set_external_qaid_mask(qreq_, masked_qaid_list):
         r"""
@@ -782,13 +782,13 @@ class QueryRequest(ut.NiceRepr):
             qaid_list (list):
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-set_external_qaid_mask
+            python -m wbia.algo.hots.query_request --test-set_external_qaid_mask
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(db='testdb1')
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(db='testdb1')
             >>> qaid_list = [1, 2, 3, 4, 5]
             >>> daid_list = [1, 2, 3, 4, 5]
             >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
@@ -824,12 +824,12 @@ class QueryRequest(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> from wbia.algo.hots.query_request import *  # NOQA
             >>> import utool as ut
-            >>> import ibeis
+            >>> import wbia
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:sv_on=True')
+            >>> qreq_ = wbia.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:sv_on=True')
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
             >>> masked_qaid_list = [1, 2, 3,]
@@ -915,7 +915,7 @@ class QueryRequest(ut.NiceRepr):
     @ut.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
         # Hack uses own internal state to grab name rowids
-        # instead of using ibeis.
+        # instead of using wbia.
         idxs = ut.take(qreq_.aid_to_idx, aids)
         nids = ut.take(qreq_.unique_nids, idxs)
         return nids
@@ -962,13 +962,13 @@ class QueryRequest(ut.NiceRepr):
     def get_data_hashid(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+            python -m wbia.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_()
             >>> data_hashid = qreq_.get_data_hashid()
             >>> result = ('data_hashid = %s' % (ut.repr2(data_hashid),))
             >>> print(result)
@@ -979,13 +979,13 @@ class QueryRequest(ut.NiceRepr):
     def get_query_hashid(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+            python -m wbia.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_()
             >>> query_hashid = qreq_.get_query_hashid()
             >>> result = ('query_hashid = %s' % (ut.repr2(query_hashid),))
             >>> print(result)
@@ -1021,13 +1021,13 @@ class QueryRequest(ut.NiceRepr):
             str: cfgstr
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-get_cfgstr
+            python -m wbia.algo.hots.query_request --exec-get_cfgstr
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1',
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1',
             >>>                              p='default:fgw_thresh=.3',
             >>>                              a='default:species=zebra_plains')
             >>> with_input = True
@@ -1110,14 +1110,14 @@ class QueryRequest(ut.NiceRepr):
             num_retries (int): (default = 0)
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-ensure_chips
+            python -m wbia.algo.hots.query_request --test-ensure_chips
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Delete chips (accidentally), then try to run a query
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='testdb1')
             >>> daids = ibs.get_valid_aids()[0:3]
             >>> qaids = ibs.get_valid_aids()[0:6]
             >>> qreq_ = ibs.new_query_request(qaids, daids)
@@ -1155,13 +1155,13 @@ class QueryRequest(ut.NiceRepr):
             verbose (bool):  verbosity flag(default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-ensure_features
+            python -m wbia.algo.hots.query_request --test-ensure_features
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='testdb1')
             >>> daids = ibs.get_valid_aids()[0:2]
             >>> qaids = ibs.get_valid_aids()[0:3]
             >>> qreq_ = ibs.new_query_request(qaids, daids)
@@ -1207,13 +1207,13 @@ class QueryRequest(ut.NiceRepr):
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
-                indexer = neighbor_index_cache.request_ibeis_nnindexer(
+                indexer = neighbor_index_cache.request_wbia_nnindexer(
                     qreq_, verbose=verbose, prog_hook=prog_hook,
                     **qreq_._indexer_request_params)
             #elif index_method == 'multi':
             #    if ut.VERYVERBOSE or verbose:
             #        print('[qreq] loading multi indexer normalizer')
-            #    indexer = multi_index.request_ibeis_mindexer(
+            #    indexer = multi_index.request_wbia_mindexer(
             #        qreq_, verbose=verbose)
             else:
                 raise ValueError('unknown index_method=%r' % (index_method,))
@@ -1255,14 +1255,14 @@ class QueryRequest(ut.NiceRepr):
         Runs the hotspotter pipeline and returns chip match objects.
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request execute --show
+            python -m wbia.algo.hots.query_request execute --show
 
         Example:
             >>> # SLOW_DOCTEST
             >>> # xdoctest: +SKIP
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> from wbia.algo.hots.query_request import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_()
             >>> cm_list = qreq_.execute()
             >>> ut.quit_if_noshow()
             >>> cm = cm_list[0]
@@ -1276,7 +1276,7 @@ class QueryRequest(ut.NiceRepr):
             #cm_list = qreq_.ibs.query_chips(
             #    qreq_=shallow_qreq_, use_bigcache=False )
         else:
-            from ibeis.algo.hots import match_chips4 as mc4
+            from wbia.algo.hots import match_chips4 as mc4
             # Send query to hotspotter (runs the query)
             qreq_.prog_hook = prog_hook
             cm_list = mc4.submit_query_request(
@@ -1292,12 +1292,12 @@ def cfg_deepcopy_test():
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.query_request import *  # NOQA
+        >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> result = cfg_deepcopy_test()
         >>> print(result)
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     cfg1 = ibs.cfg.query_cfg
     cfg2 = cfg1.deepcopy()
     cfg3 = cfg2
@@ -1312,10 +1312,10 @@ def cfg_deepcopy_test():
 if __name__ == '__main__':
     """
     CommandLine:
-        utprof.sh -m ibeis.algo.hots.query_request --test-QueryParams
-        python -m ibeis.algo.hots.query_request
-        python -m ibeis.algo.hots.query_request --allexamples
-        python -m ibeis.algo.hots.query_request --allexamples --noface --nosrc
+        utprof.sh -m wbia.algo.hots.query_request --test-QueryParams
+        python -m wbia.algo.hots.query_request
+        python -m wbia.algo.hots.query_request --allexamples
+        python -m wbia.algo.hots.query_request --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

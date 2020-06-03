@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
 from __future__ import absolute_import, division, print_function
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 from flask_swagger import swagger
-import ibeis.constants as const
+import wbia.constants as const
 from flask import current_app
 from flask import jsonify
 from flask import url_for
@@ -17,8 +17,8 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 
 PREFIX         = controller_inject.MICROSOFT_API_PREFIX
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 def _prefix(route=''):
@@ -381,7 +381,7 @@ def microsoft_image_upload(ibs, *args, **kwargs):
       415:
         description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.
     """
-    from ibeis.web.apis import image_upload
+    from wbia.web.apis import image_upload
     try:
         gid = image_upload(cleanup=True, **kwargs)
         assert gid is not None
@@ -684,7 +684,7 @@ def microsoft_detect_model(ibs, *args, **kwargs):
 
 
 def microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold):
-    from ibeis.algo.detect.lightnet import CONFIG_URL_DICT
+    from wbia.algo.detect.lightnet import CONFIG_URL_DICT
     try:
         parameter = 'model'
         assert model in CONFIG_URL_DICT, 'Specified model is not supported'
@@ -1174,7 +1174,7 @@ def microsoft_identify_visualize(reference, query_annotation, database_annotatio
     """
     ibs = current_app.ibs
 
-    from ibeis.web.apis_query import query_chips_graph_match_thumb
+    from wbia.web.apis_query import query_chips_graph_match_thumb
     qaid = _ensure_annotations(ibs, query_annotation)
     daid = _ensure_annotations(ibs, database_annotation)
     quuid, duuid = ibs.get_annot_uuids([qaid, daid])
@@ -1416,9 +1416,9 @@ def microsoft_get_test_data(ibs, dataset):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

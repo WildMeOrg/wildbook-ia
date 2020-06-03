@@ -122,8 +122,8 @@ def make_expanded_input_graph(graph, target):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.input_helpers import *  # NOQA
-        >>> from ibeis.dtool.example_depcache2 import * # NOQA
+        >>> from wbia.dtool.input_helpers import *  # NOQA
+        >>> from wbia.dtool.example_depcache2 import * # NOQA
         >>> depc = testdata_depc3()
         >>> table = depc['smk_match']
         >>> table = depc['vsone']
@@ -134,7 +134,7 @@ def make_expanded_input_graph(graph, target):
         >>> print('x = %r' % (x,))
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.show_nx(graph, fnum=1, pnum=(1, 2, 1))
         >>> pt.show_nx(exi_graph, fnum=1, pnum=(1, 2, 2))
         >>> ut.show_if_requested()
@@ -345,7 +345,7 @@ class RootMostInput(ut.HashComparable):
         Returns rootmost inputs above this node
 
         Example:
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['smk_match'].rootmost_inputs
             >>> rmi = inputs.rmi_list[1]
@@ -403,8 +403,8 @@ def sort_rmi_list(rmi_list):
         python -m dtool.input_helpers sort_rmi_list
 
     Example:
-        >>> from ibeis.dtool.input_helpers import *  # NOQA
-        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+        >>> from wbia.dtool.input_helpers import *  # NOQA
+        >>> from wbia.dtool.example_depcache2 import *  # NOQA
         >>> depc =testdata_custom_annot_depc([
         ...    dict(tablename='Notch_Tips', parents=['annot']),
         ...    dict(tablename='chips', parents=['annot']),
@@ -468,7 +468,7 @@ class TableInput(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> exi_inputs1 = depc['vsone'].rootmost_inputs.total_expand()
             >>> assert exi_inputs1.rmi_list[0] != exi_inputs1.rmi_list[1]
@@ -483,8 +483,8 @@ class TableInput(ut.NiceRepr):
             >>> print('exi_inputs4 = %r' % (exi_inputs4,))
             >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
-            >>> from ibeis.plottool.interactions import ExpandableInteraction
+            >>> import wbia.plottool as pt
+            >>> from wbia.plottool.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=2)
             >>> depc['vsone'].show_dep_subgraph(inter)
             >>> exi_inputs1.show_exi_graph(inter)
@@ -544,8 +544,8 @@ class TableInput(ut.NiceRepr):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.input_helpers import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.input_helpers import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['neighbs'].rootmost_inputs
             >>> index = 'indexer'
@@ -579,8 +579,8 @@ class TableInput(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.input_helpers import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.input_helpers import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['smk_match'].rootmost_inputs
             >>> inputs = depc['neighbs'].rootmost_inputs
@@ -632,8 +632,8 @@ class TableInput(ut.NiceRepr):
 
         Example:
             >>> # xdoctest: +REQUIRES(--fixme)
-            >>> from ibeis.dtool.input_helpers import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.input_helpers import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['feat'].rootmost_inputs.total_expand()
             >>> flat_compute_order = inputs.flat_compute_order()
@@ -677,8 +677,8 @@ class TableInput(ut.NiceRepr):
                 computations.
 
         Example:
-            >>> from ibeis.dtool.input_helpers import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.input_helpers import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc =testdata_custom_annot_depc([
             ...    dict(tablename='chips', parents=['annot']),
             ...    dict(tablename='Notch_Tips', parents=['annot']),
@@ -754,15 +754,15 @@ class TableInput(ut.NiceRepr):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.input_helpers import *  # NOQA
-            >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+            >>> from wbia.dtool.input_helpers import *  # NOQA
+            >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> # table = depc['smk_match']
             >>> table = depc['neighbs']
             >>> inputs = table.rootmost_inputs
             >>> print('inputs = %r' % (inputs,))
-            >>> import ibeis.plottool as pt
-            >>> from ibeis.plottool.interactions import ExpandableInteraction
+            >>> import wbia.plottool as pt
+            >>> from wbia.plottool.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=1)
             >>> inputs.show_exi_graph(inter=inter)
             >>> # FIXME; Expanding inputs can overspecify inputs
@@ -779,8 +779,8 @@ class TableInput(ut.NiceRepr):
             >>> inter.start()
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
-        from ibeis.plottool.interactions import ExpandableInteraction
+        import wbia.plottool as pt
+        from wbia.plottool.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction()
@@ -821,8 +821,8 @@ def get_rootmost_inputs(exi_graph, table):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.input_helpers import *  # NOQA
-        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+        >>> from wbia.dtool.input_helpers import *  # NOQA
+        >>> from wbia.dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
         >>> tablename = 'smk_match'
         >>> table = depc[tablename]

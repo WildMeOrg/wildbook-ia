@@ -4,7 +4,7 @@ Interface to pyrf random forest object detection.
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, join
-from ibeis.algo.detect import grabmodels
+from wbia.algo.detect import grabmodels
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip, map
@@ -188,16 +188,16 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
         iter
 
     CommandLine:
-        python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
+        python -m wbia.algo.detect.randomforest --test-detect_gid_list_with_species
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.randomforest import *  # NOQA
-        >>> from ibeis.algo.detect.randomforest import _get_models  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.detect.randomforest import *  # NOQA
+        >>> from wbia.algo.detect.randomforest import _get_models  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ibs = wbia.opendb('testdb1')
+        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> gid_list = ibs.get_valid_gids()
         >>> downsample = True
         >>> kwargs = {}
@@ -311,7 +311,7 @@ def _valid_candidate(candidate, annot_bbox_list, overlap=0.0, tries=10):
 def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VERBOSE_RF):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         species (?):
         modeldir (str): (default = 'default')
         cfg_override (bool): (default = True)
@@ -321,14 +321,14 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         ?: fpath_list
 
     CommandLine:
-        python -m ibeis.algo.detect.randomforest --test-_get_models
+        python -m wbia.algo.detect.randomforest --test-_get_models
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.detect.randomforest import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
+        >>> from wbia.algo.detect.randomforest import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> cfg_override = True
         >>> verbose = False

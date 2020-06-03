@@ -106,11 +106,11 @@ rob sed test_api main_api True True
 
 
 
-rob sed "from hsdev import params" "from ibeis.dev import params"
+rob sed "from hsdev import params" "from wbia.dev import params"
 
 rob sed "from hscom import utool" "import utool"
 
-rob sed "from hsapi" "from ibeis.model.jon_recognition"
+rob sed "from hsapi" "from wbia.model.jon_recognition"
 
 rob sed "from hscom import fileio as io" ""
 
@@ -131,13 +131,13 @@ rob sed "from __future__ import print_function, division" "from __future__ impor
 
 
 rob sed "jon_recognition" "hots" True True
-git mv ibeis/model/jon_recognition/ ibeis/model/hots
+git mv wbia/model/jon_recognition/ wbia/model/hots
 
 
 rob sp "drawtool" "plottool"
 
 
-rob sp ibeis.view ibeis
+rob sp wbia.view wbia
 
 
-git mv ~/code/ibeis/ibeis/control/IBEIS_SCHEMA.py ~/code/ibeis/ibeis/control/DB_SCHEMA.py
+git mv ~/code/wbia/wbia/control/IBEIS_SCHEMA.py ~/code/wbia/wbia/control/DB_SCHEMA.py

@@ -7,10 +7,10 @@ import tornado.wsgi
 import tornado.httpserver
 import logging
 import socket
-from ibeis.control import controller_inject
-from ibeis.web import apis_engine
-from ibeis.web import job_engine
-from ibeis.web import appfuncs as appf
+from wbia.control import controller_inject
+from wbia.web import apis_engine
+from wbia.web import job_engine
+from wbia.web import appfuncs as appf
 from tornado.log import access_log
 import utool as ut
 
@@ -22,7 +22,7 @@ try:
     except Exception:
         from werkzeug.middleware.dispatcher import DispatcherMiddleware
     import prometheus_client
-    from ibeis.web import prometheus  # NOQA
+    from wbia.web import prometheus  # NOQA
     PROMETHEUS = True
 except ImportError:
     PROMETHEUS = False
@@ -33,13 +33,13 @@ def tst_html_error():
     This test will show what our current errors look like
 
     CommandLine:
-        python -m ibeis.web.app --exec-tst_html_error
+        python -m wbia.web.app --exec-tst_html_error
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.app import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/?__format__=True')
+        >>> from wbia.web.app import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/?__format__=True')
     """
     pass
 
@@ -81,7 +81,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     if url_suffix is None:
         url_suffix = ut.get_argval('--url', default='')
 
-    # from ibeis import constants as const
+    # from wbia import constants as const
     # ibs.https = const.HTTPS
 
     def _start_tornado(ibs_, port_):
@@ -194,17 +194,17 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=None, precache=None,
+def start_from_wbia(ibs, port=None, browser=None, precache=None,
                      url_suffix=None, start_job_queue=None,
                      start_web_loop=True):
     """
     Parse command line options and start the server.
 
     CommandLine:
-        python -m ibeis --db PZ_MTEST --web
-        python -m ibeis --db PZ_MTEST --web --browser
+        python -m wbia --db PZ_MTEST --web
+        python -m wbia --db PZ_MTEST --web --browser
     """
-    print('[web] start_from_ibeis()')
+    print('[web] start_from_wbia()')
 
     if start_job_queue is None:
         if ut.get_argflag('--noengine'):
@@ -248,20 +248,20 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
 def start_web_annot_groupreview(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
+        python -m wbia.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
+        python -m wbia.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
+        python -m wbia.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> from wbia.tag_funcs import *  # NOQA
+        >>> import wbia
+        >>> #ibs = wbia.opendb(defaultdb='PZ_Master1')
+        >>> ibs = wbia.opendb(defaultdb='GZ_Master1')
         >>> #aid_list = ibs.get_valid_aids()
         >>> # -----
         >>> any_tags = ut.get_argval('--tags', type_=list, default=['Viewpoint'])
@@ -274,18 +274,18 @@ def start_web_annot_groupreview(ibs, aid_list):
         >>> result = start_web_annot_groupreview(ibs, aid_list)
         >>> print(result)
     """
-    import ibeis.web
+    import wbia.web
     aid_strs = ','.join(list(map(str, aid_list)))
     url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
-    ibeis.web.app.start_from_ibeis(ibs, url_suffix=url_suffix, browser=True)
+    wbia.web.app.start_from_wbia(ibs, url_suffix=url_suffix, browser=True)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

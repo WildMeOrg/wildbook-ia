@@ -6,8 +6,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import ubelt as ub
 import utool as ut
 from os.path import exists
-from ibeis.algo.hots import chip_match
-from ibeis.algo.hots import pipeline
+from wbia.algo.hots import chip_match
+from wbia.algo.hots import pipeline
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -38,18 +38,18 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     individually.  On an individual cache miss, it preforms the query.
 
     CommandLine:
-        python -m ibeis.algo.hots.match_chips4 --test-submit_query_request
+        python -m wbia.algo.hots.match_chips4 --test-submit_query_request
 
     Examples:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
+        >>> import wbia
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> use_bigcache = True
         >>> use_cache = True
-        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> ibs = wbia.opendb(db='testdb1')
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=True)
         >>> cm_list = submit_query_request(qreq_=qreq_)
     """
@@ -115,26 +115,26 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
                               invalidate_supercache=False):
     """
     Args:
-        qreq_ (ibeis.QueryRequest):
+        qreq_ (wbia.QueryRequest):
         use_cache (bool):
 
     Returns:
         qaid2_cm
 
     CommandLine:
-        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:0
-        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:1
-        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:2
-        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:3
+        python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:0
+        python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:1
+        python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:2
+        python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:3
 
 
     Example0:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -142,10 +142,10 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     Example1:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -154,11 +154,11 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # TEST SAVE
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
+        >>> import wbia
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
         >>> use_cache, save_qcache, verbose = False, True, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -167,11 +167,11 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # TEST LOAD
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
+        >>> import wbia
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
         >>> use_cache, save_qcache, verbose = True, True, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -179,11 +179,11 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     Example2:
         >>> # ENABLE_DOCTEST
         >>> # TEST PARTIAL HIT
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.match_chips4 import *  # NOQA
+        >>> import wbia
         >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
         >>>                                                               4, 5, 6,
         >>>                                                               7, 8, 9])
         >>> use_cache, save_qcache, verbose = False, True, False
@@ -314,7 +314,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
-        sub_cm_list = pipeline.request_ibeis_query_L0(qreq_.ibs, sub_qreq_,
+        sub_cm_list = pipeline.request_wbia_query_L0(qreq_.ibs, sub_qreq_,
                                                       verbose=verbose)
         assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
         assert all([qaid == cm.qaid for qaid, cm in
@@ -335,8 +335,8 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.hots.match_chips4
-    python -m ibeis.algo.hots.match_chips4 --allexamples --testslow
+    python -m wbia.algo.hots.match_chips4
+    python -m wbia.algo.hots.match_chips4 --allexamples --testslow
     """
     import multiprocessing
     multiprocessing.freeze_support()

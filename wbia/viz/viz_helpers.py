@@ -3,11 +3,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import utool as ut
 import vtool_ibeis.keypoint as ktool
-import ibeis.plottool.draw_func2 as df2
+import wbia.plottool.draw_func2 as df2
 from six.moves import zip, map
-from ibeis.plottool import plot_helpers as ph
-from ibeis.other import ibsfuncs
-from ibeis.control.accessor_decors import getter, getter_vector_output
+from wbia.plottool import plot_helpers as ph
+from wbia.other import ibsfuncs
+from wbia.control.accessor_decors import getter, getter_vector_output
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -124,7 +124,7 @@ def is_unknown(ibs, nid_list):
 
 
 def get_truth_color(truth, base255=False, lighten_amount=None):
-    import ibeis.constants as const
+    import wbia.constants as const
     truth_colors = {
         const.EVIDENCE_DECISION.NEGATIVE: df2.FALSE_RED,
         const.EVIDENCE_DECISION.POSITIVE: df2.TRUE_BLUE,
@@ -145,7 +145,7 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
 def get_timedelta_str(ibs, aid1, aid2):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
 
@@ -153,13 +153,13 @@ def get_timedelta_str(ibs, aid1, aid2):
         str: timedelta_str
 
     CommandLine:
-        python -m ibeis.viz.viz_helpers --test-get_timedelta_str
+        python -m wbia.viz.viz_helpers --test-get_timedelta_str
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.viz_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.viz.viz_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid1, aid2 = 1, 8
         >>> timedelta_str = get_timedelta_str(ibs, aid1, aid2)
         >>> result = str(timedelta_str)
@@ -186,21 +186,21 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     """ Add each type of text_list to the strings list
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         list: annotation_text_list
 
     CommandLine:
-        python -m ibeis.viz.viz_helpers --test-get_annot_texts
+        python -m wbia.viz.viz_helpers --test-get_annot_texts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.viz_helpers import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.viz_helpers import *  # NOQA
+        >>> import wbia
         >>> import collections
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> # Default all kwargs to true
         >>> class KwargsProxy(object):
         ...    def get(self, a, b):
@@ -291,7 +291,7 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
     returns title based on the query chip and result
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         cm (ChipMatch):  object of feature correspondences and scores
         aid2 (int):  annotation id
         truth (int): 0, 1, 2
@@ -304,13 +304,13 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
         str: query_text
 
     CommandLine:
-        python -m ibeis.viz.viz_helpers --exec-get_query_text
+        python -m wbia.viz.viz_helpers --exec-get_query_text
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_helpers import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> from wbia.viz.viz_helpers import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> aid2 = cm.get_top_aids()[0]
         >>> truth = 1
         >>> query_text = get_query_text(ibs, cm, aid2, truth)
@@ -407,9 +407,9 @@ def kp_info(kp):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_helpers
-        python -m ibeis.viz.viz_helpers --allexamples
-        python -m ibeis.viz.viz_helpers --allexamples --noface --nosrc
+        python -m wbia.viz.viz_helpers
+        python -m wbia.viz.viz_helpers --allexamples
+        python -m wbia.viz.viz_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

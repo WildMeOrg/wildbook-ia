@@ -2,10 +2,10 @@
 #!/usr/bin/env python
 """Converts a GGR-style raw data to IBEIS database."""
 from __future__ import absolute_import, division, print_function
-from ibeis.detecttools.directory import Directory
+from wbia.detecttools.directory import Directory
 from os.path import join, exists
 import utool as ut
-import ibeis
+import wbia
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -298,25 +298,25 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri)
 
 
-def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
+def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
                              apply_updates=True, **kwargs):
-    r"""Convert the raw GGR2 (2018) data to an ibeis database.
+    r"""Convert the raw GGR2 (2018) data to an wbia database.
 
     Args
         ggr_path (str): Directory to folder *containing* raw GGR 2018 data
         dbdir (str): Output directory
 
     CommandLine:
-        python -m ibeis convert_ggr2018_to_ibeis
+        python -m wbia convert_ggr2018_to_wbia
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_ggr import *  # NOQA
-        >>> default_ggr_path = join('/', 'data', 'ibeis', 'GGR2', 'GGR2018data')
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> from wbia.dbio.ingest_ggr import *  # NOQA
+        >>> default_ggr_path = join('/', 'data', 'wbia', 'GGR2', 'GGR2018data')
+        >>> default_dbdir = join('/', 'data', 'wbia', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ggr_path = ut.get_argval('--ggr', type_=str, default=default_ggr_path)
-        >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir, purge=False, dry_run=True, apply_updates=False)
+        >>> result = convert_ggr2018_to_wbia(ggr_path, dbdir=dbdir, purge=False, dry_run=True, apply_updates=False)
         >>> print(result)
     """
     ALLOWED_NUMBERS = list(range(1, 250))
@@ -350,7 +350,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     if purge:
         ut.delete(dbdir)
-    ibs = ibeis.opendb(dbdir=dbdir)
+    ibs = wbia.opendb(dbdir=dbdir)
 
     ################################################################################
 

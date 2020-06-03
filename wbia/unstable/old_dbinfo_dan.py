@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-from ibeis.algo.graph.state import POSTV, NEGTV
+from wbia.algo.graph.state import POSTV, NEGTV
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -100,11 +100,11 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         http://math.arizona.edu/~jwatkins/o-mle.pdf
 
     CommandLine:
-        python -m ibeis.other.dbinfo sight_resight_count --show
+        python -m wbia.other.dbinfo sight_resight_count --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> from wbia.other.dbinfo import *  # NOQA
         >>> nvisit1 = 100
         >>> nvisit2 = 20
         >>> resight = 10
@@ -116,7 +116,7 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> print('pl_high = %r' % (pl_high,))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> import scipy, scipy.stats
         >>> x = pl_index  # np.array([10, 11, 12])
         >>> k, N, K, n = resight, x, nvisit1, nvisit2
@@ -155,20 +155,20 @@ def sight_resight_count(nvisit1, nvisit2, resight):
 
 def dans_splits(ibs):
     """
-    python -m ibeis dans_splits --show
+    python -m wbia dans_splits --show
 
     Example:
         >>> # DISABLE_DOCTEST GGR
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import ibeis.guitool as gt
+        >>> ibs = wbia.opendb(dbdir=dbdir, allow_newdir=False)
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = dans_splits(ibs)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     #pair = 9262, 932
@@ -211,10 +211,10 @@ def dans_splits(ibs):
     #num_nondan = sum(all_has_split) - num_had_split
     #print('num_nondan = %r' % (num_nondan,))
 
-    from ibeis.algo.graph import graph_iden
-    from ibeis.viz import viz_graph2
-    import ibeis.guitool as gt
-    import ibeis.plottool as pt
+    from wbia.algo.graph import graph_iden
+    from wbia.viz import viz_graph2
+    import wbia.guitool as gt
+    import wbia.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -235,20 +235,20 @@ def dans_splits(ibs):
 
 def fix_splits_interaction(ibs):
     """
-    python -m ibeis fix_splits_interaction --show
+    python -m wbia fix_splits_interaction --show
 
     Example:
         >>> # DISABLE_DOCTEST GGR
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import ibeis.guitool as gt
+        >>> ibs = wbia.opendb(dbdir=dbdir, allow_newdir=False)
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = fix_splits_interaction(ibs)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
     """
     split_props = {'splitcase', 'photobomb'}
@@ -262,10 +262,10 @@ def fix_splits_interaction(ibs):
     print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
     aids_list = [a.aids for a in tosplit_annots]
 
-    from ibeis.algo.graph import graph_iden
-    from ibeis.viz import viz_graph2
-    import ibeis.guitool as gt
-    import ibeis.plottool as pt
+    from wbia.algo.graph import graph_iden
+    from wbia.viz import viz_graph2
+    import wbia.guitool as gt
+    import wbia.plottool as pt
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -283,9 +283,9 @@ def fix_splits_interaction(ibs):
 def split_analysis(ibs):
     """
     CommandLine:
-        python -m ibeis.other.dbinfo split_analysis --show
-        python -m ibeis split_analysis --show
-        python -m ibeis split_analysis --show --good
+        python -m wbia.other.dbinfo split_analysis --show
+        python -m wbia split_analysis --show
+        python -m wbia split_analysis --show --good
 
     Ignore:
         # mount
@@ -296,16 +296,16 @@ def split_analysis(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST GGR
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
         >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
-        >>> import ibeis.guitool as gt
+        >>> ibs = wbia.opendb(dbdir=dbdir, allow_newdir=False)
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = split_analysis(ibs)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
         >>> #ut.show_if_requested()
     """
@@ -399,7 +399,7 @@ def split_analysis(ibs):
     print('%d annots with large speed' % (len(flagged_ok_annots),))
     print('Marking all pairs of annots above the threshold as non-matching')
 
-    from ibeis.algo.graph import graph_iden
+    from wbia.algo.graph import graph_iden
     import networkx as nx
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
 
@@ -417,8 +417,8 @@ def split_analysis(ibs):
     print('num_bad_edges = %r' % (len(ut.flatten(good_edges_list)),))
 
     if 1:
-        from ibeis.viz import viz_graph2
-        import ibeis.guitool as gt
+        from wbia.viz import viz_graph2
+        import wbia.guitool as gt
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):
@@ -653,10 +653,10 @@ def estimate_ggr_count(ibs):
     """
     Example:
         >>> # DISABLE_DOCTEST GGR
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = wbia.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
     """
     import datetime
     day1 = datetime.date(2016, 1, 30)
@@ -727,7 +727,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
         visit_info_list_.append(info)
 
     # Estimate statistics
-    from ibeis.other import dbinfo
+    from wbia.other import dbinfo
     aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'unique_aids')
     nids_day1, nids_day2 = ut.take_column(visit_info_list_, 'unique_nids')
     resight_nids = ut.isect(nids_day1, nids_day2)
@@ -737,7 +737,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     lp_index, lp_error = dbinfo.sight_resight_count(nsight1, nsight2, resight)
 
     if False:
-        from ibeis.other import dbinfo
+        from wbia.other import dbinfo
         print('DAY 1 STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1)  # NOQA
         print('DAY 2 STATS:')
@@ -833,7 +833,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         assert np.all(0 == np.diff(np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1))
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         import networkx as nx
         #pt.qt4ensure()
         #len(list(nx.connected_components(graph1)))
@@ -1009,23 +1009,23 @@ def print_feature_info(testres):
     draws keypoint statistics for each test configuration
 
     Args:
-        testres (ibeis.expt.test_result.TestResult): test result
+        testres (wbia.expt.test_result.TestResult): test result
 
     Ignore:
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         pt.qt4ensure()
         testres.draw_rank_cmc()
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs, testres = ibeis.testdata_expts(defaultdb='PZ_MTEST', a='timectrl', t='invar:AI=False')
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs, testres = wbia.testdata_expts(defaultdb='PZ_MTEST', a='timectrl', t='invar:AI=False')
         >>> (tex_nKpts, tex_kpts_stats, tex_scale_stats) = feature_info(ibs)
         >>> result = ('(tex_nKpts, tex_kpts_stats, tex_scale_stats) = %s' % (ut.repr2((tex_nKpts, tex_kpts_stats, tex_scale_stats)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -1078,12 +1078,12 @@ def print_feature_info(testres):
 def tst_name_consistency(ibs):
     """
     Example:
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master0')
-        >>> #ibs = ibeis.opendb(db='GZ_ALL')
+        >>> import wbia
+        >>> ibs = wbia.opendb(db='PZ_Master0')
+        >>> #ibs = wbia.opendb(db='GZ_ALL')
 
     """
-    from ibeis.other import ibsfuncs
+    from wbia.other import ibsfuncs
     import utool as ut
     max_ = -1
     #max_ = 10

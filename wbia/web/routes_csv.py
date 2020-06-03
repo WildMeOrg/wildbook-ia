@@ -4,14 +4,14 @@ Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
 from flask import current_app
-from ibeis.control import controller_inject
-from ibeis.web import appfuncs as appf
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 import utool as ut
-from ibeis.web import routes
+from wbia.web import routes
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-register_route = controller_inject.get_ibeis_flask_route(__name__)
+register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 def get_associations_dict(ibs, desired_species=None, **kwargs):
@@ -470,13 +470,13 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
     annot_metadata_key_str = ','.join(annot_metadata_key_list)
 
     if 'Monica-Laurel' in ibs.dbdir:
-        import ibeis
-        ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
-        ibs2 = ibeis.opendb('/home/zebra/Desktop/Laurel/', web=False)
+        import wbia
+        ibs1 = wbia.opendb('/home/zebra/Desktop/Monica/', web=False)
+        ibs2 = wbia.opendb('/home/zebra/Desktop/Laurel/', web=False)
     if 'Monica-Max' in ibs.dbdir:
-        import ibeis
-        ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
-        ibs2 = ibeis.opendb('/home/zebra/Desktop/Max/', web=False)
+        import wbia
+        ibs1 = wbia.opendb('/home/zebra/Desktop/Monica/', web=False)
+        ibs2 = wbia.opendb('/home/zebra/Desktop/Max/', web=False)
     else:
         ibs1 = None
         ibs2 = None
@@ -711,9 +711,9 @@ def get_aid_list_csv(**kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.app
-        python -m ibeis.web.app --allexamples
-        python -m ibeis.web.app --allexamples --noface --nosrc
+        python -m wbia.web.app
+        python -m wbia.web.app --allexamples
+        python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

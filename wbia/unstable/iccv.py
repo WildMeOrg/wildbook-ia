@@ -4,21 +4,21 @@ import numpy as np
 import pandas as pd
 import utool as ut
 import pathlib
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
 def qt_review():
     """
     CommandLine:
-        python -m ibeis.scripts.iccv qt_review
+        python -m wbia.scripts.iccv qt_review
     """
-    import ibeis.guitool as gt
-    import ibeis
+    import wbia.guitool as gt
+    import wbia
     app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
-    ibs = ibeis.opendb(defaultdb=defaultdb)
-    infr = ibeis.AnnotInference(ibs=ibs, aids='all',
+    ibs = wbia.opendb(defaultdb=defaultdb)
+    infr = wbia.AnnotInference(ibs=ibs, aids='all',
                                 autoinit=True, verbose=True)
     infr.params['redun.pos'] = 2
     infr.params['redun.neg'] = 2
@@ -26,11 +26,11 @@ def qt_review():
     infr.reset_feedback('staging', apply=True)
     if False:
         infr.relabel_using_reviews(rectify=False)
-        infr.reset_labels_to_ibeis()
+        infr.reset_labels_to_wbia()
         infr.relabel_using_reviews(rectify=True)
-        infr.ibeis_delta_info()
+        infr.wbia_delta_info()
         infr.name_group_stats(verbose=1)
-        infr.ibeis_name_group_delta_info(verbose=1)
+        infr.wbia_name_group_delta_info(verbose=1)
 
     # After we ensure that the annotmatch stuff is in staging, and all our
     # reviews are there we load them. Then we rectify the old name label
@@ -39,7 +39,7 @@ def qt_review():
     # we've already made. This will likely cause inconsistency.
     if False:
         infr.review_dummy_edges(method=3)
-        infr.write_ibeis_staging_feedback()
+        infr.write_wbia_staging_feedback()
 
     infr.prioritize()
     infr.verifiers = None
@@ -64,7 +64,7 @@ def qt_review():
     # )
     # infr.review_dummy_edges(method=1)
     # infr.apply_nondynamic_update()
-    # for edge, vals in infr.read_ibeis_staging_feedback().items():
+    # for edge, vals in infr.read_wbia_staging_feedback().items():
     #     feedback = infr._rectify_feedback_item(vals)
     #     infr.add_feedback(edge, **feedback)
 
@@ -74,7 +74,7 @@ def qt_review():
     # infr.relabel_using_reviews()
 
     infr.recovery_review_loop()
-    infr.write_ibeis_staging_feedback()
+    infr.write_wbia_staging_feedback()
     win = infr.start_qt_interface(loop=False)
     win.show()
     gt.qtapp_loop(qwin=win, freq=10)
@@ -84,7 +84,7 @@ def qt_review():
     # nodes = ut.flatten(infr.recovery_ccs)
     # graph = infr.graph.subgraph(nodes)
     # infr.show_graph(graph=graph)
-    # infr = ibeis.AnnotInference(ibs=ibs, aids=nodes, autoinit=True,
+    # infr = wbia.AnnotInference(ibs=ibs, aids=nodes, autoinit=True,
     #                             verbose=True)
     # infr.reset_feedback('staging', apply=True)
     # infr.relabel_using_reviews()
@@ -94,17 +94,17 @@ def qt_review():
 def gt_review():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv gt_review --db PZ_MTEST
-        python -m ibeis.scripts.iccv gt_review --db GZ_Master1
+        python -m wbia.scripts.iccv gt_review --db PZ_MTEST
+        python -m wbia.scripts.iccv gt_review --db GZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> result = gt_review()
         >>> print(result)
     """
-    import ibeis
+    import wbia
     import ubelt as ub
 
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
@@ -113,8 +113,8 @@ def gt_review():
     cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v4')
     data = cacher.tryload()
     if data is None:
-        ibs = ibeis.opendb(defaultdb=defaultdb)
-        infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
+        ibs = wbia.opendb(defaultdb=defaultdb)
+        infr = wbia.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
                                     autoinit=True, verbose=True)
         # TODO: ensure that staging has all data from annotmatch in it
         infr.reset_feedback('staging', apply=True)
@@ -160,8 +160,8 @@ def gt_review():
 
     # TODO: add an inspect pair to infr
     print('[graph_widget] show_selected')
-    import ibeis.guitool as gt
-    from ibeis.viz import viz_graph2
+    import wbia.guitool as gt
+    from wbia.viz import viz_graph2
     app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
 
@@ -171,7 +171,7 @@ def gt_review():
     infr.params['inference.enabled'] = False
     infr.reset_feedback('staging', apply=True)
 
-    # from ibeis.guitool.__PYQT__ import QtCore
+    # from wbia.guitool.__PYQT__ import QtCore
     # Qt = QtCore.Qt
 
     # Move absolutely sure edges down so they arn't re-reviewed
@@ -214,8 +214,8 @@ def gt_review():
         df.loc[edge]
     gt.qtapp_loop(qwin=self, freq=10)
 
-    # import ibeis.plottool as pt
-    # from ibeis.viz import viz_chip
+    # import wbia.plottool as pt
+    # from wbia.viz import viz_chip
     # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
     # then we just need to iterate through results
 
@@ -230,7 +230,7 @@ def gt_review():
     #     # fig.show()
     #     # fig.canvas.draw()
 
-    # from ibeis.gui import inspect_gui
+    # from wbia.gui import inspect_gui
     # self = tuner = inspect_gui.make_vsone_tuner(ibs, (aid1, aid2))  # NOQA
     # tuner.show()
 
@@ -280,11 +280,11 @@ def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
 
 
 def encounter_stuff(ibs, aids):
-    from ibeis.init import main_helpers
+    from wbia.init import main_helpers
     main_helpers.monkeypatch_encounters(ibs, aids, days=50)
     annots = ibs.annots(aids)
 
-    from ibeis.init.filter_annots import encounter_crossval
+    from wbia.init.filter_annots import encounter_crossval
     expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1,
                                        denc_per_name=2)
     import warnings
@@ -300,14 +300,14 @@ def encounter_stuff(ibs, aids):
 
 
 def iccv_data(defaultdb=None):
-    import ibeis
-    from ibeis.init import main_helpers
+    import wbia
+    from wbia.init import main_helpers
     if defaultdb is None:
         defaultdb = 'PZ_MTEST'
     # defaultdb = 'PZ_Master1'
     # defaultdb = 'GZ_Master1'
     # defaultdb = 'PZ_PB_RF_TRAIN'
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    ibs = wbia.opendb(defaultdb=defaultdb)
     # Specialized database params
     enc_kw = dict(minutes=30)
     filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True,
@@ -323,10 +323,10 @@ def iccv_data(defaultdb=None):
     print('len(expt_aids) = %r' % (len(expt_aids),))
 
     if ibs.dbname == 'PZ_Master1':
-        mtest_aids = ibeis.dbio.export_subset.find_overlap_annots(
-            ibs, ibeis.opendb('PZ_MTEST'), method='images')
-        pbtest_aids = ibeis.dbio.export_subset.find_overlap_annots(
-            ibs, ibeis.opendb('PZ_PB_RF_TRAIN'), method='annots')
+        mtest_aids = wbia.dbio.export_subset.find_overlap_annots(
+            ibs, wbia.opendb('PZ_MTEST'), method='images')
+        pbtest_aids = wbia.dbio.export_subset.find_overlap_annots(
+            ibs, wbia.opendb('PZ_PB_RF_TRAIN'), method='annots')
         expt_aids.extend(mtest_aids)
         expt_aids.extend(pbtest_aids)
         expt_aids = sorted(set(expt_aids))
@@ -361,11 +361,11 @@ def iccv_cmc(defaultdb=None):
     Ranking Experiment
 
     CommandLine:
-        python -m ibeis.scripts.iccv iccv_cmc
+        python -m wbia.scripts.iccv iccv_cmc
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> defaultdb = ut.get_argval('--db', default='PZ_MTEST')
         >>> result = iccv_cmc(defaultdb)
         >>> print(result)
@@ -407,23 +407,23 @@ def iccv_cmc(defaultdb=None):
 def draw_cmcs(dbname):
     """
     rsync
-    scp -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
-    rsync -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+    scp -r lev:code/wbia/cmc* ~/latex/crall-iccv-2017/figures
+    rsync -r lev:code/wbia/cmc* ~/latex/crall-iccv-2017/figures
     rsync -r hyrule:cmc_expt* ~/latex/crall-iccv-2017/figures
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_cmcs --show
+        python -m wbia.scripts.iccv draw_cmcs --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
         >>> result = draw_cmcs(dbname)
         >>> print(result)
     """
     # DRAW RESULTS
     import vtool_ibeis as vt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import pathlib
     if dbname is None:
         dbname = 'PZ_Master1'
@@ -480,20 +480,20 @@ def iccv_roc(dbname):
     Classifier Experiment
 
     CommandLine:
-        python -m ibeis.scripts.iccv iccv_roc --db PZ_MTEST --show
-        python -m ibeis.scripts.iccv iccv_roc --db PZ_Master1 --show
-        python -m ibeis.scripts.iccv iccv_roc --db GZ_Master1 --show
+        python -m wbia.scripts.iccv iccv_roc --db PZ_MTEST --show
+        python -m wbia.scripts.iccv iccv_roc --db PZ_Master1 --show
+        python -m wbia.scripts.iccv iccv_roc --db GZ_Master1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
         >>> result = iccv_roc(dbname)
         >>> print(result)
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
-    from ibeis.scripts.script_vsone import OneVsOneProblem
+    from wbia.scripts.script_vsone import OneVsOneProblem
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     pt.qtensure()
     clf_key = 'RF'
@@ -592,22 +592,22 @@ def iccv_roc(dbname):
 def draw_saved_roc(dbname):
     """
     rsync
-    scp -r lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
+    scp -r lev:code/wbia/roc* ~/latex/crall-iccv-2017/figures
     rsync -r hyrule:roc* ~/latex/crall-iccv-2017/figures
 
-    rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
-    rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+    rsync lev:code/wbia/roc* ~/latex/crall-iccv-2017/figures
+    rsync lev:code/wbia/cmc* ~/latex/crall-iccv-2017/figures
 
     rsync lev:latex/crall-iccv-2017/figures/roc* ~/latex/crall-iccv-2017/figures
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_saved_roc --db PZ_Master1 --show
-        python -m ibeis.scripts.iccv draw_saved_roc --db GZ_Master1 --show
-        python -m ibeis.scripts.iccv draw_saved_roc --db PZ_MTEST --show
+        python -m wbia.scripts.iccv draw_saved_roc --db PZ_Master1 --show
+        python -m wbia.scripts.iccv draw_saved_roc --db GZ_Master1 --show
+        python -m wbia.scripts.iccv draw_saved_roc --db PZ_MTEST --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
         >>> result = draw_saved_roc(dbname)
         >>> print(result)
@@ -615,7 +615,7 @@ def draw_saved_roc(dbname):
     """
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import sklearn.metrics
     import vtool_ibeis as vt
     import matplotlib as mpl
@@ -723,20 +723,20 @@ def draw_saved_roc(dbname):
 def end_to_end():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv end_to_end --show --db PZ_MTEST
-        python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
-        python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
-        python -m ibeis.scripts.iccv end_to_end --db PZ_Master1
-        python -m ibeis.scripts.iccv end_to_end --db GZ_Master1
+        python -m wbia.scripts.iccv end_to_end --show --db PZ_MTEST
+        python -m wbia.scripts.iccv end_to_end --show --db PZ_Master1
+        python -m wbia.scripts.iccv end_to_end --show --db GZ_Master1
+        python -m wbia.scripts.iccv end_to_end --db PZ_Master1
+        python -m wbia.scripts.iccv end_to_end --db GZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> result = end_to_end()
         >>> print(result)
     """
-    import ibeis
-    from ibeis.scripts.script_vsone import OneVsOneProblem
+    import wbia
+    from wbia.scripts.script_vsone import OneVsOneProblem
 
     ibs, expt_aids, train_aids, test_aids, species = iccv_data()
     # -----------
@@ -913,7 +913,7 @@ def end_to_end():
 
     for idx in idx_list:
         dials = expt_dials[idx]
-        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+        infr = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
         new_dials = dict(
             phis=phis,
@@ -985,13 +985,13 @@ def draw_ete(dbname):
     rsync -r    lev:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
-        python -m ibeis.scripts.iccv draw_ete --db GZ_Master1 --show
-        python -m ibeis.scripts.iccv draw_ete --db PZ_MTEST --show
+        python -m wbia.scripts.iccv draw_ete --db PZ_Master1
+        python -m wbia.scripts.iccv draw_ete --db GZ_Master1 --show
+        python -m wbia.scripts.iccv draw_ete --db PZ_MTEST --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from wbia.scripts.iccv import *  # NOQA
         >>> dbname = 'GZ_Master1'
         >>> dbname = 'PZ_MTEST'
         >>> dbname = 'PZ_Master1'
@@ -1000,7 +1000,7 @@ def draw_ete(dbname):
     """
     ut.cprint('Draw ETE', 'green')
     # DRAW RESULTS
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.qtensure()
 
     import pathlib
@@ -1027,7 +1027,7 @@ def draw_ete(dbname):
         if False:
             infr.show(groupby='orig_name_label')
         if 0:
-            from ibeis.algo.graph.nx_utils import (
+            from wbia.algo.graph.nx_utils import (
                 edges_inside, edges_cross)
 
             groups_nid = ut.ddict(list)
@@ -1146,7 +1146,7 @@ def draw_ete(dbname):
 
 
 def show_phis(phis):
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.qtensure()
     ranks = 20
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
@@ -1160,7 +1160,7 @@ def show_phis(phis):
 
 
 def collect_termination_data(ibs, aids, max_per_query=3):
-    from ibeis.init.filter_annots import encounter_crossval
+    from wbia.init.filter_annots import encounter_crossval
     n_splits = 3
     crossval_splits = []
     avail_confusors = []
@@ -1217,7 +1217,7 @@ def learn_termination(ibs, aids, max_per_query=3):
     Example:
     """
     ut.cprint('Learning termination phi', 'white')
-    from ibeis.expt import test_result
+    from wbia.expt import test_result
 
     crossval_splits2 = collect_termination_data(ibs, aids, max_per_query)
 
@@ -1259,22 +1259,22 @@ def learn_termination(ibs, aids, max_per_query=3):
 
 
 def learn_phi():
-    # from ibeis.init import main_helpers
+    # from wbia.init import main_helpers
     # dbname = 'GZ_Master1'
     # a = 'timectrl'
     # t = 'baseline'
     # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
-    import ibeis
-    # from ibeis.init.filter_annots import annot_crossval
-    from ibeis.init.filter_annots import encounter_crossval
-    from ibeis.init import main_helpers
-    from ibeis.expt import test_result
-    import ibeis.plottool as pt
+    import wbia
+    # from wbia.init.filter_annots import annot_crossval
+    from wbia.init.filter_annots import encounter_crossval
+    from wbia.init import main_helpers
+    from wbia.expt import test_result
+    import wbia.plottool as pt
     pt.qtensure()
 
-    ibs = ibeis.opendb('GZ_Master1')
-    # ibs = ibeis.opendb('PZ_MTEST')
-    # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+    ibs = wbia.opendb('GZ_Master1')
+    # ibs = wbia.opendb('PZ_MTEST')
+    # ibs = wbia.opendb('PZ_PB_RF_TRAIN')
 
     aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
                                      is_known=True)
@@ -1420,7 +1420,7 @@ def learn_phi():
     # pt.plot(basis, density)
 
     # bins, edges = testres.get_rank_percentage_cumhist()
-    # import ibeis.plottool as pt
+    # import wbia.plottool as pt
     # pt.qtensure()
     # pt.multi_plot(edges, [bins[0]])
 
@@ -1438,8 +1438,8 @@ def learn_phi():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv
-        python -m ibeis.scripts.iccv --allexamples
+        python -m wbia.scripts.iccv
+        python -m wbia.scripts.iccv --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

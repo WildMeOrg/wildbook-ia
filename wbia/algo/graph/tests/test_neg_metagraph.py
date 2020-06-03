@@ -15,8 +15,8 @@ def test_neg_metagraph_simple_add_remove():
     Test that the negative metagraph tracks the number of negative edges
     between PCCs through non-label-changing operations
     """
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
 
     # Create a graph with 5-sized CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(num_pccs=2, pcc_size=5, pos_redun=3,
@@ -74,8 +74,8 @@ def test_neg_metagraph_merge():
     Test that the negative metagraph tracks the number of negative edges
     between PCCs through label-changing merge operations
     """
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
                               ignore_pair=True, infer=True)
@@ -162,8 +162,8 @@ def test_neg_metagraph_split_neg():
     Test that the negative metagraph tracks the number of negative edges
     between PCCs through label-changing split operations
     """
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
                               ignore_pair=True, infer=True)
@@ -181,8 +181,8 @@ def test_neg_metagraph_split_neg():
 
 
 def test_neg_metagraph_split_incomp():
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
     infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
                               ignore_pair=True, infer=True)
     nmg = infr.neg_metagraph
@@ -202,8 +202,8 @@ def test_neg_metagraph_split_and_merge():
     Test that the negative metagraph tracks the number of negative edges
     between PCCs through label-changing split and merge operations
     """
-    from ibeis.algo.graph import demo
-    from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
                               ignore_pair=True, infer=True)

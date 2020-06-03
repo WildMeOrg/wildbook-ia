@@ -124,8 +124,8 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.base import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.base import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
         >>> request2 = depc.new_request('vsmany', [1, 2], [1, 2])
@@ -157,7 +157,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
     @property
     def ibs(request):
-        """ HACK specific to ibeis """
+        """ HACK specific to wbia """
         if request.depc is None:
             return None
         return request.depc.controller
@@ -320,11 +320,11 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     #    return state_dict
 
     def __setstate__(request, state_dict):
-        import ibeis
+        import wbia
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
         params = state_dict['params']
-        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+        depc = wbia.opendb(dbdir=dbdir, web=False).depc
         configclass = depc.configclass_dict[state_dict['algoname'] ]
         config = configclass(**params)
         state_dict['depc'] = depc
@@ -407,9 +407,9 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         """
         Returns which nodes to compute first, and what inputs are needed
 
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
-            >>> import ibeis.plottool as pt
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
+            >>> import wbia.plottool as pt
             >>> pt.ensureqt()
             >>> depc = testdata_depc()
             >>> tablename = 'neighbs'
@@ -473,7 +473,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         if False:
             nodes = ut.all_nodes_between(graph, source, target)
             tablegraph = graph.subgraph(nodes)
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             # pt.show_nx(tablegraph.reverse())
             # sink = ut.nx_sink_nodes(tablegraph)[0]
             # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
@@ -567,8 +567,8 @@ def get_all_ancestor_rowids(depc, tablename, native_rowids):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.depcache_control import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.depcache_control import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> tablename = 'spam'
         >>> target_root_rowids = [4, 9, 7]
@@ -632,8 +632,8 @@ def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None)
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.depcache_control import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.depcache_control import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)

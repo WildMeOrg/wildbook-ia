@@ -1,14 +1,14 @@
 from __future__ import absolute_import, division, print_function
 from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
-from ibeis.control import controller_inject
-import ibeis.constants as const
+from wbia.control import controller_inject
+import wbia.constants as const
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 PROMETHEUS_COUNTER = 0
@@ -17,76 +17,76 @@ PROMETHEUS_LIMIT = 1
 
 PROMETHEUS_DATA = {
     'info'       : Info(
-        'ibeis_db',
+        'wbia_db',
         'Description of IBEIS database',
     ),
     'update' : Gauge(
-        'ibeis_update_seconds',
+        'wbia_update_seconds',
         'Number of seconds for the most recent Prometheus update',
         ['name'],
     ),
     'imagesets'     : Gauge(
-        'ibeis_assets_imagesets',
+        'wbia_assets_imagesets',
         'Number of imagesets in IBEIS database',
         ['name'],
     ),
     'images'     : Gauge(
-        'ibeis_assets_images',
+        'wbia_assets_images',
         'Number of images in IBEIS database',
         ['name'],
     ),
     'annotations': Gauge(
-        'ibeis_assets_annotations',
+        'wbia_assets_annotations',
         'Number of annotations in IBEIS database',
         ['name'],
     ),
     'parts'      : Gauge(
-        'ibeis_assets_parts',
+        'wbia_assets_parts',
         'Number of parts in IBEIS database',
         ['name'],
     ),
     'names'      : Gauge(
-        'ibeis_assets_names',
+        'wbia_assets_names',
         'Number of names in IBEIS database',
         ['name'],
     ),
     'species'    : Gauge(
-        'ibeis_assets_species',
+        'wbia_assets_species',
         'Number of species in IBEIS database',
         ['name'],
     ),
     'engine'     : Gauge(
-        'ibeis_engine_jobs',
+        'wbia_engine_jobs',
         'Job engine status',
         ['status', 'name', 'endpoint'],
     ),
     'elapsed'    : Gauge(
-        'ibeis_elapsed_seconds',
+        'wbia_elapsed_seconds',
         'Number of elapsed seconds for the current working job',
         ['name', 'endpoint'],
     ),
     'runtime'    : Gauge(
-        'ibeis_runtime_seconds',
+        'wbia_runtime_seconds',
         'Number of runtime seconds for the current working job',
         ['name', 'endpoint'],
     ),
     'turnaround' : Gauge(
-        'ibeis_turnaround_seconds',
+        'wbia_turnaround_seconds',
         'Number of turnaround seconds for the current working job',
         ['name', 'endpoint'],
     ),
     'api' : Counter(
-        'ibeis_api_counter',
+        'wbia_api_counter',
         'Number of calls per IBEIS API',
         ['name', 'tag'],
     ),
     'route' : Counter(
-        'ibeis_route_counter',
+        'wbia_route_counter',
         'Number of calls per IBEIS route endpoint',
         ['name', 'tag'],
     ),
     'exception' : Counter(
-        'ibeis_exception_counter',
+        'wbia_exception_counter',
         'Number of web exceptions',
         ['name', 'tag'],
     ),
@@ -243,7 +243,7 @@ def prometheus_update(ibs, *args, **kwargs):
 
                     try:
                         if status in ['working']:
-                            from ibeis.web.job_engine import calculate_timedelta, _timestamp
+                            from wbia.web.job_engine import calculate_timedelta, _timestamp
                             started = job_status['time_started']
                             now = _timestamp()
                             hours, minutes, seconds, total_seconds = calculate_timedelta(started, now)

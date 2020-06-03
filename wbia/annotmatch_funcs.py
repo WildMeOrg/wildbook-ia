@@ -5,7 +5,7 @@ import ubelt as ub  # NOQA
 import numpy as np
 from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -26,7 +26,7 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
 
     aid_list = ibs.get_valid_aids()
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid1_list (list):
         eager (bool): (default = True)
         nInput (None): (default = None)
@@ -34,7 +34,7 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
     Returns:
         list: annotmatch_rowid_list
     """
-    from ibeis.control import manual_annotmatch_funcs
+    from wbia.control import manual_annotmatch_funcs
     colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid1_list)
@@ -61,7 +61,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
     # This one is slow because aid2 is the second part of the index
     Returns a list of the aids that were reviewed as candidate matches to the input aid
     """
-    from ibeis.control import manual_annotmatch_funcs
+    from wbia.control import manual_annotmatch_funcs
     if nInput is None:
         nInput = len(aid2_list)
     if True:
@@ -92,14 +92,14 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
     aid_list = ibs.get_valid_aids()
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show
+        python -m wbia.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid
+        python -m wbia.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> ut.exec_funckw(ibs.get_annotmatch_rowids_from_aid, globals())
         >>> aid_list = ibs.get_valid_aids()[0:4]
         >>> annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid(aid_list,
@@ -107,7 +107,7 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
         >>> result = ('annotmatch_rowid_list = %s' % (str(annotmatch_rowid_list),))
         >>> print(result)
     """
-    #from ibeis.control import manual_annotmatch_funcs
+    #from wbia.control import manual_annotmatch_funcs
     if nInput is None:
         nInput = len(aid_list)
     if nInput == 0:
@@ -176,9 +176,9 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
         >>> rowids_between = ibs.get_annotmatch_rowids_between
         >>> ams1 = sorted(rowids_between(aids1, aids2, method=1))
@@ -239,7 +239,7 @@ def add_annotmatch_undirected(ibs, aids1, aids2, **kwargs):
     if len(aids1) == 0 and len(aids2) == 0:
         return []
     edges = list(zip(aids1, aids2))
-    from ibeis.algo.graph import nx_utils as nxu
+    from wbia.algo.graph import nx_utils as nxu
     # Enforce new undirected constraint
     edges = ut.estarmap(nxu.e_, edges)
     aids1, aids2 = list(zip(*edges))
@@ -261,7 +261,7 @@ def add_annotmatch_undirected(ibs, aids1, aids2, **kwargs):
 def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list1 (int):  list of annotation ids
         aid_list2 (int):  list of annotation ids
 
@@ -269,13 +269,13 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         list: timedelta_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timedelta
+        python -m wbia.annotmatch_funcs --test-get_annot_pair_timedelta
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
         >>> unixtimes = ibs.get_annot_image_unixtimes_asfloat(aid_list)
         >>> aid_list = ut.compress(aid_list, ~np.isnan(unixtimes))
@@ -335,13 +335,13 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         list: num_annot_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
+        python -m wbia.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb2')
         >>> aid1_list = ibs.get_valid_aids()
         >>> eager = True
         >>> nInput = None
@@ -392,13 +392,13 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         list: annotmatch_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_is_reviewed
+        python -m wbia.annotmatch_funcs --test-get_annot_pair_is_reviewed
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
         >>> pairs = list(ut.product(aid_list, aid_list))
         >>> aid1_list = ut.get_list_column(pairs, 0)
@@ -455,18 +455,18 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         knownA, unknown
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid1 (int):  query annotation id
         aid2 (int):  matching annotation id
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_positive_match
+        python -m wbia.annotmatch_funcs --test-set_annot_pair_as_positive_match
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
         >>> dryrun = True
         >>> status = set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
@@ -545,19 +545,19 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
     TODO: ELEVATE THIS FUNCTION
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
         dryrun (bool):
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_negative_match
+        python -m wbia.annotmatch_funcs --test-set_annot_pair_as_negative_match
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
         >>> dryrun = True
         >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
@@ -633,22 +633,22 @@ def get_match_truths(ibs, aids1, aids2):
     TODO: rectify with annotmatch table
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aids1 (list):
         aids2 (list):
 
     Returns:
         list[int]: truth_codes - see
-            ibeis.constants.EVIDENCE_DECISION.INT_TO_CODE for code definitions
+            wbia.constants.EVIDENCE_DECISION.INT_TO_CODE for code definitions
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_match_truths
+        python -m wbia.other.ibsfuncs --test-get_match_truths
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.annotmatch_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aids1 = ibs.get_valid_aids()
         >>> aids2 = ut.list_roll(ibs.get_valid_aids(), -1)
         >>> truth_codes = get_match_truths(ibs, aids1, aids2)
@@ -676,9 +676,9 @@ def get_match_text(ibs, aid1, aid2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.annotmatch_funcs
-        python -m ibeis.annotmatch_funcs --allexamples
-        python -m ibeis.annotmatch_funcs --allexamples --noface --nosrc
+        python -m wbia.annotmatch_funcs
+        python -m wbia.annotmatch_funcs --allexamples
+        python -m wbia.annotmatch_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

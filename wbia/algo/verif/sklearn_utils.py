@@ -49,11 +49,11 @@ class StratifiedGroupKFold(_BaseKFold):
             ?: test_folds
 
         CommandLine:
-            python -m ibeis.algo.verif.sklearn_utils _make_test_folds
+            python -m wbia.algo.verif.sklearn_utils _make_test_folds
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
+            >>> from wbia.algo.verif.sklearn_utils import *  # NOQA
             >>> import utool as ut
             >>> rng = ut.ensure_rng(0)
             >>> groups = [1, 1, 3, 4, 2, 2, 7, 8, 8]
@@ -177,7 +177,7 @@ class StratifiedGroupKFold(_BaseKFold):
 
 def temp(samples):
     from sklearn import model_selection
-    from ibeis.algo.verif import sklearn_utils
+    from wbia.algo.verif import sklearn_utils
     def check_balance(idxs):
         # from sklearn.utils.fixes import bincount
         print('-------')
@@ -246,7 +246,7 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
+        >>> from wbia.algo.verif.sklearn_utils import *  # NOQA
         >>> y_true = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
         >>> y_pred = [1, 2, 1, 3, 1, 2, 2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 1, 3]
         >>> target_names = None
@@ -267,7 +267,7 @@ def classification_report2(y_true, y_pred, target_names=None,
         >>>     y_pred = testdata_ypred(y_true, p_wrong, rng)
         >>>     report = classification_report2(y_true, y_pred, verbose='hack')
         >>>     rs.append(report)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qtensure()
         >>> df = pd.DataFrame(rs).drop(['raw'], axis=1)
         >>> delta = df.subtract(df['target'], axis=0)
@@ -556,7 +556,7 @@ def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
     Predictions are returned as indices into columns or target_names
 
     Doctest:
-        >>> from ibeis.algo.verif.sklearn_utils import *
+        >>> from wbia.algo.verif.sklearn_utils import *
         >>> rng = np.random.RandomState(0)
         >>> probs = pd.DataFrame(rng.rand(10, 3), columns=['a', 'b', 'c'])
         >>> pred1 = predict_from_probs(probs, 'argmax')
@@ -588,7 +588,7 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
     multi=True, and return nan otherwise.
 
     Doctest:
-        >>> from ibeis.algo.verif.sklearn_utils import *
+        >>> from wbia.algo.verif.sklearn_utils import *
         >>> probs = np.array([
         >>>     [0.5, 0.5, 0.0],
         >>>     [0.4, 0.5, 0.1],

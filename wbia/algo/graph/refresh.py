@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)  # NOQA
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -90,8 +90,8 @@ class RefreshCriteria(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.refresh import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.refresh import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=50, size=4, size_std=2)
             >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
             >>> #edges = ut.shuffle(sorted(edges), rng=321)
@@ -116,7 +116,7 @@ class RefreshCriteria(object):
             >>>     n_pred_list.append(n_pred)
             >>>     xdata.append(count + 1)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.qtensure()
             >>> n_pred_list = n_pred_list[10:]
             >>> n_real_list = n_real_list[10:]
@@ -156,8 +156,8 @@ class RefreshCriteria(object):
     def ave(refresh, method='exp'):
         """
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.refresh import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.refresh import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
             >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
@@ -180,7 +180,7 @@ class RefreshCriteria(object):
             >>>     reals.append(n_real)
             >>>     xdata.append(count + 1)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.qtensure()
             >>> pt.multi_plot(xdata, [ma1, ma2, reals], marker='',
             >>>               label_list=['exp', 'win', 'real'], xlabel='review num',
@@ -207,16 +207,16 @@ class RefreshCriteria(object):
 def demo_refresh():
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.refresh demo_refresh \
+        python -m wbia.algo.graph.refresh demo_refresh \
                 --num_pccs=40 --size=2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.refresh import *  # NOQA
+        >>> from wbia.algo.graph.refresh import *  # NOQA
         >>> demo_refresh()
         >>> ut.show_if_requested()
     """
-    from ibeis.algo.graph import demo
+    from wbia.algo.graph import demo
     demokw = ut.argparse_dict({'num_pccs': 50, 'size': 4})
     refreshkw = ut.argparse_funckw(RefreshCriteria)
     # make an inference object
@@ -247,9 +247,9 @@ def demo_refresh():
     ])
 
     ut.quit_if_noshow()
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.qtensure()
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
     mpl.rcParams.update(TMP_RC)
     pt.multi_plot(
@@ -384,7 +384,7 @@ def _dev_iters_until_threshold():
 
     S, A = np.meshgrid(np.arange(1, 150, 1), np.arange(0, 150, 1))
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     SA_coords = list(zip(S.ravel(), A.ravel()))
     for sval, aval in ut.ProgIter(SA_coords):
         if (sval, aval) not in poisson_cache:
@@ -587,8 +587,8 @@ def _dev_iters_until_threshold():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.refresh
-        python -m ibeis.algo.graph.refresh --allexamples
+        python -m wbia.algo.graph.refresh
+        python -m wbia.algo.graph.refresh --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

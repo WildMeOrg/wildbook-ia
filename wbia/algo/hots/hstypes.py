@@ -138,9 +138,9 @@ WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.hstypes
-        python -m ibeis.algo.hots.hstypes --allexamples
-        python -m ibeis.algo.hots.hstypes --allexamples --noface --nosrc
+        python -m wbia.algo.hots.hstypes
+        python -m wbia.algo.hots.hstypes --allexamples
+        python -m wbia.algo.hots.hstypes --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

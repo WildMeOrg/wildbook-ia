@@ -11,8 +11,8 @@ ut.noinject(__name__, '[plottool.__init__]')
 
 
 # Hopefully this was imported sooner. TODO remove dependency
-#from ibeis.guitool import __PYQT__
-#import ibeis.guitool.__PYQT__ as __PYQT__
+#from wbia.guitool import __PYQT__
+#import wbia.guitool.__PYQT__ as __PYQT__
 from . import __MPL_INIT__
 __MPL_INIT__.init_matplotlib()
 
@@ -88,8 +88,8 @@ __DYNAMIC__ = '--nodyn' not in sys.argv
 
 #__DYNAMIC__ = '--dyn' in sys.argv
 """
-python -c "import ibeis.plottool" --dump-plottool-init
-python -c "import ibeis.plottool" --update-plottool-init
+python -c "import wbia.plottool" --dump-plottool-init
+python -c "import wbia.plottool" --update-plottool-init
 """
 
 
@@ -275,7 +275,7 @@ if DOELSE:
         if verbose and '--quiet' not in sys.argv:
             print('dev reimport')
         # Self import
-        import ibeis.plottool
+        import wbia.plottool
         # Implicit reassignment.
         seen_ = set([])
         for tup in IMPORT_TUPLES:

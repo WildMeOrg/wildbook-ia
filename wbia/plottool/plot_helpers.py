@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 # from . import draw_func2 as df2
-from ibeis.plottool import fig_presenter
-#from ibeis.plottool import custom_figure
-#from ibeis.plottool import custom_constants
+from wbia.plottool import fig_presenter
+#from wbia.plottool import custom_figure
+#from wbia.plottool import custom_constants
 #from os.path import join
 import utool as ut
 ut.noinject(__name__, '[plot_helpers]')
@@ -52,11 +52,11 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis.plottool.plot_helpers --test-get_square_row_cols
+        python -m wbia.plottool.plot_helpers --test-get_square_row_cols
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.plot_helpers import *  # NOQA
+        >>> from wbia.plottool.plot_helpers import *  # NOQA
         >>> # build test data
         >>> nSubplots = 9
         >>> nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -83,7 +83,7 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
         return nRows, nCols
     else:
         # This is the clamped num cols version
-        # probably used in ibeis.viz
+        # probably used in wbia.viz
         if max_cols is None:
             max_cols = 5
             if nSubplots in [4]:
@@ -141,7 +141,7 @@ def qt4ensure():
 
 
 def qtensure():
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     if ut.inIPython():
         import IPython
         ipython = IPython.get_ipython()

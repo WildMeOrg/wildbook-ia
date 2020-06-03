@@ -51,7 +51,7 @@ class ContrastiveLoss(torch.nn.Module):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.siamese import *
+        >>> from wbia.algo.verif.siamese import *
         >>> vecs1, vecs2, label = testdata_siam_desc()
         >>> self = ContrastiveLoss()
         >>> ut.exec_func_src(self.forward, globals())
@@ -65,7 +65,7 @@ class ContrastiveLoss(torch.nn.Module):
         >>> dist1_l2 = dist_l2[~label]
         >>> loss0 = loss2x[label] / 2
         >>> loss1 = loss2x[~label] / 2
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.plot2(dist0_l2, loss0, 'x', color=pt.TRUE_BLUE, label='imposter_loss', y_label='loss')
         >>> pt.plot2(dist1_l2, loss1, 'x', color=pt.FALSE_RED, label='genuine_loss', y_label='loss')
         >>> pt.gca().set_xlabel('l2-dist')

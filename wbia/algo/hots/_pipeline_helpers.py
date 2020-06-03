@@ -11,18 +11,18 @@ VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
 def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
     r"""
     Main tester function. Runs the pipeline by mirroring
-    `request_ibeis_query_L0`, but stops at a requested breakpoint and returns
+    `request_wbia_query_L0`, but stops at a requested breakpoint and returns
     the local variables.
 
     convinience: runs pipeline for tests
-    this should mirror request_ibeis_query_L0
+    this should mirror request_wbia_query_L0
 
     Ignore:
         >>> # TODO: autogenerate
         >>> # The following is a stub that starts the autogeneration process
         >>> import utool as ut
-        >>> from ibeis.algo.hots import pipeline
-        >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0,
+        >>> from wbia.algo.hots import pipeline
+        >>> source = ut.get_func_sourcecode(pipeline.request_wbia_query_L0,
         >>>                                 strip_docstr=True, stripdef=True,
         >>>                                 strip_comments=True)
         >>> import re
@@ -30,7 +30,7 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
         >>> print(source)
         >>> ut.replace_between_tags(source, '', sentinal)
     """
-    from ibeis.algo.hots.pipeline import (
+    from wbia.algo.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         build_chipmatches, spatial_verification,
         # vsone_reranking,
@@ -102,20 +102,20 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
         tuple: (ibs, qreq_, args)
 
     CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --exec-testdata_pre --show
+        python -m wbia.algo.hots._pipeline_helpers --exec-testdata_pre --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
+        >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
         >>> stopnode = 'build_chipmatches'
         >>> defaultdb = 'testdb1'
         >>> p = ['default:']
         >>> a = ['default:qindex=0:1,dindex=0:5']
         >>> qreq_, args = testdata_pre(stopnode, defaultdb, p, a)
     """
-    import ibeis
-    from ibeis.algo.hots import pipeline
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, p=p, a=a, **kwargs)
+    import wbia
+    from wbia.algo.hots import pipeline
+    qreq_ = wbia.testdata_qreq_(defaultdb=defaultdb, p=p, a=a, **kwargs)
     locals_ = testrun_pipeline_upto(qreq_, stopnode)
     if stopnode == 'end' :
         argnames = ['cm_list_SVER']
@@ -158,9 +158,9 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
 
 def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=None, codename='vsmany'):
     cfgdict = dict(codename=codename)
-    import ibeis
+    import wbia
     p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
+    qreq_ = wbia.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
                                  default_daids=daid_list, p=p)
     locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
     nns_list, impossible_daids_list = ut.dict_take(locals_,
@@ -170,14 +170,14 @@ def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=N
 
 def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     """
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
+        >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
     """
     # TODO: testdata_pre('sver')
-    #from ibeis.algo import Config
+    #from wbia.algo import Config
     cfgdict = dict()
-    import ibeis
+    import wbia
     p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
+    qreq_ = wbia.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
                                  default_daids=daid_list, p=p)
     ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
@@ -188,15 +188,15 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
 
 def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):
     """
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
+        >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
     """
     # TODO: testdata_pre('end')
-    #from ibeis.algo import Config
+    #from wbia.algo import Config
     if cfgdict is None:
         cfgdict = dict(codename=codename)
-    import ibeis
+    import wbia
     p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    qreq_ = wbia.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
     ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'end')
     cm_list = locals_['cm_list_SVER']
@@ -210,9 +210,9 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers
-        python -m ibeis.algo.hots._pipeline_helpers --allexamples
-        python -m ibeis.algo.hots._pipeline_helpers --allexamples --noface --nosrc
+        python -m wbia.algo.hots._pipeline_helpers
+        python -m wbia.algo.hots._pipeline_helpers --allexamples
+        python -m wbia.algo.hots._pipeline_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

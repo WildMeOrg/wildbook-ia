@@ -10,8 +10,8 @@ import numpy as np
 import uuid
 from os.path import join, dirname
 from six.moves import zip
-from ibeis.dtool import depcache_control
-from ibeis import dtool
+from wbia.dtool import depcache_control
+from wbia import dtool
 
 
 if False:
@@ -72,7 +72,7 @@ class DummyChipConfig(dtool.Config):
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.example_depcache import *  # NOQA
+        >>> from wbia.dtool.example_depcache import *  # NOQA
         >>> cfg = DummyChipConfig()
         >>> cfg.dim_size = 700
         >>> cfg.histeq = True
@@ -98,8 +98,8 @@ class ProbchipConfig(dtool.Config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dtool.depcache_control import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.depcache_control import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
         >>> table = depc['probchip']
         >>> exec(ut.execstr_funckw(table.get_rowid), globals())
@@ -179,7 +179,7 @@ class DummyVsManyRequest(dtool.VsManySimilarityRequest):
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.example_depcache import *  # NOQA
+        >>> from wbia.dtool.example_depcache import *  # NOQA
         >>> algo_config = DummyVsManyConfig()
         >>> print(algo_config)
     """
@@ -206,7 +206,7 @@ def testdata_depc(fname=None):
     Example of local registration
     """
 
-    from ibeis import dtool
+    from wbia import dtool
     import vtool_ibeis as vt
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
                          verbose=False)
@@ -363,7 +363,7 @@ def testdata_depc(fname=None):
             coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
         def dummy_manual_chipmask(depc, parent_rowids, config=None):
             import vtool_ibeis as vt
-            from ibeis.plottool import interact_impaint
+            from wbia.plottool import interact_impaint
             mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
             ut.ensuredir(mask_dpath)
             if config is None:
@@ -508,7 +508,7 @@ def example_getter_methods(depc, tablename, root_rowids):
     """
     example of different ways to get data
     """
-    from ibeis import dtool
+    from wbia import dtool
     print('\n+---')
     print('Running getter example')
     print(' * tablename=%r' % (tablename))
@@ -599,7 +599,7 @@ def dummy_example_depcacahe():
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.example_depcache import *  # NOQA
+        >>> from wbia.dtool.example_depcache import *  # NOQA
         >>> depc = dummy_example_depcacahe()
     """
     fname = None
@@ -626,7 +626,7 @@ def dummy_example_depcacahe():
 
     test_getters(depc)
 
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     # pt.ensureqt()
 
     graph = depc.make_graph()  # NOQA

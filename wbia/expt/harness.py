@@ -7,8 +7,8 @@ import sys
 import textwrap
 import numpy as np  # NOQA
 import utool as ut
-from ibeis.expt import experiment_helpers
-from ibeis.expt import test_result
+from wbia.expt import experiment_helpers
+from wbia.expt import test_result
 print, rrr, profile = ut.inject2(__name__)
 
 NOMEMORY = ut.get_argflag('--nomemory')
@@ -35,18 +35,18 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
     The code is getting too untenable.
 
     CommandLine:
-        python -m ibeis.expt.harness run_expt --acfginfo
-        python -m ibeis.expt.harness run_expt --pcfginfo
-        python -m ibeis.expt.harness run_expt
+        python -m wbia.expt.harness run_expt --acfginfo
+        python -m wbia.expt.harness run_expt --pcfginfo
+        python -m wbia.expt.harness run_expt
 
     Ignore:
         test_cfg_name_list = [p]
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.expt.harness import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.expt.harness import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['ctrl:qsize=20,dpername=1,dsize=10',
         >>>                     'ctrl:qsize=20,dpername=10,dsize=20']
         >>> acfg_name_list = default_acfgstrs
@@ -130,7 +130,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                         subindexer_partial=ut.ProgIter):
     """
     CommandLine:
-        python -m ibeis run_expt
+        python -m wbia run_expt
     """
     cfgslice = None
     if cfgslice is not None:
@@ -260,8 +260,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.harness
-        python -m ibeis.expt.harness --allexamples
+        python -m wbia.expt.harness
+        python -m wbia.expt.harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -7,32 +7,32 @@ TemplateInfo:
     autogen_key = party
 
 ToRegenerate:
-    python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --diff
-    python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --write
+    python -m wbia.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --diff
+    python -m wbia.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --write
 """
 from __future__ import absolute_import, division, print_function
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
-from ibeis.control import controller_inject
-from ibeis.control import accessor_decors  # NOQA
+from wbia.control import controller_inject
+from wbia.control import accessor_decors  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
     r"""
     Auto-docstr for 'testdata_ibs'
     """
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     qreq_ = None
     return ibs, qreq_
 
@@ -55,7 +55,7 @@ def _get_all_party_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_party_funcs import *  # NOQA
+        >>> from wbia.control._autogen_party_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> ibs._get_all_party_rowids()
     """
@@ -145,7 +145,7 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_party_funcs import *  # NOQA
+        >>> from wbia.control._autogen_party_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> party_rowid_list = ibs._get_all_party_rowids()
         >>> eager = True
@@ -162,8 +162,8 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control._autogen_party_funcs
-        python -m ibeis.control._autogen_party_funcs --allexamples
+        python -m wbia.control._autogen_party_funcs
+        python -m wbia.control._autogen_party_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

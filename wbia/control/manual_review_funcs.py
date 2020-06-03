@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"
 sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --modfname manual_review_funcs
 
 # TODO: Fix this name it is too special case
@@ -12,11 +12,11 @@ from six.moves import zip, map, reduce
 #import vtool_ibeis as vt
 import numpy as np
 import ubelt as ub  # NOQA
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject  # NOQA
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 import uuid
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -24,7 +24,7 @@ VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 REVIEW_ROWID             = 'review_rowid'
@@ -137,12 +137,12 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
         URL:    /api/review/
 
     CommandLine:
-        python -m ibeis.control.manual_review_funcs --test-add_review
+        python -m wbia.control.manual_review_funcs --test-add_review
 
     Doctest:
-        >>> import ibeis
-        >>> from ibeis.control.manual_review_funcs import *
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> import wbia
+        >>> from wbia.control.manual_review_funcs import *
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.staging.get_table_as_pandas('reviews')
         >>> # ensure it is empty
         >>> rowids = ibs.staging.get_all_rowids('reviews')
@@ -336,9 +336,9 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
     Find staging rowids between sets of aids
 
     Doctest:
-        >>> from ibeis.control.manual_review_funcs import *
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.control.manual_review_funcs import *
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
         >>> rowids_between = ibs.get_review_rowids_between
         >>> ids1 = sorted(rowids_between(aids1, aids2, method=1))
@@ -815,15 +815,15 @@ def set_review_metadata(ibs, review_rowid_list, metadata_dict_list):
         URL:    /api/review/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_review_funcs --test-set_review_metadata
+        python -m wbia.control.manual_review_funcs --test-set_review_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_review_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_review_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> review_rowid_list = ibs.add_review([1], [2], [0])
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
@@ -853,9 +853,9 @@ def set_review_metadata(ibs, review_rowid_list, metadata_dict_list):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_review_funcs
-        python -m ibeis.control.manual_review_funcs --allexamples
-        python -m ibeis.control.manual_review_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_review_funcs
+        python -m wbia.control.manual_review_funcs --allexamples
+        python -m wbia.control.manual_review_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

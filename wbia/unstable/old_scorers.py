@@ -18,11 +18,11 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         list: weights_list
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-get_annot_kpts_baseline_weights
+        python -m wbia.algo.hots.scoring --test-get_annot_kpts_baseline_weights
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring('testdb1')
         >>> aid_list = cm.daid_list
         >>> config = qreq_.qparams
@@ -79,11 +79,11 @@ def get_mask_func(config):
 def compute_annot_coverage_score(qreq_, cm, config={}):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-compute_annot_coverage_score:0
+        python -m wbia.algo.hots.scoring --test-compute_annot_coverage_score:0
 
     Example0:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
         >>> config = qreq_.qparams
         >>> daid_list, score_list = compute_annot_coverage_score(qreq_, cm, config)
@@ -101,12 +101,12 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
 def compute_name_coverage_score(qreq_, cm, config={}):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-compute_name_coverage_score:0
+        python -m wbia.algo.hots.scoring --test-compute_name_coverage_score:0
 
     Example0:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
         >>> cm.evaluate_dnids(qreq_)
         >>> config = qreq_.qparams
@@ -145,8 +145,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
         daid, weight_mask_m, weight_mask
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-general_annot_coverage_mask_generator --show
-        python -m ibeis.algo.hots.scoring --test-general_annot_coverage_mask_generator --show --qaid 18
+        python -m wbia.algo.hots.scoring --test-general_annot_coverage_mask_generator --show
+        python -m wbia.algo.hots.scoring --test-general_annot_coverage_mask_generator --show --qaid 18
 
     Note:
         Evaluate output one at a time or it will get clobbered
@@ -154,7 +154,7 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
     Example0:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
         >>> make_mask_func, cov_cfg = get_mask_func(config)
@@ -182,8 +182,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
         nid, weight_mask_m, weight_mask
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-general_name_coverage_mask_generator --show
-        python -m ibeis.algo.hots.scoring --test-general_name_coverage_mask_generator --show --qaid 18
+        python -m wbia.algo.hots.scoring --test-general_name_coverage_mask_generator --show
+        python -m wbia.algo.hots.scoring --test-general_name_coverage_mask_generator --show --qaid 18
 
     Note:
         Evaluate output one at a time or it will get clobbered
@@ -191,7 +191,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     Example0:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
         >>> make_mask_func, cov_cfg = get_mask_func(config)
@@ -268,29 +268,29 @@ def get_masks(qreq_, cm, config={}):
 
     CommandLine:
         # SHOW THE BASELINE AND MATCHING MASKS
-        python -m ibeis.algo.hots.scoring --test-get_masks
-        python -m ibeis.algo.hots.scoring --test-get_masks \
+        python -m wbia.algo.hots.scoring --test-get_masks
+        python -m wbia.algo.hots.scoring --test-get_masks \
             --maskscore_mode=kpts --show --prior_coeff=.5 --unconstrained_coeff=.3 --constrained_coeff=.2
-        python -m ibeis.algo.hots.scoring --test-get_masks \
+        python -m wbia.algo.hots.scoring --test-get_masks \
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5
-        python -m ibeis.algo.hots.scoring --test-get_masks --qaid 4\
+        python -m wbia.algo.hots.scoring --test-get_masks --qaid 4\
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5
-        python -m ibeis.algo.hots.scoring --test-get_masks --qaid 86\
+        python -m wbia.algo.hots.scoring --test-get_masks --qaid 86\
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5 --grid_scale_factor=.5
 
-        python -m ibeis.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 18
-        python -m ibeis.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 1
+        python -m wbia.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 18
+        python -m wbia.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 1
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.scoring import *  # NOQA
+        >>> import wbia
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
         >>> id_list, score_list, masks_list = get_masks(qreq_, cm, config)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> show_coverage_mask(qreq_, cm, masks_list, index=score_list.argmax())
         >>> pt.show_if_requested()
     """
@@ -325,8 +325,8 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     """
     DEPRICATE
     """
-    import ibeis.plottool as pt
-    from ibeis import viz
+    import wbia.plottool as pt
+    from wbia import viz
     fnum = pt.ensure_fnum(fnum)
     idx_list = ut.dict_take(cm.daid2_idx, daids)
     nPlots = len(idx_list) + 1
@@ -366,24 +366,24 @@ def show_annot_weights(qreq_, aid, config={}):
     DEPRICATE
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='grid'
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='kpts'
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db PZ_Master0 --aid 1
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db PZ_MTEST --aid 1
+        python -m wbia.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='grid'
+        python -m wbia.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='kpts'
+        python -m wbia.algo.hots.scoring --test-show_annot_weights --show --db PZ_Master0 --aid 1
+        python -m wbia.algo.hots.scoring --test-show_annot_weights --show --db PZ_MTEST --aid 1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
-        >>> import ibeis.plottool as pt
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> from wbia.algo.hots.scoring import *  # NOQA
+        >>> import wbia.plottool as pt
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_()
         >>> ibs = qreq_.ibs
         >>> aid = qreq_.qaids[0]
         >>> config = qreq_.qparams
         >>> show_annot_weights(qreq_, aid, config)
         >>> pt.show_if_requested()
     """
-    #import ibeis.plottool as pt
+    #import wbia.plottool as pt
     fnum = 1
     chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.extern_query_config2)
     chip  = qreq_.ibs.get_annot_chips(aid, config2_=qreq_.extern_query_config2)
@@ -423,12 +423,12 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     Uses smk-like selectivity function. Need to gridsearch for a good alpha.
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-cos_match_weighter
+        python -m wbia.algo.hots.nn_weights --test-cos_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots import nn_weights
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST', p=['default:cos_on=True,K=5,Knorm=5'])
@@ -460,8 +460,8 @@ def distinctiveness_match_weighter(qreq_):
 
     # Example:
     #     >>> # SLOW_DOCTEST
-    #     >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-    #     >>> from ibeis.algo.hots import nn_weights
+    #     >>> from wbia.algo.hots.nn_weights import *  # NOQA
+    #     >>> from wbia.algo.hots import nn_weights
     #     >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')
     #     >>> ibs, qreq_, nns_list, nnvalid0_list = tup
     """
@@ -486,7 +486,7 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')

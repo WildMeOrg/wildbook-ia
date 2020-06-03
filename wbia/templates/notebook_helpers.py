@@ -6,7 +6,7 @@ def custom_globals():
     ut.util_cache.VERBOSE_CACHE = False
     ut.NOT_QUIET = False
 
-    import ibeis.plottool as pt  # NOQA
+    import wbia.plottool as pt  # NOQA
     import matplotlib as mpl
     mpl.rcParams['axes.labelsize'] = 20
     mpl.rcParams['axes.titlesize'] = 20

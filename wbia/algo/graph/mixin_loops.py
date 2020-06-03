@@ -6,9 +6,9 @@ import utool as ut
 import ubelt as ub
 import pandas as pd
 import itertools as it
-import ibeis.constants as const
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, NULL)
-from ibeis.algo.graph.refresh import RefreshCriteria
+import wbia.constants as const
+from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, NULL)
+from wbia.algo.graph.refresh import RefreshCriteria
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -39,13 +39,13 @@ class InfrLoops(object):
             Different phases of the main loop are implemented as subiterators
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_loops main_gen
+            python -m wbia.algo.graph.mixin_loops main_gen
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_loops import *
-            >>> from ibeis.algo.graph.mixin_simulation import UserOracle
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('testdb1', aids='all',
+            >>> from wbia.algo.graph.mixin_loops import *
+            >>> from wbia.algo.graph.mixin_simulation import UserOracle
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('testdb1', aids='all',
             >>>                             autoinit='staging', verbose=4)
             >>> infr.params['manual.n_peek'] = 10
             >>> infr.params['ranking.ntop'] = 1
@@ -265,9 +265,9 @@ class InfrLoops(object):
         Searches for decisions that would commplete positive redundancy
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_loops import *
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
+            >>> from wbia.algo.graph.mixin_loops import *
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids='all',
             >>>                             autoinit='staging', verbose=4)
             >>> #infr.load_published()
             >>> gen = infr.pos_redun_gen()
@@ -614,7 +614,7 @@ class InfrReviewers(object):
         infr.add_feedback(**feedback)
 
         if infr.params['manual.autosave']:
-            infr.write_ibeis_staging_feedback()
+            infr.write_wbia_staging_feedback()
 
     def continue_review(infr):
         infr.print('continue_review', 10)
@@ -631,9 +631,9 @@ class InfrReviewers(object):
         return user_request
 
     def qt_edge_reviewer(infr, edge=None):
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         gt.ensure_qapp()
-        from ibeis.viz import viz_graph2
+        from wbia.viz import viz_graph2
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
             edge=edge, infr=infr, standalone=False,
             cfgdict=infr.verifier_params)
@@ -650,21 +650,21 @@ class InfrReviewers(object):
         Qt review loop entry point
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_loops qt_review_loop --show
+            python -m wbia.algo.graph.mixin_loops qt_review_loop --show
 
         Example:
             >>> # SCRIPT
             >>> import utool as ut
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> import wbia
+            >>> ibs = wbia.opendb('PZ_MTEST')
+            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
             >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.params['redun.enabled'] = False
             >>> win = infr.qt_review_loop()
-            >>> import ibeis.guitool as gt
+            >>> import wbia.guitool as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
         infr.qt_edge_reviewer()
@@ -683,9 +683,9 @@ if False:
         Will fill the queue with content of the source in a separate thread.
 
         Ignore:
-            >>> from ibeis.algo.graph.mixin_loops import *
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
+            >>> from wbia.algo.graph.mixin_loops import *
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids='all',
             >>>                             autoinit='staging', verbose=4)
             >>> infr.load_published()
             >>> gen = infr.find_pos_redun_candidate_edges()
@@ -763,8 +763,8 @@ if False:
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_loops
-        python -m ibeis.algo.graph.mixin_loops --allexamples
+        python -m wbia.algo.graph.mixin_loops
+        python -m wbia.algo.graph.mixin_loops --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

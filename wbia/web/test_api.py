@@ -73,21 +73,21 @@ def post_api_result(uri, user_email=None, user_enc_pass=None, **kwargs):
 def run_test_api():
     r"""
     CommandLine:
-        python -m ibeis.web.test_api --test-run_test_api
+        python -m wbia.web.test_api --test-run_test_api
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.test_api import *  # NOQA
+        >>> from wbia.web.test_api import *  # NOQA
         >>> response = run_test_api()
         >>> print('Server response: %r' % (response, ))
         >>> result = response
         (200, u'{"status": {"cache": -1, "message": "", "code": 200, "success": true}, "response": "testdb1"}', <bound method Response.json of <Response [200]>>)
     """
-    import ibeis
+    import wbia
     import time
     global APPLICATION_PORT
 
-    web_instance = ibeis.opendb_in_background(db='testdb1', web=True, precache=False)
+    web_instance = wbia.opendb_in_background(db='testdb1', web=True, precache=False)
 
     # Get the application port from the background process
     if APPLICATION_PORT is None:
@@ -110,9 +110,9 @@ def run_test_api():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.test_api
-        python -m ibeis.web.test_api --allexamples
-        python -m ibeis.web.test_api --allexamples --noface --nosrc
+        python -m wbia.web.test_api
+        python -m wbia.web.test_api --allexamples
+        python -m wbia.web.test_api --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

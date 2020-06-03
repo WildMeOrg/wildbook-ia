@@ -4,8 +4,8 @@ import utool as ut
 import numpy as np
 import vtool_ibeis as vt
 import pandas as pd
-from ibeis.algo.graph.nx_utils import ensure_multi_index
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+from wbia.algo.graph.nx_utils import ensure_multi_index
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -15,7 +15,7 @@ class Groundtruth(object):
         Guesses by default when real comparable information is not available.
         """
         if infr.ibs is not None:
-            return infr.ibeis_is_comparable(aid_pairs, allow_guess)
+            return infr.wbia_is_comparable(aid_pairs, allow_guess)
         is_comp = list(infr.gen_edge_values('gt_comparable', edges=aid_pairs,
                                             default=True,
                                             on_missing='default'))
@@ -23,12 +23,12 @@ class Groundtruth(object):
 
     def is_photobomb(infr, aid_pairs):
         if infr.ibs is not None:
-            return infr.ibeis_is_photobomb(aid_pairs)
+            return infr.wbia_is_photobomb(aid_pairs)
         return np.array([False] * len(aid_pairs))
 
     def is_same(infr, aid_pairs):
         if infr.ibs is not None:
-            return infr.ibeis_is_same(aid_pairs)
+            return infr.wbia_is_same(aid_pairs)
         node_dict = ut.nx_node_dict(infr.graph)
         nid1 = [node_dict[n1]['orig_name_label']
                 for n1, n2 in aid_pairs]
@@ -45,7 +45,7 @@ class Groundtruth(object):
         infr.edge_truth.update(edge_truth)
 
     def match_state_df(infr, index):
-        """ Returns groundtruth state based on ibeis controller """
+        """ Returns groundtruth state based on wbia controller """
         index = ensure_multi_index(index, ('aid1', 'aid2'))
         aid_pairs = np.asarray(index.tolist())
         aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))

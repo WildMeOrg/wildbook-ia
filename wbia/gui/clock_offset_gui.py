@@ -8,10 +8,10 @@ from six.moves import range
 from time import mktime
 from datetime import date, datetime
 import utool as ut
-import ibeis.guitool as gt
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__.QtCore import Qt
-import ibeis.plottool as pt
+import wbia.guitool as gt
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+import wbia.plottool as pt
 (print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 
 
@@ -265,32 +265,32 @@ class ClockOffsetWidget(QtWidgets.QWidget):
 def clock_offset_test():
     r"""
     CommandLine:
-        python -m ibeis.gui.clock_offset_gui --test-clock_offset_test
+        python -m wbia.gui.clock_offset_gui --test-clock_offset_test
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.clock_offset_gui import *  # NOQA
+        >>> from wbia.gui.clock_offset_gui import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> result = clock_offset_test()
         >>> # verify results
         >>> print(result)
     """
-    import ibeis
-    main_locals = ibeis.main(db='testdb1')
+    import wbia
+    main_locals = wbia.main(db='testdb1')
     ibs = main_locals['ibs']
     gid_list = ibs.get_valid_gids()
     co = ClockOffsetWidget(ibs, gid_list, hack=True)
     co.show()
-    ibeis.main_loop(main_locals)
+    wbia.main_loop(main_locals)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.clock_offset_gui
-        python -m ibeis.gui.clock_offset_gui --allexamples
-        python -m ibeis.gui.clock_offset_gui --allexamples --noface --nosrc
+        python -m wbia.gui.clock_offset_gui
+        python -m wbia.gui.clock_offset_gui --allexamples
+        python -m wbia.gui.clock_offset_gui --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

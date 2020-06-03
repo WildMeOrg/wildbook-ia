@@ -3,22 +3,22 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
 def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list:1
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list:0 --show
+        python -m wbia.algo.hots.scoring --test-score_chipmatch_list
+        python -m wbia.algo.hots.scoring --test-score_chipmatch_list:1
+        python -m wbia.algo.hots.scoring --test-score_chipmatch_list:0 --show
 
     Example0:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
         >>> score_method = qreq_.qparams.prescore_method
         >>> score_chipmatch_list(qreq_, cm_list, score_method)
@@ -31,7 +31,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
     Example1:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
         >>> qaid = qreq_.qaids[0]
         >>> cm = cm_list[0]
@@ -65,11 +65,11 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
                             nNameShortList, nAnnotPerName):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-get_name_shortlist_aids
+        python -m wbia.algo.hots.scoring --test-get_name_shortlist_aids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> daid_list        = np.array([11, 12, 13, 14, 15, 16, 17])
         >>> dnid_list        = np.array([21, 21, 21, 22, 22, 23, 24])
         >>> annot_score_list = np.array([ 6,  2,  3,  5,  6,  3,  2])
@@ -109,11 +109,11 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
     Makes shortlists for reranking
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-make_chipmatch_shortlists --show
+        python -m wbia.algo.hots.scoring --test-make_chipmatch_shortlists --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.scoring import *  # NOQA
+        >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
         >>> score_method    = 'nsum'
         >>> nNameShortList  = 5
@@ -162,9 +162,9 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring
-        python -m ibeis.algo.hots.scoring --allexamples
-        python -m ibeis.algo.hots.scoring --allexamples --noface --nosrc
+        python -m wbia.algo.hots.scoring
+        python -m wbia.algo.hots.scoring --allexamples
+        python -m wbia.algo.hots.scoring --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

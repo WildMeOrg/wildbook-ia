@@ -39,7 +39,7 @@ def depc_34_helper(depc):
                     #(tablename + repr(row_arg) + repr(param_val)),
                 #yield (np.array([row_arg]),)
             dummy_func = dummy_gen_func
-        from ibeis.dtool import base
+        from wbia.dtool import base
         configclass = base.make_configclass({config_param: 42}, tablename)
         dummy_cols = dict(colnames=['data'], coltypes=[str], configclass=configclass, **kwargs)
         depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(dummy_func)
@@ -55,16 +55,16 @@ def testdata_depc3(in_memory=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+        >>> from wbia.dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
         >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
         >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
         >>> depc.print_all_tables()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> depc.show_graph()
-        >>> from ibeis.plottool.interactions import ExpandableInteraction
+        >>> from wbia.plottool.interactions import ExpandableInteraction
         >>> inter = ExpandableInteraction(nCols=2)
         >>> depc['smk_match'].show_input_graph(inter)
         >>> depc['vsone'].show_input_graph(inter)
@@ -74,7 +74,7 @@ def testdata_depc3(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    from ibeis import dtool
+    from wbia import dtool
 
     # put the test cache in the dtool repo
     dtool_repo = dirname(ut.get_module_dir(dtool))
@@ -122,16 +122,16 @@ def testdata_depc4(in_memory=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.example_depcache2 import *  # NOQA
+        >>> from wbia.dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc4()
         >>> #data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
         >>> #data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
         >>> depc.print_all_tables()
         >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> depc.show_graph()
-        >>> from ibeis.plottool.interactions import ExpandableInteraction
+        >>> from wbia.plottool.interactions import ExpandableInteraction
         >>> inter = ExpandableInteraction(nCols=2)
         >>> depc['smk_match'].show_input_graph(inter)
         >>> depc['vsone'].show_input_graph(inter)
@@ -141,7 +141,7 @@ def testdata_depc4(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    from ibeis import dtool
+    from wbia import dtool
 
     # put the test cache in the dtool repo
     dtool_repo = dirname(ut.get_module_dir(dtool))
@@ -182,7 +182,7 @@ def testdata_depc4(in_memory=True):
 
 
 def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
-    from ibeis import dtool
+    from wbia import dtool
     # put the test cache in the dtool repo
     dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE5')

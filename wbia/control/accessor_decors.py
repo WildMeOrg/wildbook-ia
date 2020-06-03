@@ -69,11 +69,11 @@ def init_tablecache():
        defaultdict: tablecache
 
     CommandLine:
-        python -m ibeis.control.accessor_decors --test-init_tablecache
+        python -m wbia.control.accessor_decors --test-init_tablecache
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.accessor_decors import *  # NOQA
+        >>> from wbia.control.accessor_decors import *  # NOQA
         >>> result = init_tablecache()
         >>> print(result)
     """
@@ -97,15 +97,15 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         function: closure_getter_cacher
 
     CommandLine:
-        python -m ibeis.control.accessor_decors --test-cache_getter
+        python -m wbia.control.accessor_decors --test-cache_getter
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.accessor_decors import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis import constants as const
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> #ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.control.accessor_decors import *  # NOQA
+        >>> import wbia
+        >>> from wbia import constants as const
+        >>> ibs = wbia.opendb('testdb1')
+        >>> #ibs = wbia.opendb('PZ_MTEST')
         >>> valid_nids = ibs.get_valid_nids()
         >>> tblname = const.NAME_TABLE
         >>> colname = 'annot_rowid'
@@ -136,11 +136,11 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.accessor_decors import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis import constants as const
-        >>> from ibeis.control.manual_feat_funcs import FEAT_KPTS
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.accessor_decors import *  # NOQA
+        >>> import wbia
+        >>> from wbia import constants as const
+        >>> from wbia.control.manual_feat_funcs import FEAT_KPTS
+        >>> ibs = wbia.opendb('testdb1')
         >>> tblname = const.FEATURE_TABLE,
         >>> colname = FEAT_KPTS
         >>> aid_list = ibs.get_valid_aids()[0:1]
@@ -524,8 +524,8 @@ def ider(func):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.accessor_decors
-        python -m ibeis.control.accessor_decors --allexamples
+        python -m wbia.control.accessor_decors
+        python -m wbia.control.accessor_decors --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

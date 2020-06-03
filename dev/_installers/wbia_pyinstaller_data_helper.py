@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 """
 CommandLine:
-    python %CODE_DIR%/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+    python %CODE_DIR%/wbia/_installers/wbia_pyinstaller_data_helper.py --test-get_data_list
 
 """
 from __future__ import absolute_import, division, print_function
@@ -95,7 +95,7 @@ def get_path_extensions():
         'pyrf',
         'flann/src/python',
         #'pygist',
-        'ibeis',
+        'wbia',
         'ibeis_cnn',
         'pydarknet',
         'hesaff',
@@ -139,11 +139,11 @@ def get_hidden_imports():
 def get_data_list():
     r"""
     CommandLine:
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+        python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py --test-get_data_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis_pyinstaller_data_helper import *  # NOQA
+        >>> from wbia_pyinstaller_data_helper import *  # NOQA
         >>> result = get_data_list()
         >>> DATATUP_LIST, BINARYTUP_LIST, iconfile = result
         >>> print('DATATUP_LIST = ' + ut.repr2(DATATUP_LIST))
@@ -323,7 +323,7 @@ def get_data_list():
     # Web Assets
     INSTALL_WEB = True and not ut.get_argflag('--noweb')
     if INSTALL_WEB:
-        web_root = join('ibeis', 'web/')
+        web_root = join('wbia', 'web/')
         #walk_path = join(web_root, 'static')
         #static_data = []
         #for root, dirs, files in os.walk(walk_path):
@@ -335,7 +335,7 @@ def get_data_list():
         #            static_data.append((toc_dst, toc_src))
         #ut.get_list_column(static_data, 1) == ut.glob(walk_path, '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
         static_src_list = ut.glob(join(web_root, 'static'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
-        static_dst_list = [relpath(src, join(root_dir, 'ibeis')) for src in static_src_list]
+        static_dst_list = [relpath(src, join(root_dir, 'wbia')) for src in static_src_list]
         static_data = zip(static_dst_list, static_src_list)
         DATATUP_LIST.extend(static_data)
 
@@ -349,7 +349,7 @@ def get_data_list():
         #            toc_dst = join(root2, icon_fname)
         #            template_data.append((toc_dst, toc_src))
         template_src_list = ut.glob(join(web_root, 'templates'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
-        template_dst_list = [relpath(src, join(root_dir, 'ibeis')) for src in template_src_list]
+        template_dst_list = [relpath(src, join(root_dir, 'wbia')) for src in template_src_list]
         template_data = zip(template_dst_list, template_src_list)
         DATATUP_LIST.extend(template_data)
 
@@ -367,10 +367,10 @@ def get_data_list():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples --noface --nosrc
+        python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py --test-get_data_list
+        python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py
+        python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py --allexamples
+        python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

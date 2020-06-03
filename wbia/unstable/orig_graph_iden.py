@@ -16,20 +16,20 @@ class OrigAnnotInference(object):
     Make name inferences about a series of AnnotMatches
 
     CommandLine:
-        python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference --show --no-cnn
-        python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference --no-cnn
-        python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:0 --no-cnn
-        python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:1 --no-cnn
-        python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:2 --show
+        python -m wbia.algo.hots.orig_graph_iden OrigAnnotInference --show --no-cnn
+        python -m wbia.algo.hots.orig_graph_iden OrigAnnotInference --no-cnn
+        python -m wbia.algo.hots.orig_graph_iden OrigAnnotInference:0 --no-cnn
+        python -m wbia.algo.hots.orig_graph_iden OrigAnnotInference:1 --no-cnn
+        python -m wbia.algo.hots.orig_graph_iden OrigAnnotInference:2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.orig_graph_iden import *  # NOQA
-        >>> import ibeis
-        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> from wbia.algo.hots.orig_graph_iden import *  # NOQA
+        >>> import wbia
+        >>> #qreq_ = wbia.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
         >>> a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
         >>> #a='default:dsize=20,excluderef=True,qnum_names=5,qsize=1,min_pername=3,qsample_per_name=1,dsample_per_name=2'
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=a, verbose=0, use_cache=False)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, verbose=0, use_cache=False)
         >>> # a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
@@ -46,10 +46,10 @@ class OrigAnnotInference(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.orig_graph_iden import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.orig_graph_iden import *  # NOQA
+        >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:proot=vsone', use_cache=False, verbose=0)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:proot=vsone', use_cache=False, verbose=0)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = OrigAnnotInference(qreq_, cm_list)
@@ -67,10 +67,10 @@ class OrigAnnotInference(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.orig_graph_iden import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.hots.orig_graph_iden import *  # NOQA
+        >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:pipeline_root=BC_DTW', use_cache=False, verbose=0)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:pipeline_root=BC_DTW', use_cache=False, verbose=0)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = OrigAnnotInference(qreq_, cm_list)
@@ -166,7 +166,7 @@ class OrigAnnotInference(object):
         idx1 = vt.find_elbow_point(curve)
         idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
         if False:
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
             pt.plot(curve)
             pt.plot(idx1, curve[idx1], 'bo')
@@ -239,14 +239,14 @@ class OrigAnnotInference(object):
                     if graph.has_edge(aid1, aid2):
                         graph.remove_edge(aid1, aid2)
         if show:
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PINK for aid in qreq_.daids})
             nx.set_node_attributes(graph, name='color', values={aid: pt.TRUE_BLUE for aid in qreq_.qaids})
             nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
             nx.set_node_attributes(graph, name='label', values={node: 'n%r' % (node[1],) for node in name_nodes})
             nx.set_node_attributes(graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes})
         if show:
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
         return graph
 
@@ -346,7 +346,7 @@ class OrigAnnotInference(object):
         #import utool
         #utool.embed()
 
-        from ibeis.algo.graph import graph_iden
+        from wbia.algo.graph import graph_iden
         graph_iden.rrr()
         qreq_ = self.qreq_
         cm_list = self.cm_list
@@ -408,7 +408,7 @@ class OrigAnnotInference(object):
                 import scipy.special
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize and param configuration
-                # python -m ibeis.plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                # python -m wbia.plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
                 #a = 2.0
                 a = 1.5
                 b = 2
@@ -524,8 +524,8 @@ class OrigAnnotInference(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.orig_graph_iden
-        python -m ibeis.algo.hots.orig_graph_iden --allexamples
+        python -m wbia.algo.hots.orig_graph_iden
+        python -m wbia.algo.hots.orig_graph_iden --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

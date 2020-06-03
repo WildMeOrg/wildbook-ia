@@ -8,9 +8,9 @@ import itertools as it
 import networkx as nx
 import vtool_ibeis as vt
 from os.path import join  # NOQA
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.nx_utils import e_
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -26,7 +26,7 @@ class AnnotInfrMatching(object):
                       invalidate_supercache=False):
         """
         Loads chip matches into the inference structure
-        Uses graph name labeling and ignores ibeis labeling
+        Uses graph name labeling and ignores wbia labeling
         """
         infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method,
                             use_cache=use_cache, invalidate_supercache=invalidate_supercache)
@@ -40,7 +40,7 @@ class AnnotInfrMatching(object):
     def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
                        cfgdict=None, name_method='node', use_cache=None,
                        invalidate_supercache=None):
-        #from ibeis.algo.graph import graph_iden
+        #from wbia.algo.graph import graph_iden
 
         # TODO: expose other ranking algos like SMK
         rank_algo = 'LNBNN'
@@ -72,7 +72,7 @@ class AnnotInfrMatching(object):
             custom_nid_lookup = {
                 aid: nid for nid, cc in infr.pos_graph._ccs.items() for aid in cc
             }
-        elif name_method == 'ibeis':
+        elif name_method == 'wbia':
             custom_nid_lookup = None
         else:
             raise KeyError('Unknown name_method={}'.format(name_method))
@@ -97,7 +97,7 @@ class AnnotInfrMatching(object):
         # return cm_list
 
     def _make_matches_from(infr, edges, config=None, prog_hook=None):
-        from ibeis.algo.verif import pairfeat
+        from wbia.algo.verif import pairfeat
         if config is None:
             config = infr.verifier_params
         extr = pairfeat.PairwiseFeatureExtractor(infr.ibs, config=config)
@@ -110,11 +110,11 @@ class AnnotInfrMatching(object):
             prog_hook (None): (default = None)
 
         CommandLine:
-            python -m ibeis.algo.graph.core exec_vsone_subset
+            python -m wbia.algo.graph.core exec_vsone_subset
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.ensure_full()
             >>> edges = [(1, 2), (2, 3)]
@@ -179,7 +179,7 @@ class AnnotInfrMatching(object):
 
     def _cm_breaking(infr, cm_list=None, review_cfg={}):
         """
-        >>> from ibeis.algo.graph.core import *  # NOQA
+        >>> from wbia.algo.graph.core import *  # NOQA
         >>> review_cfg = {}
         """
         if cm_list is None:
@@ -217,11 +217,11 @@ class AnnotInfrMatching(object):
         Constructs training data for a pairwise classifier
 
         CommandLine:
-            python -m ibeis.algo.graph.core _cm_training_pairs
+            python -m wbia.algo.graph.core _cm_training_pairs
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching(cfgdict={
             >>>     'can_match_samename': True,
@@ -230,7 +230,7 @@ class AnnotInfrMatching(object):
             >>>     'prescore_method': 'csum',
             >>>     'score_method': 'csum'
             >>> })
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
             >>> rng = np.random.RandomState(42)
             >>> aid_pairs = np.array(infr._cm_training_pairs(rng=rng))
@@ -326,11 +326,11 @@ class AnnotInfrMatching(object):
         this.
 
         CommandLine:
-            python -m ibeis.algo.graph.core apply_match_scores --show
+            python -m wbia.algo.graph.core apply_match_scores --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
@@ -376,9 +376,9 @@ class InfrLearning(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> import wbia
+            >>> ibs = wbia.opendb('PZ_MTEST')
+            >>> infr = wbia.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> publish = False
             >>> infr.learn_deploy_verifiers()
@@ -387,7 +387,7 @@ class InfrLearning(object):
             publish = True
         """
         infr.print('learn_deploy_verifiers')
-        from ibeis.algo.verif import vsone
+        from wbia.algo.verif import vsone
         pblm = vsone.OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
         pblm.default_clf_key = 'RF'
@@ -408,11 +408,11 @@ class InfrLearning(object):
         verifier error cases and groundtruth errors.
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_matching learn_evaluation_verifiers
+            python -m wbia.algo.graph.mixin_matching learn_evaluation_verifiers
 
         Doctest:
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference(
+            >>> import wbia
+            >>> infr = wbia.AnnotInference(
             >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
             >>>     verbose=4)
             >>> verifiers = infr.learn_evaluation_verifiers()
@@ -422,7 +422,7 @@ class InfrLearning(object):
             >>> print(probs)
         """
         infr.print('learn_evaluataion_verifiers')
-        from ibeis.algo.verif import vsone
+        from wbia.algo.verif import vsone
         pblm = vsone.OneVsOneProblem(infr, verbose=5)
         pblm.primary_task_key = 'match_state'
         pblm.eval_clf_keys = ['RF']
@@ -438,7 +438,7 @@ class InfrLearning(object):
         Downloads, caches, and loads pre-trained verifiers.
         This is the default action.
         """
-        from ibeis.algo.verif import deploy
+        from wbia.algo.verif import deploy
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
         infr.print('Loading task_thresh for species: %r' % (species, ))
@@ -449,7 +449,7 @@ class InfrLearning(object):
         infr.verifiers = deploy.Deployer().load_published(ibs, species)
 
     def load_latest_classifiers(infr, dpath):
-        from ibeis.algo.verif import deploy
+        from wbia.algo.verif import deploy
         task_clf_fpaths = deploy.Deployer(dpath).find_latest_local()
         classifiers = {}
         for task_key, fpath in task_clf_fpaths.items():
@@ -511,7 +511,7 @@ class _RedundancyAugmentation(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> k = 2
             >>> cc1, cc2 = {1}, {2, 3}
             >>> # --- return an augmentation if feasible
@@ -609,8 +609,8 @@ class _RedundancyAugmentation(object):
         Searches for augmenting edges that would make PCCs k-positive redundant
 
         Doctest:
-            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_matching import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
             >>> infr.add_feedback((2, 5), 'match')
             >>> infr.add_feedback((1, 5), 'notcomp')
@@ -641,8 +641,8 @@ class _RedundancyAugmentation(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_matching import *  # NOQA
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(ccs=[(1,), (2,), (3,)], ignore_pair=True)
             >>> edges = list(infr.find_neg_redun_candidate_edges())
             >>> assert len(edges) == 3, 'all should be needed here'
@@ -651,7 +651,7 @@ class _RedundancyAugmentation(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(pcc_sizes=[3] * 20, ignore_pair=True)
             >>> ccs = list(infr.positive_components())
             >>> gen = infr.find_neg_redun_candidate_edges(k=2)
@@ -694,7 +694,7 @@ class CandidateSearch(_RedundancyAugmentation):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> cand_edges = infr.find_lnbnn_candidate_edges()
             >>> assert len(cand_edges) > 200
@@ -735,13 +735,13 @@ class CandidateSearch(_RedundancyAugmentation):
         (Currently only the primary task is actually ensured)
 
         CommandLine:
-            python -m ibeis.algo.graph.mixin_matching ensure_task_probs
+            python -m wbia.algo.graph.mixin_matching ensure_task_probs
 
         Doctest:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_matching import *
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
+            >>> from wbia.algo.graph.mixin_matching import *
+            >>> import wbia
+            >>> infr = wbia.AnnotInference('PZ_MTEST', aids='all',
             >>>                             autoinit='staging')
             >>> edges = list(infr.edges())[0:3]
             >>> infr.load_published()
@@ -753,8 +753,8 @@ class CandidateSearch(_RedundancyAugmentation):
 
         Doctest:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_matching import *
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph.mixin_matching import *
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)
             >>> edges = list(infr.edges())
             >>> infr.ensure_task_probs(edges)
@@ -796,24 +796,24 @@ class CandidateSearch(_RedundancyAugmentation):
         This does not change the state of the queue.
 
         Doctest:
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> import wbia
+            >>> ibs = wbia.opendb('PZ_MTEST')
+            >>> infr = wbia.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> priority_edges = list(infr.edges())[0:1]
             >>> infr.ensure_priority_scores(priority_edges)
 
         Doctest:
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> import wbia
+            >>> ibs = wbia.opendb('PZ_MTEST')
+            >>> infr = wbia.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> # infr.load_published()
             >>> priority_edges = list(infr.edges())
             >>> infr.ensure_priority_scores(priority_edges)
 
         Doctest:
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)
             >>> edges = list(infr.edges())
             >>> infr.ensure_priority_scores(edges)
@@ -990,8 +990,8 @@ class CandidateSearch(_RedundancyAugmentation):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.mixin_matching
-        python -m ibeis.algo.graph.mixin_matching --allexamples
+        python -m wbia.algo.graph.mixin_matching
+        python -m wbia.algo.graph.mixin_matching --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

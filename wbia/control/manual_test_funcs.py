@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"
 sh Tgen.sh --key test --invert --Tcfg with_getters=True with_setters=False --modfname manual_test_funcs
 
 # TODO: Fix this name it is too special case
@@ -9,11 +9,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 from six.moves import zip
 import ubelt as ub  # NOQA
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject  # NOQA
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 import uuid
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -21,7 +21,7 @@ VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 TEST_ROWID         = 'test_rowid'
@@ -119,9 +119,9 @@ def get_test_uuid(ibs, test_rowid_list):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_test_funcs
-        python -m ibeis.control.manual_test_funcs --allexamples
-        python -m ibeis.control.manual_test_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_test_funcs
+        python -m wbia.control.manual_test_funcs --allexamples
+        python -m wbia.control.manual_test_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

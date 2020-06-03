@@ -6,9 +6,9 @@ control of splitting and merging.
 DEPRICATE
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_name --test-ishow_name --show
-    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
-    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+    python -m wbia.viz.interact.interact_name --test-ishow_name --show
+    python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+    python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
 
 
 """
@@ -16,15 +16,15 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 from six.moves import zip
-from ibeis.plottool import interact_helpers as ih
+from wbia.plottool import interact_helpers as ih
 import functools
-import ibeis.plottool as pt
-from ibeis import viz
-from ibeis import constants as const
-from ibeis.viz import viz_helpers as vh
-from ibeis.other import ibsfuncs
-from ibeis.viz import viz_chip
-from ibeis.plottool.abstract_interaction import AbstractInteraction
+import wbia.plottool as pt
+from wbia import viz
+from wbia import constants as const
+from wbia.viz import viz_helpers as vh
+from wbia.other import ibsfuncs
+from wbia.viz import viz_chip
+from wbia.plottool.abstract_interaction import AbstractInteraction
 (print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 
 
@@ -38,7 +38,7 @@ MAX_COLS = 3
 def build_name_context_options(ibs, nids):
     print('build_name_context_options nids = %r' % (nids,))
     callback_list = []
-    from ibeis.viz import viz_graph2
+    from wbia.viz import viz_graph2
     callback_list.extend([
         ('New Split Interact (Name)', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
     ])
@@ -48,21 +48,21 @@ def build_name_context_options(ibs, nids):
 def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=True, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         nid (?):
         sel_aids (list):
         select_aid_callback (None):
         fnum (int):  figure number
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
+        python -m wbia.viz.interact.interact_name --test-ishow_name --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_name import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.interact.interact_name import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> nid = ut.get_argval('--nid', int, default=1)
         >>> sel_aids = []
         >>> select_aid_callback = None
@@ -86,8 +86,8 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    import ibeis.guitool
-                    from ibeis.viz.interact import interact_chip
+                    import wbia.guitool
+                    from wbia.viz.interact import interact_chip
                     height = fig.canvas.geometry().height()
                     qpoint = guitool.newQPoint(event.x, height - event.y)
                     refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
@@ -114,28 +114,28 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
         main.py --imgsetid 13 --db PZ_MUGU_19
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --aid1 2 --aid2 3 --show
+        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show
+        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --aid1 2 --aid2 3 --show
 
         # Merge case
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
 
         # Split case
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_name import *  # NOQA
+        >>> from wbia.viz.interact.interact_name import *  # NOQA
         >>> self = testsdata_match_verification()
         >>> # verify results
         >>> ut.quit_if_noshow()
         >>> self.show_page()
         >>> ut.show_if_requested()
     """
-    #from ibeis.viz.interact.interact_name import *  # NOQA
-    import ibeis
-    #ibs = ibeis.opendb(defaultdb='PZ_Master0')
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    #from wbia.viz.interact.interact_name import *  # NOQA
+    import wbia
+    #ibs = wbia.opendb(defaultdb='PZ_Master0')
+    ibs = wbia.opendb(defaultdb=defaultdb)
     #aid1 = ut.get_argval('--aid1', int, 14)
     #aid2 = ut.get_argval('--aid2', int, 5545)
     aid1 = ut.get_argval('--aid1', int, aid1)
@@ -170,7 +170,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.cm = kwargs.get('cm', None)
         self.qreq_ = kwargs.get('qreq_', None)
         if self.cm is not None:
-            from ibeis.algo.hots import chip_match
+            from wbia.algo.hots import chip_match
             assert isinstance(self.cm, chip_match.ChipMatch)
             assert self.qreq_ is not None
         self.infer_data()
@@ -261,19 +261,19 @@ class MatchVerificationInteraction(AbstractInteraction):
             list: row_aids_list
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list
+            python -m wbia.viz.interact.interact_name --test-get_row_aids_list
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --aid1 2 --aid2 3
+            python -m wbia.viz.interact.interact_name --test-get_row_aids_list
+            python -m wbia.viz.interact.interact_name --test-get_row_aids_list --aid1 2 --aid2 3
             # Merge case
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 1 --aid2 30
+            python -m wbia.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 1 --aid2 30
             # Split case
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 30 --aid2 32
+            python -m wbia.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 30 --aid2 32
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_name import *  # NOQA
+            >>> from wbia.viz.interact.interact_name import *  # NOQA
             >>> # build test data
             >>> self = testsdata_match_verification('PZ_MTEST', 30, 32)
             >>> # execute function
@@ -496,7 +496,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_name import *  # NOQA
+            >>> from wbia.viz.interact.interact_name import *  # NOQA
             >>> # build test data
             >>> self = testsdata_match_verification('PZ_MTEST', 30, 32)
             >>> # execute function
@@ -654,7 +654,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def on_key_press(self, event=None):
         if event.key == 'escape':
-            import ibeis.guitool
+            import wbia.guitool
             if guitool.are_you_sure():
                 self.close()
 
@@ -666,7 +666,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 aid = vh.get_ibsdat(ax, 'aid')
                 #print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    #import ibeis.guitool
+                    #import wbia.guitool
                     #height = self.fig.canvas.geometry().height()
                     #qpoint = guitool.newQPoint(event.x, height - event.y)
                     #ibs = self.ibs
@@ -678,7 +678,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     #])
                     # TODO USE ABSTRACT INTERACTION
-                    from ibeis.viz.interact import interact_chip
+                    from wbia.viz.interact import interact_chip
                     options = interact_chip.build_annot_context_options(self.ibs, aid, refresh_func=self.show_page)
                     self.show_popup_menu(options, event)
                     #interact_chip.show_annot_context_menu(
@@ -692,12 +692,12 @@ class MatchVerificationInteraction(AbstractInteraction):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+        python -m wbia.viz.interact.interact_name --test-ishow_name --show
+        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
 
-        python -m ibeis.viz.interact.interact_name
-        python -m ibeis.viz.interact.interact_name --allexamples
-        python -m ibeis.viz.interact.interact_name --allexamples --noface --nosrc
+        python -m wbia.viz.interact.interact_name
+        python -m wbia.viz.interact.interact_name --allexamples
+        python -m wbia.viz.interact.interact_name --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

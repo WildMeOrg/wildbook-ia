@@ -2,7 +2,7 @@
 """
 Module Licence and docstring
 
-TODO: ideally the ibeis.constants module would not be used here
+TODO: ideally the wbia.constants module would not be used here
 and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
 
@@ -12,18 +12,18 @@ TODO:
 
 
 CommandLine:
-    python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema
+    python -m wbia.control.DB_SCHEMA --test-autogen_db_schema
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
-from ibeis.control import _sql_helpers
+from wbia import constants as const
+from wbia.control import _sql_helpers
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 try:
-    from ibeis.control import DB_SCHEMA_CURRENT
+    from wbia.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
     VERSION_CURRENT = DB_SCHEMA_CURRENT.VERSION_CURRENT
 except Exception:
@@ -253,12 +253,12 @@ def post_1_2_0(db, ibs=None):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> import ibeis
+            >>> import wbia
             >>> #import sys
             #>>> sys.argv.append('--force-fresh')
-            #>>> ibs = ibeis.opendb('PZ_MTEST')
-            #>>> ibs = ibeis.opendb('testdb1')
-            >>> ibs = ibeis.opendb('GZ_ALL')
+            #>>> ibs = wbia.opendb('PZ_MTEST')
+            #>>> ibs = wbia.opendb('testdb1')
+            >>> ibs = wbia.opendb('GZ_ALL')
             >>> # should be auto applied
             >>> ibs.print_annotation_table(verbosity=1)
             >>> result = schema_1_2_0_postprocess_fixuuids(ibs)
@@ -481,7 +481,7 @@ def pre_1_3_1(db, ibs=None):
     constaint to sql. This will remove any annotations that are not unique
     """
     if ibs is not None:
-        #from ibeis.other import ibsfuncs
+        #from wbia.other import ibsfuncs
         import utool as ut
         import six
         ibs._init_rowid_constants()
@@ -843,7 +843,7 @@ def update_1_3_4(db, ibs=None):
         yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
-    from ibeis.dtool.sql_control import SQLDatabaseController
+    from wbia.dtool.sql_control import SQLDatabaseController
     assert isinstance(db,  SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
@@ -1179,10 +1179,10 @@ def post_1_4_7(db, ibs=None):
 def pre_1_4_8(db, ibs=None):
     """
     Args:
-        ibs (ibeis.IBEISController):
+        ibs (wbia.IBEISController):
     """
     if ibs is not None:
-        from ibeis import tag_funcs
+        from wbia import tag_funcs
 
         annotmatch_rowids = ibs._get_all_annotmatch_rowids()
         id_iter = annotmatch_rowids
@@ -1377,8 +1377,8 @@ def update_1_5_2(db, ibs=None):
 def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
         from PIL import Image  # NOQA
-        from ibeis.algo.preproc.preproc_image import parse_exif
-        from ibeis.scripts import fix_annotation_orientation_issue as faoi
+        from wbia.algo.preproc.preproc_image import parse_exif
+        from wbia.scripts import fix_annotation_orientation_issue as faoi
         from os.path import exists
 
         def _parse_orient(gpath):
@@ -1529,7 +1529,7 @@ def update_1_6_4(db, ibs=None):
 
 def post_1_6_4(db, ibs=None):
     if ibs is not None:
-        from ibeis.other import ibsfuncs
+        from wbia.other import ibsfuncs
         aids = ibs.get_valid_aids(is_staged=None)
         # Get old yaw values
         yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
@@ -1583,8 +1583,8 @@ def update_1_6_9(db, ibs=None):
 def update_1_7_0(db, ibs=None):
     """
     Ignore:
-        import ibeis
-        ibs = ibeis.opendb('testdb1')
+        import wbia
+        ibs = wbia.opendb('testdb1')
         ibs.annots().yaws
         ibs.annots().viewpoint_int
         codes = ibs.annots().viewpoint_code
@@ -1600,7 +1600,7 @@ def update_1_7_0(db, ibs=None):
 
 def post_1_7_0(db, ibs=None):
     if ibs is not None:
-        from ibeis.other import ibsfuncs
+        from wbia.other import ibsfuncs
         aids = db.get_all_rowids(const.ANNOTATION_TABLE)
 
         # Get old yaw values
@@ -1778,7 +1778,7 @@ def __test_db_version_table_constraints():
     TODO: make a script that generates an empty database at version X
 
     """
-    import ibeis
+    import wbia
     tmpdir = ut.ensuredir('tmpsqltestdir')
     ut.delete(tmpdir)
     tmpdir = ut.ensuredir('tmpsqltestdir')
@@ -1786,22 +1786,22 @@ def __test_db_version_table_constraints():
     ut.delete(tmpdir3)
     tmpdir3 = ut.ensuredir('tmpsqltestdir3')
     # Should not show contributor table
-    ibs1 = ibeis.opendb(dbdir=tmpdir, request_dbversion='1.0.0', use_cache=False)
+    ibs1 = wbia.opendb(dbdir=tmpdir, request_dbversion='1.0.0', use_cache=False)
     ibs1.db.print_schema()
     assert 'contributors' not in ibs1.db.get_table_names()
 
-    ibs2 = ibeis.opendb(dbdir=tmpdir, request_dbversion='1.0.3', use_cache=False)
+    ibs2 = wbia.opendb(dbdir=tmpdir, request_dbversion='1.0.3', use_cache=False)
     ibs2.db.print_schema()
     assert 'contributors' in ibs2.db.get_table_names()
     print(ibs2.db.get_schema_current_autogeneration_str('foo'))
 
     assert 'contributors_superkeys' in ut.get_list_column(ibs2.db.get_metadata_items(), 0)
 
-    ibs3 = ibeis.opendb(dbdir=tmpdir3,  use_cache=False)
+    ibs3 = wbia.opendb(dbdir=tmpdir3,  use_cache=False)
     ibs3.db.print_schema()
     assert 'contributors' in ibs1.db.get_table_names()
 
-    #ibeis.control.IBEISControl.__ALL_CONTROLLERS__
+    #wbia.control.IBEISControl.__ALL_CONTROLLERS__
 
     ibs1.db.close()
     ibs2.db.close()
@@ -1817,24 +1817,24 @@ def autogen_db_schema():
     autogen_db_schema
 
     CommandLine:
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --diff=1
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=-1
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=0
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=1
-        python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --write
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update --dump-autogen-schema
-        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema --diff=1
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema -n=-1
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema -n=0
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema -n=1
+        python -m wbia.control.DB_SCHEMA --force-incremental-db-update
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema --write
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update --dump-autogen-schema
+        python -m wbia.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update
 
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.DB_SCHEMA import *  # NOQA
+        >>> from wbia.control.DB_SCHEMA import *  # NOQA
         >>> autogen_db_schema()
     """
-    from ibeis.control import DB_SCHEMA
-    from ibeis.control import _sql_helpers
+    from wbia.control import DB_SCHEMA
+    from wbia.control import _sql_helpers
     n = ut.get_argval('-n', int, default=-1)
     schema_spec = DB_SCHEMA
     db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
@@ -1844,10 +1844,10 @@ def autogen_db_schema():
 def dump_schema_sql():
     """
     CommandLine:
-        python -m ibeis.control.DB_SCHEMA dump_schema_sql
+        python -m wbia.control.DB_SCHEMA dump_schema_sql
     """
-    from ibeis import dtool as dt
-    from ibeis.control import DB_SCHEMA_CURRENT
+    from wbia import dtool as dt
+    from wbia.control import DB_SCHEMA_CURRENT
     db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
     dump_str = db.dump_to_string()
@@ -1862,8 +1862,8 @@ def dump_schema_sql():
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.preproc.preproc_chip
-    python -m ibeis.control.DB_SCHEMA --allexamples
+    python -m wbia.algo.preproc.preproc_chip
+    python -m wbia.control.DB_SCHEMA --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

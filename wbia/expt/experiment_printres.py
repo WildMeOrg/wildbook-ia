@@ -41,20 +41,20 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
 def print_latexsum(ibs, testres, verbose=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         testres (?):
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --exec-print_latexsum
-        python -m ibeis.scripts.gen_cand_expts --exec-gen_script
+        python -m wbia.expt.experiment_printres --exec-print_latexsum
+        python -m wbia.scripts.gen_cand_expts --exec-gen_script
 
-        python -m ibeis --tf print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
-        python -m ibeis --tf print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
+        python -m wbia --tf print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
+        python -m wbia --tf print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.expt.experiment_printres import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_printres import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts()
         >>> tabular_str2 = print_latexsum(ibs, testres)
     """
@@ -110,7 +110,7 @@ def print_results(ibs, testres, **kwargs):
     TODO: join acfgs
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         testres (test_result.TestResult):
 
     CommandLine:
@@ -123,20 +123,20 @@ def print_results(ibs, testres, **kwargs):
             --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
         python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 \
             -t custom:rrvsone_on=True --print-confusion-stats
-        python -m ibeis print_results -t default --db PZ_MTEST -a ctrl
-        python -m ibeis print_results -t default --db PZ_MTEST -a ctrl
-        python -m ibeis print_results --db PZ_MTEST -a default
+        python -m wbia print_results -t default --db PZ_MTEST -a ctrl
+        python -m wbia print_results -t default --db PZ_MTEST -a ctrl
+        python -m wbia print_results --db PZ_MTEST -a default
             -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True \
             default:lnbnn_on=False,normonly_on=True
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --test-print_results
-        utprof.py -m ibeis.expt.experiment_printres --test-print_results
+        python -m wbia.expt.experiment_printres --test-print_results
+        utprof.py -m wbia.expt.experiment_printres --test-print_results
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_printres import *  # NOQA
-        >>> from ibeis.init import main_helpers
+        >>> from wbia.expt.experiment_printres import *  # NOQA
+        >>> from wbia.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts(
         >>>     'pz_mtest', a='default:dpername=1,qpername=[1,2]',
         >>>     t='default:fg_on=false')
@@ -215,7 +215,7 @@ def print_results(ibs, testres, **kwargs):
         #    'dinclude_aids2': list(gt_aids_expt2),
         #})
         #annotation_configs.varysize_pzm
-        #from ibeis.expt import annotation_configs
+        #from wbia.expt import annotation_configs
 
         acfg = testres.acfg_list[0]
         import copy
@@ -231,8 +231,8 @@ def print_results(ibs, testres, **kwargs):
         acfg2['qcfg']['default_aids'] = qaids_expt
         acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
 
-        from ibeis.init import filter_annots
-        from ibeis.expt import experiment_helpers
+        from wbia.init import filter_annots
+        from wbia.expt import experiment_helpers
 
         annots1 = filter_annots.expand_acfgs(ibs, acfg1, verbose=True)
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
@@ -335,9 +335,9 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.experiment_printres
-        python -m ibeis.expt.experiment_printres --allexamples
-        python -m ibeis.expt.experiment_printres --allexamples --noface --nosrc
+        python -m wbia.expt.experiment_printres
+        python -m wbia.expt.experiment_printres --allexamples
+        python -m wbia.expt.experiment_printres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

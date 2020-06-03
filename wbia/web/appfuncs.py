@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function
 import flask
 import random
-from ibeis import constants as const
+from wbia import constants as const
 from flask import request, current_app, url_for
 from os.path import join, dirname, abspath  # NOQA
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 from datetime import datetime
 from datetime import date
 import base64

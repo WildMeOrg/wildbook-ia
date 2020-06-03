@@ -16,8 +16,8 @@ from vtool_ibeis._pyflann_backend import pyflann as pyflann
 #import lockfile
 from os.path import basename
 from six.moves import range, zip, map  # NOQA
-from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
@@ -29,13 +29,13 @@ def get_support_data(qreq_, daid_list):
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index get_support_data --show
+        python -m wbia.algo.hots.neighbor_index get_support_data --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
         >>> daid_list = qreq_.daids
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
@@ -109,11 +109,11 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         tuple: (idx2_vec, idx2_fgw, idx2_ax, idx2_fx)
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index invert_index
+        python -m wbia.algo.hots.neighbor_index invert_index
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> rng = np.random.RandomState(42)
         >>> DIM_SIZE = 16
         >>> nFeat_list = [3, 0, 4, 1]
@@ -131,9 +131,9 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', a='default:species=zebra_plains', p='default:fgw_thresh=.999')
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', a='default:species=zebra_plains', p='default:fgw_thresh=.999')
         >>> vecs_list, fgws_list, fxs_list = get_support_data(qreq_, qreq_.daids)
         >>> ax_list = np.arange(len(vecs_list))
         >>> input_ = vecs_list, fgws_list, ax_list, fxs_list
@@ -195,7 +195,7 @@ class NeighborIndex(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
     ext     = '.flann'
@@ -270,12 +270,12 @@ class NeighborIndex(object):
             # changed')
             indexer.max_distance_sqrd = None
 
-    def add_ibeis_support(nnindexer, qreq_, new_daid_list,
+    def add_wbia_support(nnindexer, qreq_, new_daid_list,
                           verbose=ut.NOT_QUIET):
         r"""
         # TODO: ensure that the memcache changes appropriately
         """
-        from ibeis.algo.hots.neighbor_index import clear_memcache
+        from wbia.algo.hots.neighbor_index import clear_memcache
         clear_memcache()
         if verbose:
             print('[nnindex] request add %d annots to single-indexer' % (
@@ -299,7 +299,7 @@ class NeighborIndex(object):
             nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list,
                                   verbose=verbose)
 
-    def remove_ibeis_support(nnindexer, qreq_, remove_daid_list,
+    def remove_wbia_support(nnindexer, qreq_, remove_daid_list,
                              verbose=ut.NOT_QUIET):
         r"""
         # TODO: ensure that the memcache changes appropriately
@@ -307,14 +307,14 @@ class NeighborIndex(object):
         if verbose:
             print('[nnindex] request remove %d annots from single-indexer' %
                   (len(remove_daid_list)))
-        from ibeis.algo.hots.neighbor_index import clear_memcache
+        from wbia.algo.hots.neighbor_index import clear_memcache
         clear_memcache()
         nnindexer.remove_support(remove_daid_list, verbose=verbose)
 
     def remove_support(nnindexer, remove_daid_list, verbose=ut.NOT_QUIET):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-remove_support
+            python -m wbia.algo.hots.neighbor_index --test-remove_support
 
         SeeAlso:
             ~/code/flann/src/python/pyflann/index.py
@@ -323,7 +323,7 @@ class NeighborIndex(object):
             >>> # SLOW_DOCTEST
             >>> # xdoctest: +SKIP
             >>> # (IMPORTANT)
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = testdata_nnindexer(use_memcache=False)
             >>> remove_daid_list = [8, 9, 10, 11]
             >>> K = 2
@@ -383,11 +383,11 @@ class NeighborIndex(object):
             verbose (bool):  verbosity flag(default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-add_support
+            python -m wbia.algo.hots.neighbor_index --test-add_support
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = testdata_nnindexer(use_memcache=False)
             >>> new_daid_list = [2, 3, 4]
             >>> K = 2
@@ -561,14 +561,14 @@ class NeighborIndex(object):
             str: flann_cfgstr
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-get_cfgstr
+            python -m wbia.algo.hots.neighbor_index --test-get_cfgstr
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+            >>> import wbia
             >>> cfgdict = dict(fg_on=False)
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
+            >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
             >>> qreq_.load_indexer()
             >>> nnindexer = qreq_.indexer
             >>> noquery = True
@@ -639,12 +639,12 @@ class NeighborIndex(object):
                         distance is normalized squared euclidean distance.
 
         CommandLine:
-            python -m ibeis --tf NeighborIndex.knn:0 --debug2
-            python -m ibeis --tf NeighborIndex.knn:1
+            python -m wbia --tf NeighborIndex.knn:0 --debug2
+            python -m wbia --tf NeighborIndex.knn:1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> indexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
@@ -667,7 +667,7 @@ class NeighborIndex(object):
 
         Example2:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> indexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = np.empty((0, 128), dtype=indexer.get_dtype())
             >>> K = 2
@@ -727,13 +727,13 @@ class NeighborIndex(object):
         hack for iccv - this is a highly coupled function
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index requery_knn
+            python -m wbia.algo.hots.neighbor_index requery_knn
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', a='default')
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', a='default')
             >>> qreq_.load_indexer()
             >>> indexer = qreq_.indexer
             >>> qannot = qreq_.internal_qannots[1]
@@ -750,7 +750,7 @@ class NeighborIndex(object):
             >>> assert np.all(np.diff(qfx2_dist, axis=1) >= 0)
 
         """
-        from ibeis.algo.hots import requery_knn
+        from wbia.algo.hots import requery_knn
         if K == 0:
             (qfx2_idx, qfx2_dist) = indexer.empty_neighbors(len(qfx2_vec), 0)
         elif K > indexer.num_indexed:
@@ -860,14 +860,14 @@ class NeighborIndex(object):
                                 kth approximate nearest data vector
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --exec-get_nn_aids
+            python -m wbia.algo.hots.neighbor_index --exec-get_nn_aids
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+            >>> import wbia
             >>> cfgdict = dict(fg_on=False)
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False,dim_size=450,resize_dim=area')
+            >>> qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False,dim_size=450,resize_dim=area')
             >>> qreq_.load_indexer()
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(
@@ -911,7 +911,7 @@ class NeighborIndex(object):
         Gets forground weights of neighbors
 
         CommandLine:
-            python -m ibeis --tf NeighborIndex.get_nn_fgws
+            python -m wbia --tf NeighborIndex.get_nn_fgws
 
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
@@ -921,7 +921,7 @@ class NeighborIndex(object):
                                 kth forground weight
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = testdata_nnindexer(dbname='testdb1')
             >>> qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])
             >>> qfx2_fgw = nnindexer.get_nn_fgws(qfx2_nnidx)
@@ -1006,8 +1006,8 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
 
     # def conditional_knn(nnindexer, qfx2_vec, num_neighbors, invalid_axs):
     #     """
-    #         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-    #         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
+    #         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
+    #         >>> qreq_ = wbia.testdata_qreq_(defaultdb='seaturtles')
     #         >>> qreq_.load_indexer()
     #         >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
     #         >>> num_neighbors = 2
@@ -1022,16 +1022,16 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
 
 
 def testdata_nnindexer(*args, **kwargs):
-    from ibeis.algo.hots.neighbor_index_cache import testdata_nnindexer
+    from wbia.algo.hots.neighbor_index_cache import testdata_nnindexer
     return testdata_nnindexer(*args, **kwargs)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index
-        python -m ibeis.algo.hots.neighbor_index --allexamples
-        utprof.sh ibeis/algo/hots/neighbor_index.py --allexamples
+        python -m wbia.algo.hots.neighbor_index
+        python -m wbia.algo.hots.neighbor_index --allexamples
+        utprof.sh wbia/algo/hots/neighbor_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

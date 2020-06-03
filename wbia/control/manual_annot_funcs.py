@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Autogen:
-    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
+    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=age_m  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
@@ -10,13 +10,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import uuid
 import numpy as np
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
 import utool as ut
-from ibeis.other import ibsfuncs
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.other import ibsfuncs
+from wbia.control.controller_inject import make_ibs_register_decorator
 # from collections import namedtuple
-from ibeis.web import routes_ajax
+from wbia.web import routes_ajax
 import requests
 print, rrr, profile = ut.inject2(__name__)
 
@@ -24,7 +24,7 @@ print, rrr, profile = ut.inject2(__name__)
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 ANNOT_AGE_MONTHS_EST_MAX = 'annot_age_months_est_max'
@@ -227,8 +227,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         list: aid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-add_annots
-        python -m ibeis.control.manual_annot_funcs --test-add_annots --verbose --print-caller
+        python -m wbia.control.manual_annot_funcs --test-add_annots
+        python -m wbia.control.manual_annot_funcs --test-add_annots --verbose --print-caller
 
     Ignore:
        theta_list = None
@@ -249,9 +249,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> prevalid = ibs.get_valid_aids()
         >>> num_add = 2
         >>> gid_list = ibs.get_valid_gids()[0:num_add]
@@ -294,9 +294,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     Example2:
         >>> # Test with prevent_visual_duplicates on
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> prevalid = ibs.get_valid_aids()
         >>> num_add = 1
         >>> gid_list = ibs.get_valid_gids()[0:1] * num_add
@@ -469,13 +469,13 @@ def get_annot_visual_uuid_info(ibs, aid_list):
         get_annot_semantic_uuid_info
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
+        python -m wbia.control.manual_annot_funcs --test-get_annot_visual_uuid_info
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
         >>> result = str(list(zip(*visual_infotup))[0])
@@ -511,13 +511,13 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
+        python -m wbia.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
         >>> result = ut.repr2(list(zip(*semantic_infotup))[1])
@@ -569,21 +569,21 @@ def update_annot_visual_uuids(ibs, aid_list):
     Ensures that annots have the proper visual uuids
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids
-        python -m ibeis update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis update_annot_visual_uuids --db PZ_Master0
-        python -m ibeis update_annot_visual_uuids --db PZ_MTEST
+        python -m wbia.control.manual_annot_funcs update_annot_visual_uuids --db PZ_Master1
+        python -m wbia.control.manual_annot_funcs update_annot_visual_uuids
+        python -m wbia update_annot_visual_uuids --db PZ_Master1
+        python -m wbia update_annot_visual_uuids --db PZ_Master0
+        python -m wbia update_annot_visual_uuids --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> update_annot_visual_uuids(ibs, aid_list)
         >>> result = ibs.get_annot_visual_uuids(aid_list)[0]
@@ -646,7 +646,7 @@ def get_valid_aids(ibs, imgsetid=None,
           filtering value
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imgsetid (int): imageset id (default = None)
         include_only_gid_list (list): if specified filters annots not in these gids (default = None)
         yaw (str): (default = 'no-filter')
@@ -660,7 +660,7 @@ def get_valid_aids(ibs, imgsetid=None,
         list: aid_list - a list of valid ANNOTATION unique ids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
+        python -m wbia.control.manual_annot_funcs --test-get_valid_aids
 
     Ignore:
         ibs.print_annotation_table()
@@ -671,9 +671,9 @@ def get_valid_aids(ibs, imgsetid=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ut.exec_funckw(get_valid_aids, globals())
         >>> imgsetid = 1
         >>> yaw = 'no-filter'
@@ -692,9 +692,9 @@ def get_valid_aids(ibs, imgsetid=None,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
         >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
         >>> intersect_aids = set(aid_list1).intersection(aid_list2)
@@ -706,14 +706,14 @@ def get_valid_aids(ibs, imgsetid=None,
         import utool as ut
         setup = ut.codeblock(
             '''
-            import ibeis
-            ibs = ibeis.opendb('PZ_Master1')
+            import wbia
+            ibs = wbia.opendb('PZ_Master1')
             '''
         )
         stmt_list = [
             ut.codeblock(
                 '''
-                ibs.db.get_all_rowids_where(ibs.const.ANNOTATION_TABLE, ibeis.control.DB_SCHEMA.ANNOT_PARENT_ROWID + " IS NULL", tuple())
+                ibs.db.get_all_rowids_where(ibs.const.ANNOTATION_TABLE, wbia.control.DB_SCHEMA.ANNOT_PARENT_ROWID + " IS NULL", tuple())
                 '''),
             ut.codeblock(
                 '''
@@ -820,9 +820,9 @@ def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
     """ self verifier
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids() + [None, -1, 10434320432]
         >>> aid_list_ = ibs.get_annot_aid(aid_list)
         >>> assert [r is None for r in aid_list_[-3:]]
@@ -907,23 +907,23 @@ def delete_annots(ibs, aid_list):
         URL:    /api/annot/
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots --debug-api-cache
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots
+        python -m wbia.control.manual_annot_funcs --test-delete_annots
+        python -m wbia.control.manual_annot_funcs --test-delete_annots --debug-api-cache
+        python -m wbia.control.manual_annot_funcs --test-delete_annots
 
     SeeAlso:
         back.delete_annot
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> from os.path import exists
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> ibs.delete_empty_nids()
         >>> # Add some annotations to delete
         >>> num_add = 2
@@ -1122,14 +1122,14 @@ def get_annot_exemplar_flags(ibs, aid_list):
     returns if an annotation is an exemplar
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         list: annot_exemplar_flag_list - True if annotation is an exemplar
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_exemplar_flags
+        python -m wbia.control.manual_annot_funcs --test-get_annot_exemplar_flags
 
     RESTful:
         Method: GET
@@ -1137,9 +1137,9 @@ def get_annot_exemplar_flags(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> gid_list = get_annot_exemplar_flags(ibs, aid_list)
         >>> result = str(gid_list)
@@ -1171,9 +1171,9 @@ def get_annot_gids(ibs, aid_list, assume_unique=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_gids(ibs, aid_list)
         >>> print(result)
@@ -1208,9 +1208,9 @@ def get_annot_imgsetids(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_gids(ibs, aid_list)
         >>> print(result)
@@ -1291,17 +1291,17 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
     annotation is from.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids;1
+        python -m wbia.control.manual_annot_funcs --test-get_annot_contact_aids;1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
@@ -1313,9 +1313,9 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
@@ -1374,9 +1374,9 @@ def get_annot_groundfalse(ibs, aid_list, valid_aids=None,
 
     Example:
        >>> # ENABLE_DOCTEST
-       >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-       >>> import ibeis
-       >>> ibs = ibeis.opendb('testdb1')
+       >>> from wbia.control.manual_annot_funcs import *  # NOQA
+       >>> import wbia
+       >>> ibs = wbia.opendb('testdb1')
        >>> aid_list = ibs.get_valid_aids()
        >>> groundfalse_list = get_annot_groundfalse(ibs, aid_list)
        >>> result = str(groundfalse_list)
@@ -1428,16 +1428,16 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         a groundtruth.  A list of these is called a groundtruth_list.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2
+        python -m wbia.control.manual_annot_funcs --test-get_annot_groundtruth:0
+        python -m wbia.control.manual_annot_funcs --test-get_annot_groundtruth:1
+        python -m wbia.control.manual_annot_funcs --test-get_annot_groundtruth:2
         python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ut.get_argval('--aids', list, ibs.get_valid_aids())
         >>> is_exemplar, noself, daid_list = None, True, None
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
@@ -1447,9 +1447,9 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> is_exemplar, noself, daid_list = True, True, None
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
@@ -1459,9 +1459,9 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> is_exemplar, noself, daid_list = False, False, aid_list
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
@@ -1516,13 +1516,13 @@ def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid
         list: has_gt_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_has_groundtruth
+        python -m wbia.control.manual_annot_funcs --test-get_annot_has_groundtruth
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> is_exemplar = None
         >>> noself = True
@@ -1588,7 +1588,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
     builds an aggregate semantic hash id for a list of aids
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
         prefix (str): (default = '')
         _new (bool): Eventually we will change the hashing scheme and all old
@@ -1598,13 +1598,13 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
         str: semantic_uuid_hashid
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_hashid_semantic_uuid
+        python -m wbia.control.manual_annot_funcs --test-get_annot_hashid_semantic_uuid
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> annots = ibs.annots()
         >>> prefix = ''
@@ -1634,7 +1634,7 @@ def get_annot_thetas(ibs, aid_list):
         theta_list (list): a list of floats describing the angles of each chip
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_thetas
+        python -m wbia.control.manual_annot_funcs --test-get_annot_thetas
 
     RESTful:
         Method: GET
@@ -1642,9 +1642,9 @@ def get_annot_thetas(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('NAUT_test')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_thetas(ibs, aid_list)
         >>> print(result)
@@ -1700,11 +1700,11 @@ def get_annot_semantic_uuids(ibs, aid_list):
         list: annot_semantic_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuids
+        python -m wbia.control.manual_annot_funcs --test-get_annot_semantic_uuids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
@@ -1740,11 +1740,11 @@ def get_annot_visual_uuids(ibs, aid_list):
         list: annot_visual_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuids
+        python -m wbia.control.manual_annot_funcs --test-get_annot_visual_uuids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -1773,7 +1773,7 @@ def get_annot_verts(ibs, aid_list):
         Method: GET
         URL:    /api/annot/vert/
     """
-    from ibeis.algo.preproc import preproc_annot
+    from wbia.algo.preproc import preproc_annot
     vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
     vert_list = preproc_annot.postget_annot_verts(vertstr_list)
     #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
@@ -1825,13 +1825,13 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         tau = 2 * pi
 
     SeeAlso:
-        ibeis.const.VIEWTEXT_TO_YAW_RADIANS
+        wbia.const.VIEWTEXT_TO_YAW_RADIANS
 
     Returns:
         yaw_list (list): the yaw (in radians) for the annotation
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_yaws
+        python -m wbia.control.manual_annot_funcs --test-get_annot_yaws
 
     RESTful:
         Method: GET
@@ -1839,9 +1839,9 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::3]
         >>> result = get_annot_yaws(ibs, aid_list)
         >>> print(result)
@@ -1932,14 +1932,14 @@ def get_annot_staged_flags(ibs, aid_list):
     returns if an annotation is staged
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         list: annot_staged_flag_list - True if annotation is staged
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_flags
+        python -m wbia.control.manual_annot_funcs --test-get_annot_staged_flags
 
     RESTful:
         Method: GET
@@ -1947,9 +1947,9 @@ def get_annot_staged_flags(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> gid_list = get_annot_staged_flags(ibs, aid_list)
         >>> result = str(gid_list)
@@ -1984,14 +1984,14 @@ def get_annot_staged_user_ids(ibs, aid_list):
     returns if an annotation is staged
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         list: annot_staged_user_id_list - True if annotation is staged
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_user_ids
+        python -m wbia.control.manual_annot_funcs --test-get_annot_staged_user_ids
 
     RESTful:
         Method: GET
@@ -1999,9 +1999,9 @@ def get_annot_staged_user_ids(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> gid_list = get_annot_staged_user_ids(ibs, aid_list)
         >>> result = str(gid_list)
@@ -2050,9 +2050,9 @@ def set_annot_viewpoint_int(ibs, aids, view_ints, _code_update=True):
 def get_annot_viewpoint_code(ibs, aids):
     """
     Doctest:
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::3]
         >>> result = get_annot_viewpoint_code(ibs, aid_list)
         >>> print(result)
@@ -2102,7 +2102,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
             (tau = 2 * pi)
 
     SeeAlso:
-        ibeis.const.VIEWTEXT_TO_YAW_RADIANS
+        wbia.const.VIEWTEXT_TO_YAW_RADIANS
 
     References:
         http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png
@@ -2158,13 +2158,13 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
         ]
         update_aid_list = ut.compress(aid_list, flag_list)
         try:
-            ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
+            ibs.wbia_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
         except Exception:
             message = 'Could not purge CurvRankDorsal cache for viewpoint'
             # raise RuntimeError(message)
             print(message)
         try:
-            ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankFinfindrHybridDorsal')
+            ibs.wbia_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankFinfindrHybridDorsal')
         except Exception:
             message = 'Could not purge CurvRankFinfindrHybridDorsal cache for viewpoint'
             # raise RuntimeError(message)
@@ -2228,15 +2228,15 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         list_ (list): number of other chips with the same name
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
+        python -m wbia.control.manual_annot_funcs --test-get_annot_num_groundtruth
+        python -m wbia.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
+        python -m wbia.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> noself = True
         >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
@@ -2245,9 +2245,9 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> noself = False
         >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
@@ -2300,7 +2300,7 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
         list_ (list): a list of part rowids for each image by aid
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
 
     Returns:
@@ -2338,14 +2338,14 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_uniqu
         list_ (list): the name id of each annotation.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_name_rowids
+        python -m wbia.control.manual_annot_funcs --exec-get_annot_name_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> from ibeis import constants as const
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia import constants as const
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
         >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
@@ -2422,13 +2422,13 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
         URL:    /api/annot/name/text/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_name_texts
+        python -m wbia.control.manual_annot_funcs --test-get_annot_name_texts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
         >>> result = ut.repr2(get_annot_name_texts(ibs, aid_list), nl=False)
         >>> print(result)
@@ -2436,9 +2436,9 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
         >>> result = ut.repr2(get_annot_name_texts(ibs, aid_list, True), nl=False)
         >>> print(result)
@@ -2484,13 +2484,13 @@ def get_annot_species_texts(ibs, aid_list):
         identifying the species
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
+        python -m wbia.control.manual_annot_funcs --test-get_annot_species_texts
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1::3]
         >>> result = ut.repr2(get_annot_species_texts(ibs, aid_list), nl=False)
         >>> print(result)
@@ -2498,9 +2498,9 @@ def get_annot_species_texts(ibs, aid_list):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> species_list = get_annot_species_texts(ibs, aid_list)
         >>> result = ut.repr2(list(set(species_list)), nl=False)
@@ -2615,26 +2615,26 @@ def get_annot_image_unixtimes(ibs, aid_list, **kwargs):
 def get_annot_image_unixtimes_asfloat(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
 
     Returns:
         list: unixtime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
+        python -m wbia.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> unixtime_list = get_annot_image_unixtimes_asfloat(ibs, aid_list)
         >>> result = ('unixtime_list = %s' % (str(unixtime_list),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
@@ -2647,20 +2647,20 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
 def get_annot_image_datetime_str(ibs, aid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (int):  list of annotation ids
 
     Returns:
         list: datetime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_datetime_str
+        python -m wbia.control.manual_annot_funcs --test-get_annot_image_datetime_str
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> datetime_list = get_annot_image_datetime_str(ibs, aid_list)
         >>> result = str(datetime_list)
@@ -2744,7 +2744,7 @@ def get_annot_image_uuids(ibs, aid_list):
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_uuids --enableall
+        python -m wbia.control.manual_annot_funcs --test-get_annot_image_uuids --enableall
 
     RESTful:
         Method: GET
@@ -2752,9 +2752,9 @@ def get_annot_image_uuids(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> result = get_annot_image_uuids(ibs, aid_list)
         >>> print(result)
@@ -2778,13 +2778,13 @@ def get_annot_images(ibs, aid_list):
         list of ndarrays: the images of each annotation
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_images
+        python -m wbia.control.manual_annot_funcs --test-get_annot_images
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> image_list = ibs.get_annot_images(aid_list)
         >>> result = str(list(map(np.shape, image_list)))
@@ -2876,9 +2876,9 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> # check clean state
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
@@ -2897,8 +2897,8 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
     """
     assert len(aid_list) == len(name_rowid_list), 'misaligned'
-    import ibeis
-    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
+    import wbia
+    if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
         try:
             ibs.wildbook_signal_annot_name_changes(aid_list)
         except requests.exceptions.ConnectionError:
@@ -2933,7 +2933,7 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
     list of annotations.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_names --enableall
+        python -m wbia.control.manual_annot_funcs --test-set_annot_names --enableall
 
     RESTful:
         Method: PUT
@@ -2941,9 +2941,9 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> name_list1 = get_annot_names(ibs, aid_list)
         >>> name_list2 = [name + '_TESTAUG' for name in name_list1]
@@ -3058,15 +3058,15 @@ def set_annot_metadata(ibs, aid_list, metadata_dict_list):
         URL:    /api/annot/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+        python -m wbia.control.manual_annot_funcs --test-set_annot_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
@@ -3143,7 +3143,7 @@ def _update_annot_rotate_fix_bbox(bbox):
 
 
 def update_annot_rotate_90(ibs, aid_list, direction):
-    from ibeis.constants import PI, TAU
+    from wbia.constants import PI, TAU
 
     if isinstance(direction, six.string_types):
         direction = direction.lower()
@@ -3270,7 +3270,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     Returns paths to probability images.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):  list of annotation rowids
         config2_ (dict): (default = None)
 
@@ -3278,20 +3278,20 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         list: probchip_fpath_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show
+        python -m wbia.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()[0:10]
         >>> config2_ = {'fw_detector': 'cnn'}
         >>> probchip_fpath_list = get_annot_probchip_fpath(ibs, aid_list, config2_)
         >>> result = ('probchip_fpath_list = %s' % (str(probchip_fpath_list),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list, nPerPage=4)
         >>> iteract_obj.start()
         >>> ut.show_if_requested()
@@ -3327,7 +3327,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
         tbl = annot
 
     SeeAlso:
-        ibeis.const.QUALITY_INT_TO_TEXT
+        wbia.const.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: GET
@@ -3335,7 +3335,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
@@ -3371,7 +3371,7 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
         annot_quality_list
 
     SeeAlso:
-        ibeis.const.QUALITY_INT_TO_TEXT
+        wbia.const.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: PUT
@@ -3535,7 +3535,7 @@ def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
@@ -3570,7 +3570,7 @@ def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
@@ -3806,17 +3806,17 @@ def get_annot_image_set_texts(ibs, aid_list):
 def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         partial_uuid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annots_from_partial_uuids
+        python -m wbia.control.manual_annot_funcs --test-get_annots_from_partial_uuids
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
         >>> vuuids = ibs.get_annot_visual_uuids(aid_list)
         >>> partial_vuuid_strs = [u[0:4] for u in map(str, vuuids)]
@@ -3888,7 +3888,7 @@ def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
@@ -3963,9 +3963,9 @@ def get_annot_multiple(ibs, aid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> flag_list = get_annot_multiple(ibs, aid_list)
         >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
@@ -4003,9 +4003,9 @@ def get_annot_interest(ibs, aid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> flag_list = get_annot_interest(ibs, aid_list)
         >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
@@ -4027,9 +4027,9 @@ def get_annot_canonical(ibs, aid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> flag_list = get_annot_canonical(ibs, aid_list)
         >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
@@ -4157,15 +4157,15 @@ def set_annot_staged_metadata(ibs, aid_list, metadata_dict_list):
         URL:    /api/annot/staged/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+        python -m wbia.control.manual_annot_funcs --test-set_annot_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
         >>> import random
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
@@ -4200,8 +4200,8 @@ def testdata_ibs():
     r"""
     Auto-docstr for 'testdata_ibs'
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
 
@@ -4209,9 +4209,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs
-        python -m ibeis.control.manual_annot_funcs --allexamples
-        python -m ibeis.control.manual_annot_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_annot_funcs
+        python -m wbia.control.manual_annot_funcs --allexamples
+        python -m wbia.control.manual_annot_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

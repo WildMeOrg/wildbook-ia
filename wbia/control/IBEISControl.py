@@ -2,7 +2,7 @@
 """
 This module contains the definition of IBEISController. This object
 allows access to a single database. Construction of this object should be
-done using ibeis.opendb().
+done using wbia.opendb().
 
 TODO:
     Module Licence and docstring
@@ -26,7 +26,7 @@ Note:
       functions that will be injected into an IBEISController object
 
     Recently, these functions have been enumerated in
-      ibeis.control._autogen_explicit_controller.py,
+      wbia.control._autogen_explicit_controller.py,
       and explicitly added to the
 
     controller using subclassing.
@@ -35,17 +35,17 @@ Note:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from ibeis import dtool
+from wbia import dtool
 import atexit
 import weakref
 import utool as ut
 import ubelt as ub
 from six.moves import zip
 from os.path import join, split
-from ibeis.init import sysres
-from ibeis.dbio import ingest_hsdb
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
+from wbia.init import sysres
+from wbia.dbio import ingest_hsdb
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__)
@@ -55,86 +55,86 @@ from ibeis.control import accessor_decors, controller_inject
 # tuples represent conditional imports with the flags in the first part of the
 # tuple and the modname in the second
 AUTOLOAD_PLUGIN_MODNAMES = [
-    'ibeis.annotmatch_funcs',
-    'ibeis.tag_funcs',
-    'ibeis.annots',
-    'ibeis.images',
-    'ibeis.other.ibsfuncs',
-    'ibeis.other.detectfuncs',
-    'ibeis.other.detectcore',
-    'ibeis.other.detectgrave',
-    'ibeis.other.detecttrain',
-    'ibeis.init.filter_annots',
-    'ibeis.control.manual_featweight_funcs',
-    'ibeis.control._autogen_party_funcs',
-    'ibeis.control.manual_annotmatch_funcs',
-    'ibeis.control.manual_ibeiscontrol_funcs',
-    'ibeis.control.manual_wildbook_funcs',
-    'ibeis.control.manual_meta_funcs',
-    'ibeis.control.manual_lbltype_funcs',   # DEPRICATE
-    'ibeis.control.manual_lblannot_funcs',  # DEPRICATE
-    'ibeis.control.manual_lblimage_funcs',  # DEPRICATE
-    'ibeis.control.manual_image_funcs',
-    'ibeis.control.manual_imageset_funcs',
-    'ibeis.control.manual_gsgrelate_funcs',
-    'ibeis.control.manual_garelate_funcs',
-    'ibeis.control.manual_annot_funcs',
-    'ibeis.control.manual_part_funcs',
-    'ibeis.control.manual_name_funcs',
-    'ibeis.control.manual_review_funcs',
-    'ibeis.control.manual_test_funcs',
-    'ibeis.control.manual_species_funcs',
-    'ibeis.control.manual_annotgroup_funcs',
-    #'ibeis.control.manual_dependant_funcs',
-    'ibeis.control.manual_chip_funcs',
-    'ibeis.control.manual_feat_funcs',
-    #'ibeis.algo.hots.query_request',
-    'ibeis.control.docker_control',
-    'ibeis.web.apis_detect',
-    'ibeis.web.apis_engine',
-    'ibeis.web.apis_query',
-    'ibeis.web.apis_sync',
-    'ibeis.web.apis',
-    'ibeis.core_images',
-    'ibeis.core_annots',
-    'ibeis.core_parts',
-    'ibeis.algo.smk.vocab_indexer',
-    'ibeis.algo.smk.smk_pipeline',
+    'wbia.annotmatch_funcs',
+    'wbia.tag_funcs',
+    'wbia.annots',
+    'wbia.images',
+    'wbia.other.ibsfuncs',
+    'wbia.other.detectfuncs',
+    'wbia.other.detectcore',
+    'wbia.other.detectgrave',
+    'wbia.other.detecttrain',
+    'wbia.init.filter_annots',
+    'wbia.control.manual_featweight_funcs',
+    'wbia.control._autogen_party_funcs',
+    'wbia.control.manual_annotmatch_funcs',
+    'wbia.control.manual_wbiacontrol_funcs',
+    'wbia.control.manual_wildbook_funcs',
+    'wbia.control.manual_meta_funcs',
+    'wbia.control.manual_lbltype_funcs',   # DEPRICATE
+    'wbia.control.manual_lblannot_funcs',  # DEPRICATE
+    'wbia.control.manual_lblimage_funcs',  # DEPRICATE
+    'wbia.control.manual_image_funcs',
+    'wbia.control.manual_imageset_funcs',
+    'wbia.control.manual_gsgrelate_funcs',
+    'wbia.control.manual_garelate_funcs',
+    'wbia.control.manual_annot_funcs',
+    'wbia.control.manual_part_funcs',
+    'wbia.control.manual_name_funcs',
+    'wbia.control.manual_review_funcs',
+    'wbia.control.manual_test_funcs',
+    'wbia.control.manual_species_funcs',
+    'wbia.control.manual_annotgroup_funcs',
+    #'wbia.control.manual_dependant_funcs',
+    'wbia.control.manual_chip_funcs',
+    'wbia.control.manual_feat_funcs',
+    #'wbia.algo.hots.query_request',
+    'wbia.control.docker_control',
+    'wbia.web.apis_detect',
+    'wbia.web.apis_engine',
+    'wbia.web.apis_query',
+    'wbia.web.apis_sync',
+    'wbia.web.apis',
+    'wbia.core_images',
+    'wbia.core_annots',
+    'wbia.core_parts',
+    'wbia.algo.smk.vocab_indexer',
+    'wbia.algo.smk.smk_pipeline',
 
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
     (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
-    # 'ibeis_plugin_identification_example',
+    # 'wbia_plugin_identification_example',
 ]
 
 if ut.get_argflag('--deepsense'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-deepsense', '--nodeepsense'), 'ibeis_deepsense._plugin'),
+        (('--no-deepsense', '--nodeepsense'), 'wbia_deepsense._plugin'),
     ]
 
 if ut.get_argflag('--finfindr'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-finfindr', '--nofinfindr'), 'ibeis_finfindr._plugin'),
+        (('--no-finfindr', '--nofinfindr'), 'wbia_finfindr._plugin'),
     ]
 
 if ut.get_argflag('--kaggle7') or ut.get_argflag('--kaggleseven'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-kaggle7', '--nokaggle7', '--no-kaggleseven', '--nokaggleseven'), 'ibeis_kaggle7._plugin'),
+        (('--no-kaggle7', '--nokaggle7', '--no-kaggleseven', '--nokaggleseven'), 'wbia_kaggle7._plugin'),
     ]
 
 if ut.get_argflag('--orient2d'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-2d-orient', '--no2dorient'), 'ibeis_2d_orientation._plugin'),
+        (('--no-2d-orient', '--no2dorient'), 'wbia_2d_orientation._plugin'),
     ]
 
 
 """
 # Should import
-python -c "import ibeis"
+python -c "import wbia"
 # Should not import
-python -c "import ibeis" --no-cnn
-UTOOL_NO_CNN=True python -c "import ibeis"
+python -c "import wbia" --no-cnn
+UTOOL_NO_CNN=True python -c "import wbia"
 """
 
 for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
@@ -157,8 +157,8 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.  THE Long term solution is to get these
 # working (which are partially integrated)
-#     python -m ibeis dev_autogen_explicit_imports
-#     python -m ibeis dev_autogen_explicit_injects
+#     python -m wbia dev_autogen_explicit_imports
+#     python -m wbia dev_autogen_explicit_injects
 
 # Ensure that all injectable modules are imported before constructing the
 # class instance
@@ -169,15 +169,15 @@ try:
         raise ImportError
     else:
         """
-        python -m ibeis dev_autogen_explicit_injects
+        python -m wbia dev_autogen_explicit_injects
         """
-        from ibeis.control import _autogen_explicit_controller
+        from wbia.control import _autogen_explicit_controller
         BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
 except ImportError:
     BASE_CLASS = object
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
@@ -198,7 +198,7 @@ def request_IBEISController(
         ensure    (bool):
         wbaddr    (None):
         verbose   (bool):
-        use_cache (bool): use the global ibeis controller cache.
+        use_cache (bool): use the global wbia controller cache.
             Make sure this is false if calling from a Thread. (default=True)
         request_dbversion (str): developer flag. Do not use.
         request_stagingversion (str): developer flag. Do not use.
@@ -207,11 +207,11 @@ def request_IBEISController(
         IBEISController: ibs
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-request_IBEISController
+        python -m wbia.control.IBEISControl --test-request_IBEISController
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from wbia.control.IBEISControl import *  # NOQA
         >>> dbdir = 'testdb1'
         >>> ensure = True
         >>> wbaddr = None
@@ -229,11 +229,11 @@ def request_IBEISController(
             print('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
         if force_serial:
-            assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
+            assert ibs.force_serial, 'set use_cache=False in wbia.opendb'
     else:
         # Convert hold hotspotter dirs if necessary
         if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
-            ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
+            ibs = ingest_hsdb.convert_hsdb_to_wbia(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
                                                     verbose=verbose)
         else:
@@ -362,14 +362,14 @@ class IBEISController(BASE_CLASS):
     def show_depc_image_graph(ibs, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+            python -m wbia.control.IBEISControl --test-show_depc_image_graph --show
+            python -m wbia.control.IBEISControl --test-show_depc_image_graph --show --reduced
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia  # NOQA
+            >>> ibs = wbia.opendb('testdb1')
             >>> reduced = ut.get_argflag('--reduced')
             >>> ibs.show_depc_image_graph(reduced=reduced)
             >>> ut.show_if_requested()
@@ -379,14 +379,14 @@ class IBEISController(BASE_CLASS):
     def show_depc_annot_graph(ibs, *args, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show --reduced
+            python -m wbia.control.IBEISControl --test-show_depc_annot_graph --show
+            python -m wbia.control.IBEISControl --test-show_depc_annot_graph --show --reduced
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia  # NOQA
+            >>> ibs = wbia.opendb('testdb1')
             >>> reduced = ut.get_argflag('--reduced')
             >>> ibs.show_depc_annot_graph(reduced=reduced)
             >>> ut.show_if_requested()
@@ -396,15 +396,15 @@ class IBEISController(BASE_CLASS):
     def show_depc_annot_table_input(ibs, tablename, *args, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs --testmode
+            python -m wbia.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
+            python -m wbia.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+            python -m wbia.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs --testmode
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia  # NOQA
+            >>> ibs = wbia.opendb('testdb1')
             >>> tablename = ut.get_argval('--tablename')
             >>> ibs.show_depc_annot_table_input(tablename)
             >>> ut.show_if_requested()
@@ -535,7 +535,7 @@ class IBEISController(BASE_CLASS):
     @profile
     def _init_sql(ibs, request_dbversion=None, request_stagingversion=None):
         """ Load or create sql database """
-        from ibeis.other import duct_tape  # NOQA
+        from wbia.other import duct_tape  # NOQA
         # LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE
         # CALLS TO THE CORE DATABASE WILL HAVE ACCESS TO THE CACHE DATABASES IF
         # THEY ARE NEEDED.  THIS IS A DECISION MADE ON 8/16/16 BY JP AND JC TO
@@ -563,12 +563,12 @@ class IBEISController(BASE_CLASS):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> #ibs = ibeis.opendb('PZ_MTEST')
-            >>> #ibs = ibeis.opendb('PZ_Master0')
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> #ibs = ibeis.opendb('PZ_Master0')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia  # NOQA
+            >>> #ibs = wbia.opendb('PZ_MTEST')
+            >>> #ibs = wbia.opendb('PZ_Master0')
+            >>> ibs = wbia.opendb('testdb1')
+            >>> #ibs = wbia.opendb('PZ_Master0')
 
         Ignore:
             aid_list = ibs.get_valid_aids()
@@ -582,8 +582,8 @@ class IBEISController(BASE_CLASS):
 
             ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
         """
-        from ibeis.control import _sql_helpers
-        from ibeis.control import DB_SCHEMA
+        from wbia.control import _sql_helpers
+        from wbia.control import DB_SCHEMA
         # Before load, ensure database has been backed up for the day
         backup_idx = ut.get_argval('--loadbackup', type_=int, default=None)
         sqldb_fpath = None
@@ -648,12 +648,12 @@ class IBEISController(BASE_CLASS):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> #ibs = ibeis.opendb('PZ_MTEST')
-            >>> #ibs = ibeis.opendb('PZ_Master0')
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> #ibs = ibeis.opendb('PZ_Master0')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia  # NOQA
+            >>> #ibs = wbia.opendb('PZ_MTEST')
+            >>> #ibs = wbia.opendb('PZ_Master0')
+            >>> ibs = wbia.opendb('testdb1')
+            >>> #ibs = wbia.opendb('PZ_Master0')
 
         Ignore:
             aid_list = ibs.get_valid_aids()
@@ -667,8 +667,8 @@ class IBEISController(BASE_CLASS):
 
             ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
         """
-        from ibeis.control import _sql_helpers
-        from ibeis.control import STAGING_SCHEMA
+        from wbia.control import _sql_helpers
+        from wbia.control import STAGING_SCHEMA
         # Before load, ensure database has been backed up for the day
         backup_idx = ut.get_argval('--loadbackup-staging', type_=int, default=None)
         sqlstaging_fpath = None
@@ -806,7 +806,7 @@ class IBEISController(BASE_CLASS):
         return ibs2
 
     def backup_database(ibs):
-        from ibeis.control import _sql_helpers
+        from wbia.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
                                      ibs.backupdir)
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqlstaging_fname,
@@ -831,7 +831,7 @@ class IBEISController(BASE_CLASS):
         return response
 
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
-                   workdir='~/ibeis_workdir', ensure=True):
+                   workdir='~/wbia_workdir', ensure=True):
         """
         Define ibs directories
         """
@@ -865,7 +865,7 @@ class IBEISController(BASE_CLASS):
         ibs.chipdir     = join(ibs.dbdir, REL_PATHS.chips)
         ibs.imgdir      = join(ibs.dbdir, REL_PATHS.images)
         ibs.uploadsdir  = join(ibs.dbdir, REL_PATHS.uploads)
-        # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+        # All computed dirs live in <dbdir>/_ibsdb/_wbia_cache
         ibs.thumb_dpath = join(ibs.dbdir, REL_PATHS.thumbs)
         ibs.flanndir    = join(ibs.dbdir, REL_PATHS.flann)
         ibs.qresdir     = join(ibs.dbdir, REL_PATHS.qres)
@@ -933,7 +933,7 @@ class IBEISController(BASE_CLASS):
         if const.CONTAINERIZED:
             return ibs.get_logdir_local()
         else:
-            return ut.get_logging_dir(appname='ibeis')
+            return ut.get_logging_dir(appname='wbia')
 
     def get_dbdir(ibs):
         """ database dir with ibs internal directory """
@@ -999,13 +999,13 @@ class IBEISController(BASE_CLASS):
         ut.ensuredir(match_thumb_dir)
         return match_thumb_dir
 
-    def get_ibeis_resource_dir(ibs):
+    def get_wbia_resource_dir(ibs):
         """ returns the global resource dir in .config or AppData or whatever """
-        resource_dir = sysres.get_ibeis_resource_dir()
+        resource_dir = sysres.get_wbia_resource_dir()
         return resource_dir
 
     def get_detect_modeldir(ibs):
-        return join(sysres.get_ibeis_resource_dir(), 'detectmodels')
+        return join(sysres.get_wbia_resource_dir(), 'detectmodels')
 
     def get_detectimg_cachedir(ibs):
         """
@@ -1051,14 +1051,14 @@ class IBEISController(BASE_CLASS):
             str smart_patrol_dpath
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_smart_patrol_dir
+            python -m wbia.control.IBEISControl --test-get_smart_patrol_dir
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia
             >>> # build test data
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs = wbia.opendb('testdb1')
             >>> ensure = True
             >>> # execute function
             >>> smart_patrol_dpath = ibs.get_smart_patrol_dir(ensure)
@@ -1078,16 +1078,16 @@ class IBEISController(BASE_CLASS):
     def get_current_log_text(ibs):
         r"""
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
+            python -m wbia.control.IBEISControl --exec-get_current_log_text
+            python -m wbia.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
 
         Example:
             >>> # xdoctest: +REQUIRES(--web)
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> import ibeis.web
-            >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=.5, start_job_queue=False)
-            >>> resp = web_ibs.send_ibeis_request('/log/current/', 'get')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia
+            >>> import wbia.web
+            >>> web_ibs = wbia.opendb_bg_web('testdb1', wait=.5, start_job_queue=False)
+            >>> resp = web_ibs.send_wbia_request('/log/current/', 'get')
             >>> print('\n-------Logs ----: \n' )
             >>> print(resp)
             >>> print('\nL____ END LOGS ___\n')
@@ -1098,7 +1098,7 @@ class IBEISController(BASE_CLASS):
 
     @register_api('/api/core/db/info/', methods=['GET'])
     def get_dbinfo(ibs):
-        from ibeis.other import dbinfo
+        from wbia.other import dbinfo
         locals_ = dbinfo.get_dbinfo(ibs)
         return locals_['info_str']
         #return ut.repr2(dbinfo.get_dbinfo(ibs), nl=1)['infostr']
@@ -1109,8 +1109,8 @@ class IBEISController(BASE_CLASS):
 
     def copy_database(ibs, dest_dbdir):
         # TODO: rectify with rsync, script, and merge script.
-        from ibeis.init import sysres
-        sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
+        from wbia.init import sysres
+        sysres.copy_wbiadb(ibs.get_dbdir(), dest_dbdir)
 
     def dump_database_csv(ibs):
         dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
@@ -1126,17 +1126,17 @@ class IBEISController(BASE_CLASS):
             None: None
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show --db Oxford
+            python -m wbia.control.IBEISControl --exec-get_database_icon --show
+            python -m wbia.control.IBEISControl --exec-get_database_icon --show --db Oxford
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> from wbia.control.IBEISControl import *  # NOQA
+            >>> import wbia
+            >>> ibs = wbia.opendb(defaultdb='testdb1')
             >>> icon = ibs.get_database_icon()
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.imshow(icon)
             >>> ut.show_if_requested()
         """
@@ -1191,13 +1191,13 @@ class IBEISController(BASE_CLASS):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> import ibeis
+            >>> import wbia
             >>> from six.moves import cPickle as pickle
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs = wbia.opendb('testdb1')
             >>> ibs_dump = pickle.dumps(ibs)
             >>> ibs2 = pickle.loads(ibs_dump)
         """
-        # Hack to allow for ibeis objects to be pickled
+        # Hack to allow for wbia objects to be pickled
         state = {
             'dbdir': ibs.get_dbdir(),
             'machine_name': ut.get_computer_name(),
@@ -1205,23 +1205,23 @@ class IBEISController(BASE_CLASS):
         return state
 
     def __setstate__(ibs, state):
-        # Hack to allow for ibeis objects to be pickled
-        import ibeis
+        # Hack to allow for wbia objects to be pickled
+        import wbia
         dbdir = state['dbdir']
         machine_name = state.pop('machine_name')
         try:
             assert machine_name == ut.get_computer_name(), (
-                'ibeis objects can only be picked and unpickled on the same machine')
+                'wbia objects can only be picked and unpickled on the same machine')
         except AssertionError as ex:
             iswarning = ut.checkpath(dbdir)
             ut.printex(ex, iswarning=iswarning)
             if not iswarning:
                 raise
-        ibs2 = ibeis.opendb(dbdir=dbdir, web=False)
+        ibs2 = wbia.opendb(dbdir=dbdir, web=False)
         ibs.__dict__.update(**ibs2.__dict__)
 
     def predict_ws_injury_interim_svm(ibs, aids):
-        from ibeis.scripts import classify_shark
+        from wbia.scripts import classify_shark
         return classify_shark.predict_ws_injury_interim_svm(ibs, aids)
 
     def get_web_port_via_scan(ibs, url_base='127.0.0.1', port_base=5000,
@@ -1254,15 +1254,15 @@ class IBEISController(BASE_CLASS):
 if __name__ == '__main__':
     """
     Issue when running on windows:
-    python ibeis/control/IBEISControl.py
-    python -m ibeis.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass
+    python wbia/control/IBEISControl.py
+    python -m wbia.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass
 
     CommandLine:
-        python -m ibeis.control.IBEISControl
-        python -m ibeis.control.IBEISControl --allexamples
-        python -m ibeis.control.IBEISControl --allexamples --noface --nosrc
+        python -m wbia.control.IBEISControl
+        python -m wbia.control.IBEISControl --allexamples
+        python -m wbia.control.IBEISControl --allexamples --noface --nosrc
     """
-    #from ibeis.control import IBEISControl
+    #from wbia.control import IBEISControl
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA

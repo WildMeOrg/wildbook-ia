@@ -5,7 +5,7 @@ import pandas as pd
 import vtool_ibeis as vt  # NOQA
 import networkx as nx
 import opengm
-import ibeis.plottool as pt  # NOQA
+import wbia.plottool as pt  # NOQA
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
@@ -352,7 +352,7 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
             valueNotEqual = same_weight
             if not np.isfinite(valueNotEqual):
                 """
-                python -m ibeis.plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+                python -m wbia.plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
                 print('valueNotEqual = %r' % (valueNotEqual,))
                 print('p_same = %r' % (p_same,))
@@ -503,7 +503,7 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
         print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
         print('value = %r' % (infr.value(),))
 
-    # import ibeis.plottool as pt
+    # import wbia.plottool as pt
     # viz_factor_graph(gm)
     # # _ = pt.show_nx(G)
     # print("SHOW")
@@ -593,8 +593,8 @@ def main():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.script_bp_cut
-        python -m ibeis.algo.hots.script_bp_cut --allexamples
+        python -m wbia.algo.hots.script_bp_cut
+        python -m wbia.algo.hots.script_bp_cut --allexamples
     """
     main()
     # ut.quit_if_noshow()

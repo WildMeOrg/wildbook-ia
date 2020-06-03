@@ -26,14 +26,14 @@ def load_multiclass_scores(self):
 def photobombing_subset():
     """
     CommandLine:
-        python -m ibeis.scripts.script_vsone photobombing_subset
+        python -m wbia.scripts.script_vsone photobombing_subset
     """
-    import ibeis
+    import wbia
     # pair_sample = ut.odict([
     #     ('top_gt', 4), ('mid_gt', 2), ('bot_gt', 2), ('rand_gt', 2),
     #     ('top_gf', 3), ('mid_gf', 2), ('bot_gf', 1), ('rand_gf', 2),
     # ])
-    qreq_ = ibeis.testdata_qreq_(
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='PZ_Master1',
         a=':mingt=2,species=primary',
         # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
@@ -41,7 +41,7 @@ def photobombing_subset():
     )
     ibs = qreq_.ibs
     # cm_list = qreq_.execute()
-    # infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+    # infr = wbia.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
     # aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
     #                                      **pair_sample)
 
@@ -132,7 +132,7 @@ def photobombing_subset():
          16329, 16336, 16364, 16389, 16706, 16897, 16898, 16903, 16949, 17094,
          17101, 17137, 17200, 17222, 17290, 17327, 17336]
 
-    from ibeis.dbio import export_subset
+    from wbia.dbio import export_subset
     export_subset.export_annots(ibs, a, 'PZ_PB_RF_TRAIN')
 
     # closed_aids = ibs.annots(unique_aids).get_name_image_closure()
@@ -150,17 +150,17 @@ def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches
 
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> from wbia.scripts.script_vsone import *  # NOQA
         >>> self = OneVsOneProblem()
         >>> qreq_ = self.qreq_
         >>> hyper_params = self.hyper_params
     """
     import vtool_ibeis as vt
-    import ibeis
+    import wbia
     # Get a set of training pairs
     ibs = qreq_.ibs
     cm_list = qreq_.execute()
-    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+    infr = wbia.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
 
     # Per query choose a set of correct, incorrect, and random training pairs
     aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
@@ -299,17 +299,17 @@ def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches
 
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> from wbia.scripts.script_vsone import *  # NOQA
         >>> self = OneVsOneProblem()
         >>> qreq_ = self.qreq_
         >>> hyper_params = self.hyper_params
     """
     import vtool_ibeis as vt
-    import ibeis
+    import wbia
     # Get a set of training pairs
     ibs = qreq_.ibs
     cm_list = qreq_.execute()
-    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+    infr = wbia.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
 
     # Per query choose a set of correct, incorrect, and random training pairs
     aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),

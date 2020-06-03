@@ -18,7 +18,7 @@ class Win32CompatTempFile(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.pickle_flann import *  # NOQA
+        >>> from wbia.algo.smk.pickle_flann import *  # NOQA
         >>> verbose = True
         >>> temp = Win32CompatTempFile(verbose=verbose)
         >>> data = six.b(str('10010'))
@@ -36,7 +36,7 @@ class Win32CompatTempFile(object):
     """
     def __init__(temp, delete=True, verbose=False):
         temp.delete = delete
-        appname = 'ibeis'
+        appname = 'wbia'
         temp.dpath = ut.ensure_app_resource_dir(appname, 'tempfiles')
         temp.fpath = None
         temp.fname = None
@@ -91,11 +91,11 @@ class PickleFLANN(pyflann.FLANN):
     But we can do a custom dumps and a loads)
 
     CommandLine:
-        python -m ibeis.algo.smk.pickle_flann PickleFLANN
+        python -m wbia.algo.smk.pickle_flann PickleFLANN
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.pickle_flann import *  # NOQA
+        >>> from wbia.algo.smk.pickle_flann import *  # NOQA
         >>> import numpy as np
         >>> rng = np.random.RandomState(42)
         >>> data = rng.rand(10, 2)
@@ -151,8 +151,8 @@ class PickleFLANN(pyflann.FLANN):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.smk.pickle_flann
-        python -m ibeis.algo.smk.pickle_flann --allexamples
+        python -m wbia.algo.smk.pickle_flann
+        python -m wbia.algo.smk.pickle_flann --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

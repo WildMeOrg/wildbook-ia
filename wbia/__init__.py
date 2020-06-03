@@ -12,15 +12,15 @@ __version__ = '2.2.4'
 
 try:
     import utool as ut
-    from ibeis import dtool
+    from wbia import dtool
 except ImportError as ex:
-    print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
-    print('[ibeis !!!] Perhaps try super_setup.py pull')
+    print('[wbia !!!] ERROR: Unable to load all core utility modules.')
+    print('[wbia !!!] Perhaps try super_setup.py pull')
     raise
 
-ut.noinject(__name__, '[ibeis.__init__]')
+ut.noinject(__name__, '[wbia.__init__]')
 if ut.VERBOSE:
-    print('[ibeis] importing ibeis __init__')
+    print('[wbia] importing wbia __init__')
 
 
 if ut.is_developer():
@@ -35,63 +35,63 @@ if ut.is_developer():
 
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
-# something is not guitool, ibeis.viz
+# something is not guitool, wbia.viz
 # has to be before control, can be after constants, params, and main_module
-#import ibeis.plottool
+#import wbia.plottool
 
 
 ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:
-    from ibeis import constants
-    from ibeis import constants as const
-    from ibeis import params
-    from ibeis import main_module
-    from ibeis import other
-    from ibeis.init import sysres
+    from wbia import constants
+    from wbia import constants as const
+    from wbia import params
+    from wbia import main_module
+    from wbia import other
+    from wbia.init import sysres
     #main_module._preload()
 
-    from ibeis import control
-    from ibeis import dbio
-    #from ibeis import web
+    from wbia import control
+    from wbia import dbio
+    #from wbia import web
 
-    from ibeis.init import sysres
-    from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
+    from wbia.init import sysres
+    from wbia.main_module import (main, _preload, _init_numpy, main_loop,
                                    opendb, opendb_in_background, opendb_bg_web)
-    from ibeis.control.IBEISControl import IBEISController
-    from ibeis.algo.hots.query_request import QueryRequest
-    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
-    from ibeis.algo.graph.core import AnnotInference
-    from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
+    from wbia.control.IBEISControl import IBEISController
+    from wbia.algo.hots.query_request import QueryRequest
+    from wbia.algo.hots.chip_match import ChipMatch, AnnotMatch
+    from wbia.algo.graph.core import AnnotInference
+    from wbia.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
                                    ensure_nauts, ensure_wilddogs, list_dbs)
-    from ibeis.init import main_helpers
+    from wbia.init import main_helpers
 
-    from ibeis import algo
+    from wbia import algo
 
-    from ibeis import expt
-    from ibeis import templates
-    from ibeis.templates import generate_notebook
-    from ibeis.control.controller_inject import register_preprocs
-    from ibeis import core_annots
-    from ibeis import core_images
+    from wbia import expt
+    from wbia import templates
+    from wbia.templates import generate_notebook
+    from wbia.control.controller_inject import register_preprocs
+    from wbia import core_annots
+    from wbia import core_images
 
     try:
-        from ibeis.scripts import postdoc
+        from wbia.scripts import postdoc
     except ImportError:
         pass
 except Exception as ex:
-    ut.printex(ex, 'Error when importing ibeis', tb=True)
+    ut.printex(ex, 'Error when importing wbia', tb=True)
     raise
 
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
-    from ibeis import algo
-    from ibeis import viz
-    from ibeis import web
-    from ibeis import gui
-    from ibeis import templates
+    from wbia import algo
+    from wbia import viz
+    from wbia import web
+    from wbia import gui
+    from wbia import templates
 
 
 def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'],
@@ -101,7 +101,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
     Convience function
 
     CommandLine:
-        ibeis -e print
+        wbia -e print
 
     Args:
         e (str): (default = 'print')
@@ -115,11 +115,11 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         function: func -  live python function
 
     CommandLine:
-        python -m ibeis.__init__ --exec-run_experiment --show
+        python -m wbia.__init__ --exec-run_experiment --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis import *  # NOQA
+        >>> from wbia import *  # NOQA
         >>> e = 'rank_cmc'
         >>> db = 'testdb1'
         >>> a = ['default:species=primary']
@@ -137,8 +137,8 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
     import functools
     def find_expt_func(e):
         import utool as ut
-        import ibeis.dev
-        for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS:
+        import wbia.dev
+        for tup in wbia.dev.REGISTERED_DOCTEST_EXPERIMENTS:
             modname, funcname = tup[:2]
             aliases = tup[2] if len(tup) == 3 else []
             if e == funcname or e in aliases:
@@ -146,14 +146,14 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
                 func = module.__dict__[funcname]
                 return func
         # hack in --tf magic
-        func = ut.find_testfunc('ibeis', funcname)[0]
+        func = ut.find_testfunc('wbia', funcname)[0]
         return func
 
     def build_commandline(e=e, **kwargs):
         # Equivalent command line version of this func
-        import ibeis.dev
+        import wbia.dev
         valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2]
-                                    for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
+                                    for tup in wbia.dev.REGISTERED_DOCTEST_EXPERIMENTS])
         if e in valid_e_flags:
             epref = '-e'
         else:
@@ -166,7 +166,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         else:
             db_flag = '--db'
             db_value = db
-        command_parts = ['ibeis',
+        command_parts = ['wbia',
                          epref, e,
                          db_flag, db_value,
                          '-a', ' '.join(a).replace('(', '\(').replace(')', '\)'),
@@ -254,11 +254,11 @@ def testdata_expts(*args, **kwargs):
     return testres
 
 #import_subs()
-#from ibeis import gui
-#from ibeis import algo
-#from ibeis import templates
-#from ibeis import viz
-#from ibeis import web
+#from wbia import gui
+#from wbia import algo
+#from wbia import templates
+#from wbia import viz
+#from wbia import web
 
 
 #class _VizProxy(object):
@@ -266,11 +266,11 @@ def testdata_expts(*args, **kwargs):
 #        pass
 
 #    def getattr(self, key):
-#        import ibeis.viz as viz
+#        import wbia.viz as viz
 #        return getattr(viz, key)
 
 #    def setattr(self, key, val):
-#        import ibeis.viz as viz
+#        import wbia.viz as viz
 #        return getattr(viz, key, val)
 
 
@@ -278,12 +278,12 @@ def testdata_expts(*args, **kwargs):
 #import apipkg
 #apipkg.initpkg(__name__, {
 #    'viz': {
-#        'clone': "ibeis.viz",
+#        'clone': "wbia.viz",
 #    }
 #}
 #)
 
-from ibeis.init import main_helpers
+from wbia.init import main_helpers
 testdata_cm = main_helpers.testdata_cm
 testdata_cmlist = main_helpers.testdata_cmlist
 testdata_qreq_ = main_helpers.testdata_qreq_
@@ -297,7 +297,7 @@ testdata_aids = main_helpers.testdata_aids
 print, rrr, profile = ut.inject2(__name__)
 
 def reload_subs(verbose=True):
-    """ Reloads ibeis and submodules """
+    """ Reloads wbia and submodules """
     import_subs()
     rrr(verbose=verbose)
     getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -318,7 +318,7 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 
-from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
+from wbia.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 # __version__ = VERSION_CURRENT
 __version__ = '2.0.0'
 
@@ -333,16 +333,16 @@ Regen Command:
     Kinda have to work with the output of these. This module is hard to
     autogenerate correctly.
 
-    cd /home/joncrall/code/ibeis/ibeis/other
+    cd /home/joncrall/code/wbia/wbia/other
     makeinit.py -x web viz tests gui
     makeinit.py -x constants params main_module other control dbio tests
 """
 
 if __name__ == '__main__':
     """
-    Runs the unittests for the ibeis codebase
+    Runs the unittests for the wbia codebase
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    from ibeis.tests.run_tests import run_tests
+    from wbia.tests.run_tests import run_tests
     run_tests()

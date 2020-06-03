@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import ibeis.plottool as pt
+import wbia.plottool as pt
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def chip_montage(ibs, qaids, config=None):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_other chip_montage --show --db PZ_MTEST
-        python -m ibeis.viz.viz_other chip_montage --show --db GZ_ALL
+        python -m wbia.viz.viz_other chip_montage --show --db PZ_MTEST
+        python -m wbia.viz.viz_other chip_montage --show --db GZ_ALL
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_other import *  # NOQA
+        >>> from wbia.viz.viz_other import *  # NOQA
         >>> defaltdb = 'seaturtles'
-        >>> import ibeis
+        >>> import wbia
         >>> a = ['default']
-        >>> ibs = ibeis.opendb(defaultdb=defaltdb)
-        >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
+        >>> ibs = wbia.opendb(defaultdb=defaltdb)
+        >>> ibs, qaids, daids = wbia.testdata_expanded_aids(ibs=ibs, a=a)
         >>> config = None
         >>> chip_montage(ibs, qaids, config)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -36,22 +36,22 @@ def chip_montage(ibs, qaids, config=None):
 def image_montage(ibs, gids, config=None):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_other image_montage --show --db PZ_Master1
-        python -m ibeis.viz.viz_other image_montage --show --db GZ_ALL
+        python -m wbia.viz.viz_other image_montage --show --db PZ_Master1
+        python -m wbia.viz.viz_other image_montage --show --db GZ_ALL
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_other import *  # NOQA
+        >>> from wbia.viz.viz_other import *  # NOQA
         >>> defaltdb = 'seaturtles'
-        >>> import ibeis
+        >>> import wbia
         >>> a = ['default']
-        >>> ibs = ibeis.opendb(defaultdb=defaltdb)
-        >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
+        >>> ibs = wbia.opendb(defaultdb=defaltdb)
+        >>> ibs, qaids, daids = wbia.testdata_expanded_aids(ibs=ibs, a=a)
         >>> config = None
         >>> gids = ibs.get_annot_gids(qaids[0:1000])
         >>> image_montage(ibs, gids, config)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -65,8 +65,8 @@ def image_montage(ibs, gids, config=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_other
-        python -m ibeis.viz.viz_other --allexamples
+        python -m wbia.viz.viz_other
+        python -m wbia.viz.viz_other --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

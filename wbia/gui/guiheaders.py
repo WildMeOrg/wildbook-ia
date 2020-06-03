@@ -13,7 +13,7 @@ imagesets on disk to help startuptime.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from six.moves import zip, map, range
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
 from functools import partial
 (print, rrr, profile) = ut.inject2(__name__)
@@ -61,7 +61,7 @@ def make_table_declarations(ibs):
     }
 
     # COLUMN DEFINITIONS
-    # the columns each ibeis table has,
+    # the columns each wbia table has,
     TABLE_COLNAMES = {
         IMAGE_TABLE     : [
             'gid',
@@ -171,7 +171,7 @@ def make_table_declarations(ibs):
 
     # dynamicly defined headers
     if not const.SIMPLIFY_INTERFACE:
-        from ibeis.control import accessor_decors
+        from wbia.control import accessor_decors
         if accessor_decors.API_CACHE:
             # Too slow without api cache
             TABLE_COLNAMES[IMAGESET_TABLE].extend([
@@ -335,7 +335,7 @@ def _tupstr(tuple_):
     return ', '.join(list(map(six.text_type, tuple_)))
 
 
-def make_ibeis_headers_dict(ibs):
+def make_wbia_headers_dict(ibs):
     declare_tup = make_table_declarations(ibs)
     (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
      TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST,

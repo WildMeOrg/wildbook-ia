@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import range
-from ibeis.plottool import draw_func2 as df2
-from ibeis.plottool.viz_featrow import draw_feat_row
-from ibeis.viz import viz_helpers as vh
-import ibeis.plottool as pt  # NOQA
+from wbia.plottool import draw_func2 as df2
+from wbia.plottool.viz_featrow import draw_feat_row
+from wbia.viz import viz_helpers as vh
+import wbia.plottool as pt  # NOQA
 import six  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -76,30 +76,30 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
 def show_top_featmatches(qreq_, cm_list):
     """
     Args:
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
         cm_list (list):
 
     SeeAlso:
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True,lnbnn_normalizer=normlnbnn-test -a default --sephack
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True,lnbnn_normalizer=normlnbnn-test -a default --sephack
 
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=True -a timectrl --sephack
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default:size=30 --sephack
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=5,lnbnn_on=True -a default:size=30 --sephack
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=3,lnbnn_on=True -a default --sephack
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=True -a timectrl --sephack
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default:size=30 --sephack
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=5,lnbnn_on=True -a default:size=30 --sephack
+        python -m wbia --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=3,lnbnn_on=True -a default --sephack
 
 
     CommandLine:
-        python -m ibeis.viz.viz_nearest_descriptors --exec-show_top_featmatches --show
+        python -m wbia.viz.viz_nearest_descriptors --exec-show_top_featmatches --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
-        >>> import ibeis
-        >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST',
+        >>> from wbia.viz.viz_nearest_descriptors import *  # NOQA
+        >>> import wbia
+        >>> cm_list, qreq_ = wbia.testdata_cmlist(defaultdb='PZ_MTEST',
         >>>                                        a=['default:has_none=mother,size=30'])
         >>> show_top_featmatches(qreq_, cm_list)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     # for cm in cm_list:
@@ -146,7 +146,7 @@ def show_top_featmatches(qreq_, cm_list):
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
-    import ibeis.plottool as pt  # NOQA
+    import wbia.plottool as pt  # NOQA
     pt.ensureqt()
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
@@ -160,7 +160,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                              qreq_=None, **kwargs):
     r"""
     Args:
-        ibs (ibeis.IBEISController): image analysis api
+        ibs (wbia.IBEISController): image analysis api
         qaid (int):  query annotation id
         qfx (int): query feature index
         fnum (int):  figure number
@@ -169,12 +169,12 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
 
     CommandLine:
         # Find a good match to inspect
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m wbia.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
 
         # Now inspect it
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show --db PZ_MTEST --qaid 3 --qfx 879
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
+        python -m wbia.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show --db PZ_MTEST --qaid 3 --qfx 879
+        python -m wbia.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show
+        python -m wbia.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
 
     SeeAlso:
         plottool.viz_featrow
@@ -182,15 +182,15 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.viz_nearest_descriptors import *  # NOQA
+        >>> import wbia
         >>> # build test data
         >>> if True:
         >>>     import matplotlib as mpl
-        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     from wbia.scripts.thesis import TMP_RC
         >>>     mpl.rcParams.update(TMP_RC)
-        >>> qreq_ = ibeis.testdata_qreq_()
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qreq_ = wbia.testdata_qreq_()
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> qaid = qreq_.qaids[0]
         >>> qfx = ut.get_argval('--qfx', type_=None, default=879)
         >>> fnum = None
@@ -206,7 +206,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    import ibeis.plottool as pt  # NOQA
+    import wbia.plottool as pt  # NOQA
     consecutive_distance_compare = True
     draw_chip     = kwargs.get('draw_chip', False)
     draw_desc     = kwargs.get('draw_desc', True)
@@ -328,9 +328,9 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_nearest_descriptors
-        python -m ibeis.viz.viz_nearest_descriptors --allexamples
-        python -m ibeis.viz.viz_nearest_descriptors --allexamples --noface --nosrc
+        python -m wbia.viz.viz_nearest_descriptors
+        python -m wbia.viz.viz_nearest_descriptors --allexamples
+        python -m wbia.viz.viz_nearest_descriptors --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

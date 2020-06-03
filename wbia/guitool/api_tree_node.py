@@ -1,6 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore  # NOQA
+from wbia.guitool.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
 from six.moves import zip, range
 import utool
@@ -114,7 +114,7 @@ class TreeNode(TREE_NODE_BASE):
 
     def find_row_from_id(self, _id):
         """
-        given an id (like an ibeis rowid) find the row of this item
+        given an id (like an wbia rowid) find the row of this item
         """
         children = self.get_children()
         id_list = [child.get_id() for child in children]
@@ -205,15 +205,15 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ider_list (list):
 
     CommandLine:
-        python -m ibeis.guitool.api_tree_node --test-_populate_tree_iterative
+        python -m wbia.guitool.api_tree_node --test-_populate_tree_iterative
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:ibeis)
-        >>> from ibeis.guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:wbia)
+        >>> from wbia.guitool.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from ibeis.guitool import api_tree_node  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> from wbia.guitool import api_tree_node  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
         >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
         >>> num_levels = len(ider_list)
@@ -271,13 +271,13 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
             list next_ids
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:ibeis)
-        >>> from ibeis.guitool.api_tree_node import *  # NOQA
-        >>> from ibeis.guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:wbia)
+        >>> from wbia.guitool.api_tree_node import *  # NOQA
+        >>> from wbia.guitool.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from ibeis.guitool import api_tree_node  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> from wbia.guitool import api_tree_node  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
         >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
         >>> num_levels = len(ider_list)
@@ -326,12 +326,12 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
             list next_ids
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:ibeis)
-        >>> from ibeis.guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:wbia)
+        >>> from wbia.guitool.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from ibeis.guitool import api_tree_node  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> from wbia.guitool import api_tree_node  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
         >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
         >>> num_levels = len(ider_list)
@@ -371,7 +371,7 @@ def build_internal_structure(model):
     Cyth:
         <CYTH returns="TreeNode">
     """
-    #from ibeis.guitool.api_item_model import *
+    #from wbia.guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
     ider_list = model.get_iders()
     num_levels = len(ider_list)
@@ -413,11 +413,11 @@ CYTHONIZED = False
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.api_tree_node
-        python -m ibeis.guitool.api_tree_node --allexamples
-        python -m ibeis.guitool.api_tree_node --allexamples --noface --nosrc
-        python -m ibeis.guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
-        python -m ibeis.guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
+        python -m wbia.guitool.api_tree_node
+        python -m wbia.guitool.api_tree_node --allexamples
+        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc
+        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
+        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

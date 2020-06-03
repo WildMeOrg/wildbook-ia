@@ -38,17 +38,17 @@ Notes:
     We are essentially goint to be spawning two processes.
     We can test these simultaniously using
 
-        python -m ibeis.web.job_engine job_engine_tester
+        python -m wbia.web.job_engine job_engine_tester
 
     We can test these separately by first starting the background server
-        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m wbia.web.job_engine job_engine_tester --bg
 
         Alternative:
-            python -m ibeis.web.job_engine job_engine_tester --bg --no-engine
-            python -m ibeis.web.job_engine job_engine_tester --bg --only-engine --fg-engine
+            python -m wbia.web.job_engine job_engine_tester --bg --no-engine
+            python -m wbia.web.job_engine job_engine_tester --bg --only-engine --fg-engine
 
     And then running the forground process
-        python -m ibeis.web.job_engine job_engine_tester --fg
+        python -m wbia.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 #if False:
@@ -66,14 +66,14 @@ import pytz
 import flask
 from os.path import join, exists, abspath, splitext, basename
 from functools import partial
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 import threading
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 ctx = zmq.Context.instance()
 
@@ -101,7 +101,7 @@ def update_proctitle(procname, dbname=None):
         print('old_title = %r' % (old_title,))
         # new_title = 'IBEIS_' + procname + ' ' + old_title
         # new_title = procname + ' ' + old_title
-        # new_title = 'ibeis_zmq_loop'
+        # new_title = 'wbia_zmq_loop'
         hostname = ut.get_computer_name()
         new_title = 'IBEIS_%s_%s_%s' % (dbname, hostname, procname, )
         print('new_title = %r' % (new_title,))
@@ -133,15 +133,15 @@ def initialize_job_manager(ibs):
     Run from the webserver
 
     CommandLine:
-        python -m ibeis.web.job_engine --exec-initialize_job_manager:0
+        python -m wbia.web.job_engine --exec-initialize_job_manager:0
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.job_engine import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> from ibeis.web import apis_engine
-        >>> from ibeis.web import job_engine
+        >>> from wbia.web.job_engine import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> from wbia.web import apis_engine
+        >>> from wbia.web import job_engine
         >>> ibs.load_plugin_module(job_engine)
         >>> ibs.load_plugin_module(apis_engine)
         >>> ibs.initialize_job_manager()
@@ -151,10 +151,10 @@ def initialize_job_manager(ibs):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.job_engine import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.web.job_engine import *  # NOQA
+        >>> import wbia
         >>> import requests
-        >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
+        >>> web_instance = wbia.opendb_bg_web(db='testdb1')
         >>> web_port = ibs.get_web_port_via_scan()
         >>> if web_port is None:
         >>>     raise ValueError('IA web server is not running on any expected port')
@@ -202,13 +202,13 @@ def initialize_job_manager(ibs):
 
     ibs.job_manager.jobiface.queue_interrupted_jobs()
 
-    # import ibeis
+    # import wbia
     # #dbdir = '/media/raid/work/testdb1'
-    # from ibeis.web import app
+    # from wbia.web import app
     # web_port = ibs.get_web_port_via_scan()
     # if web_port is None:
     #     raise ValueError('IA web server is not running on any expected port')
-    # proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=web_port)
+    # proc = ut.spawn_background_process(app.start_from_wbia, ibs, port=web_port)
 
 
 @register_ibs_method
@@ -228,23 +228,23 @@ def get_job_id_list(ibs):
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.job_engine --exec-get_job_status
+        python -m wbia.web.job_engine --exec-get_job_status
 
         # Start job queue in its own process
-        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m wbia.web.job_engine job_engine_tester --bg
         # Start web server in its own process
         ./main.py --web --fg
         pass
         # Run foreground process
-        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+        python -m wbia.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.job_engine import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> from wbia.web.job_engine import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_ibeis_request('/api/engine/job/', jobid='badjob')
+        >>> response = web_ibs.send_wbia_request('/api/engine/job/', jobid='badjob')
         >>> web_ibs.terminate2()
 
     """
@@ -269,23 +269,23 @@ def get_job_status(ibs, jobid=None):
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.job_engine --exec-get_job_status
+        python -m wbia.web.job_engine --exec-get_job_status
 
         # Start job queue in its own process
-        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m wbia.web.job_engine job_engine_tester --bg
         # Start web server in its own process
         ./main.py --web --fg
         pass
         # Run foreground process
-        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+        python -m wbia.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.web.job_engine import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> from wbia.web.job_engine import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid='badjob')
+        >>> response = web_ibs.send_wbia_request('/api/engine/job/status/', jobid='badjob')
         >>> web_ibs.terminate2()
 
     """
@@ -304,23 +304,23 @@ def get_job_metadata(ibs, jobid):
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.job_engine --exec-get_job_metadata
+        python -m wbia.web.job_engine --exec-get_job_metadata
 
         # Start job queue in its own process
-        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m wbia.web.job_engine job_engine_tester --bg
         # Start web server in its own process
         ./main.py --web --fg
         pass
         # Run foreground process
-        python -m ibeis.web.job_engine --exec-get_job_metadata:0 --fg
+        python -m wbia.web.job_engine --exec-get_job_metadata:0 --fg
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.job_engine import *  # NOQA
-        >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> from wbia.web.job_engine import *  # NOQA
+        >>> import wbia
+        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> # Test get metadata of a job id that does not exist
-        >>> response = web_ibs.send_ibeis_request('/api/engine/job/metadata/', jobid='badjob')
+        >>> response = web_ibs.send_wbia_request('/api/engine/job/metadata/', jobid='badjob')
         >>> web_ibs.terminate2()
 
     """
@@ -357,16 +357,16 @@ def _get_random_open_port():
 def job_engine_tester():
     """
     CommandLine:
-        python -m ibeis.web.job_engine --exec-job_engine_tester
-        python -b -m ibeis.web.job_engine --exec-job_engine_tester
+        python -m wbia.web.job_engine --exec-job_engine_tester
+        python -b -m wbia.web.job_engine --exec-job_engine_tester
 
-        python -m ibeis.web.job_engine job_engine_tester
-        python -m ibeis.web.job_engine job_engine_tester --bg
-        python -m ibeis.web.job_engine job_engine_tester --fg
+        python -m wbia.web.job_engine job_engine_tester
+        python -m wbia.web.job_engine job_engine_tester --bg
+        python -m wbia.web.job_engine job_engine_tester --fg
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.web.job_engine import *  # NOQA
+        >>> from wbia.web.job_engine import *  # NOQA
         >>> job_engine_tester()
     """
     _init_signals()
@@ -374,7 +374,7 @@ def job_engine_tester():
     client_id = np.random.randint(1000)
     reciever = JobBackend(use_static_ports=True)
     jobiface = JobInterface(client_id, reciever.port_dict)
-    from ibeis.init import sysres
+    from wbia.init import sysres
     if ut.get_argflag('--bg'):
         dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
                                       db=None, dbdir=None)
@@ -1264,7 +1264,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     """
     # NAME: engine_
     # CALLED_FROM: engine_queue
-    import ibeis
+    import wbia
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
     with ut.Indenter('[engine %d] ' % (id_)):
@@ -1286,8 +1286,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
 
         try:
             while True:
-                # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
-                ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+                # ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
+                ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
                 update_proctitle('engine_loop', dbname=ibs.dbname)
 
                 idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
@@ -1386,7 +1386,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         # check for ibs func
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
-            print('resolving action=%r to ibeis function=%r' % (action, action_func))
+            print('resolving action=%r to wbia function=%r' % (action, action_func))
     try:
         key = '__jobid__'
         assert key not in kwargs
@@ -1411,7 +1411,7 @@ def collector_loop(port_dict, dbdir, containerized):
     """
     Service that stores completed algorithm results
     """
-    import ibeis
+    import wbia
     print = partial(ut.colorprint, color='yellow')
     with ut.Indenter('[collect] '):
         collect_rout_sock = ctx.socket(zmq.ROUTER)
@@ -1420,7 +1420,7 @@ def collector_loop(port_dict, dbdir, containerized):
         if VERBOSE_JOBS:
             print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
 
         shelve_path = ibs.get_shelves_path()
@@ -1832,8 +1832,8 @@ def rcv_multipart_json(sock, num=2, print=print):
 
 
 def _on_ctrl_c(signal, frame):
-    print('[ibeis.zmq] Caught ctrl+c')
-    print('[ibeis.zmq] sys.exit(0)')
+    print('[wbia.zmq] Caught ctrl+c')
+    print('[wbia.zmq] sys.exit(0)')
     import sys
     sys.exit(0)
 
@@ -1845,9 +1845,9 @@ def _init_signals():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.job_engine
-        python -m ibeis.web.job_engine --allexamples
-        python -m ibeis.web.job_engine --allexamples --noface --nosrc
+        python -m wbia.web.job_engine
+        python -m wbia.web.job_engine --allexamples
+        python -m wbia.web.job_engine --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

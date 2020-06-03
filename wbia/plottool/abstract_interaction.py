@@ -3,7 +3,7 @@
 Known Interactions that use AbstractInteraction:
     pt.MatchInteraction2
     pt.MultiImageInteraction
-    ibeis.NameInteraction
+    wbia.NameInteraction
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -12,9 +12,9 @@ import utool as ut
 import matplotlib as mpl
 ut.noinject(__name__, '[abstract_iteract]')
 from . import draw_func2 as df2  # NOQA
-from ibeis.plottool import fig_presenter  # NOQA
-from ibeis.plottool import plot_helpers as ph  # NOQA
-from ibeis.plottool import interact_helpers as ih  # NOQA
+from wbia.plottool import fig_presenter  # NOQA
+from wbia.plottool import plot_helpers as ph  # NOQA
+from wbia.plottool import interact_helpers as ih  # NOQA
 
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #'[abstract_iteract]')
@@ -104,12 +104,12 @@ class AbstractInteraction(object):
         self.enable_pan(ax)
 
     def enable_pan(self, ax):
-        from ibeis.plottool.interactions import PanEvents
+        from wbia.plottool.interactions import PanEvents
         pan = PanEvents(ax)
         self.pan_event_list.append(pan)
 
     def enable_zoom(self, ax):
-        from ibeis.plottool.interactions import zoom_factory
+        from wbia.plottool.interactions import zoom_factory
         self.zoom_event_list.append(zoom_factory(ax))
 
     def _start_interaction(self):
@@ -310,7 +310,7 @@ class AbstractInteraction(object):
         """
         context menu
         """
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         height = self.fig.canvas.geometry().height()
         qpoint = gt.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
@@ -423,7 +423,7 @@ class AbstractPagedInteraction(AbstractInteraction):
 
     def make_hud(self):
         """ Creates heads up display """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         if not self.draw_hud:
             return
         # Button positioning
@@ -447,7 +447,7 @@ class AbstractPagedInteraction(AbstractInteraction):
         self.append_button(next_text, callback=next_callback, rect=next_rect)
 
     def prepare_page(self, fulldraw=True):
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.disconnect_callback(self.fig, 'button_release_event')
         ih.disconnect_callback(self.fig, 'key_press_event')

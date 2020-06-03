@@ -7,7 +7,7 @@ import six
 import numpy as np
 import utool as ut
 import matplotlib as mpl
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 DPI = 300
@@ -191,15 +191,15 @@ class DBInputs(object):
     def measure(ChapX, expt_name, dbnames, *args):
         """
         CommandLine:
-            python -m ibeis Chap3.measure all --dbs=GZ_Master1
-            python -m ibeis Chap3.measure all --dbs=PZ_Master1
+            python -m wbia Chap3.measure all --dbs=GZ_Master1
+            python -m wbia Chap3.measure all --dbs=PZ_Master1
 
-            python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+            python -m wbia Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+            python -m wbia Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
 
         # Example:
         #     >>> # Script
-        #     >>> from ibeis.scripts.thesis import *  # NOQA
+        #     >>> from wbia.scripts.thesis import *  # NOQA
         #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> ChapX.measure(expt_name, dbnames)
@@ -224,18 +224,18 @@ class DBInputs(object):
     def draw(ChapX, expt_name, dbnames, *args):
         """
         CommandLine:
-            python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
-            python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
+            python -m wbia Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+            python -m wbia Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m wbia Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
 
-            python -m ibeis Chap4.draw importance GZ_Master1
+            python -m wbia Chap4.draw importance GZ_Master1
 
-            python -m ibeis Chap4.draw hard_cases GZ_Master1,PZ_Master1 match_state,photobomb_state
+            python -m wbia Chap4.draw hard_cases GZ_Master1,PZ_Master1 match_state,photobomb_state
             --diskshow
 
         # Example:
         #     >>> # Script
-        #     >>> from ibeis.scripts.thesis import *  # NOQA
+        #     >>> from wbia.scripts.thesis import *  # NOQA
         #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> Chap3.draw(expt_name, dbnames)
@@ -286,7 +286,7 @@ class DBInputs(object):
     def vd(ChapX):
         """
         CommandLine:
-            python -m ibeis Chap3.vd
+            python -m wbia Chap3.vd
         """
         ut.vd(ChapX.base_dpath)
 
@@ -297,7 +297,7 @@ class DBInputs(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap3('humpbacks_fb')
             >>> self = Chap3('GZ_Master1')
             >>> self = Chap3('GIRM_Master1')
@@ -307,14 +307,14 @@ class DBInputs(object):
             >>> self = Chap3('RotanTurtles')
             >>> self._precollect()
 
-            >>> from ibeis.scripts.thesis import *
+            >>> from wbia.scripts.thesis import *
             >>> self = Chap4('PZ_Master1')
             >>> self._precollect()
         """
-        import ibeis
-        from ibeis.init import main_helpers
-        self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
-        ibs = ibeis.opendb(dbdir=self.dbdir)
+        import wbia
+        from wbia.init import main_helpers
+        self.dbdir = wbia.sysres.lookup_dbdir(self.dbname)
+        ibs = wbia.opendb(dbdir=self.dbdir)
         if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
             aids = ibs.get_valid_aids()
         elif ibs.dbname.startswith('LF_ALL'):
@@ -326,7 +326,7 @@ class DBInputs(object):
                 require_timestamp=True, species='primary', is_known=True,
                 minqual='poor',
             )
-            infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+            infr = wbia.AnnotInference(ibs=ibs, aids=aids)
             infr.reset_feedback('staging', apply=True)
             minority_ccs = find_minority_class_ccs(infr)
             minority_aids = set(ut.flatten(minority_ccs))
@@ -400,7 +400,7 @@ def find_minority_class_ccs(infr):
 
 
 def test_mcc():
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import sklearn.metrics
     num = 100
     xdata = np.linspace(0, 1, num * 2)
@@ -766,8 +766,8 @@ def ave_str(mean, std, precision=2):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts._thesis_helpers
-        python -m ibeis.scripts._thesis_helpers --allexamples
+        python -m wbia.scripts._thesis_helpers
+        python -m wbia.scripts._thesis_helpers --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

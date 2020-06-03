@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
 """
 Oxford Experiment:
-    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
+    wbia TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
 
 
 Zebra Experiment:
-    python -m ibeis draw_rank_cmc --db GZ_Master1 --show \
+    python -m wbia draw_rank_cmc --db GZ_Master1 --show \
         -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 
-    python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
+    python -m wbia draw_rank_cmc --db PZ_Master1 --show \
         -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis import dtool
+from wbia import dtool
 import six
 import utool as ut
 import numpy as np
-from ibeis.algo.smk import match_chips5 as mc5
-from ibeis.algo.smk import vocab_indexer
-from ibeis.algo.smk import inverted_index
-from ibeis.algo.smk import smk_funcs
-from ibeis import core_annots
-from ibeis.algo import Config as old_config
+from wbia.algo.smk import match_chips5 as mc5
+from wbia.algo.smk import vocab_indexer
+from wbia.algo.smk import inverted_index
+from wbia.algo.smk import smk_funcs
+from wbia import core_annots
+from wbia.algo import Config as old_config
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -65,40 +65,40 @@ class SMKRequest(mc5.EstimatorRequest):
     qreq_-like object. Trying to work on becoming more scikit-ish
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_pipeline SMKRequest --profile
-        python -m ibeis.algo.smk.smk_pipeline SMKRequest --show
+        python -m wbia.algo.smk.smk_pipeline SMKRequest --profile
+        python -m wbia.algo.smk.smk_pipeline SMKRequest --show
 
-        python -m ibeis draw_rank_cmc --db GZ_ALL --show \
+        python -m wbia draw_rank_cmc --db GZ_ALL --show \
             -p :proot=smk,num_words=[64000,4000],nAssign=[1,5],sv_on=[False,True] \
             -a ctrl:qmingt=2
 
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show \
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show \
             -p :proot=smk,num_words=[64000,8000,4000],nAssign=[1,2,4],sv_on=[True,False] \
                 default:proot=vsmany,sv_on=[True,False] \
             -a default:qmingt=2
 
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show \
+        python -m wbia draw_rank_cmc --db PZ_MTEST --show \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
                 default:proot=vsmany,sv_on=[True] \
             -a default:qmingt=2
 
-        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
+        python -m wbia draw_rank_cmc --db PZ_Master1 --show \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] \
             -a ctrl:qmingt=2
 
-        python -m ibeis draw_rank_cmc --db PZ_Master1 \
+        python -m wbia draw_rank_cmc --db PZ_Master1 \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
             -a ctrl:qmingt=2,qindex=60:80 --profile
 
-        python -m ibeis draw_rank_cmc --db GZ_ALL \
+        python -m wbia draw_rank_cmc --db GZ_ALL \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
             -a ctrl:qmingt=2,qindex=40:60 --profile
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+        >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
+        >>> import wbia
+        >>> ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')
         >>> qaids = aid_list[0:2]
         >>> daids = aid_list[:]
         >>> config = {'nAssign': 2, 'num_words': 64000, 'sv_on': True}
@@ -143,9 +143,9 @@ class SMKRequest(mc5.EstimatorRequest):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
-            >>> import ibeis
-            >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')
+            >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
+            >>> import wbia
+            >>> ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')
             >>> qaids = aid_list[0:2]
             >>> daids = aid_list[:]
             >>> config = {'nAssign': 1, 'num_words': 8000,
@@ -181,8 +181,8 @@ class SMKRequest(mc5.EstimatorRequest):
 
     def ensure_data(qreq_):
         """
-            >>> import ibeis
-            qreq_ = ibeis.testdata_qreq_(
+            >>> import wbia
+            qreq_ = wbia.testdata_qreq_(
                 defaultdb='Oxford', a='oxford',
                 p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
@@ -220,9 +220,9 @@ class SMKRequest(mc5.EstimatorRequest):
 
         cheat = False
         if cheat:
-            import ibeis
+            import wbia
             ut.cprint('CHEATING', 'red')
-            vocab_aids = ibeis.init.filter_annots.sample_annots_wrt_ref(
+            vocab_aids = wbia.init.filter_annots.sample_annots_wrt_ref(
                 qreq_.ibs, qreq_.daids, {'exclude_ref_contact': True},
                 qreq_.qaids, verbose=1)
             vocab_rowid = depc.get_rowids('vocab', (vocab_aids,), config=dconfig, ensure=False)[0]
@@ -292,7 +292,7 @@ class SMKRequest(mc5.EstimatorRequest):
 
     def execute_pipeline(qreq_):
         """
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+        >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> cm_list = qreq_.execute()
         """
@@ -321,7 +321,7 @@ class SMK(ut.NiceRepr):
 
     def predict_matches(smk, qreq_, verbose=True):
         """
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+        >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> verbose = True
         """
@@ -340,20 +340,20 @@ class SMK(ut.NiceRepr):
     def match_single(smk, qaid, daids, qreq_, verbose=True):
         """
         CommandLine:
-            python -m ibeis.algo.smk.smk_pipeline SMK.match_single --profile
-            python -m ibeis.algo.smk.smk_pipeline SMK.match_single --show
+            python -m wbia.algo.smk.smk_pipeline SMK.match_single --profile
+            python -m wbia.algo.smk.smk_pipeline SMK.match_single --show
 
-            python -m ibeis SMK.match_single -a ctrl:qmingt=2 --profile --db PZ_Master1
-            python -m ibeis SMK.match_single -a ctrl --profile --db GZ_ALL
+            python -m wbia SMK.match_single -a ctrl:qmingt=2 --profile --db PZ_Master1
+            python -m wbia SMK.match_single -a ctrl --profile --db GZ_ALL
 
         Example:
             >>> # FUTURE_ENABLE
-            >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST')
+            >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
+            >>> import wbia
+            >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST')
             >>> ibs = qreq_.ibs
             >>> daids = qreq_.daids
-            >>> #ibs, daids = ibeis.testdata_aids(defaultdb='PZ_MTEST', default_set='dcfg')
+            >>> #ibs, daids = wbia.testdata_aids(defaultdb='PZ_MTEST', default_set='dcfg')
             >>> qreq_ = SMKRequest(ibs, daids[0:1], daids, {'agg': True,
             >>>                                             'num_words': 1000,
             >>>                                             'sv_on': True})
@@ -368,8 +368,8 @@ class SMK(ut.NiceRepr):
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """
-        from ibeis.algo.hots import chip_match
-        from ibeis.algo.hots import pipeline
+        from wbia.algo.hots import chip_match
+        from wbia.algo.hots import pipeline
 
         alpha  = qreq_.qparams['smk_alpha']
         thresh = qreq_.qparams['smk_thresh']
@@ -531,14 +531,14 @@ def check_can_match(qaid, hit_daids, qreq_):
 
 def testdata_smk(*args, **kwargs):
     """
-    >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+    >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
     >>> kwargs = {}
     """
-    import ibeis
+    import wbia
     import sklearn
     import sklearn.cross_validation
     # import sklearn.model_selection
-    ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+    ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
     rng = ut.ensure_rng(0)
     xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
@@ -562,9 +562,9 @@ def testdata_smk(*args, **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/algo/smk
-        python ~/code/ibeis/ibeis/algo/smk/smk_pipeline.py
-        python ~/code/ibeis/ibeis/algo/smk/smk_pipeline.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/smk
+        python ~/code/wbia/wbia/algo/smk/smk_pipeline.py
+        python ~/code/wbia/wbia/algo/smk/smk_pipeline.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

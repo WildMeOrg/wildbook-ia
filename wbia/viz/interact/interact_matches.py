@@ -8,41 +8,41 @@ Interaction for looking at matches between a single query and database annotatio
 Main development file
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
+    python -m wbia.viz.interact.interact_matches --test-show_coverage --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import ibeis.plottool as pt
+import wbia.plottool as pt
 import six
-from ibeis.plottool import interact_helpers as ih
-from ibeis import viz
-from ibeis.algo.hots import scoring
-from ibeis.algo.hots import hstypes
-from ibeis.viz import viz_helpers as vh
-from ibeis.viz import viz_hough
-from ibeis.viz import viz_chip
-from ibeis.plottool import interact_matches
-from ibeis.viz.interact.interact_chip import ishow_chip
+from wbia.plottool import interact_helpers as ih
+from wbia import viz
+from wbia.algo.hots import scoring
+from wbia.algo.hots import hstypes
+from wbia.viz import viz_helpers as vh
+from wbia.viz import viz_hough
+from wbia.viz import viz_chip
+from wbia.plottool import interact_matches
+from wbia.viz.interact.interact_chip import ishow_chip
 (print, rrr, profile) = ut.inject2(__name__, '[interact_matches]')
 
 
 def testdata_match_interact(**kwargs):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m wbia.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
 
     Example:
         >>> # VIZ_DOCTEST
-        >>> from ibeis.viz.interact.interact_matches import *  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.viz.interact.interact_matches import *  # NOQA
+        >>> import wbia.plottool as pt
         >>> kwargs = {}
         >>> mx = ut.get_argval('--mx', type_=int, default=None)
         >>> self = testdata_match_interact(mx=mx, **kwargs)
         >>> pt.show_if_requested()
     """
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', t=['default:Knorm=3'])
+    import wbia
+    qreq_ = wbia.testdata_qreq_(defaultdb='testdb1', t=['default:Knorm=3'])
     ibs = qreq_.ibs
     cm = qreq_.execute()[0]
     cm.sortself()
@@ -62,7 +62,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         plottool.interact_matches.MatchInteraction2
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m wbia.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
     """
     def __init__(self, ibs, cm, aid2=None, fnum=None,
                  qreq_=None, figtitle='Match Interaction',
@@ -134,11 +134,11 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         just visualizes the matches using some type of lines
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-chipmatch_view --show
+            python -m wbia.viz.interact.interact_matches --test-chipmatch_view --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> from wbia.viz.interact.interact_matches import *  # NOQA
             >>> self = testdata_match_interact()
             >>> self.chipmatch_view()
             >>> pt.show_if_requested()
@@ -197,12 +197,12 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     def show_coverage(self, dodraw=True):
         """
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
-            python -m ibeis.viz.interact.interact_matches --test-show_coverage
+            python -m wbia.viz.interact.interact_matches --test-show_coverage --show
+            python -m wbia.viz.interact.interact_matches --test-show_coverage
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> from wbia.viz.interact.interact_matches import *  # NOQA
             >>> self = testdata_match_interact(mx=1)
             >>> self.show_coverage(dodraw=False)
             >>> pt.show_if_requested()
@@ -230,11 +230,11 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     def show_each_dstncvs_chip(self, dodraw=True):
         """
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-show_each_dstncvs_chip --show
+            python -m wbia.viz.interact.interact_matches --test-show_each_dstncvs_chip --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> from wbia.viz.interact.interact_matches import *  # NOQA
             >>> self = testdata_match_interact(mx=1)
             >>> self.show_each_dstncvs_chip(dodraw=False)
             >>> pt.show_if_requested()
@@ -284,12 +284,12 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         pt.draw()
 
     def get_popup_options(self):
-        from ibeis.gui import inspect_gui
+        from wbia.gui import inspect_gui
         options = []
 
         ax = pt.gca()  # HACK
 
-        from ibeis.plottool import plot_helpers as ph
+        from wbia.plottool import plot_helpers as ph
         viztype = ph.get_plotdat(ax, 'viztype', '')
         is_match_type = viztype in ['matches', 'multi_match']
 
@@ -327,7 +327,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
 
     # Callback
     def on_click_inside(self, event, ax):
-        from ibeis.plottool import plot_helpers as ph
+        from wbia.plottool import plot_helpers as ph
         ibs       = self.ibs
         viztype = ph.get_plotdat(ax, 'viztype', '')
         is_match_type = viztype in ['matches', 'multi_match']
@@ -364,9 +364,9 @@ class MatchInteraction(interact_matches.MatchInteraction2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches
-        python -m ibeis.viz.interact.interact_matches --allexamples
-        python -m ibeis.viz.interact.interact_matches --allexamples --noface --nosrc
+        python -m wbia.viz.interact.interact_matches
+        python -m wbia.viz.interact.interact_matches --allexamples
+        python -m wbia.viz.interact.interact_matches --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

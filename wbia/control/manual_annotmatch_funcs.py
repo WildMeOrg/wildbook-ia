@@ -7,29 +7,29 @@ TemplateInfo:
     autogen_key = annotmatch
 
 ToRegenerate:
-    python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
-    python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
+    python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
+    python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
-from ibeis.control import controller_inject
-from ibeis.control import accessor_decors  # NOQA
+from wbia.control import controller_inject
+from wbia.control import accessor_decors  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_annotmatch(defaultdb='testdb1'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
@@ -63,7 +63,7 @@ def _get_all_annotmatch_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> ibs._get_all_annotmatch_rowids()
     """
@@ -146,13 +146,13 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()[:2]
         >>> num_deleted = ibs.delete_annotmatch(annotmatch_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.algo.preproc import preproc_annotmatch
+    #from wbia.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
@@ -185,7 +185,7 @@ def get_annotmatch_aid1(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -219,7 +219,7 @@ def get_annotmatch_aid2(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -253,7 +253,7 @@ def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=Non
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -287,7 +287,7 @@ def get_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, eager=True, nI
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -321,7 +321,7 @@ def get_annotmatch_reviewer(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -355,7 +355,7 @@ def get_annotmatch_rowid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -412,7 +412,7 @@ def get_annotmatch_tag_text(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -446,7 +446,7 @@ def get_annotmatch_evidence_decision(ibs, annotmatch_rowid_list, eager=True, nIn
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -602,7 +602,7 @@ def set_annotmatch_count(ibs, annotmatch_rowid_list, annotmatch_count_list, dupl
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ibeis.control.manual_annotmatch_funcs
+        xdoctest -m wbia.control.manual_annotmatch_funcs
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

@@ -7,27 +7,27 @@ TemplateInfo:
     autogen_key = annotgroup
 
 ToRegenerate:
-    python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
-    python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
+    python -m wbia.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
+    python -m wbia.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from ibeis import constants as const
+from wbia import constants as const
 import utool as ut
-from ibeis.control import controller_inject
-from ibeis.control import accessor_decors  # NOQA
+from wbia.control import controller_inject
+from wbia.control import accessor_decors  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
@@ -54,7 +54,7 @@ def _get_all_annotgroup_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_annotgroup_rowids()
     """
@@ -108,13 +108,13 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()[:2]
         >>> num_deleted = ibs.delete_annotgroup(annotgroup_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.algo.preproc import preproc_annotgroup
+    #from wbia.algo.preproc import preproc_annotgroup
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
@@ -165,7 +165,7 @@ def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -223,7 +223,7 @@ def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -258,7 +258,7 @@ def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
+        >>> from wbia.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -317,8 +317,8 @@ def set_annotgroup_uuid(ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplic
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_annotgroup_funcs
-        python -m ibeis.control.manual_annotgroup_funcs --allexamples
+        python -m wbia.control.manual_annotgroup_funcs
+        python -m wbia.control.manual_annotgroup_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

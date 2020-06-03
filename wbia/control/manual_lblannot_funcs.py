@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function
 import uuid
 from six.moves import range
-from ibeis import constants as const
-from ibeis.other import ibsfuncs
-from ibeis.control.accessor_decors import (
+from wbia import constants as const
+from wbia.other import ibsfuncs
+from wbia.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, getter_1toM, default_decorator, ider)
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -440,9 +440,9 @@ def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_lblannot_funcs
-        python -m ibeis.control.manual_lblannot_funcs --allexamples
-        python -m ibeis.control.manual_lblannot_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_lblannot_funcs
+        python -m wbia.control.manual_lblannot_funcs --allexamples
+        python -m wbia.control.manual_lblannot_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

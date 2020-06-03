@@ -58,11 +58,11 @@ def ensure_demodata():
     """
     Ensures that you have testdb1 and PZ_MTEST demo databases.
     """
-    import ibeis
-    from ibeis import demodata
+    import wbia
+    from wbia import demodata
     # inconsistent ways of getting test data
     demodata.get_testdata_dir(key='testdb1')
-    ibeis.sysres.ensure_pz_mtest()
+    wbia.sysres.ensure_pz_mtest()
 
 
 if __name__ == '__main__':

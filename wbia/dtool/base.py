@@ -63,7 +63,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.base import *  # NOQA
+        >>> from wbia.dtool.base import *  # NOQA
         >>> cfg1 = Config.from_dict({'a': 1, 'b': 2})
         >>> cfg2 = Config.from_dict({'a': 2, 'b': 2})
         >>> # Must be hashable and orderable
@@ -125,8 +125,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import DummyVsManyConfig
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia.dtool.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> cfg.update(DummyAlgo_version=4)
             >>> print(cfg)
@@ -150,8 +150,8 @@ class Config(ut.NiceRepr, ut.DictLike):
         (useful for testing if a parameter was unused or misspelled)
 
         Doctest:
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis import dtool as dt
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia import dtool as dt
             >>> cfg = dt.Config.from_dict({'a': 1, 'b': 2, 'c': 3})
             >>> other = {'a': 5, 'e': 2}
             >>> cfg.pop_update(other)
@@ -194,8 +194,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis import dtool as dt
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia import dtool as dt
             >>> cfg = dt.Config.from_dict({
             >>>     'a': 1,
             >>>     'b': 2,
@@ -331,8 +331,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import DummyVsManyConfig
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia.dtool.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> param_list = cfg.parse_items()
             >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
@@ -476,7 +476,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
+            >>> from wbia.dtool.base import *  # NOQA
             >>> cls = Config
             >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
             >>> tablename = None
@@ -489,7 +489,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>>     msg='Confirm')
             >>> dlg.resize(700, 500)
             >>> dlg.show()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> self = dlg.widget
             >>> guitool.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
@@ -507,7 +507,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return UnnamedConfig
 
     def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
-        import ibeis.guitool as gt
+        import wbia.guitool as gt
         gt.ensure_qapp()  # must be ensured before any embeding
         dlg = gt.ConfigConfirmWidget.as_dialog(
             title=title, msg=msg, config=cfg)
@@ -516,7 +516,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return dlg
 
     def getstate_todict_recursive(cfg):
-        from ibeis import dtool
+        from wbia import dtool
         _dict = cfg.asdict()
         _dict2 = {}
         for key, val in _dict.items():
@@ -537,8 +537,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import DummyKptsConfig
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia.dtool.example_depcache import DummyKptsConfig
             >>> from six.moves import cPickle as pickle
             >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
@@ -548,8 +548,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import DummyVsManyConfig
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia.dtool.example_depcache import DummyVsManyConfig
             >>> from six.moves import cPickle as pickle
             >>> cfg = DummyVsManyConfig()
             >>> state = cfg.__getstate__()
@@ -559,7 +559,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> assert cfg == unserialized
             >>> assert cfg is not unserialized
         """
-        #from ibeis import dtool
+        #from wbia import dtool
         #_dict = cfg.asdict()
         #_dict2 = {}
         #for key, val in _dict.items():
@@ -609,7 +609,7 @@ def make_configclass(dict_, tablename):
 
 
 def from_param_info_list(param_info_list, tablename='Unnamed'):
-    from ibeis import dtool
+    from wbia import dtool
     class UnnamedConfig(dtool.Config):
         _param_info_list = param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
@@ -621,7 +621,7 @@ class IBEISRequestHacks(object):
 
     @property
     def ibs(request):
-        """ HACK specific to ibeis """
+        """ HACK specific to wbia """
         if request.depc is None:
             return None
         return request.depc.controller
@@ -764,8 +764,8 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.dtool.base import *  # NOQA
-            >>> from ibeis.dtool.example_depcache import testdata_depc
+            >>> from wbia.dtool.base import *  # NOQA
+            >>> from wbia.dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> request = depc.new_request('vsmany', [1, 2], [2, 3, 4])
             >>> request.ensure_dependencies()
@@ -844,11 +844,11 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         return state_dict
 
     def __setstate__(request, state_dict):
-        import ibeis
+        import wbia
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
         params = state_dict['params']
-        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+        depc = wbia.opendb(dbdir=dbdir, web=False).depc
         configclass = depc.configclass_dict[state_dict['tablename'] ]
         config = configclass(**params)
         state_dict['depc'] = depc
@@ -879,8 +879,8 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.base import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.base import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> qaid_list = [1, 2, 3, 5]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
@@ -976,8 +976,8 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dtool.base import *  # NOQA
-        >>> from ibeis.dtool.example_depcache import testdata_depc
+        >>> from wbia.dtool.base import *  # NOQA
+        >>> from wbia.dtool.example_depcache import testdata_depc
         >>> qaid_list = [1, 2]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()

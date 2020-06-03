@@ -10,7 +10,7 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.control import controller_inject
+from wbia.control import controller_inject
 from os.path import join, exists
 import utool as ut
 
@@ -24,7 +24,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 @register_ibs_method
 def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images
+    from ibeis_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -43,8 +43,8 @@ def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id,
 @register_ibs_method
 def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_imageset_id,
                                          ensembles=3, **kwargs):
-    from ibeis.other.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
-    from ibeis.algo.detect import densenet
+    from wbia.other.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+    from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
     extracted_path = get_cnn_classifier_cameratrap_binary_training_images_pytorch(
@@ -111,8 +111,8 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
     >>> # archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     >>> ibs.classifier2_precision_recall_algo_display(test_gid_list=gid_list, test_label_list=label_list)
     """
-    from ibeis.other.detectexport import get_cnn_classifier_multiclass_training_images_pytorch
-    from ibeis.algo.detect import densenet
+    from wbia.other.detectexport import get_cnn_classifier_multiclass_training_images_pytorch
+    from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-multiclass')
     extracted_path = get_cnn_classifier_multiclass_training_images_pytorch(
@@ -148,7 +148,7 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
 
 @register_ibs_method
 def classifier_binary_train(ibs, species_list, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
+    from ibeis_cnn.ingest_wbia import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     from ibeis_cnn.utils import save_model
@@ -170,7 +170,7 @@ def classifier_binary_train(ibs, species_list, **kwargs):
 
 @register_ibs_method
 def classifier2_train(ibs, species_list=None, species_mapping={}, train_gid_set=None, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_classifier2_training_images
+    from ibeis_cnn.ingest_wbia import get_cnn_classifier2_training_images
     from ibeis_cnn.process import numpy_processed_directory3
     from ibeis_cnn.models.classifier2 import train_classifier2
     from ibeis_cnn.utils import save_model
@@ -202,8 +202,8 @@ def classifier_train(ibs, **kwargs):
 
 @register_ibs_method
 def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
-    from ibeis.other.detectexport import get_cnn_classifier_canonical_training_images_pytorch
-    from ibeis.algo.detect import densenet
+    from wbia.other.detectexport import get_cnn_classifier_canonical_training_images_pytorch
+    from wbia.algo.detect import densenet
 
     args = (species, )
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
@@ -245,8 +245,8 @@ def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, *
 
 @register_ibs_method
 def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
-    from ibeis.other.detectexport import get_cnn_localizer_canonical_training_images_pytorch
-    from ibeis.algo.detect import canonical
+    from wbia.other.detectexport import get_cnn_localizer_canonical_training_images_pytorch
+    from wbia.algo.detect import canonical
 
     args = (species, )
     data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
@@ -347,7 +347,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
                              cleanup=True, cleanup_all=True, deploy=True,
                              cache_species_str=None,
                              **kwargs):
-    from ibeis.algo.detect import lightnet
+    from wbia.algo.detect import lightnet
     import subprocess
     import datetime
     import math
@@ -428,26 +428,26 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     x = (
         'CUDA_VISIBLE_DEVICES=3 ',
         '/home/jason.parham/virtualenv/wildme3.6/bin/python',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup',
         True,
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/deploy',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/deploy',
         True,
         None,
         False,
         True,
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/data',
-        '/data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/darknet19_448.conv.23.pt',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/data',
+        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/darknet19_448.conv.23.pt',
         'wilddog'
     )
 
     cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x
 
-    call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py -c -n /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py --results /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt /data/ibeis/WD_Master/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup/*'
+    call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py -c -n /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py --results /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup/*'
      '''
 
     # Call testing
@@ -633,7 +633,7 @@ def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_p
 
 @register_ibs_method
 def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
+    from ibeis_cnn.ingest_wbia import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
     from ibeis_cnn.utils import save_model
@@ -658,8 +658,8 @@ def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpo
 
 @register_ibs_method
 def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, ensembles=3, **kwargs):
-    from ibeis.other.detectexport import get_cnn_labeler_training_images_pytorch
-    from ibeis.algo.detect import densenet
+    from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
+    from wbia.algo.detect import densenet
 
     species = '-'.join(species_list)
     args = (species, )
@@ -704,8 +704,8 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
 # @register_ibs_method
 # def orientation_train(ibs, category_list, ensembles=3, **kwargs):
-#     from ibeis.other.detectexport import get_cnn_orientation_training_images_pytorch
-#     from ibeis.algo.detect import orientation
+#     from wbia.other.detectexport import get_cnn_orientation_training_images_pytorch
+#     from wbia.algo.detect import orientation
 
 #     species = '-'.join(species_list)
 #     args = (species, )
@@ -750,7 +750,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
 # @register_ibs_method
 # def qualifier_train(ibs, **kwargs):
-#     from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
+#     from ibeis_cnn.ingest_wbia import get_cnn_qualifier_training_images
 #     from ibeis_cnn.process import numpy_processed_directory2
 #     from ibeis_cnn.models.qualifier import train_qualifier
 #     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -778,7 +778,7 @@ def detector_train(ibs):
 
 @register_ibs_method
 def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_background_training_patches2
+    from ibeis_cnn.ingest_wbia import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
     from ibeis_cnn.utils import save_model
@@ -800,7 +800,7 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
 
 @register_ibs_method
 def aoi_train(ibs, species_list=None):
-    from ibeis_cnn.ingest_ibeis import get_aoi_training_data
+    from ibeis_cnn.ingest_wbia import get_aoi_training_data
     from ibeis_cnn.process import numpy_processed_directory4
     from ibeis_cnn.models.aoi import train_aoi
     from ibeis_cnn.utils import save_model
@@ -818,7 +818,7 @@ def aoi_train(ibs, species_list=None):
 
 @register_ibs_method
 def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=False):
-    from ibeis_cnn.ingest_ibeis import get_aoi2_training_data
+    from ibeis_cnn.ingest_wbia import get_aoi2_training_data
     from ibeis_cnn.process import numpy_processed_directory5
     from ibeis_cnn.models.aoi2 import train_aoi2
     from ibeis_cnn.utils import save_model
@@ -841,9 +841,9 @@ def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=Fa
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detecttrain
-        python -m ibeis.other.detecttrain --allexamples
-        python -m ibeis.other.detecttrain --allexamples --noface --nosrc
+        python -m wbia.other.detecttrain
+        python -m wbia.other.detecttrain --allexamples
+        python -m wbia.other.detecttrain --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

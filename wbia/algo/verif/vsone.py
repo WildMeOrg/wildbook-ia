@@ -3,11 +3,11 @@
 
 CommandLine:
     # Test how well out-of-the-box vsone classifiers to:
-    python -m ibeis.algo.verif.vsone evaluate_classifiers --db DETECT_SEATURTLES
+    python -m wbia.algo.verif.vsone evaluate_classifiers --db DETECT_SEATURTLES
 
     # Train a classifier for deployment
     # Will output to the current working directory
-    python -m ibeis.algo.verif.vsone deploy --db GZ_Master1
+    python -m wbia.algo.verif.vsone deploy --db GZ_Master1
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
@@ -16,7 +16,7 @@ import ubelt as ub
 import itertools as it
 import numpy as np
 import vtool_ibeis as vt
-from ibeis import dtool as dt
+from wbia import dtool as dt
 import six  # NOQA
 import hashlib
 import copy
@@ -26,10 +26,10 @@ import sklearn.metrics
 import sklearn.model_selection
 import sklearn.multiclass
 import sklearn.ensemble
-from ibeis.algo.verif import clf_helpers
-from ibeis.algo.verif import deploy
-from ibeis.algo.verif import pairfeat, verifier
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from wbia.algo.verif import clf_helpers
+from wbia.algo.verif import deploy
+from wbia.algo.verif import pairfeat, verifier
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
 from six.moves import zip
 print, rrr, profile = ut.inject2(__name__)
@@ -54,19 +54,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     Keeps information about the one-vs-one pairwise classification problem
 
     CommandLine:
-        python -m ibeis.algo.verif.vsone evaluate_classifiers
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --profile
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_MTEST --show
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db RotanTurtles --show
+        python -m wbia.algo.verif.vsone evaluate_classifiers
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --profile
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_MTEST --show
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db RotanTurtles --show
 
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
+        python -m wbia.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 
     Example:
             >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> pblm.hyper_params['xval_kw']['n_splits'] = 10
         >>> assert pblm.xval_kw.n_splits == 10
@@ -257,8 +257,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Constructs a OneVsOneProblem from a subset of aids.
         Use `pblm.load_samples` to sample a set of pairs
         """
-        import ibeis
-        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        import wbia
+        infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)
         infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr, **params)
@@ -280,8 +280,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aid_pairs = [t[0:2] for t in labeled_aid_pairs]
         y_enc = [t[2] for t in labeled_aid_pairs]
         aids = sorted(set(ut.flatten(aid_pairs)))
-        import ibeis
-        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        import wbia
+        infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)
         infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr, **params)
@@ -298,7 +298,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     @classmethod
     def from_empty(OneVsOneProblem, defaultdb=None, **params):
         """
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> defaultdb = 'GIRM_Master1'
         >>> pblm = OneVsOneProblem.from_empty(defaultdb)
         """
@@ -306,8 +306,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             defaultdb = 'PZ_PB_RF_TRAIN'
             # defaultdb = 'GZ_Master1'
             # defaultdb = 'PZ_MTEST'
-        import ibeis
-        ibs, aids = ibeis.testdata_aids(defaultdb, a=':species=primary')
+        import wbia
+        ibs, aids = wbia.testdata_aids(defaultdb, a=':species=primary')
         pblm = OneVsOneProblem.from_aids(ibs, aids, **params)
         return pblm
 
@@ -422,7 +422,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         if pblm.verbose > 0:
             print('[pblm] Using randomized training pairs')
-        # from ibeis.algo.graph import nx_utils as nxu
+        # from wbia.algo.graph import nx_utils as nxu
         infr = pblm.infr
         infr.status()
 
@@ -511,7 +511,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         We can do the same for negatives.
         """
         from networkx.algorithms.connectivity import k_edge_subgraphs
-        # from ibeis.algo.graph import nx_utils as nxu
+        # from wbia.algo.graph import nx_utils as nxu
         import itertools as it
         infr = pblm.infr
 
@@ -576,11 +576,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def make_training_pairs(pblm):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone make_training_pairs --db PZ_Master1
+            python -m wbia.algo.verif.vsone make_training_pairs --db PZ_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> pblm.make_training_pairs()
         """
@@ -617,11 +617,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def load_samples(pblm):
         r"""
         CommandLine:
-            python -m ibeis.algo.verif.vsone load_samples --profile
+            python -m wbia.algo.verif.vsone load_samples --profile
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> #pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
@@ -646,11 +646,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def load_features(pblm, use_cache=True, with_simple=False):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone load_features --profile
+            python -m wbia.algo.verif.vsone load_features --profile
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm.load_samples()
@@ -760,7 +760,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
             >>> task_key = ut.get_argval('--task', default='match_state')
@@ -838,11 +838,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def report_evaluation(pblm):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone report_evaluation --db PZ_MTEST
+            python -m wbia.algo.verif.vsone report_evaluation --db PZ_MTEST
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
             >>> pblm.eval_clf_keys = ['MLP', 'Logit', 'RF']
@@ -858,14 +858,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def evaluate_classifiers(pblm, with_simple=False):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone evaluate_classifiers
-            python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_MTEST
-            python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1
-            python -m ibeis.algo.verif.vsone evaluate_classifiers --db GIRM_Master1
+            python -m wbia.algo.verif.vsone evaluate_classifiers
+            python -m wbia.algo.verif.vsone evaluate_classifiers --db PZ_MTEST
+            python -m wbia.algo.verif.vsone evaluate_classifiers --db GZ_Master1
+            python -m wbia.algo.verif.vsone evaluate_classifiers --db GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
             >>> #pblm.default_clf_key = 'Logit'
@@ -953,14 +953,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             res = combo_res
             samples = pblm.samples
             meta = res.hardness_analysis(samples).copy()
-            import ibeis
+            import wbia
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = pblm.qreq_.ibs
-            infr = ibeis.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs,
+            infr = wbia.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs,
                                                    verbose=3)
             infr.reset_feedback('staging')
-            infr.reset_labels_to_ibeis()
+            infr.reset_labels_to_wbia()
             infr.apply_feedback_edges()
             infr.relabel_using_reviews()
             # x = [c for c in infr.consistent_components()]
@@ -1087,16 +1087,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         dimensionality
 
         CommandLine:
-            python -m ibeis.algo.verif.vsone build_feature_subsets --db GZ_Master1
-            python -m ibeis.algo.verif.vsone build_feature_subsets --db PZ_PB_RF_TRAIN
+            python -m wbia.algo.verif.vsone build_feature_subsets --db GZ_Master1
+            python -m wbia.algo.verif.vsone build_feature_subsets --db PZ_PB_RF_TRAIN
 
-            python -m ibeis Chap4._setup_pblm --db GZ_Master1 --eval
-            python -m ibeis Chap4._setup_pblm --db PZ_Master1 --eval
+            python -m wbia Chap4._setup_pblm --db GZ_Master1 --eval
+            python -m wbia Chap4._setup_pblm --db PZ_Master1 --eval
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> pblm.load_samples()
             >>> pblm.load_features()
@@ -1200,7 +1200,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty()
             >>> pblm.set_pandas_options()
             >>> pblm.load_samples()
@@ -1278,12 +1278,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def feature_importance(pblm, task_key=None, clf_key=None, data_key=None):
         r"""
         CommandLine:
-            python -m ibeis.algo.verif.vsone report_importance --show
-            python -m ibeis.algo.verif.vsone report_importance --show --db PZ_PB_RF_TRAIN
+            python -m wbia.algo.verif.vsone report_importance --show
+            python -m wbia.algo.verif.vsone report_importance --show --db PZ_PB_RF_TRAIN
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> data_key = pblm.default_data_key
             >>> clf_key = pblm.default_clf_key
@@ -1291,7 +1291,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm.setup_evaluation()
             >>> featinfo = pblm.feature_info(task_key, clf_key, data_key)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> text = importances
             >>> pt.wordcloud(featinfo.importances)
             >>> ut.show_if_requested()
@@ -1313,7 +1313,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def report_importance(pblm, task_key, clf_key, data_key):
         # ut.qtensure()
-        # import ibeis.plottool as pt  # NOQA
+        # import wbia.plottool as pt  # NOQA
         if clf_key != 'RF':
             print('Can only report importance for RF not %r' % (clf_key,))
             return
@@ -1369,18 +1369,18 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_Master1')
 
         Ignore:
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='GZ_Master1')
             >>> pblm.setup_evaluation()
         """
         # from sklearn.feature_selection import SelectFromModel
-        from ibeis.algo.verif import clf_helpers
+        from wbia.algo.verif import clf_helpers
 
         task_key = pblm.primary_task_key
         data_key = pblm.default_data_key
@@ -1429,7 +1429,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         u = mccs2.mean(axis=0)
         s = mccs2.std(axis=0)
 
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         pt.qtensure()
         pt.plot(n_dims, u, label='mean')
         ax = pt.gca()
@@ -1443,7 +1443,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
             >>> #pblm = OneVsOneProblem.from_empty('GIRM_Master1')
             >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
@@ -1451,10 +1451,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> win = pblm.qt_review_hardcases()
 
         Ignore:
-            >>> from ibeis.scripts.postdoc import *
+            >>> from wbia.scripts.postdoc import *
             >>> self = VerifierExpt('RotanTurtles')
             >>> self = VerifierExpt('humpbacks_fb')
-            >>> import ibeis
+            >>> import wbia
             >>> self._precollect()
             >>> ibs = self.ibs
             >>> aids = self.aids_pool
@@ -1473,7 +1473,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Ignore:
             >>> # TEST to ensure we can priorizite reviewed edges without inference
             >>> import networkx as nx
-            >>> from ibeis.algo.graph import demo
+            >>> from wbia.algo.graph import demo
             >>> kwargs = dict(num_pccs=6, p_incon=.4, size_std=2)
             >>> infr = demo.demodata_infr(**kwargs)
             >>> infr.params['redun.pos'] = 1
@@ -1580,11 +1580,11 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     1-v-1 classification
 
     CommandLine:
-        python -m ibeis.algo.verif.vsone AnnotPairSamples
+        python -m wbia.algo.verif.vsone AnnotPairSamples
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty()
         >>> pblm.load_samples()
         >>> samples = AnnotPairSamples(pblm.ibs, pblm.raw_simple_scores, {})
@@ -1757,7 +1757,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         # hack guess if comparable based on viewpoint
         guess_flags = np.isnan(flags)
         need_edges = edges[guess_flags]
-        need_flags = infr.ibeis_guess_if_comparable(need_edges)
+        need_flags = infr.wbia_guess_if_comparable(need_edges)
         flags[guess_flags] = need_flags
         return np.array(flags, dtype=np.bool)
         # return samples.infr.is_comparable(samples.aid_pairs, allow_guess=True)
@@ -1842,8 +1842,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.vsone
-        python -m ibeis.algo.verif.vsone --allexamples
+        python -m wbia.algo.verif.vsone
+        python -m wbia.algo.verif.vsone --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

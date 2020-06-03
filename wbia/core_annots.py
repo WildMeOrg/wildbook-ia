@@ -36,28 +36,28 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
+    python -m wbia.control.IBEISControl --test-show_depc_annot_graph --show
 
 Setup:
-    >>> from ibeis.core_annots import *  # NOQA
-    >>> import ibeis
-    >>> import ibeis.plottool as pt
-    >>> ibs = ibeis.opendb('testdb1')
+    >>> from wbia.core_annots import *  # NOQA
+    >>> import wbia
+    >>> import wbia.plottool as pt
+    >>> ibs = wbia.opendb('testdb1')
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 from vtool_ibeis import image_filters
-from ibeis import dtool
+from wbia import dtool
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
 import cv2
-import ibeis.constants as const
-from ibeis.control.controller_inject import register_preprocs, register_subprops
-from ibeis.algo.hots.chip_match import ChipMatch
-from ibeis.algo.hots import neighbor_index
+import wbia.constants as const
+from wbia.control.controller_inject import register_preprocs, register_subprops
+from wbia.algo.hots.chip_match import ChipMatch
+from wbia.algo.hots import neighbor_index
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -67,9 +67,9 @@ register_subprop = register_subprops['annot']
 
 
 def testdata_core(defaultdb='testdb1', size=2):
-    import ibeis
-    # import ibeis.plottool as pt
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    import wbia
+    # import wbia.plottool as pt
+    ibs = wbia.opendb(defaultdb=defaultdb)
     depc = ibs.depc_annot
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
                              default=ibs.get_valid_aids()[0:size])
@@ -102,19 +102,19 @@ def compute_chipthumb(depc, aid_list, config=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> config = ChipThumbConfig.from_argv_dict(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> compute_chipthumb(depc, aid_list, config)
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
-        >>> import ibeis.viz.interact.interact_chip
-        >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
+        >>> import wbia.plottool as pt
+        >>> import wbia.viz.interact.interact_chip
+        >>> interact_obj = wbia.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
         >>> interact_obj.start()
         >>> pt.show_if_requested()
     """
@@ -293,7 +293,7 @@ def compute_chip(depc, aid_list, config=None):
     Extracts the annotation chip from the bounding box
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         aid_list (list):  list of annotation rowids
         config (dict): (default = None)
 
@@ -301,35 +301,35 @@ def compute_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_chip:0 --show
-        python -m ibeis.core_annots --exec-compute_chip:0 --show --greyscale
-        ibeis --tf compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
-        ibeis --tf compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
-        ibeis --tf compute_chip --show --db humpbacks
-        ibeis --tf compute_chip:1 --show
+        python -m wbia.core_annots --exec-compute_chip:0 --show
+        python -m wbia.core_annots --exec-compute_chip:0 --show --greyscale
+        wbia --tf compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
+        wbia --tf compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
+        wbia --tf compute_chip --show --db humpbacks
+        wbia --tf compute_chip:1 --show
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> config = ChipConfig.from_argv_dict(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> #interact_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
-        >>> import ibeis.viz.interact.interact_chip
-        >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
+        >>> import wbia.viz.interact.interact_chip
+        >>> interact_obj = wbia.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
         >>> interact_obj.start()
         >>> pt.show_if_requested()
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb1'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> config = ChipConfig(**{'dim_size': (256, 256), 'resize_dim': 'wh'})
         >>> #dlg = config.make_qt_dialog()
@@ -337,7 +337,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config=config, recompute=True)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
     """
@@ -565,7 +565,7 @@ def compute_annotmask(depc, aid_list, config=None):
     Interaction dispatcher for annotation masks.
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         aid_list (list):  list of annotation rowids
         config (AnnotMaskConfig): (default = None)
 
@@ -573,12 +573,12 @@ def compute_annotmask(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_annotmask --show
-        python -m ibeis.core_annots --exec-compute_annotmask --show --edit
+        python -m wbia.core_annots --exec-compute_annotmask --show
+        python -m wbia.core_annots --exec-compute_annotmask --show --edit
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = AnnotMaskConfig(dim_size=None)
         >>> chip_config = config.chip_cfg
@@ -586,13 +586,13 @@ def compute_annotmask(depc, aid_list, config=None):
         >>> mask = depc.get_property('annotmask', aid_list, 'img', config, recompute=edit)[0]
         >>> chip = depc.get_property('chips', aid_list, 'img', config=chip_config)[0]
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> resized = vt.resize_mask(mask, chip)
         >>> blended = vt.blend_images_multiply(chip, resized)
         >>> pt.imshow(blended, title='mask')
         >>> pt.show_if_requested()
     """
-    from ibeis.plottool import interact_impaint
+    from wbia.plottool import interact_impaint
     # TODO: Ensure interactive required cache words
     # Keep manual things above the cache dir
     mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
@@ -670,14 +670,14 @@ def compute_probchip(depc, aid_list, config=None):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=cnn
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
+        python -m wbia.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
+        python -m wbia.core_annots --test-compute_probchip --show --fw_detector=cnn
+        python -m wbia.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
         >>> config = ProbchipConfig.from_argv_dict(fw_detector='cnn', smooth_thresh=None)
@@ -686,7 +686,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> #result = ut.repr2(probchip_fpath_list_)
         >>> #print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> #xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
         >>> #iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> xlabel_list = [str(vt.get_size(img)) for img in probchip_list_]
@@ -816,8 +816,8 @@ def rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
                  smooth_thresh, smooth_ksize):
     import ubelt as ub
     from os.path import join
-    from ibeis.algo.detect import randomforest
-    cachedir = ub.ensure_app_cache_dir('ibeis', ibs.dbname, 'rfchips')
+    from wbia.algo.detect import randomforest
+    cachedir = ub.ensure_app_cache_dir('wbia', ibs.dbname, 'rfchips')
     # Hack disk based output for RF detector.
     temp_output_fpaths = [
         # Give a reasonably distinctive name for parallel safety
@@ -852,8 +852,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
-        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
+        python -m wbia.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m wbia --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
@@ -865,8 +865,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         rowid_kw = dict(config=config)
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia.plottool as pt
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = ChipConfig.from_argv_dict()
         >>> probchip_config = ProbchipConfig(smooth_thresh=None)
@@ -959,7 +959,7 @@ def make_hog_block_image(hog, config=None):
 def compute_hog(depc, cid_list, config=None):
     """
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
         >>> config = HOGConfig()
@@ -967,7 +967,7 @@ def compute_hog(depc, cid_list, config=None):
         >>> hoggen = compute_hog(depc, cid_list, config)
         >>> hog = list(hoggen)[0]
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> hog_image = make_hog_block_image(hog, config)
         >>> ut.show_if_requested()
     """
@@ -990,7 +990,7 @@ class FeatConfig(dtool.Config):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> feat_cfg = FeatConfig()
         >>> result = str(feat_cfg)
         >>> print(result)
@@ -1064,12 +1064,12 @@ def compute_feats(depc, cid_list, config=None):
         ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_feats:0 --show
-        python -m ibeis.core_annots --test-compute_feats:1
+        python -m wbia.core_annots --test-compute_feats:0 --show
+        python -m wbia.core_annots --test-compute_feats:1
 
     Doctest:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
         >>> config = FeatConfig()
@@ -1082,7 +1082,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> assert kpts.shape[1] == 6
         >>> assert vecs.shape[1] == 128
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1090,7 +1090,7 @@ def compute_feats(depc, cid_list, config=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> # TIMING
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
         >>> #config = {'dim_size': 450}
         >>> config = {}
@@ -1101,7 +1101,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> idx = 5
         >>> (nFeat, kpts, vecs) = feat_list[idx]
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> chip = depc.get_native('chips', cid_list[idx:idx + 1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
@@ -1176,12 +1176,12 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         tuple: (None, kpts, vecs)
 
     CommandLine:
-        python -m ibeis.core_annots --exec-gen_feat_worker --show
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
+        python -m wbia.core_annots --exec-gen_feat_worker --show
+        python -m wbia.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
+        python -m wbia.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid = aid_list[0]
         >>> config = {}
@@ -1197,8 +1197,8 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         >>> result = ('(num_kpts, kpts, vecs) = %s' % (ut.repr2((num_kpts, kpts, vecs)),))
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
-        >>> from ibeis.plottool.interactions import ExpandableInteraction
+        >>> import wbia.plottool as pt
+        >>> from wbia.plottool.interactions import ExpandableInteraction
         >>> interact = ExpandableInteraction()
         >>> interact.append_plot(pt.interact_keypoints.KeypointInteraction(masked_chip, kpts, vecs))
         >>> interact.append_plot(lambda **kwargs: pt.plot_score_histograms([vt.get_scales(kpts)], **kwargs))
@@ -1244,10 +1244,10 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         config (None): (default = None)
 
     CommandLine:
-        python -m ibeis.core_annots compute_fgweights
+        python -m wbia.core_annots compute_fgweights
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
         >>> config = FeatConfig()
@@ -1295,12 +1295,12 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         chipsize:
 
     CommandLine:
-        python -m ibeis.core_annots --test-gen_featweight_worker --show
-        python -m ibeis.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
-        python -m ibeis.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
+        python -m wbia.core_annots --test-gen_featweight_worker --show
+        python -m wbia.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
+        python -m wbia.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = aid_list[0:1]
@@ -1312,7 +1312,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
         >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> fnum = 1
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.figure(fnum=fnum, doclf=True)
@@ -1352,7 +1352,7 @@ class VsOneConfig(dtool.Config):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> cfg = VsOneConfig()
         >>> result = str(cfg)
         >>> print(result)
@@ -1390,9 +1390,9 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
     the vt.PairwiseMatch object.
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
         >>> match_config = ut.hashdict({})
         >>> qaids = [1, 4, 2]
         >>> daids = [2, 5, 3]
@@ -1438,12 +1438,12 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
     procedure.
 
     CommandLine:
-        python -m ibeis.core_annots make_configured_annots
+        python -m wbia.core_annots make_configured_annots
 
     Doctest:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> qannot_cfg = dannot_cfg = ut.hashdict({})
         >>> qaids = [1, 2]
         >>> daids = [3, 4]
@@ -1519,7 +1519,7 @@ class IndexerConfig(dtool.Config):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
+        >>> from wbia.core_annots import *  # NOQA
         >>> cfg = VsOneConfig()
         >>> result = str(cfg)
         >>> print(result)
@@ -1567,14 +1567,14 @@ def compute_neighbor_index(depc, fids_list, config):
         config (dtool.Config):
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+        python -m wbia.core_annots --exec-compute_neighbor_index --show
+        python -m wbia.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs, aid_list = wbia.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
         >>> fid_list = depc.get_rowids('feat', aid_list)
         >>> aids_list = tuple([aid_list])
@@ -1628,15 +1628,15 @@ if testmode:
             config (dtool.Config):
 
         CommandLine:
-            python -m ibeis.core_annots --exec-compute_feature_neighbors --show
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs
+            python -m wbia.core_annots --exec-compute_feature_neighbors --show
+            python -m wbia.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.core_annots import *  # NOQA
+            >>> from wbia.core_annots import *  # NOQA
             >>> #ibs, depc, aid_list = testdata_core(size=5)
-            >>> import ibeis
-            >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
+            >>> import wbia
+            >>> ibs, qaid_list = wbia.testdata_aids('seaturtles')
             >>> daid_list = qaid_list
             >>> depc = ibs.depc_annot
             >>> index_config = ibs.depc_annot['neighbor_index'].configclass()
@@ -1720,7 +1720,7 @@ def compute_classifications(depc, aid_list, config=None):
     Extracts the detections for a given input annotation
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -1728,14 +1728,14 @@ def compute_classifications(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_classifications
+        wbia compute_classifications
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> # depc.delete_property('classifier', gid_list)
@@ -1755,7 +1755,7 @@ def compute_classifications(depc, aid_list, config=None):
         chip_list = depc.get_property('chips', aid_list, 'img', config=config2)
         result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
     elif config['classifier_algo'] in ['densenet']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
         config2 = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
@@ -1793,7 +1793,7 @@ def compute_canonical(depc, aid_list, config=None):
     Extracts the detections for a given input annotation
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -1801,14 +1801,14 @@ def compute_canonical(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_canonical
+        wbia compute_canonical
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> # depc.delete_property('canonical', gid_list)
@@ -1820,7 +1820,7 @@ def compute_canonical(depc, aid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
-    from ibeis.algo.detect import canonical
+    from wbia.algo.detect import canonical
     config2 = {
         'dim_size': (canonical.INPUT_SIZE, canonical.INPUT_SIZE),
         'resize_dim': 'wh',
@@ -1858,7 +1858,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
     Extracts the detections for a given input image
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -1866,14 +1866,14 @@ def compute_labels_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_labels_annotations
+        python -m wbia.core_annots --exec-compute_labels_annotations
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'giraffe_v1'}
@@ -1908,11 +1908,11 @@ def compute_labels_annotations(depc, aid_list, config=None):
         chip_list = depc.get_property('chips', aid_list, 'img', config=config_)
         result_gen = ibs.generate_chip_label_list(chip_list, **config)
     elif config['labeler_algo'] in ['azure']:
-        from ibeis.algo.detect import azure
+        from wbia.algo.detect import azure
         print('[ibs] detecting using Azure AI for Earth Species Classification API')
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
-        from ibeis.algo.detect import densenet
+        from wbia.algo.detect import densenet
         config_ = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
@@ -1950,7 +1950,7 @@ def compute_aoi2(depc, aid_list, config=None):
     Extracts the Annotation of Interest (AoI) for a given input annotation
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         aid_list (list):  list of annotation rowids
         config (dict): (default = None)
 
@@ -1958,14 +1958,14 @@ def compute_aoi2(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_aoi2
+        wbia compute_aoi2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> # depc.delete_property('aoi_two', aid_list)
@@ -2014,7 +2014,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
     Extracts the detections for a given input image
 
     Args:
-        depc (ibeis.depends_cache.DependencyCache):
+        depc (wbia.depends_cache.DependencyCache):
         gid_list (list):  list of image rowids
         config (dict): (default = None)
 
@@ -2022,14 +2022,14 @@ def compute_orients_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_orients_annotations --deepsense
+        python -m wbia.core_annots --exec-compute_orients_annotations --deepsense
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb_identification'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[-16:-8]
         >>> config = {'orienter_algo': 'deepsense'}
@@ -2071,7 +2071,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 w = diameter
                 h = diameter
 
-                response = ibs.ibeis_plugin_deepsense_keypoint(annot_uuid)
+                response = ibs.wbia_plugin_deepsense_keypoint(annot_uuid)
                 angle = response['keypoints']['angle']
                 angle -= 90
                 theta = ut.deg_to_rad(angle)
@@ -2091,9 +2091,9 @@ def compute_orients_annotations(depc, aid_list, config=None):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.core_annots
-        python -m ibeis.core_annots --allexamples
-        utprof.py -m ibeis.core_annots --allexamples
+        python -m wbia.core_annots
+        python -m wbia.core_annots --allexamples
+        utprof.py -m wbia.core_annots --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

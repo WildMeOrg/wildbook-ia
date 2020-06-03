@@ -4,9 +4,9 @@
 Very useful script to ensure you have all the modules you need
 
 CommandLine:
-    python -m ibeis.tests.assert_modules
-    python -m ibeis.tests.assert_modules --test-assert_modules --nolibdep
-    python -m ibeis.tests.assert_modules --test-assert_modules
+    python -m wbia.tests.assert_modules
+    python -m wbia.tests.assert_modules --test-assert_modules --nolibdep
+    python -m wbia.tests.assert_modules --test-assert_modules
 
 
 MacFix:
@@ -358,11 +358,11 @@ def assert_modules():
     checkinfo_func
 
     CommandLine:
-        python -m ibeis.tests.assert_modules --test-assert_modules
+        python -m wbia.tests.assert_modules --test-assert_modules
 
     Example:
         >>> # DOCTEST_ENABLE
-        >>> from ibeis.tests.assert_modules import *   # NOQA
+        >>> from wbia.tests.assert_modules import *   # NOQA
         >>> detailed_msg = assert_modules()
         >>> print(detailed_msg)
     """
@@ -427,13 +427,13 @@ def assert_modules():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.tests.assert_modules
+        python -m wbia.tests.assert_modules
 
-        python -c "import utool, ibeis.tests.assert_modules; utool.doctest_funcs(ibeis.tests.assert_modules, allexamples=True)"
-        python -m ibeis.tests.assert_modules --allexamples
-        python ~/code/ibeis/ibeis/tests/assert_modules.py
+        python -c "import utool, wbia.tests.assert_modules; utool.doctest_funcs(wbia.tests.assert_modules, allexamples=True)"
+        python -m wbia.tests.assert_modules --allexamples
+        python ~/code/wbia/wbia/tests/assert_modules.py
 
-        python -m ibeis.tests.assert_modules
+        python -m wbia.tests.assert_modules
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
-from ibeis.control.accessor_decors import (adder, getter_1to1, ider)
+from wbia import constants as const
+from wbia.control.accessor_decors import (adder, getter_1to1, ider)
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -69,9 +69,9 @@ def get_lbltype_text(ibs, lbltype_rowid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_lbltype_funcs
-        python -m ibeis.control.manual_lbltype_funcs --allexamples
-        python -m ibeis.control.manual_lbltype_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_lbltype_funcs
+        python -m wbia.control.manual_lbltype_funcs --allexamples
+        python -m wbia.control.manual_lbltype_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -31,15 +31,15 @@ class LRSchedule(object):
 def siam_vsone_train():
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.torch.train_main siam_vsone_train
+        python -m wbia.algo.verif.torch.train_main siam_vsone_train
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.verif.torch.train_main import *  # NOQA
+        >>> from wbia.algo.verif.torch.train_main import *  # NOQA
         >>> siam_vsone_train()
     """
     # wrapper around the RF vsone problem
-    from ibeis.algo.verif import vsone
+    from wbia.algo.verif import vsone
     # pblm = vsone.OneVsOneProblem.from_empty('PZ_MTEST')
     pblm = vsone.OneVsOneProblem.from_empty('GZ_Master1')
     ibs = pblm.infr.ibs
@@ -74,7 +74,7 @@ def siam_vsone_train():
     print('* len(vali_dataset) = {}'.format(len(vali_dataset)))
     print('* len(test_dataset) = {}'.format(len(test_dataset)))
 
-    from ibeis.algo.verif.torch import gpu_util
+    from wbia.algo.verif.torch import gpu_util
     gpu_num = gpu_util.find_unused_gpu(min_memory=6000)
 
     use_cuda = gpu_num is not None
@@ -92,10 +92,10 @@ def siam_vsone_train():
                                               batch_size=batch_size,
                                               shuffle=False, **data_kw)
 
-    from ibeis.algo.verif.torch import fit_harness
-    from ibeis.algo.verif.torch import models
-    from ibeis.algo.verif.torch import netmath
-    from ibeis.algo.verif.torch import lr_schedule
+    from wbia.algo.verif.torch import fit_harness
+    from wbia.algo.verif.torch import models
+    from wbia.algo.verif.torch import netmath
+    from wbia.algo.verif.torch import lr_schedule
 
     model = models.Siamese()
 
@@ -129,8 +129,8 @@ class LabeledPairDataset(torch.utils.data.Dataset):
                    ]
 
     Ignore:
-        >>> from ibeis.algo.verif.torch.train_main import *
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> from wbia.algo.verif.torch.train_main import *
+        >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> ibs = pblm.infr.ibs
         >>> pblm.load_samples()
@@ -205,7 +205,7 @@ class LabeledPairDataset(torch.utils.data.Dataset):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.verif.torch.train_main
+        python -m wbia.algo.verif.torch.train_main
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

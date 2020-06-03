@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from ibeis import viz
-from ibeis.viz import viz_helpers as vh
-from ibeis.plottool import interact_helpers as ih
+from wbia import viz
+from wbia.viz import viz_helpers as vh
+from wbia.plottool import interact_helpers as ih
 (print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 
 

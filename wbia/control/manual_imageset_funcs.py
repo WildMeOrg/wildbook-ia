@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia.control.controller_inject import make_ibs_register_decorator
 import functools
 import utool as ut
 import uuid
@@ -26,7 +26,7 @@ IMAGESET_SMART_XML_FNAME   = 'imageset_smart_xml_fname'
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
@@ -168,7 +168,7 @@ def get_imageset_num_imgs_reviewed(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
@@ -196,7 +196,7 @@ def get_imageset_num_annots_reviewed(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
@@ -224,9 +224,9 @@ def get_imageset_num_annotmatch_reviewed(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> imgsetid_list = ibs._get_all_imageset_rowids()
         >>> num_annots_reviewed_list = ibs.get_imageset_num_annotmatch_reviewed(imgsetid_list)
     """
@@ -247,9 +247,9 @@ def get_imageset_num_names_with_exemplar(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> imgsetid_list = ibs._get_all_imageset_rowids()
         >>> num_annots_reviewed_list = ibs.get_imageset_num_annotmatch_reviewed(imgsetid_list)
     """
@@ -272,9 +272,9 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb2')
         >>> imgsetid_list = ibs._get_all_imageset_rowids()
         >>> fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
     """
@@ -406,20 +406,20 @@ def get_imageset_aids(ibs, imgsetid_list):
         URL:    /api/imageset/annot/rowid/
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imgsetid_list (list):
 
     Returns:
         list: aids_list
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m wbia.control.manual_imageset_funcs --test-get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
@@ -444,7 +444,7 @@ def get_imageset_aids(ibs, imgsetid_list):
 def get_imageset_uuids(ibs, imgsetid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         imgsetid_list (list):
 
     Returns:
@@ -455,13 +455,13 @@ def get_imageset_uuids(ibs, imgsetid_list):
         URL:    /api/imageset/annot/uuid/
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m wbia.control.manual_imageset_funcs --test-get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
@@ -570,7 +570,7 @@ def get_imageset_nids(ibs, imgsetid_list):
         list_ (list):  a list of list of known nids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_nids
+        python -m wbia.control.manual_imageset_funcs --test-get_imageset_nids
 
     RESTful:
         Method: GET
@@ -578,9 +578,9 @@ def get_imageset_nids(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
@@ -614,7 +614,7 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
         name_uuid_list (list):  a list of list of known name uuids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_name_uuids
+        python -m wbia.control.manual_imageset_funcs --test-get_imageset_name_uuids
 
     RESTful:
         Method: GET
@@ -622,9 +622,9 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
@@ -779,7 +779,7 @@ def get_imageset_end_time_posix(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_end_time_posix_list = ibs.get_imageset_end_time_posix(imageset_rowid_list)
@@ -818,7 +818,7 @@ def get_imageset_gps_lats(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_gps_lat_list = ibs.get_imageset_gps_lats(imageset_rowid_list)
@@ -889,7 +889,7 @@ def get_imageset_gps_lons(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_gps_lon_list = ibs.get_imageset_gps_lons(imageset_rowid_list)
@@ -924,7 +924,7 @@ def get_imageset_notes(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_note_list = ibs.get_imageset_notes(imageset_rowid_list)
@@ -985,11 +985,11 @@ def get_imageset_occurrence_flags(ibs, imageset_rowid_list):
         URL:    /api/imageset/occurrence/
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_occurrence_flags
+        python -m wbia.control.manual_imageset_funcs --test-get_imageset_occurrence_flags
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_occurrence_flag_list = ibs.get_imageset_occurrence_flags(imageset_rowid_list)
@@ -1028,7 +1028,7 @@ def get_imageset_processed_flags(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_processed_flag_list = ibs.get_imageset_processed_flags(imageset_rowid_list)
@@ -1067,7 +1067,7 @@ def get_imageset_shipped_flags(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_shipped_flag_list = ibs.get_imageset_shipped_flags(imageset_rowid_list)
@@ -1106,7 +1106,7 @@ def get_imageset_start_time_posix(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_start_time_posix_list = ibs.get_imageset_start_time_posix(imageset_rowid_list)
@@ -1406,7 +1406,7 @@ def get_imageset_smart_waypoint_ids(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_smart_waypoint_id_list = ibs.get_imageset_smart_waypoint_ids(imageset_rowid_list)
@@ -1445,7 +1445,7 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> from wbia.control.manual_imageset_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
         >>> imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
@@ -1533,8 +1533,8 @@ def set_imageset_smart_xml_fnames(ibs, imageset_rowid_list, imageset_smart_xml_f
 def testdata_ibs():
     r"""
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
 
@@ -1542,9 +1542,9 @@ def testdata_ibs():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs
-        python -m ibeis.control.manual_imageset_funcs --allexamples
-        python -m ibeis.control.manual_imageset_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_imageset_funcs
+        python -m wbia.control.manual_imageset_funcs --allexamples
+        python -m wbia.control.manual_imageset_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

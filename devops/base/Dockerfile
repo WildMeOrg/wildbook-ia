@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 as org.wildme.ibeis.base
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -70,23 +70,23 @@ RUN apt-get update \
 RUN curl -fsSL https://get.docker.com -o get-docker.sh \
  && sh get-docker.sh
 
-# Create ibeis source location
-RUN mkdir -p /ibeis
+# Create wbia source location
+RUN mkdir -p /wbia
 
 # Create virtualenv location
 RUN mkdir -p /virtualenv
 
 # Install CNMeM
-RUN git clone https://github.com/NVIDIA/cnmem.git /ibeis/cnmem \
- && cd /ibeis/cnmem/ \
+RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
+ && cd /wbia/cnmem/ \
  && git checkout v1.0.0 \
- && mkdir -p /ibeis/cnmem/build \
- && cd /ibeis/cnmem/build \
+ && mkdir -p /wbia/cnmem/build \
+ && cd /wbia/cnmem/build \
  && cmake .. \
  && make -j4 \
  && make install \
  && cd .. \
- && rm -rf /ibeis/cnmem
+ && rm -rf /wbia/cnmem
 
 # Install virtualenv PyPI package
 RUN /usr/bin/pip3 install \

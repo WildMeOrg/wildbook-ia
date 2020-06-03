@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m ibeis.scripts.rsync_ibeisdb
-    python -m ibeis.scripts.rsync_ibeisdb --dryrun
+    python -m wbia.scripts.rsync_wbiadb
+    python -m wbia.scripts.rsync_wbiadb --dryrun
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -11,25 +11,25 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22,
+def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22,
                  dryrun=False):
     """
-    syncs an ibeisdb without syncing the cache or the chip directory
+    syncs an wbiadb without syncing the cache or the chip directory
     (or the top level image directory because it shouldnt exist unlese
     it is an old hots database)
     """
-    print('[sync_ibeisdb] Syncing')
+    print('[sync_wbiadb] Syncing')
     print('  * dbname=%r ' % (dbname,))
     print('  * remote_uri=%r' % (remote_uri,))
     print('  * mode=%r' % (mode))
-    import ibeis
+    import wbia
     assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
     exclude_dirs = list(map(ut.ensure_unixslash,
-                            ibeis.const.EXCLUDE_COPY_REL_DIRS))
+                            wbia.const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
     if workdir is None:
-        workdir = ibeis.sysres.get_workdir()
+        workdir = wbia.sysres.get_workdir()
     local_uri = ut.ensure_unixslash(workdir)
     if ut.WIN32:
         # fix for mingw rsync
@@ -61,14 +61,14 @@ def rsync_ibsdb_main():
     cmdline_varags = ut.get_cmdline_varargs()
     if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
         # ignore rsync as first command (b/c we are calling from
-        # ibeis.__main__)
+        # wbia.__main__)
         cmdline_varags = cmdline_varags[1:]
     valid_modes = ['push', 'pull', 'list']
 
     if len(cmdline_varags) < 1:
         print('Usage: '
-              # 'python -m ibeis.scripts.rsync_ibeisdb'
-              'python -m ibeis rsync'
+              # 'python -m wbia.scripts.rsync_wbiadb'
+              'python -m wbia rsync'
               '%s --db <db=%s> --user <user=%s>' %
               (valid_modes, default_db, default_user,))
         sys.exit(1)
@@ -97,8 +97,8 @@ def rsync_ibsdb_main():
     }
     remote_workdir_map = {
         'hyrule'  : '/raid/work',
-        'pachy'   : '/home/shared_ibeis/data/work',
-        'lewa'    : '/data/ibeis',
+        'pachy'   : '/home/shared_wbia/data/work',
+        'lewa'    : '/data/wbia',
     }
     if ':' in remote_key:
         remote_key_, remote_workdir = remote_key.split(':')
@@ -116,97 +116,97 @@ def rsync_ibsdb_main():
         print('remote = %r' % (remote,))
         print('need to list')
         remote_paths = ut.list_remote(remote_uri)
-        print('REMOTE LS -- TODO need to get only ibeis dirs')
+        print('REMOTE LS -- TODO need to get only wbia dirs')
         print('\n'.join(remote_paths))
     elif mode in ['push', 'pull']:
         print('dbnames = {!r}'.format(dbnames))
         for dbname in ut.ProgIter(dbnames, label='sync db'):
             ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
-            sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
+            sync_wbiadb(remote_uri, dbname, mode, workdir, port, dry_run)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
         ib
-        ibeis rsync push
-        ibeis rsync pull --db MUGU_Master
-        ibeis rsync pull --db GIRM_MUGU_20
-        ibeis rsync pull --db PZ_MUGU_ALL
-        ibeis rsync push --db MUGU_Master  --user joncrall --dryrun
+        wbia rsync push
+        wbia rsync pull --db MUGU_Master
+        wbia rsync pull --db GIRM_MUGU_20
+        wbia rsync pull --db PZ_MUGU_ALL
+        wbia rsync push --db MUGU_Master  --user joncrall --dryrun
 
         mv "NNP_Master3_nids=arr((3)wjybfvpk)_1" NNP_Master3_nids=arr__3_wjybfvpk__1
 
-        ibeis rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
-        ibeis rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
-        ibeis rsync pull --db NNP_Master3 --user jonc --remote pachy
-        ibeis rsync pull --db testdb3 --user joncrall --remote hyrule
-        ibeis rsync pull --db NNP_MasterGIRM_core --user jonc --remote pachy
+        wbia rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
+        wbia rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
+        wbia rsync pull --db NNP_Master3 --user jonc --remote pachy
+        wbia rsync pull --db testdb3 --user joncrall --remote hyrule
+        wbia rsync pull --db NNP_MasterGIRM_core --user jonc --remote pachy
 
-        #ibeis rsync push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/ibeis --dryrun
-        ibeis rsync pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun
+        #wbia rsync push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/wbia --dryrun
+        wbia rsync pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun
 
-        ibeis rsync push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
-        ibeis rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
+        wbia rsync push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
+        wbia rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
 
-        ibeis rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
+        wbia rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 
-        ibeis rsync push --db RotanTurtles,GZ_Master1,humpbacks_fb,PZ_Master1,PZ_MTEST --user jon.crall --remote aretha:data/ibeis
+        wbia rsync push --db RotanTurtles,GZ_Master1,humpbacks_fb,PZ_Master1,PZ_MTEST --user jon.crall --remote aretha:data/wbia
 
-        ibeis rsync push --db PZ_Master1 --user joncrall --remote lev
-        ibeis rsync push --db GZ_Master1 --user joncrall --remote lev
-        ibeis rsync push --db NNP_MasterGIRM_core --user joncrall --remote lev --dryrun
-        ibeis rsync push --db PZ_PB_RF_TRAIN --user joncrall --remote lev --dryrun
-        ibeis rsync push --db WS_ALL --user joncrall --remote lev --dryrun
-        ibeis rsync push --db humpbacks_fb --user joncrall --remote lev
+        wbia rsync push --db PZ_Master1 --user joncrall --remote lev
+        wbia rsync push --db GZ_Master1 --user joncrall --remote lev
+        wbia rsync push --db NNP_MasterGIRM_core --user joncrall --remote lev --dryrun
+        wbia rsync push --db PZ_PB_RF_TRAIN --user joncrall --remote lev --dryrun
+        wbia rsync push --db WS_ALL --user joncrall --remote lev --dryrun
+        wbia rsync push --db humpbacks_fb --user joncrall --remote lev
 
-        ibeis rsync pull --db GZ_Master1 --user joncrall --remote hyrule
+        wbia rsync pull --db GZ_Master1 --user joncrall --remote hyrule
 
-        ibeis rsync pull --db WS_ALL --user joncrall --remote hyrule --dryrun
+        wbia rsync pull --db WS_ALL --user joncrall --remote hyrule --dryrun
 
-        ibeis rsync pull --db PZ_PB_RF_TRAIN --user joncrall --remote hyrule --dryrun
-        ibeis rsync pull --db PZ_Master1 --user joncrall --remote lev
+        wbia rsync pull --db PZ_PB_RF_TRAIN --user joncrall --remote hyrule --dryrun
+        wbia rsync pull --db PZ_Master1 --user joncrall --remote lev
 
-        ibeis rsync push --db lynx2 --user joncrall --remote lev --dryrun
+        wbia rsync push --db lynx2 --user joncrall --remote lev --dryrun
 
-        ibeis rsync push --user joncrall --remote lev --db Oxford --dryrun
+        wbia rsync push --user joncrall --remote lev --db Oxford --dryrun
 
 
         stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo
-        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/snow-leopards /raid/raw_rsync
+        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/wbia-repos/snow-leopards /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:snow-leopards /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:iberian-lynx /raid/raw_rsync
-        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/wbia-repos/african-dogs /raid/raw_rsync
 
         # make sure group read bits are set
-        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
-        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
-        rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:wbia /home/wbia-repos/"
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/wbia-repos"
+        rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:/home/wbia-repos/african-dogs /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .
         rsync -avhzP joncrall@hyrule.cs.rpi.edu:/raid/raw_rsync/iberian-lynx .
 
-        ibeis rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
-        ibeis rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
+        wbia rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
+        wbia rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
 
-        ibeis rsync pull --db humpbacks_fb --user joncrall --remote lev:/media/hdd/zach/data/IBEIS/
+        wbia rsync pull --db humpbacks_fb --user joncrall --remote lev:/media/hdd/zach/data/IBEIS/
 
         /home/zach/data/IBEIS/humpbacks_fb
 
-        ibeis rsync pull --db seaturtles2 --user 'ubuntu' --remote drewami:/data/ibeis
+        wbia rsync pull --db seaturtles2 --user 'ubuntu' --remote drewami:/data/wbia
 
-        ibeis rsync pull --db testdb3 --user joncrall --remote hyrule
+        wbia rsync pull --db testdb3 --user joncrall --remote hyrule
 
     Fix Patchy
         pachy
-        cd /home/ibeis-repos
+        cd /home/wbia-repos
         sudo chmod -R g+r *
 
 
     Feasibility Testing Example:
 
         # --- GET DATA ---
-        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
-        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/wbia-repos"
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/wbia-repos/african-dogs /raid/raw_rsync
         rsync -avhzP drewami:turtles .
 
 
@@ -214,9 +214,9 @@ if __name__ == '__main__':
 
         # --- GET DATA ---
         # make sure group read bits are set
-        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
-        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
-        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:wbia /home/wbia-repos/"
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/wbia-repos"
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/wbia-repos/african-dogs /raid/raw_rsync
 
         # --- GET DATA ---
         # Get the data via rsync, pydio. (I always have issues doing this with
@@ -228,39 +228,39 @@ if __name__ == '__main__':
         # May have to massage folder names things to make everything work. Can
         # also specify fmtkey to use the python parse module to find the name
         # within the folder names.
-        python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+        python -m wbia --tf ingest_rawdata --db <new-wbia-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 
         # --- OPEN DATABASE / FIX PROBLEMS ---
-        ibeis --db <new-ibeis-db-name>
+        wbia --db <new-wbia-db-name>
 
         # You will probably need to fix some bounding boxes.
 
         # --- LAUNCH IPYTHON NOTEBOOK ---
         # Then click Dev -> Launch IPython Notebook and run it
         # OR RUN
-        ibeis --tf autogen_ipynb --db <new-ibeis-db-name> --ipynb
+        wbia --tf autogen_ipynb --db <new-wbia-db-name> --ipynb
 
 
         Here is what I did for wild dogs
         # --- GET DATA ---
         # Download raw data to /raid/raw_rsync/african-dogs
-        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/wbia-repos/african-dogs /raid/raw_rsync
 
         # --- RUN INGEST SCRIPT ---
-        python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
+        python -m wbia --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
 
         # --- OPEN DATABASE / FIX PROBLEMS ---
-        ibeis --db wd_peter2
+        wbia --db wd_peter2
         # Fixed some bounding boxes
 
         # --- LAUNCH IPYTHON NOTEBOOK ---
         # I actually made two notebooks for this species to account for timedeltas
 
         # The first is the default notebook
-        ibeis --tf autogen_ipynb --db wd_peter --ipynb
+        wbia --tf autogen_ipynb --db wd_peter --ipynb
 
         # The second removes images without timestamps and annotations that are too close together in time
-        ibeis --tf autogen_ipynb --db wd_peter --ipynb -t default:is_known=True,min_timedelta=3600,require_timestamp=True,min_pername=2
+        wbia --tf autogen_ipynb --db wd_peter --ipynb -t default:is_known=True,min_timedelta=3600,require_timestamp=True,min_pername=2
 
         # I then click download as html in the notebook. Although I'm sure there is a way to automate this
 

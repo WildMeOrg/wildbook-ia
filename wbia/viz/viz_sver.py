@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import ibeis.plottool.draw_sv as draw_sv
+import wbia.plottool.draw_sv as draw_sv
 
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)
 
@@ -27,7 +27,7 @@ def _compute_svvars(ibs, aid1):
     DEPRICATE
     If spatial-verfication dbginfo is not in we need to compute it
     """
-    from ibeis.algo.hots import _pipeline_helpers as plh
+    from wbia.algo.hots import _pipeline_helpers as plh
     daids = ibs.get_valid_aids()
     qaids = [aid1]
     cfgdict = dict()
@@ -49,14 +49,14 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
     Compiles IBEIS information and sends it to plottool
 
     CommandLine:
-        python -m ibeis.viz.viz_sver --test-show_sver --show
+        python -m wbia.viz.viz_sver --test-show_sver --show
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.viz.viz_sver import *   # NOQA
-        >>> import ibeis
+        >>> from wbia.viz.viz_sver import *   # NOQA
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> aid1, aid2 = aid_list[0:2]
         >>> chipmatch_FILT = None
@@ -64,7 +64,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
@@ -84,7 +84,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_sver --allexamples
-        python -m ibeis.viz.viz_sver --allexamples --show
+        python -m wbia.viz.viz_sver --allexamples
+        python -m wbia.viz.viz_sver --allexamples --show
     """
     ut.doctest_funcs()

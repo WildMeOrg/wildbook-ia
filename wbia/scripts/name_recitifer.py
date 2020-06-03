@@ -24,13 +24,13 @@ def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
           file names, image names and animal ids
 
     CommandLine:
-        python -m ibeis.scripts.name_recitifer rectify_names --show
+        python -m wbia.scripts.name_recitifer rectify_names --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = None
         >>> common_prefix = ''
         >>> old_img2_names = None #['img_fred.png', ']
@@ -100,9 +100,9 @@ def reasign_names2(ibs, gname_name_pairs, aid_list=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = None
         >>> common_prefix = ''
         >>> gname_name_pairs = [
@@ -203,11 +203,11 @@ def simple_munkres(part_oldnames):
         names are always preferred over padded names.
 
     CommandLine:
-        python -m ibeis.scripts.name_recitifer simple_munkres
+        python -m wbia.scripts.name_recitifer simple_munkres
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> part_oldnames = [['a', 'b'], ['b', 'c'], ['c', 'a', 'a']]
         >>> new_names = simple_munkres(part_oldnames)
         >>> result = ut.repr2(new_names)
@@ -216,7 +216,7 @@ def simple_munkres(part_oldnames):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> part_oldnames = [[], ['a', 'a'], [],
         >>>                  ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
         >>> new_names = simple_munkres(part_oldnames)
@@ -226,7 +226,7 @@ def simple_munkres(part_oldnames):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> part_oldnames = [[], ['b'], ['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
         >>> new_names = find_consistent_labeling(part_oldnames)
         >>> result = ut.repr2(new_names)
@@ -338,12 +338,12 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         http://stackoverflow.com/questions/1398822/assignment-problem-numpy
 
     CommandLine:
-        python -m ibeis.scripts.name_recitifer find_consistent_labeling
+        python -m wbia.scripts.name_recitifer find_consistent_labeling
 
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = testdata_oldnames(25, 15,  5, n_per_incon=5)
         >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
         >>> grouped_oldnames = testdata_oldnames(0, 15,  5, n_per_incon=1)
@@ -353,7 +353,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> ydata = []
         >>> xdata = list(range(10, 150, 50))
         >>> for x in xdata:
@@ -365,14 +365,14 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>>             new_names = find_consistent_labeling(grouped_oldnames)
         >>>     ydata.append(t.ave_secs)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pt.qtensure()
         >>> pt.multi_plot(xdata, [ydata])
         >>> ut.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
         >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
         >>> result = ut.repr2(new_names)
@@ -381,7 +381,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b'], ['a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> result = ut.repr2(new_names)
@@ -390,7 +390,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b'], ['e'], ['a', 'a', 'b'], [], ['a'], ['d']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> result = ut.repr2(new_names)
@@ -399,7 +399,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> from wbia.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [[], ['a', 'a'], [],
         >>>                     ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
@@ -619,8 +619,8 @@ def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.name_recitifer
-        python -m ibeis.scripts.name_recitifer --allexamples
+        python -m wbia.scripts.name_recitifer
+        python -m wbia.scripts.name_recitifer --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

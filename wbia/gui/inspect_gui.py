@@ -5,7 +5,7 @@ to display the results from a query in a qt window.
 
 
 CommandLine:
-    python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
+    python -m wbia.gui.inspect_gui --test-QueryResultsWidget --show
 
 
 TODO:
@@ -13,15 +13,15 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.plottool import fig_presenter
-import ibeis.guitool as gt
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.plottool import fig_presenter
+import wbia.guitool as gt
 #import six
 import utool as ut
-from ibeis.gui import id_review_api
-from ibeis.gui import guiexcept
+from wbia.gui import id_review_api
+from wbia.gui import guiexcept
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -30,7 +30,7 @@ USE_FILTER_PROXY = False
 
 def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=False):
     """ TODO: move to a more general function """
-    from ibeis.gui import inspect_gui
+    from wbia.gui import inspect_gui
     gt.ensure_qapp()
     #backend_callback = back.front.update_tables
     backend_callback = None
@@ -79,16 +79,16 @@ class QueryResultsWidget(gt.APIItemWidget):
     """ Window for gui inspection
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show --fresh-inspect
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --cmd
+        python -m wbia.gui.inspect_gui --test-QueryResultsWidget --show
+        python -m wbia.gui.inspect_gui --test-QueryResultsWidget --show
+        python -m wbia.gui.inspect_gui --test-QueryResultsWidget --show --fresh-inspect
+        python -m wbia.gui.inspect_gui --test-QueryResultsWidget --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
+        >>> from wbia.gui.inspect_gui import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
         >>> ibs = qreq_.ibs
         >>> assert qreq_.ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
         >>> if ut.get_argflag('--fresh-inspect'):
@@ -236,7 +236,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
     def edit_filters(qres_wgt):
-        from ibeis import dtool
+        from wbia import dtool
         config = dtool.Config.from_dict(qres_wgt.review_cfg)
         dlg = gt.ConfigConfirmWidget.as_dialog(qres_wgt, title='Edit Filters',
                                                msg='Edit Filters',
@@ -659,7 +659,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None,
                  qreq_=None, cm=None, **kwargs):
     print('Review match: {}-vs-{}'.format(aid1, aid2))
-    from ibeis.viz.interact import interact_name
+    from wbia.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = interact_name.MatchVerificationInteraction(
         ibs, aid1, aid2, fnum=64, update_callback=update_callback,
@@ -675,31 +675,31 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     """ assert that the ampersand cannot have duplicate keys
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
-        cm (ibeis.ChipMatch):  object of feature correspondences and scores
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)
+        cm (wbia.ChipMatch):  object of feature correspondences and scores
+        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters(default = None)
         aid_list (list):  list of annotation rowids(default = None)
 
     Returns:
         list: options
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
+        python -m wbia.gui.inspect_gui --exec-get_aidpair_context_menu_options
+        python -m wbia.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
+        python -m wbia.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
 
         # Other scripts that call this one;w
-        python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
-        python -m ibeis.dev -e cases --db PZ_MTEST  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
+        python -m wbia.dev -e cases --db PZ_Master1  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
+        python -m wbia.dev -e cases --db PZ_MTEST  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(t=['default:fg_on=False'])
+        >>> from wbia.gui.inspect_gui import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('PZ_MTEST')
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(t=['default:fg_on=False'])
         >>> cm_list = qreq_.execute()
         >>> cm = cm_list[0]
         >>> ibs = qreq_.ibs
@@ -734,7 +734,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             )
 
         def show_single_namematch():
-            import ibeis.plottool as pt
+            import wbia.plottool as pt
             ax = cm.show_single_namematch(qreq_, aid2, mode=0)
             ax = pt.gca()
             ax.figure.canvas.draw()
@@ -758,7 +758,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_review_options = True
 
-    from ibeis.viz import viz_graph2
+    from wbia.viz import viz_graph2
     if with_review_options:
         aid_list2 = [aid1, aid2]
         options += [
@@ -844,15 +844,15 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
     Makes a qt widget for inspecting one-vs-one matches
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui make_vsone_tuner --show
+        python -m wbia.gui.inspect_gui make_vsone_tuner --show
 
     Example:
         >>> # xdoctest: +REQUIRES(--gui)
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.inspect_gui import *  # NOQA
+        >>> import wbia
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> edge = ut.get_argval('--aids', default=[1, 2], type_=list)
         >>> self = make_vsone_tuner(ibs, edge, autoupdate=False)
         >>> ut.quit_if_noshow()
@@ -883,7 +883,7 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
         match = vt.PairwiseMatch(annot1, annot2)
 
         def on_context():
-            from ibeis.gui import inspect_gui
+            from wbia.gui import inspect_gui
             return inspect_gui.make_annotpair_context_options(
                 ibs, aid1, aid2, None)
         self.set_match(match, on_context, info_text)
@@ -906,19 +906,19 @@ def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
 def make_vsone_context_options(ibs, aid1, aid2, qreq_):
     """
     CommandLine:
-        python -m ibeis.gui.inspect_gui make_vsone_context_options --db PZ_MTEST
-        python -m ibeis.gui.inspect_gui make_vsone_context_options \
+        python -m wbia.gui.inspect_gui make_vsone_context_options --db PZ_MTEST
+        python -m wbia.gui.inspect_gui make_vsone_context_options \
             --dbdir ~/lev/media/hdd/work/WWF_Lynx/  --aids=2587,2398
-        python -m ibeis.gui.inspect_gui make_vsone_context_options \
+        python -m wbia.gui.inspect_gui make_vsone_context_options \
                 --db PZ_Master1 --aids=8,242
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.gui.inspect_gui import *  # NOQA
+        >>> import wbia
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = ut.get_argval('--aids', default=[1, 2], type_=list)
         >>> print('aids = %r' % (aids,))
         >>> aid1, aid2 = aids
@@ -934,7 +934,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
 
 
 def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
-    from ibeis.viz.interact import interact_chip
+    from wbia.viz.interact import interact_chip
 
     aid_list2 = [aid1, aid2]
     if qreq_ is None:
@@ -982,7 +982,7 @@ def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
 
 
 def make_aidpair_tag_context_options(ibs, aid1, aid2):
-    from ibeis import tag_funcs
+    from wbia import tag_funcs
     annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
         [aid1], [aid2])[0]
 
@@ -1052,9 +1052,9 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.inspect_gui
-        python -m ibeis.gui.inspect_gui --allexamples
-        python -m ibeis.gui.inspect_gui --allexamples --noface --nosrc
+        python -m wbia.gui.inspect_gui
+        python -m wbia.gui.inspect_gui --allexamples
+        python -m wbia.gui.inspect_gui --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

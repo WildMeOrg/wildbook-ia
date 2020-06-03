@@ -13,13 +13,13 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
     changed image orientation flag in the database
 
     CommandLine:
-        python -m ibeis.scripts.fix_annotation_orientation_issue fix_annotation_orientation
+        python -m wbia.scripts.fix_annotation_orientation_issue fix_annotation_orientation
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> from ibeis.scripts.fix_annotation_orientation_issue import *  # NOQA
-        >>> ibs = ibeis.opendb()
+        >>> import wbia
+        >>> from wbia.scripts.fix_annotation_orientation_issue import *  # NOQA
+        >>> ibs = wbia.opendb()
         >>> unfixable_gid_list = fix_annotation_orientation(ibs)
         >>> assert len(unfixable_gid_list) == 0
     """

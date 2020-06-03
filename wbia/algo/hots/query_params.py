@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import collections
 import utool as ut
-from ibeis.algo.hots import hstypes
-from ibeis.algo import Config
+from wbia.algo.hots import hstypes
+from wbia.algo import Config
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -25,14 +25,14 @@ class QueryParams(collections.Mapping):
             cfgdict (dict or None): dictionary to update query_cfg with
 
         CommandLine:
-            python -m ibeis.algo.hots.query_params --test-__init__
+            python -m wbia.algo.hots.query_params --test-__init__
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_params import *  # NOQA
-            >>> import ibeis
-            >>> from ibeis.algo import Config
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> from wbia.algo.hots.query_params import *  # NOQA
+            >>> import wbia
+            >>> from wbia.algo import Config
+            >>> ibs = wbia.opendb('testdb1')
             >>> query_cfg = Config.QueryConfig()
             >>> cfgdict = dict(rotation_invariance=True)
             >>> qparams = QueryParams(query_cfg, cfgdict)
@@ -131,7 +131,7 @@ class QueryParams(collections.Mapping):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_params import *  # NOQA
+            >>> from wbia.algo.hots.query_params import *  # NOQA
             >>> from six.moves import cPickle as pickle
             >>> cfgdict = {'pipeline_root': 'vsmany', 'sv_on': False, 'fg_on': True}
             >>> qparams = QueryParams(cfgdict=cfgdict)
@@ -151,9 +151,9 @@ class QueryParams(collections.Mapping):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.query_params
-        python -m ibeis.algo.hots.query_params --allexamples
-        python -m ibeis.algo.hots.query_params --allexamples --noface --nosrc
+        python -m wbia.algo.hots.query_params
+        python -m wbia.algo.hots.query_params --allexamples
+        python -m wbia.algo.hots.query_params --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

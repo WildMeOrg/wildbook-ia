@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templates.template_generator')"
 sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --modfname manual_species_funcs
 
 # TODO: Fix this name it is too special case
@@ -13,17 +13,17 @@ from six.moves import range, zip, map  # NOQA
 #import numpy as np
 #import vtool_ibeis as vt
 import numpy as np
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject  # NOQA
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 SPECIES_ROWID   = 'species_rowid'
@@ -82,14 +82,14 @@ def sanitize_species_texts(ibs, species_text_list):
     changes unknown species to the unknown value
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         species_text_list (list):
 
     Returns:
         list: species_text_list_
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-sanitize_species_texts
+        python -m wbia.control.manual_species_funcs --test-sanitize_species_texts
 
     RESTful:
         Method: POST
@@ -97,10 +97,10 @@ def sanitize_species_texts(ibs, species_text_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> species_text_list = ['foo', 'bar', 'zebra_plains']
         >>> # execute function
         >>> species_text_list_ = sanitize_species_texts(ibs, species_text_list)
@@ -175,14 +175,14 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         URL:    /api/species/
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-add_species
+        python -m wbia.control.manual_species_funcs --test-add_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> species_text_list = [
         ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
         ...     '____', 'zebra_grevys', 'bear_polar+head']
@@ -306,8 +306,8 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         species_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:0
+        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:1
 
     RESTful:
         Method: GET
@@ -315,10 +315,10 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
         >>> import utool as ut
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> species_text_list = [
         ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
         ...     '____', u'zebra_grevys', u'bear_polar']
@@ -343,10 +343,10 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
         >>> import utool as ut  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> species_text_list = [
         ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
         ...     '____', u'zebra_grevys', u'bear_polar']
@@ -380,8 +380,8 @@ def get_species_rowids_from_uuids(ibs, species_uuid_list):
         species_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:0
+        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:1
 
     RESTful:
         Method: GET
@@ -420,7 +420,7 @@ def get_species_texts(ibs, species_rowid_list):
         list: species_text_list text names
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_texts --enableall
+        python -m wbia.control.manual_species_funcs --test-get_species_texts --enableall
 
     RESTful:
         Method: GET
@@ -428,9 +428,9 @@ def get_species_texts(ibs, species_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_texts(ibs, species_rowid_list)
         >>> result = ut.repr2(result)
@@ -457,7 +457,7 @@ def get_species_nice(ibs, species_rowid_list):
         list: species_text_list nice names
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_nice --enableall
+        python -m wbia.control.manual_species_funcs --test-get_species_nice --enableall
 
     RESTful:
         Method: GET
@@ -465,9 +465,9 @@ def get_species_nice(ibs, species_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_species_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> ibs._clean_species()
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_nice(ibs, species_rowid_list)
@@ -580,9 +580,9 @@ def set_species_enabled(ibs, species_rowid_list, enabled_list):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_species_funcs
-        python -m ibeis.control.manual_species_funcs --allexamples
-        python -m ibeis.control.manual_species_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_species_funcs
+        python -m wbia.control.manual_species_funcs --allexamples
+        python -m wbia.control.manual_species_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

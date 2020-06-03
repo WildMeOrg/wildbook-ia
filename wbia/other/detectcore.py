@@ -16,9 +16,9 @@ import numpy as np
 import vtool_ibeis as vt
 import utool as ut
 import cv2
-import ibeis.constants as const
-from ibeis.control import controller_inject
-from ibeis.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
+import wbia.constants as const
+from wbia.control import controller_inject
+from wbia.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
                                      localizer_parse_pred, _resize, general_overlap)
 import random
 
@@ -32,7 +32,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 def nms(dets, scores, thresh, use_cpu=True):
     # Interface into Faster R-CNN's Python native NMS algorithm by Girshick et al.
-    from ibeis.algo.detect.nms.py_cpu_nms import py_cpu_nms
+    from wbia.algo.detect.nms.py_cpu_nms import py_cpu_nms
     return py_cpu_nms(dets, scores, thresh)
 
 
@@ -50,7 +50,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     """Create training XML for training models."""
     import random
     from datetime import date
-    from ibeis.detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+    from wbia.detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
     print('Received species_mapping = %r' % (species_mapping, ))
 
@@ -760,19 +760,19 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         write (bool, optional): if to display or write the files
 
     CommandLine:
-        python -m ibeis.other.detectcore --test-visualize_pascal_voc_dataset
+        python -m wbia.other.detectcore --test-visualize_pascal_voc_dataset
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.detectcore import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.detectcore import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> dataset_path = '/Users/jason.parham/Downloads/wilddog_data/data/VOCdevkit/VOC2020/'
         >>> # dataset_path = '/Users/jason.parham/Downloads/LearningData/'
         >>> # dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
         >>> ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)
     """
-    from ibeis.detecttools.ibeisdata import IBEIS_Data
+    from wbia.detecttools.wbiadata import IBEIS_Data
     import random
 
     num_examples = int(num_examples)
@@ -917,19 +917,19 @@ def redownload_detection_models(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -c "from ibeis.algo.detect import grabmodels; grabmodels.redownload_models()"
-        python -c "import utool, ibeis.algo; utool.view_directory(ibeis.algo.detect.grabmodels._expand_modeldir())"
+        python -c "from wbia.algo.detect import grabmodels; grabmodels.redownload_models()"
+        python -c "import utool, wbia.algo; utool.view_directory(wbia.algo.detect.grabmodels._expand_modeldir())"
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.detectcore import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.detectcore import *  # NOQA
+        >>> import wbia  # NOQA
+        >>> ibs = wbia.opendb('testdb1')
         >>> result = redownload_detection_models(ibs)
         >>> print(result)
     """
     print('[other.detectcore] redownload_detection_models')
-    from ibeis.algo.detect import grabmodels
+    from wbia.algo.detect import grabmodels
     modeldir = ibs.get_detect_modeldir()
     grabmodels.redownload_models(modeldir=modeldir)
 
@@ -1077,9 +1077,9 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectcore
-        python -m ibeis.other.detectcore --allexamples
-        python -m ibeis.other.detectcore --allexamples --noface --nosrc
+        python -m wbia.other.detectcore
+        python -m wbia.other.detectcore --allexamples
+        python -m wbia.other.detectcore --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

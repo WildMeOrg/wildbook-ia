@@ -6,17 +6,17 @@ TODO:
 
 """
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
-from ibeis.guitool.__PYQT__.QtCore import Qt
-from ibeis.guitool import qtype
-from ibeis.guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool import qtype
+from wbia.guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins  # NOQA
 #from utool._internal.meta_util_six import get_funcname
 import functools
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
-from ibeis.guitool import api_tree_node as _atn
+from wbia.guitool import api_tree_node as _atn
 import cachetools
 
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
@@ -24,7 +24,7 @@ import cachetools
 #print, rrr, profile = ut.inject2(__name__)
 ut.noinject(__name__, '[APIItemModel]')
 
-#raise ImportError('refused to import ibeis.guitool')
+#raise ImportError('refused to import wbia.guitool')
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
@@ -494,7 +494,7 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def _get_row_id(model, qtindex=QtCore.QModelIndex()):
         """
-        returns the id (specified by iders i.e. an ibeis rowid) from qtindex
+        returns the id (specified by iders i.e. an wbia rowid) from qtindex
         """
         if qtindex is not None and qtindex.isValid():
             node = qtindex.internalPointer()
@@ -1034,19 +1034,19 @@ def simple_thumbnail_widget():
     Very simple example to test thumbnails
 
     CommandLine:
-        python -m ibeis.guitool.api_item_model --test-simple_thumbnail_widget  --show
+        python -m wbia.guitool.api_item_model --test-simple_thumbnail_widget  --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis.guitool
-        >>> from ibeis.guitool.api_item_model import *  # NOQA
+        >>> import wbia.guitool
+        >>> from wbia.guitool.api_item_model import *  # NOQA
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_thumbnail_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
         >>> guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
     """
-    import ibeis.guitool
+    import wbia.guitool
     guitool.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
     col_types_dict = {
@@ -1090,9 +1090,9 @@ def simple_thumbnail_widget():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.api_item_model
-        python -m ibeis.guitool.api_item_model --allexamples
-        python -m ibeis.guitool.api_item_model --allexamples --noface --nosrc
+        python -m wbia.guitool.api_item_model
+        python -m wbia.guitool.api_item_model --allexamples
+        python -m wbia.guitool.api_item_model --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -3,12 +3,12 @@ This module contains functions and clases to get data visualized fast (in
 terms of development time)
 """
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.api_item_model import APIItemModel
-from ibeis.guitool.api_table_view import APITableView
-from ibeis.guitool.api_tree_view import APITreeView
-#from ibeis.guitool import guitool_components as comp
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.api_item_model import APIItemModel
+from wbia.guitool.api_table_view import APITableView
+from wbia.guitool.api_tree_view import APITreeView
+#from wbia.guitool import guitool_components as comp
 from functools import partial
 from six.moves import range
 import utool as ut
@@ -26,13 +26,13 @@ def simple_api_item_widget():
     Very simple example of basic APIItemWidget widget with CustomAPI
 
     CommandLine:
-        python -m ibeis.guitool.api_item_widget --test-simple_api_item_widget
-        python -m ibeis.guitool.api_item_widget --test-simple_api_item_widget --show
+        python -m wbia.guitool.api_item_widget --test-simple_api_item_widget
+        python -m wbia.guitool.api_item_widget --test-simple_api_item_widget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.api_item_widget import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.api_item_widget import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_item_widget()
         >>> # xdoctest: +REQUIRES(--show)
@@ -40,7 +40,7 @@ def simple_api_item_widget():
         >>> wgt.show()
         >>> gt.qtapp_loop(wgt, frequency=100)
     """
-    import ibeis.guitool as gt
+    import wbia.guitool as gt
     gt.ensure_qapp()
     col_getter_dict = {
         'col1': [1, 2, 3],
@@ -81,13 +81,13 @@ def simple_api_tree_widget():
     Minimal example of a tree based api widget
 
     CommandLine:
-        python -m ibeis.guitool.api_item_widget --test-simple_api_tree_widget
-        python -m ibeis.guitool.api_item_widget --test-simple_api_tree_widget --show
+        python -m wbia.guitool.api_item_widget --test-simple_api_tree_widget
+        python -m wbia.guitool.api_item_widget --test-simple_api_tree_widget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.guitool.api_item_widget import *  # NOQA
-        >>> import ibeis.guitool
+        >>> from wbia.guitool.api_item_widget import *  # NOQA
+        >>> import wbia.guitool
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_tree_widget()
         >>> # xdoctest: +REQUIRES(--show)
@@ -95,7 +95,7 @@ def simple_api_tree_widget():
         >>> wgt.show()
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
-    import ibeis.guitool
+    import wbia.guitool
     guitool.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {
@@ -533,9 +533,9 @@ class APIItemWidget(WIDGET_BASE):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.guitool.api_item_widget
-        python -m ibeis.guitool.api_item_widget --allexamples
-        python -m ibeis.guitool.api_item_widget --allexamples --noface --nosrc
+        python -m wbia.guitool.api_item_widget
+        python -m wbia.guitool.api_item_widget --allexamples
+        python -m wbia.guitool.api_item_widget --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import ibeis.plottool as pt
-import ibeis.plottool.plot_helpers as ph
-from ibeis.viz import viz_helpers as vh
+import wbia.plottool as pt
+import wbia.plottool.plot_helpers as ph
+from wbia.viz import viz_helpers as vh
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -83,7 +83,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     Called from chip_match.py
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         qaid (int):  query annotation id
         name_daid_list (list):
         name_fm_list (list):
@@ -102,16 +102,16 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         show_name_score, show_name_rank, show_timedelta
 
     CommandLine:
-        python -m ibeis.viz.viz_matches --exec-show_name_matches
-        python -m ibeis.viz.viz_matches --test-show_name_matches --show
+        python -m wbia.viz.viz_matches --exec-show_name_matches
+        python -m wbia.viz.viz_matches --test-show_name_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_matches import *  # NOQA
-        >>> from ibeis.algo.hots import chip_match
-        >>> from ibeis.algo.hots import name_scoring
+        >>> from wbia.viz.viz_matches import *  # NOQA
+        >>> from wbia.algo.hots import chip_match
+        >>> from wbia.algo.hots import name_scoring
         >>> import vtool_ibeis as vt
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+        >>> from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch.show_single_namematch
         >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True,
@@ -139,8 +139,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     """
     #print("SHOW NAME MATCHES")
     #print(ut.repr2(kwargs, nl=True))
-    #from ibeis import constants as const
-    from ibeis import tag_funcs
+    #from wbia import constants as const
+    from wbia import tag_funcs
     draw_fmatches = kwargs.pop('draw_fmatches', True)
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list,
@@ -462,34 +462,34 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     Integrate ChipMatch
 
     Used in:
-        Found 1 line(s) in '/home/joncrall/code/ibeis_cnn/ibeis_cnn/ingest_ibeis.py':
-        ingest_ibeis.py : 827 |        >>>     ibeis.viz.viz_matches.show_matches2(ibs, aid1, aid2, fm=None, kpts1=kpts1, kpts2=kpts2)
+        Found 1 line(s) in '/home/joncrall/code/ibeis_cnn/ibeis_cnn/ingest_wbia.py':
+        ingest_wbia.py : 827 |        >>>     wbia.viz.viz_matches.show_matches2(ibs, aid1, aid2, fm=None, kpts1=kpts1, kpts2=kpts2)
         ----------------------
-        Found 4 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/viz_matches.py':
+        Found 4 line(s) in '/home/joncrall/code/wbia/wbia/viz/viz_matches.py':
         viz_matches.py : 423 |def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
-        viz_matches.py : 430 |        python -m ibeis.viz.viz_matches --exec-show_matches2 --show
-        viz_matches.py : 431 |        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
+        viz_matches.py : 430 |        python -m wbia.viz.viz_matches --exec-show_matches2 --show
+        viz_matches.py : 431 |        python -m wbia --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
         viz_matches.py : 515 |    return show_matches2(ibs, aid1, aid2, fm, fs, qreq_=qreq_, **kwargs)
         ----------------------
-        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py':
+        Found 1 line(s) in '/home/joncrall/code/wbia/wbia/viz/interact/interact_matches.py':
         interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
         ----------------------
-        Found 2 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py':
+        Found 2 line(s) in '/home/joncrall/code/wbia/wbia/algo/hots/chip_match.py':
         chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,
-        chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2
+        chip_match.py : 219 |            wbia.viz.viz_matches.show_matches2
         ----------------------
-        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/scoring.py':
+        Found 1 line(s) in '/home/joncrall/code/wbia/wbia/algo/hots/scoring.py':
         scoring.py : 562 |        viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs,
 
     CommandLine:
-        python -m ibeis.viz.viz_matches --exec-show_matches2 --show
-        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
+        python -m wbia.viz.viz_matches --exec-show_matches2 --show
+        python -m wbia --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST', default_qaids=[18])
+        >>> from wbia.algo.hots.chip_match import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST', default_qaids=[18])
         >>> cm.score_name_nsum(qreq_)
         >>> daid = cm.get_top_aids()[0]
         >>> cm.show_single_annotmatch(qreq_, daid)
@@ -581,7 +581,7 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 
     """
     import vtool_ibeis.image as gtool
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import numpy as np
     import vtool_ibeis as vt
     kwargs = kwargs.copy()
@@ -682,11 +682,11 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_matches --test-show_matches --show
+        python -m wbia.viz.viz_matches --test-show_matches --show
 
-        python -m ibeis.viz.viz_matches
-        python -m ibeis.viz.viz_matches --allexamples
-        python -m ibeis.viz.viz_matches --allexamples --noface --nosrc
+        python -m wbia.viz.viz_matches
+        python -m wbia.viz.viz_matches --allexamples
+        python -m wbia.viz.viz_matches --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

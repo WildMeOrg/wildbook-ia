@@ -4,9 +4,9 @@ import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
 import vtool_ibeis as vt
-#from ibeis import constants as const
-from ibeis.control import accessor_decors  # NOQA
-from ibeis.control.controller_inject import make_ibs_register_decorator
+#from wbia import constants as const
+from wbia.control import accessor_decors  # NOQA
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -16,7 +16,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                       verbose=ut.NOT_QUIET, **kwargs):
     """
-    alias for ibeis.algo.hots.query_request.new_ibeis_query_request
+    alias for wbia.algo.hots.query_request.new_wbia_query_request
 
     Args:
         qaid_list (list):
@@ -25,10 +25,10 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         verbose (bool):
 
     Returns:
-        ibeis.QueryRequest: qreq_ -  hyper-parameters
+        wbia.QueryRequest: qreq_ -  hyper-parameters
     """
-    from ibeis.algo.hots import query_request
-    qreq_ = query_request.new_ibeis_query_request(
+    from wbia.algo.hots import query_request
+    qreq_ = query_request.new_wbia_query_request(
         ibs, qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose, **kwargs)
     return qreq_
 
@@ -39,7 +39,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
     very hacky, but cute way to cache keypoint distinctivness
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
         dstncvs_normer (None):
 
@@ -47,18 +47,18 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         list: dstncvs_list
 
     CommandLine:
-        python -m ibeis.control.manual_ibeiscontrol_funcs --test-get_annot_kpts_distinctiveness
+        python -m wbia.control.manual_wbiacontrol_funcs --test-get_annot_kpts_distinctiveness
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
-        >>> from ibeis.algo.hots import distinctiveness_normalizer
-        >>> import ibeis
+        >>> from wbia.control.manual_wbiacontrol_funcs import *  # NOQA
+        >>> from wbia.algo.hots import distinctiveness_normalizer
+        >>> import wbia
         >>> import numpy as np
         >>> config2_ = None
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> # execute function
         >>> aid_list1 = aid_list[::2]
@@ -72,9 +72,9 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         >>> assert np.all(np.array(stats_dict['min']) >= 0), 'distinctiveness was out of bounds'
         >>> assert np.all(np.array(stats_dict['max']) <= 1), 'distinctiveness was out of bounds'
     """
-    from ibeis.algo.hots import distinctiveness_normalizer as dcvs_normer
+    from wbia.algo.hots import distinctiveness_normalizer as dcvs_normer
 
-    # per-species disinctivness wrapper around ibeis cached function
+    # per-species disinctivness wrapper around wbia cached function
     # get feature rowids
     aid_list = np.array(aid_list)
     fid_list = np.array(ibs.get_annot_feat_rowids(aid_list, ensure=True,
@@ -113,15 +113,15 @@ def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None, species_ro
 
 @register_ibs_method
 def show_annot(ibs, aid, *args, **kwargs):
-    """ viz helper see ibeis.viz.viz_chip.show_chip """
-    from ibeis.viz import viz_chip
+    """ viz helper see wbia.viz.viz_chip.show_chip """
+    from wbia.viz import viz_chip
     return viz_chip.show_chip(ibs, aid, *args, **kwargs)
 
 
 @register_ibs_method
 def show_annot_image(ibs, aid, *args, **kwargs):
-    """ viz helper see ibeis.viz.viz_chip.show_chip """
-    from ibeis.viz import viz_image
+    """ viz helper see wbia.viz.viz_chip.show_chip """
+    from wbia.viz import viz_image
     gid = ibs.get_annot_gids(aid)
     return viz_image.show_image(ibs, gid, *args, **kwargs)
 
@@ -129,9 +129,9 @@ def show_annot_image(ibs, aid, *args, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_ibeiscontrol_funcs
-        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples
-        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_wbiacontrol_funcs
+        python -m wbia.control.manual_wbiacontrol_funcs --allexamples
+        python -m wbia.control.manual_wbiacontrol_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

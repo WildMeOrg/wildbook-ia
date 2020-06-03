@@ -7,7 +7,7 @@ import utool as ut
 def benchmark_knn():
     r"""
     CommandLine:
-        python ~/code/ibeis/ibeis/algo/hots/tests/bench.py benchmark_knn --profile
+        python ~/code/wbia/wbia/algo/hots/tests/bench.py benchmark_knn --profile
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -15,11 +15,11 @@ def benchmark_knn():
         >>> result = benchmark_knn()
         >>> print(result)
     """
-    from ibeis.algo.hots import _pipeline_helpers as plh
-    from ibeis.algo.hots.pipeline import nearest_neighbors
-    import ibeis
+    from wbia.algo.hots import _pipeline_helpers as plh
+    from wbia.algo.hots.pipeline import nearest_neighbors
+    import wbia
     verbose = True
-    qreq_ = ibeis.testdata_qreq_(
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='PZ_PB_RF_TRAIN',
         t='default:K=3,requery=True,can_match_samename=False',
         a='default:qsize=100', verbose=1
@@ -36,9 +36,9 @@ def benchmark_knn():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/algo/hots/tests
-        python ~/code/ibeis/ibeis/algo/hots/tests/bench.py
-        python ~/code/ibeis/ibeis/algo/hots/tests/bench.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/hots/tests
+        python ~/code/wbia/wbia/algo/hots/tests/bench.py
+        python ~/code/wbia/wbia/algo/hots/tests/bench.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

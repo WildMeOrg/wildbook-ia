@@ -13,6 +13,6 @@ else
     export PY=python
 fi
 
-#cd ~jonathan/code/ibeis
+#cd ~jonathan/code/wbia
 #$PY main.py $FLAGS
-$PY -m ibeis "$@"
+$PY -m wbia "$@"

@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut
 import numpy as np
-from ibeis.algo.hots.bayes import make_name_model, temp_model, draw_tree_model
+from wbia.algo.hots.bayes import make_name_model, temp_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -17,29 +17,29 @@ def demo_bayesnet(cfg={}):
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis --tf demo_bayesnet --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+        python -m wbia --tf demo_bayesnet --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
-        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1 --show
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Scd=1 --show
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1,Scd=1 --show
+        python -m wbia --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
+        python -m wbia --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1 --show
+        python -m wbia --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Scd=1 --show
+        python -m wbia --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1,Scd=1 --show
 
-        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
-        python -m ibeis --tf demo_bayesnet --ev :nA=5,rand_scores=True --show
+        python -m wbia --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
+        python -m wbia --tf demo_bayesnet --ev :nA=5,rand_scores=True --show
 
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,rand_scores=True --show --verbose
-        python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=2,Na=fred,rand_scores=True --show --verbose
-        python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=5,Na=fred,rand_scores=True --show --verbose
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=fred,rand_scores=True --show --verbose
+        python -m wbia --tf demo_bayesnet --ev :nA=4,nS=3,rand_scores=True --show --verbose
+        python -m wbia --tf demo_bayesnet --ev :nA=5,nS=2,Na=fred,rand_scores=True --show --verbose
+        python -m wbia --tf demo_bayesnet --ev :nA=5,nS=5,Na=fred,rand_scores=True --show --verbose
+        python -m wbia --tf demo_bayesnet --ev :nA=4,nS=2,Na=fred,rand_scores=True --show --verbose
 
-        python -m ibeis.unstable.demobayes --exec-demo_bayesnet \
+        python -m wbia.unstable.demobayes --exec-demo_bayesnet \
                 --ev =:nA=4,Sab=0,Sac=0,Sbc=1 \
                 :Sbd=1 :Scd=1 :Sbd=1,Scd=1 :Sbd=1,Scd=1,Sad=0 \
                 --show --present
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> cfg_list = testdata_demo_cfgs()
         >>> print('cfg_list = %r' % (cfg_list,))
         >>> for cfg in cfg_list:
@@ -87,14 +87,14 @@ def demo_bayesnet(cfg={}):
 def classify_k(cfg={}):
     """
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=1
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=0 --method=approx
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
+        python -m wbia.unstable.demobayes --exec-classify_k --show --ev :nA=3
+        python -m wbia.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=1
+        python -m wbia.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=0 --method=approx
+        python -m wbia.unstable.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> cfg_list = testdata_demo_cfgs()
         >>> classify_k(cfg_list[0])
         >>> ut.show_if_requested()
@@ -204,7 +204,7 @@ def classify_k(cfg={}):
 
 def show_toy_distributions(toy_params):
     import vtool_ibeis as vt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
     tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
@@ -229,16 +229,16 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         tuple: (pair_list, feat_list)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_data_1vM --show
+        python -m wbia.unstable.demobayes --exec-get_toy_data_1vM --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> num_annots = 1000
         >>> num_names = 40
         >>> get_toy_data_1vM(num_annots, num_names)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
     import vtool_ibeis as vt
@@ -368,11 +368,11 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
         tuple: (aids, nids, aids1, nids1, all_aids, all_nids)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_annots
+        python -m wbia.unstable.demobayes --exec-get_toy_annots
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> num_annots = 1
         >>> num_names = 5
         >>> initial_aids = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int64)
@@ -442,20 +442,20 @@ toy_params = {
 def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_data_1v1 --show
+        python -m wbia.unstable.demobayes --exec-get_toy_data_1v1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> toy_data = get_toy_data_1v1()
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> toy_data = get_toy_data_1v1()
         >>> kwargs = {}
         >>> initial_aids = toy_data['aids']
@@ -464,7 +464,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_names = 6
         >>> toy_data2 = get_toy_data_1v1(num_annots, num_names, initial_aids=initial_aids, initial_nids=initial_nids)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
@@ -538,16 +538,16 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
         tuple: (discr_domain, discr_p_same)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-learn_prob_score --show
+        python -m wbia.unstable.demobayes --exec-learn_prob_score --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> num_scores = 2
         >>> (discr_domain, discr_p_same, encoder) = learn_prob_score(num_scores, ret_enc=True, use_cache=False)
         >>> print('discr_p_same = %r' % (discr_p_same,))
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> encoder.visualize()
         >>> ut.show_if_requested()
     """
@@ -572,7 +572,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
 
     if False:
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         pt.ensureqt()
         encoder.visualize()
         #show_toy_distributions()
@@ -597,14 +597,14 @@ def classify_one_new_unknown():
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose
-        python -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --show --verbose --present
-        python3 -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose
-        python3 -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose --diskshow --verbose --present --save demo5.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+        python -m wbia.unstable.demobayes --exec-classify_one_new_unknown --verbose
+        python -m wbia.unstable.demobayes --exec-classify_one_new_unknown --show --verbose --present
+        python3 -m wbia.unstable.demobayes --exec-classify_one_new_unknown --verbose
+        python3 -m wbia.unstable.demobayes --exec-classify_one_new_unknown --verbose --diskshow --verbose --present --save demo5.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = classify_one_new_unknown()
         >>> ut.show_if_requested()
     """
@@ -618,7 +618,7 @@ def classify_one_new_unknown():
         )
         temp_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
 
-    #from ibeis.unstable.demobayes import *
+    #from wbia.unstable.demobayes import *
     constkw = dict(
         num_annots=4, num_names=4,
     )
@@ -635,11 +635,11 @@ def classify_one_new_unknown():
 def tst_triangle_property():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-test_triangle_property --show
+        python -m wbia.unstable.demobayes --exec-test_triangle_property --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = test_triangle_property()
         >>> ut.show_if_requested()
     """
@@ -661,11 +661,11 @@ def tst_triangle_property():
 def demo_structure():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_structure --show
+        python -m wbia.unstable.demobayes --exec-demo_structure --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = demo_structure()
         >>> ut.show_if_requested()
     """
@@ -677,21 +677,21 @@ def demo_structure():
 def make_bayes_notebook():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-make_bayes_notebook
+        python -m wbia.unstable.demobayes --exec-make_bayes_notebook
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = make_bayes_notebook()
         >>> print(result)
     """
-    from ibeis.templates import generate_notebook
+    from wbia.templates import generate_notebook
     initialize = ut.codeblock(
         r'''
         # STARTBLOCK
         import os
         os.environ['UTOOL_NO_CNN'] = 'True'
-        from ibeis.unstable.demobayes import *  # NOQA
+        from wbia.unstable.demobayes import *  # NOQA
         # Matplotlib stuff
         import matplotlib as mpl
         %matplotlib inline
@@ -732,11 +732,11 @@ def make_bayes_notebook():
 def show_model_templates():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-show_model_templates
+        python -m wbia.unstable.demobayes --exec-show_model_templates
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = show_model_templates()
         >>> ut.show_if_requested()
     """
@@ -750,11 +750,11 @@ def demo_single_add():
     This demo shows how a name is assigned to a new annotation.
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_single_add --show --present --mode=1
+        python -m wbia.unstable.demobayes --exec-demo_single_add --show --present --mode=1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> demo_single_add()
         >>> ut.show_if_requested()
     """
@@ -796,11 +796,11 @@ def demo_ambiguity():
     names
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_ambiguity --show --verbose --present
+        python -m wbia.unstable.demobayes --exec-demo_ambiguity --show --verbose --present
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = demo_ambiguity()
         >>> ut.show_if_requested()
     """
@@ -872,11 +872,11 @@ def demo_annot_idependence_overlap():
 
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_annot_idependence_overlap --verbose --present --show
+        python -m wbia.unstable.demobayes --exec-demo_annot_idependence_overlap --verbose --present --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = demo_annot_idependence_overlap()
         >>> ut.show_if_requested()
     """
@@ -926,11 +926,11 @@ def demo_name_annot_complexity():
     and names are added.
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_name_annot_complexity --show
+        python -m wbia.unstable.demobayes --exec-demo_name_annot_complexity --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> demo_name_annot_complexity()
         >>> ut.show_if_requested()
     """
@@ -959,12 +959,12 @@ def demo_model_idependencies():
     Independences of the 3 annot 3 name model
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_model_idependencies --mode=1 --num-names=2 --show
-        python -m ibeis.unstable.demobayes --exec-demo_model_idependencies --mode=2
+        python -m wbia.unstable.demobayes --exec-demo_model_idependencies --mode=1 --num-names=2 --show
+        python -m wbia.unstable.demobayes --exec-demo_model_idependencies --mode=2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.unstable.demobayes import *  # NOQA
+        >>> from wbia.unstable.demobayes import *  # NOQA
         >>> result = demo_model_idependencies()
         >>> print(result)
         >>> ut.show_if_requested()
@@ -998,8 +998,8 @@ def demo_model_idependencies():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes
-        python -m ibeis.unstable.demobayes --allexamples
+        python -m wbia.unstable.demobayes
+        python -m wbia.unstable.demobayes --allexamples
     """
     if ut.VERBOSE:
         print('[hs] demobayes')

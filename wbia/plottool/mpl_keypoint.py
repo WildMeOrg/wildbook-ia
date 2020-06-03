@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
-from ibeis.plottool import mpl_sift
+from wbia.plottool import mpl_sift
 import numpy as np
 import matplotlib as mpl
 import utool as ut
@@ -56,13 +56,13 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         http://stackoverflow.com/questions/28401788/transforms-non-affine-patch
 
     CommandLine:
-        python -m ibeis.plottool.mpl_keypoint draw_keypoints --show
+        python -m wbia.plottool.mpl_keypoint draw_keypoints --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.plottool.mpl_keypoint import *  # NOQA
-        >>> from ibeis.plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.plottool.mpl_keypoint import *  # NOQA
+        >>> from wbia.plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
+        >>> import wbia.plottool as pt
         >>> import vtool_ibeis as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
@@ -233,7 +233,7 @@ def get_invVR_aff2Ds(kpts, H=None):
         >>> # Test CV2 ellipse vs mine using MSER
         >>> import vtool_ibeis as vt
         >>> import cv2
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
         >>> imgBGR = vt.imread(img_fpath)
         >>> imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
@@ -366,9 +366,9 @@ def orientation_actors(kpts, H=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.plottool.mpl_keypoint
-        python -m ibeis.plottool.mpl_keypoint --allexamples
-        python -m ibeis.plottool.mpl_keypoint --allexamples --noface --nosrc
+        python -m wbia.plottool.mpl_keypoint
+        python -m wbia.plottool.mpl_keypoint --allexamples
+        python -m wbia.plottool.mpl_keypoint --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

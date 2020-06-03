@@ -6,13 +6,13 @@ TODO:
     It should only be executed if a web instance is being started.
 
 
-python -c "import ibeis"
+python -c "import wbia"
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import sys
-from ibeis import dtool
+from wbia import dtool
 from datetime import timedelta
 from functools import update_wrapper
 import warnings
@@ -27,7 +27,7 @@ from hashlib import sha1
 import os
 #import numpy as np
 import hmac
-from ibeis import constants as const
+from wbia import constants as const
 import string
 import random
 import base64
@@ -177,7 +177,7 @@ class WebException(ut.NiceRepr, Exception):
         self.message = message
         self.rawreturn = rawreturn
 
-        from ibeis.web.app import PROMETHEUS
+        from wbia.web.app import PROMETHEUS
         if PROMETHEUS:
             ibs = flask.current_app.ibs
             tag = '%s' % (self.code, )
@@ -353,7 +353,7 @@ class WebRuntimeException(WebException):
         super(WebRuntimeException, self).__init__(message, rawreturn, code)
 
 
-def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
+def translate_wbia_webreturn(rawreturn, success=True, code=None, message=None,
                               jQuery_callback=None, cache=None, __skip_microsoft_validation__=False):
     if MICROSOFT_API_ENABLED and not __skip_microsoft_validation__:
         if rawreturn is not None:
@@ -431,7 +431,7 @@ def _process_input(multidict=None):
     return kwargs2
 
 
-def translate_ibeis_webcall(func, *args, **kwargs):
+def translate_wbia_webcall(func, *args, **kwargs):
     r"""
     Called from flask request context
 
@@ -442,21 +442,21 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         tuple: (output, True, 200, None, jQuery_callback)
 
     CommandLine:
-        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall
-        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88
+        python -m wbia.control.controller_inject --exec-translate_wbia_webcall
+        python -m wbia.control.controller_inject --exec-translate_wbia_webcall --domain http://52.33.105.88
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
-        >>> from ibeis.control.controller_inject import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.controller_inject import *  # NOQA
+        >>> import wbia
         >>> import time
-        >>> import ibeis.web
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=1, start_job_queue=False)
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
-        >>> failrsp = web_ibs.send_ibeis_request('/api/annot/uuids/')
-        >>> failrsp2 = web_ibs.send_ibeis_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0])
-        >>> log_text = web_ibs.send_ibeis_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0])
+        >>> import wbia.web
+        >>> web_ibs = wbia.opendb_bg_web('testdb1', wait=1, start_job_queue=False)
+        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')
+        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuids/', aid_list=aids)
+        >>> failrsp = web_ibs.send_wbia_request('/api/annot/uuids/')
+        >>> failrsp2 = web_ibs.send_wbia_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0])
+        >>> log_text = web_ibs.send_wbia_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0])
         >>> time.sleep(.1)
         >>> print('\n---\nuuid_list = %r' % (uuid_list,))
         >>> print('\n---\nfailrsp =\n%s' % (failrsp,))
@@ -467,7 +467,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     Ignore:
         app = get_flask_app()
         with app.app_context():
-            #ibs = ibeis.opendb('testdb1')
+            #ibs = wbia.opendb('testdb1')
             func = ibs.get_annot_uuids
             args = tuple()
             kwargs = dict()
@@ -552,7 +552,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                     raise WebRuntimeException('An unknown error has occurred, please contact the API administrator at dev@wildme.org.')
             else:
                 msg_list = []
-                # msg_list.append('Error in translate_ibeis_webcall')
+                # msg_list.append('Error in translate_wbia_webcall')
                 msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
                 msg_list.append('Received Function Definition: %s' % (funcstr,))
                 msg_list.append('Received Function Parameters:')
@@ -587,7 +587,7 @@ def authentication_challenge():
     code = 401
     message = 'Could not verify your authentication, login with proper credentials.'
     jQuery_callback = None
-    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
+    webreturn = translate_wbia_webreturn(rawreturn, success, code, message, jQuery_callback)
     response = flask.make_response(webreturn, code)
     response.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
     return response
@@ -603,7 +603,7 @@ def authentication_user_validate():
         return False
     username = auth.username
     password = auth.password
-    return username == 'ibeis' and password == 'ibeis'
+    return username == 'wbia' and password == 'wbia'
 
 
 def authentication_user_only(func):
@@ -758,7 +758,7 @@ def remote_api_wrapper(func):
             kwargs_ = dict(zip(co_varnames, args))
             kwargs.update(kwargs_)
             kwargs.pop('ibs', None)
-            return api_remote_ibeis(REMOTE_PROXY_URL, func, REMOTE_PROXY_PORT, **kwargs)
+            return api_remote_wbia(REMOTE_PROXY_URL, func, REMOTE_PROXY_PORT, **kwargs)
     remote_api_call = ut.preserve_sig(remote_api_call, func)
     return remote_api_call
 
@@ -766,7 +766,7 @@ def remote_api_wrapper(func):
 API_SEEN_SET = set([])
 
 
-def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
+def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
     """For function calls that resolve to api calls and return json."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
@@ -870,7 +870,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             ignore_cookie_set = __format__ in ['onetime', 'true']
                             __format__ = __format__ in ['true', 'enabled', 'enable']
 
-                        from ibeis.web.app import PROMETHEUS
+                        from wbia.web.app import PROMETHEUS
                         if PROMETHEUS:
                             exclude_tag_list = [
                                 '/api/test/heartbeat/',
@@ -882,7 +882,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                                 ibs = flask.current_app.ibs
                                 ibs.prometheus_increment_api(tag)
 
-                        resp_tup = translate_ibeis_webcall(func, **kwargs)
+                        resp_tup = translate_wbia_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         # ut.printex(webex)
@@ -914,7 +914,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
 
                     if __format__:
                         # Hack for readable error messages
-                        webreturn = translate_ibeis_webreturn(
+                        webreturn = translate_wbia_webreturn(
                             rawreturn, success, code, message, jQuery_callback)
                         webreturn = ut.repr3(ut.from_json(webreturn), strvals=True)
 
@@ -936,7 +936,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             webreturn += '<pre>See logs for details: %s</pre>' % get_func_href('get_current_log_text')
                             webreturn += '<pre>Might also look into db_info: %s</pre>' % get_func_href('get_dbinfo')
                     else:
-                        webreturn = translate_ibeis_webreturn(
+                        webreturn = translate_wbia_webreturn(
                             rawreturn, success, code, message, jQuery_callback)
                         webreturn = ut.strip_ansi(webreturn)
 
@@ -1004,7 +1004,7 @@ def login_required_session(function):
     @wraps(function)
     def wrap(*args, **kwargs):
         if not authenticated():
-            from ibeis.web import appfuncs as appf
+            from wbia.web import appfuncs as appf
             refer = flask.request.url.replace(flask.request.url_root, '')
             refer = appf.encode_refer_url(refer)
             return flask.redirect(flask.url_for('login', refer=refer))
@@ -1013,7 +1013,7 @@ def login_required_session(function):
     return wrap
 
 
-def get_ibeis_flask_route(__name__):
+def get_wbia_flask_route(__name__):
     """For function calls that resolve to webpages and return html."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
@@ -1086,7 +1086,7 @@ def get_ibeis_flask_route(__name__):
                         args = ()
                         print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
 
-                        from ibeis.web.app import PROMETHEUS
+                        from wbia.web.app import PROMETHEUS
                         if PROMETHEUS:
                             ibs = flask.current_app.ibs
                             tag = request.url_rule.rule
@@ -1101,7 +1101,7 @@ def get_ibeis_flask_route(__name__):
                             'Route error, Python Exception thrown: %r' %
                             (str(ex), ))
                         jQuery_callback = None
-                        result = translate_ibeis_webreturn(rawreturn, success,
+                        result = translate_wbia_webreturn(rawreturn, success,
                                                            code, message,
                                                            jQuery_callback,
                                                            __skip_microsoft_validation__=True)
@@ -1115,7 +1115,7 @@ def get_ibeis_flask_route(__name__):
         return ut.dummy_args_decor
 
 
-def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
+def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001,
                      **kwargs):
     import requests
     if GLOBAL_APP_ENABLED and GLOBAL_APP is None:
@@ -1131,7 +1131,7 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
 
     assert api_route is not None, 'Route could not be found'
 
-    args = (remote_ibeis_url, remote_ibeis_port, api_route)
+    args = (remote_wbia_url, remote_wbia_port, api_route)
     remote_api_url = 'http://%s:%s%s' % args
     headers = {
         'Authorization': get_url_authorization(remote_api_url)
@@ -1184,14 +1184,14 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
 def dev_autogen_explicit_imports():
     r"""
     CommandLine:
-        python -m ibeis --tf dev_autogen_explicit_imports
+        python -m wbia --tf dev_autogen_explicit_imports
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.controller_inject import *  # NOQA
+        >>> from wbia.control.controller_inject import *  # NOQA
         >>> dev_autogen_explicit_imports()
     """
-    import ibeis  # NOQA
+    import wbia  # NOQA
     classname = CONTROLLER_CLASSNAME
     print(ut.autogen_import_list(classname))
 
@@ -1199,25 +1199,25 @@ def dev_autogen_explicit_imports():
 def dev_autogen_explicit_injects():
     r"""
     CommandLine:
-        python -m ibeis --tf dev_autogen_explicit_injects
+        python -m wbia --tf dev_autogen_explicit_injects
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.control.controller_inject import *  # NOQA
+        >>> from wbia.control.controller_inject import *  # NOQA
         >>> dev_autogen_explicit_injects()
     """
-    import ibeis  # NOQA
-    import ibeis.control.IBEISControl
+    import wbia  # NOQA
+    import wbia.control.IBEISControl
     classname = CONTROLLER_CLASSNAME
     regen_command = (
-        'python -m ibeis dev_autogen_explicit_injects')
+        'python -m wbia dev_autogen_explicit_injects')
     conditional_imports = [
-        modname for modname in ibeis.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
+        modname for modname in wbia.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
         if isinstance(modname, tuple)
     ]
     source_block = ut.autogen_explicit_injectable_metaclass(
         classname, regen_command, conditional_imports)
-    dpath = ut.get_module_dir(ibeis.control.IBEISControl)
+    dpath = ut.get_module_dir(wbia.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
     ut.writeto(fpath, source_block, verbose=2)
 
@@ -1262,9 +1262,9 @@ register_subprops = {
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.controller_inject
-        python -m ibeis.control.controller_inject --allexamples
-        python -m ibeis.control.controller_inject --allexamples --noface --nosrc
+        python -m wbia.control.controller_inject
+        python -m wbia.control.controller_inject --allexamples
+        python -m wbia.control.controller_inject --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-from ibeis import dtool
+from wbia import dtool
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
-from ibeis.algo.smk import smk_funcs
-from ibeis.control.controller_inject import register_preprocs
+from wbia.algo.smk import smk_funcs
+from wbia.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -151,12 +151,12 @@ class InvertedAnnotsExtras(object):
         were assigned to it.
 
         CommandLine:
-            python -m ibeis.algo.smk.inverted_index render_inverted_vocab_word --show
+            python -m wbia.algo.smk.inverted_index render_inverted_vocab_word --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.smk.inverted_index import *  # NOQA
-            >>> import ibeis.plottool as pt
+            >>> from wbia.algo.smk.inverted_index import *  # NOQA
+            >>> import wbia.plottool as pt
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
             >>> wx_list = list(inva.wx_to_aids.keys())
@@ -170,7 +170,7 @@ class InvertedAnnotsExtras(object):
             >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, '?'))
             >>>     pt.update()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         # Create the contributing patch image
         word_patches = inva.get_patches(wx, ibs)
         word_patches_ = ut.strided_sample(word_patches, 64)
@@ -215,23 +215,23 @@ class InvertedAnnotsExtras(object):
         This is a visualization of the entire vocabulary.
 
         CommandLine:
-            python -m ibeis.algo.smk.inverted_index render_inverted_vocab --show
-            python -m ibeis.algo.smk.inverted_index render_inverted_vocab --show --use-data
-            python -m ibeis.algo.smk.inverted_index render_inverted_vocab --show --debug-depc
+            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show
+            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show --use-data
+            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show --debug-depc
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.smk.inverted_index import *  # NOQA
+            >>> from wbia.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
             >>> ibs = qreq_.ibs
             >>> all_words = inva.render_inverted_vocab(ibs)
             >>> ut.quit_if_noshow()
-            >>> import ibeis.plottool as pt
+            >>> import wbia.plottool as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         # Get words with the most assignments
         vocab = ibs.depc['vocab'].get_row_data([inva.vocab_rowid], 'words')[0]
 
@@ -252,12 +252,12 @@ class InvertedAnnotsExtras(object):
 class InvertedAnnots(InvertedAnnotsExtras):
     """
     CommandLine:
-        python -m ibeis.algo.smk.inverted_index InvertedAnnots --show
+        python -m wbia.algo.smk.inverted_index InvertedAnnots --show
 
     Ignore:
-        >>> from ibeis.algo.smk.inverted_index import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford',
+        >>> from wbia.algo.smk.inverted_index import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='Oxford', a='oxford',
         >>>                              p='default:proot=smk,nAssign=1,num_words=64000')
         >>> config = qreq_.qparams
         >>> ibs = qreq_.ibs
@@ -377,7 +377,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.smk.inverted_index import *  # NOQA
+            >>> from wbia.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
             >>> wx_to_weight = inva.compute_word_weights()
             >>> print('wx_to_weight = %r' % (wx_to_weight,))
@@ -411,7 +411,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.smk.inverted_index import *  # NOQA
+            >>> from wbia.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
             >>> inva.wx_to_weight = inva.compute_word_weights('uniform')
             >>> alpha = 3.0
@@ -557,7 +557,7 @@ class SingleAnnot(ut.NiceRepr):
 def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     r"""
     CommandLine:
-        python -m ibeis.control.IBEISControl show_depc_annot_table_input \
+        python -m wbia.control.IBEISControl show_depc_annot_table_input \
                 --show --tablename=residuals
 
     Ignore:
@@ -569,8 +569,8 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         wxs2 = data[1][0]
 
         # Lev Example
-        import ibeis
-        ibs = ibeis.opendb('Oxford')
+        import wbia
+        ibs = wbia.opendb('Oxford')
         depc = ibs.depc
         table = depc['inverted_agg_assign']
         table.print_table()
@@ -578,10 +578,10 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.inverted_index import *  # NOQA
+        >>> from wbia.algo.smk.inverted_index import *  # NOQA
         >>> # Test depcache access
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> import wbia
+        >>> ibs, aid_list = wbia.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
         >>> config = {'num_words': 1000, 'nAssign': 1}
         >>> #input_tuple = (aid_list, [aid_list] * len(aid_list))
@@ -598,9 +598,9 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.smk.inverted_index import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')
+        >>> from wbia.algo.smk.inverted_index import *  # NOQA
+        >>> import wbia
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')
         >>> config = {'num_words': 64000, 'nAssign': 1, 'int_rvec': True}
         >>> depc = qreq_.ibs.depc
         >>> daids = qreq_.daids
@@ -705,10 +705,10 @@ def residual_worker(argtup):
 
 def testdata_inva():
     """
-    from ibeis.algo.smk.inverted_index import *  # NOQA
+    from wbia.algo.smk.inverted_index import *  # NOQA
     """
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(
+    import wbia
+    qreq_ = wbia.testdata_qreq_(
         defaultdb='PZ_MTEST', a='default',
         p='default:proot=smk,nAssign=1,num_words=64')
     aids = qreq_.daids
@@ -724,8 +724,8 @@ def testdata_inva():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.smk.inverted_index
-        python -m ibeis.algo.smk.inverted_index --allexamples
+        python -m wbia.algo.smk.inverted_index
+        python -m wbia.algo.smk.inverted_index --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

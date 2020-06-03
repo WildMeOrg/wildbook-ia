@@ -7,7 +7,7 @@ that is not yet in master, and merge it into a "developer master" branch called
 
 CommandLine:
     # Create dev_combo
-    python ~/code/ibeis/_scripts/setup_special_sklearn.py
+    python ~/code/wbia/_scripts/setup_special_sklearn.py
 
     # Test that `missing_values_rf` is merged correctly
     python -c "import utool, sklearn.ensemble; print(utool.get_func_kwargs(sklearn.ensemble.RandomForestClassifier.__init__))"
@@ -143,7 +143,7 @@ def make_dev_rebased_mixin(repo, master, branch):
 def missing_values_rf_rebase(repo, master, branch, rebase_branch):
     """
     >>> import sys
-    >>> sys.path.append('/home/joncrall/code/ibeis/_scripts')
+    >>> sys.path.append('/home/joncrall/code/wbia/_scripts')
     >>> from setup_special_sklearn import *
     >>> dpath = ut.truepath('~/code/scikit-learn')
     >>> master = 'master'
@@ -187,8 +187,8 @@ def missing_values_rf_rebase(repo, master, branch, rebase_branch):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/_scripts
-        python ~/code/ibeis/_scripts/setup_special_sklearn.py
-        python ~/code/ibeis/_scripts/setup_special_sklearn.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/_scripts
+        python ~/code/wbia/_scripts/setup_special_sklearn.py
+        python ~/code/wbia/_scripts/setup_special_sklearn.py --allexamples
     """
     main()

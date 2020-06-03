@@ -5,7 +5,7 @@ get_dbinfo is probably the only usefull funciton in here
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis import constants as const
+from wbia import constants as const
 import collections
 import functools
 import six
@@ -62,34 +62,34 @@ def get_dbinfo(ibs, verbose=True,
         dict:
 
     SeeAlso:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m wbia.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db NNP_Master3
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0
+        python -m wbia.other.dbinfo --test-get_dbinfo:1
+        python -m wbia.other.dbinfo --test-get_dbinfo:0 --db NNP_Master3
+        python -m wbia.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
+        python -m wbia.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db LF_Bajo_bonito -a default
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db DETECT_SEATURTLES -a default --readonly
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 --db LF_Bajo_bonito -a default
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 --db DETECT_SEATURTLES -a default --readonly
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a ctrl
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
+        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
     Example1:
         >>> # SCRIPT
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'testdb1'
-        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb, a='default:minqual=ok,view=primary,view_ext1=1')
+        >>> ibs, aid_list = wbia.testdata_aids(defaultdb, a='default:minqual=ok,view=primary,view_ext1=1')
         >>> kwargs = ut.get_kwdefaults(get_dbinfo)
         >>> kwargs['verbose'] = False
         >>> kwargs['aid_list'] = aid_list
@@ -97,11 +97,11 @@ def get_dbinfo(ibs, verbose=True,
         >>> output = get_dbinfo(ibs, **kwargs)
         >>> result = (output['info_str'])
         >>> print(result)
-        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> #ibs = wbia.opendb(defaultdb='testdb1')
         >>> # <HACK FOR FILTERING>
-        >>> #from ibeis.expt import cfghelpers
-        >>> #from ibeis.expt import annotation_configs
-        >>> #from ibeis.init import filter_annots
+        >>> #from wbia.expt import cfghelpers
+        >>> #from wbia.expt import annotation_configs
+        >>> #from wbia.init import filter_annots
         >>> #named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
         >>> #                                   annotation_configs.TEST_NAMES)
         >>> #named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
@@ -112,17 +112,17 @@ def get_dbinfo(ibs, verbose=True,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> verbose = True
         >>> short = True
-        >>> #ibs = ibeis.opendb(db='GZ_ALL')
-        >>> #ibs = ibeis.opendb(db='PZ_Master0')
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> #ibs = wbia.opendb(db='GZ_ALL')
+        >>> #ibs = wbia.opendb(db='PZ_Master0')
+        >>> ibs = wbia.opendb('testdb1')
         >>> assert ibs.get_dbname() == 'testdb1', 'DO NOT DELETE CONTRIBUTORS OF OTHER DBS'
         >>> ibs.delete_contributors(ibs.get_valid_contributor_rowids())
         >>> ibs.delete_empty_nids()
-        >>> #ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> #ibs = wbia.opendb(db='PZ_MTEST')
         >>> output = get_dbinfo(ibs, with_contrib=False, verbose=False, short=True)
         >>> result = (output['info_str'])
         >>> print(result)
@@ -161,7 +161,7 @@ def get_dbinfo(ibs, verbose=True,
             # Hack to get experiment stats on aids
             acfg_name_list = [aid_list]
             print('Specified custom aids via acfgname %s' % (acfg_name_list,))
-            from ibeis.expt import experiment_helpers
+            from wbia.expt import experiment_helpers
             acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
                 ibs, acfg_name_list)
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
@@ -210,11 +210,11 @@ def get_dbinfo(ibs, verbose=True,
     if False:
         # Occurrence Info
         def compute_annot_occurrence_ids(ibs, aid_list):
-            from ibeis.algo.preproc import preproc_occurrence
+            from wbia.algo.preproc import preproc_occurrence
             gid_list = ibs.get_annot_gids(aid_list)
             gid2_aids = ut.group_items(aid_list, gid_list)
             config = {'seconds_thresh': 4 * 60 * 60}
-            flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+            flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
                 ibs, gid_list, config=config, verbose=False)
             occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
             occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
@@ -239,7 +239,7 @@ def get_dbinfo(ibs, verbose=True,
 
     # Encounter Info
     def break_annots_into_encounters(aids):
-        from ibeis.algo.preproc import occurrence_blackbox
+        from wbia.algo.preproc import occurrence_blackbox
         import datetime
         thresh_sec = datetime.timedelta(minutes=30).seconds
         posixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(aids))
@@ -610,24 +610,24 @@ def get_dbinfo(ibs, verbose=True,
 def hackshow_names(ibs, aid_list, fnum=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-hackshow_names --show
-        python -m ibeis.other.dbinfo --exec-hackshow_names --show --db PZ_Master1
+        python -m wbia.other.dbinfo --exec-hackshow_names --show
+        python -m wbia.other.dbinfo --exec-hackshow_names --show --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = hackshow_names(ibs, aid_list)
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import vtool_ibeis as vt
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
@@ -675,19 +675,19 @@ def hackshow_names(ibs, aid_list, fnum=None):
 def show_image_time_distributions(ibs, gid_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.other.dbinfo show_image_time_distributions --show
-        python -m ibeis.other.dbinfo show_image_time_distributions --show --db lynx
+        python -m wbia.other.dbinfo show_image_time_distributions --show
+        python -m wbia.other.dbinfo show_image_time_distributions --show --db lynx
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aids = ibeis.testdata_aids(ibs=ibs)
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> aids = wbia.testdata_aids(ibs=ibs)
         >>> gid_list = ut.unique_unordered(ibs.get_annot_gids(aids))
         >>> result = show_image_time_distributions(ibs, gid_list)
         >>> print(result)
@@ -703,13 +703,13 @@ def show_time_distributions(ibs, unixtime_list):
     r"""
     """
     #import vtool_ibeis as vt
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     unixtime_list = np.array(unixtime_list)
     num_nan = np.isnan(unixtime_list).sum()
     num_total = len(unixtime_list)
     unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
 
-    from ibeis.scripts.thesis import TMP_RC
+    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
     mpl.rcParams.update(TMP_RC)
 
@@ -778,21 +778,21 @@ def show_time_distributions(ibs, unixtime_list):
 def latex_dbstats(ibs_list, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
+        python -m wbia.other.dbinfo --exec-latex_dbstats --dblist testdb1
+        python -m wbia.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
+        python -m wbia.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
+        python -m wbia.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
+        python -m wbia.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
         >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
-        >>> ibs_list = [ibeis.opendb(db=db) for db in db_list]
+        >>> ibs_list = [wbia.opendb(db=db) for db in db_list]
         >>> tabular_str = latex_dbstats(ibs_list)
         >>> tabular_cmd = ut.latex_newcommand(ut.latex_sanitize_command_name('DatabaseInfo'), tabular_str)
         >>> ut.copy_text_to_clipboard(tabular_cmd)
@@ -806,9 +806,9 @@ def latex_dbstats(ibs_list, **kwargs):
         >>> ut.quit_if_noshow()
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
-    import ibeis
+    import wbia
     # Parse for aids test data
-    aids_list = [ibeis.testdata_aids(ibs=ibs) for ibs in ibs_list]
+    aids_list = [wbia.testdata_aids(ibs=ibs) for ibs in ibs_list]
 
     #dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
     dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False, aid_list=aids)
@@ -961,19 +961,19 @@ def get_short_infostr(ibs):
     """ Returns printable database information
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     Returns:
         str: infostr
 
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_short_infostr
+        python -m wbia.other.dbinfo --test-get_short_infostr
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> infostr = get_short_infostr(ibs)
         >>> result = str(infostr)
         >>> print(result)
@@ -1044,9 +1044,9 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.dbinfo
-        python -m ibeis.other.dbinfo --allexamples
-        python -m ibeis.other.dbinfo --allexamples --noface --nosrc
+        python -m wbia.other.dbinfo
+        python -m wbia.other.dbinfo --allexamples
+        python -m wbia.other.dbinfo --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

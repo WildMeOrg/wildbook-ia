@@ -2,9 +2,9 @@
 """
 CommandLine:
     # Generate and start an IPython notebook
-    python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
+    python -m wbia --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
 
-    python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
+    python -m wbia --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
 
 CommandLine:
     # to connect to a notebook on a remote machine that does not have the
@@ -38,7 +38,7 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from ibeis.templates import notebook_cells
+from wbia.templates import notebook_cells
 from functools import partial
 
 
@@ -47,48 +47,48 @@ def autogen_ipynb(ibs, launch=None, run=None):
     Autogenerates standard IBEIS Image Analysis IPython notebooks.
 
     CommandLine:
-        python -m ibeis autogen_ipynb --run --db lynx
-        python -m ibeis autogen_ipynb --run --db lynx
+        python -m wbia autogen_ipynb --run --db lynx
+        python -m wbia autogen_ipynb --run --db lynx
 
-        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -p :proot=smk,num_words=64000 default
-        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --asreport
-        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
-        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST
+        python -m wbia autogen_ipynb --ipynb --db PZ_MTEST -p :proot=smk,num_words=64000 default
+        python -m wbia autogen_ipynb --ipynb --db PZ_MTEST --asreport
+        python -m wbia autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
+        python -m wbia autogen_ipynb --ipynb --db PZ_MTEST
 
-        python -m ibeis autogen_ipynb --ipynb --db STS_SandTigers
+        python -m wbia autogen_ipynb --ipynb --db STS_SandTigers
 
-        python -m ibeis autogen_ipynb --db PZ_MTEST
+        python -m wbia autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
-        python -m ibeis autogen_ipynb --db ~/work/PZ_MTEST
+        python -m wbia autogen_ipynb --db ~/work/PZ_MTEST
 
-        python -m ibeis autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
-        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+        python -m wbia autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m wbia autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
-        python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
+        python -m wbia.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
 
-        python -m ibeis autogen_ipynb --db PZ_Master1 --ipynb
-        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
-        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl --run
+        python -m wbia autogen_ipynb --db PZ_Master1 --ipynb
+        python -m wbia autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
+        python -m wbia autogen_ipynb --db PZ_Master1 -a timectrl --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
-        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
-        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
+        python -m wbia autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+        python -m wbia autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
 
-        python -m ibeis autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankDorsal
-        python -m ibeis autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankFluke
-        python -m ibeis autogen_ipynb --db PW_Master --ipynb -t default:proot=CurvRankDorsal
+        python -m wbia autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankDorsal
+        python -m wbia autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankFluke
+        python -m wbia autogen_ipynb --db PW_Master --ipynb -t default:proot=CurvRankDorsal
 
-        python -m ibeis autogen_ipynb --db testdb_identification --ipynb -t default:proot=Deepsense
+        python -m wbia autogen_ipynb --db testdb_identification --ipynb -t default:proot=Deepsense
 
     Ignore:
-        python -m ibeis autogen_ipynb --db WS_ALL
+        python -m wbia autogen_ipynb --db WS_ALL
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.templates.generate_notebook import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.templates.generate_notebook import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> result = autogen_ipynb(ibs)
         >>> print(result)
     """
@@ -96,11 +96,11 @@ def autogen_ipynb(ibs, launch=None, run=None):
     fname = 'Experiments-' + dbname
     nb_fpath = fname + '.ipynb'
     if ut.get_argflag('--cells'):
-        notebook_cells = make_ibeis_cell_list(ibs)
+        notebook_cells = make_wbia_cell_list(ibs)
         print('\n# ---- \n'.join(notebook_cells))
         return
     # TODO: Add support for dbdir to be specified
-    notebook_str = make_ibeis_notebook(ibs)
+    notebook_str = make_wbia_notebook(ibs)
     ut.writeto(nb_fpath, notebook_str)
     run = ut.get_argflag('--run') if run is None else run
     launch = launch if launch is not None else ut.get_argflag('--ipynb')
@@ -204,15 +204,15 @@ def get_default_cell_template_list(ibs):
     return cell_template_list
 
 
-def make_ibeis_notebook(ibs):
+def make_wbia_notebook(ibs):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
+        ibs (wbia.IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston --asreport
-        python -m ibeis --tf --exec-make_ibeis_notebook
-        python -m ibeis --tf make_ibeis_notebook --db lynx
+        python -m wbia.templates.generate_notebook --exec-make_wbia_notebook --db wd_peter_blinston --asreport
+        python -m wbia --tf --exec-make_wbia_notebook
+        python -m wbia --tf make_wbia_notebook --db lynx
         jupyter-notebook tmp.ipynb
         runipy tmp.ipynb --html report.html
         runipy --pylab tmp.ipynb tmp2.ipynb
@@ -221,20 +221,20 @@ def make_ibeis_notebook(ibs):
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.templates.generate_notebook import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> notebook_str = make_ibeis_notebook(ibs)
+        >>> from wbia.templates.generate_notebook import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> notebook_str = make_wbia_notebook(ibs)
         >>> print(notebook_str)
     """
-    cell_list = make_ibeis_cell_list(ibs)
+    cell_list = make_wbia_cell_list(ibs)
     notebook_str = ut.make_notebook(cell_list)
     return notebook_str
 
 
-def make_ibeis_cell_list(ibs):
+def make_wbia_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
-    autogen_str = '# python -m ibeis autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
+    autogen_str = '# python -m wbia autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
     # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
     dbdir = ibs.dbdir
@@ -292,9 +292,9 @@ def make_ibeis_cell_list(ibs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.templates.generate_notebook
-        python -m ibeis.templates.generate_notebook --allexamples
-        python -m ibeis.templates.generate_notebook --allexamples --noface --nosrc
+        python -m wbia.templates.generate_notebook
+        python -m wbia.templates.generate_notebook --allexamples
+        python -m wbia.templates.generate_notebook --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

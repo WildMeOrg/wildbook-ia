@@ -4,9 +4,9 @@ import utool as ut
 import six
 #import itertools
 from . import draw_func2 as df2
-from ibeis.plottool import plot_helpers as ph
-from ibeis.plottool import custom_constants
-from ibeis.plottool import custom_figure
+from wbia.plottool import plot_helpers as ph
+from wbia.plottool import custom_constants
+from wbia.plottool import custom_figure
 #(print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
 ut.noinject(__name__, '[viz_featrow]')
@@ -36,23 +36,23 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     draw_feat_row
 
     SeeAlso:
-        ibeis.viz.viz_nearest_descriptors
-        ~/code/ibeis/ibeis/viz/viz_nearest_descriptors.py
+        wbia.viz.viz_nearest_descriptors
+        ~/code/wbia/wbia/viz/viz_nearest_descriptors.py
 
     CommandLine:
 
         # Use this to find the fx you want to visualize
-        python -m ibeis.plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
+        python -m wbia.plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
 
         # Use this to visualize the featrow
-        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --show
-        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
-        python -m ibeis.plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
+        python -m wbia.plottool.viz_featrow --test-draw_feat_row --show
+        python -m wbia.plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
+        python -m wbia.plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.plottool.viz_featrow import *  # NOQA
-        >>> import ibeis.plottool as pt
+        >>> from wbia.plottool.viz_featrow import *  # NOQA
+        >>> import wbia.plottool as pt
         >>> # build test data
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> chip = imgBGR
@@ -65,7 +65,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> nCols = 2
         >>> px = 0
         >>> if True:
-        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     from wbia.scripts.thesis import TMP_RC
         >>>     import matplotlib as mpl
         >>>     mpl.rcParams.update(TMP_RC)
         >>> hack = ut.get_argflag('--feat-all')
@@ -197,9 +197,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.plottool.viz_featrow
-        python -m ibeis.plottool.viz_featrow --allexamples
-        python -m ibeis.plottool.viz_featrow --allexamples --noface --nosrc
+        python -m wbia.plottool.viz_featrow
+        python -m wbia.plottool.viz_featrow --allexamples
+        python -m wbia.plottool.viz_featrow --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

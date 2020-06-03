@@ -1,8 +1,8 @@
 # Setup code directory
-sudo mkdir /opt/ibeis
+sudo mkdir /opt/wbia
 sudo mkdir /opt/tmp
 sudo mkdir /opt/srcdistro
-sudo chmod -R 777 /opt/ibeis
+sudo chmod -R 777 /opt/wbia
 sudo chmod -R 777 /opt/tmp
 sudo chmod -R 777 /opt/srcdistro
 
@@ -134,7 +134,7 @@ purge_sip()
     find /bin -name '*sip*'
     find /lib -name '*sip*'
     find /usr/local -name '*sip*'
-    #export PYENV_ROOT=$WORKON_HOME/ibeis27
+    #export PYENV_ROOT=$WORKON_HOME/wbia27
     #find $PYENV_ROOT -name '*sip*'
     sudo rm /usr/local/bin/sip
     sudo rm /usr/local/include/python2.7/sip.h
@@ -207,9 +207,9 @@ python2.7 -c "from PyQt4.QtCore import Qt; print('[test] SUCCESS import Qt: %r' 
 # sudo pip2.7 install virtualenv
 # Virtual Env wrapper
 # sudo pip2.7 install virtualenvwrapper
-#virtualenv-2.7 $WORKON_HOME/ibeis27
-#source $WORKON_HOME/ibeis27/bin/activate
-#echo "source $WORKON_HOME/ibeis27/bin/activate" >> .bashrc
+#virtualenv-2.7 $WORKON_HOME/wbia27
+#source $WORKON_HOME/wbia27/bin/activate
+#echo "source $WORKON_HOME/wbia27/bin/activate" >> .bashrc
 # Check to see that it worked
 #python --version
 
@@ -243,7 +243,7 @@ sudo pip27 install
 
 # Configuration of pyqt4 and sip
 # MAYBE Dont use virtualenv?
-#export PYENV_ROOT=$WORKON_HOME/ibeis27
+#export PYENV_ROOT=$WORKON_HOME/wbia27
 #export PYENV_BIN=$PYENV_ROOT/bin
 #export PYENV_SITE=$PYENV_ROOT/lib/python2.7/site-packages
 #export PYENV_INCLUDE=$PYENV_ROOT/python2.7
@@ -252,14 +252,14 @@ sudo pip27 install
 
 # Setup work directory
 sudo mkdir /data
-sudo mkdir /data/ibeis
-sudo mkdir /data/ibeis/work
-sudo mkdir /data/ibeis/raw
-sudo mkdir /data/ibeis/logs
+sudo mkdir /data/wbia
+sudo mkdir /data/wbia/work
+sudo mkdir /data/wbia/raw
+sudo mkdir /data/wbia/logs
 
 # Make symlink to work directory
-sudo ln -s /data/ibeis/work /opt/work
-sudo ln -s /data/ibeis /opt/data
+sudo ln -s /data/wbia/work /opt/work
+sudo ln -s /data/wbia /opt/data
 
 # Clone IBEIS
 cd code
@@ -267,9 +267,9 @@ git clone https://github.com/Erotemic/utool.git
 sudo python2.7 setup.py develop
 cd utool
 
-git clone https://github.com/Erotemic/ibeis.git
+git clone https://github.com/Erotemic/wbia.git
 
-cd /opt/ibeis/ibeis
+cd /opt/wbia/wbia
 python2.7 super_setup.py --build --develop
 
 python27 main.py --workdir /opt/work

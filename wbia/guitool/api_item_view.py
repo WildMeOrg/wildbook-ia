@@ -3,24 +3,24 @@
 provides common methods for api_tree_view and api_table_view
 """
 from __future__ import absolute_import, division, print_function
-from ibeis.guitool.__PYQT__ import QtGui  # NOQA
-from ibeis.guitool.__PYQT__ import QtCore
-from ibeis.guitool.__PYQT__ import QtWidgets
-from ibeis.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.__PYQT__ import QtGui  # NOQA
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
 import functools
-from ibeis.guitool import qtype
-from ibeis.guitool import api_button_delegate
-from ibeis.guitool import api_thumb_delegate
-from ibeis.guitool import guitool_main
-from ibeis.guitool import guitool_misc
+from wbia.guitool import qtype
+from wbia.guitool import api_button_delegate
+from wbia.guitool import api_thumb_delegate
+from wbia.guitool import guitool_main
+from wbia.guitool import guitool_misc
 from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
 import operator
 # Valid API Models
-from ibeis.guitool.stripe_proxy_model import StripeProxyModel
-from ibeis.guitool.filter_proxy_model import FilterProxyModel
-from ibeis.guitool.api_item_model import APIItemModel
+from wbia.guitool.stripe_proxy_model import StripeProxyModel
+from wbia.guitool.filter_proxy_model import FilterProxyModel
+from wbia.guitool.api_item_model import APIItemModel
 
 (print, rrr, profile) = utool.inject2(__name__, '[APIItemView]')
 
@@ -70,9 +70,9 @@ def _init_itemview_behavior(view):
     Example:
         >>> # ENABLE_DOCTEST
         >>> # TODO figure out how to test these
-        >>> from ibeis.guitool.api_item_view import *  # NOQA
-        >>> from ibeis.guitool import api_table_view
-        >>> from ibeis.guitool import api_tree_view
+        >>> from wbia.guitool.api_item_view import *  # NOQA
+        >>> from wbia.guitool import api_table_view
+        >>> from wbia.guitool import api_tree_view
         >>> view = api_table_view.APITableView()
         >>> view = api_tree_view.APITreeView()
 
@@ -243,7 +243,7 @@ def get_row_and_qtindex_from_id(view, _id):
 @register_view_method
 def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
-        _id is from the iders function (i.e. an ibeis rowid)
+        _id is from the iders function (i.e. an wbia rowid)
         selects the row in that view if it exists
     """
     with ut.Timer('[api_item_view] select_row_from_id(id=%r, scroll=%r, collapse=%r)' %
@@ -318,8 +318,8 @@ def keyPressEvent(view, event):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.guitool.api_item_view import *  # NOQA
-        >>> import ibeis.guitool as gt
+        >>> from wbia.guitool.api_item_view import *  # NOQA
+        >>> import wbia.guitool as gt
         >>> app = gt.ensure_qapp()[0]
         >>> wgt = gt.simple_api_item_widget()
         >>> view = wgt.view
@@ -335,7 +335,7 @@ def keyPressEvent(view, event):
         >>> view._init_header_behavior()
         >>> # Try to simulate an event for testing
         >>> wgt.show()
-        >>> from ibeis.guitool.__PYQT__ import QtTest, GUITOOL_PYQT_VERSION
+        >>> from wbia.guitool.__PYQT__ import QtTest, GUITOOL_PYQT_VERSION
         >>> QTest = QtTest.QTest
         >>> if GUITOOL_PYQT_VERSION == 4:
         >>>     QTest.qWaitForWindowShown(wgt)
@@ -428,8 +428,8 @@ def copy_selection_to_clipboard(view):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.guitool.api_item_view
-        python -m ibeis.guitool.api_item_view --allexamples
+        python -m wbia.guitool.api_item_view
+        python -m wbia.guitool.api_item_view --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -4,12 +4,12 @@ CommandLine:
     # Autogenerate ImageSet Functions
     # key should be the table name
     # the write flag makes a file, but dont use that
-    python -m ibeis.templates.template_generator --key imageset_image_relationship --onlyfn
+    python -m wbia.templates.template_generator --key imageset_image_relationship --onlyfn
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
-from ibeis.control import accessor_decors
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import constants as const
+from wbia.control import accessor_decors
+from wbia.control.controller_inject import make_ibs_register_decorator
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
@@ -22,17 +22,17 @@ def delete_empty_imgsetids(ibs):
     """ Removes imagesets without images
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
 
     CommandLine:
-        python -m ibeis.control.manual_gsgrelate_funcs --test-delete_empty_imgsetids
+        python -m wbia.control.manual_gsgrelate_funcs --test-delete_empty_imgsetids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_gsgrelate_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_gsgrelate_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> # execute function
         >>> result = ibs.delete_empty_imgsetids()
         >>> # verify results
@@ -90,7 +90,7 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
     Seems to unrelate specific image imageset pairs
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list):
         imgsetid_list (list):
 
@@ -98,15 +98,15 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         list: gids_list
 
     CommandLine:
-        python -m ibeis.control.manual_gsgrelate_funcs --test-unrelate_images_and_imagesets
-        python -c "import utool; print(utool.auto_docstr('ibeis.control.manual_gsgrelate_funcs', 'delete_gsgr_image_relations'))"
+        python -m wbia.control.manual_gsgrelate_funcs --test-unrelate_images_and_imagesets
+        python -c "import utool; print(utool.auto_docstr('wbia.control.manual_gsgrelate_funcs', 'delete_gsgr_image_relations'))"
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_gsgrelate_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_gsgrelate_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
@@ -178,9 +178,9 @@ def add_image_relationship(ibs, gid_list, imgsetid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_gsgrelate_funcs
-        python -m ibeis.control.manual_gsgrelate_funcs --allexamples
-        python -m ibeis.control.manual_gsgrelate_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_gsgrelate_funcs
+        python -m wbia.control.manual_gsgrelate_funcs --allexamples
+        python -m wbia.control.manual_gsgrelate_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

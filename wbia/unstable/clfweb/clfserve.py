@@ -110,7 +110,7 @@ def task_link(index):
 def run_clf_server():
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/scripts/clfweb
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/scripts/clfweb
         python -m clfserve run_clf_server
 
     Example:
@@ -146,9 +146,9 @@ def run_clf_server():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/scripts/clfweb
-        python ~/code/ibeis/ibeis/scripts/clfweb/clfserve.py
-        python ~/code/ibeis/ibeis/scripts/clfweb/clfserve.py --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/scripts/clfweb
+        python ~/code/wbia/wbia/scripts/clfweb/clfserve.py
+        python ~/code/wbia/wbia/scripts/clfweb/clfserve.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

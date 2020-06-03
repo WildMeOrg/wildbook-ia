@@ -6,17 +6,17 @@ from __future__ import absolute_import, division, print_function
 import functools
 import utool as ut
 from six.moves import range, input, zip
-from ibeis import constants as const
-from ibeis.control import accessor_decors, controller_inject
-from ibeis.algo import Config
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia.algo import Config
+from wbia.control.controller_inject import make_ibs_register_decorator
 print, print_, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api   = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
@@ -212,21 +212,21 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
 def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         user_prompt (bool):
 
     Returns:
         list:
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-ensure_contributor_rowids
+        python -m wbia.control.manual_meta_funcs --test-ensure_contributor_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.control.manual_meta_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> ibs = wbia.opendb(db='testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> ibs.delete_contributors(ibs.get_valid_contributor_rowids())
         >>> contributor_rowid_list1 = ibs.get_image_contributor_rowid(gid_list)
@@ -385,8 +385,8 @@ FEATWEIGHT_ROWID             = 'featweight_rowid'
 def testdata_ibs():
     r"""
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
+    import wbia
+    ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
 
@@ -405,7 +405,7 @@ def _get_all_contributor_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> from wbia.control.manual_meta_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> ibs._get_all_contributor_rowids()
     """
@@ -434,7 +434,7 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
         tbl = contributor
 
     CommandLine:
-        python -m ibeis.templates.template_generator --key contributor  --Tcfg with_api_cache=False with_deleters=False
+        python -m wbia.templates.template_generator --key contributor  --Tcfg with_api_cache=False with_deleters=False
 
     RESTful:
         Method: GET
@@ -442,7 +442,7 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> from wbia.control.manual_meta_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> contributor_rowid_list = ibs._get_all_contributor_rowids()
         >>> eager = True
@@ -731,7 +731,7 @@ def get_valid_contributor_rowids(ibs):
         list: contributor_rowids_list
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-get_valid_contributor_rowids
+        python -m wbia.control.manual_meta_funcs --test-get_valid_contributor_rowids
 
     RESTful:
         Method: GET
@@ -739,9 +739,9 @@ def get_valid_contributor_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from wbia.control.manual_meta_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
         >>> contributor_rowids_list = get_valid_contributor_rowids(ibs)
         >>> result = str(contributor_rowids_list)
         >>> print(result)
@@ -928,19 +928,19 @@ def _default_config(ibs, cfgname=None, new=True):
     Resets the databases's algorithm configuration
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         cfgname (None):
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-_default_config
+        python -m wbia.control.manual_meta_funcs --test-_default_config
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.algo.Config import *  # NOQA
+        >>> from wbia.control.manual_meta_funcs import *  # NOQA
+        >>> import wbia
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = wbia.opendb('testdb1')
         >>> assert not hasattr(ibs.cfg.query_cfg.flann_cfg, 'badparam')
         >>> ibs.cfg.query_cfg.flann_cfg.badparam = True
         >>> assert ibs.cfg.query_cfg.flann_cfg.cb_index == .4
@@ -984,9 +984,9 @@ def update_query_cfg(ibs, **kwargs):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs
-        python -m ibeis.control.manual_meta_funcs --allexamples
-        python -m ibeis.control.manual_meta_funcs --allexamples --noface --nosrc
+        python -m wbia.control.manual_meta_funcs
+        python -m wbia.control.manual_meta_funcs --allexamples
+        python -m wbia.control.manual_meta_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

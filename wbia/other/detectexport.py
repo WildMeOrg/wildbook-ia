@@ -267,7 +267,7 @@ def get_cnn_localizer_canonical_training_images_pytorch(ibs, species,
                                                         image_size=224, purge=True,
                                                         skip_rate=0.0):
     from os.path import join, expanduser, exists
-    from ibeis.other.detectfuncs import _canonical_get_boxes
+    from wbia.other.detectfuncs import _canonical_get_boxes
     import random
     import cv2
 
@@ -615,9 +615,9 @@ def get_cnn_orientation_training_images_pytorch(ibs, category_list,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectexport
-        python -m ibeis.other.detectexport --allexamples
-        python -m ibeis.other.detectexport --allexamples --noface --nosrc
+        python -m wbia.other.detectexport
+        python -m wbia.other.detectexport --allexamples
+        python -m wbia.other.detectexport --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -5,8 +5,8 @@ git config --global push.default current
 export CODE_DIR=~/code
 mkdir $CODE_DIR
 cd $CODE_DIR
-git clone https://github.com/Erotemic/ibeis.git
-cd ibeis
+git clone https://github.com/Erotemic/wbia.git
+cd wbia
 ./_scripts/bootstrap.py
 ./_scripts/__install_prereqs__.sh
 ./super_setup.py --build --develop

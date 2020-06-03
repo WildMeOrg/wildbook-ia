@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import ibeis.plottool as pt
-from ibeis.plottool import plot_helpers as ph
-from ibeis.plottool import abstract_interaction
-from ibeis import viz
-from ibeis.viz.interact.interact_sver import ishow_sver
+import wbia.plottool as pt
+from wbia.plottool import plot_helpers as ph
+from wbia.plottool import abstract_interaction
+from wbia import viz
+from wbia.viz.interact.interact_sver import ishow_sver
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_qres]')
 
@@ -14,22 +14,22 @@ def ishow_analysis(ibs, cm, qreq_=None, **kwargs):
     """
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_qres --test-ishow_analysis:0 --show
-        python -m ibeis.viz.interact.interact_qres --test-ishow_analysis:1 --show
+        python -m wbia.viz.interact.interact_qres --test-ishow_analysis:0 --show
+        python -m wbia.viz.interact.interact_qres --test-ishow_analysis:1 --show
 
     Example0:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.viz.interact.interact_qres import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> from wbia.viz.interact.interact_qres import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> fig = ishow_analysis(qreq_.ibs, cm, qreq_=qreq_)
         >>> pt.show_if_requested()
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.interact.interact_qres import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> from wbia.viz.interact.interact_qres import *  # NOQA
+        >>> import wbia
+        >>> cm, qreq_ = wbia.testdata_cm()
         >>> fig = ishow_analysis(qreq_.ibs, cm, qreq_=qreq_)
         >>> pt.show_if_requested()
     """
@@ -51,7 +51,7 @@ class InteractQres(BASE_CLASS):
 
     SeeAlso:
         #interact_matches.MatchInteraction2
-        #ibeis.viz.interact.MatchInteraction
+        #wbia.viz.interact.MatchInteraction
     """
     def __init__(self, ibs, cm, analysis=False, qreq_=None, **kwargs):
         self.ibs = ibs
@@ -124,7 +124,7 @@ class InteractQres(BASE_CLASS):
         # Clicked a specific matches
         print('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
         if viztype.startswith('chip'):
-            from ibeis.viz.interact import interact_chip
+            from wbia.viz.interact import interact_chip
             options = interact_chip.build_annot_context_options(
                 self.ibs, self.cm.qaid, refresh_func=self._analysis_view,
                 with_interact_chip=False)
@@ -135,7 +135,7 @@ class InteractQres(BASE_CLASS):
             aid_list = ph.get_plotdat(ax, 'aid_list', None)
             if event.button == 3:   # right-click
                 # TODO; this functionality should be in viz.interact
-                from ibeis.gui import inspect_gui
+                from wbia.gui import inspect_gui
                 print('right click')
                 print('qreq_ = %r' % (self.qreq_,))
                 options = inspect_gui.get_aidpair_context_menu_options(
@@ -160,9 +160,9 @@ class InteractQres(BASE_CLASS):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_qres
-        python -m ibeis.viz.interact.interact_qres --allexamples
-        python -m ibeis.viz.interact.interact_qres --allexamples --noface --nosrc
+        python -m wbia.viz.interact.interact_qres
+        python -m wbia.viz.interact.interact_qres --allexamples
+        python -m wbia.viz.interact.interact_qres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

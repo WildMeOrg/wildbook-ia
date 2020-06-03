@@ -4,7 +4,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip, map
-from ibeis.algo.hots import pgm_viz
+from wbia.algo.hots import pgm_viz
 try:
     import pgmpy
     import pgmpy.inference
@@ -13,7 +13,7 @@ try:
 except ImportError:
     HAS_PGMPY = False
     pass
-# from ibeis.algo.hots.pgm_viz import *  # NOQA
+# from wbia.algo.hots.pgm_viz import *  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -76,11 +76,11 @@ class ApproximateFactor(object):
     Maybe rename to sparse factor?
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-ApproximateFactor --show
+        python -m wbia.algo.hots.pgm_ext --exec-ApproximateFactor --show
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
         >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
         >>> weights = [.1, .2, .1]
         >>> variables = ['v1', 'v2', 'v3']
@@ -148,11 +148,11 @@ class ApproximateFactor(object):
                 if inplace=False returns a new `Factor` instance.
 
         CommandLine:
-            python -m ibeis.algo.hots.pgm_ext marginalize --show
+            python -m wbia.algo.hots.pgm_ext marginalize --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+            >>> from wbia.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
             >>> variables = ['v1', 'v2', 'v3']
@@ -201,7 +201,7 @@ class ApproximateFactor(object):
 
         Example:
             >>> # UNSTABLE_DOCTEST
-            >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+            >>> from wbia.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 0, 1], [1, 0, 1], [1, 0, 2]]
             >>> weights = [.1, .2, .1]
             >>> variables = ['v1', 'v2', 'v3']
@@ -246,11 +246,11 @@ class ApproximateFactor(object):
             inplace (bool): (default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.pgm_ext --exec-normalize
+            python -m wbia.algo.hots.pgm_ext --exec-normalize
 
         Example:
             >>> # UNSTABLE_DOCTEST
-            >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+            >>> from wbia.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
             >>> variables = ['v1', 'v2', 'v3']
@@ -278,11 +278,11 @@ class ApproximateFactor(object):
         Changes internal variable ordering
 
         CommandLine:
-            python -m ibeis.algo.hots.pgm_ext --exec-reorder
+            python -m wbia.algo.hots.pgm_ext --exec-reorder
 
         Example:
             >>> # UNSTABLE_DOCTEST
-            >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+            >>> from wbia.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
             >>> variables = ['v1', 'v2', 'v3']
@@ -396,11 +396,11 @@ class TemplateCPD(object):
         special_basis_pool (None): (default = None)
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext TemplateCPD --show
+        python -m wbia.algo.hots.pgm_ext TemplateCPD --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
         >>> self = TemplateCPD('coin', ['fair', 'bias'], varpref='C')
         >>> cpd = self.new_cpd(0)
         >>> print(cpd)
@@ -561,11 +561,11 @@ def mustbe_example():
     Simple example where observing F0 forces N0 to take on a value.
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-mustbe_example --show
+        python -m wbia.algo.hots.pgm_ext --exec-mustbe_example --show
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
         >>> model = mustbe_example()
         >>> model.print_templates()
         >>> model.print_priors()
@@ -597,13 +597,13 @@ def mustbe_example():
         >>> assert phi2['fred'] == 1, 'should be 1'
         >>> ut.quit_if_noshow()
         >>> #netx.draw_graphviz(model, with_labels=True)
-        >>> import ibeis.plottool as pt
+        >>> import wbia.plottool as pt
         >>> pgm_viz.show_model(model, fnum=1)
         >>> pgm_viz.show_model(model, fnum=2, evidence=evidence, factor_list=factor_list2)
         >>> ut.show_if_requested()
 
     Ignore:
-        from ibeis.algo.hots.pgm_ext import _debug_repr_model
+        from wbia.algo.hots.pgm_ext import _debug_repr_model
         _debug_repr_model(model)
     """
     def isfred_pmf(isfred, name):
@@ -626,14 +626,14 @@ def mustbe_example():
 def map_example():
     """
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-map_example --show
+        python -m wbia.algo.hots.pgm_ext --exec-map_example --show
 
     References:
         https://class.coursera.org/pgm-003/lecture/44
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
         >>> model = map_example()
         >>> ut.quit_if_noshow()
         >>> #netx.draw_graphviz(model, with_labels=True)
@@ -641,7 +641,7 @@ def map_example():
         >>> ut.show_if_requested()
 
     Ignore:
-        from ibeis.algo.hots.pgm_ext import _debug_repr_model
+        from wbia.algo.hots.pgm_ext import _debug_repr_model
         _debug_repr_model(model)
     """
     # https://class.coursera.org/pgm-003/lecture/44
@@ -678,13 +678,13 @@ def coin_example():
           on the second toss will increase.
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show --cmd
+        python -m wbia.algo.hots.pgm_ext --exec-coin_example
+        python -m wbia.algo.hots.pgm_ext --exec-coin_example --show
+        python -m wbia.algo.hots.pgm_ext --exec-coin_example --show --cmd
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
         >>> model = coin_example()
         >>> model.print_templates()
         >>> model.print_priors()
@@ -712,8 +712,8 @@ def coin_example():
         >>> # factor_list2 = infr.query(query_vars, evidence).values()
         >>> # print_factors(model, factor_list2)
         >>> ut.quit_if_noshow()
-        >>> import ibeis.plottool as pt
-        >>> from ibeis.algo.hots import bayes
+        >>> import wbia.plottool as pt
+        >>> from wbia.algo.hots import bayes
         >>> kw = bayes.cluster_query(model, query_vars,evidence2,
         >>>                          method='bp', operation='marginalize')
         >>> #model.show_model(fnum=1)
@@ -745,7 +745,7 @@ def coin_example():
 
 def markovmodel_test():
     """
-        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
     """
     from pgmpy.models import MarkovModel
     from pgmpy.factors import Factor
@@ -765,8 +765,8 @@ def markovmodel_test():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext
-        python -m ibeis.algo.hots.pgm_ext --allexamples
+        python -m wbia.algo.hots.pgm_ext
+        python -m wbia.algo.hots.pgm_ext --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

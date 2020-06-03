@@ -74,11 +74,11 @@ Course Notes:
 def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-try_query --show
+        python -m wbia.algo.hots.bayes --exec-try_query --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
         >>> name_evidence = [1, None, 0, None]
@@ -335,13 +335,13 @@ def name_model_mode1(num_annots, num_names=None, verbose=True):
     spaghettii
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-name_model_mode1 --show
-        python -m ibeis.algo.hots.bayes --exec-name_model_mode1
-        python -m ibeis.algo.hots.bayes --exec-name_model_mode1 --num-annots=3
+        python -m wbia.algo.hots.bayes --exec-name_model_mode1 --show
+        python -m wbia.algo.hots.bayes --exec-name_model_mode1
+        python -m wbia.algo.hots.bayes --exec-name_model_mode1 --num-annots=3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> defaults = dict(num_annots=2, num_names=2, verbose=True)
         >>> kw = ut.argparse_funckw(name_model_mode1, defaults)
         >>> model = name_model_mode1(**kw)
@@ -414,11 +414,11 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     Defines the general name model
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --show
+        python -m wbia.algo.hots.bayes --exec-make_name_model --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.bayes import *  # NOQA
+        >>> from wbia.algo.hots.bayes import *  # NOQA
         >>> defaults = dict(num_annots=2, num_names=2, verbose=True, mode=2)
         >>> kw = ut.argparse_funckw(make_name_model, defaults)
         >>> model = make_name_model(**kw)
@@ -649,7 +649,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         draw_tree_model(model, **kwargs)
         return
 
-    import ibeis.plottool as pt
+    import wbia.plottool as pt
     import networkx as netx
     import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
@@ -861,7 +861,7 @@ def flow():
 
     if True:
         import vtool_ibeis as vt
-        import ibeis.plottool as pt
+        import wbia.plottool as pt
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
         fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
