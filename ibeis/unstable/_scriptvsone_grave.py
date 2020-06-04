@@ -563,67 +563,67 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
     }
     return cached_data
 
-        from sklearn.metrics.classification import coo_matrix
-        def quick_cm(y_true, y_pred, labels, sample_weight):
-            n_labels = len(labels)
-            C = coo_matrix((sample_weight, (y_true, y_pred)),
-                           shape=(n_labels, n_labels)).toarray()
-            return C
+    from sklearn.metrics.classification import coo_matrix
+    def quick_cm(y_true, y_pred, labels, sample_weight):
+        n_labels = len(labels)
+        C = coo_matrix((sample_weight, (y_true, y_pred)),
+                       shape=(n_labels, n_labels)).toarray()
+        return C
 
-        def quick_mcc(C):
-            """ assumes y_true and y_pred are in index/encoded format """
-            t_sum = C.sum(axis=1)
-            p_sum = C.sum(axis=0)
-            n_correct = np.diag(C).sum()
-            n_samples = p_sum.sum()
-            cov_ytyp = n_correct * n_samples - np.dot(t_sum, p_sum)
-            cov_ypyp = n_samples ** 2 - np.dot(p_sum, p_sum)
-            cov_ytyt = n_samples ** 2 - np.dot(t_sum, t_sum)
-            mcc = cov_ytyp / np.sqrt(cov_ytyt * cov_ypyp)
-            return mcc
+    def quick_mcc(C):
+        """ assumes y_true and y_pred are in index/encoded format """
+        t_sum = C.sum(axis=1)
+        p_sum = C.sum(axis=0)
+        n_correct = np.diag(C).sum()
+        n_samples = p_sum.sum()
+        cov_ytyp = n_correct * n_samples - np.dot(t_sum, p_sum)
+        cov_ypyp = n_samples ** 2 - np.dot(p_sum, p_sum)
+        cov_ytyt = n_samples ** 2 - np.dot(t_sum, t_sum)
+        mcc = cov_ytyp / np.sqrt(cov_ytyt * cov_ypyp)
+        return mcc
 
-        def mcc_hack():
-            sample_weight = np.ones(len(self.samples), dtype=np.int)
-            task_mccs = ut.ddict(dict)
-            # Determine threshold levels per score type
-            score_to_order = {}
-            for scoretype in score_dict.keys():
-                y_score = score_dict[scoretype].values
-                sortx = np.argsort(y_score, kind="mergesort")[::-1]
-                y_score = y_score[sortx]
-                distinct_value_indices = np.where(np.diff(y_score))[0]
-                threshold_idxs = np.r_[distinct_value_indices, y_score.size - 1]
-                thresh = y_score[threshold_idxs]
-                score_to_order[scoretype] = (sortx, y_score, thresh)
+    def mcc_hack():
+        sample_weight = np.ones(len(self.samples), dtype=np.int)
+        task_mccs = ut.ddict(dict)
+        # Determine threshold levels per score type
+        score_to_order = {}
+        for scoretype in score_dict.keys():
+            y_score = score_dict[scoretype].values
+            sortx = np.argsort(y_score, kind="mergesort")[::-1]
+            y_score = y_score[sortx]
+            distinct_value_indices = np.where(np.diff(y_score))[0]
+            threshold_idxs = np.r_[distinct_value_indices, y_score.size - 1]
+            thresh = y_score[threshold_idxs]
+            score_to_order[scoretype] = (sortx, y_score, thresh)
 
-            classes_ = np.array([0, 1], dtype=np.int)
-            for task in task_list:
-                labels = self.samples.subtasks[task]
-                for sublabels in labels.gen_one_vs_rest_labels():
-                    for scoretype in score_dict.keys():
-                        sortx, y_score, thresh = score_to_order[scoretype]
-                        y_true = sublabels.y_enc[sortx]
-                        mcc = -np.inf
-                        for t in thresh:
-                            y_pred = (y_score > t).astype(np.int)
-                            C1 = quick_cm(y_true, y_pred, classes_, sample_weight)
-                            mcc1 = quick_mcc(C1)
-                            if mcc1 < 0:
-                                C2 = quick_cm(y_true, 1 - y_pred, classes_, sample_weight)
-                                mcc1 = quick_mcc(C2)
-                            mcc = max(mcc1, mcc)
-                        # print('mcc = %r' % (mcc,))
-                        task_mccs[sublabels.task_name][scoretype] = mcc
-            return task_mccs
+        classes_ = np.array([0, 1], dtype=np.int)
+        for task in task_list:
+            labels = self.samples.subtasks[task]
+            for sublabels in labels.gen_one_vs_rest_labels():
+                for scoretype in score_dict.keys():
+                    sortx, y_score, thresh = score_to_order[scoretype]
+                    y_true = sublabels.y_enc[sortx]
+                    mcc = -np.inf
+                    for t in thresh:
+                        y_pred = (y_score > t).astype(np.int)
+                        C1 = quick_cm(y_true, y_pred, classes_, sample_weight)
+                        mcc1 = quick_mcc(C1)
+                        if mcc1 < 0:
+                            C2 = quick_cm(y_true, 1 - y_pred, classes_, sample_weight)
+                            mcc1 = quick_mcc(C2)
+                        mcc = max(mcc1, mcc)
+                    # print('mcc = %r' % (mcc,))
+                    task_mccs[sublabels.task_name][scoretype] = mcc
+        return task_mccs
 
-        if 0:
-            with ut.Timer('mcc'):
-                task_mccs = mcc_hack()
-                print('\nMCC of simple scoring measures:')
-                df = pd.DataFrame.from_dict(task_mccs, orient='index')
-                from utool.experimental.pandas_highlight import to_string_monkey
-                print(to_string_monkey(
-                    df, highlight_cols=np.arange(len(df.columns))))
+    if 0:
+        with ut.Timer('mcc'):
+            task_mccs = mcc_hack()
+            print('\nMCC of simple scoring measures:')
+            df = pd.DataFrame.from_dict(task_mccs, orient='index')
+            from utool.experimental.pandas_highlight import to_string_monkey
+            print(to_string_monkey(
+                df, highlight_cols=np.arange(len(df.columns))))
 
 
 
