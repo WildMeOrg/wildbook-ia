@@ -835,7 +835,7 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
 
 @register_api(_prefix('detect/batch'), methods=['POST'])
 def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True,
-                           nms_threshold=0.4, async=True,
+                           nms_threshold=0.4, async_=True,
                            callback_url=None, callback_method=None,
                            *args, **kwargs):
     r"""
@@ -919,8 +919,8 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
     microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold)
 
     try:
-        parameter = 'async'
-        assert isinstance(async, bool), 'Asynchronous flag must be a boolean'
+        parameter = 'async_'
+        assert isinstance(async_, bool), 'Asynchronous flag must be a boolean'
 
         parameter = 'callback_url'
         assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
@@ -942,7 +942,7 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
         'nms_threshold'  : nms_threshold,
     }
 
-    if async:
+    if async_:
         taskid = ibs.job_manager.jobiface.queue_job('microsoft_detect',
                                                     callback_url, callback_method,
                                                     *args, **kwargs)
