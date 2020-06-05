@@ -7563,6 +7563,105 @@ def commit_ggr_fix_gps(ibs, **kwargs):
     ibs.set_image_gps(assignment_gid_list, assignment_gps_list)
 
 
+@register_ibs_method
+def deduplicate_annotations(ibs, gid_list=None, min_overlap=0.10):
+    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    import itertools
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    aids_list = ibs.get_image_aids(gid_list)
+    pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
+    pids_list = list(map(ut.flatten, pids_list))
+
+
+@register_ibs_method
+def assign_parts_to_annotations_marriage(ibs, gid_list=None, min_overlap=0.10):
+    import itertools
+    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    aids_list = ibs.get_image_aids(gid_list)
+    pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
+    pids_list = list(map(ut.flatten, pids_list))
+
+    gt_dict = {}
+    for aid in aid_list:
+        gt = general_parse_gt_annots(ibs, [aid])[0][0]
+        gt_dict[aid] = gt
+
+    marriage_user_id_list = []
+    for length in range(len(user_id_list), 0, -1):
+        padding = len(user_id_list) - length
+        combination_list = list(itertools.combinations(user_id_list, length))
+        for combination in combination_list:
+            combination = sorted(combination)
+            combination += [None] * padding
+            marriage_user_id_list.append(tuple(combination))
+
+    marriage_aid_list = []
+    for user_id1, user_id2, user_id3 in marriage_user_id_list:
+        aid_list1 = user_dict.get(user_id1, [None])
+        aid_list2 = user_dict.get(user_id2, [None])
+        aid_list3 = user_dict.get(user_id3, [None])
+
+        for aid1 in aid_list1:
+            for aid2 in aid_list2:
+                for aid3 in aid_list3:
+                    marriage = [aid1, aid2, aid3]
+                    padding = len(marriage)
+                    marriage = [aid for aid in marriage if aid is not None]
+                    marriage = sorted(marriage)
+                    padding -= len(marriage)
+                    marriage = sorted(marriage)
+                    marriage += [None] * padding
+                    marriage_aid_list.append(tuple(marriage))
+
+    marriage_list = []
+    for marriage_aids in marriage_aid_list:
+        aid1, aid2, aid3 = marriage_aids
+        assert aid1 in aid_list and aid1 is not None
+        assert aid2 in aid_list or  aid2 is None
+        assert aid3 in aid_list or  aid3 is None
+
+        aid_list_ = [aid1, aid2, aid3]
+        missing = len(aid_list_) - aid_list_.count(None)
+
+        gt1 = gt_dict.get(aid1, None)
+        gt2 = gt_dict.get(aid2, None)
+        gt3 = gt_dict.get(aid3, None)
+
+        overlap1 = 0.0 if None in [gt1, gt2] else general_overlap([gt1], [gt2])[0][0]
+        overlap2 = 0.0 if None in [gt1, gt3] else general_overlap([gt1], [gt3])[0][0]
+        overlap3 = 0.0 if None in [gt2, gt3] else general_overlap([gt2], [gt3])[0][0]
+
+        # Assert min_overlap conditions
+        overlap1 = 0.0 if overlap1 < min_overlap else overlap1
+        overlap2 = 0.0 if overlap2 < min_overlap else overlap2
+        overlap3 = 0.0 if overlap3 < min_overlap else overlap3
+
+        score = np.sqrt(overlap1 + overlap2 + overlap3)
+
+        marriage = [missing, score, set(marriage_aids)]
+        marriage_list.append(marriage)
+
+    marriage_list = sorted(marriage_list, reverse=True)
+
+    segment_list = []
+    married_aid_set = set([])
+    for missing, score, marriage_aids in marriage_list:
+        polygamy = len(married_aid_set & marriage_aids) > 0
+        if not polygamy:
+            marriage_aids = marriage_aids - {None}
+            married_aid_set = married_aid_set | marriage_aids
+            segment_list.append(marriage_aids)
+
+    return segment_list
+
+
 def merge_ggr_staged_annots_marriage(
     ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10
 ):

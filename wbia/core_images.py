@@ -1027,6 +1027,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 nms_dict = {}
                 nms_class_set = set(classes)
                 nms_aware = config['nms_aware']
+                nms_aware = nms_aware.strip().lower().replace('_', '').replace('-', '')
 
                 for nms_class in nms_class_set:
                     flag_list = classes == nms_class
