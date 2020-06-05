@@ -7,7 +7,7 @@ from flask import request, make_response, current_app
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 
 (print, rrr, profile) = ut.inject2(__name__)
 

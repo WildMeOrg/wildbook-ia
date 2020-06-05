@@ -570,10 +570,10 @@ def convert_viewpoint_to_tuple(viewpoint_text):
 def _resize(image, t_width=None, t_height=None):
     """
     TODO:
-        # use vtool_ibeis instead
+        # use vtool instead
     """
     if False:
-        import vtool_ibeis as vt
+        import vtool as vt
         maxdims = (int(round(t_width)), int(round(t_height)))
         interpolation = 'linear'
         return vt.resize_to_maxdims(image, maxdims, interpolation)

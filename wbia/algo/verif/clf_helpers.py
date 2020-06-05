@@ -887,7 +887,7 @@ class ClfResult(ut.NiceRepr):
         return pos_threshes
 
     def report_thresholds(res, warmup=200):
-        # import vtool_ibeis as vt
+        # import vtool as vt
         ut.cprint('Threshold Report', 'yellow')
         y_test_bin = res.target_bin_df.values
         # y_test_enc = y_test_bin.argmax(axis=1)
@@ -1021,7 +1021,7 @@ class ClfResult(ut.NiceRepr):
         return report
 
     def confusions(res, class_name):
-        import vtool_ibeis as vt
+        import vtool as vt
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
         k = res.class_names.index(class_name)
@@ -1030,7 +1030,7 @@ class ClfResult(ut.NiceRepr):
         return confusions
 
     def ishow_roc(res):
-        import vtool_ibeis as vt
+        import vtool as vt
         import wbia.plottool as pt
         ut.qtensure()
         y_test_bin = res.target_bin_df.values
@@ -1062,7 +1062,7 @@ class ClfResult(ut.NiceRepr):
         pass
 
     def show_roc(res, class_name, **kwargs):
-        import vtool_ibeis as vt
+        import vtool as vt
         labels = res.target_bin_df[class_name].values
         probs = res.probs_df[class_name].values
         confusions = vt.ConfusionMetrics().fit(probs, labels)
@@ -1086,7 +1086,7 @@ class ClfResult(ut.NiceRepr):
 
     def confusions_ovr(res):
         # one_vs_rest confusions
-        import vtool_ibeis as vt
+        import vtool as vt
         res.augment_if_needed()
         for k in range(res.y_test_bin.shape[1]):
             class_k_truth = res.y_test_bin.T[k]

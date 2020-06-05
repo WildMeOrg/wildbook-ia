@@ -370,7 +370,7 @@ class APIItemModel(API_MODEL_BASE):
                         values[np.isnan(values)] = -np.inf
                     elif type_ is str:
                         values = ut.replace_nones(values, '')
-                    import vtool_ibeis as vt
+                    import vtool as vt
                     sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
                     nodes = ut.take(children, sortx)

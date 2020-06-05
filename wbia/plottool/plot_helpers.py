@@ -172,7 +172,7 @@ ensureqt = qt4ensure
 
 
 def kp_info(kp):
-    import vtool_ibeis.keypoint as ktool
+    import vtool.keypoint as ktool
     kpts = np.array([kp])
     xy_str    = ktool.get_xy_strs(kpts)[0]
     shape_str = ktool.get_shape_strs(kpts)[0]

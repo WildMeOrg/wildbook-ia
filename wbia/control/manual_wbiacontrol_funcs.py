@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 #from wbia import constants as const
 from wbia.control import accessor_decors  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator

@@ -34,7 +34,7 @@ ubelt >= 0.8.7
 futures_actors
 
 utool >= 2.1.2
-vtool_ibeis >= 2.1.0
+wbia-vtool >= 2.1.0
 
 pyqt5>= 5.11.2;python_version>'2.7'  
 

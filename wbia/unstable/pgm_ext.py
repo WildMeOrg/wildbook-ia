@@ -191,7 +191,7 @@ class ApproximateFactor(object):
             return phi
 
     def _compute_unique_state_ids(self):
-        import vtool_ibeis as vt
+        import vtool as vt
         #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
         data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
         return data_ids
@@ -217,7 +217,7 @@ class ApproximateFactor(object):
             | v1_1 | v2_0 | v3_2 |                0.1000 |
             +------+------+------+-----------------------+
         """
-        import vtool_ibeis as vt
+        import vtool as vt
 
         phi = self.copy() if inplace else self
         #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)

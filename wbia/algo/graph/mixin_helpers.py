@@ -5,7 +5,7 @@ import networkx as nx
 import operator
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 from wbia import constants as const
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
@@ -540,7 +540,7 @@ class DummyEdges(object):
             weights = np.ones(len(avail_uv))
 
             if 'view_weight' in enabled_heuristics:
-                from vtool_ibeis import _rhomb_dist
+                from vtool import _rhomb_dist
                 view_edge = [(node_to_view[u], node_to_view[v])
                              for (u, v) in avail_uv]
                 view_weight = np.array([

@@ -32,7 +32,7 @@ import six
 import re
 import numpy as np
 try:
-    import vtool_ibeis as vt
+    import vtool as vt
 except ImportError:
     pass
 import utool as ut
@@ -1204,7 +1204,7 @@ def rotate_points_around(points, theta, ax, ay):
     References:
         http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
     """
-    # TODO: Can use vtool_ibeis for this
+    # TODO: Can use vtool for this
     sin, cos, array = np.sin, np.cos, np.array
     augpts = array([array((x, y, 1)) for (x, y) in points])
     ct = cos(theta)

@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 from six.moves import zip, map, reduce
 #import numpy as np
-#import vtool_ibeis as vt
+#import vtool as vt
 import numpy as np
 import ubelt as ub  # NOQA
 from wbia import constants as const

@@ -213,7 +213,7 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 def gridsearch_ratio_thresh(matches):
     import sklearn
     import sklearn.metrics
-    import vtool_ibeis as vt
+    import vtool as vt
     # Param search for vsone
     import wbia.plottool as pt
     pt.qt4ensure()

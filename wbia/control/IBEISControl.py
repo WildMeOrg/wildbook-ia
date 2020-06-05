@@ -1143,7 +1143,7 @@ class IBEISController(BASE_CLASS):
         #if ibs.get_dbname() == 'Oxford':
         #    pass
         #else:
-        import vtool_ibeis as vt
+        import vtool as vt
         if hasattr(ibs, 'force_icon_aid'):
             aid = ibs.force_icon_aid
         if aid is None:

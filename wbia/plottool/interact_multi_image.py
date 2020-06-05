@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
 import six
 try:
-    import vtool_ibeis as vt
+    import vtool as vt
 except ImportError:
     pass
 #import utool

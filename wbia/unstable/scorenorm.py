@@ -33,7 +33,7 @@ import re
 from wbia import dtool
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import six  # NOQA
 from functools import partial
 from os.path import join
@@ -433,7 +433,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
 
     Returns:
-        vtool_ibeis.ScoreNormalizer: encoder
+        vtool.ScoreNormalizer: encoder
 
     CommandLine:
         python -m wbia --tf learn_annotscore_normalizer --show
@@ -554,7 +554,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         qreq_ (wbia.QueryRequest):  query request object with hyper-parameters
 
     Returns:
-        vtool_ibeis.ScoreNormalizer: encoder
+        vtool.ScoreNormalizer: encoder
 
     CommandLine:
         python -m wbia --tf learn_featscore_normalizer --show -t default:

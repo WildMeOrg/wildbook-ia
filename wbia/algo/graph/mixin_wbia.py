@@ -4,7 +4,7 @@ import networkx as nx
 import pandas as pd
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt  # NOQA
+import vtool as vt  # NOQA
 import six
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA

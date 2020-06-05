@@ -88,7 +88,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         python -m wbia.plottool.nx_helpers show_nx --show
         python -m dtool --tf DependencyCache.make_graph --show
         python -m wbia.scripts.specialdraw double_depcache_graph --show --testmode
-        python -m vtool_ibeis.clustering2 unsupervised_multicut_labeling --show
+        python -m vtool.clustering2 unsupervised_multicut_labeling --show
 
 
     Example:
@@ -204,7 +204,7 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
         http://matplotlib.org/api/text_api.html
         http://matplotlib.org/api/offsetbox_api.html
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     import wbia.plottool as pt
     # Ensure all images have been read
     img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
@@ -1095,7 +1095,7 @@ def _get_node_size(graph, node, node_size):
     else:
         if 'image' in nattrs:
             img_fpath = nattrs['image']
-            import vtool_ibeis as vt
+            import vtool as vt
             width, height = vt.image.open_image_size(img_fpath)
         else:
             height = width = 1100 / 50 * scale
@@ -1203,7 +1203,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             else:
                 bbox = list(xy_bl) + [width, height]
                 if isdiag:
-                    import vtool_ibeis as vt
+                    import vtool as vt
                     center_xy  = vt.bbox_center(bbox)
                     _xy =  np.array(center_xy)
                     newverts_ = [
@@ -1384,7 +1384,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 width = .5
                 lw = 1.0
                 try:
-                    import vtool_ibeis as vt
+                    import vtool as vt
                     # Compute arrow width using estimated graph size
                     if node_size is not None and node_pos is not None:
                         xys = np.array(ut.take(node_pos, node_pos.keys())).T

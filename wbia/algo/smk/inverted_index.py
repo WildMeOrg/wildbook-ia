@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range
 from wbia import dtool
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import numpy as np
 from wbia.algo.smk import smk_funcs
 from wbia.control.controller_inject import register_preprocs

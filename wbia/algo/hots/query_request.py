@@ -11,7 +11,7 @@ from os.path import join
 from wbia import dtool
 import itertools as it
 import hashlib
-import vtool_ibeis as vt
+import vtool as vt
 import utool as ut
 import numpy as np
 from wbia.algo.hots import neighbor_index_cache
