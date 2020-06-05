@@ -7,6 +7,7 @@ import vtool as vt
 import numpy as np
 from wbia.algo.smk import smk_funcs
 from wbia.control.controller_inject import register_preprocs
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -16,21 +17,22 @@ derived_attribute = register_preprocs['annot']
 class InvertedIndexConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('nAssign', 1),
-        #ut.ParamInfo('int_rvec', False, hideif=False),
+        # ut.ParamInfo('int_rvec', False, hideif=False),
         ut.ParamInfo('int_rvec', True, hideif=False),
         ut.ParamInfo('massign_equal,', False),
         ut.ParamInfo('massign_alpha,', 1.2),
         # ut.ParamInfo('massign_sigma,', 80.0, hideif=lambda cfg: cfg['massign_equal']),
         ut.ParamInfo('inva_version', 2),
         #
-        #massign_sigma=80.0,
-        #massign_equal_weights=False
+        # massign_sigma=80.0,
+        # massign_equal_weights=False
     ]
 
 
 class InvertedAnnotsExtras(object):
     def get_size_info(inva):
         import sys
+
         def get_homog_list_nbytes_scalar(list_scalar):
             if list_scalar is None:
                 return 0
@@ -50,7 +52,7 @@ class InvertedAnnotsExtras(object):
                 val = list_nested[0]
                 if isinstance(val, np.ndarray):
                     nbytes = sum(sys.getsizeof(v) for v in list_nested)
-                    #item_nbytes = sum(v.nbytes for v in list_nested)
+                    # item_nbytes = sum(v.nbytes for v in list_nested)
                 else:
                     nest_nbytes = sys.getsizeof(val) * len(list_nested)
                     totals = sum(ut.lmap(len, list_nested))
@@ -75,29 +77,31 @@ class InvertedAnnotsExtras(object):
             return wxbytes
 
         sizes = {
-            'aids'       : get_homog_list_nbytes_scalar(inva.aids),
-            'wx_lists'   : get_homog_list_nbytes_nested(inva.wx_lists),
-            'fxs_lists'  : get_homog_list_nbytes_nested(inva.fxs_lists),
-            'maws_lists' : get_homog_list_nbytes_nested(inva.maws_lists),
-            'agg_rvecs'  : get_homog_list_nbytes_nested(inva.agg_rvecs),
-            'agg_flags'  : get_homog_list_nbytes_nested(inva.agg_flags),
-            'aid_to_idx' : get_homog_dict_nbytes_scalar(inva.aid_to_idx),
-            'gamma_list' : get_homog_list_nbytes_scalar(inva.gamma_list),
-            'wx_to_aids' : get_homog_dict_nbytes_nested(inva.wx_to_aids),
-            'wx_to_weight'  : get_homog_dict_nbytes_scalar(inva.wx_to_weight),
+            'aids': get_homog_list_nbytes_scalar(inva.aids),
+            'wx_lists': get_homog_list_nbytes_nested(inva.wx_lists),
+            'fxs_lists': get_homog_list_nbytes_nested(inva.fxs_lists),
+            'maws_lists': get_homog_list_nbytes_nested(inva.maws_lists),
+            'agg_rvecs': get_homog_list_nbytes_nested(inva.agg_rvecs),
+            'agg_flags': get_homog_list_nbytes_nested(inva.agg_flags),
+            'aid_to_idx': get_homog_dict_nbytes_scalar(inva.aid_to_idx),
+            'gamma_list': get_homog_list_nbytes_scalar(inva.gamma_list),
+            'wx_to_aids': get_homog_dict_nbytes_nested(inva.wx_to_aids),
+            'wx_to_weight': get_homog_dict_nbytes_scalar(inva.wx_to_weight),
         }
         return sizes
 
     def print_size_info(inva):
         sizes = inva.get_size_info()
         sizes = ut.sort_dict(sizes, 'vals', ut.identity)
-        total_nbytes =  sum(sizes.values())
-        print(ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':'))
+        total_nbytes = sum(sizes.values())
+        print(
+            ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':')
+        )
         print('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
 
     def get_nbytes(inva):
         sizes = inva.get_size_info()
-        total_nbytes =  sum(sizes.values())
+        total_nbytes = sum(sizes.values())
         return total_nbytes
 
     def get_word_patch(inva, wx, ibs):
@@ -105,7 +109,7 @@ class InvertedAnnotsExtras(object):
             inva._word_patches = {}
         if wx not in inva._word_patches:
             assigned_patches = inva.get_patches(wx, ibs, verbose=False)
-            #print('assigned_patches = %r' % (len(assigned_patches),))
+            # print('assigned_patches = %r' % (len(assigned_patches),))
             average_patch = np.mean(assigned_patches, axis=0)
             average_patch = average_patch.astype(np.float)
             inva._word_patches[wx] = average_patch
@@ -128,19 +132,22 @@ class InvertedAnnotsExtras(object):
 
         chip_list = ibs.depc_annot.d.get_chips_img(aid_list, config=config)
         # convert to approprate colorspace
-        #if colorspace is not None:
+        # if colorspace is not None:
         #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
         # ut.print_object_size(chip_list, 'chip_list')
 
         patch_size = 64
         shape = (total_patches, patch_size, patch_size, 3)
         _prog = ut.ProgPartial(enabled=verbose, lbl='warping patches', bs=True)
-        _patchiter = ut.iflatten([
-            vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
-            #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
-            for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
-                                    length=len(aid_list))
-        ])
+        _patchiter = ut.iflatten(
+            [
+                vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
+                # vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
+                for chip, kpts in _prog(
+                    zip(chip_list, sub_kpts_list), length=len(aid_list)
+                )
+            ]
+        )
         word_patches = vt.fromiter_nd(_patchiter, shape, dtype=np.uint8)
         return word_patches
 
@@ -171,6 +178,7 @@ class InvertedAnnotsExtras(object):
             >>>     pt.update()
         """
         import wbia.plottool as pt
+
         # Create the contributing patch image
         word_patches = inva.get_patches(wx, ibs)
         word_patches_ = ut.strided_sample(word_patches, 64)
@@ -181,8 +189,8 @@ class InvertedAnnotsExtras(object):
         word = vocab.wx_to_word[wx]
 
         average_patch = np.mean(word_patches, axis=0)
-        #vecs = inva.get_vecs(wx)
-        #assert np.allclose(word, vecs.mean(axis=0))
+        # vecs = inva.get_vecs(wx)
+        # assert np.allclose(word, vecs.mean(axis=0))
         with_sift = True
         if with_sift:
             patch_img = pt.render_sift_on_patch(average_patch, word)
@@ -190,8 +198,10 @@ class InvertedAnnotsExtras(object):
             patch_img = average_patch
 
         # Stack them together
-        solidbar = np.zeros((patch_img.shape[0],
-                             int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
+        solidbar = np.zeros(
+            (patch_img.shape[0], int(patch_img.shape[1] * 0.1), 3),
+            dtype=patch_img.dtype,
+        )
         border_color = (100, 10, 10)  # bgr, darkblue
         if ut.is_float(solidbar):
             solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
@@ -232,6 +242,7 @@ class InvertedAnnotsExtras(object):
             >>> ut.show_if_requested()
         """
         import wbia.plottool as pt
+
         # Get words with the most assignments
         vocab = ibs.depc['vocab'].get_row_data([inva.vocab_rowid], 'words')[0]
 
@@ -309,25 +320,37 @@ class InvertedAnnots(InvertedAnnotsExtras):
         tablename = 'inverted_agg_assign'
         table = depc[tablename]
         input_tuple = (aids, [vocab_rowid] * len(aids))
-        tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config,
-                                     _hack_rootmost=True, _debug=False)
+        tbl_rowids = depc.get_rowids(
+            tablename, input_tuple, config=config, _hack_rootmost=True, _debug=False
+        )
         # input_tuple = (aids, [vocab_aids])
         # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
         print('Reading data')
         inva.aids = aids
-        inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
-                         for wx_list_ in table.get_row_data(
-                             tbl_rowids, 'wx_list', showprog='load wxs')]
-        inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
-                          for fxs_list in table.get_row_data(
-                              tbl_rowids, 'fxs_list', showprog='load fxs')]
-        inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
-                           for maws in table.get_row_data(
-                               tbl_rowids, 'maws_list', showprog='load maws')]
-        inva.agg_rvecs = table.get_row_data(tbl_rowids, 'agg_rvecs',
-                                            showprog='load agg_rvecs')
-        inva.agg_flags = table.get_row_data(tbl_rowids, 'agg_flags',
-                                            showprog='load agg_flags')
+        inva.wx_lists = [
+            np.array(wx_list_, dtype=np.int32)
+            for wx_list_ in table.get_row_data(
+                tbl_rowids, 'wx_list', showprog='load wxs'
+            )
+        ]
+        inva.fxs_lists = [
+            [np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
+            for fxs_list in table.get_row_data(
+                tbl_rowids, 'fxs_list', showprog='load fxs'
+            )
+        ]
+        inva.maws_lists = [
+            [np.array(m, dtype=np.float32) for m in maws]
+            for maws in table.get_row_data(
+                tbl_rowids, 'maws_list', showprog='load maws'
+            )
+        ]
+        inva.agg_rvecs = table.get_row_data(
+            tbl_rowids, 'agg_rvecs', showprog='load agg_rvecs'
+        )
+        inva.agg_flags = table.get_row_data(
+            tbl_rowids, 'agg_flags', showprog='load agg_flags'
+        )
         # less memory hogs
         inva.aid_to_idx = ut.make_index_lookup(inva.aids)
         inva.int_rvec = config['int_rvec']
@@ -388,7 +411,8 @@ class InvertedAnnots(InvertedAnnotsExtras):
                 ndocs_total = len(inva.aids)
                 # Unweighted documents
                 ndocs_per_word = np.array(
-                    [len(set(inva.wx_to_aids[wx])) for wx in wx_list])
+                    [len(set(inva.wx_to_aids[wx])) for wx in wx_list]
+                )
                 weight_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
             elif method == 'idf-maw':
                 # idf denom (the num of docs containing a word for each word)
@@ -396,7 +420,9 @@ class InvertedAnnots(InvertedAnnotsExtras):
                 ndocs_total = len(inva.aids)
                 # Weighted documents
                 wx_to_ndocs = {wx: 0.0 for wx in wx_list}
-                for wx, maws in zip(ut.iflatten(inva.wx_lists), ut.iflatten(inva.maws_lists)):
+                for wx, maws in zip(
+                    ut.iflatten(inva.wx_lists), ut.iflatten(inva.maws_lists)
+                ):
                     wx_to_ndocs[wx] += min(1.0, max(maws))
                 ndocs_per_word = ut.take(wx_to_ndocs, wx_list)
                 weight_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
@@ -420,16 +446,18 @@ class InvertedAnnots(InvertedAnnotsExtras):
         """
         # TODO: sep
         wx_to_weight = inva.wx_to_weight
-        _prog = ut.ProgPartial(length=len(inva.wx_lists), bs=True, lbl='gamma',
-                               adjust=True)
+        _prog = ut.ProgPartial(
+            length=len(inva.wx_lists), bs=True, lbl='gamma', adjust=True
+        )
         _iter = zip(inva.wx_lists, inva.agg_rvecs, inva.agg_flags)
         gamma_list = []
         for wx_list, phiX_list, flagsX_list in _prog(_iter):
             if inva.int_rvec:
                 phiX_list = smk_funcs.uncast_residual_integer(phiX_list)
             weight_list = np.array(ut.take(wx_to_weight, wx_list))
-            gammaX = smk_funcs.gamma_agg(phiX_list, flagsX_list, weight_list,
-                                         alpha, thresh)
+            gammaX = smk_funcs.gamma_agg(
+                phiX_list, flagsX_list, weight_list, alpha, thresh
+            )
             gamma_list.append(gammaX)
         return gamma_list
 
@@ -511,10 +539,10 @@ class SingleAnnot(ut.NiceRepr):
 
     def _assert_self(X, qreq_, vocab):
         import utool as ut
+
         all_fxs = sorted(ut.flatten(X.fxs_list))
         assert len(all_fxs) > all_fxs[-1]
-        assert (len(all_fxs) ==
-                qreq_.ibs.get_annot_num_feats(X.aid, qreq_.config))
+        assert len(all_fxs) == qreq_.ibs.get_annot_num_feats(X.aid, qreq_.config)
 
         nAssign = qreq_.qparams['nAssign']
         int_rvec = qreq_.qparams['int_rvec']
@@ -544,16 +572,29 @@ class SingleAnnot(ut.NiceRepr):
         return nbytes
 
 
-@derived_attribute(tablename='inverted_agg_assign', parents=['feat', 'vocab'],
-                   colnames=['wx_list', 'fxs_list', 'maws_list',
-                             #'rvecs_list', 'flags_list',
-                             'agg_rvecs', 'agg_flags'],
-                   coltypes=[list, list, list,
-                             #list, list,
-                             np.ndarray, np.ndarray],
-                   configclass=InvertedIndexConfig,
-                   fname='smk/smk_agg_rvecs',
-                   chunksize=256)
+@derived_attribute(
+    tablename='inverted_agg_assign',
+    parents=['feat', 'vocab'],
+    colnames=[
+        'wx_list',
+        'fxs_list',
+        'maws_list',
+        #'rvecs_list', 'flags_list',
+        'agg_rvecs',
+        'agg_flags',
+    ],
+    coltypes=[
+        list,
+        list,
+        list,
+        # list, list,
+        np.ndarray,
+        np.ndarray,
+    ],
+    configclass=InvertedIndexConfig,
+    fname='smk/smk_agg_rvecs',
+    chunksize=256,
+)
 def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     r"""
     CommandLine:
@@ -612,14 +653,17 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> fid_list = ut.take_column(input_ids, 0)
         >>> vocab_id_list = ut.take_column(input_ids, 1)
     """
-    #print('[IBEIS] ASSIGN RESIDUALS:')
+    # print('[IBEIS] ASSIGN RESIDUALS:')
     assert ut.allsame(vocab_id_list)
     vocabid = vocab_id_list[0]
 
     # NEED HACK TO NOT LOAD INDEXER EVERY TIME
     this_table = depc['inverted_agg_assign']
     vocab_table = depc['vocab']
-    if this_table._hack_chunk_cache is not None and vocabid in this_table._hack_chunk_cache:
+    if (
+        this_table._hack_chunk_cache is not None
+        and vocabid in this_table._hack_chunk_cache
+    ):
         vocab = this_table._hack_chunk_cache[vocabid]
     else:
         vocab = vocab_table.get_row_data([vocabid], 'words')[0]
@@ -632,19 +676,24 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     int_rvec = config['int_rvec']
 
     from concurrent import futures
+
     print('Building residual args')
     worker = residual_worker
     args_gen = gen_residual_args(vocab, vecs_list, nAssign, int_rvec)
-    args_gen = [args for args in ut.ProgIter(args_gen, length=len(vecs_list),
-                                             lbl='building args')]
+    args_gen = [
+        args
+        for args in ut.ProgIter(args_gen, length=len(vecs_list), lbl='building args')
+    ]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()
     print('Creating %d processes' % (nprocs,))
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
         print('Submiting workers')
-        fs_chunk = [executor.submit(worker, args)
-                    for args in ut.ProgIter(args_gen, lbl='submit proc')]
+        fs_chunk = [
+            executor.submit(worker, args)
+            for args in ut.ProgIter(args_gen, lbl='submit proc')
+        ]
         for fs in ut.ProgIter(fs_chunk, lbl='getting phi result'):
             tup = fs.result()
             yield tup
@@ -681,7 +730,7 @@ def residual_worker(argtup):
         agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
     agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
 
-    #for idx, wx in enumerate(wx_list):
+    # for idx, wx in enumerate(wx_list):
     for idx in range(len(wx_list)):
         # wx = wx_list[idx]
         word = word_list[idx]
@@ -708,9 +757,10 @@ def testdata_inva():
     from wbia.algo.smk.inverted_index import *  # NOQA
     """
     import wbia
+
     qreq_ = wbia.testdata_qreq_(
-        defaultdb='PZ_MTEST', a='default',
-        p='default:proot=smk,nAssign=1,num_words=64')
+        defaultdb='PZ_MTEST', a='default', p='default:proot=smk,nAssign=1,num_words=64'
+    )
     aids = qreq_.daids
     cls = InvertedAnnots
     depc = qreq_.ibs.depc
@@ -728,6 +778,8 @@ if __name__ == '__main__':
         python -m wbia.algo.smk.inverted_index --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

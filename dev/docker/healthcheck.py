@@ -4,13 +4,18 @@ import time
 import utool as ut
 
 config = {
-    'protocol' : 'http',
-    'server'   : 'localhost',
-    'port'     :  5005,
-    'endpoint' : '/api/test/heartbeat/',
+    'protocol': 'http',
+    'server': 'localhost',
+    'port': 5005,
+    'endpoint': '/api/test/heartbeat/',
 }
 
-args = (config['protocol'], config['server'], config['port'], config['endpoint'], )
+args = (
+    config['protocol'],
+    config['server'],
+    config['port'],
+    config['endpoint'],
+)
 url = '%s://%s:%s%s' % args
 
 bootstrapping = True
@@ -19,7 +24,10 @@ while True:
     history = history[-15:]
     failures = sum(history)
 
-    print('bootstrapping = %s\toffline (%d): %r' % (bootstrapping, failures, history[::-1], ))
+    print(
+        'bootstrapping = %s\toffline (%d): %r'
+        % (bootstrapping, failures, history[::-1],)
+    )
 
     if failures >= 10:
         print('Running restart...')

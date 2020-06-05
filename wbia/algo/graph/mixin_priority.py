@@ -5,9 +5,10 @@ import utool as ut
 import networkx as nx
 from wbia import constants as const
 from wbia.algo.graph import nx_utils as nxu
-from wbia.algo.graph.state import (POSTV, NEGTV)
-from wbia.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
+from wbia.algo.graph.state import POSTV, NEGTV
+from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from wbia.algo.graph import mixin_loops
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -146,8 +147,9 @@ class Priority(object):
         return corrected_priority
 
     @profile
-    def prioritize(infr, metric=None, edges=None, scores=None,
-                   force_inconsistent=True, reset=False):
+    def prioritize(
+        infr, metric=None, edges=None, scores=None, force_inconsistent=True, reset=False
+    ):
         """
         Adds edges to the priority queue
 
@@ -205,16 +207,19 @@ class Priority(object):
             unrev_edges = infr.unreviewed_graph.edges()
             edges = set(infr.filter_edges_flagged_as_redun(unrev_edges))
 
-        infr.print('ensuring {} edge(s) get priority'.format(
-            len(edges)), 5)
+        infr.print('ensuring {} edge(s) get priority'.format(len(edges)), 5)
 
         if infr.params['inference.enabled'] and force_inconsistent:
             # Ensure that maybe_error edges are always prioritized
             maybe_error_edges = set(infr.maybe_error_edges())
             extra_edges = set(maybe_error_edges).difference(set(edges))
             extra_edges = list(extra_edges)
-            infr.print('ensuring {} inconsistent edge(s) get priority'.format(
-                len(extra_edges)), 5)
+            infr.print(
+                'ensuring {} inconsistent edge(s) get priority'.format(
+                    len(extra_edges)
+                ),
+                5,
+            )
 
             if scores is not None:
                 pgen = list(infr.gen_edge_values(metric, extra_edges, default=low))
@@ -300,7 +305,9 @@ class Priority(object):
                     size1 = len(cc1)
                     size2 = len(cc2)
 
-                    if nid1 == nid2 and not (size1 > SIZE_THRESH and size2 > SIZE_THRESH):
+                    if nid1 == nid2 and not (
+                        size1 > SIZE_THRESH and size2 > SIZE_THRESH
+                    ):
                         continue
 
                 if infr.params['redun.enabled']:
@@ -317,7 +324,8 @@ class Priority(object):
                             cc = infr.pos_graph.component(nid1)
                             pos_subgraph = infr.pos_graph.subgraph(cc)
                             pos_conn = nx.connectivity.local_edge_connectivity(
-                                pos_subgraph, u, v, cutoff=k_pos)
+                                pos_subgraph, u, v, cutoff=k_pos
+                            )
                             # Compute local connectivity
                             if pos_conn >= k_pos:
                                 continue  # Loop instead of recursion
@@ -405,6 +413,7 @@ class Priority(object):
         """
         Checks if u and v are conneted by edges above a confidence threshold
         """
+
         def satisfied(G, child, edge):
             decision = infr.edge_decision(edge)
             if decision != POSTV:
@@ -414,9 +423,10 @@ class Priority(object):
             conf_int = const.CONFIDENCE.CODE_TO_INT[conf]
             conf_int = 0 if conf_int is None else conf_int
             return conf_int >= thresh
-        for node in ut.bfs_conditional(infr.graph, u,
-                                       yield_if=satisfied,
-                                       continue_if=satisfied):
+
+        for node in ut.bfs_conditional(
+            infr.graph, u, yield_if=satisfied, continue_if=satisfied
+        ):
             if node == v:
                 return True
         return False
@@ -438,6 +448,7 @@ class Priority(object):
             >>> infr.add_feedback((2, 3), NEGTV)
             >>> assert not infr.confidently_separated(u, v, thresh)
         """
+
         def can_cross(G, edge, n_negs):
             """
             DFS state condition
@@ -455,7 +466,7 @@ class Priority(object):
             # only cross positive or negative edges
             if decision in {POSTV, NEGTV}:
                 # only cross a negative edge once
-                willcross = (decision == NEGTV)
+                willcross = decision == NEGTV
                 if willcross and n_negs == 0:
                     data = G.get_edge_data(*edge)
                     # only cross edges above a threshold
@@ -507,8 +518,7 @@ class Priority(object):
                 return True
         return False
 
-    def generate_reviews(infr, pos_redun=None, neg_redun=None,
-                         data=False):
+    def generate_reviews(infr, pos_redun=None, neg_redun=None, data=False):
         """
         Dynamic generator that yeilds high priority reviews
         """
@@ -537,6 +547,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.mixin_priority --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

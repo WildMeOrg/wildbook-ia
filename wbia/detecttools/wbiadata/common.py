@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function
 import cv2
 import os
 import random
-#import xml.etree.ElementTree as xml
+
+# import xml.etree.ElementTree as xml
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -36,9 +37,9 @@ def openImage(filename, color=False, alpha=False):
         return None
 
     if not color:
-        mode = 0   # Greyscale by default
+        mode = 0  # Greyscale by default
     elif not alpha:
-        mode = 1   # Color without alpha channel
+        mode = 1  # Color without alpha channel
     else:
         mode = -1  # Color with alpha channel
 

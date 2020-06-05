@@ -6,7 +6,11 @@ import xml.etree.ElementTree
 
 # want to map a the filename -> all the animals present in the image
 def parse_annotations(dir):
-    all_files = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f)) and f.lower().endswith('.xml')]
+    all_files = [
+        f
+        for f in os.listdir(dir)
+        if os.path.isfile(os.path.join(dir, f)) and f.lower().endswith('.xml')
+    ]
     filenames = defaultdict(list)
     for f in all_files:
         target_file = os.path.join(dir, f)
@@ -31,10 +35,11 @@ def parse_annotations(dir):
         else:
             print('could not find %s, ignoring' % target_file)
 
-    #for k in filenames:
+    # for k in filenames:
     #    print k, filenames[k]
 
     return filenames
+
 
 if __name__ == '__main__':
     # the ratio of data to be set aside for training
@@ -50,10 +55,11 @@ if __name__ == '__main__':
     # shuffle the filenames to get a random training set
     random.shuffle(keys)
     # open the files to write the assignments to
-    with open(classname1 + '_train.txt', 'w') as training_file, \
-            open(classname1 + '_test.txt', 'w') as test_file, \
-            open('test.txt', 'w') as test, \
-            open('trainval.txt', 'w') as trainval:
+    with open(classname1 + '_train.txt', 'w') as training_file, open(
+        classname1 + '_test.txt', 'w'
+    ) as test_file, open('test.txt', 'w') as test, open(
+        'trainval.txt', 'w'
+    ) as trainval:
         for i, filename in enumerate(keys):
             # write the first N files to the training set
             if i < N:

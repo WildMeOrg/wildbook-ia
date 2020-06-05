@@ -4,7 +4,6 @@ from . import common as com
 
 
 class PASCAL_Part(object):
-
     def __init__(pascalp, _xml, **kwargs):
         pascalp.name = com.get(_xml, 'name')
 
@@ -18,11 +17,5 @@ class PASCAL_Part(object):
         pascalp.area = pascalp.width * pascalp.height
 
     def bounding_box(pascalp):
-        retval = [
-            pascalp.name,
-            pascalp.xmax,
-            pascalp.xmin,
-            pascalp.ymax,
-            pascalp.ymin
-        ]
+        retval = [pascalp.name, pascalp.xmax, pascalp.xmin, pascalp.ymax, pascalp.ymin]
         return retval

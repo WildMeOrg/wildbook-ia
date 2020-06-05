@@ -29,7 +29,7 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     if name == '_new_':
         first = kwargs['new_name_first']
         last = kwargs['new_name_last']
-        name = '%s.%s' % (first, last, )
+        name = '%s.%s' % (first, last,)
         name = name.replace(' ', '')
 
     if organization == '_new_':
@@ -39,9 +39,10 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     name = name.lower()
     organization = organization.lower()
 
-    username = '%s@%s' % (name, organization, )
-    controller_inject.authenticate(username=username, name=name,
-                                   organization=organization)
+    username = '%s@%s' % (name, organization,)
+    controller_inject.authenticate(
+        username=username, name=name, organization=organization
+    )
 
     return redirect(refer)
 
@@ -59,7 +60,7 @@ def submit_cameratrap(**kwargs):
     user_id = user.get('username', None)
     flag = request.form.get('cameratrap-toggle', 'off') == 'on'
     ibs.set_image_cameratrap([gid], [flag])
-    print('[web] user_id: %s, gid: %d, flag: %r' % (user_id, gid, flag, ))
+    print('[web] user_id: %s, gid: %d, flag: %r' % (user_id, gid, flag,))
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -108,46 +109,50 @@ def submit_detection(**kwargs):
         elif method.lower() == 'clear':
             aid_list = ibs.get_image_aids(gid)
             ibs.delete_annots(aid_list)
-            print('[web] (CLEAERED) user_id: %s, gid: %d' % (user_id, gid, ))
+            print('[web] (CLEAERED) user_id: %s, gid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (redirection, gid, )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (redirection, gid, )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         elif method.lower() == 'rotate left':
             ibs.update_image_rotate_left_90([gid])
-            print('[web] (ROTATED LEFT) user_id: %s, gid: %d' % (user_id, gid, ))
+            print('[web] (ROTATED LEFT) user_id: %s, gid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (redirection, gid, )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (redirection, gid, )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         elif method.lower() == 'rotate right':
             ibs.update_image_rotate_right_90([gid])
-            print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, gid, ))
+            print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (redirection, gid, )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (redirection, gid, )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         else:
             with ut.Timer('submit...update'):
                 current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
 
                 if is_canonical:
-                    assert only_aid in current_aid_list, 'Specified only_aid is not in this image'
+                    assert (
+                        only_aid in current_aid_list
+                    ), 'Specified only_aid is not in this image'
                     current_aid_list = [only_aid]
 
-                current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+                current_part_rowid_list = ut.flatten(
+                    ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged)
+                )
 
                 if is_canonical:
                     current_part_type_list = ibs.get_part_types(current_part_rowid_list)
@@ -160,8 +165,12 @@ def submit_detection(**kwargs):
                         current_part_rowid_list_.append(current_part_rowid)
                     current_part_rowid_list = current_part_rowid_list_
 
-                    assert len(current_aid_list) == 1, 'Must have an canonical annotation to focus on in this mode'
-                    assert len(current_part_rowid_list) <= 1, 'An annotation cannot have more than one canonical part (for now)'
+                    assert (
+                        len(current_aid_list) == 1
+                    ), 'Must have an canonical annotation to focus on in this mode'
+                    assert (
+                        len(current_part_rowid_list) <= 1
+                    ), 'An annotation cannot have more than one canonical part (for now)'
 
                 if is_staged:
                     staged_uuid = uuid.uuid4()
@@ -171,18 +180,26 @@ def submit_detection(**kwargs):
                     staged_user_id = staged_user.get('username', None)
 
                     # Filter aids for current user
-                    current_annot_user_id_list = ibs.get_annot_staged_user_ids(current_aid_list)
+                    current_annot_user_id_list = ibs.get_annot_staged_user_ids(
+                        current_aid_list
+                    )
                     current_aid_list = [
                         current_aid
-                        for current_aid, current_annot_user_id in zip(current_aid_list, current_annot_user_id_list)
+                        for current_aid, current_annot_user_id in zip(
+                            current_aid_list, current_annot_user_id_list
+                        )
                         if current_annot_user_id == staged_user_id
                     ]
 
                     # Filter part_rowids for current user
-                    current_part_user_id_list = ibs.get_part_staged_user_ids(current_part_rowid_list)
+                    current_part_user_id_list = ibs.get_part_staged_user_ids(
+                        current_part_rowid_list
+                    )
                     current_part_rowid_list = [
                         current_part_rowid
-                        for current_part_rowid, current_part_user_id in zip(current_part_rowid_list, current_part_user_id_list)
+                        for current_part_rowid, current_part_user_id in zip(
+                            current_part_rowid_list, current_part_user_id_list
+                        )
                         if current_part_user_id == staged_user_id
                     ]
                 else:
@@ -201,18 +218,18 @@ def submit_detection(**kwargs):
                     except ValueError:
                         manifest_list = []
                     test_truth = len(manifest_list) > 0
-                    test_challenge_list = [{
-                        'gid'           : gid,
-                        'manifest_list' : manifest_list,
-                    }]
-                    test_response_list = [{
-                        'poor_boxes'    : poor_boxes,
-                    }]
+                    test_challenge_list = [
+                        {'gid': gid, 'manifest_list': manifest_list,}
+                    ]
+                    test_response_list = [{'poor_boxes': poor_boxes,}]
                     test_result_list = [test_truth == poor_boxes]
                     test_user_id_list = [None]
-                    ibs.add_test(test_challenge_list, test_response_list,
-                                 test_result_list=test_result_list,
-                                 test_user_identity_list=test_user_id_list)
+                    ibs.add_test(
+                        test_challenge_list,
+                        test_response_list,
+                        test_result_list=test_result_list,
+                        test_user_identity_list=test_user_id_list,
+                    )
                 else:
                     test_truth = False
 
@@ -225,9 +242,9 @@ def submit_detection(**kwargs):
                     for outer_index, data in enumerate(data_list):
                         # Check for invalid NaN boxes, filter them out
                         try:
-                            assert data['percent']['left']   is not None
-                            assert data['percent']['top']    is not None
-                            assert data['percent']['width']  is not None
+                            assert data['percent']['left'] is not None
+                            assert data['percent']['top'] is not None
+                            assert data['percent']['width'] is not None
                             assert data['percent']['height'] is not None
                         except Exception:
                             continue
@@ -245,16 +262,17 @@ def submit_detection(**kwargs):
                     # Get primatives
                     bbox_list = [
                         (
-                            int(np.round(width  * (annot['percent']['left']   / 100.0) )),
-                            int(np.round(height * (annot['percent']['top']    / 100.0) )),
-                            int(np.round(width  * (annot['percent']['width']  / 100.0) )),
-                            int(np.round(height * (annot['percent']['height'] / 100.0) )),
+                            int(np.round(width * (annot['percent']['left'] / 100.0))),
+                            int(np.round(height * (annot['percent']['top'] / 100.0))),
+                            int(np.round(width * (annot['percent']['width'] / 100.0))),
+                            int(
+                                np.round(height * (annot['percent']['height'] / 100.0))
+                            ),
                         )
                         for annot in annotation_list
                     ]
                     theta_list = [
-                        float(annot['angles']['theta'])
-                        for annot in annotation_list
+                        float(annot['angles']['theta']) for annot in annotation_list
                     ]
 
                     # Get metadata
@@ -271,7 +289,9 @@ def submit_detection(**kwargs):
                         for annot in annotation_list
                     ]
                     zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
-                    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+                    viewpoint_list = [
+                        appf.convert_tuple_to_viewpoint(tup) for tup in zipped
+                    ]
 
                     quality_list = [
                         int(annot['metadata'].get('quality', 0))
@@ -288,14 +308,11 @@ def submit_detection(**kwargs):
                         else:
                             raise ValueError('quality must be 0, 1 or 2')
 
-                    multiple_list =  [
+                    multiple_list = [
                         annot['metadata'].get('multiple', False)
                         for annot in annotation_list
                     ]
-                    interest_list =  [
-                        annot['highlighted']
-                        for annot in annotation_list
-                    ]
+                    interest_list = [annot['highlighted'] for annot in annotation_list]
                     species_list = [
                         annot['metadata'].get('species', const.UNKNOWN)
                         for annot in annotation_list
@@ -303,7 +320,9 @@ def submit_detection(**kwargs):
 
                     # Process annotations
                     survived_aid_list = [
-                        None if annot['label'] in [None, 'None'] else int(annot['label'])
+                        None
+                        if annot['label'] in [None, 'None']
+                        else int(annot['label'])
                         for annot in annotation_list
                     ]
 
@@ -311,8 +330,12 @@ def submit_detection(**kwargs):
                     kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
 
                     if is_canonical:
-                        assert len(survived_aid_list) == 1, 'Cannot add or delete annotations in this mode'
-                        assert len(kill_aid_list) == 0, 'Cannot kill a canonical annotation in this mode'
+                        assert (
+                            len(survived_aid_list) == 1
+                        ), 'Cannot add or delete annotations in this mode'
+                        assert (
+                            len(kill_aid_list) == 0
+                        ), 'Cannot kill a canonical annotation in this mode'
 
                     ibs.delete_annots(kill_aid_list)
 
@@ -352,7 +375,16 @@ def submit_detection(**kwargs):
                     survived_flag_list = []
 
                     for values in zipped:
-                        aid, bbox, theta, interest, viewpoint, quality, multiple, species = values
+                        (
+                            aid,
+                            bbox,
+                            theta,
+                            interest,
+                            viewpoint,
+                            quality,
+                            multiple,
+                            species,
+                        ) = values
                         flag = aid is None
                         survived_flag_list.append(flag)
                         if flag:
@@ -379,38 +411,55 @@ def submit_detection(**kwargs):
                             local_update_staged_user_id_list.append(staged_user_id)
 
                     if len(local_add_gid_list) > 0:
-                        add_aid_list = ibs.add_annots(local_add_gid_list,
-                                                      bbox_list=local_add_bbox_list,
-                                                      theta_list=local_add_theta_list,
-                                                      interest_list=local_add_interest_list,
-                                                      viewpoint_list=local_add_viewpoint_list,
-                                                      quality_list=local_add_quality_list,
-                                                      multiple_list=local_add_multiple_list,
-                                                      species_list=local_add_species_list,
-                                                      staged_uuid_list=local_add_staged_uuid_list,
-                                                      staged_user_id_list=local_add_staged_user_id_list,
-                                                      delete_thumb=False)
+                        add_aid_list = ibs.add_annots(
+                            local_add_gid_list,
+                            bbox_list=local_add_bbox_list,
+                            theta_list=local_add_theta_list,
+                            interest_list=local_add_interest_list,
+                            viewpoint_list=local_add_viewpoint_list,
+                            quality_list=local_add_quality_list,
+                            multiple_list=local_add_multiple_list,
+                            species_list=local_add_species_list,
+                            staged_uuid_list=local_add_staged_uuid_list,
+                            staged_user_id_list=local_add_staged_user_id_list,
+                            delete_thumb=False,
+                        )
                     else:
                         add_aid_list = []
 
                     if len(local_update_aid_list) > 0:
                         with ut.Timer('submit...update...updating'):
-                            ibs.set_annot_bboxes(local_update_aid_list, local_update_bbox_list,
-                                                 theta_list=local_update_theta_list,
-                                                 interest_list=local_update_interest_list)
+                            ibs.set_annot_bboxes(
+                                local_update_aid_list,
+                                local_update_bbox_list,
+                                theta_list=local_update_theta_list,
+                                interest_list=local_update_interest_list,
+                            )
 
                         with ut.Timer('submit...update...metadata0'):
-                            ibs.set_annot_viewpoints(local_update_aid_list,      local_update_viewpoint_list)
+                            ibs.set_annot_viewpoints(
+                                local_update_aid_list, local_update_viewpoint_list
+                            )
                         with ut.Timer('submit...update...metadata1'):
-                            ibs.set_annot_qualities(local_update_aid_list,       local_update_quality_list)
+                            ibs.set_annot_qualities(
+                                local_update_aid_list, local_update_quality_list
+                            )
                         with ut.Timer('submit...update...metadata2'):
-                            ibs.set_annot_multiple(local_update_aid_list,        local_update_multiple_list)
+                            ibs.set_annot_multiple(
+                                local_update_aid_list, local_update_multiple_list
+                            )
                         with ut.Timer('submit...update...metadata3'):
-                            ibs.set_annot_species(local_update_aid_list,         local_update_species_list)
+                            ibs.set_annot_species(
+                                local_update_aid_list, local_update_species_list
+                            )
                         with ut.Timer('submit...update...metadata4'):
-                            ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
+                            ibs.set_annot_staged_uuids(
+                                local_update_aid_list, local_update_staged_uuid_list
+                            )
                         with ut.Timer('submit...update...metadata5'):
-                            ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
+                            ibs.set_annot_staged_user_ids(
+                                local_update_aid_list, local_update_staged_user_id_list
+                            )
 
                     # Set the mapping dict to use aids now
                     aid_list = []
@@ -428,7 +477,9 @@ def submit_detection(**kwargs):
                     assert counter_update == len(local_update_aid_list)
                     assert counter_add + counter_update == len(survived_aid_list)
 
-                    mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
+                    mapping_dict = {
+                        key: aid_list[index] for key, index in mapping_dict.items()
+                    }
 
                     ##################################################################################
                     # Process parts
@@ -438,23 +489,17 @@ def submit_detection(**kwargs):
                     ]
 
                     # Get primatives
-                    aid_list = [
-                        mapping_dict[part['parent']]
-                        for part in part_list
-                    ]
+                    aid_list = [mapping_dict[part['parent']] for part in part_list]
                     bbox_list = [
                         (
-                            int(np.round(width  * (part['percent']['left']   / 100.0) )),
-                            int(np.round(height * (part['percent']['top']    / 100.0) )),
-                            int(np.round(width  * (part['percent']['width']  / 100.0) )),
-                            int(np.round(height * (part['percent']['height'] / 100.0) )),
+                            int(np.round(width * (part['percent']['left'] / 100.0))),
+                            int(np.round(height * (part['percent']['top'] / 100.0))),
+                            int(np.round(width * (part['percent']['width'] / 100.0))),
+                            int(np.round(height * (part['percent']['height'] / 100.0))),
                         )
                         for part in part_list
                     ]
-                    theta_list = [
-                        float(part['angles']['theta'])
-                        for part in part_list
-                    ]
+                    theta_list = [float(part['angles']['theta']) for part in part_list]
 
                     # Get metadata
                     viewpoint1_list = [
@@ -464,11 +509,12 @@ def submit_detection(**kwargs):
                     viewpoint2_list = [-1] * len(part_list)
                     viewpoint3_list = [-1] * len(part_list)
                     zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
-                    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+                    viewpoint_list = [
+                        appf.convert_tuple_to_viewpoint(tup) for tup in zipped
+                    ]
 
                     quality_list = [
-                        int(part['metadata'].get('quality', 0))
-                        for part in part_list
+                        int(part['metadata'].get('quality', 0)) for part in part_list
                     ]
                     # Fix qualities
                     for index, quality in enumerate(quality_list):
@@ -487,43 +533,70 @@ def submit_detection(**kwargs):
                     ]
 
                     # Delete annotations that didn't survive
-                    kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
+                    kill_part_rowid_list = list(
+                        set(current_part_rowid_list) - set(survived_part_rowid_list)
+                    )
 
                     if is_canonical:
-                        assert len(survived_part_rowid_list) <= 1, 'Cannot add more than one canonical part in this mode'
-                        assert len(kill_part_rowid_list) <= 1, 'Cannot delete two or more canonical parts in this mode'
+                        assert (
+                            len(survived_part_rowid_list) <= 1
+                        ), 'Cannot add more than one canonical part in this mode'
+                        assert (
+                            len(kill_part_rowid_list) <= 1
+                        ), 'Cannot delete two or more canonical parts in this mode'
                         assert len(survived_part_rowid_list) == len(type_list)
-                        type_list = [appf.CANONICAL_PART_TYPE] * len(survived_part_rowid_list)
+                        type_list = [appf.CANONICAL_PART_TYPE] * len(
+                            survived_part_rowid_list
+                        )
 
                     ibs.delete_parts(kill_part_rowid_list)
 
                     staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
-                    staged_user_id_list = [staged_user_id] * len(survived_part_rowid_list)
+                    staged_user_id_list = [staged_user_id] * len(
+                        survived_part_rowid_list
+                    )
 
                     part_rowid_list = []
-                    zipped = zip(survived_part_rowid_list, aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
+                    zipped = zip(
+                        survived_part_rowid_list,
+                        aid_list,
+                        bbox_list,
+                        staged_uuid_list,
+                        staged_user_id_list,
+                    )
                     for part_rowid, aid, bbox, staged_uuid, staged_user_id in zipped:
-                        staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
-                        staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
+                        staged_uuid_list_ = (
+                            None if staged_uuid is None else [staged_uuid]
+                        )
+                        staged_user_id_list_ = (
+                            None if staged_user_id is None else [staged_user_id]
+                        )
 
                         if part_rowid is None:
-                            part_rowid_ = ibs.add_parts([aid], [bbox],
-                                                        staged_uuid_list=staged_uuid_list_,
-                                                        staged_user_id_list=staged_user_id_list_)
+                            part_rowid_ = ibs.add_parts(
+                                [aid],
+                                [bbox],
+                                staged_uuid_list=staged_uuid_list_,
+                                staged_user_id_list=staged_user_id_list_,
+                            )
                             part_rowid_ = part_rowid_[0]
                         else:
                             ibs._set_part_aid([part_rowid], [aid])
                             ibs.set_part_bboxes([part_rowid], [bbox])
                             if staged_uuid_list_ is not None:
-                                ibs.set_part_staged_uuids([part_rowid], staged_uuid_list_)
+                                ibs.set_part_staged_uuids(
+                                    [part_rowid], staged_uuid_list_
+                                )
                             if staged_user_id_list_ is not None:
-                                ibs.set_part_staged_user_ids([part_rowid], staged_user_id_list_)
+                                ibs.set_part_staged_user_ids(
+                                    [part_rowid], staged_user_id_list_
+                                )
 
                             part_rowid_ = part_rowid
                         part_rowid_list.append(part_rowid_)
 
                     # Set part metadata
-                    print('part_rowid_list = %r' % (part_rowid_list, ))
+                    print('part_rowid_list = %r' % (part_rowid_list,))
                     ibs.set_part_thetas(part_rowid_list, theta_list)
                     ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
                     ibs.set_part_qualities(part_rowid_list, quality_list)
@@ -537,18 +610,22 @@ def submit_detection(**kwargs):
                         metadata_dict = ibs.get_image_metadata(gid)
                         if 'staged' not in metadata_dict:
                             metadata_dict['staged'] = {
-                                'sessions': {
-                                    'uuids': [],
-                                    'user_ids': [],
-                                }
+                                'sessions': {'uuids': [], 'user_ids': [],}
                             }
-                        metadata_dict['staged']['sessions']['uuids'].append(str(staged_uuid))
-                        metadata_dict['staged']['sessions']['user_ids'].append(staged_user_id)
+                        metadata_dict['staged']['sessions']['uuids'].append(
+                            str(staged_uuid)
+                        )
+                        metadata_dict['staged']['sessions']['user_ids'].append(
+                            staged_user_id
+                        )
                         ibs.set_image_metadata([gid], [metadata_dict])
                     else:
                         ibs.set_image_reviewed([gid], [1])
 
-                        print('[web] user_id: %s, gid: %d, annots: %d, parts: %d' % (user_id, gid, len(annotation_list), len(part_list), ))
+                        print(
+                            '[web] user_id: %s, gid: %d, annots: %d, parts: %d'
+                            % (user_id, gid, len(annotation_list), len(part_list),)
+                        )
 
         default_list = [
             'autointerest',
@@ -570,9 +647,7 @@ def submit_detection(**kwargs):
             'canonical',
         ]
         config = {
-            default: kwargs[default]
-            for default in default_list
-            if default in kwargs
+            default: kwargs[default] for default in default_list if default in kwargs
         }
 
         # Return HTML
@@ -581,7 +656,15 @@ def submit_detection(**kwargs):
             return redirect(appf.decode_refer_url(refer))
         else:
             signature = 'turk_detection_canonical' if is_canonical else 'turk_detection'
-            return redirect(url_for(signature, imgsetid=imgsetid, previous=gid, previous_only_aid=only_aid, **config))
+            return redirect(
+                url_for(
+                    signature,
+                    imgsetid=imgsetid,
+                    previous=gid,
+                    previous_only_aid=only_aid,
+                    **config
+                )
+            )
 
 
 @register_route('/submit/viewpoint/', methods=['POST'])
@@ -603,40 +686,40 @@ def submit_viewpoint(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -647,14 +730,24 @@ def submit_viewpoint(**kwargs):
         ibs.set_annot_viewpoints([aid], [viewpoint_text])
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
-        print('[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint_text))
+        print(
+            '[web] user_id: %s, aid: %d, viewpoint_text: %s'
+            % (user_id, aid, viewpoint_text)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_viewpoint', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+        return redirect(
+            url_for(
+                'turk_viewpoint',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+            )
+        )
 
 
 @register_route('/submit/viewpoint2/', methods=['POST'])
@@ -676,40 +769,40 @@ def submit_viewpoint2(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -721,20 +814,33 @@ def submit_viewpoint2(**kwargs):
             viewpoint1 = int(kwargs.get('ia-viewpoint-value-1', None))
             viewpoint2 = int(kwargs.get('ia-viewpoint-value-2', None))
             viewpoint3 = int(kwargs.get('ia-viewpoint-value-3', None))
-            viewpoint_tup = (viewpoint1, viewpoint2, viewpoint3, )
+            viewpoint_tup = (
+                viewpoint1,
+                viewpoint2,
+                viewpoint3,
+            )
             viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
         ibs.set_annot_viewpoints([aid], [viewpoint])
         species_text = request.form['viewpoint-species']
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
-        print('[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint))
+        print(
+            '[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_viewpoint2', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+        return redirect(
+            url_for(
+                'turk_viewpoint2',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+            )
+        )
 
 
 @register_route('/submit/viewpoint3/', methods=['POST'])
@@ -757,52 +863,57 @@ def submit_viewpoint3(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
 
         if method.lower() == 'ignore':
-            ibs.set_annot_viewpoints([aid], ['ignore'], only_allow_known=False, _code_update=False)
+            ibs.set_annot_viewpoints(
+                [aid], ['ignore'], only_allow_known=False, _code_update=False
+            )
             viewpoint = 'ignore'
         else:
             # Get metadata
             viewpoint_str = kwargs.get('viewpoint-text-code', '')
-            if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
+            if (
+                not isinstance(viewpoint_str, six.string_types)
+                or len(viewpoint_str) == 0
+            ):
                 viewpoint_str = None
 
             if viewpoint_str is None:
@@ -821,8 +932,15 @@ def submit_viewpoint3(**kwargs):
     if len(refer) > 0:
         retval = redirect(appf.decode_refer_url(refer))
     else:
-        retval = redirect(url_for('turk_viewpoint3', imgsetid=imgsetid, src_ag=src_ag,
-                                  dst_ag=dst_ag, previous=aid))
+        retval = redirect(
+            url_for(
+                'turk_viewpoint3',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+            )
+        )
 
     return retval
 
@@ -846,40 +964,40 @@ def submit_annotation(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == u'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -909,14 +1027,24 @@ def submit_annotation(**kwargs):
         multiple = 1 if 'ia-multiple-value' in request.form else 0
         ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] user_id: %s, aid: %d, viewpoint: %r, quality: %r, multiple: %r' % (user_id, aid, viewpoint_text, quality, multiple))
+        print(
+            '[web] user_id: %s, aid: %d, viewpoint: %r, quality: %r, multiple: %r'
+            % (user_id, aid, viewpoint_text, quality, multiple)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+        return redirect(
+            url_for(
+                'turk_annotation',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+            )
+        )
 
 
 @register_route('/submit/annotation/canonical/', methods=['POST'])
@@ -967,10 +1095,15 @@ def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation_canonical',
-                                imgsetid=imgsetid,
-                                samples=samples, species=species,
-                                version=version))
+        return redirect(
+            url_for(
+                'turk_annotation_canonical',
+                imgsetid=imgsetid,
+                samples=samples,
+                species=species,
+                version=version,
+            )
+        )
 
 
 @register_route('/submit/splits/', methods=['POST'])
@@ -998,7 +1131,7 @@ def submit_species(**kwargs):
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     previous_species_rowids = request.form.get('ia-species-rowids', None)
-    print('Using previous_species_rowids = %r' % (previous_species_rowids, ))
+    print('Using previous_species_rowids = %r' % (previous_species_rowids,))
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -1013,51 +1146,58 @@ def submit_species(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == u'skip':
         species_text = const.UNKNOWN
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] (SKIP) user_id: %s' % (user_id, ))
-        return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid,
-                                previous_species_rowids=previous_species_rowids))
+        print('[web] (SKIP) user_id: %s' % (user_id,))
+        return redirect(
+            url_for(
+                'turk_species',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+                previous_species_rowids=previous_species_rowids,
+            )
+        )
     elif method.lower() in u'refresh':
-        print('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         if '?' in redirection:
-            redirection = '%s&refresh=true' % (redirection, )
+            redirection = '%s&refresh=true' % (redirection,)
         else:
-            redirection = '%s?refresh=true' % (redirection, )
+            redirection = '%s?refresh=true' % (redirection,)
         return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == u'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1075,15 +1215,25 @@ def submit_species(**kwargs):
         metadata_dict['turk']['species'] = user_id
         ibs.set_annot_metadata([aid], [metadata_dict])
 
-        print('[web] user_id: %s, aid: %d, species: %r (%r)'  % (user_id, aid, species_text, metadata_dict, ))
+        print(
+            '[web] user_id: %s, aid: %d, species: %r (%r)'
+            % (user_id, aid, species_text, metadata_dict,)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid,
-                                previous_species_rowids=previous_species_rowids))
+        return redirect(
+            url_for(
+                'turk_species',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+                previous_species_rowids=previous_species_rowids,
+            )
+        )
 
 
 @register_route('/submit/part/type/', methods=['POST'])
@@ -1091,6 +1241,7 @@ def submit_part_types(**kwargs):
     ibs = current_app.ibs
 
     import utool as ut
+
     ut.embed()
 
     method = request.form.get('ia-part-type-submit', '')
@@ -1099,7 +1250,7 @@ def submit_part_types(**kwargs):
 
     # IF DECISION NOT IN previous_part_types, REFRESH = TRUE
     previous_part_types = request.form.get('ia-part-types', None)
-    print('Using previous_part_types = %r' % (previous_part_types, ))
+    print('Using previous_part_types = %r' % (previous_part_types,))
 
     part_rowid = int(request.form['ia-part-type-part-rowid'])
     user = controller_inject.get_user()
@@ -1109,40 +1260,44 @@ def submit_part_types(**kwargs):
 
     refresh = False
     if method.lower() in u'refresh':
-        print('[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        print('[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid,))
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         if '?' in redirection:
-            redirection = '%s&refresh=true' % (redirection, )
+            redirection = '%s&refresh=true' % (redirection,)
         else:
-            redirection = '%s?refresh=true' % (redirection, )
+            redirection = '%s?refresh=true' % (redirection,)
         return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_part_rotate_left_90([part_rowid])
-        print('[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        print(
+            '[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
+        )
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         return redirect(redirection)
     elif method.lower() == u'rotate right':
         ibs.update_part_rotate_right_90([part_rowid])
-        print('[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d' % (user_id, part_rowid, ))
+        print(
+            '[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
+        )
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (redirection, part_rowid, )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         return redirect(redirection)
     else:
         part_type_text = kwargs.get('ia-part-type-value', '')
@@ -1150,14 +1305,24 @@ def submit_part_types(**kwargs):
         ibs.set_part_reviewed([part_rowid], [1])
 
         refresh = part_type_text not in previous_part_types
-        print('[web] user_id: %s, part_rowid: %d, type: %r'  % (user_id, part_rowid, part_type_text, ))
+        print(
+            '[web] user_id: %s, part_rowid: %d, type: %r'
+            % (user_id, part_rowid, part_type_text,)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_part_types', imgsetid=imgsetid, previous=part_rowid,
-                                previous_part_types=previous_part_types, refresh=refresh))
+        return redirect(
+            url_for(
+                'turk_part_types',
+                imgsetid=imgsetid,
+                previous=part_rowid,
+                previous_part_types=previous_part_types,
+                refresh=refresh,
+            )
+        )
 
 
 @register_route('/submit/quality/', methods=['POST'])
@@ -1179,7 +1344,7 @@ def submit_quality(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1192,8 +1357,15 @@ def submit_quality(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_quality', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+        return redirect(
+            url_for(
+                'turk_quality',
+                imgsetid=imgsetid,
+                src_ag=src_ag,
+                dst_ag=dst_ag,
+                previous=aid,
+            )
+        )
 
 
 @register_route('/submit/demographics/', methods=['POST'])
@@ -1215,7 +1387,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     else:
         sex = int(request.form['demographics-sex-value'])
@@ -1259,25 +1431,35 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
         ibs.set_annot_age_months_est_min(aid_list, [age_min] * len(aid_list))
         ibs.set_annot_age_months_est_max(aid_list, [age_max] * len(aid_list))
-        print('[web] Updating %d demographics with user_id: %s\n\taid_list : %r\n\tsex: %r\n\tage_min: %r\n\tage_max: %r' % (len(aid_list), user_id, aid_list, sex, age_min, age_max,))
+        print(
+            '[web] Updating %d demographics with user_id: %s\n\taid_list : %r\n\tsex: %r\n\tage_min: %r\n\tage_max: %r'
+            % (len(aid_list), user_id, aid_list, sex, age_min, age_max,)
+        )
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_demographics', imgsetid=imgsetid, previous=aid, species=species))
+        return redirect(
+            url_for(
+                'turk_demographics', imgsetid=imgsetid, previous=aid, species=species
+            )
+        )
 
 
 @register_route('/submit/identification/', methods=['POST'])
 def submit_identification(**kwargs):
     from wbia.web.apis_query import process_graph_match_html
+
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid1 = int(request.form['identification-aid1'])
     aid2 = int(request.form['identification-aid2'])
-    replace_review_rowid = int(request.form.get('identification-replace-review-rowid', -1))
+    replace_review_rowid = int(
+        request.form.get('identification-replace-review-rowid', -1)
+    )
 
     # Process form data
     annot_uuid_1, annot_uuid_2, state, tag_list = process_graph_match_html(ibs)
@@ -1302,21 +1484,21 @@ def submit_identification(**kwargs):
 
     # Replace a previous decision
     if replace_review_rowid > 0:
-        print('REPLACING OLD EVIDENCE_DECISION ID = %r' % (replace_review_rowid, ))
+        print('REPLACING OLD EVIDENCE_DECISION ID = %r' % (replace_review_rowid,))
         ibs.delete_review([replace_review_rowid])
 
     # Add a new review row for the new decision (possibly replacing the old one)
-    print('ADDING EVIDENCE_DECISION: %r %r %r %r' % (aid1, aid2, decision, tag_list, ))
+    print('ADDING EVIDENCE_DECISION: %r %r %r %r' % (aid1, aid2, decision, tag_list,))
     tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
-    previous = '%s;%s;%s' % (aid1, aid2, review_rowid, )
+    previous = '%s;%s;%s' % (aid1, aid2, review_rowid,)
 
     # Notify any attached web QUERY_OBJECT
     try:
         state = const.EVIDENCE_DECISION.INT_TO_CODE[decision]
         feedback = (aid1, aid2, state, tags_list)
-        print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
+        print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
         current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)
     except ValueError:
         pass
@@ -1326,7 +1508,9 @@ def submit_identification(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_identification', imgsetid=imgsetid, previous=previous))
+        return redirect(
+            url_for('turk_identification', imgsetid=imgsetid, previous=previous)
+        )
 
 
 @register_route('/submit/identification/v2/', methods=['POST'])
@@ -1343,10 +1527,12 @@ def submit_identification_v2(graph_uuid, **kwargs):
 
     hogwild = kwargs.get('identification-hogwild', False)
     hogwild_species = kwargs.get('identification-hogwild-species', None)
-    hogwild_species = None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
-    print('Using hogwild: %r' % (hogwild, ))
+    hogwild_species = (
+        None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
+    )
+    print('Using hogwild: %r' % (hogwild,))
 
-    previous = '%s;%s;-1' % (aid1, aid2, )
+    previous = '%s;%s;-1' % (aid1, aid2,)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1355,7 +1541,14 @@ def submit_identification_v2(graph_uuid, **kwargs):
     else:
         base = url_for('turk_identification_graph')
         sep = '&' if '?' in base else '?'
-        args = (base, sep, ut.to_json(graph_uuid), previous, hogwild, hogwild_species, )
+        args = (
+            base,
+            sep,
+            ut.to_json(graph_uuid),
+            previous,
+            hogwild,
+            hogwild_species,
+        )
         url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s' % args
         url = url.replace(': ', ':')
         return redirect(url)
@@ -1477,7 +1670,10 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     metadata2['turk']['match']['comment'] = comment2
     ibs.set_annot_metadata([aid1, aid2], [metadata1, metadata2])
 
-    edge = (aid1, aid2, )
+    edge = (
+        aid1,
+        aid2,
+    )
     review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
     if len(review_rowid_list) > 0:
         review_rowid = review_rowid_list[-1]
@@ -1494,10 +1690,12 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
 
     hogwild = kwargs.get('identification-hogwild', False)
     hogwild_species = kwargs.get('identification-hogwild-species', None)
-    hogwild_species = None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
-    print('Using hogwild: %r' % (hogwild, ))
+    hogwild_species = (
+        None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
+    )
+    print('Using hogwild: %r' % (hogwild,))
 
-    previous = '%s;%s;-1' % (aid1, aid2, )
+    previous = '%s;%s;-1' % (aid1, aid2,)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1506,8 +1704,18 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     else:
         base = url_for('turk_identification_graph')
         sep = '&' if '?' in base else '?'
-        args = (base, sep, ut.to_json(graph_uuid), previous, hogwild, hogwild_species, )
-        url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s&kaia=true' % args
+        args = (
+            base,
+            sep,
+            ut.to_json(graph_uuid),
+            previous,
+            hogwild,
+            hogwild_species,
+        )
+        url = (
+            '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s&kaia=true'
+            % args
+        )
         url = url.replace(': ', ':')
         return redirect(url)
 
@@ -1534,16 +1742,16 @@ def group_review_submit(**kwargs):
         if 'prefill' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&prefill=true' % (redirection, )
+                redirection = '%s&prefill=true' % (redirection,)
             else:
-                redirection = '%s?prefill=true' % (redirection, )
+                redirection = '%s?prefill=true' % (redirection,)
         return redirect(redirection)
     aid_list = request.form.get('aid_list', '')
     if len(aid_list) > 0:
         aid_list = aid_list.replace('[', '')
         aid_list = aid_list.replace(']', '')
         aid_list = aid_list.strip().split(',')
-        aid_list = [ int(aid_.strip()) for aid_ in aid_list ]
+        aid_list = [int(aid_.strip()) for aid_ in aid_list]
     else:
         aid_list = []
     src_ag, dst_ag = ibs.prepare_annotgroup_review(aid_list)
@@ -1577,23 +1785,22 @@ def submit_contour(**kwargs):
         num_points = len(segment)
         ibs.set_part_reviewed([part_rowid], [1])
 
-        print('[web] part_rowid: %d, contours: %d, points: %d' % (part_rowid, num_contours, num_points, ))
+        print(
+            '[web] part_rowid: %d, contours: %d, points: %d'
+            % (part_rowid, num_contours, num_points,)
+        )
 
-    default_list = [
-        'temp'
-    ]
-    config = {
-        default: kwargs[default]
-        for default in default_list
-        if default in kwargs
-    }
+    default_list = ['temp']
+    config = {default: kwargs[default] for default in default_list if default in kwargs}
 
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_contour', imgsetid=imgsetid, previous=part_rowid, **config))
+        return redirect(
+            url_for('turk_contour', imgsetid=imgsetid, previous=part_rowid, **config)
+        )
 
 
 if __name__ == '__main__':
@@ -1604,6 +1811,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

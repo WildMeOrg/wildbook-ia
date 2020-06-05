@@ -1,6 +1,7 @@
 from wbia.guitool.__PYQT__.QtCore import Qt
 import utool as ut
 import collections
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -11,7 +12,7 @@ def define_qt_enum(block):
 
 
 ItemDataRoles = define_qt_enum(
-    '''
+    """
     DisplayRole                # key data to be rendered in the form of text. (QString)
     DecorationRole             # data to be rendered as an icon. (QColor QIcon or QPixmap)
     EditRole                   # data in a form suitable for editing in an editor. (QString)
@@ -30,7 +31,7 @@ ItemDataRoles = define_qt_enum(
     UserRole                   # first role that can be used for application-specific purposes.
     BackgroundColorRole        # Obsolete. Use BackgroundRole instead.
     TextColorRole              # Obsolete. Use ForegroundRole instead.
-    '''
+    """
 )
 
 
@@ -38,7 +39,7 @@ ItemDataRoles = define_qt_enum(
 # http://doc.qt.io/qt-5/qt.html#WindowType-enum
 # http://doc.qt.io/qt-5/qt.html#WindowType-enum
 WindowTypes = define_qt_enum(
-    '''
+    """
     Widget
     Window
     Dialog
@@ -52,20 +53,22 @@ WindowTypes = define_qt_enum(
     SubWindow
     ForeignWindow
     CoverWindow
-    ''')
+    """
+)
 
 TopLevelWindowTypes = define_qt_enum(
-    '''
+    """
     MSWindowsFixedSizeDialogHint
     MSWindowsOwnDC
     BypassWindowManagerHint
     X11BypassWindowManagerHint
     FramelessWindowHint
     NoDropShadowWindowHint
-    ''')
+    """
+)
 
 WindowFlags = define_qt_enum(
-    '''
+    """
     CustomizeWindowHint
     WindowTitleHint
     WindowSystemMenuHint
@@ -85,16 +88,16 @@ WindowFlags = define_qt_enum(
     WindowDoesNotAcceptFocus
     MaximizeUsingFullscreenGeometryHint
     WindowType_Mask
-    '''
+    """
 )
 
 
 LayoutDirection = define_qt_enum(
-    '''
+    """
     LeftToRight
     RightToLeft
-    ''')
-
+    """
+)
 
 
 def parse_window_type_and_flags(self):
@@ -126,6 +129,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.qt_enums --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

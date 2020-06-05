@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
-#import six
+
+# import six
 import utool as ut
-print, rrr, profile = ut.inject2(
-    __name__, '[expt_harn]')
+
+print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -23,6 +24,7 @@ class ResultMetadata(object):
 
     def connect(metadata):
         import shelve
+
         metadata._shelf = shelve.open(metadata.fpath)
         if 'dictstore' not in metadata._shelf:
             dictstore = ut.AutoVivification()
@@ -76,12 +78,15 @@ class ResultMetadata(object):
             cfgstr = metadata.get_cfgstr_list()[0]
         qaid2_cols = metadata.dictstore[cfgstr]
         qaids = list(qaid2_cols.keys())
-        col_name_list = ut.unique_ordered(ut.flatten([cols.keys() for cols in qaid2_cols.values()]))
-        #col_name_list = ['qx2_scoreexpdiff', 'qx2_gt_aid']
-        #colname2_colvals = [None for colname in col_name_list]
+        col_name_list = ut.unique_ordered(
+            ut.flatten([cols.keys() for cols in qaid2_cols.values()])
+        )
+        # col_name_list = ['qx2_scoreexpdiff', 'qx2_gt_aid']
+        # colname2_colvals = [None for colname in col_name_list]
         column_list = [
             [colvals.get(colname, None) for qaid, colvals in six.iteritems(qaid2_cols)]
-            for colname in col_name_list]
+            for colname in col_name_list
+        ]
         col_name_list = ['qaids'] + col_name_list
         column_list = [qaids] + column_list
         print('depth_profile(column_list) = %r' % (ut.depth_profile(column_list),))
@@ -111,7 +116,9 @@ def make_metadata_custom_api(metadata):
 
     class MetadataViewer(guitool.APIItemWidget):
         def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
-            guitool.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
+            guitool.APIItemWidget.__init__(
+                wgt, parent=parent, tblnice=tblnice, **kwargs
+            )
             wgt.connect_signals_and_slots()
 
         @guitool.slot_(QtCore.QModelIndex)
@@ -129,19 +136,25 @@ def make_metadata_custom_api(metadata):
                 ut.startfile(fpath)
 
         def connect_signals_and_slots(wgt):
-            #wgt.view.clicked.connect(wgt._on_click)
+            # wgt.view.clicked.connect(wgt._on_click)
             wgt.view.doubleClicked.connect(wgt._on_doubleclick)
-            #wgt.view.pressed.connect(wgt._on_pressed)
-            #wgt.view.activated.connect(wgt._on_activated)
+            # wgt.view.pressed.connect(wgt._on_pressed)
+            # wgt.view.activated.connect(wgt._on_activated)
 
     guitool.ensure_qapp()
-    #cfgstr_list = metadata
+    # cfgstr_list = metadata
     col_name_list, column_list = metadata.get_square_data()
 
     # Priority of column names
-    colname_priority = ['qaids', 'qx2_gt_rank', 'qx2_gt_timedelta',
-                        'qx2_gf_timedelta',  'analysis_fpath',
-                        'qx2_gt_raw_score', 'qx2_gf_raw_score']
+    colname_priority = [
+        'qaids',
+        'qx2_gt_rank',
+        'qx2_gt_timedelta',
+        'qx2_gf_timedelta',
+        'analysis_fpath',
+        'qx2_gt_raw_score',
+        'qx2_gf_raw_score',
+    ]
     colname_priority += sorted(ut.setdiff_ordered(col_name_list, colname_priority))
     sortx = ut.priority_argsort(col_name_list, colname_priority)
     col_name_list = ut.take(col_name_list, sortx)
@@ -159,26 +172,36 @@ def make_metadata_custom_api(metadata):
     col_ider_dict = {}
     col_setter_dict = {}
     col_nice_dict = {name: name.replace('qx2_', '') for name in col_name_list}
-    col_nice_dict.update({
-        'qx2_gt_timedelta': 'GT TimeDelta',
-        'qx2_gf_timedelta': 'GF TimeDelta',
-        'qx2_gt_rank': 'GT Rank',
-    })
+    col_nice_dict.update(
+        {
+            'qx2_gt_timedelta': 'GT TimeDelta',
+            'qx2_gf_timedelta': 'GF TimeDelta',
+            'qx2_gt_rank': 'GT Rank',
+        }
+    )
     editable_colnames = []
     sortby = 'qaids'
+
     def get_thumb_size():
         return 128
+
     col_width_dict = {}
     custom_api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size,
+        col_name_list,
+        col_types_dict,
+        col_getter_dict,
+        col_bgrole_dict,
+        col_ider_dict,
+        col_setter_dict,
+        editable_colnames,
+        sortby,
+        get_thumb_size,
         sort_reverse=True,
         col_width_dict=col_width_dict,
-        col_nice_dict=col_nice_dict
+        col_nice_dict=col_nice_dict,
     )
-    #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.repr2(headers))
+    # headers = custom_api.make_headers(tblnice='results')
+    # print(ut.repr2(headers))
     wgt = MetadataViewer()
     wgt.connect_api(custom_api)
     return wgt
@@ -186,6 +209,7 @@ def make_metadata_custom_api(metadata):
 
 def make_test_result_custom_api(ibs, testres):
     import wbia.guitool
+
     guitool.ensure_qapp()
     cfgx = 0
     cfgres_info = testres.cfgx2_cmsinfo[cfgx]
@@ -212,16 +236,27 @@ def make_test_result_custom_api(ibs, testres):
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'qaids'
+
     def get_thumb_size():
         return 128
+
     col_width_dict = {}
 
     custom_api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
-    #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.repr2(headers))
+        col_name_list,
+        col_types_dict,
+        col_getter_dict,
+        col_bgrole_dict,
+        col_ider_dict,
+        col_setter_dict,
+        editable_colnames,
+        sortby,
+        get_thumb_size,
+        True,
+        col_width_dict,
+    )
+    # headers = custom_api.make_headers(tblnice='results')
+    # print(ut.repr2(headers))
     wgt = guitool.APIItemWidget()
     wgt.connect_api(custom_api)
     return wgt
@@ -277,23 +312,24 @@ def draw_results(ibs, testres):
 
     figdir_suffix = ut.get_argval('--fig-dname', type_=str, default=None)
     from os.path import join
+
     if figdir_suffix is not None:
         figdir = join(figdir, figdir_suffix)
         ut.ensuredir(figdir)
-    #gx2_gt_timedelta
+    # gx2_gt_timedelta
     #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
 
     metadata_fpath = join(figdir, 'result_metadata.shelf')
     metadata = ResultMetadata(metadata_fpath)
-    #metadata.rrr()
+    # metadata.rrr()
     metadata.connect()
     metadata.sync_test_results(testres)
-    #cfgstr = qreq_.get_cfgstr()
-    #cfg_metadata = ensure_item(metadata, cfgstr, {})
-    #avuuids = ibs.get_annot_visual_uuids(qaids)
-    #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
-    #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
-    #import wbia.guitool
+    # cfgstr = qreq_.get_cfgstr()
+    # cfg_metadata = ensure_item(metadata, cfgstr, {})
+    # avuuids = ibs.get_annot_visual_uuids(qaids)
+    # avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
+    # cfg_columns = ensure_item(cfg_metadata, 'columns', {})
+    # import wbia.guitool
 
     # ut.argv_flag_dec(draw_rank_cmc)(ibs, testres)
 
@@ -304,8 +340,9 @@ def draw_results(ibs, testres):
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):
         import wbia.guitool
+
         guitool.ensure_qapp()
-        #wgt = make_test_result_custom_api(ibs, testres)
+        # wgt = make_test_result_custom_api(ibs, testres)
         wgt = make_metadata_custom_api(metadata)
         wgt.show()
         wgt.raise_()
@@ -323,6 +360,8 @@ if __name__ == '__main__':
         python -m wbia.expt.old_storage --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

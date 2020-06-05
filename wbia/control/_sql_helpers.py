@@ -5,9 +5,12 @@ import six
 import datetime
 import distutils
 import utool as ut
+
 (print, rrr, profile) = ut.inject2(__name__)
 
-VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
+VERBOSE_SQL = ut.get_argflag(
+    ('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql')
+)
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
@@ -33,12 +36,15 @@ def compare_string_versions(a, b):
         return -1
     elif va == vb:
         return 0
-    raise AssertionError('[!update_schema_version] Two version numbers are '
-                         'the same along the update path')
+    raise AssertionError(
+        '[!update_schema_version] Two version numbers are '
+        'the same along the update path'
+    )
 
 
 def _devcheck_backups():
     from wbia import dtool as dt
+
     dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
     sorted(ut.glob(join(dbdir, '_wbia_backups'), '*staging_back*.sqlite3'))
     fpaths = sorted(ut.glob(join(dbdir, '_wbia_backups'), '*database_back*.sqlite3'))
@@ -115,20 +121,20 @@ def revert_to_backup(ibs):
 
     # Core database
     fname, ext = splitext(db_path)
-    db_path_ = '%s_revert.sqlite3' % (fname, )
+    db_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(db_path, db_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, db_path)
 
     # Staging database
     fname, ext = splitext(staging_path)
-    staging_path_ = '%s_revert.sqlite3' % (fname, )
+    staging_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(staging_path, staging_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, staging_path)
@@ -162,24 +168,28 @@ def get_backupdir(db_dir, db_fname):
 def get_backup_fpaths(ibs):
     fname, ext = splitext(ibs.sqldb_fname)
     backups = sorted(ut.glob(ibs.backupdir, '*%s' % ext))
-    #backup_info = [ut.get_file_info(fpath) for fpath in backups]
+    # backup_info = [ut.get_file_info(fpath) for fpath in backups]
     modified = [ut.get_file_info(fpath)['last_modified'] for fpath in backups]
     unixtimes = [ut.util_time.exiftime_to_unixtime(tag) for tag in modified]
     backups = ut.sortedby(backups, unixtimes)
     return backups
-    #backup_uuids = [ut.get_file_uuid(fpath) for fpath in backups]
-    #backup_hashes = [ut.get_file_hash(fpath) for fpath in backups]
-    #backup_bytes = [ut.get_file_nBytes(fpath) for fpath in backups]
+    # backup_uuids = [ut.get_file_uuid(fpath) for fpath in backups]
+    # backup_hashes = [ut.get_file_hash(fpath) for fpath in backups]
+    # backup_bytes = [ut.get_file_nBytes(fpath) for fpath in backups]
     pass
 
 
 def copy_database(src_fpath, dst_fpath):
     from wbia import dtool
+
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
-    timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
-    db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
-                                           inmemory=False, timeout=timeout)
+    timeout = (
+        12 * 60 * 60
+    )  # Allow a lock of up to 12 hours for a database backup routine
+    db = dtool.SQLDatabaseController(
+        fpath=src_fpath, text_factory=six.text_type, inmemory=False, timeout=timeout
+    )
     db.backup(dst_fpath)
 
 
@@ -193,17 +203,20 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
     """
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
-    #now = datetime.datetime.now()
+    # now = datetime.datetime.now()
     now = datetime.datetime.utcnow()
     if manual:
         now_str = now.strftime('%Y_%m_%d_%H_%M_%S')
     else:
         now_str = now.strftime('%Y_%m_%d_00_00_00')
-    #dst_fpath = join(backup_dir, '%s_backup_%s%s' % (fname, now_str, ext))
+    # dst_fpath = join(backup_dir, '%s_backup_%s%s' % (fname, now_str, ext))
     dst_fname = ''.join((fname, '_backup_', now_str, ext))
     dst_fpath = join(backup_dir, dst_fname)
     if exists(src_fpath) and not exists(dst_fpath):
-        print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
+        print(
+            '[ensure_daily_database_backup] Daily backup of database: %r -> %r'
+            % (src_fpath, dst_fpath,)
+        )
         copy_database(src_fpath, dst_fpath)
         # Clean-up old database backups
         remove_old_backups(backup_dir, ext, max_keep)
@@ -212,10 +225,11 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
 def remove_old_backups(backup_dir, ext, max_keep):
     path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
     if len(path_list) > max_keep:
-        path_delete_list = path_list[:-1 * max_keep]
+        path_delete_list = path_list[: -1 * max_keep]
         for path_delete in path_delete_list:
             print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
             ut.remove_file(path_delete, verbose=False)
+
 
 # ========================
 # Schema Updater Functions
@@ -223,9 +237,9 @@ def remove_old_backups(backup_dir, ext, max_keep):
 
 
 @profile
-def ensure_correct_version(ibs, db, version_expected, schema_spec,
-                           dobackup=True,
-                           verbose=ut.NOT_QUIET):
+def ensure_correct_version(
+    ibs, db, version_expected, schema_spec, dobackup=True, verbose=ut.NOT_QUIET
+):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
 
@@ -254,7 +268,8 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     """
     from wbia import constants as const
     from wbia import params
-    #print('[SQL_] ensure_correct_version')
+
+    # print('[SQL_] ensure_correct_version')
     force_incremental = params.args.force_incremental_db_update
     want_base_version = version_expected == const.BASE_DATABASE_VERSION
     if want_base_version:
@@ -263,27 +278,30 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         return
     version = db.get_db_version()
     # NEW DATABASE CONDITION
-    is_base_version = (version == const.BASE_DATABASE_VERSION)
+    is_base_version = version == const.BASE_DATABASE_VERSION
     # <DEBUG>
-    #if ut.get_flag('--verbsql') or ut.VERBOSE or True:
+    # if ut.get_flag('--verbsql') or ut.VERBOSE or True:
     #    key_list = locals().keys()
     #    keystr_list = sorted(ut.parse_locals_keylist(locals(), key_list))
     #    print('KEYLIST:' + ut.indentjoin(keystr_list, '\n * '))
     # </DEBUG>
-    #+-----------------------------------
+    # +-----------------------------------
     # SKIP TO CURRENT VERSION IF POSSIBLE
-    #+-----------------------------------
+    # +-----------------------------------
     can_skip = is_base_version and not force_incremental
     if can_skip:
-        #print('[SQL_] we can skip')
+        # print('[SQL_] we can skip')
         # Check to see if a prebuilt current schema_spec module exists
-        current_schema_exists = (schema_spec.UPDATE_CURRENT is not None and
-                                 schema_spec.VERSION_CURRENT is not None)
+        current_schema_exists = (
+            schema_spec.UPDATE_CURRENT is not None
+            and schema_spec.VERSION_CURRENT is not None
+        )
         if current_schema_exists:
             # check to see if more than the metadata table exists
             is_newdb = db.get_table_names() == [const.METADATA_TABLE]
             current_schema_compatible = (
-                is_newdb and schema_spec.VERSION_CURRENT <= version_expected)
+                is_newdb and schema_spec.VERSION_CURRENT <= version_expected
+            )
             if current_schema_compatible:
                 # Since this is a new database, we do not have to worry about backinng up the
                 # current database.  The subsequent update functions (if needed) will handle
@@ -293,54 +311,71 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
                 schema_spec.UPDATE_CURRENT(db, ibs=ibs)
                 db.set_db_version(schema_spec.VERSION_CURRENT)
                 if verbose:
-                    print('[_SQL] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
+                    print(
+                        '[_SQL] Database version updated (skipped) to %r '
+                        % (schema_spec.VERSION_CURRENT)
+                    )
             else:
-                print('[_SQL] Current database is not compatible, updating incrementally...')
+                print(
+                    '[_SQL] Current database is not compatible, updating incrementally...'
+                )
         else:
-            print('[_SQL] New database but current version not exported, updating incrementally...')
-    #+--------------------------------------
+            print(
+                '[_SQL] New database but current version not exported, updating incrementally...'
+            )
+    # +--------------------------------------
     # INCREMENTAL UPDATE TO EXPECTED VERSION
-    #+--------------------------------------
+    # +--------------------------------------
     # Check version again for sanity's sake, update if exported current is behind expected
     version = db.get_db_version()
     if verbose:
-        print('[_SQL.%s] Database version: %r | Expected version: %r ' %
-                (ut.get_caller_name(), version, version_expected))
+        print(
+            '[_SQL.%s] Database version: %r | Expected version: %r '
+            % (ut.get_caller_name(), version, version_expected)
+        )
     if version < version_expected:
         print('[_SQL] Database version behind, updating...')
-        update_schema_version(ibs, db, schema_spec, version, version_expected,
-                              dobackup=dobackup)
+        update_schema_version(
+            ibs, db, schema_spec, version, version_expected, dobackup=dobackup
+        )
         db.set_db_version(version_expected)
-        print('[_SQL] Database version updated (incrementally) to %r' %
-                   (version_expected))
+        print(
+            '[_SQL] Database version updated (incrementally) to %r' % (version_expected)
+        )
     elif version > version_expected:
-        msg = (('[_SQL] ERROR: '
-                'Expected database version behind. expected: %r. got: %r') %
-               (version_expected, version))
+        msg = (
+            '[_SQL] ERROR: ' 'Expected database version behind. expected: %r. got: %r'
+        ) % (version_expected, version)
         raise AssertionError(msg)
 
 
 @profile
-def update_schema_version(ibs, db, schema_spec, version, version_target,
-                          dobackup=True, clearbackup=False):
+def update_schema_version(
+    ibs, db, schema_spec, version, version_target, dobackup=True, clearbackup=False
+):
     """
     version_target = version_expected
     clearbackup = False
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+
     def _check_superkeys():
         all_tablename_list = db.get_table_names()
         # always ignore the metadata table.
         ignore_tables_ = ['metadata']
-        tablename_list = [tablename for tablename in all_tablename_list
-                          if tablename not in ignore_tables_]
+        tablename_list = [
+            tablename
+            for tablename in all_tablename_list
+            if tablename not in ignore_tables_
+        ]
         for tablename in tablename_list:
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
             # some tables seem to only have old constraints and aren't
             # properly updated to superkeys... weird.
             old_constraints = db.get_table_constraints(tablename)
-            assert len(superkey_colnames_list) > 0 or len(old_constraints) > 0, (
-                'ERROR UPDATING DATABASE, SUPERKEYS of %s DROPPED!' % (tablename,))
+            assert (
+                len(superkey_colnames_list) > 0 or len(old_constraints) > 0
+            ), 'ERROR UPDATING DATABASE, SUPERKEYS of %s DROPPED!' % (tablename,)
 
     print('[_SQL] update_schema_version')
     db_fpath = db.fpath
@@ -352,8 +387,9 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
         count = 0
         # TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)
         while ut.checkpath(db_backup_fpath, verbose=True):
-            db_backup_fname = ''.join((db_fname_noext, '_backup', '_v',
-                                       version, '_copy', str(count), ext))
+            db_backup_fname = ''.join(
+                (db_fname_noext, '_backup', '_v', version, '_copy', str(count), ext)
+            )
             db_backup_fpath = join(db_dpath, db_backup_fname)
             count += 1
         copy_database(db_fpath, db_backup_fpath)
@@ -364,19 +400,22 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
             func(db)
     db_versions = schema_spec.VALID_VERSIONS
     import functools
+
     _key = functools.cmp_to_key(compare_string_versions)
     valid_versions = sorted(db_versions.keys(), key=_key)
     print('valid_versions = %r' % (valid_versions,))
     try:
         start_index = valid_versions.index(version) + 1
     except IndexError:
-        raise AssertionError('[!update_schema_version]'
-                             ' The current database version is unknown')
+        raise AssertionError(
+            '[!update_schema_version]' ' The current database version is unknown'
+        )
     try:
         end_index = valid_versions.index(version_target) + 1
     except IndexError:
-        raise AssertionError('[!update_schema_version]'
-                             ' The target database version is unknown')
+        raise AssertionError(
+            '[!update_schema_version]' ' The target database version is unknown'
+        )
 
     try:
         print('Update path: %r ' % (valid_versions[start_index:end_index]))
@@ -401,9 +440,11 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
                 ut.remove_file(db_backup_fpath)
             raise
         else:
-            ut.printex(ex, (
-                'The database update failed, and no backup was made.'),
-                iswarning=False)
+            ut.printex(
+                ex,
+                ('The database update failed, and no backup was made.'),
+                iswarning=False,
+            )
             raise
     if dobackup and clearbackup:
         ut.remove_file(db_backup_fpath)
@@ -433,6 +474,7 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         >>> print(result)
     """
     import utool as ut
+
     print('[_SQL] AUTOGENERATING CURRENT SCHEMA')
     db = get_nth_test_schema_version(schema_spec, n=n)
     # Auto-generate the version skip schema file
@@ -442,11 +484,11 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     # FIXME: Make this autogen command a bit more sane and not completely
     # coupled with wbia
     autogen_cmd = ut.codeblock(
-        '''
+        """
         python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
         python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
         python -m wbia.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
-        '''
+        """
     ).format(schema_spec_fname=schema_spec_fname, funcname=schema_spec_fname.lower())
     autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)
 
@@ -465,7 +507,9 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         if show_diff:
             if ut.checkpath(autogen_fpath, verbose=True):
                 prev_text = ut.read_from(autogen_fpath)
-                textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
+                textdiff = ut.util_str.get_textdiff(
+                    prev_text, autogen_text, num_context_lines=num_context_lines
+                )
                 ut.print_difftext(textdiff)
         else:
             ut.util_print.print_python_code(autogen_text)
@@ -473,7 +517,9 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
 
     print(' Run with -n=%r to get a specific schema version by index. -1 == latest')
     print(' Run with --write to autogenerate latest schema version')
-    print(' Run with --diff or --diff=<numcontextlines> to see the difference between current and requested')
+    print(
+        ' Run with --diff or --diff=<numcontextlines> to see the difference between current and requested'
+    )
     return db
 
 
@@ -486,6 +532,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
         n (int): version index (-1 is the latest)
     """
     from wbia.dtool.sql_control import SQLDatabaseController
+
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
@@ -493,9 +540,9 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
     db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
-    ensure_correct_version(
-        None, db, version_expected, schema_spec, dobackup=False)
+    ensure_correct_version(None, db, version_expected, schema_spec, dobackup=False)
     return db
+
 
 if __name__ == '__main__':
     """
@@ -505,6 +552,8 @@ if __name__ == '__main__':
         python -m wbia.control._sql_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

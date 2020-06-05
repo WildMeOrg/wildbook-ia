@@ -10,10 +10,13 @@ import uuid
 import numpy as np
 import utool as ut
 from six.moves import input
+
 ut.noinject(__name__, '[dtool.__SQLITE__]')
 
 
-VERBOSE_SQL = '--veryverbose' in sys.argv or '--verbose' in sys.argv or '--verbsql' in sys.argv
+VERBOSE_SQL = (
+    '--veryverbose' in sys.argv or '--verbose' in sys.argv or '--verbsql' in sys.argv
+)
 TRY_NEW_SQLITE3 = False
 
 # SQL This should be the only file which imports sqlite3
@@ -21,7 +24,7 @@ if not TRY_NEW_SQLITE3:
     from sqlite3 import Binary, register_adapter, register_converter
     from sqlite3 import *  # NOQA
 
-#try:
+# try:
 #    # Try to import the correct version of sqlite3
 #    if VERBOSE_SQL:
 #        from pysqlite2 import dbapi2
@@ -35,7 +38,7 @@ if not TRY_NEW_SQLITE3:
 #    if not TRY_NEW_SQLITE3:
 #        raise ImportError('user wants python sqlite3')
 #    from pysqlite2.dbapi2 import *  # NOQA
-#except ImportError as ex:
+# except ImportError as ex:
 #    if VERBOSE_SQL:
 #        print(ex)
 #    # Fallback
@@ -49,7 +52,7 @@ def REGISTER_SQLITE3_TYPES():
         # INVESTIGATE: Is memory freed up correctly here?
         out = io.BytesIO(blob)
         out.seek(0)
-        #return np.load(out)
+        # return np.load(out)
         # Is this better?
         arr = np.load(out)
         out.close()
@@ -62,13 +65,16 @@ def REGISTER_SQLITE3_TYPES():
         return b
 
     if six.PY2:
+
         def _write_numpy_to_sqlite3(arr):
             out = io.BytesIO()
             np.save(out, arr)
             out.seek(0)
-            #return buffer(out.read())
+            # return buffer(out.read())
             return Binary(out.read())
+
     else:
+
         def _write_numpy_to_sqlite3(arr):
             out = io.BytesIO()
             np.save(out, arr)
@@ -81,15 +87,18 @@ def REGISTER_SQLITE3_TYPES():
         except ValueError as ex:
             ut.printex(ex, keys=['blob'])
             raise
-            print('WARNING: COULD NOT PARSE UUID %r, GIVING RANDOM' % (blob, ))
+            print('WARNING: COULD NOT PARSE UUID %r, GIVING RANDOM' % (blob,))
             input('continue... [enter]')
             return uuid.uuid4()
 
     if six.PY2:
+
         def _write_uuid_to_sqlite3(uuid_):
-            #return buffer(uuid_.bytes_le)
+            # return buffer(uuid_.bytes_le)
             return Binary(uuid_.bytes_le)
+
     elif six.PY3:
+
         def _write_uuid_to_sqlite3(uuid_):
             return memoryview(uuid_.bytes_le)
 
@@ -98,15 +107,24 @@ def REGISTER_SQLITE3_TYPES():
             print('Register NUMPY dtypes with SQLite3')
 
         py_int_type = long if six.PY2 else int
-        for dtype in (np.int8, np.int16, np.int32, np.int64,
-                      np.uint8, np.uint16, np.uint32, np.uint64):
+        for dtype in (
+            np.int8,
+            np.int16,
+            np.int32,
+            np.int64,
+            np.uint8,
+            np.uint16,
+            np.uint32,
+            np.uint64,
+        ):
             register_adapter(dtype, py_int_type)
         register_adapter(np.float32, float)
         register_adapter(np.float64, float)
 
     def _read_dict_from_sqlite3(blob):
         return ut.from_json(blob)
-        #return uuid.UUID(bytes_le=blob)
+        # return uuid.UUID(bytes_le=blob)
+
     def _write_dict_to_sqlite3(dict_):
         return ut.to_json(dict_)
 
@@ -153,10 +171,12 @@ def REGISTER_SQLITE3_TYPES():
     register_dict()
     register_list()
     # register_bool()  # TODO
+
+
 REGISTER_SQLITE3_TYPES()
 
 
-#def connect2(fpath, text_factory=None):
+# def connect2(fpath, text_factory=None):
 #    """ wrapper around lite.connect """
 #    connection = connect(fpath, detect_types=PARSE_DECLTYPES)
 #    return connection

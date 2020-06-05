@@ -6,6 +6,7 @@ import vtool as vt
 import pandas as pd
 from wbia.algo.graph.nx_utils import ensure_multi_index
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -16,9 +17,11 @@ class Groundtruth(object):
         """
         if infr.ibs is not None:
             return infr.wbia_is_comparable(aid_pairs, allow_guess)
-        is_comp = list(infr.gen_edge_values('gt_comparable', edges=aid_pairs,
-                                            default=True,
-                                            on_missing='default'))
+        is_comp = list(
+            infr.gen_edge_values(
+                'gt_comparable', edges=aid_pairs, default=True, on_missing='default'
+            )
+        )
         return np.array(is_comp)
 
     def is_photobomb(infr, aid_pairs):
@@ -30,10 +33,8 @@ class Groundtruth(object):
         if infr.ibs is not None:
             return infr.wbia_is_same(aid_pairs)
         node_dict = ut.nx_node_dict(infr.graph)
-        nid1 = [node_dict[n1]['orig_name_label']
-                for n1, n2 in aid_pairs]
-        nid2 = [node_dict[n2]['orig_name_label']
-                for n1, n2 in aid_pairs]
+        nid1 = [node_dict[n1]['orig_name_label'] for n1, n2 in aid_pairs]
+        nid2 = [node_dict[n2]['orig_name_label'] for n1, n2 in aid_pairs]
         return np.equal(nid1, nid2)
 
     def apply_edge_truth(infr, edges=None):
@@ -51,11 +52,13 @@ class Groundtruth(object):
         aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
-        match_state_df = pd.DataFrame.from_items([
-            (NEGTV, ~is_same & is_comp),
-            (POSTV,  is_same & is_comp),
-            (INCMP, ~is_comp),
-        ])
+        match_state_df = pd.DataFrame.from_items(
+            [
+                (NEGTV, ~is_same & is_comp),
+                (POSTV, is_same & is_comp),
+                (INCMP, ~is_comp),
+            ]
+        )
         match_state_df.index = index
         return match_state_df
 
@@ -68,11 +71,15 @@ class Groundtruth(object):
             aid_pairs = np.asarray([edge])
             is_same = infr.is_same(aid_pairs)[0]
             is_comp = infr.is_comparable(aid_pairs)[0]
-            match_state = pd.Series(dict([
-                (NEGTV, ~is_same & is_comp),
-                (POSTV,  is_same & is_comp),
-                (INCMP, ~is_comp),
-            ]))
+            match_state = pd.Series(
+                dict(
+                    [
+                        (NEGTV, ~is_same & is_comp),
+                        (POSTV, is_same & is_comp),
+                        (INCMP, ~is_comp),
+                    ]
+                )
+            )
             truth = match_state.idxmax()
         return truth
 

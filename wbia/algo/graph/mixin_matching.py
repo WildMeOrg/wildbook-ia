@@ -11,6 +11,7 @@ from os.path import join  # NOQA
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -21,15 +22,29 @@ class AnnotInfrMatching(object):
     """
 
     @profile
-    def exec_matching(infr, qaids=None, daids=None, prog_hook=None,
-                      cfgdict=None, name_method='node', use_cache=True,
-                      invalidate_supercache=False):
+    def exec_matching(
+        infr,
+        qaids=None,
+        daids=None,
+        prog_hook=None,
+        cfgdict=None,
+        name_method='node',
+        use_cache=True,
+        invalidate_supercache=False,
+    ):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores wbia labeling
         """
-        infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method,
-                            use_cache=use_cache, invalidate_supercache=invalidate_supercache)
+        infr._make_rankings(
+            qaids,
+            daids,
+            prog_hook,
+            cfgdict,
+            name_method,
+            use_cache=use_cache,
+            invalidate_supercache=invalidate_supercache,
+        )
 
     def _set_vsmany_info(infr, qreq_, cm_list):
         infr.vsmany_qreq_ = qreq_
@@ -37,10 +52,17 @@ class AnnotInfrMatching(object):
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
 
-    def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
-                       cfgdict=None, name_method='node', use_cache=None,
-                       invalidate_supercache=None):
-        #from wbia.algo.graph import graph_iden
+    def _make_rankings(
+        infr,
+        qaids=None,
+        daids=None,
+        prog_hook=None,
+        cfgdict=None,
+        name_method='node',
+        use_cache=None,
+        invalidate_supercache=None,
+    ):
+        # from wbia.algo.graph import graph_iden
 
         # TODO: expose other ranking algos like SMK
         rank_algo = 'LNBNN'
@@ -60,10 +82,10 @@ class AnnotInfrMatching(object):
                 'K': 3,
                 'Knorm': 3,
                 'prescore_method': 'csum',
-                'score_method': 'csum'
+                'score_method': 'csum',
             }
         cfgdict.update(infr.ranker_params)
-        infr.print('Using LNBNN config = %r' % (cfgdict, ))
+        infr.print('Using LNBNN config = %r' % (cfgdict,))
         # hack for using current nids
         if name_method == 'node':
             aids = sorted(set(ut.aslist(qaids) + ut.aslist(daids)))
@@ -77,9 +99,13 @@ class AnnotInfrMatching(object):
         else:
             raise KeyError('Unknown name_method={}'.format(name_method))
 
-        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict,
-                                      custom_nid_lookup=custom_nid_lookup,
-                                      verbose=infr.verbose >= 2)
+        qreq_ = ibs.new_query_request(
+            qaids,
+            daids,
+            cfgdict=cfgdict,
+            custom_nid_lookup=custom_nid_lookup,
+            verbose=infr.verbose >= 2,
+        )
 
         # cacher = qreq_.get_big_cacher()
         # if not cacher.exists():
@@ -87,17 +113,20 @@ class AnnotInfrMatching(object):
         #     # import sys
         #     # sys.exit(1)
 
-        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=use_cache,
-                                invalidate_supercache=invalidate_supercache)
+        cm_list = qreq_.execute(
+            prog_hook=prog_hook,
+            use_cache=use_cache,
+            invalidate_supercache=invalidate_supercache,
+        )
         infr._set_vsmany_info(qreq_, cm_list)
 
-        edges = set(infr._cm_breaking(
-            cm_list, review_cfg={'ranks_top': 5}))
+        edges = set(infr._cm_breaking(cm_list, review_cfg={'ranks_top': 5}))
         return edges
         # return cm_list
 
     def _make_matches_from(infr, edges, config=None, prog_hook=None):
         from wbia.algo.verif import pairfeat
+
         if config is None:
             config = infr.verifier_params
         extr = pairfeat.PairwiseFeatureExtractor(infr.ibs, config=config)
@@ -124,11 +153,9 @@ class AnnotInfrMatching(object):
         match_list = infr._make_matches_from(edges, prog_hook)
 
         # TODO: is this code necessary anymore?
-        vsone_matches = {e_(u, v): match
-                         for (u, v), match in zip(edges, match_list)}
+        vsone_matches = {e_(u, v): match for (u, v), match in zip(edges, match_list)}
         infr.vsone_matches.update(vsone_matches)
-        edge_to_score = {e: match.fs.sum() for e, match in
-                         vsone_matches.items()}
+        edge_to_score = {e: match.fs.sum() for e, match in vsone_matches.items()}
         infr.graph.add_edges_from(edge_to_score.keys())
         infr.set_edge_attrs('score', edge_to_score)
         return match_list
@@ -140,8 +167,7 @@ class AnnotInfrMatching(object):
         if infr.cm_list is None:
             return None, aid1, aid2
         # TODO: keep chip matches in dictionary by default?
-        aid2_idx = ut.make_index_lookup(
-            [cm.qaid for cm in infr.cm_list])
+        aid2_idx = ut.make_index_lookup([cm.qaid for cm in infr.cm_list])
         switch_order = False
 
         if aid1 in aid2_idx:
@@ -199,7 +225,7 @@ class AnnotInfrMatching(object):
             sortx = ut.argsort(rank_list)
 
             top_sortx = sortx[:ranks_top]
-            bot_sortx = sortx[len(sortx) - ranks_bot:]
+            bot_sortx = sortx[len(sortx) - ranks_bot :]
             short_sortx = ut.unique(top_sortx + bot_sortx)
 
             daid_list = ut.take(cm.daid_list, short_sortx)
@@ -210,9 +236,20 @@ class AnnotInfrMatching(object):
                 edges.append((u, v))
         return edges
 
-    def _cm_training_pairs(infr, qreq_=None, cm_list=None,
-                           top_gt=2, mid_gt=2, bot_gt=2, top_gf=2,
-                           mid_gf=2, bot_gf=2, rand_gt=2, rand_gf=2, rng=None):
+    def _cm_training_pairs(
+        infr,
+        qreq_=None,
+        cm_list=None,
+        top_gt=2,
+        mid_gt=2,
+        bot_gt=2,
+        top_gf=2,
+        mid_gf=2,
+        bot_gf=2,
+        rand_gt=2,
+        rand_gf=2,
+        rng=None,
+    ):
         """
         Constructs training data for a pairwise classifier
 
@@ -248,21 +285,19 @@ class AnnotInfrMatching(object):
         for cm in ut.ProgIter(cm_list, lbl='building pairs'):
             all_gt_aids = cm.get_top_gt_aids(ibs)
             all_gf_aids = cm.get_top_gf_aids(ibs)
-            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt,
-                                               bot_gt)
-            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf,
-                                               bot_gf)
+            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt, bot_gt)
+            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf, bot_gf)
             # get unscored examples
-            unscored_gt_aids = [aid for aid in qreq_.daids[cm.qnid == dnids]
-                                if aid not in cm.daid2_idx]
+            unscored_gt_aids = [
+                aid for aid in qreq_.daids[cm.qnid == dnids] if aid not in cm.daid2_idx
+            ]
             rand_gt_aids = ut.random_sample(unscored_gt_aids, rand_gt, rng=rng)
             # gf_aids = cm.get_groundfalse_daids()
             _gf_aids = qreq_.daids[cm.qnid != dnids]
             _gf_aids = qreq_.daids.compress(cm.qnid != dnids)
             # gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
             rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
-            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
-                                     rand_gt_aids)
+            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids + rand_gt_aids)
             aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids if cm.qaid != aid])
 
         return aid_pairs
@@ -276,8 +311,9 @@ class AnnotInfrMatching(object):
             for daid, score in zip(cm.get_top_aids(), cm.get_top_scores()):
                 all_scores[daid].append(score)
 
-        max_scores = sorted((max(scores), aid)
-                            for aid, scores in all_scores.items())[::-1]
+        max_scores = sorted((max(scores), aid) for aid, scores in all_scores.items())[
+            ::-1
+        ]
         ranked_aids = ut.take_column(max_scores, 1)
         return ranked_aids
 
@@ -369,7 +405,6 @@ class AnnotInfrMatching(object):
 
 
 class InfrLearning(object):
-
     def learn_deploy_verifiers(infr, publish=False):
         """
         Uses current knowledge to train verifiers for new unseen pairs.
@@ -388,6 +423,7 @@ class InfrLearning(object):
         """
         infr.print('learn_deploy_verifiers')
         from wbia.algo.verif import vsone
+
         pblm = vsone.OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
         pblm.default_clf_key = 'RF'
@@ -423,6 +459,7 @@ class InfrLearning(object):
         """
         infr.print('learn_evaluataion_verifiers')
         from wbia.algo.verif import vsone
+
         pblm = vsone.OneVsOneProblem(infr, verbose=5)
         pblm.primary_task_key = 'match_state'
         pblm.eval_clf_keys = ['RF']
@@ -439,23 +476,26 @@ class InfrLearning(object):
         This is the default action.
         """
         from wbia.algo.verif import deploy
+
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
-        infr.print('Loading task_thresh for species: %r' % (species, ))
+        infr.print('Loading task_thresh for species: %r' % (species,))
         assert species in infr.task_thresh_dict
         infr.task_thresh = infr.task_thresh_dict[species]
-        infr.print('infr.task_thresh: %r' % (infr.task_thresh, ))
-        infr.print('Loading verifiers for species: %r' % (species, ))
+        infr.print('infr.task_thresh: %r' % (infr.task_thresh,))
+        infr.print('Loading verifiers for species: %r' % (species,))
         infr.verifiers = deploy.Deployer().load_published(ibs, species)
 
     def load_latest_classifiers(infr, dpath):
         from wbia.algo.verif import deploy
+
         task_clf_fpaths = deploy.Deployer(dpath).find_latest_local()
         classifiers = {}
         for task_key, fpath in task_clf_fpaths.items():
             clf_info = ut.load_data(fpath)
-            assert clf_info['metadata']['task_key'] == task_key, (
-                'bad saved clf at fpath={}'.format(fpath))
+            assert (
+                clf_info['metadata']['task_key'] == task_key
+            ), 'bad saved clf at fpath={}'.format(fpath)
             classifiers[task_key] = clf_info
         infr.verifiers = classifiers
         # return classifiers
@@ -531,8 +571,9 @@ class _RedundancyAugmentation(object):
 
         reviewed_edges = {
             edge: state
-            for edge, state in zip(existing_edges,
-                                   infr.edge_decision_from(existing_edges))
+            for edge, state in zip(
+                existing_edges, infr.edge_decision_from(existing_edges)
+            )
             if state != UNREV
         }
 
@@ -581,8 +622,11 @@ class _RedundancyAugmentation(object):
         # First try to augment only with unreviewed existing edges
         unrev_avail = list(nxu.edges_inside(infr.unreviewed_graph, pcc))
         try:
-            check_edges = list(nxu.k_edge_augmentation(
-                pos_sub, k=pos_k, avail=unrev_avail, partial=False))
+            check_edges = list(
+                nxu.k_edge_augmentation(
+                    pos_sub, k=pos_k, avail=unrev_avail, partial=False
+                )
+            )
         except nx.NetworkXUnfeasible:
             check_edges = None
         if not check_edges:
@@ -594,12 +638,16 @@ class _RedundancyAugmentation(object):
             n_complement = n_max - pos_sub.number_of_edges()
             if len(full_avail) == n_complement:
                 # can use the faster algorithm
-                check_edges = list(nxu.k_edge_augmentation(
-                    pos_sub, k=pos_k, partial=True))
+                check_edges = list(
+                    nxu.k_edge_augmentation(pos_sub, k=pos_k, partial=True)
+                )
             else:
                 # have to use the slow approximate algo
-                check_edges = list(nxu.k_edge_augmentation(
-                    pos_sub, k=pos_k, avail=full_avail, partial=True))
+                check_edges = list(
+                    nxu.k_edge_augmentation(
+                        pos_sub, k=pos_k, avail=full_avail, partial=True
+                    )
+                )
         check_edges = set(it.starmap(e_, check_edges))
         return check_edges
 
@@ -627,8 +675,7 @@ class _RedundancyAugmentation(object):
         pcc_gen = list(infr.positive_components())
         prog = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
         for pcc in prog:
-            if not infr.is_pos_redundant(pcc, k=k, relax=True,
-                                         assume_connected=True):
+            if not infr.is_pos_redundant(pcc, k=k, relax=True, assume_connected=True):
                 for edge in infr.find_pos_augment_edges(pcc, k=k):
                     print()
                     yield nxu.e_(*edge)
@@ -705,26 +752,35 @@ class CandidateSearch(_RedundancyAugmentation):
 
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
-        infr.exec_matching(name_method='edge', cfgdict={
-            'resize_dim': 'width',
-            'dim_size': 700,
-            'requery': True,
-            'can_match_samename': False,
-            'can_match_sameimg': False,
-            # 'sv_on': False,
-        })
+        infr.exec_matching(
+            name_method='edge',
+            cfgdict={
+                'resize_dim': 'width',
+                'dim_size': 700,
+                'requery': True,
+                'can_match_samename': False,
+                'can_match_sameimg': False,
+                # 'sv_on': False,
+            },
+        )
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
         ranks_top = infr.params['ranking.ntop']
         lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
 
         candidate_edges = {
-            edge for edge, state in
-            zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
+            edge
+            for edge, state in zip(
+                lnbnn_results, infr.edge_decision_from(lnbnn_results)
+            )
             if state == UNREV
         }
 
-        infr.print('ranking alg found {}/{} unreviewed edges'.format(
-            len(candidate_edges), len(lnbnn_results)), 1)
+        infr.print(
+            'ranking alg found {}/{} unreviewed edges'.format(
+                len(candidate_edges), len(lnbnn_results)
+            ),
+            1,
+        )
 
         return candidate_edges
 
@@ -772,8 +828,9 @@ class CandidateSearch(_RedundancyAugmentation):
 
         if any(need_flags):
             need_edges = ut.compress(edges, need_flags)
-            infr.print('There are {} edges without probabilities'.format(
-                       len(need_edges)), 1)
+            infr.print(
+                'There are {} edges without probabilities'.format(len(need_edges)), 1
+            )
 
             # Only recompute for the needed edges
             task_probs = infr._make_task_probs(need_edges)
@@ -818,14 +875,24 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> edges = list(infr.edges())
             >>> infr.ensure_priority_scores(edges)
         """
-        infr.print('Checking for verifiers: %r' % (infr.verifiers, ))
+        infr.print('Checking for verifiers: %r' % (infr.verifiers,))
 
         if infr.verifiers and infr.ibs is not None:
-            infr.print('Prioritizing {} edges with one-vs-one probs'.format(
-                       len(priority_edges)), 1)
-            infr.print('Using thresholds: %r' % (infr.task_thresh, ))
-            infr.print('Using infr.params[autoreview.enabled]          : %r' % (infr.params['autoreview.enabled'], ))
-            infr.print('Using infr.params[autoreview.prioritize_nonpos]: %r' % (infr.params['autoreview.prioritize_nonpos'], ))
+            infr.print(
+                'Prioritizing {} edges with one-vs-one probs'.format(
+                    len(priority_edges)
+                ),
+                1,
+            )
+            infr.print('Using thresholds: %r' % (infr.task_thresh,))
+            infr.print(
+                'Using infr.params[autoreview.enabled]          : %r'
+                % (infr.params['autoreview.enabled'],)
+            )
+            infr.print(
+                'Using infr.params[autoreview.prioritize_nonpos]: %r'
+                % (infr.params['autoreview.prioritize_nonpos'],)
+            )
 
             infr.ensure_task_probs(priority_edges)
             infr.load_published()
@@ -837,7 +904,7 @@ class CandidateSearch(_RedundancyAugmentation):
             # Read match_probs into a DataFrame
             primary_probs = pd.DataFrame(
                 ut.take(match_probs, priority_edges),
-                index=nxu.ensure_multi_index(priority_edges, ('aid1', 'aid2'))
+                index=nxu.ensure_multi_index(priority_edges, ('aid1', 'aid2')),
             )
 
             # Convert match-state probabilities into priorities
@@ -860,20 +927,23 @@ class CandidateSearch(_RedundancyAugmentation):
                     # Give positives that pass automatic thresholds high priority
                     _probs = primary_probs[POSTV]
                     flags = _probs > primary_thresh[POSTV]
-                    default_priority[flags] = np.maximum(default_priority[flags],
-                                                         _probs[flags]) + 1
+                    default_priority[flags] = (
+                        np.maximum(default_priority[flags], _probs[flags]) + 1
+                    )
 
                     # Give negatives that pass automatic thresholds high priority
                     _probs = primary_probs[NEGTV]
                     flags = _probs > primary_thresh[NEGTV]
-                    default_priority[flags] = np.maximum(default_priority[flags],
-                                                         _probs[flags]) + 1
+                    default_priority[flags] = (
+                        np.maximum(default_priority[flags], _probs[flags]) + 1
+                    )
 
                     # Give not-comps that pass automatic thresholds high priority
                     _probs = primary_probs[INCMP]
                     flags = _probs > primary_thresh[INCMP]
-                    default_priority[flags] = np.maximum(default_priority[flags],
-                                                         _probs[flags]) + 1
+                    default_priority[flags] = (
+                        np.maximum(default_priority[flags], _probs[flags]) + 1
+                    )
 
             infr.set_edge_attrs('prob_match', prob_match.to_dict())
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
@@ -883,7 +953,9 @@ class CandidateSearch(_RedundancyAugmentation):
         elif infr.cm_list is not None:
             infr.print(
                 'Prioritizing {} edges with one-vs-vsmany scores'.format(
-                    len(priority_edges), 1))
+                    len(priority_edges), 1
+                )
+            )
             # Not given any deploy classifier, this is the best we can do
             scores = infr._make_lnbnn_scores(priority_edges)
             metric = 'normscore'
@@ -891,7 +963,9 @@ class CandidateSearch(_RedundancyAugmentation):
         else:
             infr.print(
                 'WARNING: No verifiers to prioritize {} edge(s)'.format(
-                    len(priority_edges)))
+                    len(priority_edges)
+                )
+            )
             metric = 'random'
             priority = np.zeros(len(priority_edges)) + 1e-6
 
@@ -912,15 +986,19 @@ class CandidateSearch(_RedundancyAugmentation):
             infr.apply_edge_truth(new_edges)
 
         if infr.params['redun.enabled']:
-            priority_edges = list(infr.filter_edges_flagged_as_redun(
-                candidate_edges))
-            infr.print('Got {} candidate edges, {} are new, '
-                       'and {} are non-redundant'.format(
-                           len(candidate_edges), len(new_edges),
-                           len(priority_edges)))
+            priority_edges = list(infr.filter_edges_flagged_as_redun(candidate_edges))
+            infr.print(
+                'Got {} candidate edges, {} are new, '
+                'and {} are non-redundant'.format(
+                    len(candidate_edges), len(new_edges), len(priority_edges)
+                )
+            )
         else:
-            infr.print('Got {} candidate edges and {} are new'.format(
-                len(candidate_edges), len(new_edges)))
+            infr.print(
+                'Got {} candidate edges and {} are new'.format(
+                    len(candidate_edges), len(new_edges)
+                )
+            )
             priority_edges = candidate_edges
 
         if len(priority_edges) > 0:
@@ -943,13 +1021,14 @@ class CandidateSearch(_RedundancyAugmentation):
             candidate_edges = infr.find_lnbnn_candidate_edges()
         elif hasattr(infr, 'dummy_verif'):
             infr.print('Searching for dummy candidates')
-            infr.print('dummy vsone params =' + ut.repr4(
-                infr.dummy_verif.dummy_params, nl=1, si=True))
+            infr.print(
+                'dummy vsone params ='
+                + ut.repr4(infr.dummy_verif.dummy_params, nl=1, si=True)
+            )
             ranks_top = infr.params['ranking.ntop']
             candidate_edges = infr.dummy_verif.find_candidate_edges(K=ranks_top)
         else:
-            raise Exception(
-                'No method available to search for candidate edges')
+            raise Exception('No method available to search for candidate edges')
         infr.add_candidate_edges(candidate_edges)
         infr.assert_consistency_invariant()
 
@@ -961,15 +1040,13 @@ class CandidateSearch(_RedundancyAugmentation):
         if infr.verifiers is None:
             raise ValueError('no classifiers exist')
         if not isinstance(infr.verifiers, dict):
-            raise NotImplementedError(
-                'need to deploy or implement eval prediction')
+            raise NotImplementedError('need to deploy or implement eval prediction')
         task_keys = list(infr.verifiers.keys())
         task_probs = {}
         # infr.print('[make_taks_probs] predict {} for {} edges'.format(
         #     ut.conj_phrase(task_keys, 'and'), len(edges)))
         for task_key in task_keys:
-            infr.print('predict {} for {} edges'.format(
-                task_key, len(edges)))
+            infr.print('predict {} for {} edges'.format(task_key, len(edges)))
             verif = infr.verifiers[task_key]
             probs_df = verif.predict_proba_df(edges)
             task_probs[task_key] = probs_df
@@ -994,6 +1071,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.mixin_matching --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

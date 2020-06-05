@@ -26,13 +26,14 @@ SAMPLES = 1000
 AP_SAMPLE_POINTS = [_ / float(SAMPLES) for _ in range(0, SAMPLES + 1)]
 
 # Must import class before injection
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
 def _resize(image, t_width=None, t_height=None, verbose=False):
     if verbose:
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
         return image
@@ -45,7 +46,9 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
     t_width, t_height = float(t_width), float(t_height)
     t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
     assert t_width > 0 and t_height > 0, 'target size too small'
-    assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
+    assert (
+        t_width <= width * 10 and t_height <= height * 10
+    ), 'target size too large (capped at 1000%)'
     # interpolation = cv2.INTER_LANCZOS4
     interpolation = cv2.INTER_LINEAR
     return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
@@ -75,7 +78,9 @@ def simple_code(label):
 ##########################################################################################
 
 
-def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
+def general_precision_recall_algo(
+    ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs
+):
     def errors(zipped, conf, category):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
@@ -92,7 +97,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
         return tp, tn, fp, fn
 
     zipped = list(zip(label_list, confidence_list))
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    conf_list = [_ / float(samples) for _ in range(0, int(samples) + 1)]
     conf_dict = {}
     for conf in conf_list:
         conf_dict[conf] = errors(zipped, conf, category)
@@ -121,7 +126,10 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
             tpr_list.append(tpr)
             fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
+            print(
+                'Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r'
+                % (conf, tp, tn, fp, fn,)
+            )
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -155,8 +163,8 @@ def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0
     for conf, x, y in sorted(zip(conf_list, x_list, y_list)):
         x_ = x
         y_ = y
-        x_ = (x_ - tx)
-        y_ = (y_ - ty)
+        x_ = x_ - tx
+        y_ = y_ - ty
         length = np.sqrt(x_ * x_ + y_ * y_)
         if length < best_length:
             best_length = length
@@ -164,10 +172,7 @@ def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0
             best_x_list = [x]
             best_y_list = [y]
         elif length == best_length:
-            flag_list = [
-                abs(best_conf - conf) > 0.01
-                for best_conf in best_conf_list
-            ]
+            flag_list = [abs(best_conf - conf) > 0.01 for best_conf in best_conf_list]
             if False in flag_list:
                 continue
             best_conf_list.append(conf)
@@ -177,10 +182,21 @@ def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0
     return best_conf_list, best_x_list, best_y_list, best_length
 
 
-def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
-                           marker='o', plot_point=True, interpolate=True,
-                           target=(1.0, 1.0), target_recall=None, **kwargs):
+def general_area_best_conf(
+    conf_list,
+    x_list,
+    y_list,
+    label='Unknown',
+    color='b',
+    marker='o',
+    plot_point=True,
+    interpolate=True,
+    target=(1.0, 1.0),
+    target_recall=None,
+    **kwargs
+):
     import matplotlib.pyplot as plt
+
     zipped = list(sorted(zip(x_list, y_list, conf_list)))
     x_list = [_[0] for _ in zipped]
     y_list = [_[1] for _ in zipped]
@@ -188,9 +204,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
 
     if interpolate:
         conf_list, x_list, y_list = general_interpolate_precision_recall(
-            conf_list,
-            x_list,
-            y_list
+            conf_list, x_list, y_list
         )
 
     if interpolate:
@@ -215,7 +229,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                 break
 
     if len(best_conf_list) > 1:
-        print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
+        print('WARNING: Multiple best operating points found %r' % (best_conf_list,))
 
     assert len(best_conf_list) > 0
     best_conf = best_conf_list[0]
@@ -224,7 +238,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
         # label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
         label = '%s [AP = %0.02f]' % (label, ap * 100.0)
     else:
-        label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
+        label = '%s [AUC = %0.02f]' % (label, ap * 100.0,)
 
     linestyle = '--' if kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
@@ -235,12 +249,22 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     return ap, best_conf, tup1, tup2
 
 
-def general_confusion_matrix_algo(label_correct_list, label_predict_list,
-                                  category_list, category_mapping,
-                                  fig_, axes_, fuzzy_dict=None, conf=None,
-                                  conf_list=None, size=10, **kwargs):
+def general_confusion_matrix_algo(
+    label_correct_list,
+    label_predict_list,
+    category_list,
+    category_mapping,
+    fig_,
+    axes_,
+    fuzzy_dict=None,
+    conf=None,
+    conf_list=None,
+    size=10,
+    **kwargs
+):
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
+
     suppressed_label = 'SUP'
     if conf is not None:
         assert conf_list is not None
@@ -288,8 +312,7 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
     confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
 
     # Draw the confusion matrix
-    res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet,
-                       interpolation='nearest')
+    res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet, interpolation='nearest')
 
     correct = suppressed_correct
     fuzzy = suppressed_fuzzy
@@ -303,7 +326,8 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                 fuzzy += number
             total += number
             axes_.annotate(
-                str(number), xy=(y, x),
+                str(number),
+                xy=(y, x),
                 horizontalalignment='center',
                 verticalalignment='center',
                 size=size,
@@ -316,10 +340,7 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
     margin_small = 0.1
     margin_large = 0.9
     plt.subplots_adjust(
-        left=margin_small,
-        right=margin_large,
-        bottom=margin_small,
-        top=margin_large
+        left=margin_small, right=margin_large, bottom=margin_small, top=margin_large
     )
 
     correct_rate = correct / total
@@ -340,7 +361,11 @@ def general_intersection_over_union(bbox1, bbox2):
         return 0.0
 
     intersection = intersection_w * intersection_h
-    union = (bbox1['width'] * bbox1['height']) + (bbox2['width'] * bbox2['height']) - intersection
+    union = (
+        (bbox1['width'] * bbox1['height'])
+        + (bbox2['width'] * bbox2['height'])
+        - intersection
+    )
 
     return intersection / union
 
@@ -354,56 +379,43 @@ def general_overlap(gt_list, pred_list):
 
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap, **kwargs):
-        overlap = general_overlap(gt_list, pred_list)
-        num_gt, num_pred = overlap.shape
-        if num_gt == 0:
-            tp = 0.0
-            fp = num_pred
-            fn = 0.0
-        elif num_pred == 0:
-            tp = 0.0
-            fp = 0.0
-            fn = num_gt
-        else:
-            pred_index_list = range(num_pred)
-            gt_index_list = np.argmax(overlap, axis=0)
-            max_overlap_list = np.max(overlap, axis=0)
-            confidence_list = [
-                pred.get('confidence', None)
-                for pred in pred_list
-            ]
-            assert None not in confidence_list
-            zipped = zip(
-                confidence_list,
-                max_overlap_list,
-                pred_index_list,
-                gt_index_list
-            )
-            pred_conf_list = [
-                (
-                    confidence,
-                    max_overlap,
-                    pred_index,
-                    gt_index,
-                )
-                for confidence, max_overlap, pred_index, gt_index in zipped
-            ]
-            pred_conf_list = sorted(pred_conf_list, reverse=True)
+    overlap = general_overlap(gt_list, pred_list)
+    num_gt, num_pred = overlap.shape
+    if num_gt == 0:
+        tp = 0.0
+        fp = num_pred
+        fn = 0.0
+    elif num_pred == 0:
+        tp = 0.0
+        fp = 0.0
+        fn = num_gt
+    else:
+        pred_index_list = range(num_pred)
+        gt_index_list = np.argmax(overlap, axis=0)
+        max_overlap_list = np.max(overlap, axis=0)
+        confidence_list = [pred.get('confidence', None) for pred in pred_list]
+        assert None not in confidence_list
+        zipped = zip(confidence_list, max_overlap_list, pred_index_list, gt_index_list)
+        pred_conf_list = [
+            (confidence, max_overlap, pred_index, gt_index,)
+            for confidence, max_overlap, pred_index, gt_index in zipped
+        ]
+        pred_conf_list = sorted(pred_conf_list, reverse=True)
 
-            assignment_dict = {}
-            for pred_conf, max_overlap, pred_index, gt_index in pred_conf_list:
-                if max_overlap > min_overlap:
-                    if gt_index not in assignment_dict:
-                        assignment_dict[gt_index] = pred_index
+        assignment_dict = {}
+        for pred_conf, max_overlap, pred_index, gt_index in pred_conf_list:
+            if max_overlap > min_overlap:
+                if gt_index not in assignment_dict:
+                    assignment_dict[gt_index] = pred_index
 
-            tp = len(assignment_dict.keys())
-            fp = num_pred - tp
-            fn = num_gt - tp
-            assert tp >= 0
-            assert fp >= 0
-            assert fn >= 0
+        tp = len(assignment_dict.keys())
+        fp = num_pred - tp
+        fn = num_gt - tp
+        assert tp >= 0
+        assert fp >= 0
+        assert fn >= 0
 
-        return tp, fp, fn
+    return tp, fp, fn
 
 
 def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
@@ -414,8 +426,9 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
     return test_gid_list
 
 
-def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={},
-                            **kwargs):
+def general_parse_gt_annots(
+    ibs, aid_list, include_parts=True, species_mapping={}, **kwargs
+):
     gid_list = ibs.get_annot_gids(aid_list)
 
     species_set = set([])
@@ -446,18 +459,18 @@ def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={
         viewpoint = ibs.get_annot_viewpoints(aid)
         interest = ibs.get_annot_interest(aid)
         temp = {
-            'gid'        : gid,
-            'aid'        : aid,
-            'xtl'        : bbox[0] / width,
-            'ytl'        : bbox[1] / height,
-            'xbr'        : (bbox[0] + bbox[2]) / width,
-            'ybr'        : (bbox[1] + bbox[3]) / height,
-            'width'      : bbox[2] / width,
-            'height'     : bbox[3] / height,
-            'class'      : species_mapping.get(species, species),
-            'viewpoint'  : viewpoint,
-            'interest'   : interest,
-            'confidence' : 1.0,
+            'gid': gid,
+            'aid': aid,
+            'xtl': bbox[0] / width,
+            'ytl': bbox[1] / height,
+            'xbr': (bbox[0] + bbox[2]) / width,
+            'ybr': (bbox[1] + bbox[3]) / height,
+            'width': bbox[2] / width,
+            'height': bbox[3] / height,
+            'class': species_mapping.get(species, species),
+            'viewpoint': viewpoint,
+            'interest': interest,
+            'confidence': 1.0,
         }
         species_set.add(temp['class'])
         gt_list.append(temp)
@@ -489,22 +502,22 @@ def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={
                 if tag is None:
                     tag = species
                 else:
-                    tag = '%s+%s' % (species, tag, )
+                    tag = '%s+%s' % (species, tag,)
 
                 temp = {
-                    'gid'        : gid,
-                    'aid'        : aid,
-                    'part_id'    : part_rowid,
-                    'xtl'        : bbox[0] / width,
-                    'ytl'        : bbox[1] / height,
-                    'xbr'        : (bbox[0] + bbox[2]) / width,
-                    'ybr'        : (bbox[1] + bbox[3]) / height,
-                    'width'      : bbox[2] / width,
-                    'height'     : bbox[3] / height,
-                    'class'      : tag,
-                    'viewpoint'  : viewpoint,
-                    'interest'   : interest,
-                    'confidence' : 1.0,
+                    'gid': gid,
+                    'aid': aid,
+                    'part_id': part_rowid,
+                    'xtl': bbox[0] / width,
+                    'ytl': bbox[1] / height,
+                    'xbr': (bbox[0] + bbox[2]) / width,
+                    'ybr': (bbox[1] + bbox[3]) / height,
+                    'width': bbox[2] / width,
+                    'height': bbox[3] / height,
+                    'class': tag,
+                    'viewpoint': viewpoint,
+                    'interest': interest,
+                    'confidence': 1.0,
                 }
                 species_set.add(temp['class'])
                 gt_list.append(temp)
@@ -547,35 +560,49 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
     size_list = ibs.get_image_sizes(test_gid_list)
 
     # Unsure, but we need to call this multiple times?  Lazy loading bug?
-    bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
+    bboxes_list = depc.get_property(
+        'localizations', test_gid_list, 'bboxes', config=kwargs
+    )
     # Get actual data
-    bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
-    thetas_list = depc.get_property('localizations', test_gid_list, 'thetas',  config=kwargs)
-    confss_list = depc.get_property('localizations', test_gid_list, 'confs',   config=kwargs)
-    classs_list = depc.get_property('localizations', test_gid_list, 'classes', config=kwargs)
+    bboxes_list = depc.get_property(
+        'localizations', test_gid_list, 'bboxes', config=kwargs
+    )
+    thetas_list = depc.get_property(
+        'localizations', test_gid_list, 'thetas', config=kwargs
+    )
+    confss_list = depc.get_property(
+        'localizations', test_gid_list, 'confs', config=kwargs
+    )
+    classs_list = depc.get_property(
+        'localizations', test_gid_list, 'classes', config=kwargs
+    )
 
-    length_list = [ len(bbox_list) for bbox_list in bboxes_list ]
+    length_list = [len(bbox_list) for bbox_list in bboxes_list]
 
     # Establish primitives
-    test_gids_list = [ [test_gid] * length for test_gid, length in zip(test_gid_list, length_list) ]
-    sizes_list = [ [size] * length for size, length in zip(size_list, length_list) ]
-    keeps_list = [ [True] * length for length in length_list ]
-    features_list = [ [None] * length for length in length_list ]
-    features_lazy_list = [ [None] * length for length in length_list ]
-    viewpoints_list = [ [None] * length for length in length_list ]
-    interests_list = [ [None] * length for length in length_list ]
+    test_gids_list = [
+        [test_gid] * length for test_gid, length in zip(test_gid_list, length_list)
+    ]
+    sizes_list = [[size] * length for size, length in zip(size_list, length_list)]
+    keeps_list = [[True] * length for length in length_list]
+    features_list = [[None] * length for length in length_list]
+    features_lazy_list = [[None] * length for length in length_list]
+    viewpoints_list = [[None] * length for length in length_list]
+    interests_list = [[None] * length for length in length_list]
 
     # Get features
     if kwargs.get('features', False):
-        features_list = depc.get_property('localizations_features', test_gid_list,
-                                          'vector', config=kwargs)
+        features_list = depc.get_property(
+            'localizations_features', test_gid_list, 'vector', config=kwargs
+        )
 
     if kwargs.get('features_lazy', False):
         from functools import partial
 
         def features_lazy_func(gid, offset):
-            vector_list = depc.get_property('localizations_features', gid,
-                                            'vector', config=kwargs)
+            vector_list = depc.get_property(
+                'localizations_features', gid, 'vector', config=kwargs
+            )
             vector = vector_list[offset]
             return vector
 
@@ -589,23 +616,27 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
     # Get species and viewpoints labels
     if kwargs.get('labels', False):
-        classs_list = depc.get_property('localizations_labeler', test_gid_list,
-                                        'species', config=kwargs)
-        viewpoints_list = depc.get_property('localizations_labeler', test_gid_list,
-                                            'viewpoint', config=kwargs)
+        classs_list = depc.get_property(
+            'localizations_labeler', test_gid_list, 'species', config=kwargs
+        )
+        viewpoints_list = depc.get_property(
+            'localizations_labeler', test_gid_list, 'viewpoint', config=kwargs
+        )
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
         print('Using alternate classifications')
         # depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
-        confss_list = depc.get_property('localizations_classifier', test_gid_list,
-                                        'score', config=kwargs)
+        confss_list = depc.get_property(
+            'localizations_classifier', test_gid_list, 'score', config=kwargs
+        )
 
     # Get updated confidences for boxes
     if kwargs.get('interest', False):
         print('Using alternate AoI interest flags')
-        interests_list = depc.get_property('localizations_classifier', test_gid_list,
-                                           'score', config=kwargs)
+        interests_list = depc.get_property(
+            'localizations_classifier', test_gid_list, 'score', config=kwargs
+        )
 
     # Reformat results for json
     zipped_list_list = zip(
@@ -624,36 +655,39 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
     results_list = [
         [
             {
-                'gid'          : test_gid,
-                'xtl'          : bbox[0] / width,
-                'ytl'          : bbox[1] / height,
-                'xbr'          : (bbox[0] + bbox[2]) / width,
-                'ybr'          : (bbox[1] + bbox[3]) / height,
-                'width'        : bbox[2] / width,
-                'height'       : bbox[3] / height,
-                'theta'        : theta,
-                'confidence'   : conf,
-                'class'        : species_mapping.get(class_, class_),
-                'viewpoint'    : viewpoint,
-                'interest'     : None if interest is None else interest >= 0.84,
-                'feature'      : feature,
-                'feature_lazy' : feature_lazy,
+                'gid': test_gid,
+                'xtl': bbox[0] / width,
+                'ytl': bbox[1] / height,
+                'xbr': (bbox[0] + bbox[2]) / width,
+                'ybr': (bbox[1] + bbox[3]) / height,
+                'width': bbox[2] / width,
+                'height': bbox[3] / height,
+                'theta': theta,
+                'confidence': conf,
+                'class': species_mapping.get(class_, class_),
+                'viewpoint': viewpoint,
+                'interest': None if interest is None else interest >= 0.84,
+                'feature': feature,
+                'feature_lazy': feature_lazy,
             }
-            for keep_, test_gid, (width, height), bbox, theta, conf, class_, viewpoint, interest, feature, feature_lazy in zip(*zipped_list)
+            for keep_, test_gid, (
+                width,
+                height,
+            ), bbox, theta, conf, class_, viewpoint, interest, feature, feature_lazy in zip(
+                *zipped_list
+            )
             if keep_
         ]
         for zipped_list in zipped_list_list
     ]
 
     pred_dict = {
-        uuid_ : result_list
-        for uuid_, result_list in zip(uuid_list, results_list)
+        uuid_: result_list for uuid_, result_list in zip(uuid_list, results_list)
     }
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
-                                    **kwargs):
+def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
@@ -668,7 +702,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
         # filter out any prefix ! to denote interest only
-        species_set_ = set([ species.lstrip('!') for species in species_set ])
+        species_set_ = set([species.lstrip('!') for species in species_set])
 
         dict_list = [
             (gt_dict, 'Ground-Truth'),
@@ -728,7 +762,7 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     for pred in pred_list:
         flag = False
 
-        match_index,  best_overlap  = localizer_assign(gt_list,  pred, min_overlap)
+        match_index, best_overlap = localizer_assign(gt_list, pred, min_overlap)
         match_index_, best_overlap_ = localizer_assign(gt_list_, pred, min_overlap)
 
         if match_index is not None:
@@ -738,9 +772,7 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
             flag = None
 
         if flag is not None:
-            match_list += [
-                (pred['confidence'], flag, match_index, best_overlap)
-            ]
+            match_list += [(pred['confidence'], flag, match_index, best_overlap)]
 
     return match_list
 
@@ -808,7 +840,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    print('Processing Precision-Recall for: %r' % (label,))
     conf_list, pr_list, re_list = localizer_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
@@ -817,8 +849,9 @@ def _ignore_filter_identity_func(*args, **kwargs):
     return False
 
 
-def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
-                              ignore_filter_func=None, **kwargs):
+def localizer_iou_recall_algo(
+    ibs, samples=100, test_gid_list=None, ignore_filter_func=None, **kwargs
+):
 
     assert 'min_overlap' not in kwargs
 
@@ -839,7 +872,7 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
         # filter out any prefix ! to denote interest only
-        species_set_ = set([ species.lstrip('!') for species in species_set ])
+        species_set_ = set([species.lstrip('!') for species in species_set])
 
         dict_list = [
             (gt_dict, 'Ground-Truth'),
@@ -857,13 +890,15 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
                 dict_[image_uuid] = temp
 
     target = (1.0, 1.0)
-    iou_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    iou_list = [_ / float(samples) for _ in range(0, int(samples) + 1)]
 
     conf_list_ = []
     iou_list_ = []
     recall_list = []
     for iou in tqdm.tqdm(iou_list):
-        values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs)
+        values = localizer_tp_fp(
+            test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs
+        )
         conf_list, tp_list, fp_list, total = values
 
         conf_list_ = []
@@ -879,10 +914,14 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
             pr_list.append(pr)
             re_list.append(re)
 
-        best_tup = general_identify_operating_point(conf_list, re_list, pr_list, target=target)
+        best_tup = general_identify_operating_point(
+            conf_list, re_list, pr_list, target=target
+        )
         best_conf_list, best_re_list, best_pr_list, best_length = best_tup
         if len(best_conf_list) > 1:
-            print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
+            print(
+                'WARNING: Multiple best operating points found %r' % (best_conf_list,)
+            )
         assert len(best_conf_list) > 0
 
         best_re_index = np.argmax(best_re_list)
@@ -898,21 +937,23 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
 
 def localizer_iou_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing IoU-Recall for: %r' % (label, ))
+    print('Processing IoU-Recall for: %r' % (label,))
     conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, iou_list, recall_list,
-                                  interpolate=False, **kwargs)
+    return general_area_best_conf(
+        conf_list, iou_list, recall_list, interpolate=False, **kwargs
+    )
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
 #     label = kwargs['label']
 #     print('Processing Precision-Recall for: %r' % (label, ))
 #     conf_list, iou_list, pr_list, re_list = localizer_iou_precision_recall_algo(ibs, **kwargs)
-    # return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
+# return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
-                                         test_gid_list=None, **kwargs):
+def localizer_confusion_matrix_algo_plot(
+    ibs, label=None, target_conf=None, test_gid_list=None, **kwargs
+):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
@@ -927,7 +968,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
         # filter out any prefix ! to denote interest only
-        species_set_ = set([ species.lstrip('!') for species in species_set ])
+        species_set_ = set([species.lstrip('!') for species in species_set])
 
         dict_list = [
             (gt_dict, 'Ground-Truth'),
@@ -969,7 +1010,10 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
         ut.embed()
         return np.nan, (np.nan, None)
 
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)' % (label, best_conf, best_accuracy, ))
+    print(
+        'Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)'
+        % (label, best_conf, best_accuracy,)
+    )
     tp, fp, fn = best_args
 
     label_list = []
@@ -989,17 +1033,19 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
         'positive': 0,
         'negative': 1,
     }
-    values = general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                           category_mapping, size=20, **kwargs)
+    values = general_confusion_matrix_algo(
+        label_list, prediction_list, category_list, category_mapping, size=20, **kwargs
+    )
     return best_conf, values
 
 
 @register_ibs_method
-def localizer_precision_recall(ibs, config_dict=None, output_path=None,
-                               test_gid_list=None, **kwargs):
+def localizer_precision_recall(
+    ibs, config_dict=None, output_path=None, test_gid_list=None, **kwargs
+):
     if config_dict is None:
         if test_gid_list is not None:
-            print('Using %d test gids' % (len(test_gid_list), ))
+            print('Using %d test gids' % (len(test_gid_list),))
 
         # species_mapping = {  # NOQA
         #     'giraffe_masai'       : 'giraffe',
@@ -1020,7 +1066,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {'BEST_INDEX': 0},
             # ),
-
             # '!seaturtle': (
             #     [
             #         {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
@@ -1032,7 +1077,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {'BEST_INDEX': 0},
             # ),
-
             # 'hawksbills': (
             #     [
             #         {'label': 'Hawksbill NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
@@ -1049,7 +1093,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'hawsbills+heads': (
             #     [
             #         {'label': 'Hawksbill Head NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill+head'])},
@@ -1066,7 +1109,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'hammerhead': (
             #     [
             #         {'label': 'Hammerhead NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
@@ -1083,7 +1125,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!hammerhead': (
             #     [
             #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
@@ -1101,7 +1142,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {'offset_color': 1},
             # ),
-
             # 'ggr2-giraffe-lightnet': (
             #     [
             #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
@@ -1118,7 +1158,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-zebra-lightnet': (
             #     [
             #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
@@ -1135,7 +1174,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-!giraffe-lightnet': (
             #     [
             #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
@@ -1152,7 +1190,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-!zebra-lightnet': (
             #     [
             #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
@@ -1169,7 +1206,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-giraffe-azure': (
             #     [
             #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
@@ -1186,7 +1222,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-zebra-azure': (
             #     [
             #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
@@ -1203,7 +1238,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-!giraffe-azure': (
             #     [
             #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
@@ -1220,7 +1254,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'ggr2-!zebra-azure': (
             #     [
             #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
@@ -1237,7 +1270,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'lynx': (
             #     [
             #         {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
@@ -1254,7 +1286,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'jaguar': (
             #     [
             #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
@@ -1271,7 +1302,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!jaguar': (
             #     [
             #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
@@ -1288,7 +1318,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'manta': (
             #     [
             #         {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['manta_ray_giant'])},
@@ -1305,7 +1334,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!manta': (
             #     [
             #         {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!manta_ray_giant'])},
@@ -1322,7 +1350,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'giraffe': (
             #     [
             #         {'label': 'Giraffe NMS 10%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
@@ -1343,7 +1370,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'spotted_skunk_v0': (
             #     [
             #         {'label': 'Spotted Skunk NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['skunk_spotted'])},
@@ -1360,7 +1386,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!spotted_skunk_v0': (
             #     [
             #         {'label': 'Spotted Skunk NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!skunk_spotted'])},
@@ -1377,7 +1402,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'nassau_grouper_v0': (
             #     [
             #         {'label': 'Nassau Grouper NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['grouper_nassau'])},
@@ -1394,7 +1418,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!nassau_grouper_v0': (
             #     [
             #         {'label': 'Nassau Grouper! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!grouper_nassau'])},
@@ -1411,7 +1434,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # 'spotted_dolphin_v0': (
             #     [
             #         {'label': 'Spotted DolphinNMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['dolphin_spotted'])},
@@ -1428,7 +1450,6 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             # '!spotted_dolphin_v0': (
             #     [
             #         {'label': 'Spotted Dolphin! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!dolphin_spotted'])},
@@ -1445,71 +1466,463 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
-
             'seadragon_weedy_v1': (
                 [
-                    {'label': 'Weedy Body NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy Body NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy'])},
+                    {
+                        'label': 'Weedy Body NMS 0%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.00,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 10%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.10,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 20%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.20,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 30%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.30,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 40%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.40,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 50%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.50,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 60%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.60,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 70%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.70,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 80%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.80,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 90%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.90,
+                        'species_set': set(['seadragon_leafy']),
+                    },
+                    {
+                        'label': 'Weedy Body NMS 100%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 1.00,
+                        'species_set': set(['seadragon_leafy']),
+                    },
                 ],
                 {},
             ),
-
             'seadragon_leafy_v1': (
                 [
-                    {'label': 'Leafy Body NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy Body NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy'])},
+                    {
+                        'label': 'Leafy Body NMS 0%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.00,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 10%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.10,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 20%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.20,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 30%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.30,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 40%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.40,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 50%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.50,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 60%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.60,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 70%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.70,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 80%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.80,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 90%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.90,
+                        'species_set': set(['seadragon_weedy']),
+                    },
+                    {
+                        'label': 'Leafy Body NMS 100%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 1.00,
+                        'species_set': set(['seadragon_weedy']),
+                    },
                 ],
                 {},
             ),
-
             'seadragon_weedy_head_v1': (
                 [
-                    {'label': 'Weedy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy+head'])},
+                    {
+                        'label': 'Weedy Head NMS 0%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.00,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 10%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.10,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 20%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.20,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 30%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.30,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 40%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.40,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 50%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.50,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 60%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.60,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 70%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.70,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 80%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.80,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 90%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.90,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
+                    {
+                        'label': 'Weedy Head NMS 100%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 1.00,
+                        'species_set': set(['seadragon_leafy+head']),
+                    },
                 ],
                 {},
             ),
-
             'seadragon_leafy_head_v1': (
                 [
-                    {'label': 'Leafy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy+head'])},
+                    {
+                        'label': 'Leafy Head NMS 0%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.00,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 10%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.10,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 20%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.20,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 30%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.30,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 40%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.40,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 50%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.50,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 60%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.60,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 70%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.70,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 80%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.80,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 90%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 0.90,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
+                    {
+                        'label': 'Leafy Head NMS 100%',
+                        'grid': False,
+                        'algo': 'lightnet',
+                        'config_filepath': 'seadragon_v1',
+                        'weight_filepath': 'seadragon_v1',
+                        'nms': True,
+                        'nms_thresh': 1.00,
+                        'species_set': set(['seadragon_weedy+head']),
+                    },
                 ],
                 {},
             ),
@@ -1528,18 +1941,26 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
                     config_['test_gid_list'] = test_gid_list
 
         ibs.localizer_precision_recall_algo_display(
-            config_list,
-            config_tag=config_key,
-            output_path=output_path,
-            **config
+            config_list, config_tag=config_key, output_path=output_path, **config
         )
 
 
 @register_ibs_method
-def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(40, 9),
-                                            target_recall=0.8, BEST_INDEX=None, offset_color=0,
-                                            write_images=False, plot_point=True, output_path=None, plot_iou_recall=True,
-                                            **kwargs):
+def localizer_precision_recall_algo_display(
+    ibs,
+    config_list,
+    config_tag='',
+    min_overlap=0.5,
+    figsize=(40, 9),
+    target_recall=0.8,
+    BEST_INDEX=None,
+    offset_color=0,
+    write_images=False,
+    plot_point=True,
+    output_path=None,
+    plot_iou_recall=True,
+    **kwargs
+):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
 
@@ -1550,7 +1971,9 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     for _ in range(offset_color):
         color_list_ += [(0.2, 0.2, 0.2)]
 
-    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
+    color_list = pt.distinct_colors(
+        len(config_list) - len(color_list_), randomize=False
+    )
     color_list = color_list_ + color_list
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
@@ -1560,22 +1983,29 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     axes_ = plt.subplot(141)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Recall (Ground-Truth IOU >= %0.02f)' % (min_overlap, ))
+    axes_.set_xlabel('Recall (Ground-Truth IOU >= %0.02f)' % (min_overlap,))
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
     ret_list = [
-        localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
-                                             plot_point=plot_point,
-                                             target_recall=target_recall, **config)
+        localizer_precision_recall_algo_plot(
+            ibs,
+            color=color,
+            min_overlap=min_overlap,
+            plot_point=plot_point,
+            target_recall=target_recall,
+            **config
+        )
         for color, config in zip(color_list, config_list)
     ]
 
-    area_list = [ ret[0] for ret in ret_list ]
-    tup2_list = [ ret[3] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    tup2_list = [ret[3] for ret in ret_list]
 
-    best_index = None if BEST_INDEX is None else BEST_INDEX  # Match formatting of below, this is a silly conditional
+    best_index = (
+        None if BEST_INDEX is None else BEST_INDEX
+    )  # Match formatting of below, this is a silly conditional
 
     best_y = 0.0
     best_index_ = None
@@ -1605,8 +2035,13 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         plt.plot(best_x_list, best_y_list, color=color, marker=marker)
 
     plt.title('Precision-Recall Curves', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     ######################################################################################
 
@@ -1620,7 +2055,9 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         axes_.set_ylim([0.0, 1.01])
 
         ret_list = [
-            localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
+            localizer_iou_recall_algo_plot(
+                ibs, color=color_, plot_point=False, **config_
+            )
             for color_, config_ in zip(color_list, config_list)
         ]
 
@@ -1657,8 +2094,13 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         #     plt.plot(best_x_list, best_y_list, color=color, marker=marker)
 
         plt.title('Recall-IOU Curves', y=1.19)
-        plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-                   borderaxespad=0.0)
+        plt.legend(
+            bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+            loc=3,
+            ncol=2,
+            mode='expand',
+            borderaxespad=0.0,
+        )
 
     ######################################################################################
 
@@ -1692,16 +2134,29 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         best_label = config_list[best_index]['label']
         best_area = area_list[best_index]
 
-        values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
-                                                      fig_=fig_, axes_=axes_,
-                                                      target_conf=target_conf,
-                                                      **best_config)
+        values = localizer_confusion_matrix_algo_plot(
+            ibs,
+            min_overlap=min_overlap,
+            fig_=fig_,
+            axes_=axes_,
+            target_conf=target_conf,
+            **best_config
+        )
         best_conf, (correct_rate, _) = values
 
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
         axes_.set_ylabel('Ground-Truth')
-        args = (target_recall, best_label, best_area, best_conf, )
-        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
+        args = (
+            target_recall,
+            best_label,
+            best_area,
+            best_conf,
+        )
+        plt.title(
+            'Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)'
+            % args,
+            y=1.26,
+        )
 
     ######################################################################################
     axes_ = plt.subplot(143)
@@ -1715,21 +2170,25 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     best_label = config_list[best_index]['label']
     best_area = area_list[best_index]
 
-    values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
-                                                  fig_=fig_, axes_=axes_,
-                                                  **best_config)
+    values = localizer_confusion_matrix_algo_plot(
+        ibs, min_overlap=min_overlap, fig_=fig_, axes_=axes_, **best_config
+    )
     best_conf, (correct_rate, _) = values
 
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    args = (best_label, best_area, best_conf, )
+    args = (
+        best_label,
+        best_area,
+        best_conf,
+    )
     plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
 
     ######################################################################################
     if len(config_tag) > 0:
-        config_tag = '%s-' % (config_tag, )
+        config_tag = '%s-' % (config_tag,)
 
-    fig_filename = '%slocalizer-precision-recall-%0.2f.png' % (config_tag, min_overlap, )
+    fig_filename = '%slocalizer-precision-recall-%0.2f.png' % (config_tag, min_overlap,)
     fig_path = join(output_path, fig_filename)
     plt.savefig(fig_path, bbox_inches='tight')
 
@@ -1740,8 +2199,10 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
 def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
     for value in range(10):
         min_overlap = value / 10.0
-        print('Processing: %r' % (min_overlap, ))
-        ibs.localizer_precision_recall_algo_display(config_list, min_overlap=min_overlap, **kwargs)
+        print('Processing: %r' % (min_overlap,))
+        ibs.localizer_precision_recall_algo_display(
+            config_list, min_overlap=min_overlap, **kwargs
+        )
 
 
 # def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf, min_overlap,
@@ -1938,7 +2399,9 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 #         ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
-def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+def classifier_cameratrap_precision_recall_algo(
+    ibs, positive_imageset_id, negative_imageset_id, **kwargs
+):
     depc = ibs.depc_image
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set_ = list(test_gid_set_)
@@ -1959,8 +2422,12 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
         test_gid_set.append(gid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'classifier', test_gid_set, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'classifier', test_gid_set, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -1970,21 +2437,43 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
 
 def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    print('Processing Precision-Recall for: %r' % (label,))
+    (
+        conf_list,
+        pr_list,
+        re_list,
+        tpr_list,
+        fpr_list,
+    ) = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-                                  target=(0.0, 1.0), **kwargs)
+    print('Processing ROC for: %r' % (label,))
+    (
+        conf_list,
+        pr_list,
+        re_list,
+        tpr_list,
+        fpr_list,
+    ) = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(
+        conf_list, fpr_list, tpr_list, interpolate=False, target=(0.0, 1.0), **kwargs
+    )
 
 
-def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+def classifier_cameratrap_confusion_matrix_algo_plot(
+    ibs,
+    label,
+    color,
+    conf,
+    positive_imageset_id,
+    negative_imageset_id,
+    output_cases=False,
+    **kwargs
+):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_image
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set_ = list(test_gid_set_)
@@ -2005,11 +2494,15 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
         test_gid_set.append(gid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'classifier', test_gid_set, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'classifier', test_gid_set, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
+        for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
         'positive' if confidence >= conf else 'negative'
@@ -2035,7 +2528,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
             image = cv2.resize(image, (192, 192), **warpkw)
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction, )
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction,)
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, image)
@@ -2045,12 +2538,15 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
         'positive': 0,
         'negative': 1,
     }
-    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+    return general_confusion_matrix_algo(
+        label_list, prediction_list, category_list, category_mapping, **kwargs
+    )
 
 
 @register_ibs_method
-def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, config_list=None, figsize=(20, 20)):
+def classifier_cameratrap_precision_recall_algo_display(
+    ibs, positive_imageset_id, negative_imageset_id, config_list=None, figsize=(20, 20)
+):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
 
@@ -2063,18 +2559,20 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
             # {'label': 'Initial Model (5%)  - DenseNet 0', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1:0'},
             # {'label': 'Initial Model (5%)  - DenseNet 1', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1:1'},
             # {'label': 'Initial Model (5%)  - DenseNet 2', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1:2'},
-            {'label': 'Initial Model (10%) - DenseNet',   'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2'},
+            {
+                'label': 'Initial Model (10%) - DenseNet',
+                'classifier_algo': 'densenet',
+                'classifier_weight_filepath': 'ryan_densenet_v2',
+            },
             # {'label': 'Initial Model (10%) - DenseNet 0', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:0'},
             # {'label': 'Initial Model (10%) - DenseNet 1', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:1'},
             # {'label': 'Initial Model (10%) - DenseNet 2', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v2:2'},
-
             # {'label': 'Initial Model   (0%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.1'},
             # {'label': 'Retrained Model (1%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.2'},
             # {'label': 'Retrained Model (2%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.3'},
             # {'label': 'Retrained Model (3%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.4'},
             # {'label': 'Retrained Model (4%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.5'},
             # {'label': 'Retrained Model (5%)', 'classifier_algo': 'cnn', 'classifier_weight_filepath': 'megan2.6'},
-
             # {'label': 'Initial Model   (0%)',   'classifier_weight_filepath': 'megan1.1'},
             # {'label': 'Retrained Model (1%)',   'classifier_weight_filepath': 'megan1.2'},
             # {'label': 'Retrained Model (2%)',   'classifier_weight_filepath': 'megan1.3'},
@@ -2092,14 +2590,17 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     ret_list = [
-        classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
-                                                         positive_imageset_id=positive_imageset_id,
-                                                         negative_imageset_id=negative_imageset_id,
-                                                         **config)
+        classifier_cameratrap_precision_recall_algo_plot(
+            ibs,
+            color=color,
+            positive_imageset_id=positive_imageset_id,
+            negative_imageset_id=negative_imageset_id,
+            **config
+        )
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     index = np.argmax(area_list)
     # index = 0
     best_label1 = config_list[index]['label']
@@ -2107,9 +2608,17 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title(
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
+        y=1.10,
+    )
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(222)
     axes_.set_autoscalex_on(False)
@@ -2119,14 +2628,17 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     ret_list = [
-        classifier_cameratrap_roc_algo_plot(ibs, color=color,
-                                            positive_imageset_id=positive_imageset_id,
-                                            negative_imageset_id=negative_imageset_id,
-                                            **config)
+        classifier_cameratrap_roc_algo_plot(
+            ibs,
+            color=color,
+            positive_imageset_id=positive_imageset_id,
+            negative_imageset_id=negative_imageset_id,
+            **config
+        )
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     index = np.argmax(area_list)
     # index = 0
     best_label2 = config_list[index]['label']
@@ -2134,35 +2646,51 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(223)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
-                                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       output_cases=True, **best_config1)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(
+        ibs,
+        color=best_color1,
+        conf=best_conf1,
+        fig_=fig_,
+        axes_=axes_,
+        positive_imageset_id=positive_imageset_id,
+        negative_imageset_id=negative_imageset_id,
+        output_cases=True,
+        **best_config1
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1,), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
-                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       **best_config2)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(
+        ibs,
+        color=best_color2,
+        conf=best_conf2,
+        fig_=fig_,
+        axes_=axes_,
+        positive_imageset_id=positive_imageset_id,
+        negative_imageset_id=negative_imageset_id,
+        **best_config2
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2,), y=1.12)
 
     fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -2303,9 +2831,15 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def classifier2_precision_recall_algo(ibs, category, species_mapping={},
-                                      output_path=None, test_gid_list=None,
-                                      test_label_list=None, **kwargs):
+def classifier2_precision_recall_algo(
+    ibs,
+    category,
+    species_mapping={},
+    output_path=None,
+    test_gid_list=None,
+    test_label_list=None,
+    **kwargs
+):
     depc = ibs.depc_image
     if test_gid_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2322,38 +2856,47 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
                 species_set.add(species)
             species_set_list.append(species_set)
     else:
-        species_set_list = [
-            set([label])
-            for label in test_label_list
-        ]
+        species_set_list = [set([label]) for label in test_label_list]
 
     label_list = [
         'positive' if category in species_set_ else 'negative'
         for species_set_ in species_set_list
     ]
 
-    confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
+    confidence_dict_list = depc.get_property(
+        'classifier_two', test_gid_list, 'scores', config=kwargs
+    )
     confidence_list = [
-        confidence_dict[category]
-        for confidence_dict in confidence_dict_list
+        confidence_dict[category] for confidence_dict in confidence_dict_list
     ]
 
     if output_path is not None:
         ut.ensuredir(output_path)
         config_ = {
-            'draw_annots' : False,
-            'thumbsize'   : (192, 192),
+            'draw_annots': False,
+            'thumbsize': (192, 192),
         }
-        thumbnail_list = depc.get_property('thumbnails', test_gid_list, 'img', config=config_)
-        zipped = zip(test_gid_list, thumbnail_list, species_set_list, confidence_dict_list)
-        for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
+        thumbnail_list = depc.get_property(
+            'thumbnails', test_gid_list, 'img', config=config_
+        )
+        zipped = zip(
+            test_gid_list, thumbnail_list, species_set_list, confidence_dict_list
+        )
+        for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(
+            zipped
+        ):
             print(index)
             x = ';'.join(species_set)
             y = []
             for key in confidence_dict:
-                y.append('%s-%0.04f' % (key, confidence_dict[key], ))
+                y.append('%s-%0.04f' % (key, confidence_dict[key],))
             y = ';'.join(y)
-            output_filename = 'image-index-%s-gid-%s-gt-%s-pred-%s.png' % (index, test_gid, x, y)
+            output_filename = 'image-index-%s-gid-%s-gt-%s-pred-%s.png' % (
+                index,
+                test_gid,
+                x,
+                y,
+            )
             output_filepath = join(output_path, output_filename)
             cv2.imwrite(output_filepath, thumbnail)
 
@@ -2363,26 +2906,35 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
 
 def classifier2_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
+    print('Processing Precision-Recall for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(
+        ibs, **kwargs
+    )
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def classifier2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-                                  target=(0.0, 1.0), **kwargs)
+    print('Processing ROC for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(
+        ibs, **kwargs
+    )
+    return general_area_best_conf(
+        conf_list, fpr_list, tpr_list, interpolate=False, target=(0.0, 1.0), **kwargs
+    )
 
 
 @register_ibs_method
-def classifier2_precision_recall_algo_display(ibs, species_list=None,
-                                              species_mapping={},
-                                              nice_mapping={},
-                                              test_gid_list=None,
-                                              test_label_list=None,
-                                              figsize=(20, 9), **kwargs):
+def classifier2_precision_recall_algo_display(
+    ibs,
+    species_list=None,
+    species_mapping={},
+    nice_mapping={},
+    test_gid_list=None,
+    test_label_list=None,
+    figsize=(20, 9),
+    **kwargs
+):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
 
@@ -2417,7 +2969,9 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     if species_list is None:
         test_gid = test_gid_list[0]
-        confidence_dict = depc.get_property('classifier_two', test_gid, 'scores', config=kwargs)
+        confidence_dict = depc.get_property(
+            'classifier_two', test_gid, 'scores', config=kwargs
+        )
         species_list = confidence_dict.keys()
 
     category_set = sorted(species_list)
@@ -2433,7 +2987,9 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
         config_list.append(config_dict)
 
     color_list_ = []
-    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
+    color_list = pt.distinct_colors(
+        len(config_list) - len(color_list_), randomize=False
+    )
     color_list = color_list_ + color_list
 
     axes_ = plt.subplot(121)
@@ -2445,14 +3001,22 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     axes_.set_ylim([0.0, 1.01])
 
     for color, config in zip(color_list, config_list):
-        classifier2_precision_recall_algo_plot(ibs, color=color,
-                                               test_gid_list=test_gid_list,
-                                               test_label_list=test_label_list,
-                                               species_mapping=species_mapping,
-                                               **config)
+        classifier2_precision_recall_algo_plot(
+            ibs,
+            color=color,
+            test_gid_list=test_gid_list,
+            test_label_list=test_label_list,
+            species_mapping=species_mapping,
+            **config
+        )
     plt.title('Precision-Recall Curves', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(122)
     axes_.set_autoscalex_on(False)
@@ -2464,23 +3028,28 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     op_dict = {}
     for color, config in zip(color_list, config_list):
-        values = classifier2_roc_algo_plot(ibs, color=color,
-                                           test_gid_list=test_gid_list,
-                                           test_label_list=test_label_list,
-                                           species_mapping=species_mapping,
-                                           **config)
+        values = classifier2_roc_algo_plot(
+            ibs,
+            color=color,
+            test_gid_list=test_gid_list,
+            test_label_list=test_label_list,
+            species_mapping=species_mapping,
+            **config
+        )
         ap, best_conf, tup1, tup2 = values
         op_dict[config['category']] = best_conf
 
     plt.title('ROC Curves', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     if is_labeled:
-        species_set_list = [
-            set([label])
-            for label in test_label_list
-        ]
+        species_set_list = [set([label]) for label in test_label_list]
     else:
         aids_list = ibs.get_image_aids(test_gid_list)
         species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
@@ -2491,10 +3060,14 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                 species = species_mapping.get(species, species)
                 species_set.add(species)
             species_set_list.append(species_set)
-    confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
+    confidence_dict_list = depc.get_property(
+        'classifier_two', test_gid_list, 'scores', config=kwargs
+    )
 
     correct = 0
-    for test_gid, confidence_dict, species_set in zip(test_gid_list, confidence_dict_list, species_set_list):
+    for test_gid, confidence_dict, species_set in zip(
+        test_gid_list, confidence_dict_list, species_set_list
+    ):
         species_set_ = set([])
         for key in confidence_dict:
             if op_dict[key] <= confidence_dict[key]:
@@ -2504,16 +3077,22 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
         else:
             print(test_gid, confidence_dict, species_set)
     print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_list)))
-    print('\t using op_dict = %r' % (op_dict, ))
+    print('\t using op_dict = %r' % (op_dict,))
 
     fig_filename = 'classifier2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping={}, viewpoint_mapping={},
-                        samples=SAMPLES, test_gid_set=None, **kwargs):
-
+def labeler_tp_tn_fp_fn(
+    ibs,
+    category_list,
+    species_mapping={},
+    viewpoint_mapping={},
+    samples=SAMPLES,
+    test_gid_set=None,
+    **kwargs
+):
     def errors(zipped, conf, category):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
@@ -2542,10 +3121,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping={}, viewpoint_mappin
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     # Filter aids with species of interest and undefined viewpoints
 
-    species_list = [
-        species_mapping.get(species, species)
-        for species in species_list
-    ]
+    species_list = [species_mapping.get(species, species) for species in species_list]
     viewpoint_list = [
         viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint)
         for species, viewpoint in zip(species_list, viewpoint_list)
@@ -2563,26 +3139,27 @@ def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping={}, viewpoint_mappin
 
     # Make ground-truth
     label_list = [
-        '%s:%s' % (species, viewpoint_, )
+        '%s:%s' % (species, viewpoint_,)
         for species, viewpoint_ in zip(species_list, viewpoint_list)
     ]
     # Get predictions
     # depc.delete_property('labeler', aid_list, config=kwargs)
-    probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
+    probability_dict_list = depc.get_property(
+        'labeler', aid_list, 'probs', config=kwargs
+    )
 
     value1_list = set(label_list)
     value2_list = set(probability_dict_list[0].keys())
     assert len(value1_list - value2_list) == 0
     assert len(value2_list - value1_list) == 0
 
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    conf_list = [_ / float(samples) for _ in range(0, int(samples) + 1)]
     label_dict = {}
     for key in value1_list:
-        print('\t%r' % (key, ))
+        print('\t%r' % (key,))
         conf_dict = {}
         confidence_list = [
-            probability_dict[key]
-            for probability_dict in probability_dict_list
+            probability_dict[key] for probability_dict in probability_dict_list
         ]
         zipped = list(zip(label_list, confidence_list))
         for conf in conf_list:
@@ -2638,7 +3215,10 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
             tpr_list.append(tpr)
             fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
+            print(
+                'Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r'
+                % (conf, tp, tn, fp, fn,)
+            )
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -2646,23 +3226,37 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
 def labeler_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
-    print('Processing Precision-Recall for: %r (category_list = %r)' % (label, category_list, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
+    print(
+        'Processing Precision-Recall for: %r (category_list = %r)'
+        % (label, category_list,)
+    )
+    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(
+        ibs, **kwargs
+    )
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def labeler_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
-    print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-                                  target=(0.0, 1.0), **kwargs)
+    print('Processing ROC for: %r (category_list = %r)' % (label, category_list,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(
+        ibs, **kwargs
+    )
+    return general_area_best_conf(
+        conf_list, fpr_list, tpr_list, interpolate=False, target=(0.0, 1.0), **kwargs
+    )
 
 
-def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
-                                       viewpoint_mapping={}, category_mapping=None,
-                                       test_gid_set=None, **kwargs):
+def labeler_confusion_matrix_algo_plot(
+    ibs,
+    category_list,
+    species_mapping={},
+    viewpoint_mapping={},
+    category_mapping=None,
+    test_gid_set=None,
+    **kwargs
+):
     print('Processing Confusion Matrix')
     depc = ibs.depc_annot
 
@@ -2675,7 +3269,8 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
     species_list = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     label_list = [
-        '%s:%s' % (
+        '%s:%s'
+        % (
             species_mapping.get(species, species),
             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
         )
@@ -2692,7 +3287,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
     species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
     viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
     prediction_list = [
-        '%s:%s' % (species, viewpoint, )
+        '%s:%s' % (species, viewpoint,)
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
 
@@ -2701,24 +3296,37 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
     prediction_list = list(map(simple_code, prediction_list))
 
     if category_mapping is None:
-        category_mapping = { key: index for index, key in enumerate(category_list) }
+        category_mapping = {key: index for index, key in enumerate(category_list)}
 
     category_mapping = {
-        simple_code(key): category_mapping[key]
-        for key in category_mapping
+        simple_code(key): category_mapping[key] for key in category_mapping
     }
-    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                                 category_mapping, conf_list=conf_list,
-                                                 size=8, **kwargs)
+    return general_confusion_matrix_algo(
+        label_list,
+        prediction_list,
+        category_list,
+        category_mapping,
+        conf_list=conf_list,
+        size=8,
+        **kwargs
+    )
 
 
 @register_ibs_method
-def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping={}, viewpoint_mapping={},
-                                          category_mapping=None, fuzzy_dict=None,
-                                          figsize=(30, 9), test_gid_set=None,
-                                          use_axis_aligned_chips=False,
-                                          labeler_weight_filepath=None,
-                                          config_list=None, **kwargs):
+def labeler_precision_recall_algo_display(
+    ibs,
+    category_list=None,
+    species_mapping={},
+    viewpoint_mapping={},
+    category_mapping=None,
+    fuzzy_dict=None,
+    figsize=(30, 9),
+    test_gid_set=None,
+    use_axis_aligned_chips=False,
+    labeler_weight_filepath=None,
+    config_list=None,
+    **kwargs
+):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2732,8 +3340,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         aid_list = ut.flatten(aids_list)
         species_list = ibs.get_annot_species_texts(aid_list)
         species_list = [
-            species_mapping.get(species, species)
-            for species in species_list
+            species_mapping.get(species, species) for species in species_list
         ]
         category_list = sorted(list(set(species_list)))
 
@@ -2754,10 +3361,16 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         kwargs['labeler_weight_filepath'] = 'seadragon_v2'
     else:
         kwargs['labeler_weight_filepath'] = labeler_weight_filepath
-    kwargs['labeler_axis_aligned']    = use_axis_aligned_chips
+    kwargs['labeler_axis_aligned'] = use_axis_aligned_chips
 
-    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
-                                     test_gid_set=test_gid_set, **kwargs)
+    label_dict = labeler_tp_tn_fp_fn(
+        ibs,
+        category_list,
+        species_mapping=species_mapping,
+        viewpoint_mapping=viewpoint_mapping,
+        test_gid_set=test_gid_set,
+        **kwargs
+    )
 
     if config_list is None:
         config_list = [
@@ -2779,14 +3392,16 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
             # {'label': 'Nassau Grouper',           'category_list': ['grouper_nassau']},
             # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
             # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
-            {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
-            {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
-            {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
-            {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+            {'label': 'Weedy SD ', 'category_list': ['seadragon_weedy']},
+            {'label': 'Weedy Head', 'category_list': ['seadragon_weedy+head']},
+            {'label': 'Leafy SD ', 'category_list': ['seadragon_leafy']},
+            {'label': 'Leafy Head', 'category_list': ['seadragon_leafy+head']},
         ]
 
     color_list = [(0.0, 0.0, 0.0)]
-    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+    color_list += pt.distinct_colors(
+        len(config_list) - len(color_list), randomize=False
+    )
 
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
@@ -2799,13 +3414,19 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     for color, config in zip(color_list, config_list):
-        ret = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
-                                                 color=color, **config)
+        ret = labeler_precision_recall_algo_plot(
+            ibs, label_dict=label_dict, color=color, **config
+        )
         area = ret[0]
         area_list.append(area)
     plt.title('Precision-Recall Curve', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(132)
     axes_.set_autoscalex_on(False)
@@ -2815,11 +3436,15 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     for color, config in zip(color_list, config_list):
-        labeler_roc_algo_plot(ibs, label_dict=label_dict,
-                              color=color, **config)
+        labeler_roc_algo_plot(ibs, label_dict=label_dict, color=color, **config)
     plt.title('ROC Curve', y=1.19)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     key_list = sorted(label_dict.keys())
 
@@ -2855,15 +3480,21 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     )
 
     if fuzzy:
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%, Fuzzy = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+        axes_.set_xlabel(
+            'Predicted (Correct = %0.02f%%, Fuzzy = %0.02f%%)'
+            % (correct_rate * 100.0, fuzzy_rate * 100.0,)
+        )
     else:
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+        axes_.set_xlabel(
+            'Predicted (Correct = %0.02f%%, Species = %0.02f%%)'
+            % (correct_rate * 100.0, fuzzy_rate * 100.0,)
+        )
 
     axes_.set_ylabel('Ground-Truth')
     # area_list_ = area_list[1:]
     area_list_ = area_list
     mAP = sum(area_list_) / len(area_list_)
-    args = (mAP * 100.0, )
+    args = (mAP * 100.0,)
     plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
 
     fig_filename = 'labeler-precision-recall-roc.png'
@@ -2890,8 +3521,12 @@ def canonical_precision_recall_algo(ibs, species, **kwargs):
         test_aid_set.append(aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('classifier', test_aid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier', test_aid_set, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'classifier', test_aid_set, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'classifier', test_aid_set, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -2901,21 +3536,28 @@ def canonical_precision_recall_algo(ibs, species, **kwargs):
 
 def canonical_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(ibs, **kwargs)
+    print('Processing Precision-Recall for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(
+        ibs, **kwargs
+    )
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def canonical_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-                                  target=(0.0, 1.0), **kwargs)
+    print('Processing ROC for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(
+        ibs, **kwargs
+    )
+    return general_area_best_conf(
+        conf_list, fpr_list, tpr_list, interpolate=False, target=(0.0, 1.0), **kwargs
+    )
 
 
-def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, output_cases=False, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+def canonical_confusion_matrix_algo_plot(
+    ibs, label, color, conf, species, output_cases=False, **kwargs
+):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_annot
 
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2934,11 +3576,15 @@ def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, outpu
         test_aid_set.append(aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('classifier', test_aid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier', test_aid_set, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'classifier', test_aid_set, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'classifier', test_aid_set, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
+        for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
         'positive' if confidence >= conf else 'negative'
@@ -2959,7 +3605,9 @@ def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, outpu
             'dim_size': (192, 192),
             'resize_dim': 'wh',
         }
-        chip_list = ibs.depc_annot.get_property('chips', test_aid_set, 'img', config=config)
+        chip_list = ibs.depc_annot.get_property(
+            'chips', test_aid_set, 'img', config=config
+        )
 
         zipped = zip(test_aid_set, chip_list, label_list, prediction_list)
         for aid, chip, label, prediction in zipped:
@@ -2967,7 +3615,7 @@ def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, outpu
                 continue
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (aid, prediction, )
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (aid, prediction,)
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, chip)
@@ -2977,8 +3625,9 @@ def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, outpu
         'positive': 0,
         'negative': 1,
     }
-    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+    return general_confusion_matrix_algo(
+        label_list, prediction_list, category_list, category_mapping, **kwargs
+    )
 
 
 @register_ibs_method
@@ -2989,17 +3638,39 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        {'label': 'CA V1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},   # SMALLER DATASET
-        {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},   # BROKEN L/R AUGMENTATION
-        {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},   # LARGER DATASET, TOO HARSH AUGMENTATION
-        {'label': 'CA V4 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},   # BETTER AUGMENTATION
+        {
+            'label': 'CA V1 Ensemble',
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v1',
+            'species': 'zebra_grevys',
+        },  # SMALLER DATASET
+        {
+            'label': 'CA V2 Ensemble',
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v2',
+            'species': 'zebra_grevys',
+        },  # BROKEN L/R AUGMENTATION
+        {
+            'label': 'CA V3 Ensemble',
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v3',
+            'species': 'zebra_grevys',
+        },  # LARGER DATASET, TOO HARSH AUGMENTATION
+        {
+            'label': 'CA V4 Ensemble',
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v4',
+            'species': 'zebra_grevys',
+        },  # BETTER AUGMENTATION
         # {'label': 'CA V4 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
         # {'label': 'CA V4 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
         # {'label': 'CA V4 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+    color_list += pt.distinct_colors(
+        len(config_list) - len(color_list), randomize=False
+    )
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -3012,8 +3683,8 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
         canonical_precision_recall_algo_plot(ibs, color=color, **config)
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     # index = np.argmax(area_list)
     index = -1
     best_label1 = config_list[index]['label']
@@ -3021,9 +3692,17 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title(
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
+        y=1.10,
+    )
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(222)
     axes_.set_autoscalex_on(False)
@@ -3036,8 +3715,8 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
         canonical_roc_algo_plot(ibs, color=color, **config)
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     # index = np.argmax(area_list)
     index = -1
     best_label2 = config_list[index]['label']
@@ -3045,31 +3724,42 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(223)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = canonical_confusion_matrix_algo_plot(ibs, color=best_color1,
-                                                           conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                           output_cases=True, **best_config1)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = canonical_confusion_matrix_algo_plot(
+        ibs,
+        color=best_color1,
+        conf=best_conf1,
+        fig_=fig_,
+        axes_=axes_,
+        output_cases=True,
+        **best_config1
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1,), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = canonical_confusion_matrix_algo_plot(ibs, color=best_color2,
-                                                           conf=best_conf2, fig_=fig_, axes_=axes_,
-                                                           **best_config2)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = canonical_confusion_matrix_algo_plot(
+        ibs, color=best_color2, conf=best_conf2, fig_=fig_, axes_=axes_, **best_config2
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2,), y=1.12)
 
     fig_filename = 'canonical-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -3118,14 +3808,14 @@ def _canonical_get_boxes(ibs, gid_list, species):
     return aid_set, bbox_set
 
 
-def canonical_localization_deviation_plot(ibs, attribute, color, index,
-                                          label=None, species=None, marker='o',
-                                          **kwargs):
+def canonical_localization_deviation_plot(
+    ibs, attribute, color, index, label=None, species=None, marker='o', **kwargs
+):
     import random
     import matplotlib.pyplot as plt
 
     assert None not in [label, species]
-    print('Processing Deviation for: %r' % (label, ))
+    print('Processing Deviation for: %r' % (label,))
     depc = ibs.depc_annot
 
     if attribute == 'x0':
@@ -3144,14 +3834,16 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
     test_aid_set, test_bbox_set = _canonical_get_boxes(ibs, test_gid_list_, species)
 
     value_list = ut.take_column(test_bbox_set, take_index)
-    prediction_list = depc.get_property('canonical', test_aid_set, attribute, config=kwargs)
+    prediction_list = depc.get_property(
+        'canonical', test_aid_set, attribute, config=kwargs
+    )
 
     x_list = []
     y_list = []
     overshoot = 0.0
     for value, prediction in zip(value_list, prediction_list):
         x = random.uniform(index, index + 1)
-        y = (value - prediction)
+        y = value - prediction
         if y < 0:
             overshoot += 1
         x_list.append(x)
@@ -3160,39 +3852,64 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
     std = np.std(y_list)
     overshoot /= len(y_list)
 
-    label = '%s (Over: %0.02f, %0.02f+/-%0.02f)' % (label, overshoot, mean, std, )
-    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+    label = '%s (Over: %0.02f, %0.02f+/-%0.02f)' % (label, overshoot, mean, std,)
+    plt.plot(
+        x_list,
+        y_list,
+        color=color,
+        linestyle='None',
+        marker=marker,
+        label=label,
+        alpha=0.5,
+    )
 
-    plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3)
+    plt.plot(
+        [index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3
+    )
     if index % 4 == 3:
-        plt.plot([index + 1, index + 1], [-1.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.1)
+        plt.plot(
+            [index + 1, index + 1],
+            [-1.0, 1.0],
+            color=(0.2, 0.2, 0.2),
+            linestyle='--',
+            alpha=0.1,
+        )
 
     color = 'xkcd:gold'
     marker = 'D'
-    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
+    plt.errorbar(
+        [index + 0.5],
+        [mean],
+        [std],
+        linestyle='None',
+        color=color,
+        marker=marker,
+        zorder=999,
+        barsabove=True,
+    )
     # plt.plot([index + 0.5], [mean], color=color, marker=marker)
 
 
-def canonical_localization_iou_plot(ibs, color, index,
-                                    label=None, species=None, marker='o',
-                                    threshold=0.75, **kwargs):
+def canonical_localization_iou_plot(
+    ibs, color, index, label=None, species=None, marker='o', threshold=0.75, **kwargs
+):
     import random
     import matplotlib.pyplot as plt
 
     def _convert(bbox):
         x0, y0, x1, y1 = bbox
         retval = {
-            'xtl' : x0,
-            'ytl' : y0,
-            'xbr' : 1.0 - x1,
-            'ybr' : 1.0 - y1,
+            'xtl': x0,
+            'ytl': y0,
+            'xbr': 1.0 - x1,
+            'ybr': 1.0 - y1,
         }
         retval['width'] = retval['xbr'] - retval['xtl']
         retval['height'] = retval['ybr'] - retval['ytl']
         return retval
 
     assert None not in [label, species]
-    print('Processing IoU for: %r' % (label, ))
+    print('Processing IoU for: %r' % (label,))
     depc = ibs.depc_annot
 
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -3219,30 +3936,68 @@ def canonical_localization_iou_plot(ibs, color, index,
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (Acc: %0.02f, %0.02f+/-%0.02f)' % (label, accuracy, mean, std, )
-    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+    label = '%s (Acc: %0.02f, %0.02f+/-%0.02f)' % (label, accuracy, mean, std,)
+    plt.plot(
+        x_list,
+        y_list,
+        color=color,
+        linestyle='None',
+        marker=marker,
+        label=label,
+        alpha=0.5,
+    )
 
     for y_value in [0.5, 0.75, 0.9]:
-        plt.plot([index, index + 1], [y_value, y_value], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3)
+        plt.plot(
+            [index, index + 1],
+            [y_value, y_value],
+            color=(0.2, 0.2, 0.2),
+            linestyle='-',
+            alpha=0.3,
+        )
 
     if index % 4 == 3:
-        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.1)
+        plt.plot(
+            [index + 1, index + 1],
+            [0.0, 1.0],
+            color=(0.2, 0.2, 0.2),
+            linestyle='--',
+            alpha=0.1,
+        )
 
     color = 'xkcd:gold'
     marker = 'D'
-    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
+    plt.errorbar(
+        [index + 0.5],
+        [mean],
+        [std],
+        linestyle='None',
+        color=color,
+        marker=marker,
+        zorder=999,
+        barsabove=True,
+    )
     # plt.plot([index + 0.5], [mean], color=color, marker=marker)
 
     return test_aid_set, test_bbox_set, prediction_list, y_list, accuracy
 
 
 @register_ibs_method
-def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set, prediction_list,
-                                         overlap_list, color_list, label=None, species=None,
-                                         **kwargs):
+def canonical_localization_iou_visualize(
+    ibs,
+    index,
+    test_aid_set,
+    test_bbox_set,
+    prediction_list,
+    overlap_list,
+    color_list,
+    label=None,
+    species=None,
+    **kwargs
+):
     assert None not in [label, species]
     assert len(color_list) == 4
-    print('Processing Renderings for: %r' % (label, ))
+    print('Processing Renderings for: %r' % (label,))
 
     color_list_ = []
     for color in color_list:
@@ -3254,7 +4009,7 @@ def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set
         color_list_.append(color_)
     color_list = color_list_
 
-    output_path = expanduser(join('~', 'Desktop', 'canonical-regression-%d' % (index, )))
+    output_path = expanduser(join('~', 'Desktop', 'canonical-regression-%d' % (index,)))
     ut.delete(output_path)
     ut.ensuredir(output_path)
 
@@ -3263,7 +4018,9 @@ def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set
         'resize_dim': 'maxwh',
     }
     chip_list = ibs.depc_annot.get_property('chips', test_aid_set, 'img', config=config)
-    zipped = list(zip(test_aid_set, chip_list, test_bbox_set, prediction_list, overlap_list))
+    zipped = list(
+        zip(test_aid_set, chip_list, test_bbox_set, prediction_list, overlap_list)
+    )
 
     for test_aid, chip, test_bbox, prediction, overlap in zipped:
         h, w = chip.shape[:2]
@@ -3301,7 +4058,10 @@ def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set
 
         canvas = np.hstack((chipa, chipb))
 
-        canvas_filepath = join(output_path, 'canonical-regression-iou-%0.02f-aid-%s.jpg' % (overlap, test_aid, ))
+        canvas_filepath = join(
+            output_path,
+            'canonical-regression-iou-%0.02f-aid-%s.jpg' % (overlap, test_aid,),
+        )
         cv2.imwrite(canvas_filepath, canvas)
 
 
@@ -3325,22 +4085,72 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
         # {'label': 'CA V3 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:0', 'species': 'zebra_grevys'},  # OVER = 2.0
         # {'label': 'CA V3 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:1', 'species': 'zebra_grevys'},  # OVER = 2.0
         # {'label': 'CA V3 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:2', 'species': 'zebra_grevys'},  # OVER = 2.0
-        {'label': 'CA V5-1.0 Ens.', 'canonical_weight_filepath': 'canonical_zebra_grevys_v5',   'species': 'zebra_grevys'},  # OVER = 1.0
-        {'label': 'CA V5-1.0 M0',   'canonical_weight_filepath': 'canonical_zebra_grevys_v5:0', 'species': 'zebra_grevys'},  # OVER = 1.0
-        {'label': 'CA V5-1.0 M1',   'canonical_weight_filepath': 'canonical_zebra_grevys_v5:1', 'species': 'zebra_grevys'},  # OVER = 1.0
-        {'label': 'CA V5-1.0 M2',   'canonical_weight_filepath': 'canonical_zebra_grevys_v5:2', 'species': 'zebra_grevys'},  # OVER = 1.0
-        {'label': 'CA V6-2.0 Ens.', 'canonical_weight_filepath': 'canonical_zebra_grevys_v6',   'species': 'zebra_grevys'},  # OVER = 2.0
-        {'label': 'CA V6-2.0 M0',   'canonical_weight_filepath': 'canonical_zebra_grevys_v6:0', 'species': 'zebra_grevys'},  # OVER = 2.0
-        {'label': 'CA V6-2.0 M1',   'canonical_weight_filepath': 'canonical_zebra_grevys_v6:1', 'species': 'zebra_grevys'},  # OVER = 2.0
-        {'label': 'CA V6-2.0 M2',   'canonical_weight_filepath': 'canonical_zebra_grevys_v6:2', 'species': 'zebra_grevys'},  # OVER = 2.0
-        {'label': 'CA V4-4.0 Ens.', 'canonical_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},  # OVER = 4.0
-        {'label': 'CA V4-4.0 M0',   'canonical_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},  # OVER = 4.0
-        {'label': 'CA V4-4.0 M1',   'canonical_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},  # OVER = 4.0
-        {'label': 'CA V4-4.0 M2',   'canonical_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},  # OVER = 4.0
+        {
+            'label': 'CA V5-1.0 Ens.',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v5',
+            'species': 'zebra_grevys',
+        },  # OVER = 1.0
+        {
+            'label': 'CA V5-1.0 M0',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v5:0',
+            'species': 'zebra_grevys',
+        },  # OVER = 1.0
+        {
+            'label': 'CA V5-1.0 M1',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v5:1',
+            'species': 'zebra_grevys',
+        },  # OVER = 1.0
+        {
+            'label': 'CA V5-1.0 M2',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v5:2',
+            'species': 'zebra_grevys',
+        },  # OVER = 1.0
+        {
+            'label': 'CA V6-2.0 Ens.',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v6',
+            'species': 'zebra_grevys',
+        },  # OVER = 2.0
+        {
+            'label': 'CA V6-2.0 M0',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v6:0',
+            'species': 'zebra_grevys',
+        },  # OVER = 2.0
+        {
+            'label': 'CA V6-2.0 M1',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v6:1',
+            'species': 'zebra_grevys',
+        },  # OVER = 2.0
+        {
+            'label': 'CA V6-2.0 M2',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v6:2',
+            'species': 'zebra_grevys',
+        },  # OVER = 2.0
+        {
+            'label': 'CA V4-4.0 Ens.',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v4',
+            'species': 'zebra_grevys',
+        },  # OVER = 4.0
+        {
+            'label': 'CA V4-4.0 M0',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v4:0',
+            'species': 'zebra_grevys',
+        },  # OVER = 4.0
+        {
+            'label': 'CA V4-4.0 M1',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v4:1',
+            'species': 'zebra_grevys',
+        },  # OVER = 4.0
+        {
+            'label': 'CA V4-4.0 M2',
+            'canonical_weight_filepath': 'canonical_zebra_grevys_v4:2',
+            'species': 'zebra_grevys',
+        },  # OVER = 4.0
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+    color_list += pt.distinct_colors(
+        len(config_list) - len(color_list), randomize=False
+    )
 
     min_, max_ = -1.0, 1.0
 
@@ -3355,11 +4165,18 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([min_, max_])
     axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
+        canonical_localization_deviation_plot(
+            ibs, 'x0', color=color, index=index, **config
+        )
 
     plt.title('X0 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(322)
     axes_.grid(True, which='major')
@@ -3372,11 +4189,18 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([min_, max_])
     axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        canonical_localization_deviation_plot(ibs, 'x1', color=color, index=index, **config)
+        canonical_localization_deviation_plot(
+            ibs, 'x1', color=color, index=index, **config
+        )
 
     plt.title('Y0 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(323)
     axes_.grid(True, which='major')
@@ -3389,11 +4213,18 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([min_, max_])
     axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        canonical_localization_deviation_plot(ibs, 'y0', color=color, index=index, **config)
+        canonical_localization_deviation_plot(
+            ibs, 'y0', color=color, index=index, **config
+        )
 
     plt.title('X1 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(324)
     axes_.grid(True, which='major')
@@ -3406,11 +4237,18 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([min_, max_])
     axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        canonical_localization_deviation_plot(ibs, 'y1', color=color, index=index, **config)
+        canonical_localization_deviation_plot(
+            ibs, 'y1', color=color, index=index, **config
+        )
 
     plt.title('Y1 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(325)
     axes_.grid(True, which='major')
@@ -3436,12 +4274,19 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     for index, (attribute, color_) in enumerate(zip(attribute_list, color_list_)):
         index_ = (index // 4) * 4
         config_ = config_list[index_].copy()
-        config_['label'] = '%s %s' % (config_['label'], attribute, )
-        canonical_localization_deviation_plot(ibs, attribute, color=color_, index=index, **config_)
+        config_['label'] = '%s %s' % (config_['label'], attribute,)
+        canonical_localization_deviation_plot(
+            ibs, attribute, color=color_, index=index, **config_
+        )
 
     plt.title('Ensemble Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(326)
     axes_.grid(True, which='major')
@@ -3454,17 +4299,30 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([0.0, 1.0])
 
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
+        values_ = canonical_localization_iou_plot(
+            ibs, color=color, index=index, **config
+        )
         if index % 4 == 0:
             config_ = config_list[index]
             test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values_
-            ibs.canonical_localization_iou_visualize(index, test_aid_set, test_bbox_set,
-                                                     prediction_list, y_list, colors,
-                                                     **config_)
+            ibs.canonical_localization_iou_visualize(
+                index,
+                test_aid_set,
+                test_bbox_set,
+                prediction_list,
+                y_list,
+                colors,
+                **config_
+            )
 
     plt.title('IoU Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.04, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     fig_filename = 'canonical-localization-deviance.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -3472,8 +4330,9 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
 
 
 @register_ibs_method
-def background_accuracy_display(ibs, category_list, test_gid_set=None,
-                                output_path=None):
+def background_accuracy_display(
+    ibs, category_list, test_gid_set=None, output_path=None
+):
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'background')))
@@ -3487,16 +4346,12 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None,
     species_list = ibs.get_annot_species_texts(aid_list)
 
     aid_list = [
-        aid
-        for aid, species in zip(aid_list, species_list)
-        if species in category_list
+        aid for aid, species in zip(aid_list, species_list) if species in category_list
     ]
     species_list = ibs.get_annot_species_texts(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
 
-    config2_ = {
-        'fw_detector': 'cnn'
-    }
+    config2_ = {'fw_detector': 'cnn'}
     hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
     image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
     chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
@@ -3512,7 +4367,9 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None,
         blended = blended.astype(np.uint8)
 
         canvas = np.hstack((chip, mask, blended))
-        output_filepath = join(output_path, 'background.%s.%d.%d.png' % (species, gid, aid, ))
+        output_filepath = join(
+            output_path, 'background.%s.%d.%d.png' % (species, gid, aid,)
+        )
         cv2.imwrite(output_filepath, canvas)
 
 
@@ -3536,8 +4393,12 @@ def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kw
         test_aid_list.append(test_aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
-    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'aoi_two', test_aid_list, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'aoi_two', test_aid_list, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -3547,22 +4408,35 @@ def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kw
 
 def aoi2_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
+    print('Processing Precision-Recall for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(
+        ibs, **kwargs
+    )
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def aoi2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
-    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-                                  target=(0.0, 1.0), **kwargs)
+    print('Processing ROC for: %r' % (label,))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(
+        ibs, **kwargs
+    )
+    return general_area_best_conf(
+        conf_list, fpr_list, tpr_list, interpolate=False, target=(0.0, 1.0), **kwargs
+    )
 
 
-def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
-                                    category_list=None, test_gid_set_=None, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+def aoi2_confusion_matrix_algo_plot(
+    ibs,
+    label,
+    color,
+    conf,
+    output_cases=False,
+    category_list=None,
+    test_gid_set_=None,
+    **kwargs
+):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_annot
     if test_gid_set_ is None:
         test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
@@ -3582,8 +4456,12 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
         test_aid_list.append(test_aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
-    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
+    prediction_list = depc.get_property(
+        'aoi_two', test_aid_list, 'class', config=kwargs
+    )
+    confidence_list = depc.get_property(
+        'aoi_two', test_aid_list, 'score', config=kwargs
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -3606,7 +4484,10 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
             if test_gid not in manifest_dict:
                 manifest_dict[test_gid] = {}
             assert test_aid not in manifest_dict[test_gid]
-            manifest_dict[test_gid][test_aid] = (label, prediction, )
+            manifest_dict[test_gid][test_aid] = (
+                label,
+                prediction,
+            )
 
         for test_gid in manifest_dict:
             image = ibs.get_images(test_gid)
@@ -3636,7 +4517,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
                     color = (127, 255, 127)
                 cv2.rectangle(image, (xtl - 4, ytl - 4), (xbr + 4, ybr + 4), color, 4)
 
-            image_filename = 'image_%d.png' % (test_gid, )
+            image_filename = 'image_%d.png' % (test_gid,)
             image_filepath = join(output_path, image_filename)
             cv2.imwrite(image_filepath, image)
 
@@ -3645,12 +4526,15 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
         'positive': 0,
         'negative': 1,
     }
-    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, size=20, **kwargs)
+    return general_confusion_matrix_algo(
+        label_list, prediction_list, category_list, category_mapping, size=20, **kwargs
+    )
 
 
 @register_ibs_method
-def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=False, figsize=(20, 20)):
+def aoi2_precision_recall_algo_display(
+    ibs, test_gid_list=None, output_cases=False, figsize=(20, 20)
+):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
 
@@ -3666,10 +4550,16 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
         # {'label': 'Grevy\'s Zebra',      'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_grevys']},
         # {'label': 'Plains Zebra',        'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_plains']},
         # {'label': 'Hammerhead',        'aoi_two_weight_filepath': 'hammerhead', 'category_list': ['shark_hammerhead']},
-        {'label': 'Jaguar',        'aoi_two_weight_filepath': 'jaguar', 'category_list': ['jaguar']},
+        {
+            'label': 'Jaguar',
+            'aoi_two_weight_filepath': 'jaguar',
+            'category_list': ['jaguar'],
+        },
     ]
     color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+    color_list += pt.distinct_colors(
+        len(config_list) - len(color_list), randomize=False
+    )
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -3679,11 +4569,13 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     ret_list = [
-        aoi2_precision_recall_algo_plot(ibs, color=color, test_gid_set_=test_gid_set, **config)
+        aoi2_precision_recall_algo_plot(
+            ibs, color=color, test_gid_set_=test_gid_set, **config
+        )
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     # index = np.argmax(area_list)
     index = 0
     best_label1 = config_list[index]['label']
@@ -3691,9 +4583,17 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title(
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
+        y=1.10,
+    )
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
 
     axes_ = plt.subplot(222)
     axes_.set_autoscalex_on(False)
@@ -3706,8 +4606,8 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
         aoi2_roc_algo_plot(ibs, color=color, **config)
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
+    area_list = [ret[0] for ret in ret_list]
+    conf_list = [ret[1] for ret in ret_list]
     # index = np.argmax(area_list)
     index = 0
     best_label2 = config_list[index]['label']
@@ -3715,34 +4615,49 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.legend(
+        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        loc=3,
+        ncol=2,
+        mode='expand',
+        borderaxespad=0.0,
+    )
     plt.plot([0.0, 1.0], [0.0, 1.0], color=(0.5, 0.5, 0.5), linestyle='--')
     axes_ = plt.subplot(223)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = aoi2_confusion_matrix_algo_plot(ibs, color=best_color1,
-                                                      conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                      output_cases=output_cases,
-                                                      test_gid_set_=test_gid_set,
-                                                      **best_config1)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = aoi2_confusion_matrix_algo_plot(
+        ibs,
+        color=best_color1,
+        conf=best_conf1,
+        fig_=fig_,
+        axes_=axes_,
+        output_cases=output_cases,
+        test_gid_set_=test_gid_set,
+        **best_config1
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1,), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = aoi2_confusion_matrix_algo_plot(ibs, color=best_color2,
-                                                      conf=best_conf2, fig_=fig_, axes_=axes_,
-                                                      test_gid_set_=test_gid_set,
-                                                      **best_config2)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    correct_rate, _ = aoi2_confusion_matrix_algo_plot(
+        ibs,
+        color=best_color2,
+        conf=best_conf2,
+        fig_=fig_,
+        axes_=axes_,
+        test_gid_set_=test_gid_set,
+        **best_config2
+    )
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2,), y=1.12)
 
     fig_filename = 'aoi2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -3763,16 +4678,16 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
-                'gid'        : gid,
-                'xtl'        : bbox[0] / width,
-                'ytl'        : bbox[1] / height,
-                'xbr'        : (bbox[0] + bbox[2]) / width,
-                'ybr'        : (bbox[1] + bbox[3]) / height,
-                'width'      : bbox[2] / width,
-                'height'     : bbox[3] / height,
-                'class'      : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_viewpoints(aid),
-                'confidence' : 1.0,
+                'gid': gid,
+                'xtl': bbox[0] / width,
+                'ytl': bbox[1] / height,
+                'xbr': (bbox[0] + bbox[2]) / width,
+                'ybr': (bbox[1] + bbox[3]) / height,
+                'width': bbox[2] / width,
+                'height': bbox[3] / height,
+                'class': ibs.get_annot_species_texts(aid),
+                'viewpoint': ibs.get_annot_viewpoints(aid),
+                'confidence': 1.0,
             }
             gt_list.append(temp)
         gt_dict[uuid] = gt_list
@@ -4078,5 +4993,6 @@ if __name__ == '__main__':
         python -m wbia.other.detectfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

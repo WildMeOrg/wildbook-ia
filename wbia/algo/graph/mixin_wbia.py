@@ -8,6 +8,7 @@ import vtool as vt  # NOQA
 import six
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -29,9 +30,7 @@ class IBEISIO(object):
 
         edge_delta_info = infr.wbia_edge_delta_info(edge_delta_df)
 
-        info = ut.odict([
-            ('num_annots_with_names_changed' , len(name_delta_df)),
-        ])
+        info = ut.odict([('num_annots_with_names_changed', len(name_delta_df)),])
         info.update(edge_delta_info)
         for key, val in name_stats_df.iterrows():
             info['num_' + key] = int(val['size'])
@@ -45,23 +44,28 @@ class IBEISIO(object):
 
         # Look at what changed
         tag_flags = edge_delta_df['old_tags'] != edge_delta_df['new_tags']
-        state_flags = edge_delta_df['old_evidence_decision'] != edge_delta_df['new_evidence_decision']
+        state_flags = (
+            edge_delta_df['old_evidence_decision']
+            != edge_delta_df['new_evidence_decision']
+        )
         is_added_to_am = edge_delta_df['am_rowid'].isnull()
         is_new = edge_delta_df['is_new']
-        info = ut.odict([
-            # Technically num_edges_added only cares if the edge exists in the
-            # annotmatch table.
-            ('num_edges_added_to_am' , is_added_to_am.sum()),
-            ('num_edges_added' , is_new.sum()),
-            ('num_edges_modified' , (~is_new).sum()),
-            ('num_changed_decision_and_tags' , (
-                (tag_flags & state_flags & ~is_new).sum())),
-            ('num_changed_tags'              , (
-                (tag_flags & ~state_flags & ~is_new).sum())),
-            ('num_changed_decision'          , (
-                (~tag_flags & state_flags & ~is_new).sum())),
-            # 'num_non_pos_redundant': num_non_pos_redundant,
-        ])
+        info = ut.odict(
+            [
+                # Technically num_edges_added only cares if the edge exists in the
+                # annotmatch table.
+                ('num_edges_added_to_am', is_added_to_am.sum()),
+                ('num_edges_added', is_new.sum()),
+                ('num_edges_modified', (~is_new).sum()),
+                (
+                    'num_changed_decision_and_tags',
+                    ((tag_flags & state_flags & ~is_new).sum()),
+                ),
+                ('num_changed_tags', ((tag_flags & ~state_flags & ~is_new).sum())),
+                ('num_changed_decision', ((~tag_flags & state_flags & ~is_new).sum())),
+                # 'num_non_pos_redundant': num_non_pos_redundant,
+            ]
+        )
         return info
 
     def name_label_group_delta_info(infr):
@@ -74,7 +78,7 @@ class IBEISIO(object):
         name_labels = list(infr.gen_node_values('name_label', aids))
         old_ccs = list(ut.group_items(aids, name_labels).values())
         new_ccs = list(infr.positive_components())
-        df =  infr.name_group_delta_stats(old_ccs, new_ccs)
+        df = infr.name_group_delta_stats(old_ccs, new_ccs)
         return df
 
     def wbia_name_group_delta_info(infr, verbose=None):
@@ -85,8 +89,7 @@ class IBEISIO(object):
         new_names = list(infr.gen_node_values('name_label', aids))
         new_ccs = list(ut.group_items(aids, new_names).values())
 
-        old_names = infr.ibs.get_annot_name_texts(
-            aids, distinguish_unknowns=True)
+        old_names = infr.ibs.get_annot_name_texts(aids, distinguish_unknowns=True)
         old_ccs = list(ut.group_items(aids, old_names).values())
 
         df = infr.name_group_delta_stats(old_ccs, new_ccs, verbose)
@@ -158,8 +161,7 @@ class IBEISIO(object):
         infr_ccs = list(infr.positive_components())
         delta = ut.grouping_delta(ibs_ccs, infr_ccs)
 
-        hyrbid_splits = [ccs for ccs in delta['hybrid']['splits']
-                         if len(ccs) > 1]
+        hyrbid_splits = [ccs for ccs in delta['hybrid']['splits'] if len(ccs) > 1]
         pure_splits = delta['splits']['new']
 
         new_splits = hyrbid_splits + pure_splits
@@ -220,18 +222,19 @@ class IBEISIO(object):
             >>> assert got.issubset(expected), ut.repr4(overlap, nl=2)
         """
         import uuid
+
         # Map what add_review expects to the keys used by feedback items
         add_review_alias = {
-            'evidence_decision_list'         : 'evidence_decision',
-            'meta_decision_list'             : 'meta_decision',
-            'review_uuid_list'               : 'uuid',
-            'identity_list'                  : 'user_id',
-            'user_confidence_list'           : 'confidence',
-            'tags_list'                      : 'tags',
-            'review_client_start_time_posix' : 'timestamp_c1',
-            'review_client_end_time_posix'   : 'timestamp_c2',
-            'review_server_start_time_posix' : 'timestamp_s1',
-            'review_server_end_time_posix'   : 'timestamp',
+            'evidence_decision_list': 'evidence_decision',
+            'meta_decision_list': 'meta_decision',
+            'review_uuid_list': 'uuid',
+            'identity_list': 'user_id',
+            'user_confidence_list': 'confidence',
+            'tags_list': 'tags',
+            'review_client_start_time_posix': 'timestamp_c1',
+            'review_client_end_time_posix': 'timestamp_c2',
+            'review_server_start_time_posix': 'timestamp_s1',
+            'review_server_end_time_posix': 'timestamp',
         }
 
         # Initialize kwargs we will pass to add_review
@@ -324,29 +327,33 @@ class IBEISIO(object):
         """
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-        infr.print('write_wbia_annotmatch_feedback %r' % (
-            len(edge_delta_df)))
+        infr.print('write_wbia_annotmatch_feedback %r' % (len(edge_delta_df)))
         ibs = infr.ibs
         edge_delta_df_ = edge_delta_df.reset_index()
         # Find the rows not yet in the annotmatch table
         is_add = edge_delta_df_['am_rowid'].isnull().values
         add_df = edge_delta_df_.loc[is_add]
         # Assign then a new annotmatch rowid
-        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-                                                add_df['aid2'].values)
+        add_ams = ibs.add_annotmatch_undirected(
+            add_df['aid1'].values, add_df['aid2'].values
+        )
         edge_delta_df_.loc[is_add, 'am_rowid'] = add_ams
 
         # Set residual matching data
         new_evidence_decisions = ut.take(
             ibs.const.EVIDENCE_DECISION.CODE_TO_INT,
-            edge_delta_df_['new_evidence_decision'])
+            edge_delta_df_['new_evidence_decision'],
+        )
         new_meta_decisions = ut.take(
-            ibs.const.META_DECISION.CODE_TO_INT,
-            edge_delta_df_['new_meta_decision'])
-        new_tags = ['' if tags is None else ';'.join(tags)
-                    for tags in edge_delta_df_['new_tags']]
-        new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
-                                edge_delta_df_['new_confidence'], None)
+            ibs.const.META_DECISION.CODE_TO_INT, edge_delta_df_['new_meta_decision']
+        )
+        new_tags = [
+            '' if tags is None else ';'.join(tags)
+            for tags in edge_delta_df_['new_tags']
+        ]
+        new_conf = ut.dict_take(
+            ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None
+        )
         new_timestamp = edge_delta_df_['new_timestamp']
         new_reviewer = edge_delta_df_['new_user_id']
         am_rowids = edge_delta_df_['am_rowid'].values
@@ -468,18 +475,20 @@ class IBEISIO(object):
             infr.relabel_using_reviews(rectify=True)
 
         import pandas as pd
+
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
         aids = list(node_to_new_label.keys())
-        old_names = infr.ibs.get_annot_name_texts(
-            aids, distinguish_unknowns=True)
+        old_names = infr.ibs.get_annot_name_texts(aids, distinguish_unknowns=True)
         # Indicate that unknown names should be replaced
-        old_names = [None if n.startswith(infr.ibs.const.UNKNOWN) else n
-                     for n in old_names]
+        old_names = [
+            None if n.startswith(infr.ibs.const.UNKNOWN) else n for n in old_names
+        ]
         new_labels = ut.take(node_to_new_label, aids)
         # Recycle as many old names as possible
         label_to_name, needs_assign, unknown_labels = infr._rectify_names(
-            old_names, new_labels)
+            old_names, new_labels
+        )
         if ignore_unknown:
             label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
             needs_assign = ut.setdiff(needs_assign, unknown_labels)
@@ -494,18 +503,20 @@ class IBEISIO(object):
         if ignore_unknown:
             unknown_labels_ = set(unknown_labels)
             node_to_new_label = {
-                node: label for node, label in node_to_new_label.items()
+                node: label
+                for node, label in node_to_new_label.items()
                 if label not in unknown_labels_
             }
         aid_list = list(node_to_new_label.keys())
         new_name_list = ut.take(label_to_name, node_to_new_label.values())
         old_name_list = infr.ibs.get_annot_name_texts(
-            aid_list, distinguish_unknowns=True)
+            aid_list, distinguish_unknowns=True
+        )
         # Put into a dataframe for convinience
         name_delta_df_ = pd.DataFrame(
             {'old_name': old_name_list, 'new_name': new_name_list},
             columns=['old_name', 'new_name'],
-            index=pd.Index(aid_list, name='aid')
+            index=pd.Index(aid_list, name='aid'),
         )
         changed_flags = name_delta_df_['old_name'] != name_delta_df_['new_name']
         name_delta_df = name_delta_df_[changed_flags]
@@ -542,6 +553,7 @@ class IBEISIO(object):
         ibs = infr.ibs
 
         from wbia.control.manual_review_funcs import hack_create_aidpair_index
+
         hack_create_aidpair_index(ibs)
 
         if edges:
@@ -555,30 +567,40 @@ class IBEISIO(object):
 
         from wbia.control.manual_review_funcs import (
             # REVIEW_UUID,
-            REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_EVIDENCE_DECISION,
-            REVIEW_META_DECISION, REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
-            REVIEW_TAGS, REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
-            REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END)
+            REVIEW_AID1,
+            REVIEW_AID2,
+            REVIEW_COUNT,
+            REVIEW_EVIDENCE_DECISION,
+            REVIEW_META_DECISION,
+            REVIEW_USER_IDENTITY,
+            REVIEW_USER_CONFIDENCE,
+            REVIEW_TAGS,
+            REVIEW_TIME_CLIENT_START,
+            REVIEW_TIME_CLIENT_END,
+            REVIEW_TIME_SERVER_START,
+            REVIEW_TIME_SERVER_END,
+        )
 
-        add_review_alias = ut.odict([
-            (REVIEW_AID1              , 'aid1'),
-            (REVIEW_AID2              , 'aid2'),
-            # (REVIEW_UUID              , 'uuid'),
-            (REVIEW_EVIDENCE_DECISION , 'evidence_decision'),
-            (REVIEW_META_DECISION     , 'meta_decision'),
-            (REVIEW_USER_IDENTITY     , 'user_id'),
-            (REVIEW_USER_CONFIDENCE   , 'confidence'),
-            (REVIEW_TAGS              , 'tags'),
-            (REVIEW_TIME_CLIENT_START , 'timestamp_c1'),
-            (REVIEW_TIME_CLIENT_END   , 'timestamp_c2'),
-            (REVIEW_TIME_SERVER_START , 'timestamp_s1'),
-            (REVIEW_TIME_SERVER_END   , 'timestamp'),
-            (REVIEW_COUNT             , 'num_reviews'),
-        ])
+        add_review_alias = ut.odict(
+            [
+                (REVIEW_AID1, 'aid1'),
+                (REVIEW_AID2, 'aid2'),
+                # (REVIEW_UUID              , 'uuid'),
+                (REVIEW_EVIDENCE_DECISION, 'evidence_decision'),
+                (REVIEW_META_DECISION, 'meta_decision'),
+                (REVIEW_USER_IDENTITY, 'user_id'),
+                (REVIEW_USER_CONFIDENCE, 'confidence'),
+                (REVIEW_TAGS, 'tags'),
+                (REVIEW_TIME_CLIENT_START, 'timestamp_c1'),
+                (REVIEW_TIME_CLIENT_END, 'timestamp_c2'),
+                (REVIEW_TIME_SERVER_START, 'timestamp_s1'),
+                (REVIEW_TIME_SERVER_END, 'timestamp'),
+                (REVIEW_COUNT, 'num_reviews'),
+            ]
+        )
         columns = tuple(add_review_alias.keys())
         feedback_keys = list(add_review_alias.values())
-        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, columns,
-                                      review_ids)
+        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, columns, review_ids)
         # table = infr.ibs.staging.get_table_as_pandas(
         #     ibs.const.REVIEW_TABLE, rowids=review_ids, columns=columns)
 
@@ -595,9 +617,11 @@ class IBEISIO(object):
 
             tags = feedback_item['tags']
             feedback_item['meta_decision'] = lookup_meta[feedback_item['meta_decision']]
-            feedback_item['evidence_decision'] = lookup_decision[feedback_item['evidence_decision']]
+            feedback_item['evidence_decision'] = lookup_decision[
+                feedback_item['evidence_decision']
+            ]
             feedback_item['confidence'] = lookup_conf[feedback_item['confidence']]
-            feedback_item['tags'] =  [] if not tags else tags.split(';')
+            feedback_item['tags'] = [] if not tags else tags.split(';')
 
             feedback[edge].append(feedback_item)
         return feedback
@@ -674,12 +698,12 @@ class IBEISIO(object):
 
     def _pandas_feedback_format(infr, feedback):
         import pandas as pd
+
         aid_pairs = list(feedback.keys())
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
         ibs = infr.ibs
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1,
-                                                                      aids2)
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         rectified_feedback_ = infr._rectify_feedback(feedback)
         rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
         decision = ut.dict_take_column(rectified_feedback, 'evidence_decision')
@@ -696,8 +720,9 @@ class IBEISIO(object):
         df['meta_decision'] = meta_decision
         df['aid1'] = aids1
         df['aid2'] = aids2
-        df['tags'] = [None if ts is None else [t.lower() for t in ts if t]
-                      for ts in tags]
+        df['tags'] = [
+            None if ts is None else [t.lower() for t in ts if t] for ts in tags
+        ]
         df['confidence'] = confidence
         df['timestamp_c1'] = timestamp_c1
         df['timestamp_c2'] = timestamp_c2
@@ -852,13 +877,14 @@ class IBEISIO(object):
         import pandas as pd
         from six.moves import reduce
         import operator as op
+
         # Ensure input is in the expected format
         new_index = new_feedback.index
         old_index = old_feedback.index
-        assert new_index.names == ['aid1', 'aid2'], ('not indexed on edges')
-        assert old_index.names == ['aid1', 'aid2'], ('not indexed on edges')
-        assert all(u < v for u, v in new_index.values), ('bad direction')
-        assert all(u < v for u, v in old_index.values), ('bad direction')
+        assert new_index.names == ['aid1', 'aid2'], 'not indexed on edges'
+        assert old_index.names == ['aid1', 'aid2'], 'not indexed on edges'
+        assert all(u < v for u, v in new_index.values), 'bad direction'
+        assert all(u < v for u, v in old_index.values), 'bad direction'
         # Determine what edges have changed
         isect_edges = new_index.intersection(old_index)
         isect_new = new_feedback.loc[isect_edges]
@@ -869,8 +895,7 @@ class IBEISIO(object):
         important_columns = ['meta_decision', 'evidence_decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
-            changed_gen = [isect_new[c] != isect_old[c]
-                           for c in important_columns]
+            changed_gen = [isect_new[c] != isect_old[c] for c in important_columns]
             is_changed = reduce(op.or_, changed_gen)
             new_df_ = isect_new[is_changed]
             old_df = isect_old[is_changed]
@@ -895,13 +920,20 @@ class IBEISIO(object):
         # Combine into a single delta data frame
         merge_keys = ['aid1', 'aid2', 'am_rowid']
         merged_df = prep_old.merge(
-            prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
+            prep_new, how='outer', left_on=merge_keys, right_on=merge_keys
+        )
         # Reorder the columns
-        col_order = ['old_evidence_decision', 'new_evidence_decision',
-                     'old_tags', 'new_tags', 'old_meta_decision',
-                     'new_meta_decision']
-        edge_delta_df = merged_df.reindex(columns=(
-            ut.setdiff(merged_df.columns.values, col_order) + col_order))
+        col_order = [
+            'old_evidence_decision',
+            'new_evidence_decision',
+            'old_tags',
+            'new_tags',
+            'old_meta_decision',
+            'new_meta_decision',
+        ]
+        edge_delta_df = merged_df.reindex(
+            columns=(ut.setdiff(merged_df.columns.values, col_order) + col_order)
+        )
         edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         edge_delta_df = edge_delta_df.assign(is_new=False)
         if len(add_edges):
@@ -915,6 +947,7 @@ class IBEISIO(object):
         review_ids = ibs.get_review_rowids_between(edge)
 
         import pandas as pd
+
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
@@ -926,15 +959,18 @@ class IBEISIO(object):
         print('=====')
 
         print('AnnotMatch Raw')
-        df_a = df_a.rename(columns={c: c.replace('annotmatch_', '')
-                                    for c in df_a.columns})
-        df_s = df_s.rename(columns={
-            'annot_rowid1': 'aid1',
-            'annot_rowid2': 'aid2',
-            'reviewer': 'user_id',
-            'tag_text': 'tag',
-            'posixtime_modified': 'ts_s2',
-        })
+        df_a = df_a.rename(
+            columns={c: c.replace('annotmatch_', '') for c in df_a.columns}
+        )
+        df_s = df_s.rename(
+            columns={
+                'annot_rowid1': 'aid1',
+                'annot_rowid2': 'aid2',
+                'reviewer': 'user_id',
+                'tag_text': 'tag',
+                'posixtime_modified': 'ts_s2',
+            }
+        )
         print(df_a)
 
         print('AnnotMatch Feedback')
@@ -943,22 +979,38 @@ class IBEISIO(object):
         print('----')
 
         print('Staging Raw')
-        df_s = df_s.rename(columns={c: c.replace('review_', '')
-                                    for c in df_s.columns})
-        df_s = df_s.rename(columns={
-            'annot_1_rowid': 'aid1',
-            'annot_2_rowid': 'aid2',
-            'user_identity': 'user_id',
-            'user_confidence': 'confidence',
-            'client_start_time_posix': 'ts_c1',
-            'client_end_time_posix': 'ts_c2',
-            'server_end_time_posix': 'ts_s2',
-            'server_start_time_posix': 'ts_s1',
-        })
-        df_s = ut.pandas_reorder(df_s, [
-            'rowid', 'aid1', 'aid2', 'count', 'evidence_decision', 'meta_decision',
-            'tags', 'confidence', 'user_id', 'ts_s1', 'ts_c1',
-            'ts_c2', 'ts_s2', 'uuid'])
+        df_s = df_s.rename(columns={c: c.replace('review_', '') for c in df_s.columns})
+        df_s = df_s.rename(
+            columns={
+                'annot_1_rowid': 'aid1',
+                'annot_2_rowid': 'aid2',
+                'user_identity': 'user_id',
+                'user_confidence': 'confidence',
+                'client_start_time_posix': 'ts_c1',
+                'client_end_time_posix': 'ts_c2',
+                'server_end_time_posix': 'ts_s2',
+                'server_start_time_posix': 'ts_s1',
+            }
+        )
+        df_s = ut.pandas_reorder(
+            df_s,
+            [
+                'rowid',
+                'aid1',
+                'aid2',
+                'count',
+                'evidence_decision',
+                'meta_decision',
+                'tags',
+                'confidence',
+                'user_id',
+                'ts_s1',
+                'ts_c1',
+                'ts_c2',
+                'ts_s2',
+                'uuid',
+            ],
+        )
         print(df_s)
 
         print('Staging Feedback')
@@ -1001,11 +1053,14 @@ class IBEISGroundtruth(object):
             is_comp = np.full(len(aid_pairs), np.nan)
         # But use information that we have
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        truths = ut.replace_nones(ibs.get_annotmatch_evidence_decision(am_rowids), np.nan)
+        truths = ut.replace_nones(
+            ibs.get_annotmatch_evidence_decision(am_rowids), np.nan
+        )
         truths = np.asarray(truths)
         is_notcomp_have = truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE
-        is_comp_have = ((truths == ibs.const.EVIDENCE_DECISION.POSITIVE) |
-                        (truths == ibs.const.EVIDENCE_DECISION.NEGATIVE))
+        is_comp_have = (truths == ibs.const.EVIDENCE_DECISION.POSITIVE) | (
+            truths == ibs.const.EVIDENCE_DECISION.NEGATIVE
+        )
         is_comp[is_notcomp_have] = False
         is_comp[is_comp_have] = True
         return is_comp
@@ -1021,7 +1076,7 @@ class IBEISGroundtruth(object):
         aids1, aids2 = np.asarray(aid_pairs).T
         nids1 = infr.ibs.get_annot_nids(aids1)
         nids2 = infr.ibs.get_annot_nids(aids2)
-        is_same = (nids1 == nids2)
+        is_same = nids1 == nids2
         return is_same
 
 
@@ -1047,8 +1102,11 @@ def _update_staging_to_annotmatch(infr):
             'some staging items have not been commited.'
         )
     df = infr.match_state_delta('staging', 'annotmatch')
-    print('There are {}/{} annotmatch items that do not exist in staging'.format(
-        sum(df['is_new']), len(df)))
+    print(
+        'There are {}/{} annotmatch items that do not exist in staging'.format(
+            sum(df['is_new']), len(df)
+        )
+    )
     print(ut.repr4(infr.wbia_edge_delta_info(df)))
 
     # Find places that exist in annotmatch but not in staging
@@ -1098,9 +1156,14 @@ def fix_annotmatch_to_undirected_upper(ibs):
 
         df3 = df1.copy()
 
-        cols = ['annotmatch_evidence_decision', 'annotmatch_meta_decision',
-                'annotmatch_confidence', 'annotmatch_tag_text',
-                'annotmatch_posixtime_modified', 'annotmatch_reviewer']
+        cols = [
+            'annotmatch_evidence_decision',
+            'annotmatch_meta_decision',
+            'annotmatch_confidence',
+            'annotmatch_tag_text',
+            'annotmatch_posixtime_modified',
+            'annotmatch_reviewer',
+        ]
 
         ed_key = 'annotmatch_evidence_decision'
 
@@ -1112,7 +1175,11 @@ def fix_annotmatch_to_undirected_upper(ibs):
         assert all(pd.isnull(df2.annotmatch_reviewer)), 'should not happen'
         assert all(pd.isnull(df2.annotmatch_confidence)), 'should not happen'
 
-        flags = (df3[ed_key] != df2[ed_key]) & ~pd.isnull(df3[ed_key]) & ~pd.isnull(df2[ed_key])
+        flags = (
+            (df3[ed_key] != df2[ed_key])
+            & ~pd.isnull(df3[ed_key])
+            & ~pd.isnull(df2[ed_key])
+        )
         if any(flags & ~pd.isnull(df2.annotmatch_posixtime_modified)):
             assert False, 'need to rectify'
 
@@ -1120,26 +1187,48 @@ def fix_annotmatch_to_undirected_upper(ibs):
         tags3 = df3.annotmatch_tag_text.map(lambda x: {t for t in x.split(';') if t})
 
         # Merge the tags
-        df3['annotmatch_tag_text'] = [';'.join(sorted(t1.union(t2))) for t1, t2 in zip(tags3, tags2)]
+        df3['annotmatch_tag_text'] = [
+            ';'.join(sorted(t1.union(t2))) for t1, t2 in zip(tags3, tags2)
+        ]
 
         delete_df = df3[pd.isnull(df3[ed_key])]
 
         df4 = df3[~pd.isnull(df3[ed_key])]
-        ibs.set_annotmatch_evidence_decision(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4[ed_key]])
-        ibs.set_annotmatch_tag_text(df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist())
-        ibs.set_annotmatch_confidence(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_confidence])
-        ibs.set_annotmatch_reviewer(df4.annotmatch_rowid, [None if pd.isnull(x) else str(x) for x in df4.annotmatch_reviewer])
-        ibs.set_annotmatch_posixtime_modified(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_posixtime_modified])
+        ibs.set_annotmatch_evidence_decision(
+            df4.annotmatch_rowid,
+            [None if pd.isnull(x) else int(x) for x in df4[ed_key]],
+        )
+        ibs.set_annotmatch_tag_text(
+            df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist()
+        )
+        ibs.set_annotmatch_confidence(
+            df4.annotmatch_rowid,
+            [None if pd.isnull(x) else int(x) for x in df4.annotmatch_confidence],
+        )
+        ibs.set_annotmatch_reviewer(
+            df4.annotmatch_rowid,
+            [None if pd.isnull(x) else str(x) for x in df4.annotmatch_reviewer],
+        )
+        ibs.set_annotmatch_posixtime_modified(
+            df4.annotmatch_rowid,
+            [
+                None if pd.isnull(x) else int(x)
+                for x in df4.annotmatch_posixtime_modified
+            ],
+        )
 
         ibs.delete_annotmatch(delete_df.annotmatch_rowid)
 
         # forwards_edge4 = [nxu.e_(u, v) for u, v in df4[['annot_rowid1', 'annot_rowid2']].values.tolist()]
         # forwards_rowids4 = ibs.get_annotmatch_rowid_from_superkey(forwards_edge4)
-        backwards_edge4 = [nxu.e_(u, v)[::-1] for u, v in df4[['annot_rowid1', 'annot_rowid2']].values.tolist()]
+        backwards_edge4 = [
+            nxu.e_(u, v)[::-1]
+            for u, v in df4[['annot_rowid1', 'annot_rowid2']].values.tolist()
+        ]
         backwards_rowids4 = ibs.get_annotmatch_rowid_from_superkey(backwards_edge4)
         ibs.delete_annotmatch(backwards_rowids4)
 
-    #-------------------------
+    # -------------------------
 
     # NOW WE HAVE RECIFIED DUPLICATE PAIRS AND THERE IS ONLY ONE AID PAIR PER DB
     # SO WE CAN SAFELY FLIP EVERYTHING TO BE IN UPPER TRIANGULAR MODE
@@ -1204,6 +1293,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.mixin_wbia --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -9,6 +9,7 @@ import numpy as np
 import six
 import utool as ut
 from six.moves import map, range
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -17,22 +18,23 @@ def get_diffranks(rank_mat, qaids):
     FIXME: duplicated
     """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-    diff_aids    = ut.compress(qaids, isdiff_flags)
-    diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
-    diff_qxs     = np.where(isdiff_flags)[0]
+    diff_aids = ut.compress(qaids, isdiff_flags)
+    diff_rank = rank_mat.compress(isdiff_flags, axis=0)
+    diff_qxs = np.where(isdiff_flags)[0]
     return diff_aids, diff_rank, diff_qxs
 
 
 def get_diffmat_str(rank_mat, qaids, nConfig):
     from itertools import chain
+
     diff_aids, diff_rank, diff_qxs = get_diffranks(rank_mat, qaids)
     # Find columns that ore strictly better than other columns
-    #def find_strictly_better_columns(diff_rank):
+    # def find_strictly_better_columns(diff_rank):
     #    colmat = diff_rank.T
     #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=np.float).T
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
     col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
-    col_type  = list(chain([int], [int] * nConfig))
+    col_type = list(chain([int], [int] * nConfig))
     header = 'diffmat'
     diff_matstr = ut.numpy_to_csv(diff_mat, col_lbls, header, col_type)
     return diff_matstr
@@ -76,10 +78,10 @@ def print_latexsum(ibs, testres, verbose=True):
     cfgscores = np.array(ut.sortedby(cfgscores.tolist(), cfgscores.T[0], reverse=True))
 
     cmdaug = testres.get_title_aug()
-    #if testres.common_acfg is not None:
+    # if testres.common_acfg is not None:
     #    cfgname = testres.common_acfg['common']['_cfgname']
     #    cmdaug += '_' + cfgname
-    #if hasattr(testres, 'common_cfgdict'):
+    # if hasattr(testres, 'common_cfgdict'):
     #    cmdaug += '_' + (testres.common_cfgdict['_cfgname'])
     #    cfg_score_title += ' ' + cmdaug
 
@@ -88,13 +90,16 @@ def print_latexsum(ibs, testres, verbose=True):
         out_of=testres.nQuery,
         bold_best=True,
         flip=False,
-        SHORTEN_ROW_LBLS=False
+        SHORTEN_ROW_LBLS=False,
     )
     col_lbls = criteria_lbls
     tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, cfgscores, **tabular_kwargs)
-    #latex_formater.render(tabular_str)
-    cmdname = ut.latex_sanitize_command_name('Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table')
+        row_lbls, col_lbls, cfgscores, **tabular_kwargs
+    )
+    # latex_formater.render(tabular_str)
+    cmdname = ut.latex_sanitize_command_name(
+        'Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table'
+    )
     tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
     print(tabular_str2)
     return tabular_str2
@@ -144,9 +149,10 @@ def print_results(ibs, testres, **kwargs):
         >>> print(result)
     """
 
-    tup = ut.dict_take(testres.__dict__,
-                       ['cfg_list', 'cfgx2_cmsinfo', 'testnameid',
-                        'cfgx2_lbl', 'cfgx2_qreq_'])
+    tup = ut.dict_take(
+        testres.__dict__,
+        ['cfg_list', 'cfgx2_cmsinfo', 'testnameid', 'cfgx2_lbl', 'cfgx2_qreq_'],
+    )
     (cfg_list, cfgx2_cmsinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = tup
 
     # join_acfgs = kwargs.get('join_acfgs', False)
@@ -156,20 +162,20 @@ def print_results(ibs, testres, **kwargs):
     if True:
         # Num of ranks less than to score
         X_LIST = testres.get_X_LIST()
-        #X_LIST = [1, 5]
+        # X_LIST = [1, 5]
 
-        #nConfig = len(cfg_list)
-        #nQuery = len(testres.qaids)
+        # nConfig = len(cfg_list)
+        # nQuery = len(testres.qaids)
         cfgx2_nQuery = list(map(len, testres.cfgx2_qaids))
-        #cfgx2_qx2_ranks = testres.get_infoprop_list('qx2_gt_rank')
-        #--------------------
+        # cfgx2_qx2_ranks = testres.get_infoprop_list('qx2_gt_rank')
+        # --------------------
 
         # A positive scorediff indicates the groundtruth was better than the
         # groundfalse scores
-        #istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
-        #isfalse_list = [~istrue for istrue in istrue_list]
+        # istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
+        # isfalse_list = [~istrue for istrue in istrue_list]
 
-        #------------
+        # ------------
         # Build Colscore
         nLessX_dict = testres.get_nLessX_dict()
 
@@ -177,31 +183,34 @@ def print_results(ibs, testres, **kwargs):
         #                                                join_acfgs=join_acfgs)
         # cfgx2_cumsum = cfgx2_hist.cumsum(axis=1)
 
-        #------------
+        # ------------
         best_rankscore_summary = []
-        #to_intersect_list = []
+        # to_intersect_list = []
         # print each configs scores less than X=thresh
         for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
             max_nLessX = cfgx2_nLessX.max()
             bestX_cfgx_list = np.where(cfgx2_nLessX == max_nLessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestX_cfgx_list)
             # FIXME
-            best_rankscore += rankscore_str(X, max_nLessX,
-                                            cfgx2_nQuery[bestX_cfgx_list[0]])
+            best_rankscore += rankscore_str(
+                X, max_nLessX, cfgx2_nQuery[bestX_cfgx_list[0]]
+            )
             best_rankscore_summary += [best_rankscore]
 
     @ut.argv_flag_dec
     def intersect_hack():
         failed = testres.rank_mat > 0
         colx2_failed = [np.nonzero(failed_col)[0] for failed_col in failed.T]
-        #failed_col2_only = np.setdiff1d(colx2_failed[1], colx2_failed[0])
-        #failed_col2_only_aids = ut.take(testres.qaids, failed_col2_only)
+        # failed_col2_only = np.setdiff1d(colx2_failed[1], colx2_failed[0])
+        # failed_col2_only_aids = ut.take(testres.qaids, failed_col2_only)
         failed_col1_only = np.setdiff1d(colx2_failed[0], colx2_failed[1])
         failed_col1_only_aids = ut.take(testres.qaids, failed_col1_only)
-        gt_aids1 = ibs.get_annot_groundtruth(failed_col1_only_aids,
-                                             daid_list=testres.cfgx2_qreq_[0].daids)
-        gt_aids2 = ibs.get_annot_groundtruth(failed_col1_only_aids,
-                                             daid_list=testres.cfgx2_qreq_[1].daids)
+        gt_aids1 = ibs.get_annot_groundtruth(
+            failed_col1_only_aids, daid_list=testres.cfgx2_qreq_[0].daids
+        )
+        gt_aids2 = ibs.get_annot_groundtruth(
+            failed_col1_only_aids, daid_list=testres.cfgx2_qreq_[1].daids
+        )
 
         qaids_expt = failed_col1_only_aids
         gt_avl_aids1 = ut.flatten(gt_aids1)
@@ -209,16 +218,17 @@ def print_results(ibs, testres, **kwargs):
 
         ibs.print_annotconfig_stats(qaids_expt, gt_avl_aids1)
         ibs.print_annotconfig_stats(qaids_expt, gt_avl_aids2)
-        #jsontext = ut.to_json({
+        # jsontext = ut.to_json({
         #    'qaids': list(qaids_expt),
         #    'dinclude_aids1': list(gt_aids_expt1),
         #    'dinclude_aids2': list(gt_aids_expt2),
-        #})
-        #annotation_configs.varysize_pzm
-        #from wbia.expt import annotation_configs
+        # })
+        # annotation_configs.varysize_pzm
+        # from wbia.expt import annotation_configs
 
         acfg = testres.acfg_list[0]
         import copy
+
         acfg1 = copy.deepcopy(acfg)
         acfg2 = copy.deepcopy(acfg)
         acfg1['qcfg']['min_pername'] = None
@@ -238,36 +248,39 @@ def print_results(ibs, testres, **kwargs):
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
 
         acfg_name_list = dict(  # NOQA
-            acfg_list=[acfg1, acfg2],
-            expanded_aids_list=[annots1, annots2],
+            acfg_list=[acfg1, acfg2], expanded_aids_list=[annots1, annots2],
         )
         test_cfg_name_list = ['candidacy_k']
         cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
-            test_cfg_name_list, ibs=ibs)
+            test_cfg_name_list, ibs=ibs
+        )
 
         t1, t2 = testres_list  # NOQA
-    #intersect_hack()
 
-    #@ut.argv_flag_dec
-    #def print_rowlbl():
+    # intersect_hack()
+
+    # @ut.argv_flag_dec
+    # def print_rowlbl():
     #    print('=====================')
     #    print('[harn] Row/Query Labels: %s' % testnameid)
     #    print('=====================')
     #    print('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
-    #print_rowlbl()
-    #------------
+    # print_rowlbl()
+    # ------------
 
     @ut.argv_flag_dec
     def print_collbl():
         print('=====================')
         print('[harn] Col/Config Labels: %s' % testnameid)
         print('=====================')
-        enum_cfgx2_lbl = ['%2d) %s' % (count, cfglbl)
-                            for count, cfglbl in enumerate(cfgx2_lbl)]
+        enum_cfgx2_lbl = [
+            '%2d) %s' % (count, cfglbl) for count, cfglbl in enumerate(cfgx2_lbl)
+        ]
         print('[harn] cfglbl:\n%s' % '\n'.join(enum_cfgx2_lbl))
+
     print_collbl()
 
-    #------------
+    # ------------
 
     @ut.argv_flag_dec
     def print_cfgstr():
@@ -275,9 +288,11 @@ def print_results(ibs, testres, **kwargs):
         print('[harn] Config Strings: %s' % testnameid)
         print('=====================')
         cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
-        enum_cfgstr_list = ['%2d) %s' % (count, cfgstr)
-                            for count, cfgstr in enumerate(cfgstr_list)]
+        enum_cfgstr_list = [
+            '%2d) %s' % (count, cfgstr) for count, cfgstr in enumerate(cfgstr_list)
+        ]
         print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
+
     print_cfgstr(**kwargs)
 
     @ut.argv_flag_dec()
@@ -285,7 +300,7 @@ def print_results(ibs, testres, **kwargs):
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
-        #for cfgx in range(nConfig):
+        # for cfgx in range(nConfig):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
         #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
@@ -294,14 +309,15 @@ def print_results(ibs, testres, **kwargs):
         for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
-            #frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
-            #print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
-            #print('frac_list = %r' % (frac_list,))
-            #print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            # frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
+            # print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
+            # print('frac_list = %r' % (frac_list,))
+            # print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
+
     print_colscore(**kwargs)
 
     ut.argv_flag_dec(testres.print_percent_identification_success)(**kwargs)
@@ -313,18 +329,26 @@ def print_results(ibs, testres, **kwargs):
     sumstrs.append(ut.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('LL===========================')
     summary_str = '\n'.join(sumstrs)
-    #print(summary_str)
+    # print(summary_str)
     ut.colorprint(summary_str, 'blue')
 
     print('To enable all printouts add --print-all to the commandline')
 
 
 def rankscore_str(thresh, nLess, total, withlbl=True):
-    #helper to print rank scores of configs
+    # helper to print rank scores of configs
     percent = 100 * nLess / total
     fmtsf = '%' + str(ut.num2_sigfig(total)) + 'd'
     if withlbl:
-        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + '/' + str(total) + ')'
+        fmtstr = (
+            ':#ranks < %d = '
+            + fmtsf
+            + '/%d = (%.1f%%) (err='
+            + fmtsf
+            + '/'
+            + str(total)
+            + ')'
+        )
         rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
     else:
         fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + '/' + str(total) + ')'
@@ -340,6 +364,8 @@ if __name__ == '__main__':
         python -m wbia.expt.experiment_printres --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -3,6 +3,7 @@
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_residual]')
 
 
@@ -17,7 +18,7 @@ def on_delete(ibs, featweight_rowid_list):
 
 if __name__ == '__main__':
     import multiprocessing
+
     multiprocessing.freeze_support()
-    testable_list = [
-    ]
+    testable_list = []
     ut.doctest_funcs(testable_list)

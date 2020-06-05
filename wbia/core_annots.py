@@ -58,6 +58,7 @@ import wbia.constants as const
 from wbia.control.controller_inject import register_preprocs, register_subprops
 from wbia.algo.hots.chip_match import ChipMatch
 from wbia.algo.hots import neighbor_index
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -68,11 +69,13 @@ register_subprop = register_subprops['annot']
 
 def testdata_core(defaultdb='testdb1', size=2):
     import wbia
+
     # import wbia.plottool as pt
     ibs = wbia.opendb(defaultdb=defaultdb)
     depc = ibs.depc_annot
-    aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
-                             default=ibs.get_valid_aids()[0:size])
+    aid_list = ut.get_argval(
+        ('--aids', '--aid'), type_=list, default=ibs.get_valid_aids()[0:size]
+    )
     return ibs, depc, aid_list
 
 
@@ -87,10 +90,10 @@ class ChipThumbConfig(dtool.Config):
 
 
 @derived_attribute(
-    tablename='chipthumb', parents=['annotations'],
+    tablename='chipthumb',
+    parents=['annotations'],
     colnames=['img', 'width', 'height'],
-    coltypes=[dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
-              int, int],
+    coltypes=[dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'), int, int],
     configclass=ChipThumbConfig,
     fname='chipthumb',
     rm_extern_on_delete=True,
@@ -140,9 +143,9 @@ def compute_chipthumb(depc, aid_list, config=None):
             padding_w = int(np.around(width * pad))
             padding_h = int(np.around(height * pad))
 
-            xtl    -= padding_w
-            ytl    -= padding_h
-            width  += 2.0 * padding_w
+            xtl -= padding_w
+            ytl -= padding_h
+            width += 2.0 * padding_w
             height += 2.0 * padding_h
 
             bbox_list[index] = (xtl, ytl, width, height)
@@ -156,10 +159,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     if in_image:
         imgsz_list = ibs.get_image_sizes(gid_list)
         if config['grow']:
-            newsize_list = [
-                vt.ScaleStrat.width(thumbsize, wh)
-                for wh in imgsz_list
-            ]
+            newsize_list = [vt.ScaleStrat.width(thumbsize, wh) for wh in imgsz_list]
             newscale_list = [sz[0] / thumbsize for sz in newsize_list]
         else:
             newsize_scale_list = [
@@ -170,22 +170,15 @@ def compute_chipthumb(depc, aid_list, config=None):
             newscale_list = ut.take_column(newsize_scale_list, [1, 2])
         new_verts_list = [
             vt.scaled_verts_from_bbox(bbox, theta, sx, sy)
-            for bbox, theta, (sx, sy) in
-            zip(bbox_list, theta_list, newscale_list)
+            for bbox, theta, (sx, sy) in zip(bbox_list, theta_list, newscale_list)
         ]
-        M_list = [
-            vt.scale_mat3x3(sx, sy) for (sx, sy) in newscale_list
-        ]
+        M_list = [vt.scale_mat3x3(sx, sy) for (sx, sy) in newscale_list]
     else:
         if config['grow']:
-            newsize_list = [
-                vt.ScaleStrat.width(thumbsize, wh)
-                for wh in bbox_size_list
-            ]
+            newsize_list = [vt.ScaleStrat.width(thumbsize, wh) for wh in bbox_size_list]
         else:
             newsize_scale_list = [
-                vt.resized_clamped_thumb_dims(wh, max_dsize)
-                for wh in bbox_size_list
+                vt.resized_clamped_thumb_dims(wh, max_dsize) for wh in bbox_size_list
             ]
             newsize_list = ut.take_column(newsize_scale_list, 0)
             # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
@@ -204,18 +197,22 @@ def compute_chipthumb(depc, aid_list, config=None):
             newsize_list_ = newsize_list
             bbox_list_ = bbox_list
         # Build transformation from image to chip
-        M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
-                  bbox, theta, new_size in zip(bbox_list_, theta_list, newsize_list_)]
+        M_list = [
+            vt.get_image_to_chip_transform(bbox, new_size, theta)
+            for bbox, theta, new_size in zip(bbox_list_, theta_list, newsize_list_)
+        ]
 
         new_verts_list = [
-            np.round(vt.transform_points_with_homography(
-                M, np.array(vt.verts_from_bbox(bbox)).T).T).astype(np.int32)
+            np.round(
+                vt.transform_points_with_homography(
+                    M, np.array(vt.verts_from_bbox(bbox)).T
+                ).T
+            ).astype(np.int32)
             for M, bbox in zip(M_list, bbox_list)
         ]
 
-    #arg_iter = zip(cfpath_list, gid_list, newsize_list_, M_list)
-    arg_iter = zip(gid_list, newsize_list_, M_list,
-                   new_verts_list, interest_list)
+    # arg_iter = zip(cfpath_list, gid_list, newsize_list_, M_list)
+    arg_iter = zip(gid_list, newsize_list_, M_list, new_verts_list, interest_list)
     arg_list = list(arg_iter)
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
@@ -235,8 +232,7 @@ def compute_chipthumb(depc, aid_list, config=None):
             orange_bgr = (0, 128, 255)
             blue_bgr = (255, 128, 0)
             color_bgr = blue_bgr if interest else orange_bgr
-            thumbBGR = vt.draw_verts(thumbBGR, new_verts, color=color_bgr,
-                                     thickness=2)
+            thumbBGR = vt.draw_verts(thumbBGR, new_verts, color=color_bgr, thickness=2)
 
         width, height = vt.get_size(thumbBGR)
         yield (thumbBGR, width, height)
@@ -244,16 +240,20 @@ def compute_chipthumb(depc, aid_list, config=None):
 
 class ChipConfig(dtool.Config):
     _param_info_list = [
-        #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
-        #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
-        ut.ParamInfo('dim_size', 700, 'sz', hideif=None,
-                     type_=eval),  # TODO: allow types to vary
+        # ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
+        # ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
         ut.ParamInfo(
-            'resize_dim', 'maxwh', '',
+            'dim_size', 700, 'sz', hideif=None, type_=eval
+        ),  # TODO: allow types to vary
+        ut.ParamInfo(
+            'resize_dim',
+            'maxwh',
+            '',
             # 'resize_dim', 'width', '',
             #'resize_dim', 'area', '',
             valid_values=['area', 'width', 'height', 'diag', 'maxwh', 'wh'],
-            hideif=lambda cfg: cfg['dim_size'] is None),
+            hideif=lambda cfg: cfg['dim_size'] is None,
+        ),
         ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
         # ut.ParamInfo('preserve_aspect', True, hideif=True),
         # ---
@@ -268,7 +268,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('medianblur_thresh', 50, hideif=lambda cfg: not cfg['medianblur']),
         ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
         ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
-        ut.ParamInfo('axis_aligned',      False, hideif=False),
+        ut.ParamInfo('axis_aligned', False, hideif=False),
         # ---
         ut.ParamInfo('pad', 0, hideif=0, type_=eval),
         ut.ParamInfo('ext', '.png', hideif='.png'),
@@ -279,11 +279,12 @@ ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
 
 
 @derived_attribute(
-    tablename='chips', parents=['annotations'],
+    tablename='chips',
+    parents=['annotations'],
     colnames=['img', 'width', 'height', 'M'],
     coltypes=[ChipImgType, int, int, np.ndarray],
     configclass=ChipConfig,
-    #depprops=['image_uuid', 'verts', 'theta'],
+    # depprops=['image_uuid', 'verts', 'theta'],
     fname='chipcache4',
     rm_extern_on_delete=True,
     chunksize=256,
@@ -350,22 +351,25 @@ def compute_chip(depc, aid_list, config=None):
     bbox_list = ibs.get_annot_bboxes(aid_list)
     theta_list = ibs.get_annot_thetas(aid_list)
 
-    result_list = gen_chip_configure_and_compute(ibs, gid_list, aid_list,
-                                                 bbox_list, theta_list, config)
+    result_list = gen_chip_configure_and_compute(
+        ibs, gid_list, aid_list, bbox_list, theta_list, config
+    )
     for result in result_list:
         yield result
     print('Done Preprocessing Chips')
 
 
-def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_list, config):
-    #ext = config['ext']
+def gen_chip_configure_and_compute(
+    ibs, gid_list, rowid_list, bbox_list, theta_list, config
+):
+    # ext = config['ext']
     pad = config['pad']
     dim_size = config['dim_size']
     dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
     axis_aligned = config['axis_aligned']
-    greyscale    = config['greyscale']
-    #cfghashid = config.get_hashid()
+    greyscale = config['greyscale']
+    # cfghashid = config.get_hashid()
 
     if axis_aligned:
         # Over-write bbox and theta with a friendlier, axis-aligned version
@@ -400,9 +404,9 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             padding_w = int(np.around(width * pad))
             padding_h = int(np.around(height * pad))
 
-            xtl    -= padding_w
-            ytl    -= padding_h
-            width  += 2.0 * padding_w
+            xtl -= padding_w
+            ytl -= padding_h
+            width += 2.0 * padding_w
             height += 2.0 * padding_h
 
             bbox = (xtl, ytl, width, height)
@@ -415,15 +419,16 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
     assert len(invalid_rowids) == 0, 'invalid rowids=%r' % (invalid_rowids,)
 
     if resize_dim == 'wh':
-        assert isinstance(dim_size, tuple), (
-            'must specify both width and height in dim_size when resize_dim=wh')
+        assert isinstance(
+            dim_size, tuple
+        ), 'must specify both width and height in dim_size when resize_dim=wh'
         # Aspect ratio is not preserved. Use exact specifications.
         newsize_list = [dim_size for _ in range(len(bbox_size_list))]
     else:
         scale_func_dict = {
             'width': vt.ScaleStrat.width,
             'area': vt.ScaleStrat.area,  # actually root area
-            'maxwh': vt.ScaleStrat.maxwh
+            'maxwh': vt.ScaleStrat.maxwh,
         }
         scale_func = scale_func_dict[resize_dim]
 
@@ -433,8 +438,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             if resize_dim == 'area':
                 dim_size = dim_size ** 2
                 dim_tol = dim_tol ** 2
-            newsize_list = [scale_func(dim_size, wh, dim_tol)
-                            for wh in bbox_size_list]
+            newsize_list = [scale_func(dim_size, wh, dim_tol) for wh in bbox_size_list]
 
     if 1.0 < pad:
         pad = (pad, pad)
@@ -447,29 +451,33 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
         newsize_list = ut.take_column(extras_list, 1)
 
     # Build transformation from image to chip
-    M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
-              bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)]
+    M_list = [
+        vt.get_image_to_chip_transform(bbox, new_size, theta)
+        for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
+    ]
 
     filter_list = []
     # new way
     if config['histeq']:
-        filter_list.append(
-            ('histeq', {})
-        )
+        filter_list.append(('histeq', {}))
     if config['medianblur']:
         filter_list.append(
-            ('medianblur', {
-                'noise_thresh': config['medianblur_thresh'],
-                'ksize1': config['medianblur_ksize1'],
-                'ksize2': config['medianblur_ksize2'],
-            }))
+            (
+                'medianblur',
+                {
+                    'noise_thresh': config['medianblur_thresh'],
+                    'ksize1': config['medianblur_ksize1'],
+                    'ksize2': config['medianblur_ksize2'],
+                },
+            )
+        )
     if config['adapteq']:
         ksize = config['adapteq_ksize']
         filter_list.append(
-            ('adapteq', {
-                'tileGridSize': (ksize, ksize),
-                'clipLimit': config['adapteq_limit'],
-            })
+            (
+                'adapteq',
+                {'tileGridSize': (ksize, ksize), 'clipLimit': config['adapteq_limit'],},
+            )
         )
     ipreproc = image_filters.IntensityPreproc()
 
@@ -483,21 +491,26 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
         args_gen = zip(gpath_list, orient_list, M_list, newsize_list)
 
         gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
-        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(gpath_list),
-                           force_serial=ibs.force_serial)
+        gen = ut.generate2(
+            gen_chip_worker,
+            args_gen,
+            gen_kw,
+            nTasks=len(gpath_list),
+            force_serial=ibs.force_serial,
+        )
         for chipBGR, width, height, M in gen:
             if greyscale:
                 chipBGR = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2GRAY)
             yield chipBGR, width, height, M
     else:
-        #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
+        # arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
         arg_iter = zip(gid_list, M_list, newsize_list)
         arg_list = list(arg_iter)
 
         last_gid = None
         for tup in ut.ProgIter(arg_list, lbl='computing chips', bs=True):
             # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
-            #cfpath, gid, new_size, M = tup
+            # cfpath, gid, new_size, M = tup
             gid, M, new_size = tup
             # Read parent image # TODO: buffer this?
             # If the gids are sorted, no need to load the image more than once, if so
@@ -505,10 +518,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
                 imgBGR = ibs.get_images(gid)
                 last_gid = gid
             # Warp chip
-            new_size = tuple([
-                int(np.around(val))
-                for val in new_size
-            ])
+            new_size = tuple([int(np.around(val)) for val in new_size])
             chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
             # Do intensity normalizations
             if filter_list:
@@ -522,10 +532,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
 def gen_chip_worker(gpath, orient, M, new_size, filter_list, warpkw):
     imgBGR = vt.imread(gpath, orient=orient)
     # Warp chip
-    new_size = tuple([
-        int(np.around(val))
-        for val in new_size
-    ])
+    new_size = tuple([int(np.around(val)) for val in new_size])
     chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
     # Do intensity normalizations
     if filter_list:
@@ -537,23 +544,19 @@ def gen_chip_worker(gpath, orient, M, new_size, filter_list, warpkw):
 
 @register_subprop('chips', 'dlen_sqrd')
 def compute_dlen_sqrd(depc, aid_list, config=None):
-    size_list = np.array(
-        depc.get('chips', aid_list, ('width', 'height'), config))
+    size_list = np.array(depc.get('chips', aid_list, ('width', 'height'), config))
     dlen_sqrt_list = (size_list ** 2).sum(axis=1).tolist()
     return dlen_sqrt_list
 
 
 class AnnotMaskConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('manual', True)
-    ]
-    _sub_config_list = [
-        ChipConfig
-    ]
+    _param_info_list = [ut.ParamInfo('manual', True)]
+    _sub_config_list = [ChipConfig]
 
 
 @derived_attribute(
-    tablename='annotmask', parents=['annotations'],
+    tablename='annotmask',
+    parents=['annotations'],
     colnames=['img', 'width', 'height'],
     coltypes=[('extern', vt.imread), int, int],
     configclass=AnnotMaskConfig,
@@ -593,6 +596,7 @@ def compute_annotmask(depc, aid_list, config=None):
         >>> pt.show_if_requested()
     """
     from wbia.plottool import interact_impaint
+
     # TODO: Ensure interactive required cache words
     # Keep manual things above the cache dir
     mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
@@ -608,8 +612,10 @@ def compute_annotmask(depc, aid_list, config=None):
     # TODO: just hash everything together
     ext = '.png'
     _fmt = 'mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
-    fname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
-                  for aid, avuuid in zip(aid_list, avuuid_list)]
+    fname_list = [
+        _fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
+        for aid, avuuid in zip(aid_list, avuuid_list)
+    ]
 
     for img, fname, aid in zip(chip_imgs, fname_list, aid_list):
         mask_fpath = ut.unixjoin(mask_dpath, fname)
@@ -632,34 +638,32 @@ def compute_annotmask(depc, aid_list, config=None):
 class ProbchipConfig(dtool.Config):
     # TODO: incorporate into base
     _named_defaults = {
-        'rf': {
-            'fw_detector': 'rf',
-            'smooth_thresh': None,
-            'smooth_ksize': None,
-        }
+        'rf': {'fw_detector': 'rf', 'smooth_thresh': None, 'smooth_ksize': None,}
     }
     _param_info_list = [
-        #ut.ParamInfo('preserve_aspect', True, hideif=True),
-
+        # ut.ParamInfo('preserve_aspect', True, hideif=True),
         # TODO: Need to specify hte hash of the CNN lastest detector
         ut.ParamInfo('fw_detector', 'cnn', 'detector='),
         ut.ParamInfo('fw_dim_size', 256, 'sz'),
         ut.ParamInfo('smooth_thresh', 20, 'thresh='),
-        ut.ParamInfo('smooth_ksize', 20, 'ksz=',
-                     hideif=lambda cfg: cfg['smooth_thresh'] is None),
-        #ut.ParamInfo('ext', '.png'),
+        ut.ParamInfo(
+            'smooth_ksize', 20, 'ksz=', hideif=lambda cfg: cfg['smooth_thresh'] is None
+        ),
+        # ut.ParamInfo('ext', '.png'),
     ]
-    #_sub_config_list = [
+    # _sub_config_list = [
     #    ChipConfig
-    #]
+    # ]
 
 
-ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
-                                         vt.imwrite, extern_ext='.png')
+ProbchipImgType = dtool.ExternType(
+    ut.partial(vt.imread, grayscale=True), vt.imwrite, extern_ext='.png'
+)
 
 
 @derived_attribute(
-    tablename='probchip', parents=['annotations'],
+    tablename='probchip',
+    parents=['annotations'],
     colnames=['img'],
     coltypes=[ProbchipImgType],
     configclass=ProbchipConfig,
@@ -726,8 +730,9 @@ def compute_probchip(depc, aid_list, config=None):
     #                        for avuuid in annot_visual_uuid_list]
 
     chip_config = ChipConfig(pad=pad, dim_size=dim_size)
-    mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config,
-                               read_extern=False)
+    mchip_path_list = depc.get(
+        'chips', aid_list, 'img', config=chip_config, read_extern=False
+    )
 
     aid_list = np.array(aid_list)
     species_list = np.array(species_list)
@@ -743,18 +748,26 @@ def compute_probchip(depc, aid_list, config=None):
 
     if ut.VERBOSE:
         print('[preproc_probchip] +--------------------')
-    print(('[preproc_probchip.compute_and_write_probchip] '
-           'Preparing to compute %d probchips of %d species')
-          % (len(aid_list), len(unique_species)))
+    print(
+        (
+            '[preproc_probchip.compute_and_write_probchip] '
+            'Preparing to compute %d probchips of %d species'
+        )
+        % (len(aid_list), len(unique_species))
+    )
     print('unique_species = %r' % (unique_species,))
     print(config)
 
-    #grouped_probchip_fpath_list = []
+    # grouped_probchip_fpath_list = []
     grouped_probchips = []
     _iter = zip(grouped_aids, unique_species, grouped_mpaths)
-    _iter = ut.ProgIter(_iter, length=len(grouped_aids),
-                        lbl='probchip for {} species'.format(len(unique_species)),
-                        enabled=ut.VERBOSE, bs=True)
+    _iter = ut.ProgIter(
+        _iter,
+        length=len(grouped_aids),
+        lbl='probchip for {} species'.format(len(unique_species)),
+        enabled=ut.VERBOSE,
+        bs=True,
+    )
 
     if fw_detector == 'rf':
         for aids, species, inputchip_fpaths in _iter:
@@ -763,8 +776,15 @@ def compute_probchip(depc, aid_list, config=None):
             if species == '____':
                 gen = empty_probchips(inputchip_fpaths)
             else:
-                gen = rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
-                                   smooth_thresh, smooth_ksize)
+                gen = rf_probchips(
+                    ibs,
+                    aids,
+                    species,
+                    inputchip_fpaths,
+                    pad,
+                    smooth_thresh,
+                    smooth_ksize,
+                )
             grouped_probchips.append(list(gen))
     elif fw_detector == 'cnn':
         for aids, species, inputchip_fpaths in _iter:
@@ -773,8 +793,9 @@ def compute_probchip(depc, aid_list, config=None):
             if species == '____':
                 gen = empty_probchips(inputchip_fpaths)
             else:
-                gen = cnn_probchips(ibs, species, inputchip_fpaths,
-                                    smooth_thresh, smooth_ksize)
+                gen = cnn_probchips(
+                    ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize
+                )
             grouped_probchips.append(list(gen))
     else:
         raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
@@ -784,7 +805,8 @@ def compute_probchip(depc, aid_list, config=None):
         print('[preproc_probchip] L_______________________')
 
     probchip_result_list = vt.invert_apply_grouping2(
-        grouped_probchips, groupxs, dtype=object)
+        grouped_probchips, groupxs, dtype=object
+    )
     for probchip in probchip_result_list:
         yield (probchip,)
 
@@ -802,8 +824,12 @@ def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
     for chunk in ut.ichunks(mask_gen, 256):
         _progiter = ut.ProgIter(
-            chunk, lbl='compute {} probchip chunk'.format(species),
-            adjust=True, time_thresh=30.0, bs=True)
+            chunk,
+            lbl='compute {} probchip chunk'.format(species),
+            adjust=True,
+            time_thresh=30.0,
+            bs=True,
+        )
         for mask in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(mask, smooth_thresh, smooth_ksize)
@@ -812,11 +838,13 @@ def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
             yield probchip
 
 
-def rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
-                 smooth_thresh, smooth_ksize):
+def rf_probchips(
+    ibs, aids, species, inputchip_fpaths, pad, smooth_thresh, smooth_ksize
+):
     import ubelt as ub
     from os.path import join
     from wbia.algo.detect import randomforest
+
     cachedir = ub.ensure_app_cache_dir('wbia', ibs.dbname, 'rfchips')
     # Hack disk based output for RF detector.
     temp_output_fpaths = [
@@ -824,10 +852,10 @@ def rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
         join(cachedir, 'rf_{}_{}_margin.png'.format(species, aid))
         for aid in aids
     ]
-    rfconfig = {'scale_list': [1.0], 'mode': 1,
-                'output_gpath_list': temp_output_fpaths}
+    rfconfig = {'scale_list': [1.0], 'mode': 1, 'output_gpath_list': temp_output_fpaths}
     probchip_generator = randomforest.detect_gpath_list_with_species(
-        ibs, inputchip_fpaths, species, **rfconfig)
+        ibs, inputchip_fpaths, species, **rfconfig
+    )
     # Evalutate genrator until completion
     ut.evaluate_generator(probchip_generator)
     # Read output of RF detector and crop the extra margin off of the new
@@ -881,6 +909,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         >>> ut.show_if_requested()
     """
     import cv2
+
     # thresh = 20
     # kernel_size = 20
     mask2 = mask.copy()
@@ -927,7 +956,7 @@ def make_hog_block_image(hog, config=None):
         for y in range(n_blocksy):
             norm_block = normalised_blocks[y, x, :]
             # hack, this only works right for block sizes of 1
-            orientation_histogram[y:y + by, x:x + bx, :] = norm_block
+            orientation_histogram[y : y + by, x : x + bx, :] = norm_block
 
     sx = n_cellsx * cx
     sy = n_cellsy * cy
@@ -941,20 +970,24 @@ def make_hog_block_image(hog, config=None):
         for y in range(n_cellsy):
             for o, dx, dy in zip(orientations_arr, dx_arr, dy_arr):
                 centre = tuple([y * cy + cy // 2, x * cx + cx // 2])
-                rr, cc = draw.line(int(centre[0] - dx),
-                                   int(centre[1] + dy),
-                                   int(centre[0] + dx),
-                                   int(centre[1] - dy))
+                rr, cc = draw.line(
+                    int(centre[0] - dx),
+                    int(centre[1] + dy),
+                    int(centre[0] + dx),
+                    int(centre[1] - dy),
+                )
                 hog_image[rr, cc] += orientation_histogram[y, x, o]
     return hog_image
 
 
 @derived_attribute(
-    tablename='hog', parents=['chips'],
+    tablename='hog',
+    parents=['chips'],
     colnames=['hog'],
     coltypes=[np.ndarray],
     configclass=HOGConfig,
-    fname='hogcache', chunksize=32,
+    fname='hogcache',
+    chunksize=32,
 )
 def compute_hog(depc, cid_list, config=None):
     """
@@ -972,17 +1005,21 @@ def compute_hog(depc, cid_list, config=None):
         >>> ut.show_if_requested()
     """
     import skimage.feature
+
     orientations = config['orientations']
 
     ut.assert_all_not_None(cid_list, 'cid_list')
-    chip_fpath_list = depc.get_native(
-        'chips', cid_list, 'img', read_extern=False)
+    chip_fpath_list = depc.get_native('chips', cid_list, 'img', read_extern=False)
 
     for chip_fpath in chip_fpath_list:
         chip = vt.imread(chip_fpath, grayscale=True) / 255.0
-        hog = skimage.feature.hog(chip, feature_vector=False,
-                                  orientations=orientations,
-                                  pixels_per_cell=(16, 16), cells_per_block=(1, 1))
+        hog = skimage.feature.hog(
+            chip,
+            feature_vector=False,
+            orientations=orientations,
+            pixels_per_cell=(16, 16),
+            cells_per_block=(1, 1),
+        )
         yield (hog,)
 
 
@@ -998,28 +1035,30 @@ class FeatConfig(dtool.Config):
     """
 
     # TODO: FIXME
-    #_parents = [ChipConfig]
+    # _parents = [ChipConfig]
 
     def get_param_info_list(self):
         import pyhesaff
+
         default_keys = list(pyhesaff.get_hesaff_default_params().keys())
         default_items = list(pyhesaff.get_hesaff_default_params().items())
         param_info_list = [
             ut.ParamInfo('feat_type', 'hesaff+sift', ''),
-            ut.ParamInfo('maskmethod', None, hideif=None)
+            ut.ParamInfo('maskmethod', None, hideif=None),
         ]
         param_info_dict = {
             name: ut.ParamInfo(name, default, hideif=default)
             for name, default in default_items
         }
-        #param_info_dict['scale_max'].default = -1
-        #param_info_dict['scale_max'].default = 50
+        # param_info_dict['scale_max'].default = -1
+        # param_info_dict['scale_max'].default = 50
         param_info_list += ut.dict_take(param_info_dict, default_keys)
         return param_info_list
 
     def get_hesaff_params(self):
         # Get subset of these params that correspond to hesaff
         import pyhesaff
+
         default_keys = list(pyhesaff.get_hesaff_default_params().keys())
         hesaff_param_dict = ut.dict_subset(self, default_keys)
         return hesaff_param_dict
@@ -1040,12 +1079,14 @@ class FeatConfig(dtool.Config):
 
 
 @derived_attribute(
-    tablename='feat', parents=['chips'],
+    tablename='feat',
+    parents=['chips'],
     colnames=['num_feats', 'kpts', 'vecs'],
     coltypes=[int, np.ndarray, np.ndarray],
     configclass=FeatConfig,
     rm_extern_on_delete=True,
-    fname='featcache', chunksize=1024,
+    fname='featcache',
+    chunksize=1024,
 )
 def compute_feats(depc, cid_list, config=None):
     """
@@ -1117,13 +1158,12 @@ def compute_feats(depc, cid_list, config=None):
     maskmethod = config['maskmethod']
 
     ut.assert_all_not_None(cid_list, 'cid_list')
-    chip_fpath_list = depc.get_native(
-        'chips', cid_list, 'img', read_extern=False)
+    chip_fpath_list = depc.get_native('chips', cid_list, 'img', read_extern=False)
 
     if maskmethod is not None:
         assert False
-        #aid_list = ibs.get_chip_aids(cid_list)
-        #probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)
+        # aid_list = ibs.get_chip_aids(cid_list)
+        # probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)
     else:
         probchip_fpath_list = (None for _ in range(nInput))
 
@@ -1151,15 +1191,19 @@ def compute_feats(depc, cid_list, config=None):
         )
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
+
         assert maskmethod is None, 'not implemented'
         assert False, 'not implemented'
-        featgen = _plugin.generate_siam_l2_128_feats(
-            ibs, cid_list, config=config)
+        featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config=config)
     else:
         raise AssertionError('unknown feat_type=%r' % (feat_type,))
 
     for nFeat, kpts, vecs in featgen:
-        yield (nFeat, kpts, vecs,)
+        yield (
+            nFeat,
+            kpts,
+            vecs,
+        )
 
 
 def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
@@ -1206,13 +1250,15 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         >>> ut.show_if_requested()
     """
     import pyhesaff
+
     chip = vt.imread(chip_fpath)
     if probchip_fpath is not None:
         probchip = vt.imread(probchip_fpath, grayscale=True)
         probchip = vt.resize_mask(probchip, chip)
-        #vt.blend_images_multiply(chip, probchip)
-        masked_chip = (
-            chip * (probchip[:, :, None].astype(np.float32) / 255)).astype(np.uint8)
+        # vt.blend_images_multiply(chip, probchip)
+        masked_chip = (chip * (probchip[:, :, None].astype(np.float32) / 255)).astype(
+            np.uint8
+        )
     else:
         masked_chip = chip
     kpts, vecs = pyhesaff.detect_feats_in_image(masked_chip, **hesaff_params)
@@ -1225,16 +1271,18 @@ class FeatWeightConfig(dtool.Config):
         ut.ParamInfo('featweight_enabled', True, 'enabled='),
     ]
     # FIXME: incorporate config dependencies in dtool
-    #_parents = [FeatConfig, ProbchipConfig]
+    # _parents = [FeatConfig, ProbchipConfig]
 
 
 @derived_attribute(
-    tablename='featweight', parents=['feat', 'probchip'],
+    tablename='featweight',
+    parents=['feat', 'probchip'],
     colnames=['fwg'],
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
     rm_extern_on_delete=True,
-    fname='featcache', chunksize=64 if const.CONTAINERIZED else 512,
+    fname='featcache',
+    chunksize=64 if const.CONTAINERIZED else 512,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
@@ -1261,8 +1309,8 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     ibs = depc.controller
     nTasks = len(fid_list)
     print('[compute_fgweights] Computing %d fgweights' % (nTasks,))
-    #aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
-    #probchip_fpath_list = depc.get(aid_list, 'img', config={}, read_extern=False)
+    # aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
+    # probchip_fpath_list = depc.get(aid_list, 'img', config={}, read_extern=False)
     probchip_list = depc.get_native('probchip', pcid_list, 'img')
     cid_list = depc.get_ancestor_rowids('feat', fid_list, 'chips')
     chipsize_list = depc.get_native('chips', cid_list, ('width', 'height'))
@@ -1327,23 +1375,24 @@ def gen_featweight_worker(kpts, probchip, chipsize):
     if probchip is None:
         # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
         assert False, 'should not be in this state'
-        weights = np.full(len(kpts), .25, dtype=np.float32)
+        weights = np.full(len(kpts), 0.25, dtype=np.float32)
     else:
-        sfx, sfy = (probchip.shape[1] / chipsize[0],
-                    probchip.shape[0] / chipsize[1])
+        sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
         kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
         # vtpatch.get_warped_patches()
         if False:
             # VERY SLOW
-            patch_list1 = [vt.get_warped_patch(probchip, kp)[0].astype(
-                np.float32) / 255.0 for kp in kpts_]
-            weight_list = [vt.gaussian_average_patch(
-                patch1) for patch1 in patch_list1]
-            #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+            patch_list1 = [
+                vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+                for kp in kpts_
+            ]
+            weight_list = [vt.gaussian_average_patch(patch1) for patch1 in patch_list1]
+            # weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         else:
             # New way
             weight_list = vt.patch_gaussian_weighted_average_intensities(
-                probchip, kpts_)
+                probchip, kpts_
+            )
         weights = np.array(weight_list, dtype=np.float32)
     return weights
 
@@ -1378,8 +1427,10 @@ class VsOneConfig(dtool.Config):
 
 
 @derived_attribute(
-    tablename='pairwise_match', parents=['annotations', 'annotations'],
-    colnames=['match'], coltypes=[vt.PairwiseMatch],
+    tablename='pairwise_match',
+    parents=['annotations', 'annotations'],
+    colnames=['match'],
+    coltypes=[vt.PairwiseMatch],
     configclass=VsOneConfig,
     chunksize=512,
     fname='vsone2',
@@ -1408,10 +1459,12 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
     dannot_cfg = config
 
     configured_lazy_annots = make_configured_annots(
-        ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True)
+        ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True
+    )
 
     unique_lazy_annots = ut.flatten(
-        [x.values() for x in configured_lazy_annots.values()])
+        [x.values() for x in configured_lazy_annots.values()]
+    )
 
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
     for annot in unique_lazy_annots:
@@ -1422,8 +1475,9 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
         # annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
         #                      np.array(annot['chip_size'])[:, None])
 
-    for qaid, daid in ut.ProgIter(zip(qaids, daids), length=len(qaids),
-                                  lbl='compute vsone', bs=True, freq=1):
+    for qaid, daid in ut.ProgIter(
+        zip(qaids, daids), length=len(qaids), lbl='compute vsone', bs=True, freq=1
+    ):
         annot1 = configured_lazy_annots[qannot_cfg][qaid]
         annot2 = configured_lazy_annots[dannot_cfg][daid]
         match = vt.PairwiseMatch(annot1, annot2)
@@ -1431,8 +1485,9 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
         yield (match,)
 
 
-def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
-                           preload=False, return_view_cache=False):
+def make_configured_annots(
+    ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=False, return_view_cache=False
+):
     """
     Configures annotations so they can be sent to the vsone vt.matching
     procedure.
@@ -1528,8 +1583,7 @@ class IndexerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algorithm', 'kdtree', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
-        ut.ParamInfo('trees', 4, hideif=lambda cfg: cfg[
-                     'algorithm'] != 'kdtree'),
+        ut.ParamInfo('trees', 4, hideif=lambda cfg: cfg['algorithm'] != 'kdtree'),
         ut.ParamInfo('version', 1),
     ]
     _sub_config_list = [
@@ -1552,12 +1606,15 @@ testmode = ut.get_argflag('--testmode')
     # tablename='neighbor_index', parents=['annotations*'],
     # tablename='neighbor_index', parents=['annotations'],
     # tablename='neighbor_index', parents=['feat*'],
-    tablename='neighbor_index', parents=['featweight*'],
+    tablename='neighbor_index',
+    parents=['featweight*'],
     # tablename='neighbor_index', parents=['feat*'],
     # tablename='neighbor_index', parents=['feat'],
-    colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
+    colnames=['indexer'],
+    coltypes=[neighbor_index.NeighborIndex2],
     configclass=IndexerConfig,
-    chunksize=1, fname='indexer',
+    chunksize=1,
+    fname='indexer',
 )
 def compute_neighbor_index(depc, fids_list, config):
     r"""
@@ -1615,10 +1672,13 @@ def compute_neighbor_index(depc, fids_list, config):
 if testmode:
     # NOT YET READY
     @derived_attribute(
-        tablename='feat_neighbs', parents=['featweight', 'neighbor_index'],
-        colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
+        tablename='feat_neighbs',
+        parents=['featweight', 'neighbor_index'],
+        colnames=['qfx2_idx', 'qfx2_dist'],
+        coltypes=[np.ndarray, np.ndarray],
         # configclass=IndexerConfig,
-        chunksize=1, fname='neighbors',
+        chunksize=1,
+        fname='neighbors',
     )
     def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
         """
@@ -1646,23 +1706,23 @@ if testmode:
             >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
         """
         print('[IBEIS] NEAREST NEIGHBORS')
-        #assert False
+        # assert False
         # do computation
-        #num_neighbors = (config['K'] + config['Knorm'])
+        # num_neighbors = (config['K'] + config['Knorm'])
         ibs = depc.controller
         num_neighbors = 1
 
-        #b = np.broadcast([1, 2, 3], [1])
+        # b = np.broadcast([1, 2, 3], [1])
         # list(b)
-        #[(1, 1), (2, 1), (3, 1)]
+        # [(1, 1), (2, 1), (3, 1)]
 
         # FIXME: not sure how depc should handle this case
         # Maybe it groups by indexer_rowid_list and then goes from there.
-        indexer = depc.get_native(
-            'neighbor_index', indexer_rowid_list, 'indexer')[0]
+        indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
         qvecs_list = depc.get_native(
-            'feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
-        #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
+            'feat', fid_list, 'vecs', eager=False, nInput=len(fid_list)
+        )
+        # qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
         qaid_list = depc.get_ancestor_rowids('feat', fid_list)
 
         ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
@@ -1672,26 +1732,32 @@ if testmode:
             invalid_axs = np.where(ax2_encid == qencid)[0]
             # indexer.ax2_aid[invalid_axs]
             nnindxer = indexer
-            qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
-                                                                       num_neighbors,
-                                                                       invalid_axs)
+            qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(
+                qfx2_vec, num_neighbors, invalid_axs
+            )
             yield qfx2_idx, qfx2_dist
 
     # NOT YET READY
     @derived_attribute(
-        tablename='sver', parents=['feat_neighbs'],
-        colnames=['chipmatch'], coltypes=[ChipMatch],
+        tablename='sver',
+        parents=['feat_neighbs'],
+        colnames=['chipmatch'],
+        coltypes=[ChipMatch],
         # configclass=IndexerConfig,
-        chunksize=1, fname='vsmany',
+        chunksize=1,
+        fname='vsmany',
     )
     def compute_sver(depc, fid_list, config):
         pass
 
     @derived_attribute(
-        tablename='vsmany', parents=['sver'],
-        colnames=['chipmatch'], coltypes=[ChipMatch],
+        tablename='vsmany',
+        parents=['sver'],
+        colnames=['chipmatch'],
+        coltypes=[ChipMatch],
         # configclass=IndexerConfig,
-        chunksize=1, fname='vsmany',
+        chunksize=1,
+        fname='vsmany',
     )
     def compute_vsmany(depc, fid_list, config):
         pass
@@ -1702,13 +1768,12 @@ class ClassifierConfig(dtool.Config):
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'densenet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
-    _sub_config_list = [
-        ChipConfig
-    ]
+    _sub_config_list = [ChipConfig]
 
 
 @derived_attribute(
-    tablename='classifier', parents=['annotations'],
+    tablename='classifier',
+    parents=['annotations'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=ClassifierConfig,
@@ -1756,15 +1821,19 @@ def compute_classifications(depc, aid_list, config=None):
         result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
     elif config['classifier_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
+
         config2 = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
         }
-        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config2,
-                                               read_extern=False, ensure=True)
-        result_list = densenet.test(chip_filepath_list, **config)    # yield detections
+        chip_filepath_list = depc.get_property(
+            'chips', aid_list, 'img', config=config2, read_extern=False, ensure=True
+        )
+        result_list = densenet.test(chip_filepath_list, **config)  # yield detections
     else:
-        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+        raise ValueError(
+            'specified classifier algo is not supported in config = %r' % (config,)
+        )
 
     # yield detections
     for result in result_list:
@@ -1775,13 +1844,12 @@ class CanonicalConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('canonical_weight_filepath', None),
     ]
-    _sub_config_list = [
-        ChipConfig
-    ]
+    _sub_config_list = [ChipConfig]
 
 
 @derived_attribute(
-    tablename='canonical', parents=['annotations'],
+    tablename='canonical',
+    parents=['annotations'],
     colnames=['x0', 'y0', 'x1', 'y1'],
     coltypes=[float, float, float, float],
     configclass=CanonicalConfig,
@@ -1821,13 +1889,15 @@ def compute_canonical(depc, aid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_annot
     from wbia.algo.detect import canonical
+
     config2 = {
         'dim_size': (canonical.INPUT_SIZE, canonical.INPUT_SIZE),
         'resize_dim': 'wh',
     }
-    chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config2,
-                                           read_extern=False, ensure=True)
-    result_list = canonical.test(chip_filepath_list, **config)    # yield detections
+    chip_filepath_list = depc.get_property(
+        'chips', aid_list, 'img', config=config2, read_extern=False, ensure=True
+    )
+    result_list = canonical.test(chip_filepath_list, **config)  # yield detections
 
     # yield detections
     for result in result_list:
@@ -1836,17 +1906,20 @@ def compute_canonical(depc, aid_list, config=None):
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
-        ut.ParamInfo('labeler_weight_filepath',  None),
-        ut.ParamInfo('labeler_axis_aligned',     False, hideif=False),
+        ut.ParamInfo(
+            'labeler_algo',
+            'pipeline',
+            valid_values=['azure', 'cnn', 'pipeline', 'densenet'],
+        ),
+        ut.ParamInfo('labeler_weight_filepath', None),
+        ut.ParamInfo('labeler_axis_aligned', False, hideif=False),
     ]
-    _sub_config_list = [
-        ChipConfig
-    ]
+    _sub_config_list = [ChipConfig]
 
 
 @derived_attribute(
-    tablename='labeler', parents=['annotations'],
+    tablename='labeler',
+    parents=['annotations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
@@ -1909,22 +1982,27 @@ def compute_labels_annotations(depc, aid_list, config=None):
         result_gen = ibs.generate_chip_label_list(chip_list, **config)
     elif config['labeler_algo'] in ['azure']:
         from wbia.algo.detect import azure
+
         print('[ibs] detecting using Azure AI for Earth Species Classification API')
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
+
         config_ = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
             'axis_aligned': config['labeler_axis_aligned'],
         }
-        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config_,
-                                               read_extern=False, ensure=True)
+        chip_filepath_list = depc.get_property(
+            'chips', aid_list, 'img', config=config_, read_extern=False, ensure=True
+        )
         config = dict(config)
         config['classifier_weight_filepath'] = config['labeler_weight_filepath']
         result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
     else:
-        raise ValueError('specified labeler algo is not supported in config = %r' % (config, ))
+        raise ValueError(
+            'specified labeler algo is not supported in config = %r' % (config,)
+        )
 
     # yield detections
     for result in result_gen:
@@ -1938,7 +2016,8 @@ class AoIConfig(dtool.Config):
 
 
 @derived_attribute(
-    tablename='aoi_two', parents=['annotations'],
+    tablename='aoi_two',
+    parents=['annotations'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=AoIConfig,
@@ -1978,14 +2057,16 @@ def compute_aoi2(depc, aid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_image
     config_ = {
-        'draw_annots' : False,
-        'thumbsize'   : (192, 192),
+        'draw_annots': False,
+        'thumbsize': (192, 192),
     }
     gid_list = ibs.get_annot_gids(aid_list)
     thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
     bbox_list = ibs.get_annot_bboxes(aid_list)
     size_list = ibs.get_image_sizes(gid_list)
-    result_list = ibs.generate_thumbnail_aoi2_list(thumbnail_list, bbox_list, size_list, **config)
+    result_list = ibs.generate_thumbnail_aoi2_list(
+        thumbnail_list, bbox_list, size_list, **config
+    )
     # yield detections
     for result in result_list:
         yield result
@@ -1994,15 +2075,14 @@ def compute_aoi2(depc, aid_list, config=None):
 class OrienterConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
-        ut.ParamInfo('orienter_weight_filepath',  None),
+        ut.ParamInfo('orienter_weight_filepath', None),
     ]
-    _sub_config_list = [
-        ChipConfig
-    ]
+    _sub_config_list = [ChipConfig]
 
 
 @derived_attribute(
-    tablename='orienter', parents=['annotations'],
+    tablename='orienter',
+    parents=['annotations'],
     colnames=['xtl', 'ytl', 'w', 'h', 'theta'],
     coltypes=[float, float, float, float, float],
     configclass=OrienterConfig,
@@ -2076,12 +2156,20 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 angle -= 90
                 theta = ut.deg_to_rad(angle)
 
-                result = (xtl, ytl, w, h, theta, )
+                result = (
+                    xtl,
+                    ytl,
+                    w,
+                    h,
+                    theta,
+                )
                 result_gen.append(result)
         except Exception:
             raise RuntimeError('Deepsense orienter not working!')
     else:
-        raise ValueError('specified orienter algo is not supported in config = %r' % (config, ))
+        raise ValueError(
+            'specified orienter algo is not supported in config = %r' % (config,)
+        )
 
     # yield detections
     for result in result_gen:
@@ -2096,6 +2184,8 @@ if __name__ == '__main__':
         utprof.py -m wbia.core_annots --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

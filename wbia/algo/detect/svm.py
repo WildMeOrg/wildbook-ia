@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 from os import listdir
 from os.path import join, isfile, isdir
+
 (print, rrr, profile) = ut.inject2(__name__, '[svm]')
 
 
@@ -23,21 +24,18 @@ CONFIG_URL_DICT = {
     # 'localizer-zebra-80'  : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.localization.zebra.80.zip',
     # 'localizer-zebra-90'  : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.localization.zebra.90.zip',
     # 'localizer-zebra-100' : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.localization.zebra.100.zip',
-
     # 'image-zebra'         : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.image.zebra.pkl',
-
     # 'default'             : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.image.zebra.pkl',
     # None                  : 'https://wildbookiarepository.azureedge.net/models/classifier.svm.image.zebra.pkl',
 }
 
 
-def classify_helper(weight_filepath, vector_list, index_list=None,
-                    verbose=VERBOSE_SVM):
+def classify_helper(weight_filepath, vector_list, index_list=None, verbose=VERBOSE_SVM):
     if index_list is None:
         index_list = list(range(len(vector_list)))
     # Init score and class holders
-    score_dict = { index: [] for index in index_list }
-    class_dict = { index: [] for index in index_list }
+    score_dict = {index: [] for index in index_list}
+    class_dict = {index: [] for index in index_list}
     # Load models
     model_tup = ut.load_cPkl(weight_filepath, verbose=verbose)
     model, scaler = model_tup
@@ -75,16 +73,20 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
         if weight_url.endswith('.zip'):
             weight_filepath = ut.grab_zipped_url(weight_url, appname='wbia')
         else:
-            weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
-                                               check_hash=True)
+            weight_filepath = ut.grab_file_url(
+                weight_url, appname='wbia', check_hash=True
+            )
 
     # Get ensemble
     is_ensemble = isdir(weight_filepath)
     if is_ensemble:
-        weight_filepath_list = sorted([
-            join(weight_filepath, filename) for filename in listdir(weight_filepath)
-            if isfile(join(weight_filepath, filename))
-        ])
+        weight_filepath_list = sorted(
+            [
+                join(weight_filepath, filename)
+                for filename in listdir(weight_filepath)
+                if isfile(join(weight_filepath, filename))
+            ]
+        )
     else:
         weight_filepath_list = [weight_filepath]
     num_weights = len(weight_filepath_list)
@@ -97,10 +99,10 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     # Generate parallelized wrapper
     OLD = False
     if is_ensemble and OLD:
-        vectors_list = [ vector_list for _ in range(num_weights) ]
+        vectors_list = [vector_list for _ in range(num_weights)]
         args_list = zip(weight_filepath_list, vectors_list)
         nTasks = num_weights
-        print('Processing ensembles in parallel using %d ensembles' % (num_weights, ))
+        print('Processing ensembles in parallel using %d ensembles' % (num_weights,))
     else:
         num_cpus = multiprocessing.cpu_count()
         vector_batch = int(np.ceil(float(num_vectors) / num_cpus))
@@ -116,22 +118,25 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
 
             # Slice gids and get feature data
             index_list_ = list(range(start_index, stop_index))
-            vector_list_ = vector_list[start_index: stop_index]
+            vector_list_ = vector_list[start_index:stop_index]
             assert len(index_list_) == len(vector_list_)
             for weight_filepath in weight_filepath_list:
                 args = (weight_filepath, vector_list_, index_list_)
                 args_list.append(args)
 
         nTasks = len(args_list)
-        print('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
+        print(
+            'Processing vectors in parallel using vector_batch = %r' % (vector_batch,)
+        )
 
     # Perform inference
-    classify_iter = ut.generate2(classify_helper, args_list, nTasks=nTasks,
-                                 ordered=True, force_serial=False)
+    classify_iter = ut.generate2(
+        classify_helper, args_list, nTasks=nTasks, ordered=True, force_serial=False
+    )
 
     # Classify with SVM for each image vector
-    score_dict = { index: [] for index in index_list }
-    class_dict = { index: [] for index in index_list }
+    score_dict = {index: [] for index in index_list}
+    class_dict = {index: [] for index in index_list}
     for score_dict_, class_dict_ in classify_iter:
         for index in index_list:
             if index in score_dict_:

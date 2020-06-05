@@ -11,7 +11,7 @@ from wbia.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
 from os.path import join, dirname, abspath, exists
 import cv2
-import numpy as np   # NOQA
+import numpy as np  # NOQA
 import utool as ut
 from wbia.web import appfuncs as appf
 from wbia import constants as const
@@ -22,9 +22,10 @@ from datetime import datetime
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
@@ -138,23 +139,34 @@ def process_graph_match_html(ibs, **kwargs):
         Method: POST
         URL:    /api/review/query/graph/
     """
+
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
         return state
+
     import uuid
+
     map_dict = {
-        'sameanimal'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.POSITIVE],
-        'differentanimals' : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.NEGATIVE],
-        'cannottell'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.INCOMPARABLE],
-        'unreviewed'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNREVIEWED],
-        'unknown'          : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNKNOWN],
-        'photobomb'        : 'photobomb',
-        'scenerymatch'     : 'scenerymatch',
-        'excludetop'       : 'excludetop',
-        'excludebottom'    : 'excludebottom',
-        'excludeleft'      : 'excludeleft',
-        'excluderight'     : 'excluderight',
+        'sameanimal': const.EVIDENCE_DECISION.INT_TO_CODE[
+            const.EVIDENCE_DECISION.POSITIVE
+        ],
+        'differentanimals': const.EVIDENCE_DECISION.INT_TO_CODE[
+            const.EVIDENCE_DECISION.NEGATIVE
+        ],
+        'cannottell': const.EVIDENCE_DECISION.INT_TO_CODE[
+            const.EVIDENCE_DECISION.INCOMPARABLE
+        ],
+        'unreviewed': const.EVIDENCE_DECISION.INT_TO_CODE[
+            const.EVIDENCE_DECISION.UNREVIEWED
+        ],
+        'unknown': const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNKNOWN],
+        'photobomb': 'photobomb',
+        'scenerymatch': 'scenerymatch',
+        'excludetop': 'excludetop',
+        'excludebottom': 'excludebottom',
+        'excludeleft': 'excludeleft',
+        'excluderight': 'excluderight',
     }
     annot_uuid_1 = uuid.UUID(request.form['identification-annot-uuid-1'])
     annot_uuid_2 = uuid.UUID(request.form['identification-annot-uuid-2'])
@@ -182,15 +194,31 @@ def process_graph_match_html(ibs, **kwargs):
     else:
         tag_str = ';'.join(tag_list)
     user_times = {
-        'server_time_start' : request.form.get('server_time_start', None),
-        'client_time_start' : request.form.get('client_time_start', None),
-        'client_time_end'   : request.form.get('client_time_end',   None),
+        'server_time_start': request.form.get('server_time_start', None),
+        'client_time_start': request.form.get('client_time_start', None),
+        'client_time_end': request.form.get('client_time_end', None),
     }
-    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', confidence, user_times)
+    return (
+        annot_uuid_1,
+        annot_uuid_2,
+        state,
+        tag_str,
+        'web-api',
+        confidence,
+        user_times,
+    )
 
 
-def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
-                        draw_matches=True, draw_heatmask=False, verbose=False):
+def ensure_review_image(
+    ibs,
+    aid,
+    cm,
+    qreq_,
+    view_orientation='vertical',
+    draw_matches=True,
+    draw_heatmask=False,
+    verbose=False,
+):
     r""""
     Create the review image for a pair of annotations
 
@@ -216,63 +244,77 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> ut.show_if_requested()
     """
     from wbia.gui import id_review_api
+
     # Get thumb path
     match_thumb_path = ibs.get_match_thumbdir()
-    match_thumb_filename = id_review_api.get_match_thumb_fname(cm, aid, qreq_,
-                                                               view_orientation=view_orientation,
-                                                               draw_matches=draw_matches,
-                                                               draw_heatmask=draw_heatmask)
+    match_thumb_filename = id_review_api.get_match_thumb_fname(
+        cm,
+        aid,
+        qreq_,
+        view_orientation=view_orientation,
+        draw_matches=draw_matches,
+        draw_heatmask=draw_heatmask,
+    )
     match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
     if verbose:
-        print('Checking: %r' % (match_thumb_filepath, ))
+        print('Checking: %r' % (match_thumb_filepath,))
 
     if exists(match_thumb_filepath):
         image = cv2.imread(match_thumb_filepath)
     else:
         render_config = {
-            'dpi'              : 300,
-            'overlay'          : True,
-            'draw_fmatches'    : True,
-            'draw_fmatch'      : draw_matches,
-            'show_matches'     : draw_matches,
-            'show_ell'         : draw_matches,
-            'show_lines'       : draw_matches,
-            'show_ori'         : False,
-            'heatmask'         : draw_heatmask,
-            'vert'             : view_orientation == 'vertical',
-            'show_aidstr'      : False,
-            'show_name'        : False,
-            'show_exemplar'    : False,
-            'show_num_gt'      : False,
-            'show_timedelta'   : False,
-            'show_name_rank'   : False,
-            'show_score'       : False,
-            'show_annot_score' : False,
-            'show_name_score'  : False,
-            'draw_lbl'         : False,
-            'draw_border'      : False,
-            'white_background' : True,
+            'dpi': 300,
+            'overlay': True,
+            'draw_fmatches': True,
+            'draw_fmatch': draw_matches,
+            'show_matches': draw_matches,
+            'show_ell': draw_matches,
+            'show_lines': draw_matches,
+            'show_ori': False,
+            'heatmask': draw_heatmask,
+            'vert': view_orientation == 'vertical',
+            'show_aidstr': False,
+            'show_name': False,
+            'show_exemplar': False,
+            'show_num_gt': False,
+            'show_timedelta': False,
+            'show_name_rank': False,
+            'show_score': False,
+            'show_annot_score': False,
+            'show_name_score': False,
+            'draw_lbl': False,
+            'draw_border': False,
+            'white_background': True,
         }
 
         if hasattr(qreq_, 'render_single_result'):
             image = qreq_.render_single_result(cm, aid, **render_config)
         else:
             image = cm.render_single_annotmatch(qreq_, aid, **render_config)
-        #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
+        # image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
         cv2.imwrite(match_thumb_filepath, image)
     return image, match_thumb_filepath
 
 
-@register_api('/api/review/query/graph/alias/', methods=['POST'], __api_plural_check__=False)
+@register_api(
+    '/api/review/query/graph/alias/', methods=['POST'], __api_plural_check__=False
+)
 def review_graph_match_html_alias(*args, **kwargs):
     review_graph_match_html(*args, **kwargs)
 
 
 @register_api('/api/review/query/graph/', methods=['GET'])
-def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
-                            _internal_state, callback_url,
-                            callback_method='POST',
-                            view_orientation='vertical', include_jquery=False):
+def review_graph_match_html(
+    ibs,
+    review_pair,
+    cm_dict,
+    query_config_dict,
+    _internal_state,
+    callback_url,
+    callback_method='POST',
+    view_orientation='vertical',
+    include_jquery=False,
+):
     r"""
     Args:
         ibs (wbia.IBEISController):  image analysis api
@@ -390,11 +432,22 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> ut.show_if_requested()
     """
     from wbia.algo.hots import chip_match
+
     # from wbia.algo.hots.query_request import QueryRequest
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven'):
+    if proot.lower() in (
+        'bc_dtw',
+        'oc_wdtw',
+        'curvrankdorsal',
+        'curvrankfinfindrhybriddorsal',
+        'curvrankfluke',
+        'deepsense',
+        'finfindr',
+        'kaggle7',
+        'kaggleseven',
+    ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -408,38 +461,39 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
     except Exception:
-        #??? HACK
+        # ??? HACK
         # FIXME:
         print('[!!!!] review_pair = %r' % (review_pair,))
         review_pair = review_pair[0]
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
 
-    ibs.web_check_uuids(qannot_uuid_list=[annot_uuid_1],
-                        dannot_uuid_list=[annot_uuid_2])
+    ibs.web_check_uuids(
+        qannot_uuid_list=[annot_uuid_1], dannot_uuid_list=[annot_uuid_2]
+    )
 
     aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
     cm = cls.from_dict(cm_dict, ibs=ibs)
-    qreq_ = ibs.new_query_request([aid_1], [aid_2],
-                                  cfgdict=query_config_dict)
+    qreq_ = ibs.new_query_request([aid_1], [aid_2], cfgdict=query_config_dict)
 
     # Get score
     idx = cm.daid2_idx[aid_2]
     match_score = cm.name_score_list[idx]
-    #match_score = cm.aid2_score[aid_2]
+    # match_score = cm.aid2_score[aid_2]
 
     try:
-        image_matches, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
-                                               view_orientation=view_orientation)
+        image_matches, _ = ensure_review_image(
+            ibs, aid_2, cm, qreq_, view_orientation=view_orientation
+        )
     except KeyError:
         image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()
     try:
-        image_clean, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
-                                             view_orientation=view_orientation,
-                                             draw_matches=False)
+        image_clean, _ = ensure_review_image(
+            ibs, aid_2, cm, qreq_, view_orientation=view_orientation, draw_matches=False
+        )
     except KeyError:
         image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()
@@ -451,13 +505,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     confidence_nice_list = confidence_dict.keys()
     confidence_text_list = confidence_dict.values()
     confidence_selected_list = [
-        confidence_text == 'unspecified'
-        for confidence_text in confidence_text_list
+        confidence_text == 'unspecified' for confidence_text in confidence_text_list
     ]
-    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
+    confidence_list = list(
+        zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    )
 
     if False:
         from wbia.web import apis_query
+
         root_path = dirname(abspath(apis_query.__file__))
     else:
         root_path = dirname(abspath(__file__))
@@ -471,24 +527,24 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     ]
 
     if include_jquery:
-        json_file_list = [
-            ['javascript', 'jquery.min.js'],
-        ] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
 
     css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
-    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    json_template_fmtstr = (
+        '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    )
     for css_file in css_file_list:
         css_filepath_list = [root_path, 'static'] + css_file
         with open(join(*css_filepath_list)) as css_file:
-            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(),)
 
     for json_file in json_file_list:
         json_filepath_list = [root_path, 'static'] + json_file
         with open(join(*json_filepath_list)) as json_file:
-            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(),)
 
     annot_uuid_1 = str(annot_uuid_1)
     annot_uuid_2 = str(annot_uuid_2)
@@ -513,43 +569,29 @@ def review_query_chips_test(**kwargs):
 
     # the old block curvature dtw
     if 'use_bc_dtw' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'BC_DTW'
-        }
+        query_config_dict = {'pipeline_root': 'BC_DTW'}
     # the new oriented curvature dtw
     elif 'use_oc_wdtw' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'OC_WDTW'
-        }
+        query_config_dict = {'pipeline_root': 'OC_WDTW'}
     elif 'use_curvrank_dorsal' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'CurvRankDorsal'
-        }
+        query_config_dict = {'pipeline_root': 'CurvRankDorsal'}
     elif 'use_curvrank_finfindr_hybrid_dorsal' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'CurvRankFinfindrHybridDorsal'
-        }
+        query_config_dict = {'pipeline_root': 'CurvRankFinfindrHybridDorsal'}
     elif 'use_curvrank_fluke' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'CurvRankFluke'
-        }
+        query_config_dict = {'pipeline_root': 'CurvRankFluke'}
     elif 'use_deepsense' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'Deepsense'
-        }
+        query_config_dict = {'pipeline_root': 'Deepsense'}
     elif 'use_finfindr' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'Finfindr'
-        }
+        query_config_dict = {'pipeline_root': 'Finfindr'}
     elif 'use_kaggle7' in request.args or 'use_kaggleseven' in request.args:
-        query_config_dict = {
-            'pipeline_root' : 'KaggleSeven'
-        }
+        query_config_dict = {'pipeline_root': 'KaggleSeven'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
 
-    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
+    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][
+        0
+    ]
     annot_uuid_key = str(review_pair['annot_uuid_key'])
     cm_dict = result_dict['cm_dict'][annot_uuid_key]
     query_config_dict = result_dict['query_config_dict']
@@ -559,15 +601,23 @@ def review_query_chips_test(**kwargs):
     # view_orientation = request.args.get('view_orientation', 'vertical')
     view_orientation = request.args.get('view_orientation', 'horizontal')
 
-    template_html = review_graph_match_html(ibs, review_pair, cm_dict,
-                                            query_config_dict, _internal_state,
-                                            callback_url, callback_method,
-                                            view_orientation,
-                                            include_jquery=True)
-    template_html = '''
+    template_html = review_graph_match_html(
+        ibs,
+        review_pair,
+        cm_dict,
+        query_config_dict,
+        _internal_state,
+        callback_url,
+        callback_method,
+        view_orientation,
+        include_jquery=True,
+    )
+    template_html = """
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
         %s
-    ''' % (template_html, )
+    """ % (
+        template_html,
+    )
     return template_html
     return 'done'
 
@@ -676,6 +726,7 @@ def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kw
         >>> print(result_dict)
     """
     from random import shuffle  # NOQA
+
     # Compile test data
     aid_list = ibs.get_valid_aids()
     if aid is None:
@@ -701,8 +752,12 @@ def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kw
 def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwargs):
     import theano  # NOQA
 
-    cm_list, qreq_ = ibs.query_chips(qaid_list=aid_list, daid_list=aid_list,
-                                     cfgdict=query_config_dict, return_request=True)
+    cm_list, qreq_ = ibs.query_chips(
+        qaid_list=aid_list,
+        daid_list=aid_list,
+        cfgdict=query_config_dict,
+        return_request=True,
+    )
 
     result_dict = {}
     for cm in cm_list:
@@ -712,10 +767,7 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
         value_list = sorted(zip(score_list, id_list), reverse=True)
         k_ = min(k, len(value_list))
         value_list = value_list[:k_]
-        result = {
-            str(id_): score
-            for score, id_ in value_list
-        }
+        result = {str(id_): score for score, id_ in value_list}
         result_dict[key] = result
 
     return result_dict
@@ -723,10 +775,19 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 
 @register_ibs_method
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
-def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
-                      query_config_dict={}, echo_query_params=True,
-                      cache_images=True, n=16, view_orientation='horizontal',
-                      return_summary=True, **kwargs):
+def query_chips_graph(
+    ibs,
+    qaid_list,
+    daid_list,
+    user_feedback=None,
+    query_config_dict={},
+    echo_query_params=True,
+    cache_images=True,
+    n=16,
+    view_orientation='horizontal',
+    return_summary=True,
+    **kwargs
+):
     from wbia.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
     import uuid
@@ -741,16 +802,16 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    print('query_config_dict = %r' % (query_config_dict, ))
+    print('query_config_dict = %r' % (query_config_dict,))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
     if curvrank_daily_tag is not None:
         if len(curvrank_daily_tag) > 144:
             curvrank_daily_tag_ = ut.hashstr27(curvrank_daily_tag)
-            curvrank_daily_tag_ = 'wbia-shortened-%s' % (curvrank_daily_tag_, )
+            curvrank_daily_tag_ = 'wbia-shortened-%s' % (curvrank_daily_tag_,)
             print('[WARNING] curvrank_daily_tag too long (Probably an old job)')
-            print('[WARNING] Original: %r' % (curvrank_daily_tag, ))
-            print('[WARNING] Shortened: %r' % (curvrank_daily_tag_, ))
+            print('[WARNING] Original: %r' % (curvrank_daily_tag,))
+            print('[WARNING] Shortened: %r' % (curvrank_daily_tag_,))
             query_config_dict['curvrank_daily_tag'] = curvrank_daily_tag_
 
     num_qaids = len(qaid_list)
@@ -764,15 +825,19 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
     num_daids_ = len(daid_list)
 
     if num_qaids != num_qaids_:
-        print('len(qaid_list)  = %d' % (num_qaids, ))
-        print('len(qaid_list_) = %d' % (num_qaids_, ))
+        print('len(qaid_list)  = %d' % (num_qaids,))
+        print('len(qaid_list_) = %d' % (num_qaids_,))
 
     if num_daids != num_daids_:
-        print('len(daid_list)  = %d' % (num_daids, ))
-        print('len(daid_list_) = %d' % (num_daids_, ))
+        print('len(daid_list)  = %d' % (num_daids,))
+        print('len(daid_list_) = %d' % (num_daids_,))
 
-    cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
-                                     cfgdict=query_config_dict, return_request=True)
+    cm_list, qreq_ = ibs.query_chips(
+        qaid_list=qaid_list,
+        daid_list=daid_list,
+        cfgdict=query_config_dict,
+        return_request=True,
+    )
 
     annot_inference = OrigAnnotInference(qreq_, cm_list, user_feedback)
     inference_dict = annot_inference.make_annot_inference_dict()
@@ -785,7 +850,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
     if cache_images:
         reference = ut.hashstr27(qreq_.get_cfgstr())
-        cache_path = join(cache_dir, 'qreq_cfgstr_%s' % (reference, ))
+        cache_path = join(cache_dir, 'qreq_cfgstr_%s' % (reference,))
         ut.ensuredir(cache_path)
 
     cm_dict = {}
@@ -794,7 +859,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         cm_key = str(quuid)
 
         if cache_images:
-            args = (quuid, )
+            args = (quuid,)
             qannot_cache_filepath = join(cache_path, 'qannot_uuid_%s' % args)
             ut.ensuredir(qannot_cache_filepath)
 
@@ -813,7 +878,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            print('Top %d names: %r' % (n_, zipped, ))
+            print('Top %d names: %r' % (n_, zipped,))
             dnid_set = set(ut.take_column(zipped, 1))
             aids_list = ibs.get_name_aids(dnid_set)
 
@@ -821,22 +886,40 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             for nid, aid_list in zip(dnid_set, aids_list):
                 # Assume that the highest AIDs are the newest sightings, visualize the most recent X sightings per name
                 aid_list = sorted(aid_list, reverse=True)
-                num_per_name = len(aid_list) if DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME is None else DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME
+                num_per_name = (
+                    len(aid_list)
+                    if DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME is None
+                    else DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME
+                )
                 limit = min(len(aid_list), num_per_name)
-                args = (nid, len(aid_list), limit, )
+                args = (
+                    nid,
+                    len(aid_list),
+                    limit,
+                )
                 print('\tFiltering NID %d from %d -> %d' % args)
                 aid_list = aid_list[:limit]
                 daid_set += aid_list
 
-            args = (len(daid_set), daid_set, )
+            args = (
+                len(daid_set),
+                daid_set,
+            )
             print('Found %d candidate name aids: %r' % args)
             daid_set = set(daid_set)
             name_daid_set = daid_set & set(daid_list_)  # Filter by supplied query daids
 
-            args = (len(name_daid_set), len(dnid_set), name_daid_set, )
+            args = (
+                len(name_daid_set),
+                len(dnid_set),
+                name_daid_set,
+            )
             print('Found %d overlapping aids for %d nids: %r' % args)
 
-            args = (len(name_daid_set), len(dnid_set), )
+            args = (
+                len(name_daid_set),
+                len(dnid_set),
+            )
             print('Visualizing %d annotations for best %d names' % args)
 
             # Get best annotations
@@ -844,68 +927,93 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             zipped = sorted(zip(score_list, daid_list_), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            print('Top %d annots: %r' % (n_, zipped, ))
+            print('Top %d annots: %r' % (n_, zipped,))
             annot_daid_set = set(ut.take_column(zipped, 1))
 
             # Combine names and annotations
             daid_set = list(name_daid_set) + list(annot_daid_set)
             daid_set = list(set(daid_set))
-            print('Visualizing %d annots: %r' % (len(daid_set), daid_set, ))
+            print('Visualizing %d annots: %r' % (len(daid_set), daid_set,))
 
             extern_flag_list = []
             for daid in daid_list_:
                 extern_flag = daid in daid_set
 
                 if extern_flag:
-                    print('Rendering match images to disk for daid=%d' % (daid, ))
+                    print('Rendering match images to disk for daid=%d' % (daid,))
                     duuid = ibs.get_annot_uuids(daid)
 
-                    args = (duuid, )
-                    dannot_cache_filepath = join(qannot_cache_filepath, 'dannot_uuid_%s' % args)
+                    args = (duuid,)
+                    dannot_cache_filepath = join(
+                        qannot_cache_filepath, 'dannot_uuid_%s' % args
+                    )
                     ut.ensuredir(dannot_cache_filepath)
 
-                    cache_filepath_fmtstr = join(dannot_cache_filepath, 'version_%s_orient_%s.png')
+                    cache_filepath_fmtstr = join(
+                        dannot_cache_filepath, 'version_%s_orient_%s.png'
+                    )
 
                     try:
                         _, filepath_matches = ensure_review_image(
-                            ibs, daid, cm, qreq_,
+                            ibs,
+                            daid,
+                            cm,
+                            qreq_,
                             view_orientation=view_orientation,
                             draw_matches=True,
-                            draw_heatmask=False)
+                            draw_heatmask=False,
+                        )
                     except Exception:
                         filepath_matches = None
                         extern_flag = 'error'
                     try:
                         _, filepath_heatmask = ensure_review_image(
-                            ibs, daid, cm, qreq_,
+                            ibs,
+                            daid,
+                            cm,
+                            qreq_,
                             view_orientation=view_orientation,
                             draw_matches=False,
-                            draw_heatmask=True)
+                            draw_heatmask=True,
+                        )
                     except Exception:
                         filepath_heatmask = None
                         extern_flag = 'error'
                     try:
                         _, filepath_clean = ensure_review_image(
-                            ibs, daid, cm, qreq_,
+                            ibs,
+                            daid,
+                            cm,
+                            qreq_,
                             view_orientation=view_orientation,
                             draw_matches=False,
-                            draw_heatmask=False)
+                            draw_heatmask=False,
+                        )
                     except Exception:
                         filepath_clean = None
                         extern_flag = 'error'
 
                     if filepath_matches is not None:
-                        args = ('matches', view_orientation, )
+                        args = (
+                            'matches',
+                            view_orientation,
+                        )
                         cache_filepath = cache_filepath_fmtstr % args
                         ut.symlink(filepath_matches, cache_filepath, overwrite=True)
 
                     if filepath_heatmask is not None:
-                        args = ('heatmask', view_orientation, )
+                        args = (
+                            'heatmask',
+                            view_orientation,
+                        )
                         cache_filepath = cache_filepath_fmtstr % args
                         ut.symlink(filepath_heatmask, cache_filepath, overwrite=True)
 
                     if filepath_clean is not None:
-                        args = ('clean', view_orientation, )
+                        args = (
+                            'clean',
+                            view_orientation,
+                        )
                         cache_filepath = cache_filepath_fmtstr % args
                         ut.symlink(filepath_clean, cache_filepath, overwrite=True)
 
@@ -915,39 +1023,39 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
         cm_dict[cm_key] = {
             # 'qaid'                    : cm.qaid,
-            'qannot_uuid'             : ibs.get_annot_uuids(cm.qaid),
+            'qannot_uuid': ibs.get_annot_uuids(cm.qaid),
             # 'qnid'                    : cm.qnid,
-            'qname_uuid'              : convert_to_uuid(cm.qnid),
-            'qname'                   : ibs.get_name_texts(cm.qnid),
+            'qname_uuid': convert_to_uuid(cm.qnid),
+            'qname': ibs.get_name_texts(cm.qnid),
             # 'daid_list'               : cm.daid_list,
-            'dannot_uuid_list'        : ibs.get_annot_uuids(cm.daid_list),
+            'dannot_uuid_list': ibs.get_annot_uuids(cm.daid_list),
             # 'dnid_list'               : cm.dnid_list,
-            'dname_uuid_list'         : [convert_to_uuid(nid) for nid in cm.dnid_list],
+            'dname_uuid_list': [convert_to_uuid(nid) for nid in cm.dnid_list],
             # FIXME: use qreq_ state not wbia state
-            'dname_list'              : ibs.get_name_texts(cm.dnid_list),
-            'score_list'              : cm.score_list,
-            'annot_score_list'        : cm.annot_score_list,
-            'fm_list'                 : cm.fm_list if hasattr(cm, 'fm_list') else None,
-            'fsv_list'                : cm.fsv_list if hasattr(cm, 'fsv_list') else None,
+            'dname_list': ibs.get_name_texts(cm.dnid_list),
+            'score_list': cm.score_list,
+            'annot_score_list': cm.annot_score_list,
+            'fm_list': cm.fm_list if hasattr(cm, 'fm_list') else None,
+            'fsv_list': cm.fsv_list if hasattr(cm, 'fsv_list') else None,
             # Non-corresponding lists to above
             # 'unique_nids'             : cm.unique_nids,
-            'unique_name_uuid_list'   : [convert_to_uuid(nid) for nid in cm.unique_nids],
+            'unique_name_uuid_list': [convert_to_uuid(nid) for nid in cm.unique_nids],
             # FIXME: use qreq_ state not wbia state
-            'unique_name_list'        : ibs.get_name_texts(cm.unique_nids),
-            'name_score_list'         : cm.name_score_list,
+            'unique_name_list': ibs.get_name_texts(cm.unique_nids),
+            'name_score_list': cm.name_score_list,
             # Placeholders for the reinitialization of the ChipMatch object
-            'fk_list'                 : None,
-            'H_list'                  : None,
-            'fsv_col_lbls'            : None,
-            'filtnorm_aids'           : None,
-            'filtnorm_fxs'            : None,
-            'dannot_extern_reference' : reference,
-            'dannot_extern_list'      : extern_flag_list,
+            'fk_list': None,
+            'H_list': None,
+            'fsv_col_lbls': None,
+            'filtnorm_aids': None,
+            'filtnorm_fxs': None,
+            'dannot_extern_reference': reference,
+            'dannot_extern_list': extern_flag_list,
         }
 
     result_dict = {
-        'cm_dict'        : cm_dict,
-        'inference_dict' : inference_dict,
+        'cm_dict': cm_dict,
+        'inference_dict': inference_dict,
     }
 
     if echo_query_params:
@@ -961,10 +1069,9 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             ('summary_name', cm.name_score_list),
         ]
         for summary_key, summary_score_list in summary_list:
-            value_list = sorted(list(zip(
-                summary_score_list,
-                cm.daid_list,
-            )), reverse=True)
+            value_list = sorted(
+                list(zip(summary_score_list, cm.daid_list,)), reverse=True
+            )
             n_ = min(len(value_list), n)
             value_list = value_list[:n_]
 
@@ -974,26 +1081,33 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             dnid_list = ibs.get_annot_nids(daid_list_)
             species_list = ibs.get_annot_species(daid_list_)
             viewpoint_list = ibs.get_annot_viewpoints(daid_list_)
-            values_list = list(zip(
-                dscore_list,
-                duuid_list,
-                daid_list_,
-                dnid_list,
-                species_list,
-                viewpoint_list,
-            ))
+            values_list = list(
+                zip(
+                    dscore_list,
+                    duuid_list,
+                    daid_list_,
+                    dnid_list,
+                    species_list,
+                    viewpoint_list,
+                )
+            )
             key_list = ['score', 'duuid', 'daid', 'dnid', 'species', 'viewpoint']
             result_dict[summary_key] = [
-                dict(zip(key_list, value_list_))
-                for value_list_ in values_list
+                dict(zip(key_list, value_list_)) for value_list_ in values_list
             ]
 
     return result_dict
 
 
-@register_route('/api/query/graph/match/thumb/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
-def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
-                                  database_annot_uuid, version):
+@register_route(
+    '/api/query/graph/match/thumb/',
+    methods=['GET'],
+    __route_prefix_check__=False,
+    __route_authenticate__=False,
+)
+def query_chips_graph_match_thumb(
+    extern_reference, query_annot_uuid, database_annot_uuid, version
+):
     from PIL import Image  # NOQA
     import vtool as vt
     from io import BytesIO
@@ -1001,40 +1115,53 @@ def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
     from flask import send_file
 
     ibs = current_app.ibs
-    args = (extern_reference, query_annot_uuid, database_annot_uuid, version, )
+    args = (
+        extern_reference,
+        query_annot_uuid,
+        database_annot_uuid,
+        version,
+    )
 
     cache_dir = join(ibs.cachedir, 'query_match')
 
-    reference_path = join(cache_dir, 'qreq_cfgstr_%s' % (extern_reference, ))
+    reference_path = join(cache_dir, 'qreq_cfgstr_%s' % (extern_reference,))
     if not exists(reference_path):
         message = 'dannot_extern_reference is unknown'
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
-    qannot_path = join(reference_path, 'qannot_uuid_%s' % (query_annot_uuid, ))
+    qannot_path = join(reference_path, 'qannot_uuid_%s' % (query_annot_uuid,))
     if not exists(qannot_path):
-        message = 'query_annot_uuid is unknown for the given reference %s' % (extern_reference, )
+        message = 'query_annot_uuid is unknown for the given reference %s' % (
+            extern_reference,
+        )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
-    dannot_path = join(qannot_path, 'dannot_uuid_%s' % (database_annot_uuid, ))
+    dannot_path = join(qannot_path, 'dannot_uuid_%s' % (database_annot_uuid,))
     if not exists(dannot_path):
-        message = 'database_annot_uuid is unknown for the given reference %s and query_annot_uuid %s' % (extern_reference, query_annot_uuid, )
+        message = (
+            'database_annot_uuid is unknown for the given reference %s and query_annot_uuid %s'
+            % (extern_reference, query_annot_uuid,)
+        )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
     version = version.lower()
 
     alias_dict = {
-        None    : 'clean',
-        'match' : 'matches',
-        'mask'  : 'heatmask',
+        None: 'clean',
+        'match': 'matches',
+        'mask': 'heatmask',
     }
     for alias in alias_dict:
         version = alias_dict.get(version, version)
 
     assert version in ['clean', 'matches', 'heatmask']
 
-    version_path = join(dannot_path, 'version_%s_orient_horizontal.png' % (version, ))
+    version_path = join(dannot_path, 'version_%s_orient_horizontal.png' % (version,))
     if not exists(version_path):
-        message = 'match thumb version is unknown for the given reference %s, query_annot_uuid %s, database_annot_uuid %s' % (extern_reference, query_annot_uuid, database_annot_uuid, )
+        message = (
+            'match thumb version is unknown for the given reference %s, query_annot_uuid %s, database_annot_uuid %s'
+            % (extern_reference, query_annot_uuid, database_annot_uuid,)
+        )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
     # Load image
@@ -1054,11 +1181,21 @@ def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
 
 @register_ibs_method
 @register_api('/api/query/chip/', methods=['GET'])
-def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
-                use_cache=None, use_bigcache=None, qreq_=None,
-                return_request=False, verbose=pipeline.VERB_PIPELINE,
-                save_qcache=None, prog_hook=None, return_cm_dict=False,
-                return_cm_simple_dict=False):
+def query_chips(
+    ibs,
+    qaid_list=None,
+    daid_list=None,
+    cfgdict=None,
+    use_cache=None,
+    use_bigcache=None,
+    qreq_=None,
+    return_request=False,
+    verbose=pipeline.VERB_PIPELINE,
+    save_qcache=None,
+    prog_hook=None,
+    return_cm_dict=False,
+    return_cm_simple_dict=False,
+):
     r"""
     Submits a query request to the hotspotter recognition pipeline. Returns
     a list of QueryResult objects.
@@ -1154,15 +1291,15 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
-        qreq_ = ibs.new_query_request(qaid_list, daid_list,
-                                      cfgdict=cfgdict, verbose=verbose)
+        qreq_ = ibs.new_query_request(
+            qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose
+        )
     else:
         assert qaid_list is None, 'do not specify qreq and qaids'
         assert daid_list is None, 'do not specify qreq and daids'
         was_scalar = False
     cm_list = qreq_.execute()
-    assert isinstance(cm_list, list), (
-        'Chip matches were not returned as a list')
+    assert isinstance(cm_list, list), 'Chip matches were not returned as a list'
 
     # Convert to cm_list
     if return_cm_simple_dict:
@@ -1201,16 +1338,23 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
     return graph_client, graph_uuid_chain
 
 
-def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
-                           view_orientation='vertical', overlay=True):
+def ensure_review_image_v2(
+    ibs,
+    match,
+    draw_matches=False,
+    draw_heatmask=False,
+    view_orientation='vertical',
+    overlay=True,
+):
     import wbia.plottool as pt
+
     render_config = {
-        'overlay'    : overlay,
-        'show_ell'   : draw_matches,
-        'show_lines' : draw_matches,
-        'show_ori'   : False,
-        'heatmask'   : draw_heatmask,
-        'vert'       : view_orientation == 'vertical',
+        'overlay': overlay,
+        'show_ell': draw_matches,
+        'show_lines': draw_matches,
+        'show_ori': False,
+        'heatmask': draw_heatmask,
+        'vert': view_orientation == 'vertical',
     }
     with pt.RenderingContext(dpi=150) as ctx:
         match.show(**render_config)
@@ -1220,15 +1364,14 @@ def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
 
 def query_graph_v2_callback(graph_client, callback_type):
     from wbia.web.graph_server import ut_to_json_encode
+
     assert callback_type in ['review', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
         callback_url, callback_method = callback_tuple
         if callback_url is not None:
             callback_method = callback_method.lower()
-            data_dict = ut_to_json_encode({
-                'graph_uuid': graph_client.graph_uuid,
-            })
+            data_dict = ut_to_json_encode({'graph_uuid': graph_client.graph_uuid,})
             if callback_method == 'post':
                 requests.post(callback_url, data=data_dict)
             elif callback_method == 'get':
@@ -1243,14 +1386,17 @@ def query_graph_v2_callback(graph_client, callback_type):
 
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['POST'])
-def query_chips_graph_v2(ibs, annot_uuid_list=None,
-                         query_config_dict={},
-                         review_callback_url=None,
-                         review_callback_method='POST',
-                         finished_callback_url=None,
-                         finished_callback_method='POST',
-                         creation_imageset_rowid_list=None,
-                         **kwargs):
+def query_chips_graph_v2(
+    ibs,
+    annot_uuid_list=None,
+    query_config_dict={},
+    review_callback_url=None,
+    review_callback_method='POST',
+    finished_callback_url=None,
+    finished_callback_method='POST',
+    creation_imageset_rowid_list=None,
+    **kwargs
+):
     """
     CommandLine:
         python -m wbia.web.apis_query --test-query_chips_graph_v2:0
@@ -1292,6 +1438,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
     from wbia.web.graph_server import GraphClient
+
     print('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
@@ -1315,25 +1462,25 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                 overlap_aid_list = list(overlap_aid_set)
                 overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
                 raise controller_inject.WebUnavailableUUIDException(
-                    overlap_annot_uuid_list, graph_uuid_)
+                    overlap_annot_uuid_list, graph_uuid_
+                )
 
         callback_dict = {
-            'review'   : (review_callback_url,   review_callback_method),
-            'finished' : (finished_callback_url, finished_callback_method),
+            'review': (review_callback_url, review_callback_method),
+            'finished': (finished_callback_url, finished_callback_method),
         }
-        graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
-                                   autoinit=True)
+        graph_client = GraphClient(graph_uuid, callbacks=callback_dict, autoinit=True)
 
         if creation_imageset_rowid_list is not None:
             graph_client.imagesets = creation_imageset_rowid_list
         graph_client.aids = aid_list
 
         config = {
-            'manual.n_peek'   : GRAPH_CLIENT_PEEK,
-            'manual.autosave' : True,
-            'redun.pos'       : 2,
-            'redun.neg'       : 2,
-            'algo.quickstart' : False
+            'manual.n_peek': GRAPH_CLIENT_PEEK,
+            'manual.autosave': True,
+            'redun.pos': 2,
+            'redun.neg': 2,
+            'algo.quickstart': False,
         }
         config.update(query_config_dict)
         print('[apis_query] graph_client.config = {}'.format(ut.repr3(config)))
@@ -1344,31 +1491,31 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
         # Start (create the Graph Inference object)
         payload = {
-            'action' : 'start',
-            'dbdir'  : ibs.dbdir,
-            'aids'   : graph_client.aids,
-            'config' : graph_client.config,
+            'action': 'start',
+            'dbdir': ibs.dbdir,
+            'aids': graph_client.aids,
+            'config': graph_client.config,
         }
         future = graph_client.post(payload)
         future.result()  # Guarantee that this has happened before calling refresh
 
-        f2 = graph_client.post({'action' : 'latest_logs'})
+        f2 = graph_client.post({'action': 'latest_logs'})
         f2.graph_client = graph_client
         f2.add_done_callback(query_graph_v2_latest_logs)
 
         # Start (create the Graph Inference object)
         payload = {
-            'action' : 'get_feat_extractor',
+            'action': 'get_feat_extractor',
         }
         future = graph_client.post(payload)
         graph_client.extr = future.result()
 
         # Start main loop
-        future = graph_client.post({'action' : 'continue_review'})
+        future = graph_client.post({'action': 'continue_review'})
         future.graph_client = graph_client
         future.add_done_callback(query_graph_v2_on_request_review)
 
-        f2 = graph_client.post({'action' : 'latest_logs'})
+        f2 = graph_client.post({'action': 'latest_logs'})
         f2.graph_client = graph_client
         f2.add_done_callback(query_graph_v2_latest_logs)
 
@@ -1376,8 +1523,9 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
 
 @register_ibs_method
-def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
-                                 view_orientation='vertical', view_version=1):
+def review_graph_match_config_v2(
+    ibs, graph_uuid, aid1=None, aid2=None, view_orientation='vertical', view_version=1
+):
     from wbia.algo.verif import pairfeat
     from flask import session
 
@@ -1403,9 +1551,14 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
         if EDGES_KEY not in session:
             session[EDGES_KEY] = []
         previous_edge_list = session[EDGES_KEY]
-        print('Using previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
+        print(
+            'Using previous_edge_list\n\tUser: %s\n\tList: %r'
+            % (user_id, previous_edge_list,)
+        )
 
-        data = graph_client.sample(previous_edge_list=previous_edge_list, max_previous_edges=EDGES_MAX)
+        data = graph_client.sample(
+            previous_edge_list=previous_edge_list, max_previous_edges=EDGES_MAX
+        )
         if data is None:
             raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
@@ -1424,71 +1577,106 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
             cutoff = int(-1.0 * EDGES_MAX)
             previous_edge_list = previous_edge_list[cutoff:]
         session[EDGES_KEY] = previous_edge_list
-        print('Updating previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
+        print(
+            'Updating previous_edge_list\n\tUser: %s\n\tList: %r'
+            % (user_id, previous_edge_list,)
+        )
 
-    args = (edge, priority, )
+    args = (
+        edge,
+        priority,
+    )
     print('Sampled edge %r with priority %0.02f' % args)
     print('Data: ' + ut.repr4(data_dict))
 
     feat_extract_config = {
-        'match_config': ({} if graph_client.extr is None else
-                         graph_client.extr.match_config)
+        'match_config': (
+            {} if graph_client.extr is None else graph_client.extr.match_config
+        )
     }
     extr = pairfeat.PairwiseFeatureExtractor(ibs, config=feat_extract_config)
 
     match = extr._exec_pairwise_match([edge])[0]
 
-    image_clean = ensure_review_image_v2(ibs, match,
-                                         view_orientation=view_orientation,
-                                         overlay=False)
+    image_clean = ensure_review_image_v2(
+        ibs, match, view_orientation=view_orientation, overlay=False
+    )
     # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
     #                                        view_orientation=view_orientation)
 
-    print('Using View Version: %r' % (view_version, ))
+    print('Using View Version: %r' % (view_version,))
     if view_version == 1:
-        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
-                                                view_orientation=view_orientation)
+        image_heatmask = ensure_review_image_v2(
+            ibs, match, draw_heatmask=True, view_orientation=view_orientation
+        )
     else:
-        image_heatmask = ensure_review_image_v2(ibs, match, draw_matches=True,
-                                                view_orientation=view_orientation)
+        image_heatmask = ensure_review_image_v2(
+            ibs, match, draw_matches=True, view_orientation=view_orientation
+        )
 
     image_clean_src = appf.embed_image_html(image_clean)
     # image_matches_src = appf.embed_image_html(image_matches)
     image_heatmask_src = appf.embed_image_html(image_heatmask)
 
     now = datetime.utcnow()
-    server_time_start = float(now.strftime("%s.%f"))
+    server_time_start = float(now.strftime('%s.%f'))
 
-    return (edge, priority, data_dict, aid_1, aid_2, annot_uuid_1, annot_uuid_2,
-            image_clean_src, image_heatmask_src, image_heatmask_src,
-            server_time_start)
+    return (
+        edge,
+        priority,
+        data_dict,
+        aid_1,
+        aid_2,
+        annot_uuid_1,
+        annot_uuid_2,
+        image_clean_src,
+        image_heatmask_src,
+        image_heatmask_src,
+        server_time_start,
+    )
 
 
 @register_api('/api/review/query/graph/v2/', methods=['GET'])
-def review_graph_match_html_v2(ibs, graph_uuid, callback_url=None,
-                               callback_method='POST',
-                               view_orientation='vertical',
-                               view_version=1,
-                               include_jquery=False):
-    values = ibs.review_graph_match_config_v2(graph_uuid,
-                                              view_orientation=view_orientation,
-                                              view_version=view_version)
+def review_graph_match_html_v2(
+    ibs,
+    graph_uuid,
+    callback_url=None,
+    callback_method='POST',
+    view_orientation='vertical',
+    view_version=1,
+    include_jquery=False,
+):
+    values = ibs.review_graph_match_config_v2(
+        graph_uuid, view_orientation=view_orientation, view_version=view_version
+    )
 
-    (edge, priority, data_dict, aid1, aid2, annot_uuid_1, annot_uuid_2,
-        image_clean_src, image_matches_src, image_heatmask_src,
-        server_time_start) = values
+    (
+        edge,
+        priority,
+        data_dict,
+        aid1,
+        aid2,
+        annot_uuid_1,
+        annot_uuid_2,
+        image_clean_src,
+        image_matches_src,
+        image_heatmask_src,
+        server_time_start,
+    ) = values
 
     confidence_dict = const.CONFIDENCE.NICE_TO_CODE
     confidence_nice_list = confidence_dict.keys()
     confidence_text_list = confidence_dict.values()
     confidence_selected_list = [
-        confidence_text == 'unspecified'
-        for confidence_text in confidence_text_list
+        confidence_text == 'unspecified' for confidence_text in confidence_text_list
     ]
-    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
+    confidence_list = list(
+        zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    )
 
     if False:
         from wbia.web import apis_query
+
         root_path = dirname(abspath(apis_query.__file__))
     else:
         root_path = dirname(abspath(__file__))
@@ -1502,30 +1690,32 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url=None,
     ]
 
     if include_jquery:
-        json_file_list = [
-            ['javascript', 'jquery.min.js'],
-        ] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
 
     css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
-    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    json_template_fmtstr = (
+        '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    )
     for css_file in css_file_list:
         css_filepath_list = [root_path, 'static'] + css_file
         with open(join(*css_filepath_list)) as css_file:
-            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(),)
 
     for json_file in json_file_list:
         json_filepath_list = [root_path, 'static'] + json_file
         with open(join(*json_filepath_list)) as json_file:
-            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(),)
 
     embedded = dict(globals(), **locals())
     return appf.template('turk', 'identification_insert', **embedded)
 
 
-@register_api('/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False
+)
 def view_graphs_status(ibs):
     graph_dict = {}
     for graph_uuid in current_app.GRAPH_CLIENT_DICT:
@@ -1552,10 +1742,21 @@ def view_graphs_status(ibs):
 def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     response_tuple = process_graph_match_html(ibs, **kwargs)
-    annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence, user_times = response_tuple
+    (
+        annot_uuid_1,
+        annot_uuid_2,
+        decision,
+        tags,
+        user_id,
+        confidence,
+        user_times,
+    ) = response_tuple
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
-    edge = (aid1, aid2, )
+    edge = (
+        aid1,
+        aid2,
+    )
     user_id = controller_inject.get_user()
     now = datetime.utcnow()
 
@@ -1568,8 +1769,8 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         ibs.set_annot_metadata([aid], [metadata_dict])
 
         payload = {
-            'action'            : 'remove_annots',
-            'aids'              : [aid],
+            'action': 'remove_annots',
+            'aids': [aid],
         }
     elif decision in ['excludeleft', 'excluderight']:
         aid = aid1 if decision == 'excludeleft' else aid2
@@ -1580,26 +1781,26 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         ibs.set_annot_metadata([aid], [metadata_dict])
 
         payload = {
-            'action'            : 'remove_annots',
-            'aids'              : [aid],
+            'action': 'remove_annots',
+            'aids': [aid],
         }
     else:
         payload = {
-            'action'            : 'add_feedback',
-            'edge'              : edge,
-            'evidence_decision' : decision,
+            'action': 'add_feedback',
+            'edge': edge,
+            'evidence_decision': decision,
             # TODO: meta_decision should come from the html resp.  When generating
             # the html page, the default value should be its previous value. If the
             # user changes it to be something incompatible them perhaps just reset
             # it to null.
-            'meta_decision'     : 'null',
-            'tags'              : [] if len(tags) == 0 else tags.split(';'),
-            'user_id'           : 'user:web:%s' % (user_id, ),
-            'confidence'        : confidence,
-            'timestamp_s1'      : user_times['server_time_start'],
-            'timestamp_c1'      : user_times['client_time_start'],
-            'timestamp_c2'      : user_times['client_time_end'],
-            'timestamp'         : float(now.strftime("%s.%f"))
+            'meta_decision': 'null',
+            'tags': [] if len(tags) == 0 else tags.split(';'),
+            'user_id': 'user:web:%s' % (user_id,),
+            'confidence': confidence,
+            'timestamp_s1': user_times['server_time_start'],
+            'timestamp_c1': user_times['client_time_start'],
+            'timestamp_c2': user_times['client_time_end'],
+            'timestamp': float(now.strftime('%s.%f')),
         }
     print('POSTING GRAPH CLIENT REVIEW:')
     print(ut.repr4(payload))
@@ -1609,20 +1810,24 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     graph_client.cleanup()
 
     # Continue review
-    future = graph_client.post({'action' : 'continue_review'})
+    future = graph_client.post({'action': 'continue_review'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
-    f2 = graph_client.post({'action' : 'latest_logs'})
+    f2 = graph_client.post({'action': 'latest_logs'})
     f2.graph_client = graph_client
     f2.add_done_callback(query_graph_v2_latest_logs)
-    return (annot_uuid_1, annot_uuid_2, )
+    return (
+        annot_uuid_1,
+        annot_uuid_2,
+    )
 
 
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
     import wbia
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     # Create the AnnotInference
@@ -1643,9 +1848,11 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     match_aid2_list = ut.take_column(match_aid_edge_list, 1)
     match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
     match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
-    match_annot_uuid_edge_list = list(zip(match_annot_uuid1_list, match_annot_uuid2_list))
+    match_annot_uuid_edge_list = list(
+        zip(match_annot_uuid1_list, match_annot_uuid2_list)
+    )
 
-    zipped = list(zip(*( list(edge_delta_df[col]) for col in col_list )))
+    zipped = list(zip(*(list(edge_delta_df[col]) for col in col_list)))
 
     match_list = []
     for match_annot_uuid_edge, zipped_ in list(zip(match_annot_uuid_edge_list, zipped)):
@@ -1665,18 +1872,15 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     new_name_list = list(name_delta_df['new_name'])
     zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
     name_dict = {
-        str(name_annot_uuid): {
-            'old': old_name,
-            'new': new_name,
-        }
+        str(name_annot_uuid): {'old': old_name, 'new': new_name,}
         for name_annot_uuid, old_name, new_name in zipped
     }
 
     ############################################################################
 
     ret_dict = {
-        'match_list'  : match_list,
-        'name_dict'   : name_dict,
+        'match_list': match_list,
+        'name_dict': name_dict,
     }
 
     infr.write_wbia_staging_feedback()
@@ -1703,7 +1907,8 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
             overlap_aid_list = list(overlap_aid_set)
             overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
             raise controller_inject.WebUnavailableUUIDException(
-                overlap_annot_uuid_list, graph_uuid_)
+                overlap_annot_uuid_list, graph_uuid_
+            )
 
     aid_list_ = graph_client.aids + aid_list
     graph_uuid_ = ut.hashable_to_uuid(sorted(aid_list_))
@@ -1711,15 +1916,15 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client.graph_uuid = graph_uuid_
 
     payload = {
-        'action' : 'add_annots',
-        'dbdir'  : ibs.dbdir,
-        'aids'   : aid_list,
+        'action': 'add_annots',
+        'dbdir': ibs.dbdir,
+        'aids': aid_list,
     }
     future = graph_client.post(payload)
     future.result()  # Guarantee that this has happened before calling refresh
 
     # Start main loop
-    future = graph_client.post({'action' : 'continue_review'})
+    future = graph_client.post({'action': 'continue_review'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -1740,15 +1945,15 @@ def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client.graph_uuid = graph_uuid_
 
     payload = {
-        'action' : 'remove_annots',
-        'dbdir'  : ibs.dbdir,
-        'aids'   : aid_list,
+        'action': 'remove_annots',
+        'dbdir': ibs.dbdir,
+        'aids': aid_list,
     }
     future = graph_client.post(payload)
     future.result()  # Guarantee that this has happened before calling refresh
 
     # Start main loop
-    future = graph_client.post({'action' : 'continue_review'})
+    future = graph_client.post({'action': 'continue_review'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -1800,6 +2005,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

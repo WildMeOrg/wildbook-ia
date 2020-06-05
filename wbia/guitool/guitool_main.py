@@ -5,6 +5,7 @@ from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
+
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
 
@@ -30,12 +31,12 @@ class GuitoolApplication(QtWidgets.QApplication):
         self.keylog = []
 
     def notify(self, receiver, event):
-        if(event.type() == QtCore.QEvent.KeyPress):
+        if event.type() == QtCore.QEvent.KeyPress:
             if self.log_keys:
                 key = event.text()
                 print('key = %r' % (key,))
                 self.keylog.append(key)
-            #QtWidgets.QMessageBox.information(
+            # QtWidgets.QMessageBox.information(
             #    None, "Received Key Press Event!!", "You Pressed: " + event.text())
         # Call Base Class Method to Continue Normal Event Processing
         return super(GuitoolApplication, self).notify(receiver, event)
@@ -65,13 +66,13 @@ def ensure_qtapp():
             # print('available_styles = %r' % (available_styles,))
             # QAPP.setStyle('Fusion')
             QAPP.setStyle('GTK+')
-        #QAPP.setStyle('windows')
+        # QAPP.setStyle('windows')
         # QAPP.setStyle('cleanlooks')
-        #QAPP.setStyle('motif')
-        #QAPP.setDesktopSettingsAware(True)
-        #QAPP.setStyle('cde')
-        #"windows", "motif", "cde", "plastique" and "cleanlooks" and depending on the platform, "windowsxp", "windowsvista" and "macintosh"
-        #print('QAPP = %r' % QAPP)
+        # QAPP.setStyle('motif')
+        # QAPP.setDesktopSettingsAware(True)
+        # QAPP.setStyle('cde')
+        # "windows", "motif", "cde", "plastique" and "cleanlooks" and depending on the platform, "windowsxp", "windowsvista" and "macintosh"
+        # print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT_WINDOW = True
     else:
@@ -107,34 +108,41 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
         inputhook = IPython.terminal.pt_inputhooks.get_inputhook_func('qt4')
     """
     global QAPP
-    #from IPython.lib.inputhook import enable_qt4
+    # from IPython.lib.inputhook import enable_qt4
     import IPython.lib.guisupport
+
     if not QUIET:
         print('[guitool] Starting ipython qt hook')
-    #enable_qt4()
+    # enable_qt4()
     if GUITOOL_PYQT_VERSION == 4:
         IPython.lib.guisupport.start_event_loop_qt4(QAPP)
     else:
         IPython.lib.guisupport.start_event_loop_qt5(QAPP)
 
 
-#if '__PYQT__' in sys.modules:
-    #from wbia.guitool.__PYQT__ import QtCore
-    #from IPython.lib.inputhook import enable_qt4
-    #from IPython.lib.guisupport import start_event_loop_qt4
-    #qapp = QtCore.QCoreApplication.instance()
-    ##qapp.exec_()
-    #print('[ut.dbg] Starting ipython qt4 hook')
-    #enable_qt4()
-    #start_event_loop_qt4(qapp)
+# if '__PYQT__' in sys.modules:
+# from wbia.guitool.__PYQT__ import QtCore
+# from IPython.lib.inputhook import enable_qt4
+# from IPython.lib.guisupport import start_event_loop_qt4
+# qapp = QtCore.QCoreApplication.instance()
+##qapp.exec_()
+# print('[ut.dbg] Starting ipython qt4 hook')
+# enable_qt4()
+# start_event_loop_qt4(qapp)
 
 
 def remove_pyqt_input_hook():
     QtCore.pyqtRemoveInputHook()
 
 
-def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
-               init_signals=True, **kwargs):
+def qtapp_loop(
+    qwin=None,
+    ipy=False,
+    enable_activate_qwin=True,
+    frequency=420,
+    init_signals=True,
+    **kwargs
+):
     r"""
     Args:
         qwin (None): (default = None)
@@ -147,7 +155,7 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
         python -m wbia.guitool.guitool_main --test-qtapp_loop
     """
     global QAPP
-    #if not QUIET and VERBOSE:
+    # if not QUIET and VERBOSE:
     if not QUIET:
         print('[guitool.qtapp_loop()] ENTERING')
     print('[guitool.qtapp_loop()] starting qt app loop: qwin=%r' % (qwin,))
@@ -170,7 +178,7 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
             #     #QAPP.quit()
             #     exit_application()
             #     sys.exit(1)
-            #sys.excepthook = qt_excepthook
+            # sys.excepthook = qt_excepthook
             try:
                 retcode = QAPP.exec_()
                 print('QAPP retcode = %r' % (retcode,))
@@ -192,15 +200,16 @@ def ping_python_interpreter(frequency=420):  # 4200):
     timer = QtCore.QTimer()
 
     def ping_func():
-        #print('lub dub')
+        # print('lub dub')
         return None
+
     timer.ping_func = ping_func
     timer.timeout.connect(timer.ping_func)
     timer.start(frequency)
     return timer
 
 
-#@atexit.register
+# @atexit.register
 def exit_application():
     if ut.NOT_QUIET:
         print('[guitool] exiting application')
@@ -211,11 +220,13 @@ def _on_ctrl_c(signal, frame):
     print('[guitool.guitool_main] Caught ctrl+c. sys.exit(0)...')
     sys.exit(0)
 
-#-----------------------
+
+# -----------------------
 # private init functions
 
 
 def _init_signals():
     import signal
-    #print('initializing qt ctrl+c signal')
+
+    # print('initializing qt ctrl+c signal')
     signal.signal(signal.SIGINT, _on_ctrl_c)

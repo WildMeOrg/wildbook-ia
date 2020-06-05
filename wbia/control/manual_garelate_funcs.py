@@ -16,25 +16,30 @@ from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject
 from wbia.control import accessor_decors
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
+
 # AUTOGENED CONSTANTS:
-GAR_ROWID        = 'gar_rowid'
+GAR_ROWID = 'gar_rowid'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
-ANNOT_ROWID      = 'annot_rowid'
+ANNOT_ROWID = 'annot_rowid'
 
 
 @register_ibs_method
@@ -55,8 +60,7 @@ def _get_all_gar_rowids(ibs):
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_gar_rowids()
     """
-    all_gar_rowids = ibs.db.get_all_rowids(
-        const.GA_RELATION_TABLE)
+    all_gar_rowids = ibs.db.get_all_rowids(const.GA_RELATION_TABLE)
     return all_gar_rowids
 
 
@@ -72,19 +76,26 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
         tbl = gar
     """
     # WORK IN PROGRESS
-    colnames = (ANNOTGROUP_ROWID, ANNOT_ROWID,)
-    #if aid_list is None:
+    colnames = (
+        ANNOTGROUP_ROWID,
+        ANNOT_ROWID,
+    )
+    # if aid_list is None:
     #    aid_list = [None] * len(annotgroup_rowid_list)
     params_iter = (
         (annotgroup_rowid, aid,)
-        for (annotgroup_rowid, aid,) in
-        zip(annotgroup_rowid_list, aid_list)
+        for (annotgroup_rowid, aid,) in zip(annotgroup_rowid_list, aid_list)
     )
     get_rowid_from_superkey = ibs.get_gar_rowid_from_superkey
     # FIXME: encode superkey paramx
     superkey_paramx = (0, 1)
     gar_rowid_list = ibs.db.add_cleanly(
-        const.GA_RELATION_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+        const.GA_RELATION_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     return gar_rowid_list
 
 
@@ -113,19 +124,16 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
         >>> num_deleted = ibs.delete_gar(gar_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from wbia.algo.preproc import preproc_gar
+    # from wbia.algo.preproc import preproc_gar
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d gar rows' %
-              len(gar_rowid_list))
+        print('[ibs] deleting %d gar rows' % len(gar_rowid_list))
     # Prepare: Delete externally stored data (if any)
-    #preproc_gar.on_delete(ibs, gar_rowid_list, config2_=config2_)
+    # preproc_gar.on_delete(ibs, gar_rowid_list, config2_=config2_)
     # NO EXTERN DELETE
     # Finalize: Delete self
-    ibs.db.delete_rowids(
-        const.GA_RELATION_TABLE, gar_rowid_list)
-    num_deleted = len(
-        ut.filter_Nones(gar_rowid_list))
+    ibs.db.delete_rowids(const.GA_RELATION_TABLE, gar_rowid_list)
+    num_deleted = len(ut.filter_Nones(gar_rowid_list))
     return num_deleted
 
 
@@ -159,8 +167,14 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
     """
     id_iter = gar_rowid_list
     colnames = (ANNOT_ROWID,)
-    aid_list = ibs.db.get(const.GA_RELATION_TABLE, colnames,
-                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    aid_list = ibs.db.get(
+        const.GA_RELATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return aid_list
 
 
@@ -195,12 +209,20 @@ def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
     id_iter = gar_rowid_list
     colnames = (ANNOTGROUP_ROWID,)
     annotgroup_rowid_list = ibs.db.get(
-        const.GA_RELATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.GA_RELATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotgroup_rowid_list
 
 
 @register_ibs_method
-def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True, nInput=None):
+def get_gar_rowid_from_superkey(
+    ibs, annotgroup_rowid_list, aid_list, eager=True, nInput=None
+):
     """ gar_rowid_list <- gar[annotgroup_rowid_list, aid_list]
 
     Args:
@@ -218,7 +240,13 @@ def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True
     params_iter = zip(annotgroup_rowid_list, aid_list)
     andwhere_colnames = [ANNOTGROUP_ROWID, ANNOT_ROWID]
     gar_rowid_list = ibs.db.get_where_eq(
-        const.GA_RELATION_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
+        const.GA_RELATION_TABLE,
+        colnames,
+        params_iter,
+        andwhere_colnames,
+        eager=eager,
+        nInput=nInput,
+    )
     return gar_rowid_list
 
 
@@ -229,6 +257,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_garelate_funcs --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     import utool as ut
+
     ut.doctest_funcs()

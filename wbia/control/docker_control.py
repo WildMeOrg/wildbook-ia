@@ -2,11 +2,13 @@ from __future__ import absolute_import, division, print_function
 from wbia.control import controller_inject
 import utool as ut
 import time
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 try:
     import docker
+
     DOCKER_CLIENT = docker.from_env()
     assert DOCKER_CLIENT is not None
 except Exception:
@@ -20,12 +22,7 @@ _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 DOCKER_CONFIG_REGISTRY = {}
 DOCKER_IMAGE_PREFIX = 'wildme.azurecr.io'
-DOCKER_DEFAULT_RUN_ARGS = {
-    'detach': True,
-    'restart_policy': {
-        'Name': 'on-failure',
-    }
-}
+DOCKER_DEFAULT_RUN_ARGS = {'detach': True, 'restart_policy': {'Name': 'on-failure',}}
 
 
 DOCKER_CLONE_FMTSTR = '%s_clone_%d'
@@ -35,21 +32,38 @@ DOCKER_CLONE_FMTSTR = '%s_clone_%d'
 def docker_container_clone_name(container_name, clone=None):
     if clone is None:
         return container_name
-    container_clone_name = DOCKER_CLONE_FMTSTR % (container_name, clone, )
+    container_clone_name = DOCKER_CLONE_FMTSTR % (container_name, clone,)
     return container_clone_name
 
 
 @register_ibs_method
 # don't rely on the ibs object in this method; needs to be callable on import
 # container_check_func takes a url and returns a boolean
-def docker_register_config(ibs, container_name, image_name, container_check_func=None, run_args={}, ensure_new=False):
+def docker_register_config(
+    ibs,
+    container_name,
+    image_name,
+    container_check_func=None,
+    run_args={},
+    ensure_new=False,
+):
     if container_name in DOCKER_CONFIG_REGISTRY:
         if ensure_new:
-            raise RuntimeError('Container name has already been added to the config registry')
+            raise RuntimeError(
+                'Container name has already been added to the config registry'
+            )
         else:
-            print('Warning: docker_register_config called on an existing config. Already have container named %s' % (container_name, ))
-    if DOCKER_IMAGE_PREFIX is not None and not image_name.startswith(DOCKER_IMAGE_PREFIX):
-        raise RuntimeError('Cannot register an image name that does not have the prefix = %r' % (DOCKER_IMAGE_PREFIX, ))
+            print(
+                'Warning: docker_register_config called on an existing config. Already have container named %s'
+                % (container_name,)
+            )
+    if DOCKER_IMAGE_PREFIX is not None and not image_name.startswith(
+        DOCKER_IMAGE_PREFIX
+    ):
+        raise RuntimeError(
+            'Cannot register an image name that does not have the prefix = %r'
+            % (DOCKER_IMAGE_PREFIX,)
+        )
     DOCKER_CONFIG_REGISTRY[container_name] = {
         'image': image_name,
         'run_args': run_args,
@@ -59,14 +73,16 @@ def docker_register_config(ibs, container_name, image_name, container_check_func
 
 @register_ibs_method
 # runs an image, returns url to container
-def docker_run(ibs, image_name, container_name, override_run_args, clone=None, ensure_new=False):
+def docker_run(
+    ibs, image_name, container_name, override_run_args, clone=None, ensure_new=False
+):
     if '_external_suggested_port' not in override_run_args:
         override_run_args['_external_suggested_port'] = 5000
     assert '_external_suggested_port' in override_run_args
     assert '_internal_port' in override_run_args
 
     ext_port = ut.find_open_port(override_run_args['_external_suggested_port'])
-    port_key = '%d/tcp' % (override_run_args['_internal_port'], )
+    port_key = '%d/tcp' % (override_run_args['_internal_port'],)
     # remove underscore args from run_args
     key_list = list(override_run_args.keys())
     for key in key_list:
@@ -76,12 +92,13 @@ def docker_run(ibs, image_name, container_name, override_run_args, clone=None, e
     run_args = DOCKER_DEFAULT_RUN_ARGS.copy()
     run_args.update(override_run_args)
     # add other args
-    run_args['ports'] = {
-        port_key: ext_port
-    }
+    run_args['ports'] = {port_key: ext_port}
     container_clone_name = docker_container_clone_name(container_name, clone=clone)
     run_args['name'] = container_clone_name
-    print('We\'re starting image_name %s as %s with args %r' % (image_name, container_clone_name, run_args))
+    print(
+        "We're starting image_name %s as %s with args %r"
+        % (image_name, container_clone_name, run_args)
+    )
     try:
         container = DOCKER_CLIENT.containers.run(image_name, **run_args)
     except docker.errors.APIError as ex:
@@ -211,7 +228,7 @@ def docker_container_IP_port_options(ibs, container):
         option = (ipaddress, None)
         option_list.append(option)
 
-    #TODO: understand the container.attrs['NetworkSettings']['Ports']: a dict (??) of lists (??) of dicts (only one '?')
+    # TODO: understand the container.attrs['NetworkSettings']['Ports']: a dict (??) of lists (??) of dicts (only one '?')
     ports = networksettings['Ports']
     for key in ports:
         # ports is a dict keyed by e.g. '5000/tcp'. This is the only key I've seen so far on our containers.
@@ -222,7 +239,10 @@ def docker_container_IP_port_options(ibs, container):
             # ports[key] is a list of dicts
             if 'HostPort' in dict_:
                 # just return the first HostPort we find. Doesn't seem right... but what better logic?
-                option = (dict_['HostIp'], dict_['HostPort'], )
+                option = (
+                    dict_['HostIp'],
+                    dict_['HostPort'],
+                )
                 option_list.append(option)
 
     # should we throw an assert/error here?
@@ -242,7 +262,7 @@ def docker_container_urls_from_name(ibs, container_name, clone=None):
 @register_ibs_method
 def docker_container_urls(ibs, container, docker_get_config):
     _internal_port = docker_get_config.get('run_args', {}).get('_internal_port', None)
-    print('[docker_container_urls] Found _internal_port: %s' % (_internal_port, ))
+    print('[docker_container_urls] Found _internal_port: %s' % (_internal_port,))
     option_list = ibs.docker_container_IP_port_options(container)
     url_list = []
     for option in option_list:
@@ -251,9 +271,9 @@ def docker_container_urls(ibs, container, docker_get_config):
             # Try to use internal port, if known
             port = _internal_port
         if port is None:
-            url = '%s' % (ip, )
+            url = '%s' % (ip,)
         else:
-            url = '%s:%s' % (ip, port, )
+            url = '%s:%s' % (ip, port,)
         url_list.append(url)
     return url_list
 
@@ -297,7 +317,9 @@ def docker_ensure(ibs, container_name, check_container=True, clone=None):
 
 
 @register_ibs_method
-def docker_check_container(ibs, container_name, clone=None, retry_count=20, retry_timeout=15):
+def docker_check_container(
+    ibs, container_name, clone=None, retry_count=20, retry_timeout=15
+):
     config = ibs.docker_get_config(container_name)
     check_func = config['container_check_func']
     url_list = ibs.docker_container_urls_from_name(container_name, clone=clone)
@@ -305,14 +327,20 @@ def docker_check_container(ibs, container_name, clone=None, retry_count=20, retr
         return url_list
     valid_url_list = []
     for retry_index in range(retry_count):
-        print('[docker_control] Performing container check (attempt %d, max %d)' % (retry_index + 1, retry_count, ))
+        print(
+            '[docker_control] Performing container check (attempt %d, max %d)'
+            % (retry_index + 1, retry_count,)
+        )
         for url in url_list:
-            print('\tChecking URL: %s' % (url, ))
+            print('\tChecking URL: %s' % (url,))
             if check_func(url):
                 valid_url_list.append(url)
         if len(valid_url_list) > 0:
             break
-        print('[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for %d seconds and will try again' % (retry_timeout, ))
+        print(
+            '[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for %d seconds and will try again'
+            % (retry_timeout,)
+        )
         time.sleep(retry_timeout)
     return valid_url_list
 
@@ -320,7 +348,7 @@ def docker_check_container(ibs, container_name, clone=None, retry_count=20, retr
 @register_ibs_method
 def docker_get_config(ibs, container_name):
     config = DOCKER_CONFIG_REGISTRY.get(container_name, None)
-    message = 'The container name \'%s\' has not been registered' % container_name
+    message = "The container name '%s' has not been registered" % container_name
     assert config is not None, message
     return config
 
@@ -336,6 +364,8 @@ if __name__ == '__main__':
         python -m wbia.control.docker_control --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -4,6 +4,7 @@ import numpy as np
 import vtool as vt
 import utool as ut
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -60,9 +61,15 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         raise NotImplementedError('[hs] unknown scoring method:' + score_method)
 
 
-def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
-                            name_score_list, nid2_nidx,
-                            nNameShortList, nAnnotPerName):
+def get_name_shortlist_aids(
+    daid_list,
+    dnid_list,
+    annot_score_list,
+    name_score_list,
+    nid2_nidx,
+    nNameShortList,
+    nAnnotPerName,
+):
     r"""
     CommandLine:
         python -m wbia.algo.hots.scoring --test-get_name_shortlist_aids
@@ -83,28 +90,34 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
         >>> print(result)
         [15, 14, 11, 13, 16]
     """
-    unique_nids, groupxs    = vt.group_indices(np.array(dnid_list))
-    grouped_annot_scores    = vt.apply_grouping(annot_score_list, groupxs)
-    grouped_daids           = vt.apply_grouping(np.array(daid_list), groupxs)
+    unique_nids, groupxs = vt.group_indices(np.array(dnid_list))
+    grouped_annot_scores = vt.apply_grouping(annot_score_list, groupxs)
+    grouped_daids = vt.apply_grouping(np.array(daid_list), groupxs)
     # Ensure name score list is aligned with the unique_nids
     aligned_name_score_list = name_score_list.take(ut.dict_take(nid2_nidx, unique_nids))
     # Sort each group by the name score
-    group_sortx             = aligned_name_score_list.argsort()[::-1]
-    _top_daid_groups        = ut.take(grouped_daids, group_sortx)
+    group_sortx = aligned_name_score_list.argsort()[::-1]
+    _top_daid_groups = ut.take(grouped_daids, group_sortx)
     _top_annot_score_groups = ut.take(grouped_annot_scores, group_sortx)
-    top_daid_groups         = ut.listclip(_top_daid_groups, nNameShortList)
-    top_annot_score_groups  = ut.listclip(_top_annot_score_groups, nNameShortList)
+    top_daid_groups = ut.listclip(_top_daid_groups, nNameShortList)
+    top_annot_score_groups = ut.listclip(_top_annot_score_groups, nNameShortList)
     # Sort within each group by the annotation score
-    top_daid_sortx_groups   = [annot_score_group.argsort()[::-1]
-                               for annot_score_group in top_annot_score_groups]
-    top_sorted_daid_groups  = vt.ziptake(top_daid_groups, top_daid_sortx_groups)
-    top_clipped_daids = [ut.listclip(sorted_daid_group, nAnnotPerName)
-                         for sorted_daid_group in top_sorted_daid_groups]
+    top_daid_sortx_groups = [
+        annot_score_group.argsort()[::-1]
+        for annot_score_group in top_annot_score_groups
+    ]
+    top_sorted_daid_groups = vt.ziptake(top_daid_groups, top_daid_sortx_groups)
+    top_clipped_daids = [
+        ut.listclip(sorted_daid_group, nAnnotPerName)
+        for sorted_daid_group in top_sorted_daid_groups
+    ]
     top_daids = ut.flatten(top_clipped_daids)
     return top_daids
 
 
-def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method='nsum'):
+def make_chipmatch_shortlists(
+    qreq_, cm_list, nNameShortList, nAnnotPerName, score_method='nsum'
+):
     """
     Makes shortlists for reranking
 
@@ -142,7 +155,10 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
         >>> cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])
         >>> ut.show_if_requested()
     """
-    print('[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r' % (nNameShortList, nAnnotPerName))
+    print(
+        '[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r'
+        % (nNameShortList, nAnnotPerName)
+    )
     cm_shortlist = []
     for cm in cm_list:
         assert cm.score_list is not None, 'score list must be computed'
@@ -167,6 +183,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.scoring --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

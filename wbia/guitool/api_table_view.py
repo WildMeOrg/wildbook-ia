@@ -14,7 +14,7 @@ import utool
 # AbstractItemView::keyboardSearch
 
 API_VIEW_BASE = QtWidgets.QTableView
-#API_VIEW_BASE = QtWidgets.QAbstractItemView
+# API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITableView(API_VIEW_BASE):
@@ -22,6 +22,7 @@ class APITableView(API_VIEW_BASE):
     Table view of API data.
     Implicitly inherits from APIItemView
     """
+
     rows_updated = signal_(str, int)
     contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
     API_VIEW_BASE = API_VIEW_BASE
@@ -40,9 +41,9 @@ class APITableView(API_VIEW_BASE):
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
         view._init_api_item_view()
 
-    #---------------
+    # ---------------
     # Initialization
-    #---------------
+    # ---------------
 
     def _init_table_behavior(view):
         """ Table behavior
@@ -74,7 +75,7 @@ class APITableView(API_VIEW_BASE):
         # Row Headers
         verticalHeader = view.verticalHeader()
         verticalHeader.setVisible(False)
-        #verticalHeader.setSortIndicatorShown(True)
+        # verticalHeader.setSortIndicatorShown(True)
         verticalHeader.setHighlightSections(True)
         try:
             verticalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
@@ -83,7 +84,7 @@ class APITableView(API_VIEW_BASE):
             verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
             verticalHeader.setSectionsMovable(False)
         # TODO: get good estimate if there are thumbnails
-        #verticalHeader.setDefaultSectionSize(256)
+        # verticalHeader.setDefaultSectionSize(256)
 
         # Column headers
         horizontalHeader = view.horizontalHeader()
@@ -93,20 +94,20 @@ class APITableView(API_VIEW_BASE):
         horizontalHeader.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE ResizeToContents. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        # horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        # horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
         try:
             horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
             horizontalHeader.setMovable(True)
         except AttributeError:
             horizontalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
             horizontalHeader.setSectionsMovable(True)
-        #horizontalHeader.setCascadingSectionResizes(True)
+        # horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
 
-    #---------------
+    # ---------------
     # Qt Overrides
-    #---------------
+    # ---------------
 
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
@@ -149,18 +150,18 @@ class APITableView(API_VIEW_BASE):
     def mousePressEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
         API_VIEW_BASE.mousePressEvent(view, event)
-        #print('no editing')
+        # print('no editing')
         view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
     def mouseReleaseEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
-        #print('editing ok')
+        # print('editing ok')
         view.setEditTriggers(view._defaultEditTriggers)
         API_VIEW_BASE.mouseReleaseEvent(view, event)
 
-    #---------------
+    # ---------------
     # Slots
-    #---------------
+    # ---------------
 
     @slot_(str, int)
     def on_rows_updated(view, tblname, num):

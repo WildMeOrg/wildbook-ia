@@ -16,28 +16,33 @@ from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
+
 # AUTOGENED CONSTANTS:
-GAR_ROWID        = 'gar_rowid'
-ANNOTGROUP_NOTE  = 'annotgroup_note'
+GAR_ROWID = 'gar_rowid'
+ANNOTGROUP_NOTE = 'annotgroup_note'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
-ANNOTGROUP_TEXT  = 'annotgroup_text'
-ANNOTGROUP_UUID  = 'annotgroup_uuid'
-ANNOT_ROWID      = 'annot_rowid'
+ANNOTGROUP_TEXT = 'annotgroup_text'
+ANNOTGROUP_UUID = 'annotgroup_uuid'
+ANNOT_ROWID = 'annot_rowid'
 
 
 @register_ibs_method
@@ -64,7 +69,9 @@ def _get_all_annotgroup_rowids(ibs):
 
 @register_ibs_method
 # @register_api('/api/annotgroup/', methods=['POST'])
-def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list):
+def add_annotgroup(
+    ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
+):
     """
     Returns:
         returns annotgroup_rowid_list of added (or already existing annotgroups)
@@ -74,18 +81,28 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
         tbl = annotgroup
     """
     # WORK IN PROGRESS
-    colnames = (ANNOTGROUP_UUID, ANNOTGROUP_TEXT, ANNOTGROUP_NOTE,)
+    colnames = (
+        ANNOTGROUP_UUID,
+        ANNOTGROUP_TEXT,
+        ANNOTGROUP_NOTE,
+    )
 
     params_iter = (
         (annotgroup_uuid, annotgroup_text, annotgroup_note,)
-        for (annotgroup_uuid, annotgroup_text, annotgroup_note,) in
-        zip(annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list)
+        for (annotgroup_uuid, annotgroup_text, annotgroup_note,) in zip(
+            annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
+        )
     )
     get_rowid_from_superkey = ibs.get_annotgroup_rowid_from_superkey
     # FIXME: encode superkey paramx
     superkey_paramx = (1,)
     annotgroup_rowid_list = ibs.db.add_cleanly(
-        const.ANNOTGROUP_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     return annotgroup_rowid_list
 
 
@@ -114,12 +131,12 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
         >>> num_deleted = ibs.delete_annotgroup(annotgroup_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from wbia.algo.preproc import preproc_annotgroup
+    # from wbia.algo.preproc import preproc_annotgroup
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
     # Prepare: Delete externally stored data (if any)
-    #preproc_annotgroup.on_delete(ibs, annotgroup_rowid_list, config2_=config2_)
+    # preproc_annotgroup.on_delete(ibs, annotgroup_rowid_list, config2_=config2_)
     # NO EXTERN DELETE
     # Finalize: Delete self
     ibs.db.delete_rowids(const.ANNOTGROUP_TABLE, annotgroup_rowid_list)
@@ -139,8 +156,13 @@ def get_annotgroup_gar_rowids(ibs, annotgroup_rowid_list, eager=True, nInput=Non
             URL:    /api/annotgroup/gar/rowids/
     """
     colnames = (GAR_ROWID,)
-    gar_rowid_list = ibs.db.get(const.GA_RELATION_TABLE, colnames, annotgroup_rowid_list,
-                                id_colname=ANNOTGROUP_ROWID, unpack_scalars=False)
+    gar_rowid_list = ibs.db.get(
+        const.GA_RELATION_TABLE,
+        colnames,
+        annotgroup_rowid_list,
+        id_colname=ANNOTGROUP_ROWID,
+        unpack_scalars=False,
+    )
     return gar_rowid_list
 
 
@@ -175,12 +197,20 @@ def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     id_iter = annotgroup_rowid_list
     colnames = (ANNOTGROUP_NOTE,)
     annotgroup_note_list = ibs.db.get(
-        const.ANNOTGROUP_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotgroup_note_list
 
 
 @register_ibs_method
-def get_annotgroup_rowid_from_superkey(ibs, annotgroup_text_list, eager=True, nInput=None):
+def get_annotgroup_rowid_from_superkey(
+    ibs, annotgroup_text_list, eager=True, nInput=None
+):
     """ annotgroup_rowid_list <- annotgroup[annotgroup_text_list]
 
     Args:
@@ -198,7 +228,13 @@ def get_annotgroup_rowid_from_superkey(ibs, annotgroup_text_list, eager=True, nI
     params_iter = zip(annotgroup_text_list)
     andwhere_colnames = [ANNOTGROUP_TEXT]
     annotgroup_rowid_list = ibs.db.get_where_eq(
-        const.ANNOTGROUP_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        params_iter,
+        andwhere_colnames,
+        eager=eager,
+        nInput=nInput,
+    )
     return annotgroup_rowid_list
 
 
@@ -233,7 +269,13 @@ def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     id_iter = annotgroup_rowid_list
     colnames = (ANNOTGROUP_TEXT,)
     annotgroup_text_list = ibs.db.get(
-        const.ANNOTGROUP_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotgroup_text_list
 
 
@@ -268,14 +310,22 @@ def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     id_iter = annotgroup_rowid_list
     colnames = (ANNOTGROUP_UUID,)
     annotgroup_uuid_list = ibs.db.get(
-        const.ANNOTGROUP_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotgroup_uuid_list
 
 
 @register_ibs_method
 @accessor_decors.setter
 # @register_api('/api/annotgroup/note/', methods=['PUT'])
-def set_annotgroup_note(ibs, annotgroup_rowid_list, annotgroup_note_list, duplicate_behavior='error'):
+def set_annotgroup_note(
+    ibs, annotgroup_rowid_list, annotgroup_note_list, duplicate_behavior='error'
+):
     """ annotgroup_note_list -> annotgroup.annotgroup_note[annotgroup_rowid_list]
 
     Args:
@@ -289,14 +339,21 @@ def set_annotgroup_note(ibs, annotgroup_rowid_list, annotgroup_note_list, duplic
     """
     id_iter = annotgroup_rowid_list
     colnames = (ANNOTGROUP_NOTE,)
-    ibs.db.set(const.ANNOTGROUP_TABLE, colnames, annotgroup_note_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        annotgroup_note_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 # @register_api('/api/annotgroup/uuid/', methods=['PUT'])
-def set_annotgroup_uuid(ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplicate_behavior='error'):
+def set_annotgroup_uuid(
+    ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplicate_behavior='error'
+):
     """ annotgroup_uuid_list -> annotgroup.annotgroup_uuid[annotgroup_rowid_list]
 
     Args:
@@ -310,8 +367,13 @@ def set_annotgroup_uuid(ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplic
     """
     id_iter = annotgroup_rowid_list
     colnames = (ANNOTGROUP_UUID,)
-    ibs.db.set(const.ANNOTGROUP_TABLE, colnames, annotgroup_uuid_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTGROUP_TABLE,
+        colnames,
+        annotgroup_uuid_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 if __name__ == '__main__':
@@ -321,6 +383,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_annotgroup_funcs --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     import utool as ut
+
     ut.doctest_funcs()

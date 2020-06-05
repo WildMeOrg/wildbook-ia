@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -25,6 +26,7 @@ def multidb_montage():
     import wbia.plottool as pt
     import vtool as vt
     import numpy as np
+
     pt.ensureqt()
     dbnames = [
         'PZ_Master1',
@@ -39,8 +41,7 @@ def multidb_montage():
 
     aids_list = []
     for ibs in ibs_list:
-        aids = ibs.sample_annots_general(
-            minqual='good', sample_size=sample_size)
+        aids = ibs.sample_annots_general(minqual='good', sample_size=sample_size)
         aids_list.append(aids)
 
     print(ut.depth_profile(aids_list))
@@ -59,9 +60,9 @@ def multidb_montage():
 
     fpath = ut.get_argval('--save', type_=str, default='montage.jpg')
 
-    #height = 6000
+    # height = 6000
     width = 6000
-    #width = int(height * ratio)
+    # width = int(height * ratio)
     height = int(width / ratio)
     dsize = (width, height)
     dst = vt.montage(chips, dsize)
@@ -83,12 +84,15 @@ def featweight_fig():
     """
     # ENABLE_DOCTEST
     import wbia
+
     # import wbia.plottool as pt
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
     from wbia.core_annots import gen_featweight_worker
-    #test_featweight_worker()
+
+    # test_featweight_worker()
 
     # ibs = wbia.opendb(defaultdb='GZ_Master1')
     # aid = ut.get_argval('--aid', type_=list, default=2810)
@@ -99,8 +103,12 @@ def featweight_fig():
 
     assert all(ibs.db.rows_exist('annotations', aids))
 
-    config = {'dim_size': 450, 'resize_dim': 'area', 'smooth_thresh': 30,
-              'smooth_ksize': 30}
+    config = {
+        'dim_size': 450,
+        'resize_dim': 'area',
+        'smooth_thresh': 30,
+        'smooth_ksize': 30,
+    }
     probchip = depc.get('probchip', aids, 'img', config=config, recompute=True)[0]
     chipsize = depc.get('chips', aids, ('width', 'height'), config=config)[0]
     kpts = depc.get('feat', aids, 'kpts', config=config)[0]
@@ -110,13 +118,14 @@ def featweight_fig():
     chip = depc.get('chips', aids, 'img', config=config)[0]
     ut.quit_if_noshow()
     import wbia.plottool as pt
+
     fnum = 1
     pnum_ = pt.make_pnum_nextgen(1, 3)
     pt.figure(fnum=fnum, doclf=True)
     pt.imshow(chip, pnum=pnum_(0), fnum=fnum)
     pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
     pt.imshow(chip, pnum=pnum_(1), fnum=fnum)
-    color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
+    color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=0.3)
     color_list
     # cb = pt.colorbar(weights, color_list)
     # cb.set_label('featweights')
@@ -135,9 +144,11 @@ def simple_vsone_matches():
         >>> ut.show_if_requested()
     """
     import wbia
+
     # import wbia.plottool as pt
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
 
     ibs = wbia.opendb(defaultdb='GZ_Master1')
@@ -152,9 +163,16 @@ def simple_vsone_matches():
 
     ut.quit_if_noshow()
     import wbia.plottool as pt
+
     pt.figure(fnum=1, doclf=True)
-    match.show(heatmask=True, vert=False, modifysize=True, show_ell=False,
-               show_lines=False, show_ori=False)
+    match.show(
+        heatmask=True,
+        vert=False,
+        modifysize=True,
+        show_ell=False,
+        show_lines=False,
+        show_ori=False,
+    )
 
 
 def double_depcache_graph():
@@ -179,6 +197,7 @@ def double_depcache_graph():
     import wbia
     import networkx as nx
     import wbia.plottool as pt
+
     pt.ensureqt()
     # pt.plt.xkcd()
     ibs = wbia.opendb('testdb1')
@@ -190,30 +209,35 @@ def double_depcache_graph():
     nx.relabel_nodes(annot_graph, {x: 'annot_' + x for x in to_rename}, copy=False)
     nx.relabel_nodes(image_graph, {x: 'image_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
-    #graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
+    # graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
     # userdecision = nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
     # userdecision = nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
-    userdecision = nx_makenode(graph, 'User decision', shape='rect',
-                                  #width=100, height=100,
-                                  color=pt.YELLOW, style='diagonals')
-    #longcat = True
+    userdecision = nx_makenode(
+        graph,
+        'User decision',
+        shape='rect',
+        # width=100, height=100,
+        color=pt.YELLOW,
+        style='diagonals',
+    )
+    # longcat = True
     longcat = False
 
-    #edge = ('feat', 'neighbor_index')
-    #data = graph.get_edge_data(*edge)[0]
-    #print('data = %r' % (data,))
-    #graph.remove_edge(*edge)
+    # edge = ('feat', 'neighbor_index')
+    # data = graph.get_edge_data(*edge)[0]
+    # print('data = %r' % (data,))
+    # graph.remove_edge(*edge)
     ## hack
-    #graph.add_edge('featweight', 'neighbor_index', **data)
+    # graph.add_edge('featweight', 'neighbor_index', **data)
 
     graph.add_edge('detections', userdecision, constraint=longcat, color=pt.PINK)
     graph.add_edge(userdecision, 'annotations', constraint=longcat, color=pt.PINK)
     # graph.add_edge(userdecision, 'annotations', implicit=True, color=[0, 0, 0])
     if not longcat:
         pass
-        #graph.add_edge('images', 'annotations', style='invis')
-        #graph.add_edge('thumbnails', 'annotations', style='invis')
-        #graph.add_edge('thumbnails', userdecision, style='invis')
+        # graph.add_edge('images', 'annotations', style='invis')
+        # graph.add_edge('thumbnails', 'annotations', style='invis')
+        # graph.add_edge('thumbnails', userdecision, style='invis')
     graph.remove_node('Has_Notch')
     graph.remove_node('annotmask')
     layoutkw = {
@@ -226,12 +250,12 @@ def double_depcache_graph():
 
     ut.nx_set_default_node_attributes(graph, 'fontsize', 72)
     ut.nx_set_default_node_attributes(graph, 'fontname', 'Ubuntu')
-    ut.nx_set_default_node_attributes(graph, 'style',  'filled')
+    ut.nx_set_default_node_attributes(graph, 'style', 'filled')
 
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
 
-    #for u, v, d in graph.edge(data=True):
+    # for u, v, d in graph.edge(data=True):
     for u, vkd in graph.edge.items():
         for v, dk in vkd.items():
             for k, d in dk.items():
@@ -240,7 +264,7 @@ def double_depcache_graph():
                     # d['headlabel'] = localid
                     if localid not in ['1']:
                         d['taillabel'] = localid
-                    #d['label'] = localid
+                    # d['label'] = localid
                 if d.get('taillabel') in {'1'}:
                     del d['taillabel']
 
@@ -300,15 +324,16 @@ def double_depcache_graph():
         'images': 'image',
         'annotations': 'annotation',
         'chips': 'chip',
-        #userdecision: 'User de'
+        # userdecision: 'User de'
     }
-    node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(),
-                                                            graph.nodes()))
+    node_alias = ut.delete_dict_keys(
+        node_alias, ut.setdiff(node_alias.keys(), graph.nodes())
+    )
     nx.relabel_nodes(graph, node_alias, copy=False)
 
     fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
-    #pt.gca().set_aspect('equal')
-    #pt.figure()
+    # pt.gca().set_aspect('equal')
+    # pt.figure()
     pt.show_nx(graph, layoutkw=layoutkw, fontkw=fontkw)
     pt.zoom_factory()
 
@@ -316,6 +341,7 @@ def double_depcache_graph():
 def lighten_hex(hexcolor, amount):
     import wbia.plottool as pt
     import matplotlib.colors as colors
+
     return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
 
 
@@ -336,6 +362,7 @@ def general_identify_flow():
     """
     import networkx as nx
     import wbia.plottool as pt
+
     pt.ensureqt()
     # pt.plt.xkcd()
 
@@ -365,24 +392,64 @@ def general_identify_flow():
 
     annot1_color = p_shade2
     annot2_color = s1_shade2
-    #annot1_color2 = pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .01)
+    # annot1_color2 = pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .01)
 
-    annot1 = graph.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot', color=annot1_color)
-    annot2 = graph.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot', color=annot2_color)
+    annot1 = graph.nx_makenode(
+        'Annotation X', width=ns, height=ns, groupid='annot', color=annot1_color
+    )
+    annot2 = graph.nx_makenode(
+        'Annotation Y', width=ns, height=ns, groupid='annot', color=annot2_color
+    )
 
-    featX = graph.nx_makenode('Features X', size=(ns / 1.2, ns / 2), groupid='feats', color=lighten_hex(annot1_color, .1))
-    featY = graph.nx_makenode('Features Y', size=(ns / 1.2, ns / 2), groupid='feats', color=lighten_hex(annot2_color, .1))
+    featX = graph.nx_makenode(
+        'Features X',
+        size=(ns / 1.2, ns / 2),
+        groupid='feats',
+        color=lighten_hex(annot1_color, 0.1),
+    )
+    featY = graph.nx_makenode(
+        'Features Y',
+        size=(ns / 1.2, ns / 2),
+        groupid='feats',
+        color=lighten_hex(annot2_color, 0.1),
+    )
     #'#4771B3')
 
-    global_pairvec = graph.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2, color=s2_shade2)
-    findnn = graph.nx_makenode('Find correspondences\n(nearest neighbors)', shape='ellipse', color=c_shade2)
-    local_pairvec = graph.nx_makenode('Local similarities\n(LNBNN, spatial error, ...)',
-                                      size=(ns * 2.2, ns), color=lighten_hex(c_shade2, .1))
-    agglocal = graph.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2), shape='ellipse', color=lighten_hex(c_shade2, .2))
-    catvecs = graph.nx_makenode('Concatenate', size=(ns / 1.1, ns / 2), shape='ellipse', color=lighten_hex(s2_shade2, .1))
-    pairvec = graph.nx_makenode('Vector of\npairwise similarities', color=lighten_hex(s2_shade2, .2))
-    classifier = graph.nx_makenode('Classifier\n(SVM/RF/DNN)', color=lighten_hex(s2_shade2, .3))
-    prob = graph.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)', color=lighten_hex(s2_shade2, .4))
+    global_pairvec = graph.nx_makenode(
+        'Global similarity\n(viewpoint, quality, ...)',
+        width=ns * ut.PHI * 1.2,
+        color=s2_shade2,
+    )
+    findnn = graph.nx_makenode(
+        'Find correspondences\n(nearest neighbors)', shape='ellipse', color=c_shade2
+    )
+    local_pairvec = graph.nx_makenode(
+        'Local similarities\n(LNBNN, spatial error, ...)',
+        size=(ns * 2.2, ns),
+        color=lighten_hex(c_shade2, 0.1),
+    )
+    agglocal = graph.nx_makenode(
+        'Aggregate',
+        size=(ns / 1.1, ns / 2),
+        shape='ellipse',
+        color=lighten_hex(c_shade2, 0.2),
+    )
+    catvecs = graph.nx_makenode(
+        'Concatenate',
+        size=(ns / 1.1, ns / 2),
+        shape='ellipse',
+        color=lighten_hex(s2_shade2, 0.1),
+    )
+    pairvec = graph.nx_makenode(
+        'Vector of\npairwise similarities', color=lighten_hex(s2_shade2, 0.2)
+    )
+    classifier = graph.nx_makenode(
+        'Classifier\n(SVM/RF/DNN)', color=lighten_hex(s2_shade2, 0.3)
+    )
+    prob = graph.nx_makenode(
+        'Matching Probability\n(same individual given\nsimilar viewpoint)',
+        color=lighten_hex(s2_shade2, 0.4),
+    )
 
     graph.add_edge(annot1, global_pairvec)
     graph.add_edge(annot2, global_pairvec)
@@ -406,46 +473,48 @@ def general_identify_flow():
     graph.add_edge(pairvec, classifier)
     graph.add_edge(classifier, prob)
 
-    ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
-    #ut.nx_set_default_node_attributes(graph, 'fillcolor', nx.get_node_attributes(graph, 'color'))
-    #ut.nx_set_default_node_attributes(graph, 'style',  'rounded')
-    ut.nx_set_default_node_attributes(graph, 'style',  'filled,rounded')
+    ut.nx_set_default_node_attributes(graph, 'shape', 'rect')
+    # ut.nx_set_default_node_attributes(graph, 'fillcolor', nx.get_node_attributes(graph, 'color'))
+    # ut.nx_set_default_node_attributes(graph, 'style',  'rounded')
+    ut.nx_set_default_node_attributes(graph, 'style', 'filled,rounded')
     ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
-    ut.nx_set_default_node_attributes(graph, 'xlabel', nx.get_node_attributes(graph, 'label'))
+    ut.nx_set_default_node_attributes(
+        graph, 'xlabel', nx.get_node_attributes(graph, 'label')
+    )
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns)
     ut.nx_set_default_node_attributes(graph, 'regular', False)
 
-    #font = 'MonoDyslexic'
-    #font = 'Mono_Dyslexic'
+    # font = 'MonoDyslexic'
+    # font = 'Mono_Dyslexic'
     font = 'Ubuntu'
     ut.nx_set_default_node_attributes(graph, 'fontsize', 72)
     ut.nx_set_default_node_attributes(graph, 'fontname', font)
 
-    #ut.nx_delete_node_attr(graph, 'width')
-    #ut.nx_delete_node_attr(graph, 'height')
-    #ut.nx_delete_node_attr(graph, 'fixedsize')
-    #ut.nx_delete_node_attr(graph, 'style')
-    #ut.nx_delete_node_attr(graph, 'regular')
-    #ut.nx_delete_node_attr(graph, 'shape')
+    # ut.nx_delete_node_attr(graph, 'width')
+    # ut.nx_delete_node_attr(graph, 'height')
+    # ut.nx_delete_node_attr(graph, 'fixedsize')
+    # ut.nx_delete_node_attr(graph, 'style')
+    # ut.nx_delete_node_attr(graph, 'regular')
+    # ut.nx_delete_node_attr(graph, 'shape')
 
     # node_dict = ut.nx_node_dict(graph)
-    #node_dict[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
-    #node_dict[annot2]['label'] = ut.codeblock(
+    # node_dict[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
+    # node_dict[annot2]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
-    #node_dict[annot1]['label'] = ut.codeblock(
+    # node_dict[annot1]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
 
-    #node_dict[annot1]['shape'] = 'none'
-    #node_dict[annot1]['margin'] = '0'
+    # node_dict[annot1]['shape'] = 'none'
+    # node_dict[annot1]['margin'] = '0'
 
     layoutkw = {
         'forcelabels': True,
@@ -471,11 +540,11 @@ def general_identify_flow():
         # 'rank': 'max',
     }
 
-    #fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
-    #fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
-    #fontkw = dict(fontname='Ubuntu', fontweight='light', fontsize=20)
+    # fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    # fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
+    # fontkw = dict(fontname='Ubuntu', fontweight='light', fontsize=20)
     fontkw = dict(fontname=font, fontweight='light', fontsize=12)
-    #prop = fm.FontProperties(fname='/usr/share/fonts/truetype/groovygh.ttf')
+    # prop = fm.FontProperties(fname='/usr/share/fonts/truetype/groovygh.ttf')
 
     pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, **fontkw)
     pt.zoom_factory()
@@ -500,8 +569,10 @@ def graphcut_flow():
         >>> ut.show_if_requested()
     """
     import wbia.plottool as pt
+
     pt.ensureqt()
     import networkx as nx
+
     # pt.plt.xkcd()
 
     graph = nx.DiGraph()
@@ -526,13 +597,31 @@ def graphcut_flow():
     # *** Complement color
     c_shade2 = '#E8B353'
 
-    annot1 = nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
-                            groupid='annot', color=p_shade2)
-    annot2 = nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
-                            groupid='annot', color=s1_shade2)
-    occurprob = nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
-    cacheprob = nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
-    sparseprob = nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
+    annot1 = nx_makenode(
+        graph,
+        'Unlabeled\nannotations\n(query)',
+        width=ns,
+        height=ns,
+        groupid='annot',
+        color=p_shade2,
+    )
+    annot2 = nx_makenode(
+        graph,
+        'Labeled\nannotations\n(database)',
+        width=ns,
+        height=ns,
+        groupid='annot',
+        color=s1_shade2,
+    )
+    occurprob = nx_makenode(
+        graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, 0.1)
+    )
+    cacheprob = nx_makenode(
+        graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, 0.1)
+    )
+    sparseprob = nx_makenode(
+        graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, 0.1)
+    )
 
     graph.add_edge(annot1, occurprob)
 
@@ -540,9 +629,17 @@ def graphcut_flow():
     graph.add_edge(annot2, sparseprob)
     graph.add_edge(annot2, cacheprob)
 
-    matchgraph = nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
-    cutalgo = nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
-    cc_names = nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected components', color=lighten_hex(s2_shade2, .3))
+    matchgraph = nx_makenode(
+        graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, 0.1)
+    )
+    cutalgo = nx_makenode(
+        graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, 0.2), shape='ellipse'
+    )
+    cc_names = nx_makenode(
+        graph,
+        'Identifications,\n splits, and merges are\nconnected components',
+        color=lighten_hex(s2_shade2, 0.3),
+    )
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)
@@ -551,8 +648,8 @@ def graphcut_flow():
     graph.add_edge(matchgraph, cutalgo)
     graph.add_edge(cutalgo, cc_names)
 
-    ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
-    ut.nx_set_default_node_attributes(graph, 'style',  'filled,rounded')
+    ut.nx_set_default_node_attributes(graph, 'shape', 'rect')
+    ut.nx_set_default_node_attributes(graph, 'style', 'filled,rounded')
     ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
@@ -593,7 +690,7 @@ def merge_viewpoint_graph():
     defaultdb = 'PZ_Master1'
     ibs = wbia.opendb(defaultdb=defaultdb)
 
-    #nids = None
+    # nids = None
     aids = ibs.get_name_aids(4875)
     ibs.print_annot_stats(aids)
 
@@ -614,40 +711,47 @@ def merge_viewpoint_graph():
 
     # Let the graph be a bit smaller
 
-    right_graph.edge[right_aids[1]][right_aids[2]]['constraint'] = ut.get_argflag('--constraint')
-    left_graph.edge[left_aids[1]][left_aids[2]]['constraint'] = ut.get_argflag('--constraint')
+    right_graph.edge[right_aids[1]][right_aids[2]]['constraint'] = ut.get_argflag(
+        '--constraint'
+    )
+    left_graph.edge[left_aids[1]][left_aids[2]]['constraint'] = ut.get_argflag(
+        '--constraint'
+    )
 
-    #right_graph = right_graph.to_undirected().to_directed()
-    #left_graph = left_graph.to_undirected().to_directed()
+    # right_graph = right_graph.to_undirected().to_directed()
+    # left_graph = left_graph.to_undirected().to_directed()
     nx.set_node_attributes(right_graph, name='groupid', values='right')
     nx.set_node_attributes(left_graph, name='groupid', values='left')
 
-    #nx.set_node_attributes(right_graph, name='scale', values=.2)
-    #nx.set_node_attributes(left_graph, name='scale', values=.2)
+    # nx.set_node_attributes(right_graph, name='scale', values=.2)
+    # nx.set_node_attributes(left_graph, name='scale', values=.2)
     # node_dict[back[0]]['scale'] = 2.3
 
     nx.set_node_attributes(back_graph, name='groupid', values='back')
 
     view_graph = nx.compose_all([left_graph, back_graph, right_graph])
-    view_graph.add_edges_from([
-        [backright[0], right_aids[0]][::-1],
-        [backleft[0], left_aids[0]][::-1],
-    ])
+    view_graph.add_edges_from(
+        [[backright[0], right_aids[0]][::-1], [backleft[0], left_aids[0]][::-1],]
+    )
     pt.ensureqt()
     graph = graph = view_graph  # NOQA
-    #graph = graph.to_undirected()
+    # graph = graph.to_undirected()
 
     nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE[0:3])
-    #nx.set_edge_attributes(graph, name='color', values=pt.BLACK)
-    nx.set_edge_attributes(graph, name='color', values={edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
+    # nx.set_edge_attributes(graph, name='color', values=pt.BLACK)
+    nx.set_edge_attributes(
+        graph, name='color', values={edge: pt.LIGHT_BLUE[0:3] for edge in back_edges}
+    )
 
-    #pt.close_all_figures();
+    # pt.close_all_figures();
     from wbia.viz import viz_graph
+
     layoutkw = {
         'nodesep': 1,
     }
-    viz_graph.viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot',
-                                 augment_graph=False, layoutkw=layoutkw)
+    viz_graph.viz_netx_chipgraph(
+        ibs, graph, with_images=1, prog='dot', augment_graph=False, layoutkw=layoutkw
+    )
 
     if False:
         """
@@ -701,6 +805,7 @@ def setcover_example():
     import wbia.plottool as pt
     from wbia.viz import viz_graph
     import networkx as nx
+
     pt.ensureqt()
     ibs = wbia.opendb(defaultdb='testdb2')
 
@@ -712,15 +817,22 @@ def setcover_example():
         for a in aids:
             print(ut.repr3(ibs.get_annot_stats_dict(a)))
         print(aids[-2])
-    #aids = [78, 79, 80, 81, 88, 91]
+    # aids = [78, 79, 80, 81, 88, 91]
     aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids)
     cm_list = qreq_.execute()
     from wbia.algo.hots import orig_graph_iden
+
     infr = orig_graph_iden.OrigAnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
-    print(ut.hz_str('prob_annots = ', ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
+
+    print(
+        ut.hz_str(
+            'prob_annots = ',
+            ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True),
+        )
+    )
     # ut.setcover_greedy(candidate_sets_dict)
     max_weight = 3
     prob_annots[np.diag_indices(len(prob_annots))] = np.inf
@@ -730,10 +842,15 @@ def setcover_example():
     # probably not the best way to go about searching for these thresholds
     # but when you have a hammer...
     if False:
-        quant = sorted(np.diff(thresh_points))[(len(thresh_points) - 1) // 2 ]
-        candset = {point: thresh_points[np.abs(thresh_points - point) < quant] for point in thresh_points}
+        quant = sorted(np.diff(thresh_points))[(len(thresh_points) - 1) // 2]
+        candset = {
+            point: thresh_points[np.abs(thresh_points - point) < quant]
+            for point in thresh_points
+        }
         check_thresholds = len(aids) * 2
-        thresh_points2 = np.array(ut.setcover_greedy(candset, max_weight=check_thresholds).keys())
+        thresh_points2 = np.array(
+            ut.setcover_greedy(candset, max_weight=check_thresholds).keys()
+        )
         thresh_points = thresh_points2
 
     # pt.plot(sorted(thresh_points), 'rx')
@@ -759,20 +876,30 @@ def setcover_example():
             current_covers = covering_sets
             current_idxs = exemplar_idxs
     exemplars = ut.take(aids, current_idxs)
-    ensure_edges = [(aids[ax], aids[ax2]) for ax, other_xs in enumerate(current_covers) for ax2 in other_xs]
+    ensure_edges = [
+        (aids[ax], aids[ax2])
+        for ax, other_xs in enumerate(current_covers)
+        for ax2 in other_xs
+    ]
     graph = viz_graph.make_netx_graph_from_aid_groups(
-        ibs, [aids], allow_directed=True, ensure_edges=ensure_edges,
-        temp_nids=[1] * len(aids))
+        ibs,
+        [aids],
+        allow_directed=True,
+        ensure_edges=ensure_edges,
+        temp_nids=[1] * len(aids),
+    )
     viz_graph.ensure_node_images(ibs, graph)
 
     nx.set_node_attributes(graph, name='framewidth', values=False)
-    nx.set_node_attributes(graph, name='framewidth', values={aid: 4.0 for aid in exemplars})
+    nx.set_node_attributes(
+        graph, name='framewidth', values={aid: 4.0 for aid in exemplars}
+    )
     nx.set_edge_attributes(graph, name='color', values=pt.ORANGE)
     nx.set_node_attributes(graph, name='color', values=pt.LIGHT_BLUE)
     nx.set_node_attributes(graph, name='shape', values='rect')
 
     layoutkw = {
-        'sep' : 1 / 10,
+        'sep': 1 / 10,
         'prog': 'neato',
         'overlap': 'false',
         #'splines': 'ortho',
@@ -826,20 +953,32 @@ def k_redun_demo():
 
     # Adjust between new and old variable names
     infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]),
+    )
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]),
+    )
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]),
+    )
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
-    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
-                             groupby='name_label',
-                             splines='spline',
-                             show_cand=False)
+    infr.update_visual_attrs(
+        use_image=True,
+        show_unreviewed_edges=True,
+        groupby='name_label',
+        splines='spline',
+        show_cand=False,
+    )
     infr.set_edge_attrs('linewidth', 2)
     # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
     # infr.set_edge_attrs('color', pt.BLACK)
-    infr.set_edge_attrs('alpha', .7)
+    infr.set_edge_attrs('alpha', 0.7)
     viz_graph.ensure_node_images(ibs, infr.graph)
     infr.show(use_image=True, update_attrs=False)
 
@@ -864,34 +1003,43 @@ def graph_iden_cut_demo():
     import wbia
     import wbia.plottool as pt
     from wbia.viz import viz_graph
+
     # import networkx as nx
     pt.ensureqt()
     ibs = wbia.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
-        #4880: [3690, 3696, 3703, 3706, 3712, 3721],
+        # 4880: [3690, 3696, 3703, 3706, 3712, 3721],
         4880: [3690, 3696, 3703],
         6537: [3739],
         # 6653: [7671],
         6610: [7566, 7408],
-        #6612: [7664, 7462, 7522],
-        #6624: [7465, 7360],
-        #6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        # 6612: [7664, 7462, 7522],
+        # 6624: [7465, 7360],
+        # 6625: [7746, 7383, 7390, 7477, 7376, 7579],
         6630: [7586, 7377, 7464, 7478],
-        #6677: [7500]
+        # 6677: [7500]
     }
 
     if False:
         # Find extra example
-        annots = ibs.annots(ibs.filter_annots_general(view='right', require_timestamp=True, min_pername=2))
+        annots = ibs.annots(
+            ibs.filter_annots_general(
+                view='right', require_timestamp=True, min_pername=2
+            )
+        )
         unique_nids = ut.unique(annots.nids)
-        nid_to_annots = ut.dzip(unique_nids, map(ibs.annots, ibs.get_name_aids(unique_nids)))
+        nid_to_annots = ut.dzip(
+            unique_nids, map(ibs.annots, ibs.get_name_aids(unique_nids))
+        )
         # nid_to_annots = annots.group_items(annots.nids)
         right_nids = ut.argsort(ut.map_dict_vals(len, nid_to_annots))[::-1]
         right_annots = nid_to_annots[right_nids[1]]
         inter = pt.interact_multi_image.MultiImageInteraction(right_annots.chips)
         inter.start()
 
-        inter = pt.interact_multi_image.MultiImageInteraction(ibs.annots([16228, 16257, 16273]).chips)
+        inter = pt.interact_multi_image.MultiImageInteraction(
+            ibs.annots([16228, 16257, 16273]).chips
+        )
         inter.start()
         ut.take(right_annots.aids, [2, 6, 10])
 
@@ -902,14 +1050,12 @@ def graph_iden_cut_demo():
     postcut = ut.get_argflag('--postcut')
     aids_list = ibs.group_annots_by_name(aids)[0]
 
-    infr = wbia.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
-                                autoinit=True)
+    infr = wbia.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list), autoinit=True)
     if postcut:
         infr.init_test_mode2(enable_autoreview=False)
 
         node_to_label = infr.get_node_attrs('orig_name_label')
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
         # cliques
         new_edges = []
         for label, nodes in label_to_nodes.items():
@@ -918,6 +1064,7 @@ def graph_iden_cut_demo():
                     new_edges.append(infr.e_(*edge))
         # negative edges
         import random
+
         rng = random.Random(0)
         for aids1, aids2 in ut.combinations(nid2_aid.values(), 2):
             aid1 = rng.choice(aids1)
@@ -943,20 +1090,35 @@ def graph_iden_cut_demo():
 
     # Adjust between new and old variable names
     infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]),
+    )
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]),
+    )
+    infr.set_edge_attrs(
+        infr.CUT_WEIGHT_KEY,
+        ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]),
+    )
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
-    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
-                             groupby='name_label', splines='spline',
-                             show_cand=not postcut)
+    infr.update_visual_attrs(
+        use_image=True,
+        show_unreviewed_edges=True,
+        groupby='name_label',
+        splines='spline',
+        show_cand=not postcut,
+    )
     infr.set_edge_attrs('linewidth', 2)
-    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
+    infr.set_edge_attrs(
+        'linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4])
+    )
     if not postcut:
         infr.set_edge_attrs('color', pt.BLACK)
-    infr.set_edge_attrs('alpha', .7)
+    infr.set_edge_attrs('alpha', 0.7)
     if not postcut:
         infr.set_node_attrs('framewidth', 0)
     viz_graph.ensure_node_images(ibs, infr.graph)
@@ -979,6 +1141,7 @@ def show_id_graph():
     """
     import wbia
     import wbia.plottool as pt
+
     # import networkx as nx
     pt.ensureqt()
     # ibs = wbia.opendb(defaultdb='PZ_PB_RF_TRAIN')
@@ -1043,6 +1206,7 @@ def show_id_graph():
             break
 
     from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+
     subinfr = parent_infr.subgraph(ut.flatten(pccs))
     subinfr._viz_image_config['thumbsize'] = 700
     subinfr._viz_image_config['grow'] = True
@@ -1061,6 +1225,7 @@ def show_id_graph():
         infr.add_feedback(edge, evidence_decision=NEGTV)
 
     import itertools as it
+
     edges = list(it.combinations(infr.aids, 2))
     n = 0
     incomp_edges = ut.compress(edges, [not f for f in infr.is_comparable(edges)])
@@ -1076,55 +1241,95 @@ def show_id_graph():
         infr.add_feedback(edge, evidence_decision=NEGTV)
 
     savekw = dict(dpi=300, transparent=True, edgecolor='none')
-    showkw = dict(pickable=True, use_image=True, groupby='name_label',
-                  splines='spline', fnum=1)
+    showkw = dict(
+        pickable=True, use_image=True, groupby='name_label', splines='spline', fnum=1
+    )
 
-    infr.show(show_positive_edges=False, show_negative_edges=False,
-              show_incomparable_edges=False, **showkw)
+    infr.show(
+        show_positive_edges=False,
+        show_negative_edges=False,
+        show_incomparable_edges=False,
+        **showkw
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph1.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph1.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
-    infr.show(show_positive_edges=True, show_negative_edges=False,
-              show_incomparable_edges=False, **showkw)
+    infr.show(
+        show_positive_edges=True,
+        show_negative_edges=False,
+        show_incomparable_edges=False,
+        **showkw
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph2.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph2.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
-    infr.show(show_positive_edges=False, show_negative_edges=True,
-              show_incomparable_edges=False, **showkw)
+    infr.show(
+        show_positive_edges=False,
+        show_negative_edges=True,
+        show_incomparable_edges=False,
+        **showkw
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph3.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph3.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
-    infr.show(show_positive_edges=False, show_negative_edges=False,
-              show_incomparable_edges=True, **showkw)
+    infr.show(
+        show_positive_edges=False,
+        show_negative_edges=False,
+        show_incomparable_edges=True,
+        **showkw
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph4.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph4.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
     import networkx as nx
 
     infr.show(pin=True, **showkw)
     nx.set_node_attributes(infr.graph, name='pin', values='true')
     fig = pt.gcf()
-    fig.savefig('id_graph5.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph5.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
     infr2 = infr.copy()
     for edge in infr2.find_pos_redun_candidate_edges(k=2):
         infr2.add_feedback(edge, evidence_decision=POSTV)
-    infr2.show(pickable=True, use_image=True,
-                 groupby='name_label', fnum=1, splines='spline')
+    infr2.show(
+        pickable=True, use_image=True, groupby='name_label', fnum=1, splines='spline'
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph6.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph6.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
     for edge in infr2.find_neg_redun_candidate_edges(k=2):
         infr2.add_feedback(edge, evidence_decision=NEGTV)
-    infr2.show(pickable=True, use_image=True,
-                 groupby='name_label', fnum=1, splines='spline')
+    infr2.show(
+        pickable=True, use_image=True, groupby='name_label', fnum=1, splines='spline'
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph7.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph7.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
     infr3 = infr.copy()
     for edge in infr3.find_pos_redun_candidate_edges(k=2):
@@ -1133,12 +1338,21 @@ def show_id_graph():
         for edge in infr3.find_pos_augment_edges(cc, k=3):
             infr3.add_feedback(edge, evidence_decision=NEGTV)
             break
-    infr3.show(pickable=True, use_image=True, show_between=False,
-               show_inconsistency=True,
-               groupby='name_label', fnum=1, splines='spline')
+    infr3.show(
+        pickable=True,
+        use_image=True,
+        show_between=False,
+        show_inconsistency=True,
+        groupby='name_label',
+        fnum=1,
+        splines='spline',
+    )
     fig = pt.gcf()
-    fig.savefig('id_graph8.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph8.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
     infr4 = infr.copy()
     for edge in infr4.edges():
@@ -1146,8 +1360,11 @@ def show_id_graph():
     infr4.refresh_candidate_edges()
     infr4.show(show_cand=True, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph9.png',
-                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
+    fig.savefig(
+        'id_graph9.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw
+    )
 
 
 def intraoccurrence_connected():
@@ -1172,25 +1389,22 @@ def intraoccurrence_connected():
     import wbia.plottool as pt
     from wbia.viz import viz_graph
     import networkx as nx
+
     pt.ensureqt()
     ibs = wbia.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
-        #4880: [3690, 3696, 3703, 3706, 3712, 3721],
+        # 4880: [3690, 3696, 3703, 3706, 3712, 3721],
         4880: [3690, 3696, 3703],
         6537: [3739],
         6653: [7671],
         6610: [7566, 7408],
-        #6612: [7664, 7462, 7522],
-        #6624: [7465, 7360],
-        #6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        # 6612: [7664, 7462, 7522],
+        # 6624: [7465, 7360],
+        # 6625: [7746, 7383, 7390, 7477, 7376, 7579],
         6630: [7586, 7377, 7464, 7478],
-        #6677: [7500]
+        # 6677: [7500]
     }
-    nid2_dbaids = {
-        4880: [33, 6120, 7164],
-        6537: [7017, 7206],
-        6653: [7660]
-    }
+    nid2_dbaids = {4880: [33, 6120, 7164], 6537: [7017, 7206], 6653: [7660]}
     if ut.get_argflag('--small') or ut.get_argflag('--smaller'):
         del nid2_aid[6630]
         del nid2_aid[6537]
@@ -1199,8 +1413,8 @@ def intraoccurrence_connected():
             nid2_dbaids[4880].remove(33)
             nid2_aid[4880].remove(3690)
             nid2_aid[6610].remove(7408)
-        #del nid2_aid[4880]
-        #del nid2_dbaids[4880]
+        # del nid2_aid[4880]
+        # del nid2_dbaids[4880]
 
     aids = ut.flatten(nid2_aid.values())
 
@@ -1211,14 +1425,18 @@ def intraoccurrence_connected():
     ensure_edges = 'all' if True or not postcut else None
     unlabeled_graph = infr.graph
     unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(
-        ibs, aids_list,
-        #invis_edges=invis_edges,
-        ensure_edges=ensure_edges, temp_nids=temp_nids)
-    viz_graph.color_by_nids(unlabeled_graph, unique_nids=[1] *
-                            len(list(unlabeled_graph.nodes())))
+        ibs,
+        aids_list,
+        # invis_edges=invis_edges,
+        ensure_edges=ensure_edges,
+        temp_nids=temp_nids,
+    )
+    viz_graph.color_by_nids(
+        unlabeled_graph, unique_nids=[1] * len(list(unlabeled_graph.nodes()))
+    )
     viz_graph.ensure_node_images(ibs, unlabeled_graph)
     nx.set_node_attributes(unlabeled_graph, name='shape', values='rect')
-    #unlabeled_graph = unlabeled_graph.to_undirected()
+    # unlabeled_graph = unlabeled_graph.to_undirected()
 
     # Find the "database exemplars for these annots"
     if False:
@@ -1230,7 +1448,7 @@ def intraoccurrence_connected():
     else:
         dbaids = ut.flatten(nid2_dbaids.values())
     exemplars = nx.DiGraph()
-    #graph = exemplars  # NOQA
+    # graph = exemplars  # NOQA
     exemplars.add_nodes_from(dbaids)
 
     def add_clique(graph, nodes, edgeattrs={}, nodeattrs={}):
@@ -1249,24 +1467,26 @@ def intraoccurrence_connected():
     nx.set_node_attributes(unlabeled_graph, name='group', values='unlab')
     nx.set_node_attributes(exemplars, name='group', values='exemp')
 
-    #big_graph = nx.compose_all([unlabeled_graph])
+    # big_graph = nx.compose_all([unlabeled_graph])
     big_graph = nx.compose_all([exemplars, unlabeled_graph])
 
     # add sparse connections from unlabeled to exemplars
     import numpy as np
+
     rng = np.random.RandomState(0)
     if True or not postcut:
         for aid_ in unlabeled_graph.nodes():
-            flags = rng.rand(len(exemplars)) > .5
+            flags = rng.rand(len(exemplars)) > 0.5
             nid_ = ibs.get_annot_nids(aid_)
             exnids = np.array(ibs.get_annot_nids(list(exemplars.nodes())))
             flags = np.logical_or(exnids == nid_, flags)
             exmatches = ut.compress(list(exemplars.nodes()), flags)
-            big_graph.add_edges_from(list(ut.product([aid_], exmatches)),
-                                     color=pt.ORANGE, implicit=True)
+            big_graph.add_edges_from(
+                list(ut.product([aid_], exmatches)), color=pt.ORANGE, implicit=True
+            )
     else:
         for aid_ in unlabeled_graph.nodes():
-            flags = rng.rand(len(exemplars)) > .5
+            flags = rng.rand(len(exemplars)) > 0.5
             exmatches = ut.compress(list(exemplars.nodes()), flags)
             nid_ = ibs.get_annot_nids(aid_)
             exnids = np.array(ibs.get_annot_nids(exmatches))
@@ -1275,7 +1495,7 @@ def intraoccurrence_connected():
         pass
 
     nx.set_node_attributes(big_graph, name='shape', values='rect')
-    #if False and postcut:
+    # if False and postcut:
     #    ut.nx_delete_node_attr(big_graph, 'nid')
     #    ut.nx_delete_edge_attr(big_graph, 'color')
     #    viz_graph.ensure_graph_nid_labels(big_graph, ibs=ibs)
@@ -1283,7 +1503,7 @@ def intraoccurrence_connected():
     #    big_graph = big_graph.to_undirected()
 
     layoutkw = {
-        'sep' : 1 / 5,
+        'sep': 1 / 5,
         'prog': 'neato',
         'overlap': 'false',
         #'splines': 'ortho',
@@ -1291,15 +1511,19 @@ def intraoccurrence_connected():
     }
 
     as_directed = False
-    #as_directed = True
-    #hacknode = True
+    # as_directed = True
+    # hacknode = True
     hacknode = 0
 
     graph = big_graph
     ut.nx_ensure_agraph_color(graph)
     if hacknode:
-        nx.set_edge_attributes(graph, name='taillabel', values={e: str(e[0]) for e in graph.edges()})
-        nx.set_edge_attributes(graph, name='headlabel', values={e: str(e[1]) for e in graph.edges()})
+        nx.set_edge_attributes(
+            graph, name='taillabel', values={e: str(e[0]) for e in graph.edges()}
+        )
+        nx.set_edge_attributes(
+            graph, name='headlabel', values={e: str(e[1]) for e in graph.edges()}
+        )
 
     _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
@@ -1309,49 +1533,52 @@ def intraoccurrence_connected():
         node_dict[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
         node_dict[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
         nx.set_node_attributes(graph, name='pin', values='true')
-        _, layout_info = pt.nx_agraph_layout(graph,
-                                             inplace=True, **layoutkw)
+        _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
     elif ut.get_argflag('--small'):
         node_dict[7660]['pos'] = np.array([750, 350])
         node_dict[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
         node_dict[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
         node_dict[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
         nx.set_node_attributes(graph, name='pin', values='true')
-        _, layout_info = pt.nx_agraph_layout(graph,
-                                             inplace=True, **layoutkw)
+        _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     if not postcut:
-        #pt.show_nx(graph.to_undirected(), layout='agraph', layoutkw=layoutkw,
+        # pt.show_nx(graph.to_undirected(), layout='agraph', layoutkw=layoutkw,
         #           as_directed=False)
-        #pt.show_nx(graph, layout='agraph', layoutkw=layoutkw,
+        # pt.show_nx(graph, layout='agraph', layoutkw=layoutkw,
         #           as_directed=as_directed, hacknode=hacknode)
 
-        pt.show_nx(graph, layout='custom', layoutkw=layoutkw,
-                   as_directed=as_directed, hacknode=hacknode)
+        pt.show_nx(
+            graph,
+            layout='custom',
+            layoutkw=layoutkw,
+            as_directed=as_directed,
+            hacknode=hacknode,
+        )
     else:
-        #explicit_graph = pt.get_explicit_graph(graph)
-        #_, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
+        # explicit_graph = pt.get_explicit_graph(graph)
+        # _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
         #                                     **layoutkw)
 
-        #layout_info['edge']['alpha'] = .8
-        #pt.apply_graph_layout_attrs(graph, layout_info)
+        # layout_info['edge']['alpha'] = .8
+        # pt.apply_graph_layout_attrs(graph, layout_info)
 
-        #graph_layout_attrs = layout_info['graph']
+        # graph_layout_attrs = layout_info['graph']
         ##edge_layout_attrs  = layout_info['edge']
         ##node_layout_attrs  = layout_info['node']
 
-        #for key, vals in layout_info['node'].items():
+        # for key, vals in layout_info['node'].items():
         #    #print('[special] key = %r' % (key,))
         #    nx.set_node_attributes(graph, name=key, values=vals)
 
-        #for key, vals in layout_info['edge'].items():
+        # for key, vals in layout_info['edge'].items():
         #    #print('[special] key = %r' % (key,))
         #    nx.set_edge_attributes(graph, name=key, values=vals)
 
-        #nx.set_edge_attributes(graph, name='alpha', values=.8)
-        #graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
-        #graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
-        #graph.graph['splines'] = 'line'
+        # nx.set_edge_attributes(graph, name='alpha', values=.8)
+        # graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
+        # graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
+        # graph.graph['splines'] = 'line'
 
         cut_graph = graph.copy()
         edge_list = list(cut_graph.edges())
@@ -1362,40 +1589,48 @@ def intraoccurrence_connected():
         ut.nx_delete_node_attr(cut_graph, 'nid')
         viz_graph.ensure_graph_nid_labels(cut_graph, ibs=ibs)
 
-        #ut.nx_get_default_node_attributes(exemplars, 'color', None)
+        # ut.nx_get_default_node_attributes(exemplars, 'color', None)
         ut.nx_delete_node_attr(cut_graph, 'color', nodes=unlabeled_graph.nodes())
         aid2_color = ut.nx_get_default_node_attributes(cut_graph, 'color', None)
-        nid2_colors = ut.group_items(aid2_color.values(), ibs.get_annot_nids(aid2_color.keys()))
+        nid2_colors = ut.group_items(
+            aid2_color.values(), ibs.get_annot_nids(aid2_color.keys())
+        )
         nid2_colors = ut.map_dict_vals(ut.filter_Nones, nid2_colors)
         nid2_colors = ut.map_dict_vals(ut.unique, nid2_colors)
-        #for val in nid2_colors.values():
+        # for val in nid2_colors.values():
         #    assert len(val) <= 1
         # Get initial colors
-        nid2_color_ = {nid: colors_[0] for nid, colors_ in nid2_colors.items()
-                       if len(colors_) == 1}
+        nid2_color_ = {
+            nid: colors_[0] for nid, colors_ in nid2_colors.items() if len(colors_) == 1
+        }
 
         graph = cut_graph
         viz_graph.color_by_nids(cut_graph, ibs=ibs, nid2_color_=nid2_color_)
         nx.set_node_attributes(cut_graph, name='framewidth', values=4)
 
-        pt.show_nx(cut_graph, layout='custom', layoutkw=layoutkw,
-                   as_directed=as_directed, hacknode=hacknode)
+        pt.show_nx(
+            cut_graph,
+            layout='custom',
+            layoutkw=layoutkw,
+            as_directed=as_directed,
+            hacknode=hacknode,
+        )
 
     pt.zoom_factory()
 
     # The database exemplars
     # TODO: match these along with the intra encounter set
-    #interact = viz_graph.make_name_graph_interaction(
+    # interact = viz_graph.make_name_graph_interaction(
     #    ibs, aids=dbaids, with_all=False, prog='neato', framewidth=True)
-    #print(interact)
+    # print(interact)
 
     # Groupid only works for dot
-    #nx.set_node_attributes(unlabeled_graph, name='groupid', values='unlabeled')
-    #nx.set_node_attributes(exemplars, name='groupid', values='exemplars')
-    #exemplars = exemplars.to_undirected()
-    #add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))
-    #layoutkw = {}
-    #pt.show_nx(exemplars, layout='agraph', layoutkw=layoutkw,
+    # nx.set_node_attributes(unlabeled_graph, name='groupid', values='unlabeled')
+    # nx.set_node_attributes(exemplars, name='groupid', values='exemplars')
+    # exemplars = exemplars.to_undirected()
+    # add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))
+    # layoutkw = {}
+    # pt.show_nx(exemplars, layout='agraph', layoutkw=layoutkw,
     #           as_directed=False, framewidth=True,)
 
 
@@ -1420,13 +1655,15 @@ def scalespace():
         >>> ut.show_if_requested()
     """
     import numpy as np
+
     # import matplotlib.pyplot as plt
     import cv2
     import vtool as vt
     import wbia.plottool as pt
+
     pt.qt4ensure()
 
-    #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
+    # imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
     imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
     # imgBGR = vt.imread(ut.grab_test_imgpath('carl.jpg'))
 
@@ -1441,19 +1678,23 @@ def scalespace():
 
     def makepyramid_octave(imgRaw, level, num_intervals):
         # Downsample image to take sigma to a power of level
-        step = (2 ** (level))
+        step = 2 ** (level)
         img_level = imgRaw[::step, ::step]
         # Compute interval relative scales
         interval = np.array(list(range(num_intervals)))
-        relative_scales = (2 ** ((interval / num_intervals)))
+        relative_scales = 2 ** ((interval / num_intervals))
         sigma_intervals = initial_sigma * relative_scales
         octave_intervals = []
         for sigma in sigma_intervals:
-            sizex = int(6. * sigma + 1.) + int(1 - (int(6. * sigma + 1.) % 2))
+            sizex = int(6.0 * sigma + 1.0) + int(1 - (int(6.0 * sigma + 1.0) % 2))
             ksize = (sizex, sizex)
-            img_blur = cv2.GaussianBlur(img_level, ksize, sigmaX=sigma,
-                                        sigmaY=sigma,
-                                        borderType=cv2.BORDER_REPLICATE)
+            img_blur = cv2.GaussianBlur(
+                img_level,
+                ksize,
+                sigmaX=sigma,
+                sigmaY=sigma,
+                borderType=cv2.BORDER_REPLICATE,
+            )
             octave_intervals.append(img_blur)
         return octave_intervals
 
@@ -1466,13 +1707,18 @@ def scalespace():
     def makewarp(imgBGR):
         # hack a projection matrix using dummy homogrpahy
         imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
-        imgBGRA[:, :, 3] = .87 * 255  # hack alpha
+        imgBGRA[:, :, 3] = 0.87 * 255  # hack alpha
         imgBGRA = vt.pad_image(imgBGRA, 2, value=[0, 0, 255, 255])
         size = np.array(vt.get_size(imgBGRA))
         pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
-        x_adjust = .15
-        y_adjust = .5
-        pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
+        x_adjust = 0.15
+        y_adjust = 0.5
+        pts2 = (
+            np.array(
+                [(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]
+            )
+            * size
+        )
         H = cv2.findHomography(pts1, pts2)[0]
 
         dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
@@ -1481,18 +1727,21 @@ def scalespace():
         return imgBGRA_warped
 
     framesize = (700, 500)
-    steps = np.array([.04, .03, .02, .01]) * 1.3
+    steps = np.array([0.04, 0.03, 0.02, 0.01]) * 1.3
 
     numintervals = 4
     octave_ty_starts = [1.0]
     for i in range(1, 4):
         prev_ty = octave_ty_starts[-1]
         prev_base = pyramid[i - 1][0]
-        next_ty = prev_ty - ((prev_base.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (steps[i - 1]))
+        next_ty = prev_ty - (
+            (prev_base.shape[0] / framesize[1]) / 2
+            + (numintervals - 1) * (steps[i - 1])
+        )
         octave_ty_starts.append(next_ty)
 
     def temprange(stop, step, num):
-        return [stop - (x * step) for x in  range(num)]
+        return [stop - (x * step) for x in range(num)]
 
     layers = []
     for i in range(0, 4):
@@ -1501,9 +1750,13 @@ def scalespace():
         intervals = pyramid[i]
         ty_range = temprange(ty_start, step, numintervals)
         nextpart = [
-            vt.embed_in_square_image(makewarp(interval), framesize, img_origin=(.5, .5),
-                                     target_origin=(.5, ty / 2))
-            for ty, interval in  zip(ty_range, intervals)
+            vt.embed_in_square_image(
+                makewarp(interval),
+                framesize,
+                img_origin=(0.5, 0.5),
+                target_origin=(0.5, ty / 2),
+            )
+            for ty, interval in zip(ty_range, intervals)
         ]
         layers += nextpart
 
@@ -1518,8 +1771,10 @@ def event_space():
     pip install matplotlib-venn
     """
     from matplotlib import pyplot as plt
+
     # import numpy as np
     from matplotlib_venn import venn3, venn2, venn3_circles
+
     plt.figure(figsize=(4, 4))
     v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels=('A', 'B', 'C'))
     v.get_patch_by_id('100').set_alpha(1.0)
@@ -1541,17 +1796,16 @@ def event_space():
     plt.show()
 
     import wbia.plottool as pt
+
     pt.ensureqt()
     from matplotlib_subsets import treesets_rectangles
+
     tree = (
-        (120, 'Same', None), [
-            ((50, 'comparable', None), []),
-            ((50, 'incomparable', None), [])
-        ]
-        (120, 'Diff', None), [
-            ((50, 'comparable', None), []),
-            ((50, 'incomparable', None), [])
-        ]
+        (120, 'Same', None),
+        [((50, 'comparable', None), []), ((50, 'incomparable', None), [])](
+            120, 'Diff', None
+        ),
+        [((50, 'comparable', None), []), ((50, 'incomparable', None), [])],
     )
 
     treesets_rectangles(tree)
@@ -1587,7 +1841,7 @@ def event_space():
     # Border styles
     c = venn2_circles(subsets=s, linestyle='solid')
     c[0].set_ls('dashed')  # Line style
-    c[0].set_lw(2.0)       # Line width
+    c[0].set_lw(2.0)  # Line width
 
     plt.show()
     # plt.savefig('example_tree.pdf', bbox_inches='tight')
@@ -1636,36 +1890,44 @@ def draw_inconsistent_pcc():
     import wbia.plottool as pt
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
     infr = demo.demodata_infr(**kwargs)
-    infr.set_node_attrs('pos', {
-        1: (30, 40),
-        3: (70,  40),
-        4: ( 0,  0),
-        2: (100,  0),
-    })
+    infr.set_node_attrs('pos', {1: (30, 40), 3: (70, 40), 4: (0, 0), 2: (100, 0),})
     fnum = 1
     infr.set_node_attrs('pin', True)
     # infr.set_node_attrs('fixed_size', False)
     # infr.set_node_attrs('scale', .1)
     # infr.set_node_attrs('width', 16)
-    infr.show(show_inconsistency=False, simple_labels=True, pickable=True,
-              pnum=(1, 2, 1), fnum=fnum)
+    infr.show(
+        show_inconsistency=False,
+        simple_labels=True,
+        pickable=True,
+        pnum=(1, 2, 1),
+        fnum=fnum,
+    )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
     from wbia.algo.graph.state import POSTV, NEGTV
+
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
     pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
     ax.set_aspect('equal')
 
-    infr.show(show_inconsistency=True, simple_labels=True, pickable=True,
-              pnum=(1, 2, 2), fnum=fnum)
+    infr.show(
+        show_inconsistency=True,
+        simple_labels=True,
+        pickable=True,
+        pnum=(1, 2, 2),
+        fnum=fnum,
+    )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
     from wbia.algo.graph.state import POSTV, NEGTV
+
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     pt.append_phantom_legend_label('hypothesis', infr._error_color, ax=ax)
@@ -1685,20 +1947,32 @@ def draw_graph_id():
     import wbia.plottool as pt
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
-    kwargs = dict(num_pccs=5, p_incon=0, size=4, size_std=1,
-                  p_incomp=.2,
-                  p_pair_neg=.5, p_pair_incmp=.4)
+    kwargs = dict(
+        num_pccs=5,
+        p_incon=0,
+        size=4,
+        size_std=1,
+        p_incomp=0.2,
+        p_pair_neg=0.5,
+        p_pair_incmp=0.4,
+    )
     infr = demo.demodata_infr(**kwargs)
     infr.graph.graph['hpad'] = 50
     infr.graph.graph['vpad'] = 10
     infr.graph.graph['group_grid'] = True
-    infr.show(show_inconsistency=False,
-              simple_labels=True,
-              wavy=False, groupby='name_label', pickable=True)
+    infr.show(
+        show_inconsistency=False,
+        simple_labels=True,
+        wavy=False,
+        groupby='name_label',
+        pickable=True,
+    )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
     from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
@@ -1713,6 +1987,7 @@ def redun_demo2():
     """
     from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
     from wbia.algo.graph import demo
+
     # from wbia.algo.graph import nx_utils
     import wbia.plottool as pt
 
@@ -1720,15 +1995,21 @@ def redun_demo2():
     pt.ensureqt()
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
 
     fnum = 1
-    showkw = dict(show_inconsistency=False, show_labels=True,
-                  simple_labels=True,
-                  show_recent_review=False, wavy=False,
-                  groupby='name_label',
-                  splines='spline',
-                  pickable=True, fnum=fnum)
+    showkw = dict(
+        show_inconsistency=False,
+        show_labels=True,
+        simple_labels=True,
+        show_recent_review=False,
+        wavy=False,
+        groupby='name_label',
+        splines='spline',
+        pickable=True,
+        fnum=fnum,
+    )
 
     graphkw = dict(hpad=50, vpad=50, group_grid=True)
     pnum_ = pt.make_pnum_nextgen(2, 3)
@@ -1796,16 +2077,22 @@ def redun_demo3():
     pt.ensureqt()
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
 
     fnum = 1
-    showkw = dict(show_inconsistency=False, show_labels=True,
-                  simple_labels=True,
-                  show_recent_review=False, wavy=False,
-                  groupby='name_label',
-                  splines='spline',
-                  show_all=True,
-                  pickable=True, fnum=fnum)
+    showkw = dict(
+        show_inconsistency=False,
+        show_labels=True,
+        simple_labels=True,
+        show_recent_review=False,
+        wavy=False,
+        groupby='name_label',
+        splines='spline',
+        show_all=True,
+        pickable=True,
+        fnum=fnum,
+    )
 
     graphkw = dict(hpad=50, vpad=50, group_grid=True)
     pnum_ = pt.make_pnum_nextgen(2, 1)
@@ -1824,6 +2111,7 @@ def redun_demo3():
     infr = demo.make_demo_infr(ccs=ccs)
     infr.add_feedback((4, 14), evidence_decision=NEGTV)
     import networkx as nx
+
     for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
         print('e = %r' % (e,))
         infr.add_feedback(e, evidence_decision=INCMP)
@@ -1853,6 +2141,7 @@ def system_diagram():
     pt.ensureqt()
     import matplotlib as mpl
     from wbia.scripts.thesis import TMP_RC
+
     mpl.rcParams.update(TMP_RC)
 
     # fnum = 1
@@ -1869,9 +2158,14 @@ def system_diagram():
 
     infr = demo.demodata_infr(ccs=[(1, 2, 3, 4), (5, 6, 7), (8, 9,), (10,)])
     showkw = dict(
-        show_unreviewed_edges=True, show_inferred_same=False,
-        show_inferred_diff=False, show_labels=True, simple_labels=True,
-        show_recent_review=False, reposition=False, pickable=True,
+        show_unreviewed_edges=True,
+        show_inferred_same=False,
+        show_inferred_diff=False,
+        show_labels=True,
+        simple_labels=True,
+        show_recent_review=False,
+        reposition=False,
+        pickable=True,
         outof=(len(infr.aids)),  # hack for colors
     )
     infr.clear_edges()
@@ -1905,9 +2199,9 @@ def system_diagram():
     infr.task_probs.pop('photobomb_state', None)
     infr.params['autoreview.enabled'] = True
     infr.params['autoreview.prioritize_nonpos'] = True
-    infr.task_thresh['match_state'][POSTV] = .8
-    infr.task_thresh['match_state'][NEGTV] = .54
-    infr.task_thresh['match_state'][INCMP] = .5
+    infr.task_thresh['match_state'][POSTV] = 0.8
+    infr.task_thresh['match_state'][NEGTV] = 0.54
+    infr.task_thresh['match_state'][INCMP] = 0.5
 
     # infr.add_feedback((1, 2), POSTV)  # hack
 
@@ -1932,14 +2226,21 @@ def system_diagram():
     infr.add_feedback(edge, NEGTV)
 
     node_overrides = {
-        'label': {n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())}
+        'label': {
+            n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())
+        }
     }
     # edge_overrides = {
     #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
     # }
     infr.update_visual_attrs(groupby='name_label')
-    infr.show(edge_overrides=edge_overrides, node_overrides=node_overrides,
-              fnum=1, pnum=(1, 4, 3), **showkw)
+    infr.show(
+        edge_overrides=edge_overrides,
+        node_overrides=node_overrides,
+        fnum=1,
+        pnum=(1, 4, 3),
+        **showkw
+    )
     pt.gca().set_aspect('equal')
 
     # Manual Decisions
@@ -1980,6 +2281,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.specialdraw --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

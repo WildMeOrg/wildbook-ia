@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)  # NOQA
 from os.path import join, exists, basename
 from wbia.algo.verif import sklearn_utils
 from wbia.algo.verif import verifier
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -14,8 +20,14 @@ class Deployer(object):
     Registers and loads published models.
     """
 
-    fname_parts = ['vsone', '{species}', '{task_key}',
-                   '{clf_key}', '{n_dims}', '{hashid}']
+    fname_parts = [
+        'vsone',
+        '{species}',
+        '{task_key}',
+        '{clf_key}',
+        '{n_dims}',
+        '{hashid}',
+    ]
 
     fname_fmtstr = '.'.join(fname_parts)
 
@@ -56,8 +68,7 @@ class Deployer(object):
         >>> task_key = 'match_state'
         """
 
-        base_url = 'https://{remote}/public/models/pairclf'.format(
-            **self.publish_info)
+        base_url = 'https://{remote}/public/models/pairclf'.format(**self.publish_info)
 
         task_fnames = self.published[species]
         fname = task_fnames[task_key]
@@ -89,7 +100,7 @@ class Deployer(object):
                 'data_key': data_key,
                 'class_names': labels.class_names,
                 'data_info': data_info,
-            }
+            },
         }
         verif = verifier.Verifier(ibs, deploy_info)
         return verif
@@ -201,23 +212,25 @@ class Deployer(object):
         deploy_info = ut.load_data(deploy_fpath)
         verif = verifier.Verifier(ibs, deploy_info=deploy_info)
         if task_key is not None:
-            assert verif.metadata['task_key'] == task_key, (
-                'bad saved clf at fpath={}'.format(deploy_fpath))
+            assert (
+                verif.metadata['task_key'] == task_key
+            ), 'bad saved clf at fpath={}'.format(deploy_fpath)
         return verif
 
     def load_published(self, ibs, species):
         task_fnames = self.published[species]
-        print('loading published: %r' % (task_fnames, ))
+        print('loading published: %r' % (task_fnames,))
         classifiers = {
             task_key: self._load_published(ibs, species, task_key)
             for task_key in task_fnames.keys()
         }
-        print('loaded classifiers: %r' % (classifiers, ))
+        print('loaded classifiers: %r' % (classifiers,))
         return classifiers
 
     def find_pretrained(self):
         import glob
         import parse
+
         fname_fmt = self.fname_fmtstr + '.cPkl'
         task_clf_candidates = ut.ddict(list)
         globstr = self.fname_parts[0] + '.*.cPkl'
@@ -242,10 +255,10 @@ class Deployer(object):
             >>> self = Deployer()
             >>> task_clf_names = self.find_latest_remote()
         """
-        base_url = 'https://{remote}/public/models/pairclf'.format(
-            **self.publish_info)
+        base_url = 'https://{remote}/public/models/pairclf'.format(**self.publish_info)
         import requests
         import bs4
+
         resp = requests.get(base_url)
         soup = bs4.BeautifulSoup(resp.text, 'html.parser')
         table = soup.findAll('table')[0]
@@ -270,9 +283,10 @@ class Deployer(object):
 
             # Safeguard on Column Titles
             if len(column_names) > 0 and len(column_names) != n_columns:
-                raise Exception("Column titles do not match the number of columns")
+                raise Exception('Column titles do not match the number of columns')
             columns = column_names if len(column_names) > 0 else range(0, n_columns)
             import pandas as pd
+
             df = pd.DataFrame(columns=columns, index=list(range(0, n_rows)))
             row_marker = 0
             for row in table.find_all('tr'):
@@ -284,6 +298,7 @@ class Deployer(object):
                 if len(columns) > 0:
                     row_marker += 1
             return df
+
         df = parse_bs_table(table)
         # Find all available models
         df = df[df['Name'].map(lambda x: x.endswith('.cPkl'))]
@@ -292,6 +307,7 @@ class Deployer(object):
         fname_fmt = self.fname_fmtstr + '.cPkl'
         task_clf_candidates = ut.ddict(list)
         import parse
+
         for idx, row in df.iterrows():
             fname = basename(row['Name'])
             result = parse.parse(fname_fmt, fname)
@@ -318,6 +334,7 @@ class Deployer(object):
         >>> self.find_latest_local()
         """
         from os.path import getctime
+
         task_clf_candidates = self.find_pretrained()
         task_clf_fpaths = {}
         for task_key, fpaths in task_clf_candidates.items():
@@ -349,8 +366,7 @@ class Deployer(object):
         label_hashid = samples.task_label_hashid(task_key)
         tasksamp_hashid = samples.task_sample_hashid(task_key)
 
-        annot_hashid = ut.hashid_arr(samples._unique_annots.visual_uuids,
-                                     'annots')
+        annot_hashid = ut.hashid_arr(samples._unique_annots.visual_uuids, 'annots')
 
         # species = pblm.infr.ibs.get_primary_database_species(
         #     samples._unique_annots.aid)
@@ -375,8 +391,7 @@ class Deployer(object):
         meta_cfgstr = ut.repr2(metadata, kvsep=':', itemsep='', si=True)
         hashid = ut.hash_data(meta_cfgstr)[0:16]
 
-        deploy_fname = (self.fname_fmtstr.format(hashid=hashid, **metadata) +
-                        '.cPkl')
+        deploy_fname = self.fname_fmtstr.format(hashid=hashid, **metadata) + '.cPkl'
 
         deploy_metadata = metadata.copy()
         deploy_metadata['hashid'] = hashid
@@ -418,8 +433,9 @@ class Deployer(object):
             deploy_info = self.deploy(task_key=task_key)
             assert exists(fpath), 'must now exist'
         verif = verifier.Verifier(self.pblm.infr.ibs, deploy_info=deploy_info)
-        assert verif.metadata['task_key'] == task_key, (
-            'bad saved clf at fpath={}'.format(fpath))
+        assert (
+            verif.metadata['task_key'] == task_key
+        ), 'bad saved clf at fpath={}'.format(fpath)
         return verif
 
     def deploy(self, task_key=None, publish=False):
@@ -459,8 +475,7 @@ class Deployer(object):
 
         if publish:
             user = ut.get_user_name()
-            remote_uri = '{user}@{remote}:{path}'.format(user=user,
-                                                         **self.publish_info)
+            remote_uri = '{user}@{remote}:{path}'.format(user=user, **self.publish_info)
 
             ut.rsync(meta_fpath, remote_uri + '/' + meta_fname)
             ut.rsync(deploy_fpath, remote_uri + '/' + deploy_fname)
@@ -474,6 +489,8 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.deploy --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

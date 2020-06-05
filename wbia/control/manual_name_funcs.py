@@ -6,11 +6,13 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modf
 
 """
 from __future__ import absolute_import, division, print_function
+
 # TODO: Fix this name it is too special case
 import uuid
 import functools
 import six  # NOQA
-#from six.moves import range
+
+# from six.moves import range
 from wbia import constants as const
 from wbia.other import ibsfuncs
 import numpy as np
@@ -19,29 +21,31 @@ from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 import os
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
-ANNOT_ROWID         = 'annot_rowid'
+ANNOT_ROWID = 'annot_rowid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
-NAME_ROWID          = 'name_rowid'
+NAME_ROWID = 'name_rowid'
 
-NAME_UUID       = 'name_uuid'
-NAME_TEXT       = 'name_text'
+NAME_UUID = 'name_uuid'
+NAME_TEXT = 'name_text'
 NAME_ALIAS_TEXT = 'name_alias_text'
-NAME_NOTE       = 'name_note'
-NAME_SEX         = 'name_sex'
-NAME_TEMP_FLAG  = 'name_temp_flag'
+NAME_NOTE = 'name_note'
+NAME_SEX = 'name_sex'
+NAME_TEMP_FLAG = 'name_temp_flag'
 
 
 def testdata_ibs(defaultdb='testdb1'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
@@ -55,7 +59,7 @@ def _get_all_known_name_rowids(ibs):
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    #all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)
+    # all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)
     all_known_nids = ibs.db.get_all_rowids(const.NAME_TABLE)
     return all_known_nids
 
@@ -68,7 +72,7 @@ def _get_all_name_rowids(ibs):
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    #all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)
+    # all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)
     all_known_nids = ibs.db.get_all_rowids(const.NAME_TABLE)
     return all_known_nids
 
@@ -100,25 +104,32 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     # Get random uuids
     if name_uuid_list is None:
         name_uuid_list = [uuid.uuid4() for _ in range(len(name_text_list))]
-    get_rowid_from_superkey = functools.partial(ibs.get_name_rowids_from_text, ensure=False)
+    get_rowid_from_superkey = functools.partial(
+        ibs.get_name_rowids_from_text, ensure=False
+    )
     superkey_paramx = (1,)
     colnames = [NAME_UUID, NAME_TEXT, NAME_NOTE]
     params_iter = list(zip(name_uuid_list, name_text_list, name_note_list))
-    name_rowid_list = ibs.db.add_cleanly(const.NAME_TABLE, colnames, params_iter,
-                                             get_rowid_from_superkey, superkey_paramx)
+    name_rowid_list = ibs.db.add_cleanly(
+        const.NAME_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     return name_rowid_list
     # OLD WAY
     # # nid_list_ = [namenid_dict[name] for name in name_list_]
-    #name_text_list_ = ibs.sanitize_name_texts(name_text_list)
+    # name_text_list_ = ibs.sanitize_name_texts(name_text_list)
     # # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
-    #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
-    #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
-    #nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
+    # lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
+    # lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
+    # nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
     ##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
-    #return nid_list
+    # return nid_list
 
 
-#def init_default_speciesvalue():
+# def init_default_speciesvalue():
 #    #const.KEY_DEFAULTS[const.SPECIES_KEY]
 #    note_list = ['default value']
 #    # Get random uuids
@@ -143,10 +154,10 @@ def sanitize_name_texts(ibs, name_text_list):
         URL:    /api/name/sanitize
     """
     ibsfuncs.assert_valid_names(name_text_list)
-    name_text_list_ = [None
-                       if name_text == const.UNKNOWN
-                       else name_text
-                       for name_text in name_text_list]
+    name_text_list_ = [
+        None if name_text == const.UNKNOWN else name_text
+        for name_text in name_text_list
+    ]
     return name_text_list_
 
 
@@ -187,17 +198,20 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         aids_list = ibs.get_name_aids(name_rowid_list)
         aid_list = ut.flatten(aids_list)
         if strict:
-            assert len(aid_list) == 0, (
-                'should not be any annots belonging to a deleted name')
+            assert (
+                len(aid_list) == 0
+            ), 'should not be any annots belonging to a deleted name'
         else:
             if verbose:
-                print('[ibs] deleting %d annots that belonged to those names' %
-                      len(aid_list))
+                print(
+                    '[ibs] deleting %d annots that belonged to those names'
+                    % len(aid_list)
+                )
             if len(aid_list) > 0:
                 ibs.delete_annot_nids(aid_list)
     ibs.db.delete_rowids(const.NAME_TABLE, name_rowid_list)
-    #return len(name_rowid_list)
-    #ibs.delete_lblannots(nid_list)
+    # return len(name_rowid_list)
+    # ibs.delete_lblannots(nid_list)
 
 
 @register_ibs_method
@@ -236,7 +250,7 @@ def get_empty_nids(ibs, _nid_list=None):
         _nid_list = ibs._get_all_known_name_rowids()
     if len(_nid_list) == 0:
         return []
-    args = (len(_nid_list), )
+    args = (len(_nid_list),)
     if recursive:
         print('\tCHECKING %d NIDS FOR EMPTY (RECURSIVE)' % args)
     else:
@@ -255,15 +269,21 @@ def get_empty_nids(ibs, _nid_list=None):
     alias_text_list = ibs.get_name_alias_texts(alias_nid_list)
     alias_nid_list = ibs.get_name_rowids_from_text(alias_text_list)
     # Find the empty aliases, recursively
-    print('%sFound %d empty NIDs' % (recstr, len(empty_nid_list), ))
-    print('%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list), ))
+    print('%sFound %d empty NIDs' % (recstr, len(empty_nid_list),))
+    print('%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list),))
     message = ' checking these recursively' if len(alias_nid_list) > 0 else ''
-    print('%sFound %d empty NIDs with an alias...%s' % (recstr, len(alias_nid_list), message, ))
+    print(
+        '%sFound %d empty NIDs with an alias...%s'
+        % (recstr, len(alias_nid_list), message,)
+    )
     empty_alias_nid_list = ibs.get_empty_nids(_nid_list=alias_nid_list)
     # Compile the full list of nids without any associated annotations
     empty_nid_list = empty_nid_list + no_alias_nid_list + empty_alias_nid_list
     if not recursive:
-        print('\tFound %d empty NIDs with an alias that is recursively empty' % (len(empty_alias_nid_list), ))
+        print(
+            '\tFound %d empty NIDs with an alias that is recursively empty'
+            % (len(empty_alias_nid_list),)
+        )
     empty_nid_list = list(set(empty_nid_list))
     # Sanity check
     nRois_list = ibs.get_name_num_annotations(empty_nid_list)
@@ -460,7 +480,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     # ADD A LOCAL CACHE TO FIX THIS SPEED
     # ALSO FIX GET_IMAGE_AIDS
     # really a getter for the annotation table not the name table
-    #return [[] for nid in nid_list]
+    # return [[] for nid in nid_list]
     # TODO: should a query of the UNKNOWN_NAME_ROWID return anything?
     # TODO: don't even run negative aids as queries
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
@@ -470,46 +490,55 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        #print(len(nid_list_))
+        # print(len(nid_list_))
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
-            ''').fetchall()
-        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                               nid_list_, id_colname=NAME_ROWID,
-                               unpack_scalars=False)
+            """
+        ).fetchall()
+        aids_list = ibs.db.get(
+            const.ANNOTATION_TABLE,
+            (ANNOT_ROWID,),
+            nid_list_,
+            id_colname=NAME_ROWID,
+            unpack_scalars=False,
+        )
         #%timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
         # The index maxes the following query very efficient
     elif USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
         input_str = ', '.join(list(map(str, input_list)))
-        opstr = '''
+        opstr = """
         SELECT annot_rowid, name_rowid
         FROM {ANNOTATION_TABLE}
         WHERE name_rowid IN
             ({input_str})
             ORDER BY name_rowid ASC, annot_rowid ASC
-        '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
+        """.format(
+            input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE
+        )
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))
         unique_nids, groupx = vt.group_indices(nidscol)
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
-        #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
+        # aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]
         aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
         USE_NUMPY_IMPL = True
-        #USE_NUMPY_IMPL = False
+        # USE_NUMPY_IMPL = False
         # Use qt if getting one at a time otherwise perform bulk operation
         USE_NUMPY_IMPL = len(nid_list_) > 1
-        #USE_NUMPY_IMPL = len(nid_list_) > 10
+        # USE_NUMPY_IMPL = len(nid_list_) > 10
         if USE_NUMPY_IMPL:
             # This seems to be 30x faster for bigger inputs
             valid_aids = np.array(ibs._get_all_aids())
-            valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
-            #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+            valid_nids = np.array(
+                ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID)
+            )
+            # np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
 
             # MEMORY HOG LIKE A SON OF A BITCH
             # aids_list = [
@@ -518,7 +547,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
             #     for nid in nid_list_
             # ]
 
-            temp = np.zeros((len(valid_nids), ), dtype=np.bool)
+            temp = np.zeros((len(valid_nids),), dtype=np.bool)
             aids_dict = {}
             nid_list_unique = np.unique(nid_list_)
             for nid in nid_list_unique:
@@ -531,18 +560,24 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
             aids_list = ut.dict_take(aids_dict, nid_list_)
         else:
             # SQL IMPL
-            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                                   nid_list_, id_colname=NAME_ROWID,
-                                   unpack_scalars=False)
+            aids_list = ibs.db.get(
+                const.ANNOTATION_TABLE,
+                (ANNOT_ROWID,),
+                nid_list_,
+                id_colname=NAME_ROWID,
+                unpack_scalars=False,
+            )
     if enable_unknown_fix:
-        #enable_unknown_fix == distinguish_unknowns
+        # enable_unknown_fix == distinguish_unknowns
         # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
-        #aids_list = [None if nid is None else ([-nid] if nid < 0 else aids)
+        # aids_list = [None if nid is None else ([-nid] if nid < 0 else aids)
         #             for nid, aids in zip(nid_list, aids_list)]
         # Not sure if this should fail or return empty list on None nid
-        aids_list = [[] if nid is None else ([-nid] if nid < 0 else aids)
-                     for nid, aids in zip(nid_list, aids_list)]
-        #aids_list = [[-nid] if nid < 0 else aids
+        aids_list = [
+            [] if nid is None else ([-nid] if nid < 0 else aids)
+            for nid, aids in zip(nid_list, aids_list)
+        ]
+        # aids_list = [[-nid] if nid < 0 else aids
         #             for nid, aids in zip(nid_list, aids_list)]
     aids_list = [
         ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
@@ -556,10 +591,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
 @register_api('/api/name/annot/uuid/', methods=['GET'])
 def get_name_annot_uuids(ibs, nid_list, **kwargs):
     aids_list = ibs.get_name_aids(nid_list, **kwargs)
-    annot_uuids_list = [
-        ibs.get_annot_uuids(aid_list)
-        for aid_list in aids_list
-    ]
+    annot_uuids_list = [ibs.get_annot_uuids(aid_list) for aid_list in aids_list]
     return annot_uuids_list
 
 
@@ -595,8 +627,9 @@ def get_name_exemplar_aids(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    exemplar_aids_list = [ut.compress(aids, flags) for aids, flags in
-                          zip(aids_list, flags_list)]
+    exemplar_aids_list = [
+        ut.compress(aids, flags) for aids, flags in zip(aids_list, flags_list)
+    ]
     return exemplar_aids_list
 
 
@@ -605,10 +638,7 @@ def get_name_exemplar_aids(ibs, nid_list):
 @register_api('/api/name/annot/uuid/exemplar/', methods=['GET'])
 def get_name_exemplar_name_uuids(ibs, nid_list, **kwargs):
     aids_list = ibs.get_name_exemplar_aids(nid_list, **kwargs)
-    annot_uuids_list = [
-        ibs.get_annot_uuids(aid_list)
-        for aid_list in aids_list
-    ]
+    annot_uuids_list = [ibs.get_annot_uuids(aid_list) for aid_list in aids_list]
     return annot_uuids_list
 
 
@@ -657,10 +687,7 @@ def get_name_image_uuids(ibs, nid_list):
     """
     # TODO: Optimize
     gids_list = ibs.get_name_gids(nid_list)
-    image_uuids_list = [
-        ibs.get_image_uuids(gid_list)
-        for gid_list in gids_list
-    ]
+    image_uuids_list = [ibs.get_image_uuids(gid_list) for gid_list in gids_list]
     return image_uuids_list
 
 
@@ -677,7 +704,7 @@ def get_name_uuids(ibs, nid_list):
         URL:    /api/name/uuid/
     """
     uuids_list = ibs.db.get(const.NAME_TABLE, (NAME_UUID,), nid_list)
-    #notes_list = ibs.get_lblannot_notes(nid_list)
+    # notes_list = ibs.get_lblannot_notes(nid_list)
     return uuids_list
 
 
@@ -694,7 +721,7 @@ def get_name_notes(ibs, name_rowid_list):
         URL:    /api/name/note/
     """
     notes_list = ibs.db.get(const.NAME_TABLE, (NAME_NOTE,), name_rowid_list)
-    #notes_list = ibs.get_lblannot_notes(nid_list)
+    # notes_list = ibs.get_lblannot_notes(nid_list)
     return notes_list
 
 
@@ -710,7 +737,9 @@ def get_name_metadata(ibs, name_rowid_list, return_raw=False):
         Method: GET
         URL:    /api/name/metadata/
     """
-    metadata_str_list = ibs.db.get(const.NAME_TABLE, ('name_metadata_json',), name_rowid_list)
+    metadata_str_list = ibs.db.get(
+        const.NAME_TABLE, ('name_metadata_json',), name_rowid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -803,13 +832,21 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
     id_iter = name_rowid_list
     colnames = (NAME_TEMP_FLAG,)
     name_temp_flag_list = ibs.db.get(
-        const.NAME_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.NAME_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return name_temp_flag_list
 
 
 @register_ibs_method
 @register_api('/api/name/temp/', methods=['PUT'])
-def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_behavior='error'):
+def set_name_temp_flag(
+    ibs, name_rowid_list, name_temp_flag_list, duplicate_behavior='error'
+):
     r"""
     name_temp_flag_list -> name.name_temp_flag[name_rowid_list]
 
@@ -828,8 +865,13 @@ def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_beha
     """
     id_iter = name_rowid_list
     colnames = (NAME_TEMP_FLAG,)
-    ibs.db.set(const.NAME_TABLE, colnames, name_temp_flag_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.NAME_TABLE,
+        colnames,
+        name_temp_flag_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
@@ -864,12 +906,16 @@ def get_name_alias_texts(ibs, name_rowid_list):
         >>> print(result)
         [None, None, None, None, None, None, None]
     """
-    name_alias_text_list = ibs.db.get(const.NAME_TABLE, (NAME_ALIAS_TEXT,), name_rowid_list)
+    name_alias_text_list = ibs.db.get(
+        const.NAME_TABLE, (NAME_ALIAS_TEXT,), name_rowid_list
+    )
     return name_alias_text_list
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=None)
+@accessor_decors.cache_invalidator(
+    const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=None
+)
 @accessor_decors.setter
 @register_api('/api/name/alias/text/', methods=['PUT'], __api_plural_check__=False)
 def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
@@ -884,7 +930,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
         Method: PUT
         URL:    /api/name/alias/text/
     """
-    #ibsfuncs.assert_valid_names(name_alias_text_list)
+    # ibsfuncs.assert_valid_names(name_alias_text_list)
     val_list = ((value,) for value in name_alias_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_ALIAS_TEXT,), val_list, name_rowid_list)
     # TODO: ibs.update_annot_semantic_uuids(aid_list)
@@ -920,8 +966,8 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     # TODO:
     # Change the temporary negative indexes back to the unknown NID for the
     # SQL query. Then augment the lblannot list to distinguish unknown lblannots
-    #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
-    #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
+    # name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
+    # name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
     if apply_fix:
         name_text_list = [
@@ -1037,10 +1083,13 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
         [None, 1, None, 0, None, None, 3]
     """
     name_text_list_ = ibs.sanitize_name_texts(name_text_list)
-    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
-                                 name_text_list_, id_colname=NAME_TEXT)
-    name_rowid_list = [const.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
-                           for rowid, text in zip(name_rowid_list, name_text_list_)]
+    name_rowid_list = ibs.db.get(
+        const.NAME_TABLE, (NAME_ROWID,), name_text_list_, id_colname=NAME_TEXT
+    )
+    name_rowid_list = [
+        const.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
+        for rowid, text in zip(name_rowid_list, name_text_list_)
+    ]
     return name_rowid_list
 
 
@@ -1056,8 +1105,9 @@ def get_name_rowids_from_uuid(ibs, uuid_list, nid_hack=False, ensure=True):
     Returns:
         name_rowid_list (list):
     """
-    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
-                                 uuid_list, id_colname=NAME_UUID)
+    name_rowid_list = ibs.db.get(
+        const.NAME_TABLE, (NAME_ROWID,), uuid_list, id_colname=NAME_UUID
+    )
     if nid_hack:
         name_rowid_list = [
             name_uuid if name_rowid is None else name_rowid
@@ -1075,10 +1125,7 @@ def get_name_nids_with_gids(ibs, nid_list=None):
     gids_list = ibs.get_name_gids(nid_list)
 
     zipped = zip(nid_list, name_list, gids_list)
-    combined_dict = {
-        name : (nid, gid_list)
-        for nid, name, gid_list in zipped
-    }
+    combined_dict = {name: (nid, gid_list) for nid, name, gid_list in zipped}
     return combined_dict
 
 
@@ -1100,7 +1147,7 @@ def get_valid_nids(ibs, imgsetid=None, filter_empty=False, min_pername=None):
     else:
         _nid_list = ibs.get_imageset_nids(imgsetid)
     # HACK FOR UNKNOWN. Makes things crash
-    #_nid_list += [0]
+    # _nid_list += [0]
     nid_list = _nid_list
 
     if filter_empty:
@@ -1124,8 +1171,8 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
         Method: PUT
         URL:    /api/name/note/
     """
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    #ibs.set_lblannot_notes(nid_list, notes_list)
+    # ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    # ibs.set_lblannot_notes(nid_list, notes_list)
     val_list = ((value,) for value in notes_list)
     ibs.db.set(const.NAME_TABLE, (NAME_NOTE,), val_list, name_rowid_list)
 
@@ -1154,9 +1201,15 @@ def set_name_metadata(ibs, name_rowid_list, metadata_dict_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/name/text/', methods=['PUT'])
-def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
-                   notify_wildbook=False, assert_wildbook=False,
-                   update_json_log=True):
+def set_name_texts(
+    ibs,
+    name_rowid_list,
+    name_text_list,
+    verbose=False,
+    notify_wildbook=False,
+    assert_wildbook=False,
+    update_json_log=True,
+):
     r"""
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -1179,6 +1232,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         >>> print(result)
     """
     import wbia
+
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
     if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
@@ -1189,23 +1243,27 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         if assert_wildbook and wb_signaled:
             assert status_list, 'The request to WB failed'
             failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
-            args = (len(failed_nid_list), failed_nid_list, )
+            args = (
+                len(failed_nid_list),
+                failed_nid_list,
+            )
             msg = 'Failed to update %d WB names, nid_list = %r' % args
             assert len(failed_nid_list) == 0, msg
     ibsfuncs.assert_valid_names(name_text_list)
     old_name_text_list = ibs.get_name_texts(name_rowid_list)
-    #sanitize_name_texts(ibs, name_text_list):
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    #ibs.set_lblannot_values(nid_list, name_list)
+    # sanitize_name_texts(ibs, name_text_list):
+    # ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    # ibs.set_lblannot_values(nid_list, name_list)
     val_list = ((value,) for value in name_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_TEXT,), val_list, name_rowid_list)
     # Database updated, log name changes
     if update_json_log:
         import time
+
         json_log_path = ibs.get_logdir_local()
         json_log_filename = 'names.updates.json'
         json_log_filepath = os.path.join(json_log_path, json_log_filename)
-        print('Logging name changes to: %r' % (json_log_filepath, ))
+        print('Logging name changes to: %r' % (json_log_filepath,))
         # Log has never been made, create one
         if not os.path.exists(json_log_filepath):
             json_dict = {
@@ -1223,14 +1281,16 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         # Zip all the updates together and write to updates list in dictionary
         zipped = zip(name_rowid_list, old_name_text_list, name_text_list)
         for name_rowid, old_name_text, new_name_text in zipped:
-            json_dict['updates'].append({
-                'time_unixtime': time.time(),
-                'db_name': db_name,
-                'db_init_uuid': db_init_uuid,
-                'name_rowid': name_rowid,
-                'name_old_text': old_name_text,
-                'name_new_text': new_name_text,
-            })
+            json_dict['updates'].append(
+                {
+                    'time_unixtime': time.time(),
+                    'db_name': db_name,
+                    'db_init_uuid': db_init_uuid,
+                    'name_rowid': name_rowid,
+                    'name_old_text': old_name_text,
+                    'name_new_text': new_name_text,
+                }
+            )
         # Write new log state
         json_str = ut.to_json(json_dict, pretty=True)
         with open(json_log_filepath, 'w') as json_log_file:
@@ -1272,7 +1332,13 @@ def get_name_sex(ibs, name_rowid_list, eager=True, nInput=None):
     id_iter = name_rowid_list
     colnames = (NAME_SEX,)
     name_sex_list = ibs.db.get(
-        const.NAME_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.NAME_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return name_sex_list
 
 
@@ -1298,8 +1364,13 @@ def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'
     """
     id_iter = name_rowid_list
     colnames = (NAME_SEX,)
-    ibs.db.set(const.NAME_TABLE, colnames, name_sex_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.NAME_TABLE,
+        colnames,
+        name_sex_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
@@ -1341,7 +1412,7 @@ def get_name_age_months_est_min(ibs, name_rowid_list):
         URL:    /api/name/age/months/min/
     """
     aids_list = ibs.get_name_aids(name_rowid_list)
-    age_list = [ ibs.get_annot_age_months_est_min(aid_list) for aid_list in aids_list ]
+    age_list = [ibs.get_annot_age_months_est_min(aid_list) for aid_list in aids_list]
     return age_list
 
 
@@ -1355,7 +1426,7 @@ def get_name_age_months_est_max(ibs, name_rowid_list):
         URL:    /api/name/age/months/max/
     """
     aids_list = ibs.get_name_aids(name_rowid_list)
-    age_list = [ ibs.get_annot_age_months_est_max(aid_list) for aid_list in aids_list ]
+    age_list = [ibs.get_annot_age_months_est_max(aid_list) for aid_list in aids_list]
     return age_list
 
 
@@ -1369,12 +1440,13 @@ def get_name_imgsetids(ibs, nid_list):
         URL:    /api/name/imageset/rowid/
     """
     import utool as ut
+
     name_aids_list = ibs.get_name_aids(nid_list)
-    name_aid_list  = ut.flatten(name_aids_list)
-    name_gid_list  = ibs.get_annot_gids(name_aid_list)
+    name_aid_list = ut.flatten(name_aids_list)
+    name_gid_list = ibs.get_annot_gids(name_aid_list)
     name_imgsetids_list = ibs.get_image_imgsetids(name_gid_list)
-    name_imgsetid_list  = ut.flatten(name_imgsetids_list)
-    name_imgsetids      = list(set(name_imgsetid_list))
+    name_imgsetid_list = ut.flatten(name_imgsetids_list)
+    name_imgsetids = list(set(name_imgsetid_list))
     return name_imgsetids
 
 
@@ -1388,13 +1460,12 @@ def get_name_imgset_uuids(ibs, nid_list):
     """
     name_imgsetids = ibs.get_name_imgsetids(nid_list)
     name_uuids_list = [
-        ibs.get_imageset_uuids(name_imgsetid)
-        for name_imgsetid in name_imgsetids
+        ibs.get_imageset_uuids(name_imgsetid) for name_imgsetid in name_imgsetids
     ]
     return name_uuids_list
 
 
-#def get_imageset_nids(ibs,
+# def get_imageset_nids(ibs,
 
 
 @register_ibs_method
@@ -1415,17 +1486,21 @@ def get_name_has_split(ibs, nid_list):
         >>> print(result)
     """
     aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
+    # ibs.check_name_mapping_consistency(aids_list_)
     def get_valid_aids_clique_annotmatch_rowids(aids):
         import itertools
+
         aid_pairs = list(itertools.combinations(aids, 2))
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
         am_ids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         am_ids = ut.filter_Nones(am_ids)
         return am_ids
+
     amids_list = [get_valid_aids_clique_annotmatch_rowids(aids) for aids in aids_list_]
-    flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'SplitCase'), amids_list)
+    flags_list = ibs.unflat_map(
+        ut.partial(ibs.get_annotmatch_prop, 'SplitCase'), amids_list
+    )
     has_splits = list(map(any, flags_list))
     return has_splits
 
@@ -1447,9 +1522,9 @@ def get_name_speeds(ibs, nid_list):
         >>> print(result)
     """
     aids_list = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
-    #aids_list = [(aids) for aids in aids_list_]
-    #speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    # ibs.check_name_mapping_consistency(aids_list_)
+    # aids_list = [(aids) for aids in aids_list_]
+    # speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
     speeds_list = ibs.get_unflat_annots_speeds_list2(aids_list)
     return speeds_list
 
@@ -1472,7 +1547,7 @@ def get_name_hourdiffs(ibs, nid_list):
         >>> print(hourdiffs_list)
     """
     aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
+    # ibs.check_name_mapping_consistency(aids_list_)
     # HACK FILTERING SHOULD NOT OCCUR HERE
     aids_list = [(aids) for aids in aids_list_]
     hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
@@ -1483,7 +1558,9 @@ def get_name_hourdiffs(ibs, nid_list):
 @accessor_decors.getter
 def get_name_max_hourdiff(ibs, nid_list):
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list_ = np.array([vt.safe_max(hourdiff, nans=False) for hourdiff in hourdiffs_list])
+    maxhourdiff_list_ = np.array(
+        [vt.safe_max(hourdiff, nans=False) for hourdiff in hourdiffs_list]
+    )
     maxhourdiff_list = np.array(maxhourdiff_list_)
     return maxhourdiff_list
 
@@ -1506,7 +1583,9 @@ def get_name_max_speed(ibs, nid_list):
         >>> print(maxspeed_list)
     """
     speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array([vt.safe_max(speeds, nans=False) for speeds in speeds_list])
+    maxspeed_list = np.array(
+        [vt.safe_max(speeds, nans=False) for speeds in speeds_list]
+    )
     return maxspeed_list
 
 
@@ -1540,16 +1619,21 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
         aids_list_ = ibs.get_name_aids(nid_list)
     else:
         aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
-    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
+    aids_list = [
+        ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_
+    ]
     gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
     gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
 
-    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
-                     for gpss in gpss_list]
-    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
-                      zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
-                       zip(aids_list, isvalids_list)]
+    isvalids_list = [
+        [gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss] for gpss in gpss_list
+    ]
+    gps_track_list = [
+        ut.compress(gpss, isvalids) for gpss, isvalids in zip(gpss_list, isvalids_list)
+    ]
+    aid_track_list = [
+        ut.compress(aids, isvalids) for aids, isvalids in zip(aids_list, isvalids_list)
+    ]
     return nid_list, gps_track_list, aid_track_list
 
 
@@ -1562,6 +1646,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_name_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

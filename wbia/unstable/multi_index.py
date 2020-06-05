@@ -22,6 +22,7 @@ USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reinde
 
 def testdata_mindexer():
     import wbia
+
     ibs = wbia.opendb(db='PZ_MTEST')
     daid_list = ibs.get_valid_aids()[1:60]
     cfgdict = dict(fg_on=False)
@@ -32,8 +33,7 @@ def testdata_mindexer():
 
 
 @profile
-def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
-                                     verbose=True):
+def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8, verbose=True):
     """
     returns groups with only one annotation per name in each group
     """
@@ -47,7 +47,8 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
         print('[mindex] num_bins = %d ' % (num_bins,))
     # Group annotations for indexing according to the split criteria
     aids_list, overflow_aids = ut.sample_zip(
-        aidgroup_list, num_bins, allow_overflow=True, per_bin=1)
+        aidgroup_list, num_bins, allow_overflow=True, per_bin=1
+    )
     if __debug__:
         # All groups have the same name
         nidgroup_list = ibs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
@@ -149,12 +150,15 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     if index_method == 'name':
         # each group are annotations of the same name
         num_indexers = 8
-        aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
+        aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(
+            ibs, daid_list, num_indexers, verbose
+        )
     elif index_method == 'multi':
         neighbor_index_cache.check_background_process()
         # Use greedy set cover to get a list of nnindxers that are already built
         tup = neighbor_index_cache.group_daids_by_cached_nnindexer(
-            qreq_, daid_list, min_reindex_thresh)
+            qreq_, daid_list, min_reindex_thresh
+        )
         uncovered_aids, covered_aids_list = tup
         # If the number of bins gets too big do a reindex
         # in the background
@@ -163,7 +167,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
             print('need to reindex something')
             if USE_FORGROUND_REINDEX:
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
-                #ut.embed()
+                # ut.embed()
             else:
                 neighbor_index_cache.request_background_nnindexer(qreq_, daid_list)
                 aids_list = covered_aids_list
@@ -177,37 +181,41 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
 
     # Build a neighbor indexer for each
     nn_indexer_list = []
-    #extra_indexes = []
+    # extra_indexes = []
     for tx, aids in enumerate(aids_list):
-        print('[mindex] building forest %d/%d with %d aids' %
-                (tx + 1, num_bins, len(aids)))
+        print(
+            '[mindex] building forest %d/%d with %d aids'
+            % (tx + 1, num_bins, len(aids))
+        )
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, aids)
+            nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(
+                qreq_, aids
+            )
             nn_indexer_list.append(nnindexer)
-    #if len(unknown_aids) > 0:
+    # if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
     #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, config2_=qreq_.get_internal_data_config2())
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
     ##print('[mindex] building normalizer forest')  # TODO
-    #mxer.nn_indexer_list = nn_indexer_list
-    #mxer.extra_indexes = extra_indexes
-    #mxer.overflow_index = overflow_index
-    #mxer.unknown_index = unknown_index
+    # mxer.nn_indexer_list = nn_indexer_list
+    # mxer.extra_indexes = extra_indexes
+    # mxer.overflow_index = overflow_index
+    # mxer.unknown_index = unknown_index
     mxer = MultiNeighborIndex(nn_indexer_list, min_reindex_thresh, max_subindexers)
     return mxer
 
 
-#@profile
+# @profile
 def sort_along_rows(qfx2_xxx, qfx2_sortx):
     """
     sorts each row in qfx2_xxx with the corresponding row in qfx2_sortx
     """
     if qfx2_xxx.size == 0:
         return qfx2_xxx
-    #return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
+    # return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
     return np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
 
 
@@ -234,7 +242,7 @@ class MultiNeighborIndex(object):
     def get_dtype(mxer):
         return mxer.nn_indexer_list[0].get_dtype()
 
-    #@profile
+    # @profile
     def multi_knn(mxer, qfx2_vec, K):
         """
         Does a query on each of the subindexer kdtrees
@@ -254,7 +262,7 @@ class MultiNeighborIndex(object):
             >>> ut.assert_eq(d2_list, [3] * 6)
             >>> ut.assert_eq(d1_list, [len(qfx2_vec)] * 6)
         """
-        qfx2_idx_list  = []
+        qfx2_idx_list = []
         qfx2_dist_list = []
         for nnindexer in mxer.nn_indexer_list:
             # Returns distances in ascending order for each query descriptor
@@ -303,13 +311,13 @@ class MultiNeighborIndex(object):
             qfx2_imx_list.append(_qfx2_idx + prev)
             prev = offset
         # Combine results from each tree
-        qfx2_imx_   = np.hstack(qfx2_imx_list)
-        qfx2_dist_  = np.hstack(qfx2_dist_list)
+        qfx2_imx_ = np.hstack(qfx2_imx_list)
+        qfx2_dist_ = np.hstack(qfx2_dist_list)
         # Sort over all tree result distances
         qfx2_sortx = qfx2_dist_.argsort(axis=1)
         # Apply sorting to concatenated results
-        qfx2_dist  = sort_along_rows(qfx2_dist_, qfx2_sortx)
-        qfx2_imx   = sort_along_rows(qfx2_imx_, qfx2_sortx)
+        qfx2_dist = sort_along_rows(qfx2_dist_, qfx2_sortx)
+        qfx2_imx = sort_along_rows(qfx2_imx_, qfx2_sortx)
         return (qfx2_imx, qfx2_dist)
 
     def get_offsets(mxer):
@@ -356,21 +364,24 @@ class MultiNeighborIndex(object):
             >>> print('error.max() = %r' % (error.max(),))
             >>> #np.all(ut.inbounds(nIndexed_list, low, high))
         """
-        nIndexed_list = [nnindexer.num_indexed_vecs()
-                         for nnindexer in mxer.nn_indexer_list]
+        nIndexed_list = [
+            nnindexer.num_indexed_vecs() for nnindexer in mxer.nn_indexer_list
+        ]
         return nIndexed_list
 
     def get_multi_indexed_aids(mxer):
-        index_aids_list = np.array([nnindexer.get_indexed_aids() for nnindexer in
-                                     mxer.nn_indexer_list])
+        index_aids_list = np.array(
+            [nnindexer.get_indexed_aids() for nnindexer in mxer.nn_indexer_list]
+        )
         return index_aids_list
 
     def get_indexed_aids(mxer):
         return ut.flatten(mxer.get_multi_indexed_aids())
 
     def get_multi_num_indexed_annots(mxer):
-        num_indexed_list = np.array([nnindexer.num_indexed_annots() for nnindexer in
-                                     mxer.nn_indexer_list])
+        num_indexed_list = np.array(
+            [nnindexer.num_indexed_annots() for nnindexer in mxer.nn_indexer_list]
+        )
         return num_indexed_list
 
     def assert_can_add_aids(mxer, new_aid_list):
@@ -389,7 +400,7 @@ class MultiNeighborIndex(object):
         if not np.all(uncovered_mask):
             msg_list = [
                 'new aids must be disjoint from current aids',
-                'new_aid_list = %r' % (new_aid_list,)
+                'new_aid_list = %r' % (new_aid_list,),
             ]
             msg = '\n'.join(msg_list)
             raise AssertionError(msg)
@@ -433,7 +444,9 @@ class MultiNeighborIndex(object):
         prev_aids = nnindexer_old.get_indexed_aids()
         new_aid_list_ = np.append(prev_aids, new_aid_list)
         # Reindexed combined aids
-        nnindexer_new = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, new_aid_list_)
+        nnindexer_new = neighbor_index_cache.request_memcached_wbia_nnindexer(
+            qreq_, new_aid_list_
+        )
         # Replace the old nnindexer with the new nnindexer
         mxer.nn_indexer_list[min_argx] = nnindexer_new
         mxer.min_reindex_thresh = qreq_.qparams.min_reindex_thresh
@@ -443,8 +456,10 @@ class MultiNeighborIndex(object):
             # FIXME: this does not belong in method code
             num_indexed_list_new = mxer.get_multi_num_indexed_annots()
             new_smalled_size = min(num_indexed_list_new)
-            need_reindex = (new_smalled_size > mxer.min_reindex_thresh or
-                            len(num_indexed_list_new) > mxer.max_subindexers)
+            need_reindex = (
+                new_smalled_size > mxer.min_reindex_thresh
+                or len(num_indexed_list_new) > mxer.max_subindexers
+            )
             if need_reindex:
                 if USE_FORGROUND_REINDEX:
                     raise NotImplementedError('no foreground reindex in stateful query')
@@ -462,8 +477,9 @@ class MultiNeighborIndex(object):
             >>> num_indexed = mxer.num_indexed_vecs()
             >>> ut.assert_inbounds(num_indexed, 60300, 60500)
         """
-        return np.sum([nnindexer.num_indexed_vecs()
-                       for nnindexer in mxer.nn_indexer_list])
+        return np.sum(
+            [nnindexer.num_indexed_vecs() for nnindexer in mxer.nn_indexer_list]
+        )
 
     def num_indexed_annots(mxer):
         """
@@ -475,8 +491,9 @@ class MultiNeighborIndex(object):
             >>> print(result)
             59
         """
-        return np.sum([nnindexer.num_indexed_annots()
-                       for nnindexer in mxer.nn_indexer_list])
+        return np.sum(
+            [nnindexer.num_indexed_annots() for nnindexer in mxer.nn_indexer_list]
+        )
 
     def iter_subindexers(mxer, qfx2_imx):
         """
@@ -516,7 +533,7 @@ class MultiNeighborIndex(object):
             yield nnindexer, idxs, mask
             prev = offset
 
-    #def get_nn_featxs(mxer, qfx2_imx):
+    # def get_nn_featxs(mxer, qfx2_imx):
     #    qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
     #    nn_indexer_list = mxer.nn_indexer_list
     #    offset_list = mxer.get_offsets()
@@ -560,7 +577,7 @@ class MultiNeighborIndex(object):
             >>> ut.assert_inbounds(num_correct, 900, 1100,
             ...                    'not enough matches to groundtruth')
         """
-        #qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        # qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
         qfx2_aid = np.empty(qfx2_imx.shape, dtype=np.int32)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_aid[mask] = nnindexer.get_nn_aids(idxs)
@@ -589,7 +606,7 @@ class MultiNeighborIndex(object):
             >>> result = np.array_str(qfx2_fgw)
             >>> print(result)
         """
-        #qfx2_fx = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        # qfx2_fx = -np.ones(qfx2_imx.shape, dtype=np.int32)
         qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fx[mask] = nnindexer.get_nn_featxs(idxs)
@@ -618,7 +635,7 @@ class MultiNeighborIndex(object):
             >>> result = np.array_str(qfx2_fgw)
             >>> print(result)
         """
-        #qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
+        # qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
         qfx2_fgw = np.empty(qfx2_imx.shape, dtype=hstypes.FS_DTYPE)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fgw[mask] = nnindexer.get_nn_fgws(idxs)
@@ -634,10 +651,10 @@ class MultiNeighborIndex(object):
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
         """
-        qfx2_idx_list   = []
+        qfx2_idx_list = []
         qfx2_dist_list = []
-        qfx2_ax_list  = []
-        qfx2_fx_list   = []
+        qfx2_ax_list = []
+        qfx2_fx_list = []
         qfx2_rankx_list = []  # ranks index
         qfx2_treex_list = []  # tree index
         for tx, nnindexer in enumerate(mxer.nn_indexer_list):
@@ -649,28 +666,42 @@ class MultiNeighborIndex(object):
             qfx2_dist_list.append(qfx2_dist)
             qfx2_fx_list.append(qfx2_fx)
             qfx2_ax_list.append(qfx2_ax)
-            qfx2_rankx_list.append(np.array([[rankx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx)))
-            qfx2_treex_list.append(np.array([[tx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx)))
+            qfx2_rankx_list.append(
+                np.array(
+                    [[rankx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx)
+                )
+            )
+            qfx2_treex_list.append(
+                np.array([[tx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx))
+            )
         # Combine results from each tree
-        qfx2_idx   = np.hstack(qfx2_idx_list)
-        qfx2_dist  = np.hstack(qfx2_dist_list)
+        qfx2_idx = np.hstack(qfx2_idx_list)
+        qfx2_dist = np.hstack(qfx2_dist_list)
         qfx2_rankx = np.hstack(qfx2_rankx_list)
         qfx2_treex = np.hstack(qfx2_treex_list)
-        qfx2_ax    = np.hstack(qfx2_ax_list)
-        qfx2_fx    = np.hstack(qfx2_fx_list)
+        qfx2_ax = np.hstack(qfx2_ax_list)
+        qfx2_fx = np.hstack(qfx2_fx_list)
 
         # Sort over all tree result distances
         qfx2_sortx = qfx2_dist.argsort(axis=1)
         # Apply sorting to concatenated results
         def foreach_row_sort_cols(qfx2_xxx):
-            return  np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
-        qfx2_dist_  = foreach_row_sort_cols(qfx2_dist)
-        qfx2_idx_   = foreach_row_sort_cols(qfx2_idx)
-        qfx2_ax_    = foreach_row_sort_cols(qfx2_ax)
-        qfx2_fx_    = foreach_row_sort_cols(qfx2_fx)
+            return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
+
+        qfx2_dist_ = foreach_row_sort_cols(qfx2_dist)
+        qfx2_idx_ = foreach_row_sort_cols(qfx2_idx)
+        qfx2_ax_ = foreach_row_sort_cols(qfx2_ax)
+        qfx2_fx_ = foreach_row_sort_cols(qfx2_fx)
         qfx2_rankx_ = foreach_row_sort_cols(qfx2_rankx)
         qfx2_treex_ = foreach_row_sort_cols(qfx2_treex)
-        return (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,)
+        return (
+            qfx2_dist_,
+            qfx2_idx_,
+            qfx2_fx_,
+            qfx2_ax_,
+            qfx2_rankx_,
+            qfx2_treex_,
+        )
 
 
 if __name__ == '__main__':
@@ -683,5 +714,6 @@ if __name__ == '__main__':
         utprof.sh wbia/algo/hots/multi_index.py --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

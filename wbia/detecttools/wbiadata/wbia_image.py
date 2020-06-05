@@ -11,7 +11,6 @@ from .wbia_object import IBEIS_Object
 
 
 class IBEIS_Image(object):  # NOQA
-
     def __init__(ibsi, filename_xml, absolute_dataset_path, **kwargs):
         with open(filename_xml, 'r') as _xml:
             _xml = xml.XML(_xml.read().replace('\n', ''))
@@ -33,14 +32,17 @@ class IBEIS_Image(object):  # NOQA
             except TypeError:
                 ibsi.depth = 3
 
-            ibsi.segmented = com.get(size, 'segmented') == "1"
+            ibsi.segmented = com.get(size, 'segmented') == '1'
 
             ibsi.objects = []
             ibsi.objects_patches = []
             ibsi.objects_invalid = []
             for obj in com.get(_xml, 'object', text=False, singularize=False):
                 temp = IBEIS_Object(obj, ibsi.width, ibsi.height)
-                if temp.width > kwargs['object_min_width'] and temp.height > kwargs['object_min_height']:
+                if (
+                    temp.width > kwargs['object_min_width']
+                    and temp.height > kwargs['object_min_height']
+                ):
                     ibsi.objects.append(temp)
                 else:
                     ibsi.objects_invalid.append(temp)
@@ -56,8 +58,14 @@ class IBEIS_Image(object):  # NOQA
                     if negatives >= kwargs['mine_max_keep']:
                         break
 
-                    width = com.randInt(kwargs['mine_width_min'], min(ibsi.width - 1, kwargs['mine_width_max']))
-                    height = com.randInt(kwargs['mine_height_min'], min(ibsi.height - 1, kwargs['mine_height_max']))
+                    width = com.randInt(
+                        kwargs['mine_width_min'],
+                        min(ibsi.width - 1, kwargs['mine_width_max']),
+                    )
+                    height = com.randInt(
+                        kwargs['mine_height_min'],
+                        min(ibsi.height - 1, kwargs['mine_height_max']),
+                    )
                     x = com.randInt(0, ibsi.width - width - 1)
                     y = com.randInt(0, ibsi.height - height - 1)
 
@@ -68,17 +76,21 @@ class IBEIS_Image(object):  # NOQA
                         'ymin': y,
                     }
 
-                    overlap_names = ibsi._overlaps(ibsi.objects, obj, kwargs["mine_overlap_margin"])
+                    overlap_names = ibsi._overlaps(
+                        ibsi.objects, obj, kwargs['mine_overlap_margin']
+                    )
                     if len(overlap_names) > 0:
                         continue
 
-                    ibsi.objects.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name='MINED'))
+                    ibsi.objects.append(
+                        IBEIS_Object(obj, ibsi.width, ibsi.height, name='MINED')
+                    )
                     negatives += 1
 
             if kwargs['mine_patches']:
                 patch_width = kwargs['mine_patch_width']
                 patch_height = kwargs['mine_patch_height']
-                x_length = float(ibsi.width  - patch_width  - 1)
+                x_length = float(ibsi.width - patch_width - 1)
                 y_length = float(ibsi.height - patch_height - 1)
                 x_bins = int(x_length / kwargs['mine_patch_stride_suggested'])
                 y_bins = int(y_length / kwargs['mine_patch_stride_suggested'])
@@ -94,7 +106,12 @@ class IBEIS_Image(object):  # NOQA
                         y_min = int(y * patch_stride_y)
                         x_max = x_min + patch_width
                         y_max = y_min + patch_height
-                        assert 0 <= x_min and x_max < ibsi.width and 0 <= y_min and y_max < ibsi.height
+                        assert (
+                            0 <= x_min
+                            and x_max < ibsi.width
+                            and 0 <= y_min
+                            and y_max < ibsi.height
+                        )
                         # Add patch
                         obj = {
                             'xmax': x_max,
@@ -102,20 +119,32 @@ class IBEIS_Image(object):  # NOQA
                             'ymax': y_max,
                             'ymin': y_min,
                         }
-                        overlap_names = ibsi._overlaps(ibsi.objects, obj, kwargs["mine_patch_overlap_margin"])
+                        overlap_names = ibsi._overlaps(
+                            ibsi.objects, obj, kwargs['mine_patch_overlap_margin']
+                        )
                         if len(overlap_names) > 0:
                             for overlap_name in overlap_names:
                                 name = '%s' % overlap_name.upper()
-                                ibsi.objects_patches.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name=name))
+                                ibsi.objects_patches.append(
+                                    IBEIS_Object(
+                                        obj, ibsi.width, ibsi.height, name=name
+                                    )
+                                )
                         else:
-                            ibsi.objects_patches.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name='NEGATIVE'))
+                            ibsi.objects_patches.append(
+                                IBEIS_Object(
+                                    obj, ibsi.width, ibsi.height, name='NEGATIVE'
+                                )
+                            )
 
     def __str__(ibsi):
-        return "<IBEIS Image Object | %s | %d objects>" \
-            % (ibsi.filename, len(ibsi.objects))
+        return '<IBEIS Image Object | %s | %d objects>' % (
+            ibsi.filename,
+            len(ibsi.objects),
+        )
 
     def __repr__(ibsi):
-        return "<IBEIS Image Object | %s>" % (ibsi.filename)
+        return '<IBEIS Image Object | %s>' % (ibsi.filename)
 
     def __len__(ibsi):
         return len(ibsi.objects)
@@ -130,30 +159,36 @@ class IBEIS_Image(object):  # NOQA
     def _distance(pt1, pt2):
         (x1, y1) = pt1
         (x2, y2) = pt2
-        return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
+        return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
-    def _overlaps(ibsi, objects, obj, margin=0.50, bins=['left', 'front', 'right', 'back']):
+    def _overlaps(
+        ibsi, objects, obj, margin=0.50, bins=['left', 'front', 'right', 'back']
+    ):
         names = []
         for _obj in objects:
-            x_overlap = max(0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin))
-            y_overlap = max(0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin))
+            x_overlap = max(
+                0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin)
+            )
+            y_overlap = max(
+                0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin)
+            )
             area_overlap = float(x_overlap * y_overlap)
             width = obj['xmax'] - obj['xmin']
-            height =  obj['ymax'] - obj['ymin']
+            height = obj['ymax'] - obj['ymin']
             area_total = min(width * height, _obj.area)
             score = area_overlap / area_total
             # print(score)
             if score >= margin:
-                names.append(_obj.name + ":" + _obj.pose_str)
+                names.append(_obj.name + ':' + _obj.pose_str)
         return list(set(names))
 
     def image_path(ibsi):
-        return os.path.join(ibsi.absolute_dataset_path, "JPEGImages", ibsi.filename)
+        return os.path.join(ibsi.absolute_dataset_path, 'JPEGImages', ibsi.filename)
 
     def categories(ibsi, unique=True, sorted_=True, patches=False):
-        temp = [ _object.name for _object in ibsi.objects ]
+        temp = [_object.name for _object in ibsi.objects]
         if patches:
-            temp += [ _object.name for _object in ibsi.objects_patches ]
+            temp += [_object.name for _object in ibsi.objects_patches]
         if unique:
             temp = list(set(temp))
         if sorted_:
@@ -161,7 +196,7 @@ class IBEIS_Image(object):  # NOQA
         return temp
 
     def bounding_boxes(ibsi, **kwargs):
-        return [ _object.bounding_box(**kwargs) for _object in ibsi.objects ]
+        return [_object.bounding_box(**kwargs) for _object in ibsi.objects]
 
     def _accuracy_match(ibsi, prediction, object_list):
 
@@ -187,8 +222,12 @@ class IBEIS_Image(object):  # NOQA
                     assert index_best is not None  # Just to be sure
                     _object_best = object_list[index_best]
 
-                    a = ibsi._distance((centerx, centery), (_object_best.xcenter, _object_best.ycenter))
-                    b = ibsi._distance((centerx, centery), (_object.xcenter, _object.ycenter))
+                    a = ibsi._distance(
+                        (centerx, centery), (_object_best.xcenter, _object_best.ycenter)
+                    )
+                    b = ibsi._distance(
+                        (centerx, centery), (_object.xcenter, _object.ycenter)
+                    )
                     if a < b:
                         # Not a better candidate based on distance
                         continue
@@ -212,7 +251,7 @@ class IBEIS_Image(object):  # NOQA
         if len(object_list) == 0 and len(prediction_list) == 0:
             return 1.0, 0.0, 0.0, 0.0
 
-        true_positive  = 0
+        true_positive = 0
         false_positive = 0
 
         counters = [0] * len(object_list)
@@ -232,40 +271,95 @@ class IBEIS_Image(object):  # NOQA
         assert recall != 0
         return precision / recall, true_positive, false_positive, false_negative
 
-    def show(ibsi, objects=True, parts=True, display=True, prediction_list=None, category=None, alpha=0.5, label=True):
-
-        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, position='top'):
+    def show(
+        ibsi,
+        objects=True,
+        parts=True,
+        display=True,
+        prediction_list=None,
+        category=None,
+        alpha=0.5,
+        label=True,
+    ):
+        def _draw_box(
+            img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, position='top'
+        ):
             font = cv2.FONT_HERSHEY_SIMPLEX
             scale = 0.5
             width, height = cv2.getTextSize(annotation, font, scale, -1)[0]
             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, stroke)
             if label:
                 if position in ['top']:
-                    cv2.rectangle(img, (xmin, ymin), (xmin + width, ymin + height), color, -1)
-                    cv2.putText(img, annotation, (xmin + 5, ymin + height), font, 0.4, (255, 255, 255))
+                    cv2.rectangle(
+                        img, (xmin, ymin), (xmin + width, ymin + height), color, -1
+                    )
+                    cv2.putText(
+                        img,
+                        annotation,
+                        (xmin + 5, ymin + height),
+                        font,
+                        0.4,
+                        (255, 255, 255),
+                    )
                 elif position in ['bottom']:
-                    cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
-                    cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
+                    cv2.rectangle(
+                        img, (xmin, ymax - height), (xmin + width, ymax), color, -1
+                    )
+                    cv2.putText(
+                        img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255)
+                    )
 
         original = com.openImage(ibsi.image_path(), color=True)
         color_dict = {}
         for _object in ibsi.objects:
             color = com.randColor()
             color_dict[_object] = color
-            _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
+            _draw_box(
+                original,
+                _object.name.upper(),
+                _object.xmin,
+                _object.ymin,
+                _object.xmax,
+                _object.ymax,
+                color,
+            )
 
             if parts:
                 for part in _object.parts:
-                    _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+                    _draw_box(
+                        original,
+                        part.name.upper(),
+                        part.xmin,
+                        part.ymin,
+                        part.xmax,
+                        part.ymax,
+                        color,
+                    )
 
         for _object in ibsi.objects_invalid:
             color = [0, 0, 0]
             color_dict[_object] = color
-            _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
+            _draw_box(
+                original,
+                _object.name.upper(),
+                _object.xmin,
+                _object.ymin,
+                _object.xmax,
+                _object.ymax,
+                color,
+            )
 
             if parts:
                 for part in _object.parts:
-                    _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+                    _draw_box(
+                        original,
+                        part.name.upper(),
+                        part.xmin,
+                        part.ymin,
+                        part.xmax,
+                        part.ymax,
+                        color,
+                    )
 
         for _object in ibsi.objects_patches:
             if _object.name.upper() == 'NEGATIVE':
@@ -274,11 +368,27 @@ class IBEIS_Image(object):  # NOQA
             else:
                 color = [0, 0, 255]
             color_dict[_object] = color
-            _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
+            _draw_box(
+                original,
+                _object.name.upper(),
+                _object.xmin,
+                _object.ymin,
+                _object.xmax,
+                _object.ymax,
+                color,
+            )
 
             if parts:
                 for part in _object.parts:
-                    _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+                    _draw_box(
+                        original,
+                        part.name.upper(),
+                        part.xmin,
+                        part.ymin,
+                        part.xmax,
+                        part.ymax,
+                        color,
+                    )
 
         if prediction_list is not None:
             assert category is not None
@@ -288,28 +398,73 @@ class IBEIS_Image(object):  # NOQA
                     object_list.append(_object)
 
             for prediction in prediction_list:
-                centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
+                (
+                    centerx,
+                    centery,
+                    minx,
+                    miny,
+                    maxx,
+                    maxy,
+                    confidence,
+                    supressed,
+                ) = prediction
                 if supressed == 0.0:
                     if len(object_list) > 0:
-                        index_best, score_best = ibsi._accuracy_match(prediction, object_list)
+                        index_best, score_best = ibsi._accuracy_match(
+                            prediction, object_list
+                        )
                         _object_best = object_list[index_best]
                         color = color_dict[_object_best]
                         if score_best >= alpha:
                             annotation = 'DETECT [TRUE POS %.2f]' % score_best
                         else:
                             annotation = 'DETECT [FALSE POS %.2f]' % score_best
-                        cv2.line(original, (int(minx), int(miny)), (_object_best.xmin, _object_best.ymin), color, 1)
-                        cv2.line(original, (int(minx), int(maxy)), (_object_best.xmin, _object_best.ymax), color, 1)
-                        cv2.line(original, (int(maxx), int(miny)), (_object_best.xmax, _object_best.ymin), color, 1)
-                        cv2.line(original, (int(maxx), int(maxy)), (_object_best.xmax, _object_best.ymax), color, 1)
+                        cv2.line(
+                            original,
+                            (int(minx), int(miny)),
+                            (_object_best.xmin, _object_best.ymin),
+                            color,
+                            1,
+                        )
+                        cv2.line(
+                            original,
+                            (int(minx), int(maxy)),
+                            (_object_best.xmin, _object_best.ymax),
+                            color,
+                            1,
+                        )
+                        cv2.line(
+                            original,
+                            (int(maxx), int(miny)),
+                            (_object_best.xmax, _object_best.ymin),
+                            color,
+                            1,
+                        )
+                        cv2.line(
+                            original,
+                            (int(maxx), int(maxy)),
+                            (_object_best.xmax, _object_best.ymax),
+                            color,
+                            1,
+                        )
 
                     else:
                         annotation = 'DETECT [FALSE POS]'
                         color = [0, 0, 255]
-                    _draw_box(original, annotation, int(minx), int(miny), int(maxx), int(maxy), color, stroke=1, position=False)
+                    _draw_box(
+                        original,
+                        annotation,
+                        int(minx),
+                        int(miny),
+                        int(maxx),
+                        int(maxy),
+                        color,
+                        stroke=1,
+                        position=False,
+                    )
 
         if display:
-            cv2.imshow(ibsi.filename + " with Bounding Boxes", original)
+            cv2.imshow(ibsi.filename + ' with Bounding Boxes', original)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         else:

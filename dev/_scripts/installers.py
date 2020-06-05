@@ -49,7 +49,8 @@ Win32CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 from os.path import dirname, realpath, join, exists, normpath
-#import six
+
+# import six
 import utool as ut
 import sys
 import importlib
@@ -85,9 +86,12 @@ def fix_pyinstaller_sip_api():
     """
     import PyInstaller
     from os.path import dirname, join  # NOQA
-    hook_fpath = join(dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py')
+
+    hook_fpath = join(
+        dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py'
+    )
     patch_code = ut.codeblock(
-        '''
+        """
         try:
             import sip
             # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
@@ -103,18 +107,19 @@ def fix_pyinstaller_sip_api():
         except ValueError as ex:
             print('Warning: Value Error: %s' % str(ex))
         pass
-        ''')
+        """
+    )
     fpath = hook_fpath
     # Patch the hook file
     tag = 'SIP_API_2'
     ut.inject_python_code(fpath, patch_code, tag)
-    #ut.editfile(hook_fpath)
+    # ut.editfile(hook_fpath)
     pass
 
 
 def get_setup_dpath():
     assert exists('setup.py'), 'must be run in wbia directory'
-    #assert exists('main.py'), 'must be run in wbia directory'
+    # assert exists('main.py'), 'must be run in wbia directory'
     assert exists('../wbia/wbia'), 'must be run in wbia directory'
     cwd = normpath(realpath(dirname(__file__)))
     return cwd
@@ -129,8 +134,8 @@ def clean_pyinstaller():
     ut.delete(join(cwd, 'dist/wbia'))
     ut.delete(join(cwd, 'wbia-win32-setup.exe'))
     ut.delete(join(cwd, 'build'))
-    #ut.delete(join(cwd, 'pyrf'))
-    #ut.delete(join(cwd, 'pyhesaff'))
+    # ut.delete(join(cwd, 'pyrf'))
+    # ut.delete(join(cwd, 'pyhesaff'))
     print('[installer] L___ FINSHED CLEAN_PYINSTALLER ___')
 
 
@@ -142,23 +147,27 @@ def build_pyinstaller():
     # 1) RUN: PYINSTALLER
     # Run the pyinstaller command (does all the work)
     utool_python_path = dirname(dirname(ut.__file__))
-    #import os
-    #os.environ['PYTHONPATH'] = os.pathsep.join([utool_python_path] + os.environ['PYTHONPATH'].strip(os.pathsep).split(os.pathsep))
+    # import os
+    # os.environ['PYTHONPATH'] = os.pathsep.join([utool_python_path] + os.environ['PYTHONPATH'].strip(os.pathsep).split(os.pathsep))
     import os
+
     sys.path.insert(1, utool_python_path)
     if not ut.WIN32:
-        pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (utool_python_path, os.pathsep)
+        pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (
+            utool_python_path,
+            os.pathsep,
+        )
     else:
         pathcmd = ''
     installcmd = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pyinstaller --runtime-hook _installers/rthook_pyqt4.py _installers/pyinstaller-wbia.spec -y'
     output, err, ret = ut.cmd(pathcmd + installcmd)
     if ret != 0:
         raise AssertionError('Pyinstalled failed with return code = %r' % (ret,))
-    #ut.cmd(installcmd)
-    #ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-wbia.spec -y')
-    #else:
-    #ut.cmd('pyinstaller', '_installers/pyinstaller-wbia.spec', '-y')
-    #ut.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-wbia.spec')
+    # ut.cmd(installcmd)
+    # ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-wbia.spec -y')
+    # else:
+    # ut.cmd('pyinstaller', '_installers/pyinstaller-wbia.spec', '-y')
+    # ut.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-wbia.spec')
     # 2) POST: PROCESSING
     # Perform some post processing steps on the mac
 
@@ -174,7 +183,7 @@ def build_pyinstaller():
             dst = join(dstdir, dstname)
             ut.copy(src, dst)
         # TODO: make this take arguments instead of defaulting to ~/code/wbia/build
-        #print("RUN: sudo ./_installers/mac_dmg_builder.sh")
+        # print("RUN: sudo ./_installers/mac_dmg_builder.sh")
     app_fpath = get_dist_app_fpath()
     print('[installer] app_fpath = %s' % (app_fpath,))
 
@@ -206,7 +215,9 @@ def ensure_inno_isinstalled():
             raise AssertionError('Cannot find INNO and AUTOFIX it is false')
         # Ensure that it has now been installed
         inno_fpath = ut.search_in_dirs('Inno Setup 5\ISCC.exe', ut.get_install_dirs())
-        assert ut.checkpath(inno_fpath, verbose=True, info=True), 'inno installer is still not installed!'
+        assert ut.checkpath(
+            inno_fpath, verbose=True, info=True
+        ), 'inno installer is still not installed!'
     return inno_fpath
 
 
@@ -215,11 +226,12 @@ def ensure_inno_script():
     cwd = get_setup_dpath()
     iss_script_fpath = join(cwd, '_installers', 'win_installer_script.iss')
     # THE ISS USES {} AS SYNTAX. CAREFUL
-    #app_publisher = 'Rensselaer Polytechnic Institute'
-    #app_name = 'IBEIS'
+    # app_publisher = 'Rensselaer Polytechnic Institute'
+    # app_name = 'IBEIS'
     import wbia
+
     iss_script_code = ut.codeblock(
-        r'''
+        r"""
         ; Script generated by the Inno Setup Script Wizard.
         ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
         ; http://www.jrsoftware.org/isdl.php
@@ -231,7 +243,9 @@ def ensure_inno_script():
         ; Also it seems like the off-balanced curly brace is necessary
         AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}
         AppName=IBEIS
-        AppVersion=''' + str(wbia.__version__) + '''
+        AppVersion="""
+        + str(wbia.__version__)
+        + """
         ;AppVerName=IBEIS 1
         AppPublisher=Rensselaer Polytechnic Institute
         AppPublisherURL=wbia.org ;www.rpi.edu/~crallj/
@@ -261,10 +275,12 @@ def ensure_inno_script():
 
         [Run]
         Filename: "{app}\IBEISApp.exe"; Description: "{cm:LaunchProgram,IBEIS}"; Flags: nowait postinstall skipifsilent
-        '''
+        """
     )
     ut.write_to(iss_script_fpath, iss_script_code, onlyifdiff=True)
-    assert ut.checkpath(iss_script_fpath, verbose=True, info=True), 'cannot find iss_script_fpath'
+    assert ut.checkpath(
+        iss_script_fpath, verbose=True, info=True
+    ), 'cannot find iss_script_fpath'
     return iss_script_fpath
 
 
@@ -276,7 +292,10 @@ def build_win32_inno_installer():
     inno_fpath = ensure_inno_isinstalled()
     # Get IBEIS inno script
     iss_script_fpath = ensure_inno_script()
-    print('Trying to run ' + ' '.join(['"' + inno_fpath + '"', '"' + iss_script_fpath + '"']))
+    print(
+        'Trying to run '
+        + ' '.join(['"' + inno_fpath + '"', '"' + iss_script_fpath + '"'])
+    )
     try:
         command_args = ' '.join((inno_fpath, iss_script_fpath))
         ut.cmd(command_args)
@@ -285,7 +304,7 @@ def build_win32_inno_installer():
         raise
     # Move the installer into dist and make a timestamped version
     # Uninstall exe in case we need to cleanup
-    #uninstall_wbia_exe = 'unins000.exe'
+    # uninstall_wbia_exe = 'unins000.exe'
     cwd = get_setup_dpath()
     installer_fpath = join(cwd, '_installers', 'Output', 'wbia-win32-setup.exe')
     print('[installer] L___ BUILD_WIN32_INNO_INSTALLER ___')
@@ -312,7 +331,7 @@ def package_installer():
     system dependent post pyinstaller step
     """
     print('[installer] +--- PACKAGE_INSTALLER ---')
-    #build_win32_inno_installer()
+    # build_win32_inno_installer()
     cwd = get_setup_dpath()
     # Build the os-appropriate package
     if sys.platform.startswith('win32'):
@@ -324,11 +343,11 @@ def package_installer():
     elif sys.platform.startswith('linux'):
         installer_src = build_linux_zip_binaries()
         installer_fname_fmt = 'wbia-linux-binary-{timestamp}.zip'
-        #try:
+        # try:
         #    raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
-        #except Exception as ex:
+        # except Exception as ex:
         #    ut.printex(ex)
-        #pass
+        # pass
     # timestamp the installer name
     installer_fname = installer_fname_fmt.format(timestamp=ut.get_timestamp())
     installer_dst = join(cwd, 'dist', installer_fname)
@@ -373,8 +392,8 @@ def run_suite_test():
     app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
     ut.cmd(app_fpath + ' --run-utool-tests')
-    #ut.cmd(app_fpath + ' --run-vtool_ibeis-tests')
-    #ut.cmd(app_fpath + ' --run-wbia-tests')
+    # ut.cmd(app_fpath + ' --run-vtool_ibeis-tests')
+    # ut.cmd(app_fpath + ' --run-wbia-tests')
 
 
 def run_app_test():
@@ -385,7 +404,7 @@ def run_app_test():
     app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
     if ut.DARWIN:
-        #ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))
+        # ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))
         """
         rm -rf ~/Desktop/IBEIS.app
         rm -rf /Applications/IBEIS.app
@@ -418,7 +437,7 @@ def run_app_test():
         ut.cmd(app_fpath)
 
     print('[installer] L___ FINISH TEST_APP ___')
-    #ut.cmd(ut.unixpath('dist/wbia/wbia-win32-setup.exe'))
+    # ut.cmd(ut.unixpath('dist/wbia/wbia-win32-setup.exe'))
 
 
 def main():
@@ -438,18 +457,19 @@ def main():
     print('For a full run use: python installers.py --all')
     print('[installer] +--- MAIN ---')
     import functools
+
     get_argflag = functools.partial(ut.get_argflag, need_prefix=False)
-    BUILD_APP       = get_argflag(('--build'))
+    BUILD_APP = get_argflag(('--build'))
     BUILD_INSTALLER = get_argflag(('--inno', '--package', '--pkg'))
-    TEST_RUN        = get_argflag(('--run'))
-    TEST_CODE        = get_argflag(('--test'))
-    CLEAN_BUILD     = get_argflag(('--clean'))
-    ALL             = get_argflag('--all')
+    TEST_RUN = get_argflag(('--run'))
+    TEST_CODE = get_argflag(('--test'))
+    CLEAN_BUILD = get_argflag(('--clean'))
+    ALL = get_argflag('--all')
 
     fix_importlib_hook()
     # default behavior is full build
     DEFAULT_RUN = len(sys.argv) == 1
-    #or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
+    # or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
 
     # 1) SETUP: CLEAN UP
     if CLEAN_BUILD or ALL:
@@ -468,7 +488,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-'''
+"""
 dist\wbia-win32-setup.exe
 dist\wbia\IBEISApp.exe
-'''
+"""

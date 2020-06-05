@@ -14,6 +14,7 @@ from uuid import UUID
 import utool as ut
 import copy
 import numpy as np
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -66,19 +67,23 @@ def fix_pz_master():
     qaids_ = map(int, filter(len, qaids_str.replace('\n', ' ').split(' ')))
 
     import wbia
+
     wbia._preload()
     from wbia.gui import inspect_gui
     import wbia.guitool
+
     ibs = wbia.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
 
-    #qaids = qaids[64:128]
+    # qaids = qaids[64:128]
     qreq_ = ibs.new_query_request(qaids, daids)
-    #qreq_.lazy_load()
+    # qreq_.lazy_load()
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=True)
 
-    qres_wgt = inspect_gui.launch_review_matches_interface(ibs, qres_list, dodraw=ut.show_was_requested())
+    qres_wgt = inspect_gui.launch_review_matches_interface(
+        ibs, qres_list, dodraw=ut.show_was_requested()
+    )
 
     if ut.show_was_requested():
         guitool.guitool_main.qtapp_loop()
@@ -136,6 +141,7 @@ def myquery():
     from wbia.algo.hots import distinctiveness_normalizer  # NOQA
     from wbia import viz  # NOQA
     import wbia.plottool as pt
+
     index = ut.get_argval('--index', int, 0)
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
     qaids = [aid1]
@@ -144,18 +150,24 @@ def myquery():
 
     cfgdict_vsone = dict(
         sv_on=True,
-        #sv_on=False,
-        #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
+        # sv_on=False,
+        # codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
         codename='vsone_unnorm_ratio_extern_distinctiveness',
         sver_output_weighting=True,
     )
 
-    use_cache   = False
+    use_cache = False
     save_qcache = False
 
-    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
-                                       return_request=True, use_cache=use_cache,
-                                       save_qcache=save_qcache, verbose=True)
+    qres_list, qreq_ = ibs.query_chips(
+        qaids,
+        daids,
+        cfgdict=cfgdict_vsone,
+        return_request=True,
+        use_cache=use_cache,
+        save_qcache=save_qcache,
+        verbose=True,
+    )
 
     qreq_.load_distinctiveness_normalizer()
     qres = qres_list[0]
@@ -168,14 +180,18 @@ def myquery():
         qreq_vsone_ = qreq_
         qres_vsone = qres_copy
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
-        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
-        tp_score  = qres_copy.aid2_score[aid2]
-        tn_score  = qres_copy.aid2_score[tn_aid]
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(
+            qreq_, qres_copy, **cfgdict
+        )
+        special_query.apply_new_qres_filter_scores(
+            qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey
+        )
+        tp_score = qres_copy.aid2_score[aid2]
+        tn_score = qres_copy.aid2_score[tn_aid]
         return qres_copy, tp_score, tn_score
 
-    #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
-    #FiltKeys = hstypes.FiltKeys
+    # [.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
+    # FiltKeys = hstypes.FiltKeys
     # FIXME: Use other way of doing gridsearch
     grid_basis = distinctiveness_normalizer.DCVS_DEFAULT.get_grid_basis()
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
@@ -194,12 +210,17 @@ def myquery():
         qres_copy = copy.deepcopy(qres_orig)
         qreq_vsone_ = qreq_
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(
+            qreq_, qres_copy, **cfgdict
+        )
         ut.embed()
+
         def make_cm_very_old_tuple(qres_copy):
             assert ut.listfind(qres_copy.filtkey_list, filtkey) is None
             weight_filters = hstypes.WEIGHT_FILTERS
-            weight_filtxs, nonweight_filtxs = special_query.index_partition(qres_copy.filtkey_list, weight_filters)
+            weight_filtxs, nonweight_filtxs = special_query.index_partition(
+                qres_copy.filtkey_list, weight_filters
+            )
 
             aid2_fsv = {}
             aid2_fs = {}
@@ -208,21 +229,23 @@ def myquery():
             for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
                 pass
                 break
-                #scorex_vsone  = ut.listfind(qres_copy.filtkey_list, filtkey)
-                #if scorex_vsone is None:
+                # scorex_vsone  = ut.listfind(qres_copy.filtkey_list, filtkey)
+                # if scorex_vsone is None:
                 # TODO: add spatial verification as a filter score
                 # augment the vsone scores
                 # TODO: paramaterize
                 weighted_ave_score = True
                 if weighted_ave_score:
                     # weighted average scoring
-                    new_fs_vsone = special_query.weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
+                    new_fs_vsone = special_query.weighted_average_scoring(
+                        new_fsv_vsone, weight_filtxs, nonweight_filtxs
+                    )
                 else:
                     # product scoring
                     new_fs_vsone = special_query.product_scoring(new_fsv_vsone)
                 new_score_vsone = new_fs_vsone.sum()
-                aid2_fsv[daid]   = new_fsv_vsone
-                aid2_fs[daid]    = new_fs_vsone
+                aid2_fsv[daid] = new_fsv_vsone
+                aid2_fs[daid] = new_fs_vsone
                 aid2_score[daid] = new_score_vsone
             return aid2_fsv, aid2_fs, aid2_score
 
@@ -232,12 +255,17 @@ def myquery():
             scores_list = np.array(new_fs_vsone)[:, None].T
             pt.plot_sorted_scores(scores_list, logscale=False, figtitle=str(daid))
         pt.iup()
-        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_copy, newfsv_list, newscore_aids, filtkey)
+        special_query.apply_new_qres_filter_scores(
+            qreq_vsone_, qres_copy, newfsv_list, newscore_aids, filtkey
+        )
 
     # PRINT INFO
     import functools
-    #ut.rrrr()
-    get_stats_str = functools.partial(ut.get_stats_str, axis=0, newlines=True, precision=3)
+
+    # ut.rrrr()
+    get_stats_str = functools.partial(
+        ut.get_stats_str, axis=0, newlines=True, precision=3
+    )
     tp_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[aid2]), ':')
     tn_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[tn_aid]), ':')
     info_str_list = []
@@ -250,8 +278,8 @@ def myquery():
     print(info_str)
 
     # SHOW BEST RESULT
-    #qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
-    #qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
+    # qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
+    # qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
 
     # Text Informatio
     param_lbl = 'dcvs_power'
@@ -278,19 +306,19 @@ def myquery():
     figtitle += '\n' + subtitle
     pt.set_figtitle(figtitle)
     # Save Figure
-    #fig_fpath = pt.save_figure(usetitle=True)
-    #print(fig_fpath)
+    # fig_fpath = pt.save_figure(usetitle=True)
+    # print(fig_fpath)
     # Write CSV Results
-    #csv_fpath = fig_fpath + '.csv.txt'
-    #ut.write_to(csv_fpath, csvtext)
+    # csv_fpath = fig_fpath + '.csv.txt'
+    # ut.write_to(csv_fpath, csvtext)
 
-    #qres_copy.ishow_top(ibs)
-    #from matplotlib import pyplot as plt
-    #plt.show()
-    #print(ut.repr2()))
+    # qres_copy.ishow_top(ibs)
+    # from matplotlib import pyplot as plt
+    # plt.show()
+    # print(ut.repr2()))
     # TODO: plot max variation dims
-    #import wbia.plottool as pt
-    #pt.plot(p_list, diff_list)
+    # import wbia.plottool as pt
+    # pt.plot(p_list, diff_list)
     """
     viz.show_chip(ibs, aid1)
     import wbia.plottool as pt
@@ -313,26 +341,42 @@ def testdata_my_exmaples(index):
     """
     import wbia
     from uuid import UUID
+
     ibs = wbia.opendb('GZ_ALL')
     vsone_pair_examples = [
-        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
-        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
+        [
+            UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'),
+            UUID('308fc664-7990-91ad-0576-d2e8ea3103d0'),
+        ],
+        [
+            UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'),
+            UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b'),
+        ],
+        [
+            UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'),
+            UUID('879977a7-b841-d223-dd91-761dfa58d486'),
+        ],
     ]
     gf_mapping = {
-        UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'): [UUID('38211759-8fa7-875b-1f3e-39a630653f66')],
-        UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'): [UUID('58920d6e-31ba-307c-2ac8-e56aff2b2b9e')],  # other bad_aid is actually a good partial match
-        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
+        UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'): [
+            UUID('38211759-8fa7-875b-1f3e-39a630653f66')
+        ],
+        UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'): [
+            UUID('58920d6e-31ba-307c-2ac8-e56aff2b2b9e')
+        ],  # other bad_aid is actually a good partial match
+        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [
+            UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')
+        ],
     }
 
-    #ibs.get_annot_visual_uuids([36, 3])
+    # ibs.get_annot_visual_uuids([36, 3])
 
     vuuid_pair = vsone_pair_examples[index]
     vuuid1, vuuid2 = vuuid_pair
     aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
     assert aid1 is not None
     assert aid2 is not None
-    #daids = ibs.get_valid_aids()
+    # daids = ibs.get_valid_aids()
 
     tn_vuuid = gf_mapping.get(vuuid1)
     if tn_vuuid is None:
@@ -349,12 +393,16 @@ def testdata_my_exmaples(index):
 def find_close_incorrect_match(ibs, qaids):
     use_cache = False
     save_qcache = False
-    cfgdict_vsmany = dict(index_method='single',
-                          pipeline_root='vsmany',)
+    cfgdict_vsmany = dict(index_method='single', pipeline_root='vsmany',)
     qres_vsmany_list, qreq_vsmany_ = ibs.query_chips(
-        qaids, ibs.get_valid_aids(), cfgdict=cfgdict_vsmany,
-        return_request=True, use_cache=use_cache, save_qcache=save_qcache,
-        verbose=True)
+        qaids,
+        ibs.get_valid_aids(),
+        cfgdict=cfgdict_vsmany,
+        return_request=True,
+        use_cache=use_cache,
+        save_qcache=save_qcache,
+        verbose=True,
+    )
     qres_vsmany = qres_vsmany_list[0]
     qres_vsmany.ishow_top(ibs)
     top_aids = qres_vsmany.get_top_aids()
@@ -363,7 +411,7 @@ def find_close_incorrect_match(ibs, qaids):
     qnid = ibs.get_annot_nids(qaid)
     is_groundfalse = [nid != qnid for nid in top_nids]
     top_gf_aids = ut.compress(top_aids, is_groundfalse)
-    #top_gt_aids = ut.filterfalse_items(top_aids, is_groundfalse)
+    # top_gt_aids = ut.filterfalse_items(top_aids, is_groundfalse)
     top_gf_vuuids = ibs.get_annot_visual_uuids(top_gf_aids)
     qvuuid = ibs.get_annot_visual_uuids(qaid)
     gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
@@ -386,19 +434,16 @@ def show_power_law_plots():
     """
     import numpy as np
     import wbia.plottool as pt
+
     xdata = np.linspace(0, 1, 1000)
     ydata = xdata
     fnum = 1
-    powers = [.01, .1, .5, 1, 2, 30, 70, 100, 1000]
+    powers = [0.01, 0.1, 0.5, 1, 2, 30, 70, 100, 1000]
     nRows, nCols = pt.get_square_row_cols(len(powers), fix=True)
     pnum_next = pt.make_pnum_nextgen(nRows, nCols)
     for p in powers:
         plotkw = dict(
-            fnum=fnum,
-            marker='g-',
-            linewidth=2,
-            pnum=pnum_next(),
-            title='p=%r' % (p,)
+            fnum=fnum, marker='g-', linewidth=2, pnum=pnum_next(), title='p=%r' % (p,)
         )
         ydata_ = ydata ** p
         pt.plot2(xdata, ydata_, **plotkw)
@@ -409,19 +454,21 @@ def get_gzall_small_test():
     """
     ibs.get_annot_visual_uuids([qaid, aid])
     """
-    #aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,
+    # aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,
     #              306, 742, 1010, 802, 619, 1041, 27, 420, 740, 1016, 140, 992,
     #              1043, 662, 816, 793, 994, 867, 534, 986, 783, 858, 937, 60,
     #              879, 1044, 528, 459, 639]
     debug_examples = [
         UUID('308fc664-7990-91ad-0576-d2e8ea3103d0'),
     ]
-    #vsone_pair_examples
+    # vsone_pair_examples
     debug_examples
 
     ignore_vuuids = [
         UUID('be6fe4d6-ae87-0f8f-269f-e9f706b69e41'),  # OUT OF PLANE
-        UUID('c3394b28-e7f2-2da6-1a49-335b748acf9e'),  # HUGE OUT OF PLANE, foal (vsmany gets rank3)
+        UUID(
+            'c3394b28-e7f2-2da6-1a49-335b748acf9e'
+        ),  # HUGE OUT OF PLANE, foal (vsmany gets rank3)
         UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'),
         UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b'),
     ]
@@ -465,14 +512,18 @@ def get_gzall_small_test():
         UUID('10757fe8-8fd3-ad59-f550-c941da967b82'),
         UUID('89859efb-a233-5e43-fb5e-c36e9d446a1e'),
         UUID('265cf095-64f6-e5dd-8f7d-2a82f627b7d1'),
-        UUID('4b19968e-f813-f238-0dcc-6a54f1943d57')]
+        UUID('4b19968e-f813-f238-0dcc-6a54f1943d57'),
+    ]
     return vuuid_list, ignore_vuuids
 
 
 def get_pz_master_testcase():
     aid_uuid_list = [
-        (7944, UUID('b315d75f-a54f-5abf-18e5-7e353c113876'), 'small chip area.  fgweights should not be dialated here')
-        (8490, UUID('316571aa-f675-ea1a-2674-0cb9a0f00426'), 'had corrupted chip')
+        (
+            7944,
+            UUID('b315d75f-a54f-5abf-18e5-7e353c113876'),
+            'small chip area.  fgweights should not be dialated here',
+        )(8490, UUID('316571aa-f675-ea1a-2674-0cb9a0f00426'), 'had corrupted chip')
     ]
     aid_uuid_list
 
@@ -490,16 +541,19 @@ def load_gztest(ibs):
     """
     from os.path import join
     from wbia.algo.hots import match_chips4 as mc4
+
     dir_ = ut.get_module_dir(mc4)
-    eval_text = ut.read_from(join(dir_,  'GZ_TESTTUP.txt'))
+    eval_text = ut.read_from(join(dir_, 'GZ_TESTTUP.txt'))
     testcases = eval(eval_text)
     count_dict = ut.count_dict_vals(testcases)
     print(ut.repr2(count_dict))
 
-    testtup_list = ut.flatten(ut.dict_take_list(testcases, ['vsone_wins',
-                                                            'vsmany_outperformed',
-                                                            'vsmany_dominates',
-                                                            'vsmany_wins']))
+    testtup_list = ut.flatten(
+        ut.dict_take_list(
+            testcases,
+            ['vsone_wins', 'vsmany_outperformed', 'vsmany_dominates', 'vsmany_wins'],
+        )
+    )
     qaid_list = [testtup.qaid_t for testtup in testtup_list]
     visual_uuids = ibs.get_annot_visual_uuids(qaid_list)
     visual_uuids
@@ -513,6 +567,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.devcases --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

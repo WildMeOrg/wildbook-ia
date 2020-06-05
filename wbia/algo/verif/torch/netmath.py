@@ -3,6 +3,7 @@ import numpy as np
 import vtool as vt
 import six
 import torch
+
 # from torch.autograd import Variable  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
@@ -21,7 +22,7 @@ def testdata_siam_desc(num_data=128, desc_dim=8):
     network_output[1::2] = vecs2
     # Every other pair is an imposter match
     network_output[::4, :] = vt.normalize_rows(rng.rand(32, desc_dim))
-    #data_per_label = 2
+    # data_per_label = 2
 
     vecs1 = network_output[0::2].astype(np.float32)
     vecs2 = network_output[1::2].astype(np.float32)
@@ -30,7 +31,8 @@ def testdata_siam_desc(num_data=128, desc_dim=8):
         g1_ = np.roll(vecs1, 1, axis=1)
         dist = vt.L2(g1_, vecs2)
         return dist
-    #l2dist = vt.L2(vecs1, vecs2)
+
+    # l2dist = vt.L2(vecs1, vecs2)
     true_dist = true_dist_metric(vecs1, vecs2)
     label = (true_dist > 0).astype(np.float32)
     vecs1 = torch.from_numpy(vecs1)
@@ -86,14 +88,16 @@ class ContrastiveLoss(torch.nn.Module):
         # p1 = torch.nn.PairwiseDistance(p=1)(vecs1, vecs2)
         # dist_l2 = torch.nn.PairwiseDistance(p=2)(vecs1, vecs2)
         dist_l2 = output
-        dist_sq = torch.pow(dist_l2 , 2)
+        dist_sq = torch.pow(dist_l2, 2)
 
         if label.is_cuda:
             label_ = label.type(torch.FloatTensor).cuda(label.get_device())
         else:
             label_ = label.type(torch.FloatTensor)
 
-        loss2x_genuine  = (1 - label_) * torch.pow(torch.clamp(self.margin - dist_l2, min=0.0), 2)
+        loss2x_genuine = (1 - label_) * torch.pow(
+            torch.clamp(self.margin - dist_l2, min=0.0), 2
+        )
         loss2x_imposter = label_ * dist_sq
         if weight is not None:
             loss2x_imposter = loss2x_imposter * weight[0]
@@ -106,7 +110,6 @@ class ContrastiveLoss(torch.nn.Module):
 
 
 class NetMathParams(object):
-
     @classmethod
     def lookup(cls, key_or_scheduler):
         """
@@ -175,7 +178,9 @@ class Criterions(NetMathParams):
         # from pysseg import metrics
         # confusion_matrix()
         # loss = torch.nn.functional.nll_loss(log_p, target, weight=weight, size_average=False)
-        loss = torch.nn.functional.cross_entropy(log_p, target, weight=weight, size_average=False)
+        loss = torch.nn.functional.cross_entropy(
+            log_p, target, weight=weight, size_average=False
+        )
         if size_average:
             loss /= target_mask.data.sum()
         return loss
@@ -189,7 +194,6 @@ class Optimizers(NetMathParams):
 
 
 class Metrics(NetMathParams):
-
     @staticmethod
     def tpr(output, label):
         """ true positive rate """
@@ -211,8 +215,12 @@ class Metrics(NetMathParams):
         POS_LABEL = 1
         NEG_LABEL = 0
         torch.eq(label_tensor, POS_LABEL, out=is_pos)  # y==1
-        pos_dist = 0 if len(l2_dist_tensor[is_pos]) == 0 else l2_dist_tensor[is_pos].mean()
-        neg_dist = 0 if len(l2_dist_tensor[~is_pos]) == 0 else l2_dist_tensor[~is_pos].mean()
+        pos_dist = (
+            0 if len(l2_dist_tensor[is_pos]) == 0 else l2_dist_tensor[is_pos].mean()
+        )
+        neg_dist = (
+            0 if len(l2_dist_tensor[~is_pos]) == 0 else l2_dist_tensor[~is_pos].mean()
+        )
         # print('same dis : diff dis  {} : {}'.format(l2_dist_tensor[is_pos == 0].mean(), l2_dist_tensor[is_pos].mean()))
 
         # accuracy

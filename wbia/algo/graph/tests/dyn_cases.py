@@ -3,6 +3,7 @@ from wbia.algo.graph import demo
 import utool as ut
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -22,11 +23,17 @@ def do_infr_test(ccs, edges, new_edges):
     fnum = 1
     if ut.show_was_requested():
         infr.set_node_attrs('shape', 'circle')
-        infr.show(pnum=(2, 1, 1), fnum=fnum, show_unreviewed_edges=True,
-                  show_reviewed_cuts=True,
-                  splines='spline',
-                  show_inferred_diff=True, groupby='name_label',
-                  show_labels=True, pickable=True)
+        infr.show(
+            pnum=(2, 1, 1),
+            fnum=fnum,
+            show_unreviewed_edges=True,
+            show_reviewed_cuts=True,
+            splines='spline',
+            show_inferred_diff=True,
+            groupby='name_label',
+            show_labels=True,
+            pickable=True,
+        )
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
@@ -44,8 +51,13 @@ def do_infr_test(ccs, edges, new_edges):
 
     # Postshow
     if ut.show_was_requested():
-        infr2.show(pnum=(2, 1, 2), fnum=fnum, show_unreviewed_edges=True,
-                   show_inferred_diff=True, show_labels=True)
+        infr2.show(
+            pnum=(2, 1, 2),
+            fnum=fnum,
+            show_unreviewed_edges=True,
+            show_inferred_diff=True,
+            show_labels=True,
+        )
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
         # fig2 = pt.gcf()
@@ -56,6 +68,7 @@ def do_infr_test(ccs, edges, new_edges):
         """
         Asserts pre and post test properties of the graph
         """
+
         def __init__(self, infr1, infr2):
             self._errors = []
             self.infr1 = infr1
@@ -64,13 +77,20 @@ def do_infr_test(ccs, edges, new_edges):
         def __call__(self, infr, u, v, key, val, msg):
             data = infr.get_nonvisual_edge_data((u, v))
             if data is None:
-                assert infr.graph.has_edge(u, v), (
-                    'uv=%r, %r does not exist'  % (u, v))
+                assert infr.graph.has_edge(u, v), 'uv=%r, %r does not exist' % (u, v)
             got = data.get(key)
             if got != val:
                 msg1 = 'key=%s %r!=%r, ' % (key, got, val)
-                errmsg = ''.join([msg1, msg, '\nedge=', ut.repr2((u, v)), '\n',
-                                 infr.repr_edge_data(data)])
+                errmsg = ''.join(
+                    [
+                        msg1,
+                        msg,
+                        '\nedge=',
+                        ut.repr2((u, v)),
+                        '\n',
+                        infr.repr_edge_data(data),
+                    ]
+                )
                 self._errors.append(errmsg)
 
         def custom_precheck(self, func):
@@ -94,7 +114,7 @@ def do_infr_test(ccs, edges, new_edges):
                     print(msg)
                 ut.cprint('HAD %d FAILURE' % (len(errors)), 'red')
             if ut.show_was_requested():
-                pt.all_figures_tile(percent_w=.5)
+                pt.all_figures_tile(percent_w=0.5)
                 ut.show_if_requested()
             if errors:
                 raise AssertionError('There were errors')
@@ -125,11 +145,23 @@ def case_negative_infr():
     new_edges = [(3, 9, {'evidence_decision': NEGTV})]
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
-    check(infr2, 1, 7, 'inferred_state', None,
-          'negative review of an edge should not jump more than one component')
+    check(
+        infr2,
+        1,
+        7,
+        'inferred_state',
+        None,
+        'negative review of an edge should not jump more than one component',
+    )
 
-    check(infr2, 1, 9, 'inferred_state', 'diff',
-          'negative review of an edge should cut within one jump')
+    check(
+        infr2,
+        1,
+        9,
+        'inferred_state',
+        'diff',
+        'negative review of an edge should cut within one jump',
+    )
 
     check.after()
 
@@ -191,7 +223,14 @@ def case_inconsistent():
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     # Make sure the previously inferred edge is no longer inferred
     check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
-    check(infr2, 4, 1, 'inferred_state', 'inconsistent_internal', 'should not be inferred after incon')
+    check(
+        infr2,
+        4,
+        1,
+        'inferred_state',
+        'inconsistent_internal',
+        'should not be inferred after incon',
+    )
     check(infr2, 4, 3, 'maybe_error', True, 'need to have a maybe split')
     check.after()
 
@@ -244,7 +283,7 @@ def case_override_inference():
         (2, 4, {'inferred_state': 'same'}),
         (2, 5, {'inferred_state': 'same'}),
         (3, 4, {'inferred_state': 'same', 'num_reviews': 100}),
-        (4, 5, {'inferred_state': 'same', 'num_reviews': .01}),
+        (4, 5, {'inferred_state': 'same', 'num_reviews': 0.01}),
     ]
     edges += []
     new_edges = [
@@ -256,7 +295,14 @@ def case_override_inference():
     # inconsistent case is introduced
     check(infr2, 1, 4, 'maybe_error', None, 'should not split inferred edge')
     check(infr2, 4, 5, 'maybe_error', True, 'split me')
-    check(infr2, 5, 2, 'inferred_state', 'inconsistent_internal', 'inference should be overriden')
+    check(
+        infr2,
+        5,
+        2,
+        'inferred_state',
+        'inconsistent_internal',
+        'inference should be overriden',
+    )
     check.after()
 
 
@@ -320,7 +366,14 @@ def case_incon_removes_inference():
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr1, 2, 5, 'inferred_state', 'diff', 'should be preinferred')
-    check(infr2, 2, 5, 'inferred_state', 'inconsistent_internal', 'should be uninferred on incon')
+    check(
+        infr2,
+        2,
+        5,
+        'inferred_state',
+        'inconsistent_internal',
+        'should be uninferred on incon',
+    )
     check.after()
 
 
@@ -478,9 +531,7 @@ def case_out_of_subgraph_modification():
     # A case where a review between two ccs modifies state outside of
     # the subgraph of ccs
     ccs = [[1, 2], [3, 4], [5, 6]]
-    edges = [
-        (2, 6), (4, 5, {'evidence_decision': NEGTV})
-    ]
+    edges = [(2, 6), (4, 5, {'evidence_decision': NEGTV})]
     new_edges = [(2, 3, {'evidence_decision': POSTV})]
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 2, 6, 'inferred_state', None, 'should not be inferred')
@@ -509,6 +560,7 @@ def case_flag_merge():
     # Ensure that the negative edge comes back as potentially in error
     new_edges = [(1, 4, {'evidence_decision': POSTV})]
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
+
     @check.custom_precheck
     def check_pre_state(infr):
         assert infr.nid_to_errors[1] == {(1, 4)}
@@ -544,7 +596,6 @@ def case_all_types():
         (13, 14, {}),
         (11, 15, {'evidence_decision': POSTV}),
         (12, 15, {'evidence_decision': INCMP}),
-
         # Positive component (with notcomp)
         (21, 22, {'evidence_decision': POSTV}),
         (22, 23, {'evidence_decision': POSTV}),
@@ -552,7 +603,6 @@ def case_all_types():
         (21, 24, {'evidence_decision': POSTV}),
         (22, 24, {'evidence_decision': POSTV}),
         (23, 24, {}),
-
         # Positive component (with unreview)
         (31, 32, {'evidence_decision': POSTV}),
         (32, 33, {'evidence_decision': POSTV}),
@@ -560,17 +610,14 @@ def case_all_types():
         (31, 34, {'evidence_decision': POSTV}),
         (32, 34, {'evidence_decision': POSTV}),
         (33, 34, {}),
-
         # Positive component
         (41, 42, {'evidence_decision': POSTV}),
         (42, 43, {'evidence_decision': POSTV}),
         (41, 43, {'evidence_decision': POSTV}),
-
         # Positive component (extra)
         (51, 52, {'evidence_decision': POSTV}),
         (52, 53, {'evidence_decision': POSTV}),
         (51, 53, {'evidence_decision': POSTV}),
-
         # Positive component (isolated)
         (61, 62, {'evidence_decision': POSTV}),
     ]
@@ -591,7 +638,6 @@ def case_all_types():
         (11, 51, {'evidence_decision': INCMP}),
         (12, 52, {'evidence_decision': NEGTV}),
         (13, 53, {}),
-
         # 2 - 3
         (21, 31, {'evidence_decision': INCMP}),
         (22, 32, {}),
@@ -601,7 +647,6 @@ def case_all_types():
         # 2 - 5
         (21, 51, {'evidence_decision': INCMP}),
         (22, 52, {'evidence_decision': NEGTV}),
-
         # 3 - 4
         (31, 41, {'evidence_decision': NEGTV}),
         (32, 42, {}),
@@ -625,12 +670,26 @@ def case_all_types():
                 err = AssertionError('outside of cc0 should not be incon')
                 print(err)
                 errors.append(err)
-    check(infr1, 13, 14, 'inferred_state', 'inconsistent_internal',
-          'notcomp edge should be incon')
+    check(
+        infr1,
+        13,
+        14,
+        'inferred_state',
+        'inconsistent_internal',
+        'notcomp edge should be incon',
+    )
     check(infr1, 21, 31, 'inferred_state', INCMP, 'notcomp edge should remain notcomp')
-    check(infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge')
-    check(infr1, 12, 42, 'inferred_state', 'inconsistent_external',
-          'inconsistency should override notcomp')
+    check(
+        infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge'
+    )
+    check(
+        infr1,
+        12,
+        42,
+        'inferred_state',
+        'inconsistent_external',
+        'inconsistency should override notcomp',
+    )
     # check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
     # check(infr2, 2, 4, 'maybe_error', True, 'negative edge should flag second')
     # check(infr2, 1, 4, 'maybe_error', False, 'negative edge should flag second')
@@ -644,6 +703,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.tests.dyn_cases --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

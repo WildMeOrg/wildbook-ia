@@ -90,7 +90,7 @@ cpdef TreeNode _populate_tree_recursive(TreeNode parent_node,
 @cython.wraparound(False)
 cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet """
-    cdef: 
+    cdef:
         TreeNode parent_node
         size_t level
         size_t ix
@@ -102,8 +102,8 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
         list id_list
         list next_ids
         list node_list
-        list new_node_lists 
-        list new_ids_lists  
+        list new_node_lists
+        list new_ids_lists
 
     root_ids = ider_list[0]()
     ids_list = [root_ids]
@@ -115,11 +115,11 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
         new_ids_lists  = []
         for sx in range(len(ids_list)):
             parent_node = parent_node_list[sx]
-            id_list = ids_list[sx] 
+            id_list = ids_list[sx]
             node_list = [None] * len(id_list)
             #node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
             for ix, id_ in enumerate(id_list):
-                node_list[ix] = TreeNode(id_, parent_node, level) 
+                node_list[ix] = TreeNode(id_, parent_node, level)
             if level + 1 < num_levels:
                 next_ids =  ider_list[level + 1](id_list)
                 #[child_ider(id_) for id_ in child_ids]

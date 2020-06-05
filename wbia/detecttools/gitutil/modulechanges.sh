@@ -3,7 +3,7 @@ rob sed "import __common__" "from hscom import __common__" True
 rob sed "import tools" "from hscom import tools" True
 rob sed "from Preferences import Pref" "from hscom.Preferences import Pref" True
 rob sed "import latex_formater as pytex" "from hscom import latex_formater as pytex" True
-    
+
 
 
 rob sed "import fileio as io" "from hscom import fileio as io" True
@@ -36,7 +36,7 @@ from hotspotter import DataStructures as ds
 import hotspotter.DatStruct as ds
 
 
-# Make the mapping from old incorrect names to new correct ones 
+# Make the mapping from old incorrect names to new correct ones
 # for keypoint shapes
 
 export realrun=False

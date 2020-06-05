@@ -4,6 +4,7 @@ from os.path import join, dirname, split, basename, splitext
 import re
 import utool as ut
 from six.moves import map, range
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -18,11 +19,13 @@ class IndividualResultsCopyTaskQueue(object):
         fdir_clean, cfgdir = split(outdir)
         if dstdir is None:
             dstdir = fdir_clean
-        #aug = cfgdir[0:min(len(cfgdir), 10)]
+        # aug = cfgdir[0:min(len(cfgdir), 10)]
         aug = cfgdir
         fname_fmt = '{aug}_{fname_orig}{ext}'
         fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
-        fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
+        fname_clean = ut.long_fname_format(
+            fname_fmt, fmt_dict, ['fname_orig'], max_len=128
+        )
         fdst_clean = join(dstdir, fname_clean)
         self.cp_task_list.append((fpath_orig, fdst_clean))
 
@@ -35,11 +38,11 @@ class IndividualResultsCopyTaskQueue(object):
         del self.cp_task_list[:]
 
 
-def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
-                                  cfgx2_shortlbl, case_figdir,
-                                  analysis_fpath_list):
+def make_individual_latex_figures(
+    ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list
+):
     # HACK MAKE LATEX CONVINENCE STUFF
-    #print('LATEX HACK')
+    # print('LATEX HACK')
     if len(fpaths_list) == 0:
         print('nothing to render')
         return
@@ -67,51 +70,67 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
             nCols = 2
 
         _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + '_' + str(case_idx)
-        #print('_cmdname = %r' % (_cmdname,))
+        # print('_cmdname = %r' % (_cmdname,))
         cmdname = ut.latex_sanitize_command_name(_cmdname)
         label_str = cmdname
         if len(caption_prefix) == 0:
-            caption_str = ut.escape_latex('Casetags: ' +
-                                          ut.repr2(labels, nl=False, strvals=True) +
-                                          ', db=' + ibs.get_dbname() + '. ')
+            caption_str = ut.escape_latex(
+                'Casetags: '
+                + ut.repr2(labels, nl=False, strvals=True)
+                + ', db='
+                + ibs.get_dbname()
+                + '. '
+            )
         else:
             caption_str = ''
 
         use_sublbls = len(cfgx2_shortlbl) > 1
         if use_sublbls:
-            caption_str += ut.escape_latex('Each figure shows a different configuration: ')
-            sublbls = ['(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))]
+            caption_str += ut.escape_latex(
+                'Each figure shows a different configuration: '
+            )
+            sublbls = [
+                '(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))
+            ]
         else:
-            #caption_str += ut.escape_latex('This figure depicts correct and
-            #incorrect matches from configuration: ')
+            # caption_str += ut.escape_latex('This figure depicts correct and
+            # incorrect matches from configuration: ')
             sublbls = [''] * len(cfgx2_shortlbl)
+
         def wrap_tt(text):
             return r'{\tt ' + text + '}'
+
         _shortlbls = cfgx2_shortlbl
         _shortlbls = list(map(ut.escape_latex, _shortlbls))
         # Adjust spacing for breaks
-        #tex_small_space = r''
+        # tex_small_space = r''
         tex_small_space = r'\hspace{0pt}'
         # Remove query specific config flags in individual results
         _shortlbls = [re.sub('\\bq[^,]*,?', '', shortlbl) for shortlbl in _shortlbls]
         # Let config strings be broken over newlines
-        _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl)
-                      for shortlbl in _shortlbls]
-        _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl)
-                      for shortlbl in _shortlbls]
+        _shortlbls = [
+            re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl)
+            for shortlbl in _shortlbls
+        ]
+        _shortlbls = [
+            re.sub(', *', ',' + tex_small_space, shortlbl) for shortlbl in _shortlbls
+        ]
         _shortlbls = list(map(wrap_tt, _shortlbls))
-        cfgx2_texshortlbl = ['\n    ' + lbl + shortlbl
-                             for lbl, shortlbl in zip(sublbls, _shortlbls)]
+        cfgx2_texshortlbl = [
+            '\n    ' + lbl + shortlbl for lbl, shortlbl in zip(sublbls, _shortlbls)
+        ]
 
         caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '.\n    '
         caption_str = '\n    ' + caption_prefix + caption_str + caption_suffix
         caption_str = caption_str.rstrip()
-        figure_str  = ut.get_latex_figure_str(fpaths,
-                                                nCols=nCols,
-                                                label_str=label_str,
-                                                caption_str=caption_str,
-                                                use_sublbls=None,
-                                                use_frame=True)
+        figure_str = ut.get_latex_figure_str(
+            fpaths,
+            nCols=nCols,
+            label_str=label_str,
+            caption_str=caption_str,
+            use_sublbls=None,
+            use_frame=True,
+        )
         latex_block = ut.latex_newcommand(cmdname, figure_str)
         latex_block = '\n%----------\n' + latex_block
         latex_code_blocks.append(latex_block)
@@ -127,7 +146,9 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
     else:
         selected_keys = latex_block_keys
 
-    selected_blocks = ut.dict_take(dict(zip(latex_block_keys, latex_code_blocks)), selected_keys)
+    selected_blocks = ut.dict_take(
+        dict(zip(latex_block_keys, latex_code_blocks)), selected_keys
+    )
 
     figdef_block = '\n'.join(selected_blocks)
     figcmd_block = '\n'.join(['\\' + key for key in latex_block_keys])
@@ -143,7 +164,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
     if DUMP_FIGDEF:
         ut.writeto(latex_fpath, selected_block)
 
-    #if NOT DUMP AND NOT RENDER:
+    # if NOT DUMP AND NOT RENDER:
     #    print('STANDARD LATEX RESULTS')
     #    cmdname = ibs.get_dbname() + 'Results'
     #    latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)

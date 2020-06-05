@@ -10,13 +10,14 @@ import six
 import re
 import utool as ut
 import matplotlib as mpl
+
 ut.noinject(__name__, '[abstract_iteract]')
 from . import draw_func2 as df2  # NOQA
 from wbia.plottool import fig_presenter  # NOQA
 from wbia.plottool import plot_helpers as ph  # NOQA
 from wbia.plottool import interact_helpers as ih  # NOQA
 
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #'[abstract_iteract]')
 
 DEBUG = ut.get_argflag('--debug-interact')
@@ -33,7 +34,10 @@ def register_interaction(self):
         print('[pt] Registering intearction: self=%r' % (self,))
     __REGISTERED_INTERACTIONS__.append(self)
     if VERBOSE:
-        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
+        print(
+            '[pt] There are now %d registered interactions'
+            % (len(__REGISTERED_INTERACTIONS__))
+        )
 
 
 def unregister_interaction(self):
@@ -45,7 +49,10 @@ def unregister_interaction(self):
     except ValueError:
         pass
     if VERBOSE:
-        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
+        print(
+            '[pt] There are now %d registered interactions'
+            % (len(__REGISTERED_INTERACTIONS__))
+        )
 
 
 class AbstractInteraction(object):
@@ -71,8 +78,8 @@ class AbstractInteraction(object):
         if self.debug:
             print('[pt.a] create interaction')
         self.fnum = kwargs.get('fnum', None)
-        if self.fnum  is None:
-            self.fnum  = df2.next_fnum()
+        if self.fnum is None:
+            self.fnum = df2.next_fnum()
         self.interaction_name = kwargs.get('interaction_name', 'AbstractInteraction')
         # Careful this might cause memory leaks
         self.scope = []  # for keeping those widgets alive!
@@ -105,15 +112,17 @@ class AbstractInteraction(object):
 
     def enable_pan(self, ax):
         from wbia.plottool.interactions import PanEvents
+
         pan = PanEvents(ax)
         self.pan_event_list.append(pan)
 
     def enable_zoom(self, ax):
         from wbia.plottool.interactions import zoom_factory
+
         self.zoom_event_list.append(zoom_factory(ax))
 
     def _start_interaction(self):
-        #self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        # self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
         self.fig = df2.figure(fnum=self.fnum, doclf=True)
         ih.connect_callback(self.fig, 'close_event', self.on_close)
         register_interaction(self)
@@ -170,6 +179,7 @@ class AbstractInteraction(object):
 
     def bring_to_front(self):
         import utool
+
         with utool.embed_on_exception_context:
             fig_presenter.bring_to_front(self.fig)
 
@@ -191,7 +201,7 @@ class AbstractInteraction(object):
     def update(self):
         if self.debug:
             print('[pt.a] update')
-        #fig_presenter.update()
+        # fig_presenter.update()
         self.fig.canvas.update()
         self.fig.canvas.flush_events()
 
@@ -223,7 +233,7 @@ class AbstractInteraction(object):
 
         for pan in self.pan_event_list:
             pan.pan_on_motion(event)
-        #print('event = %r' % (event.__dict__,))
+        # print('event = %r' % (event.__dict__,))
         pass
 
     def on_drag(self, event=None):
@@ -232,7 +242,7 @@ class AbstractInteraction(object):
         if ih.clicked_inside_axis(event):
             self.on_drag_inside(event)
         # Make sure BLIT (bit block transfer) is used for updates
-        #self.fig.canvas.blit(self.fig.ax.bbox)
+        # self.fig.canvas.blit(self.fig.ax.bbox)
         pass
 
     def on_drag_inside(self, event=None):
@@ -252,23 +262,23 @@ class AbstractInteraction(object):
     def on_key_press(self, event):
         if self.debug > 0:
             print('[pt.a] on_key_press')
-        #self.print_status()
+        # self.print_status()
         pass
 
     def on_click(self, event):
         if self.debug > 0:
             print('[pt.a] on_click')
-            #print('[pt.a] on_click. event=%r' % (ut.repr2(event.__dict__)))
-        #raise NotImplementedError('implement yourself')
+            # print('[pt.a] on_click. event=%r' % (ut.repr2(event.__dict__)))
+        # raise NotImplementedError('implement yourself')
         if event.button is not None:
             for button in self.MOUSE_BUTTONS.values():
                 if self.MOUSE_BUTTONS[event.button] == button:
                     self.is_down[button] = True
-        #if event.button == self.LEFT_BUTTON:
+        # if event.button == self.LEFT_BUTTON:
         #    self.is_down['left'] = True
-        #if event.button == self.RIGHT_BUTTON:
+        # if event.button == self.RIGHT_BUTTON:
         #    self.is_down['right'] = True
-        #if event.button == self.MIDDLE_BUTTON:
+        # if event.button == self.MIDDLE_BUTTON:
         #    self.is_down['middle'] = True
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
@@ -283,19 +293,22 @@ class AbstractInteraction(object):
         if self.debug > 0:
             print('[pt.a] on_release')
         for button in self.MOUSE_BUTTONS.values():
-            flag = (event is None or event.button is None
-                    or self.MOUSE_BUTTONS[event.button] == button)
+            flag = (
+                event is None
+                or event.button is None
+                or self.MOUSE_BUTTONS[event.button] == button
+            )
             if flag:
                 self.is_down[button] = False
                 if self.is_drag[button]:
                     self.is_drag[button] = False
                     self.on_drag_stop(event)
-        #if event.button == self.LEFT_BUTTON:
+        # if event.button == self.LEFT_BUTTON:
         #    self.is_down['left'] = False
         #    self.is_drag['left'] = False
-        #if event.button == self.RIGHT_BUTTON:
+        # if event.button == self.RIGHT_BUTTON:
         #    self.is_down['right'] = False
-        #if event.button == self.MIDDLE_BUTTON:
+        # if event.button == self.MIDDLE_BUTTON:
         #    self.is_down['middle'] = False
         for pan in self.pan_event_list:
             pan.pan_on_release(event)
@@ -311,6 +324,7 @@ class AbstractInteraction(object):
         context menu
         """
         import wbia.guitool as gt
+
         height = self.fig.canvas.geometry().height()
         qpoint = gt.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
@@ -342,8 +356,17 @@ class AbstractInteraction(object):
         """ Removes any widgets saved in the interaction scope """
         self.scope = []
 
-    def append_button(self, text, divider=None, rect=None, callback=None,
-                      size='9%', location='bottom', ax=None, **kwargs):
+    def append_button(
+        self,
+        text,
+        divider=None,
+        rect=None,
+        callback=None,
+        size='9%',
+        location='bottom',
+        ax=None,
+        **kwargs
+    ):
         """ Adds a button to the current page """
 
         if rect is not None:
@@ -353,20 +376,19 @@ class AbstractInteraction(object):
                 ax = df2.gca()
             divider = df2.ensure_divider(ax)
         if divider is not None:
-            new_ax = divider.append_axes(location, size=size, pad=.05)
+            new_ax = divider.append_axes(location, size=size, pad=0.05)
         if callback is not None:
             color, hovercolor = u'.85', u'.95'
         else:
             color, hovercolor = u'.88', u'.88'
-            #color, hovercolor = u'.45', u'.45'
-        #if isinstance(text, six.text_type):
-        new_but = mpl.widgets.Button(
-            new_ax, text, color=color, hovercolor=hovercolor)
-        #elif isinstance(text, (list, tuple)):
+            # color, hovercolor = u'.45', u'.45'
+        # if isinstance(text, six.text_type):
+        new_but = mpl.widgets.Button(new_ax, text, color=color, hovercolor=hovercolor)
+        # elif isinstance(text, (list, tuple)):
         #    labels = [False] * len(text)
         #    labels[0] = True
         #    new_but = mpl.widgets.CheckButtons(new_ax, text, labels)
-        #else:
+        # else:
         #    raise ValueError('bad input')
 
         if callback is not None:
@@ -374,10 +396,10 @@ class AbstractInteraction(object):
         else:
             button_text = new_but.ax.texts[0]
             button_text.set_color('.6')
-            #button_text.set_color('r')
-            #ut.embed()
-            #print('new_but.color = %r' % (new_but.color,))
-        #else:
+            # button_text.set_color('r')
+            # ut.embed()
+            # print('new_but.color = %r' % (new_but.color,))
+        # else:
         # TODO: figure ou how to gray out these buttons
         #    new_but.color = u'.1'
         #    new_but.hovercolor = u'.1'
@@ -385,7 +407,7 @@ class AbstractInteraction(object):
         #    print('new_but.color = %r' % (new_but.color,))
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
-        #ph.set_plotdat(new_ax, 'parent_axes', ax)
+        # ph.set_plotdat(new_ax, 'parent_axes', ax)
         if ax is not None:
             child_axes = ph.get_plotdat(ax, 'child_axes', [])
             child_axes.append(new_ax)
@@ -399,48 +421,50 @@ class AbstractInteraction(object):
 
 
 class AbstractPagedInteraction(AbstractInteraction):
-
     def __init__(self, nPages=None, draw_hud=True, **kwargs):
         self.current_pagenum = 0
         assert nPages is not None
         self.nPages = nPages
         self.draw_hud = draw_hud
-        self.NEXT_PAGE_HOTKEYS  = ['right', 'pagedown']
-        self.PREV_PAGE_HOTKEYS  = ['left', 'pageup']
+        self.NEXT_PAGE_HOTKEYS = ['right', 'pagedown']
+        self.PREV_PAGE_HOTKEYS = ['left', 'pageup']
         super(AbstractPagedInteraction, self).__init__(**kwargs)
 
     def next_page(self, event):
-        #print('next')
+        # print('next')
         self.show_page(self.current_pagenum + 1)
         pass
 
     def prev_page(self, event):
         if self.current_pagenum == 0:
             return
-        #print('prev')
+        # print('prev')
         self.show_page(self.current_pagenum - 1)
         pass
 
     def make_hud(self):
         """ Creates heads up display """
         import wbia.plottool as pt
+
         if not self.draw_hud:
             return
         # Button positioning
-        #w, h = .08, .04
-        #w, h = .14, .08
-        w, h = .14, .07
-        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=w, h=h,
-                                                    xpad=.05, startx=0,
-                                                    stopx=1)
+        # w, h = .08, .04
+        # w, h = .14, .08
+        w, h = 0.14, 0.07
+        hl_slot, hr_slot = pt.make_bbox_positioners(
+            y=0.02, w=w, h=h, xpad=0.05, startx=0, stopx=1
+        )
         prev_rect = hl_slot(0)
         next_rect = hr_slot(0)
-        #print('prev_rect = %r' % (prev_rect,))
-        #print('next_rect = %r' % (next_rect,))
+        # print('prev_rect = %r' % (prev_rect,))
+        # print('next_rect = %r' % (next_rect,))
 
         # Create buttons
         prev_callback = None if self.current_pagenum == 0 else self.prev_page
-        next_callback = None if self.current_pagenum == self.nPages - 1 else self.next_page
+        next_callback = (
+            None if self.current_pagenum == self.nPages - 1 else self.next_page
+        )
         prev_text = 'prev\n' + pretty_hotkey_map(self.PREV_PAGE_HOTKEYS)
         next_text = 'next\n' + pretty_hotkey_map(self.NEXT_PAGE_HOTKEYS)
         self.append_button(prev_text, callback=prev_callback, rect=prev_rect)
@@ -448,14 +472,17 @@ class AbstractPagedInteraction(AbstractInteraction):
 
     def prepare_page(self, fulldraw=True):
         import wbia.plottool as pt
+
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.disconnect_callback(self.fig, 'button_release_event')
         ih.disconnect_callback(self.fig, 'key_press_event')
         ih.disconnect_callback(self.fig, 'motion_notify_event')
 
-        figkw = {'fnum': self.fnum,
-                 'doclf': fulldraw,
-                 'docla': fulldraw, }
+        figkw = {
+            'fnum': self.fnum,
+            'doclf': fulldraw,
+            'docla': fulldraw,
+        }
         if fulldraw:
             self.fig = pt.figure(**figkw)
         self.make_hud()
@@ -475,7 +502,7 @@ class AbstractPagedInteraction(AbstractInteraction):
 
 
 # moved to interactions.py
-#def zoom_factory(ax, zoomable_list, base_scale=1.1):
+# def zoom_factory(ax, zoomable_list, base_scale=1.1):
 #    """
 #    TODO: make into interaction
 
@@ -540,6 +567,6 @@ def pretty_hotkey_map(hotkeys):
 
 def matches_hotkey(key, hotkeys):
     hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
-    #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
-    flags = [re.match(hk,  key) is not None for hk in hotkeys]
+    # flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
+    flags = [re.match(hk, key) is not None for hk in hotkeys]
     return any(flags)

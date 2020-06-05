@@ -15,10 +15,11 @@ from utool._internal.meta_util_six import get_funcname
 
 # My data getters
 from vtool_ibeis.tests import grabdata
-elephant  = grabdata.get_testimg_path('elephant.jpg')
-lena  = grabdata.get_testimg_path('lena.jpg')
+
+elephant = grabdata.get_testimg_path('elephant.jpg')
+lena = grabdata.get_testimg_path('lena.jpg')
 zebra = grabdata.get_testimg_path('zebra.jpg')
-jeff  = grabdata.get_testimg_path('jeff.png')
+jeff = grabdata.get_testimg_path('jeff.png')
 gpath = zebra
 if not os.path.exists(gpath):
     gpath = zebra
@@ -29,6 +30,7 @@ try:
     __LINE_PROFILE__ = True
 except AttributeError:
     __LINE_PROFILE__ = False
+
     def profile(func):
         return func
 
@@ -143,6 +145,7 @@ if __name__ == '__main__':
             total_time = time.time() - start
         else:
             import timeit
+
             stmt = '%s(gpath)' % funcname
             total_time = timeit.timeit(stmt=stmt, setup=setup, number=number)
         print('timed: %r seconds in %s' % (total_time, funcname))

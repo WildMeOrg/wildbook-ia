@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)  # NOQA
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import re
@@ -8,6 +13,7 @@ import numpy as np
 import utool as ut
 import matplotlib as mpl
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 DPI = 300
@@ -46,18 +52,18 @@ def dbname_to_species_nice(dbname):
     if 'GZ' in dbname:
         species_nice = "Grévy's zebras"
     if 'PZ' in dbname:
-        species_nice = "plains zebras"
+        species_nice = 'plains zebras'
     if 'GIRM' in dbname:
-        species_nice = "Masai giraffes"
+        species_nice = 'Masai giraffes'
     if 'MantaMatcher' in dbname:
-        species_nice = "manta rays"
+        species_nice = 'manta rays'
     if 'humpback' in dbname:
-        species_nice = "humpbacks"
+        species_nice = 'humpbacks'
         # species_nice = "humpback whales"
     if 'LF_ALL' in dbname:
-        species_nice = "lionfish"
+        species_nice = 'lionfish'
     if 'RotanTurtles' == dbname:
-        species_nice = "sea turtles"
+        species_nice = 'sea turtles'
     return species_nice
 
 
@@ -94,6 +100,7 @@ class DBInputs(object):
         """
         # Setup directory
         from os.path import expanduser
+
         assert self.dname is not None
 
         computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
@@ -168,7 +175,9 @@ class DBInputs(object):
                 ut.cprint('Experiment results {} do not exist'.format(expt_name), 'red')
                 ut.cprint('First re-setup to check if it is a path issue', 'red')
                 if nocompute:
-                    raise Exception(str(expt_name) + ' does not exist for ' + str(self.dbname))
+                    raise Exception(
+                        str(expt_name) + ' does not exist for ' + str(self.dbname)
+                    )
 
                 if self.ibs is None:
                     self._precollect()
@@ -248,12 +257,17 @@ class DBInputs(object):
         if len(dbnames) > 1:
             # parallelize drawing tasks
             from concurrent import futures
+
             multi_args = [ut.smart_cast(a, list) for a in args]
             with futures.ProcessPoolExecutor(max_workers=6) as executor:
-                list(futures.as_completed([
-                    executor.submit(ChapX.draw_serial, expt_name, *fsargs)
-                    for fsargs in ut.product(dbnames, *multi_args)
-                ]))
+                list(
+                    futures.as_completed(
+                        [
+                            executor.submit(ChapX.draw_serial, expt_name, *fsargs)
+                            for fsargs in ut.product(dbnames, *multi_args)
+                        ]
+                    )
+                )
             print('\n\n Completed multiple tasks')
         else:
             ChapX.draw_serial(expt_name, dbnames, *args)
@@ -313,6 +327,7 @@ class DBInputs(object):
         """
         import wbia
         from wbia.init import main_helpers
+
         self.dbdir = wbia.sysres.lookup_dbdir(self.dbname)
         ibs = wbia.opendb(dbdir=self.dbdir)
         if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
@@ -323,7 +338,9 @@ class DBInputs(object):
             # PZ_Master is too big to run in full.  Select a smaller sample.
             # Be sure to include photobomb and incomparable cases.
             aids = ibs.filter_annots_general(
-                require_timestamp=True, species='primary', is_known=True,
+                require_timestamp=True,
+                species='primary',
+                is_known=True,
                 minqual='poor',
             )
             infr = wbia.AnnotInference(ibs=ibs, aids=aids)
@@ -335,18 +352,23 @@ class DBInputs(object):
             flags = ['left' in text for text in ibs.annots(aids).viewpoint_code]
             left_aids = ut.compress(aids, flags)
 
-            majority_aids = set(ibs.filter_annots_general(
-                left_aids, require_timestamp=True, species='primary',
-                minqual='poor', require_quality=True, min_pername=2,
-                max_pername=15
-            ))
+            majority_aids = set(
+                ibs.filter_annots_general(
+                    left_aids,
+                    require_timestamp=True,
+                    species='primary',
+                    minqual='poor',
+                    require_quality=True,
+                    min_pername=2,
+                    max_pername=15,
+                )
+            )
             # This produces 5720 annotations
             aids = sorted(majority_aids.union(minority_aids))
         else:
-            aids = ibs.filter_annots_general(require_timestamp=True,
-                                             is_known=True,
-                                             species='primary',
-                                             minqual='poor')
+            aids = ibs.filter_annots_general(
+                require_timestamp=True, is_known=True, species='primary', minqual='poor'
+            )
 
         if ibs.dbname.startswith('MantaMatcher'):
             # Remove some of the singletons for this db
@@ -389,8 +411,7 @@ class DBInputs(object):
 def find_minority_class_ccs(infr):
     # Finds ccs involved in photobombs and incomparble cases
     pb_edges = [
-        edge for edge, tags in infr.gen_edge_attrs('tags')
-        if 'photobomb'in tags
+        edge for edge, tags in infr.gen_edge_attrs('tags') if 'photobomb' in tags
     ]
     incomp_edges = list(infr.incomp_graph.edges())
     minority_edges = pb_edges + incomp_edges
@@ -402,11 +423,11 @@ def find_minority_class_ccs(infr):
 def test_mcc():
     import wbia.plottool as pt
     import sklearn.metrics
+
     num = 100
     xdata = np.linspace(0, 1, num * 2)
     ydata = np.linspace(1, -1, num * 2)
-    pt.plt.plot(xdata, ydata, '--k',
-                label='linear')
+    pt.plt.plot(xdata, ydata, '--k', label='linear')
 
     y_true = [1] * num + [0] * num
     y_pred = y_true[:]
@@ -430,25 +451,25 @@ def test_mcc():
 
 class ExpandingSample(ut.NiceRepr):
 
-        #         nid = enc.nids[0]
-        #         if len(nid_to_splits[nid]) == 0:
-        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
-        #             nid_to_splits[nid].extend(chosen)
+    #         nid = enc.nids[0]
+    #         if len(nid_to_splits[nid]) == 0:
+    #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+    #             nid_to_splits[nid].extend(chosen)
 
-        #     qaids = []
-        #     dname_encs = []
-        #     confusor_pool = []
-        #     for nid, aids_ in nid_to_splits.items():
-        #         if len(aids_) < 2:
-        #             confusor_pool.extend(aids_)
-        #         else:
-        #             pyrng.shuffle(aids_)
-        #             qaids.append(aids_[0])
-        #             dname_encs.append([[aids_[1]]])
-        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
-        #     query_samples.append(self)
-        # return query_samples
+    #     qaids = []
+    #     dname_encs = []
+    #     confusor_pool = []
+    #     for nid, aids_ in nid_to_splits.items():
+    #         if len(aids_) < 2:
+    #             confusor_pool.extend(aids_)
+    #         else:
+    #             pyrng.shuffle(aids_)
+    #             qaids.append(aids_[0])
+    #             dname_encs.append([[aids_[1]]])
+    #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
+    #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
+    #     query_samples.append(self)
+    # return query_samples
     def __init__(sample, qaids, dname_encs, confusor_pool):
         sample.qaids = qaids
         sample.dname_encs = dname_encs
@@ -471,15 +492,18 @@ class ExpandingSample(ut.NiceRepr):
             daids_ = ut.total_flatten(dname_encs_)
             target_daids_list.append(daids_)
             name_lens = ut.lmap(len, dnames_)
-            dpername = (name_lens[0] if ut.allsame(name_lens) else
-                        np.mean(name_lens))
-            target_info_list_.append(ut.odict([
-                ('qsize', len(sample.qaids)),
-                ('t_n_names', len(dname_encs_)),
-                ('t_dpername', dpername),
-                ('t_denc_pername', num),
-                ('t_dsize', len(daids_)),
-            ]))
+            dpername = name_lens[0] if ut.allsame(name_lens) else np.mean(name_lens)
+            target_info_list_.append(
+                ut.odict(
+                    [
+                        ('qsize', len(sample.qaids)),
+                        ('t_n_names', len(dname_encs_)),
+                        ('t_dpername', dpername),
+                        ('t_denc_pername', num),
+                        ('t_dsize', len(daids_)),
+                    ]
+                )
+            )
 
         # Append confusors to maintain a constant dbsize in each base sample
         dbsize_list = ut.lmap(len, target_daids_list)
@@ -501,14 +525,14 @@ class ExpandingSample(ut.NiceRepr):
 
         # Vary the dbsize by appending extra confusors
         if extra_dbsize_fracs is None:
-            extra_dbsize_fracs = [1.]
+            extra_dbsize_fracs = [1.0]
         extra_fracs = np.array(extra_dbsize_fracs)
         n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
         daids_list = []
         info_list = []
         for n in n_extra_list:
             for daids_, info_ in zip(padded_daids_list, padded_info_list_):
-                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n:]
+                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n :]
                 daids = sorted(daids_ + extra_aids)
                 daids_list.append(daids)
                 info = info_.copy()
@@ -517,6 +541,7 @@ class ExpandingSample(ut.NiceRepr):
                 info_list.append(info)
 
         import pandas as pd
+
         verbose = 0
         if verbose:
             print(pd.DataFrame.from_records(info_list))
@@ -551,8 +576,9 @@ def split_tabular(text):
 
 @ut.reloadable_class
 class Tabular(object):
-    def __init__(self, data=None, colfmt=None, hline=None, caption='',
-                 index=True, escape=True):
+    def __init__(
+        self, data=None, colfmt=None, hline=None, caption='', index=True, escape=True
+    ):
         self._data = data
         self.n_cols = None
         self.n_rows = None
@@ -609,7 +635,8 @@ class Tabular(object):
         # Put all numbers in math mode
         pat = (
             # ut.negative_lookbehind('[A-Za-z]') +
-            ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*') +
+            ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
+            +
             # ut.negative_lookahead('[A-Za-z]') +
             ''
         )
@@ -629,8 +656,11 @@ class Tabular(object):
         elif isinstance(self._data, pd.DataFrame):
             df = self._data
             text = df.to_latex(
-                index=self.index, escape=self.escape,
-                float_format=lambda x: 'nan' if np.isnan(x) else ut.repr2(x, precision=self.precision)
+                index=self.index,
+                escape=self.escape,
+                float_format=lambda x: 'nan'
+                if np.isnan(x)
+                else ut.repr2(x, precision=self.precision)
                 # ('%.' + str(self.precision) + 'f') % (x))
             )
             if self.index:
@@ -651,6 +681,7 @@ class Tabular(object):
 
         if self.theadify:
             import textwrap
+
             width = self.theadify
             wrapper = textwrap.TextWrapper(width=width, break_long_words=False)
 
@@ -660,8 +691,7 @@ class Tabular(object):
                 line = line.rstrip('\\')
                 headers = [h.strip() for h in line.split('&')]
                 headers = ['\\\\'.join(wrapper.wrap(h)) for h in headers]
-                headers = [h if h == '{}' else '\\thead{' + h + '}'
-                           for h in headers]
+                headers = [h if h == '{}' else '\\thead{' + h + '}' for h in headers]
                 line = ' & '.join(headers) + '\\\\'
                 new_lines.append(line)
             new_header = '\n'.join(new_lines)
@@ -690,10 +720,12 @@ class Tabular(object):
         tabular = join_tabular(new_parts, hline=self.hline)
 
         if self._align_multicolumn_hack:
+
             def hack_repl_align(match):
-                part = match.string[match.start():match.end()]
+                part = match.string[match.start() : match.end()]
                 spaces = part.count(' ') + part.count('&')
                 return ' ' * spaces + '\\multicolumn'
+
             tabular = re.sub('\\\\multi( *&)*column', hack_repl_align, tabular)
             tabular = tabular.replace('\\midrule', '\\hline')
 
@@ -704,17 +736,22 @@ class Tabular(object):
             caption = self.caption
         tabular = self.as_tabular()
         table = ut.codeblock(
-            r'''
+            r"""
             \begin{{table}}[h]
                 \centering
                 \caption{{{caption}}}
-            ''').format(caption=caption)
+            """
+        ).format(caption=caption)
         if tabular:
             table += '\n' + ut.indent(tabular)
-        table += '\n' + ut.codeblock(
-            '''
+        table += (
+            '\n'
+            + ut.codeblock(
+                """
             \end{{table}}
-            ''').format()
+            """
+            ).format()
+        )
         return table
 
 
@@ -770,6 +807,8 @@ if __name__ == '__main__':
         python -m wbia.scripts._thesis_helpers --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

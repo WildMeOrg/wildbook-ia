@@ -4,6 +4,7 @@ import utool as ut
 import numpy as np
 import six
 import networkx as nx  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
 
 
@@ -156,14 +157,14 @@ def make_expanded_input_graph(graph, target):
             elif item != prev:
                 compressed.append(item)
             prev = item
-        #if len(compressed) > 1 and compressed[0] in ['1', '*']:
+        # if len(compressed) > 1 and compressed[0] in ['1', '*']:
         if len(compressed) > 1 and compressed[0] == '1':
             compressed = compressed[1:]
         compressed = tuple(compressed)
         return compressed
 
     BIG_HACK = True
-    #BIG_HACK = False
+    # BIG_HACK = False
 
     def condense_accum_ids_stars(rinput_path_id):
         # Hack to condense and consolidate graph sources
@@ -189,12 +190,18 @@ def make_expanded_input_graph(graph, target):
         if BIG_HACK and True:
             v_list = ut.take_column(edge_list, 1)
             # show the local_input_ids at the entire level
-            pred_ids = ([
-                [x['local_input_id'] for x in list(graph.pred[node].values())[0].values()]
-                if len(graph.pred[node]) else []
+            pred_ids = [
+                [
+                    x['local_input_id']
+                    for x in list(graph.pred[node].values())[0].values()
+                ]
+                if len(graph.pred[node])
+                else []
                 for node in v_list
-            ])
-            toaccum_list = [x + ':' + ';'.join(y) for x, y in zip(toaccum_list_, pred_ids)]
+            ]
+            toaccum_list = [
+                x + ':' + ';'.join(y) for x, y in zip(toaccum_list_, pred_ids)
+            ]
         else:
             toaccum_list = toaccum_list_
 
@@ -214,10 +221,16 @@ def make_expanded_input_graph(graph, target):
 
     graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target)).copy()
     # Remove superfluous data
-    ut.nx_delete_edge_attr(graph, ['edge_type', 'isnwise',
-                                   'nwise_idx',
-                                   # 'parent_colx',
-                                   'ismulti'])
+    ut.nx_delete_edge_attr(
+        graph,
+        [
+            'edge_type',
+            'isnwise',
+            'nwise_idx',
+            # 'parent_colx',
+            'ismulti',
+        ],
+    )
 
     # Make all '*' edges have distinct local_input_id's.
     # TODO: allow non-distinct suffixes
@@ -236,8 +249,7 @@ def make_expanded_input_graph(graph, target):
     graph.add_edge(target, target_output, local_input_id='t', taillabel='1')
 
     # Find all paths from the table to the source.
-    paths_to_source   = ut.all_multi_paths(graph, source_input,
-                                           target_output, data=True)
+    paths_to_source = ut.all_multi_paths(graph, source_input, target_output, data=True)
 
     # Build expanded input graph
     # The inputs to this table can be derived from this graph.
@@ -249,8 +261,10 @@ def make_expanded_input_graph(graph, target):
         accumulate_input_ids(edge_list)
 
         # A node's output(?) on this path determines its expanded branch id
-        exi_nodes = [ExiNode(v, BranchId(d['accum_id'], k, d.get('parent_colx', -1)))
-                     for u, v, k, d in edge_list[:-1]]
+        exi_nodes = [
+            ExiNode(v, BranchId(d['accum_id'], k, d.get('parent_colx', -1)))
+            for u, v, k, d in edge_list[:-1]
+        ]
         exi_node_to_label = {
             node: node[0] + '[' + ','.join([str(x) for x in node[1]]) + ']'
             for node in exi_nodes
@@ -293,9 +307,12 @@ def make_expanded_input_graph(graph, target):
     # Need to specify any combo of red nodes such that
     # 1) for each path from a (leaf) to the (root) there is exactly one red
     # node along that path.  This garentees that all inputs are gievn.
-    path_list = ut.flatten([
-        nx.all_simple_paths(exi_graph, source_node, sink_node)
-        for source_node in source_nodes])
+    path_list = ut.flatten(
+        [
+            nx.all_simple_paths(exi_graph, source_node, sink_node)
+            for source_node in source_nodes
+        ]
+    )
     rootmost_nodes = set([])
     for path in path_list:
         flags = [node_dict[node]['root_specifiable'] for node in path]
@@ -323,12 +340,12 @@ def recolor_exi_graph(exi_graph, rootmost_nodes):
     node_dict = ut.nx_node_dict(exi_graph)
     for node in exi_graph.nodes():
         if node_dict[node]['root_specifiable']:
-            node_dict[node]['color'] = [1, .7, .6]
+            node_dict[node]['color'] = [1, 0.7, 0.6]
     for node in rootmost_nodes:
         node_dict[node]['color'] = [1, 0, 0]
 
 
-#@ut.reloadable_class
+# @ut.reloadable_class
 class RootMostInput(ut.HashComparable):
     def __init__(rmi, node, sink, exi_graph):
         rmi.node = node
@@ -351,22 +368,28 @@ class RootMostInput(ut.HashComparable):
             >>> rmi = inputs.rmi_list[1]
             >>> assert len(rmi.parent_level()) == 2
         """
+
         def yield_if(G, child, edge):
             node_dict = ut.nx_node_dict(G)
             return node_dict[child].get('root_specifiable')
+
         def continue_if(G, child, edge):
             node_dict = ut.nx_node_dict(G)
             return not node_dict[child].get('root_specifiable')
+
         bfs_iter = ut.bfs_conditional(
-            rmi.exi_graph, rmi.node, reverse=True,
+            rmi.exi_graph,
+            rmi.node,
+            reverse=True,
             yield_if=yield_if,
             continue_if=continue_if,
             yield_source=False,
             yield_nodes=True,
         )
         bfs_iter = list(bfs_iter)
-        parent_level = [RootMostInput(node, rmi.sink, rmi.exi_graph)
-                        for node in bfs_iter]
+        parent_level = [
+            RootMostInput(node, rmi.sink, rmi.exi_graph) for node in bfs_iter
+        ]
         return parent_level
 
     @property
@@ -392,7 +415,7 @@ class RootMostInput(ut.HashComparable):
 
     def __repr__(rmi):
         return str(rmi.node)
-        #rmi.tablename + '[' + ', '.join(rmi.input_id) + ']'
+        # rmi.tablename + '[' + ', '.join(rmi.input_id) + ']'
 
     __str__ = __repr__
 
@@ -424,8 +447,7 @@ def sort_rmi_list(rmi_list):
     # rmi = rmi_list[0]  # hack
     # reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]
     sort_keys = [
-        tuple([r.branch_id.parent_colx for r in rs])
-        for rs in reverse_compute_branches
+        tuple([r.branch_id.parent_colx for r in rs]) for rs in reverse_compute_branches
     ]
     sortx = ut.argsort(sort_keys)
     rmi_list = ut.take(rmi_list, sortx)
@@ -444,7 +466,7 @@ class TableInput(ut.NiceRepr):
         inputs.rmi_list = rmi_list
         inputs.exi_graph = exi_graph
         inputs.table = table
-        #if reorder:
+        # if reorder:
         inputs._order_rmi_list(reorder)
 
     def _order_rmi_list(inputs, reorder=False):
@@ -508,9 +530,12 @@ class TableInput(ut.NiceRepr):
         source_nodes = list(ut.nx_source_nodes(inputs.exi_graph))
         assert len(sink_nodes) == 1, 'can only have one sink node'
         sink_node = sink_nodes[0]
-        path_list = ut.flatten([
-            nx.all_simple_paths(inputs.exi_graph, source_node, sink_node)
-            for source_node in source_nodes])
+        path_list = ut.flatten(
+            [
+                nx.all_simple_paths(inputs.exi_graph, source_node, sink_node)
+                for source_node in source_nodes
+            ]
+        )
         rootmost_nodes = set([])
         rootmost_candidates = set(rootmost_exi_nodes)
         rootmost_nodes = set([])
@@ -561,13 +586,13 @@ class TableInput(ut.NiceRepr):
     def total_expand(inputs):
         source_nodes = list(ut.nx_source_nodes(inputs.exi_graph))
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
-        rmi_list = [RootMostInput(node, sink, inputs.exi_graph)
-                    for node in source_nodes]
+        rmi_list = [
+            RootMostInput(node, sink, inputs.exi_graph) for node in source_nodes
+        ]
         exi_graph = inputs.exi_graph
         table = inputs.table
         reorder = True
-        new_inputs = TableInput(rmi_list, exi_graph, table,
-                                reorder=reorder)
+        new_inputs = TableInput(rmi_list, exi_graph, table, reorder=reorder)
         return new_inputs
 
     def expand_input(inputs, index, inplace=False):
@@ -593,8 +618,7 @@ class TableInput(ut.NiceRepr):
             >>>     '(2) unexpected indexer in %s' % (inputs2,))
         """
         if isinstance(index, six.string_types):
-            index_list = ut.where([rmi.tablename == index
-                                   for rmi in inputs.rmi_list])
+            index_list = ut.where([rmi.tablename == index for rmi in inputs.rmi_list])
             if len(index_list) == 0:
                 index = 0
             else:
@@ -603,11 +627,12 @@ class TableInput(ut.NiceRepr):
         rmi = inputs.rmi_list[index]
         parent_level = rmi.parent_level()
         if len(parent_level) == 0:
-            #raise AssertionError('no parents to expand')
+            # raise AssertionError('no parents to expand')
             new_rmi_list = inputs.rmi_list[:]
         else:
-            new_rmi_list = ut.insert_values(inputs.rmi_list, index,
-                                            parent_level, inplace)
+            new_rmi_list = ut.insert_values(
+                inputs.rmi_list, index, parent_level, inplace
+            )
             new_rmi_list = ut.unique(new_rmi_list)
         if inplace:
             inputs.rmi_list = new_rmi_list
@@ -644,7 +669,8 @@ class TableInput(ut.NiceRepr):
         """
         # Compute the order in which all noes must be evaluated
         import networkx as nx  # NOQA
-        ordered_compute_nodes =  [rmi.compute_order() for rmi in inputs.rmi_list]
+
+        ordered_compute_nodes = [rmi.compute_order() for rmi in inputs.rmi_list]
         flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
 
         rgraph = inputs.exi_graph.reverse()
@@ -704,12 +730,13 @@ class TableInput(ut.NiceRepr):
             input_edges = [(node, output_node) for node in input_nodes]
 
             # another sorting strategy. maybe this is correct.
-            sortx = [exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges]
+            sortx = [
+                exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges
+            ]
             sortx_ = np.argsort(sortx)
             input_nodes = ut.take(input_nodes, sortx_)
 
-            input_rmis = [RootMostInput(node, sink, exi_graph)
-                          for node in input_nodes]
+            input_rmis = [RootMostInput(node, sink, exi_graph) for node in input_nodes]
 
             # input_rmis = sort_rmi_list(input_rmis)
 
@@ -781,6 +808,7 @@ class TableInput(ut.NiceRepr):
         """
         import wbia.plottool as pt
         from wbia.plottool.interactions import ExpandableInteraction
+
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction()
@@ -798,10 +826,16 @@ class TableInput(ut.NiceRepr):
                 node_dict[rmi.node]['label'] += ' #%d' % (count,)
 
         plot_kw = {'fontname': 'Ubuntu'}
-        #inter.append_plot(
+        # inter.append_plot(
         #    ut.partial(pt.show_nx, G, title='Dependency Subgraph (%s)' % (tablename), **plot_kw))
         inter.append_plot(
-            ut.partial(pt.show_nx, exi_graph, title='Expanded Input (%s)' % (tablename,), **plot_kw))
+            ut.partial(
+                pt.show_nx,
+                exi_graph,
+                title='Expanded Input (%s)' % (tablename,),
+                **plot_kw
+            )
+        )
         if autostart:
             inter.start()
         return inter
@@ -840,10 +874,9 @@ def get_rootmost_inputs(exi_graph, table):
     attrs = ut.nx_get_default_node_attributes(exi_graph, 'rootmost', False)
     rootmost_exi_nodes = [node for node, v in attrs.items() if v]
     sink = list(ut.nx_sink_nodes(exi_graph))[0]
-    rmi_list = [RootMostInput(node, sink, exi_graph)
-                for node in rootmost_exi_nodes]
+    rmi_list = [RootMostInput(node, sink, exi_graph) for node in rootmost_exi_nodes]
     inputs = TableInput(rmi_list, exi_graph, table, reorder=True)
-    #x = inmputs.parent_level()[0].parent_level()[0]  # NOQA
+    # x = inmputs.parent_level()[0].parent_level()[0]  # NOQA
     return inputs
 
 
@@ -854,6 +887,8 @@ if __name__ == '__main__':
         python -m dtool.input_helpers --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

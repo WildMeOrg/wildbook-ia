@@ -5,9 +5,9 @@ import util_git
 import __REPOS__
 
 
-PULL    = '--pull' in sys.argv
+PULL = '--pull' in sys.argv
 DEVELOP = '--develop' in sys.argv
-CHECK   = '--nocheck' not in sys.argv
+CHECK = '--nocheck' not in sys.argv
 
 
 # Get IBEIS git repository URLS and their local path

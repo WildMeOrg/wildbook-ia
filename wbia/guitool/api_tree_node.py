@@ -5,11 +5,12 @@ from types import GeneratorType
 from six.moves import zip, range
 import utool
 import utool as ut
+
 (print, print_, rrr) = utool.inject2(__name__)
 
 
 TREE_NODE_BASE = QtCore.QObject
-#TREE_NODE_BASE = object
+# TREE_NODE_BASE = object
 VERBOSE_TREE_NODE = ut.get_argflag(('--verb-qt-tree'))
 
 
@@ -21,21 +22,22 @@ class TreeNode(TREE_NODE_BASE):
             list child_nodes
             TreeNode parent_node
     """
-    #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
+
+    # __slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
         TREE_NODE_BASE.__init__(self, parent=parent_node)
-        #super(TreeNode, self).__init__(parent_node)
-        #if TREE_NODE_BASE is not object:
-        #if VERBOSE_TREE_NODE:
+        # super(TreeNode, self).__init__(parent_node)
+        # if TREE_NODE_BASE is not object:
+        # if VERBOSE_TREE_NODE:
         #    print('[TreeNode] __init__')
-        #super(TreeNode, self).__init__(parent=parent_node)
+        # super(TreeNode, self).__init__(parent=parent_node)
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
         self.level = level
 
     def __del__(self):
-        #print('[guitool] DELETING THE TREE NODE!:')
+        # print('[guitool] DELETING THE TREE NODE!:')
         if VERBOSE_TREE_NODE:
             print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
@@ -78,12 +80,13 @@ class TreeNode(TREE_NODE_BASE):
             return self.parent_node
         except AttributeError as ex:
             import utool as ut
+
             ut.printex(ex, 'Error getting parent', tb=True)
-            #print(ex)
-            #print('[tree_node] dir(self)=')
-            #print(dir(self))
-            #print('[tree_node] self.__dict__=')
-            #print(utool.repr2(self.__dict__))
+            # print(ex)
+            # print('[tree_node] dir(self)=')
+            # print(dir(self))
+            # print('[tree_node] self.__dict__=')
+            # print(utool.repr2(self.__dict__))
             raise
 
     def get_num_children(self):
@@ -126,7 +129,7 @@ class TreeNode(TREE_NODE_BASE):
         # so create it
         if isinstance(self.child_nodes, GeneratorType):
             print('[tree_node] lazy evaluation level=%r' % self.level)
-            #print('[tree_node] lazy evaluation level=%r' % self.level)
+            # print('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
 
 
@@ -158,7 +161,7 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
         id_self = id_dict[id_self]
         id_parent = id_dict[id_parent]
     elif charids is True:
-        #if ord(last[0]) < 255:
+        # if ord(last[0]) < 255:
         #    last[0] = [0]
         if id_parent not in id_dict:
             id_dict[id_parent] = last[0]
@@ -169,9 +172,13 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
         id_self = id_dict[id_self]
         id_parent = id_dict[id_parent]
     tup = (id_, level, str(id_self), str(id_parent))
-    self_str = (indent + "TreeNode(id_=%r, level=%r, self=%s, parent_node=%s)" % tup)
-    child_strs = [tree_node_string(child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last)
-                  for child in self.get_children()]
+    self_str = indent + 'TreeNode(id_=%r, level=%r, self=%s, parent_node=%s)' % tup
+    child_strs = [
+        tree_node_string(
+            child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last
+        )
+        for child in self.get_children()
+    ]
     str_ = '\n'.join([self_str] + child_strs)
     return str_
 
@@ -235,19 +242,19 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         print('root_ids = %r' % (root_ids,))
         print('num_levels = %r' % (num_levels,))
     for level in range(num_levels):
-        #print('------------ level=%r -----------' % (level,))
-        #print(utool.repr2(locals()))
+        # print('------------ level=%r -----------' % (level,))
+        # print(utool.repr2(locals()))
         new_node_lists = []
-        new_ids_lists  = []
+        new_ids_lists = []
         for parent_node, id_list in zip(parent_node_list, ids_list):
-            #pass
-            #assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
+            # pass
+            # assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
             #                                                      utool.repr2(locals()))
-            node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
+            node_list = [TreeNode(id_, parent_node, level) for id_ in id_list]
             if level + 1 < num_levels:
                 child_ider = ider_list[level + 1]
-                next_ids =  child_ider(id_list)
-                #[child_ider(id_) for id_ in child_ids]
+                next_ids = child_ider(id_list)
+                # [child_ider(id_) for id_ in child_ids]
             else:
                 next_ids = []
             parent_node.set_children(node_list)
@@ -301,13 +308,16 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
         child_nodes = (TreeNode(id_, parent_node, level) for id_ in child_ids)
     else:
         child_ider = ider_list[level + 1]
-        child_nodes =  [_populate_tree_recursive(
-            TreeNode(id_, parent_node, level),
-            child_ider(id_),
-            num_levels,
-            ider_list,
-            level + 1)
-            for id_ in child_ids]
+        child_nodes = [
+            _populate_tree_recursive(
+                TreeNode(id_, parent_node, level),
+                child_ider(id_),
+                num_levels,
+                ider_list,
+                level + 1,
+            )
+            for id_ in child_ids
+        ]
     parent_node.set_children(child_nodes)
     return parent_node
 
@@ -356,11 +366,16 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
         child_nodes_iter = (TreeNode(id_, parent_node, level) for id_ in child_ids)
     else:
         child_ider = ider_list[level + 1]
-        child_nodes_iter =  (
+        child_nodes_iter = (
             _populate_tree_recursive(
-                TreeNode(id_, parent_node, level), child_ider(id_),
-                num_levels, ider_list, level + 1)
-            for id_ in child_ids)
+                TreeNode(id_, parent_node, level),
+                child_ider(id_),
+                num_levels,
+                ider_list,
+                level + 1,
+            )
+            for id_ in child_ids
+        )
     # seting children as an iterator triggers lazy loading
     parent_node.set_children(child_nodes_iter)
     return parent_node
@@ -371,11 +386,11 @@ def build_internal_structure(model):
     Cyth:
         <CYTH returns="TreeNode">
     """
-    #from wbia.guitool.api_item_model import *
+    # from wbia.guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
     ider_list = model.get_iders()
     num_levels = len(ider_list)
-    #USE_RECURSIVE = True
+    # USE_RECURSIVE = True
     USE_RECURSIVE = False
     if USE_RECURSIVE:
         # I trust this code more although it is slightly slower
@@ -385,8 +400,10 @@ def build_internal_structure(model):
             root_id_list = ider_list[0]()
         root_node = TreeNode(-1, None, -1)
         level = 0
-        #_populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
-        _populate_tree_recursive_lazy(root_node, root_id_list, num_levels, ider_list, level)
+        # _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+        _populate_tree_recursive_lazy(
+            root_node, root_id_list, num_levels, ider_list, level
+        )
     else:
         # TODO: Vet this code a bit more.
         root_node = TreeNode(-1, None, -1)
@@ -397,7 +414,7 @@ def build_internal_structure(model):
         infostr = tree_node_string(root_node, charids=2)
         print(infostr)
         # print(ut.repr3(root_node.__dict__))
-    #assert root_node.__dict__, "root_node.__dict__ is empty"
+    # assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
 
@@ -420,6 +437,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

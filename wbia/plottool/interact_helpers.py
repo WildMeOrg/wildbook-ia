@@ -1,14 +1,15 @@
 from __future__ import absolute_import, division, print_function
 from wbia.plottool import custom_figure
 import utool as ut
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #                                                       '[interact_helpers]',
 #                                                       DEBUG=False)
 ut.noinject(__name__, '[interact_helpers]')
 
-#==========================
+# ==========================
 # HELPERS
-#==========================
+# ==========================
 
 # RCOS TODO: We should change the fnum, pnum figure layout into one managed by
 # gridspec.
@@ -22,18 +23,21 @@ def detect_keypress(fig):
     def on_key_release(event):
         if event.key == 'shift':
             shift_is_held = False  # NOQA
+
     fig.canvas.mpl_connect('key_press_event', on_key_press)
     fig.canvas.mpl_connect('key_release_event', on_key_release)
 
 
 def clicked_inside_axis(event):
-    in_axis = event is not None and (event.inaxes is not None and event.xdata is not None)
+    in_axis = event is not None and (
+        event.inaxes is not None and event.xdata is not None
+    )
     if not in_axis:
         pass
-        #print(' ...out of axis')
+        # print(' ...out of axis')
     else:
         pass
-        #print(' ...in axis')
+        # print(' ...in axis')
     return in_axis
 
 
@@ -52,7 +56,7 @@ def begin_interaction(type_, fnum):
 
 
 def disconnect_callback(fig, callback_type, **kwargs):
-    #print('[df2] disconnect %r callback' % callback_type)
+    # print('[df2] disconnect %r callback' % callback_type)
     axes = kwargs.get('axes', [])
     for ax in axes:
         ax._hs_viztype = ''
@@ -88,7 +92,7 @@ def connect_callback(fig, callback_type, callback_fn):
         axes_enter_event
         axes_leave_event
     """
-    #printDBG('[ih] register %r callback' % callback_type)
+    # printDBG('[ih] register %r callback' % callback_type)
     if callback_fn is None:
         return
     # Store the callback in the figure diction so it doesnt lose scope
@@ -98,9 +102,9 @@ def connect_callback(fig, callback_type, callback_fn):
     fig.__dict__[cbfn_type] = callback_fn
 
 
-#REGIESTERED_INTERACTIONS = []
+# REGIESTERED_INTERACTIONS = []
 
 
-#def register_interaction(interaction):
+# def register_interaction(interaction):
 #    global REGIESTERED_INTERACTIONS
 #    REGIESTERED_INTERACTIONS.append(interaction)

@@ -8,6 +8,7 @@ from os.path import dirname
 import platform
 from utool import util_cache, util_path
 import utool as ut
+
 ut.noinject(__name__, '[guitool.dialogs]', DEBUG=False)
 
 
@@ -16,12 +17,16 @@ SELDIR_CACHEID = 'guitool_selected_directory'
 
 def _guitool_cache_write(key, val):
     """ Writes to global IBEIS cache """
-    util_cache.global_cache_write(key, val, appname='wbia')  # HACK, user should specify appname
+    util_cache.global_cache_write(
+        key, val, appname='wbia'
+    )  # HACK, user should specify appname
 
 
 def _guitool_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return util_cache.global_cache_read(key, appname='wbia', **kwargs)  # HACK, user should specify appname
+    return util_cache.global_cache_read(
+        key, appname='wbia', **kwargs
+    )  # HACK, user should specify appname
 
 
 def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
@@ -33,14 +38,26 @@ def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
     if ut.get_argflag('-y') or ut.get_argflag('--yes'):
         # DONT ASK WHEN SPECIFIED
         return True
-    ans = user_option(parent=parent, msg=msg, title=title, options=['Yes', 'No'],
-                           use_cache=False, default=default)
+    ans = user_option(
+        parent=parent,
+        msg=msg,
+        title=title,
+        options=['Yes', 'No'],
+        use_cache=False,
+        default=default,
+    )
     return ans == 'Yes'
 
 
-def user_option(parent=None, msg='msg', title='user_option',
-                options=['Yes', 'No'], use_cache=False, default=None,
-                detailed_msg=None):
+def user_option(
+    parent=None,
+    msg='msg',
+    title='user_option',
+    options=['Yes', 'No'],
+    use_cache=False,
+    default=None,
+    detailed_msg=None,
+):
     """
     Prompts user with several options with ability to save decision
 
@@ -91,15 +108,17 @@ def user_option(parent=None, msg='msg', title='user_option',
     msgbox = _newMsgBox(msg, title, parent, resizable=detailed_msg is not None)
     #     _addOptions(msgbox, options)
     # def _addOptions(msgbox, options):
-    #msgbox.addButton(QtWidgets.QMessageBox.Close)
+    # msgbox.addButton(QtWidgets.QMessageBox.Close)
     options = list(options)[::-1]
     for opt in options:
         role = QtWidgets.QMessageBox.ApplyRole
         msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, (
-            'default=%r is not in options=%r' % (default, options))
+        assert default in options, 'default=%r is not in options=%r' % (
+            default,
+            options,
+        )
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -181,8 +200,9 @@ def user_question(msg):
     return msgbox
 
 
-def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
-                  mode='open', exec_=False):
+def newFileDialog(
+    directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True, mode='open', exec_=False
+):
     r"""
     Args:
         directory_ (?):
@@ -225,7 +245,9 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
         return qdlg
 
 
-def _set_dialog_sidebar(qdlg, directory_=None, use_sidebar_cwd=True, other_sidebar_dpaths=[]):
+def _set_dialog_sidebar(
+    qdlg, directory_=None, use_sidebar_cwd=True, other_sidebar_dpaths=[]
+):
     sidebar_urls = qdlg.sidebarUrls()[:]
     if use_sidebar_cwd:
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(os.getcwd()))
@@ -233,7 +255,7 @@ def _set_dialog_sidebar(qdlg, directory_=None, use_sidebar_cwd=True, other_sideb
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(directory_))
     sidebar_urls.extend(list(map(QtCore.QUrl.fromUserInput, other_sidebar_dpaths)))
     sidebar_urls = ut.unique(sidebar_urls)
-    #print('sidebar_urls = %r' % (sidebar_urls,))
+    # print('sidebar_urls = %r' % (sidebar_urls,))
     qdlg.setSidebarUrls(sidebar_urls)
 
 
@@ -251,33 +273,41 @@ class QDirectoriesDialog(QtWidgets.QFileDialog):
             # view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
 
-def newDirectoryDialog(caption, directory=None, other_sidebar_dpaths=[],
-                       use_sidebar_cwd=True, single_directory=True):
+def newDirectoryDialog(
+    caption,
+    directory=None,
+    other_sidebar_dpaths=[],
+    use_sidebar_cwd=True,
+    single_directory=True,
+):
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
-        qopt = QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
+        qopt = (
+            QtWidgets.QFileDialog.ShowDirsOnly
+            | QtWidgets.QFileDialog.DontUseNativeDialog
+        )
     else:
         qopt = QtWidgets.QFileDialog.ShowDirsOnly
     if directory is None:
         directory = '.'
-    qtkw = {
-        'caption': caption,
-        'options': qopt,
-        'directory': directory
-    }
+    qtkw = {'caption': caption, 'options': qopt, 'directory': directory}
     _dialog_class_ = QtWidgets.QFileDialog if single_directory else QDirectoriesDialog
     qdlg = _dialog_class_()
     _set_dialog_sidebar(qdlg, directory, use_sidebar_cwd, other_sidebar_dpaths)
     if single_directory:
-        dpath_list = [ str(qdlg.getExistingDirectory(None, **qtkw)) ]
+        dpath_list = [str(qdlg.getExistingDirectory(None, **qtkw))]
     else:
         qdlg.exec_()
         dpath_list = qdlg.selectedFiles()
     return qdlg, dpath_list
 
 
-def select_directory(caption='Select Directory', directory=None,
-                     other_sidebar_dpaths=[], use_sidebar_cwd=True):
+def select_directory(
+    caption='Select Directory',
+    directory=None,
+    other_sidebar_dpaths=[],
+    use_sidebar_cwd=True,
+):
     r"""
     Args:
         caption (str): (default = 'Select Directory')
@@ -313,8 +343,9 @@ def select_directory(caption='Select Directory', directory=None,
     else:
         directory_ = directory
     # hack to fix the dialog window on ubuntu
-    qdlg, dpath_list = newDirectoryDialog(caption, directory_, other_sidebar_dpaths,
-                                          use_sidebar_cwd)
+    qdlg, dpath_list = newDirectoryDialog(
+        caption, directory_, other_sidebar_dpaths, use_sidebar_cwd
+    )
     assert len(dpath_list) <= 1
     dpath = None if len(dpath_list) == 0 else dpath_list[0]
     print('[gt] dialog returned dpath = %r' % dpath)
@@ -328,8 +359,12 @@ def select_directory(caption='Select Directory', directory=None,
     return dpath
 
 
-def select_directories(caption='Select Folder(s)', directory=None,
-                       other_sidebar_dpaths=[], use_sidebar_cwd=True):
+def select_directories(
+    caption='Select Folder(s)',
+    directory=None,
+    other_sidebar_dpaths=[],
+    use_sidebar_cwd=True,
+):
     r"""
     Args:
         caption (str): (default = 'Select Directory')
@@ -364,8 +399,13 @@ def select_directories(caption='Select Folder(s)', directory=None,
         directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:
         directory_ = directory
-    qdlg, dpath_list = newDirectoryDialog(caption, directory_, other_sidebar_dpaths,
-                                          use_sidebar_cwd, single_directory=False)
+    qdlg, dpath_list = newDirectoryDialog(
+        caption,
+        directory_,
+        other_sidebar_dpaths,
+        use_sidebar_cwd,
+        single_directory=False,
+    )
     print('[gt] dialog returned dpath_list = %r' % dpath_list)
     if dpath_list is None or len(dpath_list) == 0:
         dpath_list = []
@@ -383,8 +423,14 @@ def select_images(caption='Select images:', directory=None):
     return select_files(caption, directory, name_filter)
 
 
-def select_files(caption='Select Files:', directory=None, name_filter=None,
-                 other_sidebar_dpaths=[], use_sidebar_cwd=True, single_file=False):
+def select_files(
+    caption='Select Files:',
+    directory=None,
+    name_filter=None,
+    other_sidebar_dpaths=[],
+    use_sidebar_cwd=True,
+    single_file=False,
+):
     """
     Selects one or more files from disk using a qt dialog
 
@@ -418,15 +464,15 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
         >>> result = str(dpath)
         >>> print(result)
     """
-    #print(caption)
+    # print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
-    #qdlg = QtWidgets.QFileDialog()
+    # qdlg = QtWidgets.QFileDialog()
     qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
     kwargs = {
-        'caption'  : caption,
+        'caption': caption,
         'directory': directory,
-        'filter'   : name_filter,
+        'filter': name_filter,
     }
     if single_file:
         response = qdlg.getOpenFileName(**kwargs)
@@ -438,6 +484,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
     _guitool_cache_write(SELDIR_CACHEID, directory)
     return file_list
 
+
 # Prevent messageboxes from being garbage collected
 __MESSAGE_BOXES__ = []
 
@@ -446,21 +493,25 @@ def _register_msgbox(msgbox):
     """ Dont let the message box lose scope """
     global __MESSAGE_BOXES__
     __MESSAGE_BOXES__.append(msgbox)
+
     @QtCore.pyqtSlot(QtCore.QObject)
     def _close_msgbox(qobj):
         global __MESSAGE_BOXES__
         __MESSAGE_BOXES__.remove(msgbox)
+
     msgbox.destroyed.connect(_close_msgbox)
 
 
-def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False, resizable=False):
+def _newMsgBox(
+    msg='', title='', parent=None, options=None, cache_reply=False, resizable=False
+):
     if resizable:
         msgbox = ResizableMessageBox(parent)
     else:
         msgbox = QtWidgets.QMessageBox(parent)
-    #msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    #std_buts = QtWidgets.QMessageBox.Close
-    #std_buts = QtWidgets.QMessageBox.NoButton
+    # msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    # std_buts = QtWidgets.QMessageBox.Close
+    # std_buts = QtWidgets.QMessageBox.NoButton
     std_buts = QtWidgets.QMessageBox.Cancel
     msgbox.setStandardButtons(std_buts)
     msgbox.setWindowTitle(title)
@@ -474,27 +525,30 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
     References:
         http://stackoverflow.com/questions/2655354/how-to-allow-resizing-of-qmessagebox-in-pyqt4
     """
+
     def __init__(self, *args):
         QtWidgets.QMessageBox.__init__(self, *args)
         self.setSizeGripEnabled(True)
 
     def event(self, event):
 
-        #print(event)
-        #print(event.type())
-        #print(ut.invert_dict(dict(QtCore.QEvent.__dict__))[event.type()])
-        #print(event.spontaneous())
-        #print(event.isAccepted())
+        # print(event)
+        # print(event.type())
+        # print(ut.invert_dict(dict(QtCore.QEvent.__dict__))[event.type()])
+        # print(event.spontaneous())
+        # print(event.isAccepted())
         result = QtWidgets.QMessageBox.event(self, event)
-        #print(event.isAccepted())
-        #print('----')
-        #if event != QtCore.QEvent.DeferredDelete:
+        # print(event.isAccepted())
+        # print('----')
+        # if event != QtCore.QEvent.DeferredDelete:
         try:
             self.setMinimumHeight(0)
             self.setMaximumHeight(16777215)
             self.setMinimumWidth(0)
             self.setMaximumWidth(16777215)
-            self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            self.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            )
 
             textEdit = self.findChild(QtWidgets.QTextEdit)
             if textEdit is not None:
@@ -502,7 +556,9 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
                 textEdit.setMaximumHeight(16777215)
                 textEdit.setMinimumWidth(0)
                 textEdit.setMaximumWidth(16777215)
-                textEdit.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+                textEdit.setSizePolicy(
+                    QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+                )
         except RuntimeError as ex:
             if ut.VERBOSE:
                 msg = 'Closing seems to cause C++ errors. Unsure how to fix properly.'
@@ -537,7 +593,7 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
         >>> ut.quit_if_noshow()
         >>> msgbox.exec_()
     """
-    #msgbox = QtWidgets.QMessageBox(None)
+    # msgbox = QtWidgets.QMessageBox(None)
     msgbox = ResizableMessageBox(None)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -656,18 +712,19 @@ def popup_menu(widget, pos, context_options):
         >>> else:
         ...    (selection, actions) = popup_menu(widget, pos, context_options)
     """
-    #menu = QtWidgets.QMenu(widget)
-    #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in context_options]
+    # menu = QtWidgets.QMenu(widget)
+    # actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in context_options]
     menu, action_list = build_nested_qmenu(widget, context_options)
-    #actions = [menu.addAction(opt, func) for (opt, func) in context_options]
+    # actions = [menu.addAction(opt, func) for (opt, func) in context_options]
     selection = menu.exec_(widget.mapToGlobal(pos))
     return selection, action_list
-    #pos=QtGui.QCursor.pos()
+    # pos=QtGui.QCursor.pos()
 
 
 def connect_context_menu(widget, context_options):
     def popup_slot(pos):
         return popup_menu(widget, pos, context_options)
+
     # Remove other context menus from this widget
     for _slot in _get_scope(widget, '_popup_scope'):
         widget.customContextMenuRequested.disconnect(_slot)
@@ -719,6 +776,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.guitool_dialogs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

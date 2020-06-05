@@ -6,9 +6,9 @@ import ctypes as C
 
 # TODO: rectify with the ctypes interface in pyhesaff
 
-#============================
+# ============================
 # General CTypes Interface
-#============================
+# ============================
 
 __QUIET__ = '--quiet' in sys.argv
 __VERBOSE__ = '--verbose' in sys.argv
@@ -43,10 +43,12 @@ def get_lib_dpath_list(root_dir):
     Returns:
         list: plausible directories to look for libraries
     """
-    get_lib_dpath_list = [root_dir,
-                          join(root_dir, 'lib'),
-                          join(root_dir, 'build'),
-                          join(root_dir, 'build', 'lib')]
+    get_lib_dpath_list = [
+        root_dir,
+        join(root_dir, 'lib'),
+        join(root_dir, 'build'),
+        join(root_dir, 'build', 'lib'),
+    ]
     return get_lib_dpath_list
 
 
@@ -59,7 +61,7 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
             for lib_dpath in get_lib_dpath_list(root_dir):
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
                 if verbose:
-                    print('\tChecking %r' % (lib_fpath, ))
+                    print('\tChecking %r' % (lib_fpath,))
                 if exists(lib_fpath):
                     if verbose:
                         print('\n[c] Checked: '.join(tried_fpaths))
@@ -78,9 +80,11 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
         if not recurse_down:
             break
 
-    msg = ('\n[C!] ERROR: load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
-           (libname, root_dir, recurse_down, verbose) +
-           '\n[c!] Cannot FIND dynamic library')
+    msg = (
+        '\n[C!] ERROR: load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)'
+        % (libname, root_dir, recurse_down, verbose)
+        + '\n[c!] Cannot FIND dynamic library'
+    )
     if verbose:
         print(msg)
         print('\n[c!] Checked: '.join(tried_fpaths))
@@ -109,6 +113,7 @@ def load_clib(libname, root_dir):
             cfunc = getattr(clib, func_name)
             cfunc.restype = return_type
             cfunc.argtypes = arg_type_list
+
         clib.__LIB_FPATH__ = lib_fpath
         return clib, def_cfunc
     except OSError as ex:

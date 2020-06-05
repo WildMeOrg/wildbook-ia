@@ -8,7 +8,7 @@ SeeAlso:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.control import controller_inject
 from flask import url_for, request, current_app  # NOQA
-import numpy as np   # NOQA
+import numpy as np  # NOQA
 import utool as ut
 import uuid
 import requests
@@ -17,9 +17,10 @@ import json
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 REMOTE_TESTING = True
@@ -45,7 +46,7 @@ else:
         REMOTE_UUID = None
 
 
-REMOTE_URL = 'http://%s:%s' % (REMOTE_DOMAIN, REMOTE_PORT, )
+REMOTE_URL = 'http://%s:%s' % (REMOTE_DOMAIN, REMOTE_PORT,)
 REMOTE_UUID = None if REMOTE_UUID is None else uuid.UUID(REMOTE_UUID)
 
 
@@ -54,7 +55,7 @@ def _construct_route_url(route_rule):
         route_rule = '/' + route_rule
     if not route_rule.endswith('/'):
         route_rule = route_rule + '/'
-    route_url = '%s%s' % (REMOTE_URL, route_rule, )
+    route_url = '%s%s' % (REMOTE_URL, route_rule,)
     return route_url
 
 
@@ -64,7 +65,7 @@ def _construct_route_url_ibs(ibs, route_rule):
         route_rule = '/' + route_rule
     if not route_rule.endswith('/'):
         route_rule = route_rule + '/'
-    route_url = '%s%s' % (REMOTE_URL, route_rule, )
+    route_url = '%s%s' % (REMOTE_URL, route_rule,)
     return route_url
 
 
@@ -112,7 +113,7 @@ def _assert_remote_online(ibs):
         if REMOTE_UUID is not None:
             assert uuid == REMOTE_UUID
     except Exception:
-        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE_URL, ))
+        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE_URL,))
 
 
 @register_ibs_method
@@ -122,7 +123,7 @@ def _detect_remote_push_images(ibs, gid_list):
     num_images = len(gid_list)
     image_path_list = ibs.get_image_paths(gid_list)
     for index, image_path in enumerate(image_path_list):
-        print('\tSending %d / %d: %r' % (index, num_images, image_path, ))
+        print('\tSending %d / %d: %r' % (index, num_images, image_path,))
         file_dict = {
             'image': open(image_path, 'rb'),
         }
@@ -169,11 +170,12 @@ def _detect_remote_push_annots(ibs, aid_list):
 
 
 @register_ibs_method
-def _detect_remote_push_metadata(ibs, route_rule, uuid_str, value_str,
-                                 uuid_list, value_list):
+def _detect_remote_push_metadata(
+    ibs, route_rule, uuid_str, value_str, uuid_list, value_list
+):
     route_url = _construct_route_url(route_rule)
 
-    print('\tSetting %s metadata for %s' % (route_rule, uuid_str, ))
+    print('\tSetting %s metadata for %s' % (route_rule, uuid_str,))
     data_dict = {
         uuid_str: uuid_list,
         value_str: value_list,
@@ -188,51 +190,69 @@ def _detect_remote_push_metadata(ibs, route_rule, uuid_str, value_str,
 @register_ibs_method
 def _detect_remote_push_annot_metadata(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    ibs._detect_remote_push_metadata('/api/annot/bbox/json/',
-                                     'annot_uuid_list',
-                                     'bbox_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_bboxes(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/theta/json/',
-                                     'annot_uuid_list',
-                                     'theta_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_thetas(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/viewpoint/json/',
-                                     'annot_uuid_list',
-                                     'viewpoint_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_viewpoints(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/quality/text/json/',
-                                     'annot_uuid_list',
-                                     'quality_text_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_quality_texts(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/species/json/',
-                                     'annot_uuid_list',
-                                     'species_text_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_species_texts(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/multiple/json/',
-                                     'annot_uuid_list',
-                                     'flag_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_multiple(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/interest/json/',
-                                     'annot_uuid_list',
-                                     'flag_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_interest(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/tags/json/',
-                                     'annot_uuid_list',
-                                     'annot_tags_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_tag_text(aid_list))
-    ibs._detect_remote_push_metadata('/api/annot/name/text/json/',
-                                     'annot_uuid_list',
-                                     'name_text_list',
-                                     annot_uuid_list,
-                                     ibs.get_annot_name_texts(aid_list))
+    ibs._detect_remote_push_metadata(
+        '/api/annot/bbox/json/',
+        'annot_uuid_list',
+        'bbox_list',
+        annot_uuid_list,
+        ibs.get_annot_bboxes(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/theta/json/',
+        'annot_uuid_list',
+        'theta_list',
+        annot_uuid_list,
+        ibs.get_annot_thetas(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/viewpoint/json/',
+        'annot_uuid_list',
+        'viewpoint_list',
+        annot_uuid_list,
+        ibs.get_annot_viewpoints(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/quality/text/json/',
+        'annot_uuid_list',
+        'quality_text_list',
+        annot_uuid_list,
+        ibs.get_annot_quality_texts(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/species/json/',
+        'annot_uuid_list',
+        'species_text_list',
+        annot_uuid_list,
+        ibs.get_annot_species_texts(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/multiple/json/',
+        'annot_uuid_list',
+        'flag_list',
+        annot_uuid_list,
+        ibs.get_annot_multiple(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/interest/json/',
+        'annot_uuid_list',
+        'flag_list',
+        annot_uuid_list,
+        ibs.get_annot_interest(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/tags/json/',
+        'annot_uuid_list',
+        'annot_tags_list',
+        annot_uuid_list,
+        ibs.get_annot_tag_text(aid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/annot/name/text/json/',
+        'annot_uuid_list',
+        'name_text_list',
+        annot_uuid_list,
+        ibs.get_annot_name_texts(aid_list),
+    )
 
 
 @register_ibs_method
@@ -255,36 +275,48 @@ def _detect_remote_push_parts(ibs, part_rowid_list):
 @register_ibs_method
 def _detect_remote_push_part_metadata(ibs, part_uuid_list):
     part_rowid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
-    ibs._detect_remote_push_metadata('/api/part/bbox/json/',
-                                     'part_uuid_list',
-                                     'bbox_list',
-                                     part_uuid_list,
-                                     ibs.get_part_bboxes(part_rowid_list))
-    ibs._detect_remote_push_metadata('/api/part/theta/json/',
-                                     'part_uuid_list',
-                                     'theta_list',
-                                     part_uuid_list,
-                                     ibs.get_part_thetas(part_rowid_list))
-    ibs._detect_remote_push_metadata('/api/part/viewpoint/json/',
-                                     'part_uuid_list',
-                                     'viewpoint_list',
-                                     part_uuid_list,
-                                     ibs.get_part_viewpoints(part_rowid_list))
-    ibs._detect_remote_push_metadata('/api/part/quality/text/json/',
-                                     'part_uuid_list',
-                                     'quality_text_list',
-                                     part_uuid_list,
-                                     ibs.get_part_quality_texts(part_rowid_list))  # NOQA
-    ibs._detect_remote_push_metadata('/api/part/type/json/',
-                                     'part_uuid_list',
-                                     'type_text_list',
-                                     part_uuid_list,
-                                     ibs.get_part_types(part_rowid_list))
-    ibs._detect_remote_push_metadata('/api/part/tags/json/',
-                                     'part_uuid_list',
-                                     'part_tags_list',
-                                     part_uuid_list,
-                                     ibs.get_part_tag_text(part_rowid_list))
+    ibs._detect_remote_push_metadata(
+        '/api/part/bbox/json/',
+        'part_uuid_list',
+        'bbox_list',
+        part_uuid_list,
+        ibs.get_part_bboxes(part_rowid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/part/theta/json/',
+        'part_uuid_list',
+        'theta_list',
+        part_uuid_list,
+        ibs.get_part_thetas(part_rowid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/part/viewpoint/json/',
+        'part_uuid_list',
+        'viewpoint_list',
+        part_uuid_list,
+        ibs.get_part_viewpoints(part_rowid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/part/quality/text/json/',
+        'part_uuid_list',
+        'quality_text_list',
+        part_uuid_list,
+        ibs.get_part_quality_texts(part_rowid_list),
+    )  # NOQA
+    ibs._detect_remote_push_metadata(
+        '/api/part/type/json/',
+        'part_uuid_list',
+        'type_text_list',
+        part_uuid_list,
+        ibs.get_part_types(part_rowid_list),
+    )
+    ibs._detect_remote_push_metadata(
+        '/api/part/tags/json/',
+        'part_uuid_list',
+        'part_tags_list',
+        part_uuid_list,
+        ibs.get_part_tag_text(part_rowid_list),
+    )
 
 
 @register_ibs_method
@@ -310,36 +342,38 @@ def _sync_get_species_aids(ibs, species_name):
 # eubalaena_australis, eubalaena_glacialis
 @register_ibs_method
 def _sync_get_image(ibs, remote_image_rowid):
-    endpoint = "/api/image/%s/" % remote_image_rowid
+    endpoint = '/api/image/%s/' % remote_image_rowid
     return _get(endpoint)
 
 
 @register_ibs_method
 def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
 
-    aid_list   = ibs._sync_get_training_aids(species_name, **kwargs)
-    ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+    aid_list = ibs._sync_get_training_aids(species_name, **kwargs)
+    ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
     local_aids = []
 
     # avoid re-downloading annots based on UUID
     if not force_update:
-        local_ann_uuids  = set(ibs.get_valid_annot_uuids())
+        local_ann_uuids = set(ibs.get_valid_annot_uuids())
         remote_ann_uuids = set(ann_uuids)
         dupe_uuids = local_ann_uuids & remote_ann_uuids  # & is set-union
-        new_uuids  = remote_ann_uuids - dupe_uuids
+        new_uuids = remote_ann_uuids - dupe_uuids
         local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
-        aid_list   = ibs._sync_get_aids_for_uuids(new_uuids)
-        ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+        aid_list = ibs._sync_get_aids_for_uuids(new_uuids)
+        ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
 
     # get needed info
     viewpoints = ibs._sync_get_annot_endpoint('/api/annot/viewpoint/', aid_list)
-    bboxes     = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
-    thetas     = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
+    bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
+    thetas = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
     name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
     name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
-    images     = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
-    gpaths     = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
-    specieses  = [species_name] * len(aid_list)
+    images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
+    gpaths = [
+        ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images
+    ]
+    specieses = [species_name] * len(aid_list)
 
     gid_list = ibs.add_images(gpaths)
     nid_list = ibs.add_names(name_texts, name_uuids)
@@ -351,7 +385,7 @@ def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
         species_list=specieses,
         nid_list=nid_list,
         annot_uuid_list=ann_uuids,
-        viewpoint_list=viewpoints
+        viewpoint_list=viewpoints,
     )
 
     return local_aids
@@ -365,7 +399,7 @@ def _sync_get_names(ibs, aid_list):
 @register_ibs_method
 def _sync_get_annot_endpoint(ibs, endpoint, aid_list):
     route_url = _construct_route_url(endpoint)
-    print('\tGetting info on %d aids from %s' % (len(aid_list), route_url, ))
+    print('\tGetting info on %d aids from %s' % (len(aid_list), route_url,))
     data_dict = {
         'aid_list': json.dumps(aid_list),
     }
@@ -414,21 +448,25 @@ def _sync_get_training_subset(ibs, aid_list, name_list, limit):
 
 @register_ibs_method
 @register_api('/api/sync/', methods=['GET'])
-def detect_remote_sync_images(ibs, gid_list=None,
-                              only_sync_missing_images=True):
+def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True):
     _assert_remote_online(ibs)
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
-    confirm_list = [
-        ut.random_nonce()[:5]
-        for _ in range(3)
-    ]
+    confirm_list = [ut.random_nonce()[:5] for _ in range(3)]
     confirm_str = '-'.join(confirm_list)
-    print('You are about to submit %d images to a remote DETECT database at %r with UUID=%r.' % (len(gid_list), REMOTE_URL, REMOTE_UUID, ))
-    print('Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.')
-    print('In order to continue, please type exactly the confirmation string %r' % (confirm_str, ))
+    print(
+        'You are about to submit %d images to a remote DETECT database at %r with UUID=%r.'
+        % (len(gid_list), REMOTE_URL, REMOTE_UUID,)
+    )
+    print(
+        'Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.'
+    )
+    print(
+        'In order to continue, please type exactly the confirmation string %r'
+        % (confirm_str,)
+    )
 
     if six.PY2:
         input_func = raw_input
@@ -452,7 +490,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     num_missing = len(missing_gid_list)
     if num_missing > 0:
-        print('Need to push %d images...' % (num_missing, ))
+        print('Need to push %d images...' % (num_missing,))
         ibs._detect_remote_push_images(missing_gid_list)
         print('...pushed')
 
@@ -482,7 +520,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     num_missing = len(missing_aid_list)
     if num_missing > 0:
-        print('Need to push %d annots...' % (num_missing, ))
+        print('Need to push %d annots...' % (num_missing,))
         ibs._detect_remote_push_annots(missing_aid_list)
         print('...pushed')
 
@@ -509,7 +547,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     num_missing = len(missing_part_rowid_list)
     if num_missing > 0:
-        print('Need to push %d parts...' % (num_missing, ))
+        print('Need to push %d parts...' % (num_missing,))
         ibs._detect_remote_push_parts(missing_part_rowid_list)
         print('...pushed')
 
@@ -530,6 +568,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

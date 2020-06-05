@@ -53,6 +53,7 @@ class InteractQres(BASE_CLASS):
         #interact_matches.MatchInteraction2
         #wbia.viz.interact.MatchInteraction
     """
+
     def __init__(self, ibs, cm, analysis=False, qreq_=None, **kwargs):
         self.ibs = ibs
         self.cm = cm
@@ -83,9 +84,9 @@ class InteractQres(BASE_CLASS):
             print('clicked none')
         self.kwargs['annot_mode'] = self.kwargs.get('annot_mode', 0) + toggle
         self.kwargs['fnum'] = self.fnum
-        #if isinstance(self.cm, chip_match.ChipMatch):
+        # if isinstance(self.cm, chip_match.ChipMatch):
         fig = self.cm.show_analysis(self.qreq_, **self.kwargs)
-        #else:
+        # else:
         #    fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
         self.draw()
         return fig
@@ -102,15 +103,15 @@ class InteractQres(BASE_CLASS):
         if self.verbose:
             print('clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
-        #if isinstance(self.cm, chip_match.ChipMatch):
+        # if isinstance(self.cm, chip_match.ChipMatch):
         self.cm.ishow_match(self.qreq_, aid2, fnum=fnum_)
-        #else:
+        # else:
         #    self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
         self.draw()
-        #self.bring_to_front()
-        #fig = pt.gcf()
-        #fig.canvas.draw()
-        #pt.bring_to_front(fig)
+        # self.bring_to_front()
+        # fig = pt.gcf()
+        # fig.canvas.draw()
+        # pt.bring_to_front(fig)
 
     def on_click_outside(self, event):
         self.show_page()
@@ -118,30 +119,41 @@ class InteractQres(BASE_CLASS):
     def on_click_inside(self, event, ax):
         ax = event.inaxes
         viztype = ph.get_plotdat(ax, 'viztype', '')
-        #if verbose:
+        # if verbose:
         #    print(str(event.__dict__))
         print('viztype=%r' % viztype)
         # Clicked a specific matches
         print('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
         if viztype.startswith('chip'):
             from wbia.viz.interact import interact_chip
+
             options = interact_chip.build_annot_context_options(
-                self.ibs, self.cm.qaid, refresh_func=self._analysis_view,
-                with_interact_chip=False)
+                self.ibs,
+                self.cm.qaid,
+                refresh_func=self._analysis_view,
+                with_interact_chip=False,
+            )
             self.show_popup_menu(options, event)
 
         if viztype.startswith('matches') or viztype == 'multi_match':  # why startswith?
             aid2 = ph.get_plotdat(ax, 'aid2', None)
             aid_list = ph.get_plotdat(ax, 'aid_list', None)
-            if event.button == 3:   # right-click
+            if event.button == 3:  # right-click
                 # TODO; this functionality should be in viz.interact
                 from wbia.gui import inspect_gui
+
                 print('right click')
                 print('qreq_ = %r' % (self.qreq_,))
                 options = inspect_gui.get_aidpair_context_menu_options(
-                    self.ibs, self.cm.qaid, aid2, self.cm,
-                    qreq_=self.qreq_, update_callback=self.show_page,
-                    backend_callback=None, aid_list=aid_list)
+                    self.ibs,
+                    self.cm.qaid,
+                    aid2,
+                    self.cm,
+                    qreq_=self.qreq_,
+                    update_callback=self.show_page,
+                    backend_callback=None,
+                    aid_list=aid_list,
+                )
                 self.show_popup_menu(options, event)
             else:
                 # Ctrl-Click
@@ -165,6 +177,8 @@ if __name__ == '__main__':
         python -m wbia.viz.interact.interact_qres --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -7,26 +7,27 @@ from wbia.control.controller_inject import make_ibs_register_decorator
 import functools
 import utool as ut
 import uuid
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-IMAGESET_OCCURRENCE_FLAG   = 'imageset_occurrence_flag'
-IMAGESET_END_TIME_POSIX    = 'imageset_end_time_posix'
-IMAGESET_GPS_LAT           = 'imageset_gps_lat'
-IMAGESET_GPS_LON           = 'imageset_gps_lon'
-IMAGESET_NOTE              = 'imageset_note'
-IMAGESET_PROCESSED_FLAG    = 'imageset_processed_flag'
-IMAGESET_ROWID             = 'imageset_rowid'
-IMAGESET_SHIPPED_FLAG      = 'imageset_shipped_flag'
-IMAGESET_START_TIME_POSIX  = 'imageset_start_time_posix'
+IMAGESET_OCCURRENCE_FLAG = 'imageset_occurrence_flag'
+IMAGESET_END_TIME_POSIX = 'imageset_end_time_posix'
+IMAGESET_GPS_LAT = 'imageset_gps_lat'
+IMAGESET_GPS_LON = 'imageset_gps_lon'
+IMAGESET_NOTE = 'imageset_note'
+IMAGESET_PROCESSED_FLAG = 'imageset_processed_flag'
+IMAGESET_ROWID = 'imageset_rowid'
+IMAGESET_SHIPPED_FLAG = 'imageset_shipped_flag'
+IMAGESET_START_TIME_POSIX = 'imageset_start_time_posix'
 IMAGESET_SMART_WAYPOINT_ID = 'imageset_smart_waypoint_id'
-IMAGESET_SMART_XML_FNAME   = 'imageset_smart_xml_fname'
+IMAGESET_SMART_XML_FNAME = 'imageset_smart_xml_fname'
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
@@ -52,8 +53,14 @@ def _get_all_imgsetids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/imageset/', methods=['GET'])
-def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
-                        is_occurrence=None, is_special=None):
+def get_valid_imgsetids(
+    ibs,
+    min_num_gids=0,
+    processed=None,
+    shipped=None,
+    is_occurrence=None,
+    is_special=None,
+):
     r"""
     FIX NAME imgagesetids
 
@@ -68,39 +75,46 @@ def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
     if min_num_gids > 0:
         num_gids_list = ibs.get_imageset_num_gids(imgsetid_list)
         flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
-        imgsetid_list  = ut.compress(imgsetid_list, flag_list)
+        imgsetid_list = ut.compress(imgsetid_list, flag_list)
     if processed is not None:
         flag_list = ibs.get_imageset_processed_flags(imgsetid_list)
         isvalid_list = [flag == 1 if processed else flag == 0 for flag in flag_list]
-        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
+        imgsetid_list = ut.compress(imgsetid_list, isvalid_list)
     if shipped is not None:
         flag_list = ibs.get_imageset_shipped_flags(imgsetid_list)
         isvalid_list = [flag == 1 if shipped else flag == 0 for flag in flag_list]
-        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
+        imgsetid_list = ut.compress(imgsetid_list, isvalid_list)
     if is_occurrence is not None:
         flag_list = ibs.get_imageset_occurrence_flags(imgsetid_list)
         isvalid_list = [flag == is_occurrence for flag in flag_list]
-        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
+        imgsetid_list = ut.compress(imgsetid_list, isvalid_list)
     if is_special is not None:
         flag_list = ibs.is_special_imageset(imgsetid_list)
         isvalid_list = [flag == is_special for flag in flag_list]
-        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
+        imgsetid_list = ut.compress(imgsetid_list, isvalid_list)
     return imgsetid_list
 
 
 @register_ibs_method
 def is_special_imageset(ibs, imgsetid_list):
     imagesettext_list = ibs.get_imageset_text(imgsetid_list)
-    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
-                      for imagesettext in imagesettext_list]
+    isspecial_list = [
+        str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
+        for imagesettext in imagesettext_list
+    ]
     return isspecial_list
 
 
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/imageset/', methods=['POST'])
-def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
-                  notes_list=None, occurence_flag_list=None):
+def add_imagesets(
+    ibs,
+    imagesettext_list,
+    imageset_uuid_list=None,
+    notes_list=None,
+    occurence_flag_list=None,
+):
     r"""
     Adds a list of imagesets.
 
@@ -125,10 +139,21 @@ def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
         imageset_uuid_list = [uuid.uuid4() for _ in range(len(imagesettext_list))]
     if occurence_flag_list is None:
         occurence_flag_list = [0] * len(imagesettext_list)
-    colnames = ['imageset_text', 'imageset_uuid', 'imageset_occurrence_flag', 'imageset_note']
-    params_iter = zip(imagesettext_list, imageset_uuid_list, occurence_flag_list, notes_list)
-    get_rowid_from_superkey = functools.partial(ibs.get_imageset_imgsetids_from_text, ensure=False)
-    imgsetid_list = ibs.db.add_cleanly(const.IMAGESET_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    colnames = [
+        'imageset_text',
+        'imageset_uuid',
+        'imageset_occurrence_flag',
+        'imageset_note',
+    ]
+    params_iter = zip(
+        imagesettext_list, imageset_uuid_list, occurence_flag_list, notes_list
+    )
+    get_rowid_from_superkey = functools.partial(
+        ibs.get_imageset_imgsetids_from_text, ensure=False
+    )
+    imgsetid_list = ibs.db.add_cleanly(
+        const.IMAGESET_TABLE, colnames, params_iter, get_rowid_from_superkey
+    )
     return imgsetid_list
 
 
@@ -152,6 +177,7 @@ def set_imageset_text(ibs, imgsetid_list, imageset_text_list):
     id_iter = ((imgsetid,) for imgsetid in imgsetid_list)
     val_list = ((imageset_text,) for imageset_text in imageset_text_list)
     ibs.db.set(const.IMAGESET_TABLE, ('imageset_text',), val_list, id_iter)
+
 
 #
 # GETTERS::IMAGESET
@@ -231,7 +257,9 @@ def get_imageset_num_annotmatch_reviewed(ibs, imgsetid_list):
         >>> num_annots_reviewed_list = ibs.get_imageset_num_annotmatch_reviewed(imgsetid_list)
     """
     aids_list = ibs.get_imageset_custom_filtered_aids(imgsetid_list)
-    has_revieweds_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
+    has_revieweds_list = ibs.unflat_map(
+        ibs.get_annot_has_reviewed_matching_aids, aids_list
+    )
     num_annots_reviewed_list = list(map(sum, has_revieweds_list))
     return num_annots_reviewed_list
 
@@ -256,9 +284,10 @@ def get_imageset_num_names_with_exemplar(ibs, imgsetid_list):
     aids_list = ibs.get_imageset_custom_filtered_aids(imgsetid_list)
     exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
     nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
-    groups_list = [ut.group_items(exflags, nids)
-                   for exflags, nids in zip(exflags_list, nids_list)]
-    #num_names_list = [len(groups) for groups in groups_list]
+    groups_list = [
+        ut.group_items(exflags, nids) for exflags, nids in zip(exflags_list, nids_list)
+    ]
+    # num_names_list = [len(groups) for groups in groups_list]
     num_exemplared_names_list = [
         sum([any(exflags) for exflags in six.itervalues(groups)])
         for groups in groups_list
@@ -279,20 +308,25 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
         >>> fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
     """
     aids_list = ibs.get_imageset_custom_filtered_aids(imgsetid_list)
-    #exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    nids_list = list(map(list, map(set, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list))))
+    # exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
+    nids_list = list(
+        map(list, map(set, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)))
+    )
     aids_list_list = ibs.unflat_map(ibs.get_name_aids, nids_list)
-    flags_list_list = list(map(lambda x: ibs.unflat_map(ibs.get_annot_exemplar_flags, x), aids_list_list))
-    #groups_list = [ut.group_items(exflags, nids)
+    flags_list_list = list(
+        map(lambda x: ibs.unflat_map(ibs.get_annot_exemplar_flags, x), aids_list_list)
+    )
+    # groups_list = [ut.group_items(exflags, nids)
     #               for exflags, nids in zip(exflags_list, nids_list)]
     num_names_list = list(map(len, nids_list))
     num_exemplared_names_list = [
-        sum([any(exflags) for exflags in flags_list])
-        for flags_list in flags_list_list
+        sum([any(exflags) for exflags in flags_list]) for flags_list in flags_list_list
     ]
     fraction_exemplared_names_list = [
         None if num_names == 0 else num_exemplared_names / num_names
-        for num_exemplared_names,  num_names in zip(num_exemplared_names_list,  num_names_list)
+        for num_exemplared_names, num_names in zip(
+            num_exemplared_names_list, num_names_list
+        )
     ]
     return fraction_exemplared_names_list
 
@@ -302,8 +336,9 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
 def get_imageset_fraction_annotmatch_reviewed(ibs, imgsetid_list):
     aids_list = ibs.get_imageset_custom_filtered_aids(imgsetid_list)
     flags_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
-    fraction_annotmatch_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags)
-                                         for flags in flags_list]
+    fraction_annotmatch_reviewed_list = [
+        None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list
+    ]
     return fraction_annotmatch_reviewed_list
 
 
@@ -325,8 +360,9 @@ def get_imageset_custom_filtered_aids(ibs, imgsetid_list):
 def get_imageset_fraction_imgs_reviewed(ibs, imgsetid_list):
     gids_list = ibs.get_imageset_gids(imgsetid_list)
     flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
-    fraction_imgs_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags)
-                                   for flags in flags_list]
+    fraction_imgs_reviewed_list = [
+        None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list
+    ]
     return fraction_imgs_reviewed_list
 
 
@@ -336,28 +372,44 @@ def _percent_str(pcnt):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_names_with_exemplar_str', debug=False)  # HACK
+@accessor_decors.cache_getter(
+    const.IMAGESET_TABLE, 'percent_names_with_exemplar_str', debug=False
+)  # HACK
 def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
-    fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
-    percent_exemplared_names_list_str = list(map(_percent_str, fraction_exemplared_names_list))
+    fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(
+        imgsetid_list
+    )
+    percent_exemplared_names_list_str = list(
+        map(_percent_str, fraction_exemplared_names_list)
+    )
     return percent_exemplared_names_list_str
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_imgs_reviewed_str', debug=False)  # HACK
+@accessor_decors.cache_getter(
+    const.IMAGESET_TABLE, 'percent_imgs_reviewed_str', debug=False
+)  # HACK
 def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
     fraction_imgs_reviewed_list = ibs.get_imageset_fraction_imgs_reviewed(imgsetid_list)
-    percent_imgs_reviewed_str_list = list(map(_percent_str, fraction_imgs_reviewed_list))
+    percent_imgs_reviewed_str_list = list(
+        map(_percent_str, fraction_imgs_reviewed_list)
+    )
     return percent_imgs_reviewed_str_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_annotmatch_reviewed_str', debug=False)  # HACK
+@accessor_decors.cache_getter(
+    const.IMAGESET_TABLE, 'percent_annotmatch_reviewed_str', debug=False
+)  # HACK
 def get_imageset_percent_annotmatch_reviewed_str(ibs, imgsetid_list):
-    fraction_annotmatch_reviewed_list = ibs.get_imageset_fraction_annotmatch_reviewed(imgsetid_list)
-    percent_annotmach_reviewed_str_list = list(map(_percent_str, fraction_annotmatch_reviewed_list))
+    fraction_annotmatch_reviewed_list = ibs.get_imageset_fraction_annotmatch_reviewed(
+        imgsetid_list
+    )
+    percent_annotmach_reviewed_str_list = list(
+        map(_percent_str, fraction_annotmatch_reviewed_list)
+    )
     return percent_annotmach_reviewed_str_list
 
 
@@ -430,11 +482,11 @@ def get_imageset_aids(ibs, imgsetid_list):
     gids_list = ibs.get_imageset_gids(imgsetid_list)
     aids_list_ = ibs.unflat_map(ibs.get_image_aids, gids_list)
     aids_list = list(map(ut.flatten, aids_list_))
-    #print('get_imageset_aids')
-    #print('imgsetid_list = %r' % (imgsetid_list,))
-    #print('gids_list = %r' % (gids_list,))
-    #print('aids_list_ = %r' % (aids_list_,))
-    #print('aids_list = %r' % (aids_list,))
+    # print('get_imageset_aids')
+    # print('imgsetid_list = %r' % (imgsetid_list,))
+    # print('gids_list = %r' % (gids_list,))
+    # print('aids_list_ = %r' % (aids_list_,))
+    # print('aids_list = %r' % (aids_list,))
     return aids_list
 
 
@@ -470,10 +522,7 @@ def get_imageset_uuids(ibs, imgsetid_list):
         >>> print(result)
     """
     aids_list = ibs.get_imageset_aids(imgsetid_list)
-    annot_uuids_list = [
-        ibs.get_annot_uuids(aid_list)
-        for aid_list in aids_list
-    ]
+    annot_uuids_list = [ibs.get_annot_uuids(aid_list) for aid_list in aids_list]
     return annot_uuids_list
 
 
@@ -497,13 +546,22 @@ def get_imageset_gids(ibs, imgsetid_list):
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
-            '''.format(GSG_RELATION_TABLE=const.GSG_RELATION_TABLE)).fetchall()
-    gids_list = ibs.db.get(const.GSG_RELATION_TABLE, ('image_rowid',), imgsetid_list, id_colname='imageset_rowid', unpack_scalars=False)
-    #print('get_imageset_gids')
-    #print('imgsetid_list = %r' % (imgsetid_list,))
-    #print('gids_list = %r' % (gids_list,))
+            """.format(
+                GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
+            )
+        ).fetchall()
+    gids_list = ibs.db.get(
+        const.GSG_RELATION_TABLE,
+        ('image_rowid',),
+        imgsetid_list,
+        id_colname='imageset_rowid',
+        unpack_scalars=False,
+    )
+    # print('get_imageset_gids')
+    # print('imgsetid_list = %r' % (imgsetid_list,))
+    # print('gids_list = %r' % (gids_list,))
     return gids_list
 
 
@@ -520,10 +578,7 @@ def get_imageset_image_uuids(ibs, imgsetid_list):
         URL:    /api/imageset/image/uuid/
     """
     gids_list = ibs.get_imageset_gids(imgsetid_list)
-    image_uuid_list = [
-        ibs.get_image_uuids(gid_list)
-        for gid_list in gids_list
-    ]
+    image_uuid_list = [ibs.get_image_uuids(gid_list) for gid_list in gids_list]
     return image_uuid_list
 
 
@@ -536,28 +591,47 @@ def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
         list_ (list):  a list of imageset-image-relationship rowids for each encouterid
     """
     # WEIRD FUNCTION FIXME
-    assert imgsetid_list is not None or gid_list is not None, "Either imgsetid_list or gid_list must be None"
+    assert (
+        imgsetid_list is not None or gid_list is not None
+    ), 'Either imgsetid_list or gid_list must be None'
     if imgsetid_list is not None and gid_list is None:
         # TODO: Group type
         params_iter = ((imgsetid,) for imgsetid in imgsetid_list)
         where_clause = 'imageset_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                        params_iter, where_clause, unpack_scalars=False)
+        gsgrids_list = ibs.db.get_where(
+            const.GSG_RELATION_TABLE,
+            ('gsgr_rowid',),
+            params_iter,
+            where_clause,
+            unpack_scalars=False,
+        )
     elif gid_list is not None and imgsetid_list is None:
         # TODO: Group type
         params_iter = ((gid,) for gid in gid_list)
         where_clause = 'image_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                        params_iter, where_clause, unpack_scalars=False)
+        gsgrids_list = ibs.db.get_where(
+            const.GSG_RELATION_TABLE,
+            ('gsgr_rowid',),
+            params_iter,
+            where_clause,
+            unpack_scalars=False,
+        )
     else:
         # TODO: Group type
-        params_iter = ((imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list))
+        params_iter = (
+            (imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list)
+        )
         where_clause = 'imageset_rowid=? AND image_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                        params_iter, where_clause, unpack_scalars=False)
+        gsgrids_list = ibs.db.get_where(
+            const.GSG_RELATION_TABLE,
+            ('gsgr_rowid',),
+            params_iter,
+            where_clause,
+            unpack_scalars=False,
+        )
     return gsgrids_list
 
 
@@ -592,16 +666,16 @@ def get_imageset_nids(ibs, imgsetid_list):
     # FIXME: SLOW
     aids_list = ibs.get_imageset_aids(imgsetid_list)
     nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
-    #nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
+    # nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
     # Remove any unknown anmes
     nids_list = [[nid for nid in nids if nid > 0] for nids in nids_list]
 
     nids_list = list(map(ut.unique_ordered, nids_list))
-    #print('get_imageset_nids')
-    #print('imgsetid_list = %r' % (imgsetid_list,))
-    #print('aids_list = %r' % (aids_list,))
-    #print('nids_list_ = %r' % (nids_list_,))
-    #print('nids_list = %r' % (nids_list,))
+    # print('get_imageset_nids')
+    # print('imgsetid_list = %r' % (imgsetid_list,))
+    # print('aids_list = %r' % (aids_list,))
+    # print('nids_list_ = %r' % (nids_list_,))
+    # print('nids_list = %r' % (nids_list,))
     return nids_list
 
 
@@ -634,10 +708,7 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
         [[1, 2, 3], [4, 5, 6, 7]]
     """
     nids_list = ibs.get_imageset_nids(imgsetid_list)
-    name_uuid_list = [
-        ibs.get_name_uuids(nid_list)
-        for nid_list in nids_list
-    ]
+    name_uuid_list = [ibs.get_name_uuids(nid_list) for nid_list in nids_list]
     return name_uuid_list
 
 
@@ -654,7 +725,12 @@ def get_imageset_uuid(ibs, imgsetid_list):
         URL:    /api/imageset/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    encuuid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_uuid',), imgsetid_list, id_colname='imageset_rowid')
+    encuuid_list = ibs.db.get(
+        const.IMAGESET_TABLE,
+        ('imageset_uuid',),
+        imgsetid_list,
+        id_colname='imageset_rowid',
+    )
     return encuuid_list
 
 
@@ -671,7 +747,12 @@ def get_imageset_text(ibs, imgsetid_list):
         URL:    /api/imageset/text/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    imagesettext_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_text',), imgsetid_list, id_colname='imageset_rowid')
+    imagesettext_list = ibs.db.get(
+        const.IMAGESET_TABLE,
+        ('imageset_text',),
+        imgsetid_list,
+        id_colname='imageset_rowid',
+    )
     return imagesettext_list
 
 
@@ -689,7 +770,9 @@ def get_imageset_imgsetids_from_uuid(ibs, uuid_list):
         Method: GET
         URL:    /api/imageset/rowid/uuid/
     """
-    imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), uuid_list, id_colname='imageset_uuid')
+    imgsetid_list = ibs.db.get(
+        const.IMAGESET_TABLE, ('imageset_rowid',), uuid_list, id_colname='imageset_uuid'
+    )
     return imgsetid_list
 
 
@@ -711,7 +794,12 @@ def get_imageset_imgsetids_from_text(ibs, imagesettext_list, ensure=True):
         imgsetid_list = ibs.add_imagesets(imagesettext_list)
     else:
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), imagesettext_list, id_colname='imageset_text')
+        imgsetid_list = ibs.db.get(
+            const.IMAGESET_TABLE,
+            ('imageset_rowid',),
+            imagesettext_list,
+            id_colname='imageset_text',
+        )
     return imgsetid_list
 
 
@@ -728,7 +816,12 @@ def get_imageset_note(ibs, imgsetid_list):
         URL:    /api/imageset/note/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    encnote_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_note',), imgsetid_list, id_colname='imageset_rowid')
+    encnote_list = ibs.db.get(
+        const.IMAGESET_TABLE,
+        ('imageset_note',),
+        imgsetid_list,
+        id_colname='imageset_rowid',
+    )
     return encnote_list
 
 
@@ -744,9 +837,9 @@ def delete_imagesets(ibs, imgsetid_list):
         URL:    /api/imageset/
     """
     # Optimization hack, less SQL calls
-    #gsgrid_list = ut.flatten(ibs.get_imageset_gsgrids(imgsetid_list=imgsetid_list))
-    #ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
-    #ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname='imageset_rowid')
+    # gsgrid_list = ut.flatten(ibs.get_imageset_gsgrids(imgsetid_list=imgsetid_list))
+    # ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
+    # ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname='imageset_rowid')
     if ut.VERBOSE:
         print('[ibs] deleting %d imagesets' % len(imgsetid_list))
     ibs.delete_gsgr_imageset_relations(imgsetid_list)
@@ -788,7 +881,8 @@ def get_imageset_end_time_posix(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_END_TIME_POSIX,)
     imageset_end_time_posix_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_end_time_posix_list
 
 
@@ -827,7 +921,8 @@ def get_imageset_gps_lats(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_GPS_LAT,)
     imageset_gps_lat_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_gps_lat_list
 
 
@@ -853,8 +948,7 @@ def update_imageset_info(ibs, imageset_rowid_list, **kwargs):
     gids_list = ut.compress(gids_list_, hasgids_list)
     imgsetid_list = ut.compress(imageset_rowid_list, hasgids_list)
     unixtimes_list = [
-        ibs.get_image_unixtime(gid_list, **kwargs)
-        for gid_list in gids_list
+        ibs.get_image_unixtime(gid_list, **kwargs) for gid_list in gids_list
     ]
     # TODO: replace -1's with nans and do nanmin
     imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
@@ -898,7 +992,8 @@ def get_imageset_gps_lons(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_GPS_LON,)
     imageset_gps_lon_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_gps_lon_list
 
 
@@ -933,7 +1028,8 @@ def get_imageset_notes(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_NOTE,)
     imageset_note_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_note_list
 
 
@@ -949,7 +1045,9 @@ def get_imageset_metadata(ibs, imageset_rowid_list, return_raw=False):
         Method: GET
         URL:    /api/imageset/metadata/
     """
-    metadata_str_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_metadata_json',), imageset_rowid_list)
+    metadata_str_list = ibs.db.get(
+        const.IMAGESET_TABLE, ('imageset_metadata_json',), imageset_rowid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -998,7 +1096,8 @@ def get_imageset_occurrence_flags(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_OCCURRENCE_FLAG,)
     imageset_occurrence_flag_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_occurrence_flag_list
 
 
@@ -1037,7 +1136,8 @@ def get_imageset_processed_flags(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_PROCESSED_FLAG,)
     imageset_processed_flag_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_processed_flag_list
 
 
@@ -1076,7 +1176,8 @@ def get_imageset_shipped_flags(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SHIPPED_FLAG,)
     imageset_shipped_flag_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_shipped_flag_list
 
 
@@ -1115,7 +1216,8 @@ def get_imageset_start_time_posix(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_START_TIME_POSIX,)
     imageset_start_time_posix_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_start_time_posix_list
 
 
@@ -1136,6 +1238,7 @@ def get_imageset_duration(ibs, imageset_rowid_list):
         Method: GET
         URL:    /api/imageset/duration/
     """
+
     def _process(start, end):
         if start is None or end is None:
             return 'None'
@@ -1147,13 +1250,15 @@ def get_imageset_duration(ibs, imageset_rowid_list):
             duration = duration % seconds_in_day
         duration_str = time.strftime('%H:%M:%S', time.gmtime(duration))
         if days > 0:
-            duration_str = '%d days, %s' % (days, duration_str, )
+            duration_str = '%d days, %s' % (days, duration_str,)
         return duration_str
+
     import time
+
     start_time_list = ibs.get_imageset_start_time_posix(imageset_rowid_list)
     end_time_list = ibs.get_imageset_end_time_posix(imageset_rowid_list)
     zipped = zip(start_time_list, end_time_list)
-    duration_list = [ _process(start, end) for start, end in zipped ]
+    duration_list = [_process(start, end) for start, end in zipped]
     return duration_list
 
 
@@ -1179,8 +1284,7 @@ def set_imageset_end_time_posix(ibs, imageset_rowid_list, imageset_end_time_posi
     """
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_END_TIME_POSIX,)
-    ibs.db.set(const.IMAGESET_TABLE, colnames,
-               imageset_end_time_posix_list, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, imageset_end_time_posix_list, id_iter)
 
 
 @register_ibs_method
@@ -1278,7 +1382,9 @@ def set_imageset_metadata(ibs, imageset_rowid_list, metadata_dict_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/imageset/occurrence/', methods=['PUT'])
-def set_imageset_occurrence_flags(ibs, imageset_rowid_list, imageset_occurrence_flag_list):
+def set_imageset_occurrence_flags(
+    ibs, imageset_rowid_list, imageset_occurrence_flag_list
+):
     r"""
     imageset_occurrence_flag_list -> imageset.imageset_occurrence_flag[imageset_rowid_list]
 
@@ -1304,7 +1410,9 @@ def set_imageset_occurrence_flags(ibs, imageset_rowid_list, imageset_occurrence_
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/imageset/processed/', methods=['PUT'])
-def set_imageset_processed_flags(ibs, imageset_rowid_list, imageset_processed_flag_list):
+def set_imageset_processed_flags(
+    ibs, imageset_rowid_list, imageset_processed_flag_list
+):
     r"""
     imageset_processed_flag_list -> imageset.imageset_processed_flag[imageset_rowid_list]
 
@@ -1350,14 +1458,15 @@ def set_imageset_shipped_flags(ibs, imageset_rowid_list, imageset_shipped_flag_l
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SHIPPED_FLAG,)
     val_iter = ((shipped_flag,) for shipped_flag in imageset_shipped_flag_list)
-    ibs.db.set(const.IMAGESET_TABLE, colnames,
-               val_iter, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, val_iter, id_iter)
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/imageset/time/posix/start/', methods=['PUT'])
-def set_imageset_start_time_posix(ibs, imageset_rowid_list, imageset_start_time_posix_list):
+def set_imageset_start_time_posix(
+    ibs, imageset_rowid_list, imageset_start_time_posix_list
+):
     r"""
     imageset_start_time_posix_list -> imageset.imageset_start_time_posix[imageset_rowid_list]
 
@@ -1376,12 +1485,11 @@ def set_imageset_start_time_posix(ibs, imageset_rowid_list, imageset_start_time_
     """
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_START_TIME_POSIX,)
-    ibs.db.set(const.IMAGESET_TABLE, colnames,
-               imageset_start_time_posix_list, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, imageset_start_time_posix_list, id_iter)
 
 
 @register_ibs_method
-#@accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_WAYPOINT_ID)
+# @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_WAYPOINT_ID)
 @register_api('/api/imageset/smart/waypoint/', methods=['GET'])
 def get_imageset_smart_waypoint_ids(ibs, imageset_rowid_list):
     r"""
@@ -1415,12 +1523,13 @@ def get_imageset_smart_waypoint_ids(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SMART_WAYPOINT_ID,)
     imageset_smart_waypoint_id_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_smart_waypoint_id_list
 
 
 @register_ibs_method
-#@accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
+# @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
 @register_api('/api/imageset/smart/xml/file/name/', methods=['GET'])
 def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
     r"""
@@ -1454,16 +1563,20 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SMART_XML_FNAME,)
     imageset_smart_xml_fname_list = ibs.db.get(
-        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return imageset_smart_xml_fname_list
 
 
 @register_ibs_method
-#@accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
+# @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
 @register_api('/api/imageset/smart/xml/file/content/', methods=['GET'])
 def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
     from os.path import join, exists
-    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
+
+    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(
+        imageset_rowid_list
+    )
     content_list = []
     smart_patrol_dir = ibs.get_smart_patrol_dir()
     for imageset_smart_xml_fname in imageset_smart_xml_fname_list:
@@ -1482,7 +1595,9 @@ def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
 
 @register_ibs_method
 @register_api('/api/imageset/smart/waypoint/', methods=['PUT'])
-def set_imageset_smart_waypoint_ids(ibs, imageset_rowid_list, imageset_smart_waypoint_id_list):
+def set_imageset_smart_waypoint_ids(
+    ibs, imageset_rowid_list, imageset_smart_waypoint_id_list
+):
     r"""
     imageset_smart_waypoint_id_list -> imageset.imageset_smart_waypoint_id[imageset_rowid_list]
 
@@ -1501,13 +1616,14 @@ def set_imageset_smart_waypoint_ids(ibs, imageset_rowid_list, imageset_smart_way
     """
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SMART_WAYPOINT_ID,)
-    ibs.db.set(const.IMAGESET_TABLE, colnames,
-               imageset_smart_waypoint_id_list, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, imageset_smart_waypoint_id_list, id_iter)
 
 
 @register_ibs_method
 @register_api('/api/imageset/smart/xml/file/name/', methods=['PUT'])
-def set_imageset_smart_xml_fnames(ibs, imageset_rowid_list, imageset_smart_xml_fname_list):
+def set_imageset_smart_xml_fnames(
+    ibs, imageset_rowid_list, imageset_smart_xml_fname_list
+):
     r"""
     imageset_smart_xml_fname_list -> imageset.imageset_smart_xml_fname[imageset_rowid_list]
 
@@ -1526,14 +1642,14 @@ def set_imageset_smart_xml_fnames(ibs, imageset_rowid_list, imageset_smart_xml_f
     """
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_SMART_XML_FNAME,)
-    ibs.db.set(const.IMAGESET_TABLE, colnames,
-               imageset_smart_xml_fname_list, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, imageset_smart_xml_fname_list, id_iter)
 
 
 def testdata_ibs():
     r"""
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
@@ -1547,6 +1663,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_imageset_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

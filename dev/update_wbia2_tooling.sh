@@ -16,7 +16,7 @@ sedr_python(){
     "
 
     if [[ "$LIVE_RUN" == "True" ]]; then
-        find . -type f -iname '*.py' -exec sed -i "s/${SEARCH}/${REPLACE}/g" {} + 
+        find . -type f -iname '*.py' -exec sed -i "s/${SEARCH}/${REPLACE}/g" {} +
     else
         find . -type f -iname '*.py' -exec sed "s/${SEARCH}/${REPLACE}/g" {} + | grep "${REPLACE}"
     fi
@@ -26,18 +26,18 @@ LIVE_RUN=False
 #LIVE_RUN=True
 
 
-TOOL_NAME="vtool" 
+TOOL_NAME="vtool"
 sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_wbia" $LIVE_RUN
-TOOL_NAME="dtool" 
+TOOL_NAME="dtool"
 sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_wbia" $LIVE_RUN
-TOOL_NAME="plottool" 
+TOOL_NAME="plottool"
 sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_wbia" $LIVE_RUN
-TOOL_NAME="guitool" 
+TOOL_NAME="guitool"
 sedr_python "\\b${TOOL_NAME}\\b" "${TOOL_NAME}_wbia" $LIVE_RUN
 
-TOOL_NAME="pyflann" 
-sedr_python "import pyflann" "from vtool._pyflann_backend import pyflann as pyflann" $LIVE_RUN 
-sedr_python "from vtool._pyflann_backend" "from vtool_ibeis._pyflann_backend" $LIVE_RUN 
+TOOL_NAME="pyflann"
+sedr_python "import pyflann" "from vtool._pyflann_backend import pyflann as pyflann" $LIVE_RUN
+sedr_python "from vtool._pyflann_backend" "from vtool_ibeis._pyflann_backend" $LIVE_RUN
 
 
 sedr_python "# GUI_DOCTEST" "# xdoctest: +REQUIRES(--gui)" True

@@ -4,7 +4,6 @@ from . import common as com
 
 
 class IBEIS_Part(object):
-
     def __init__(ibsp, _xml, **kwargs):
         ibsp.name = com.get(_xml, 'name')
 

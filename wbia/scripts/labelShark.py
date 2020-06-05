@@ -1,13 +1,16 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import splitext, join, exists, commonprefix
 import utool as ut
+
 (print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
 import wbia
 from wbia.scripts import classify_shark
 import numpy as np
 import vtool as vt
 
-modelStateLocation = "https://wildbookiarepository.azureedge.net/models/classifier.lenet.whale_shark.pkl"
+modelStateLocation = (
+    'https://wildbookiarepository.azureedge.net/models/classifier.lenet.whale_shark.pkl'
+)
 
 
 def classifyShark(ibs, gid_list):
@@ -16,21 +19,17 @@ def classifyShark(ibs, gid_list):
     batch_size = 32
     model_name = 'injur-shark-' + suffix
     model = classify_shark.WhaleSharkInjuryModel(
-        name=model_name,
-        output_dims=2,
-        data_shape=(224, 224, 3),
-        batch_size=batch_size,
+        name=model_name, output_dims=2, data_shape=(224, 224, 3), batch_size=batch_size,
     )
     model.init_arch()
     filep = ut.grab_file_url(modelStateLocation)
     model.load_model_state(fpath=filep)
     model.rrr()
 
-
     config = {
-        'algo'            : 'yolo',
-        'sensitivity'     :  0.2,
-        'config_filepath' : 'default',
+        'algo': 'yolo',
+        'sensitivity': 0.2,
+        'config_filepath': 'default',
     }
     depc = ibs.depc_image
 
@@ -39,8 +38,9 @@ def classifyShark(ibs, gid_list):
 
     gid_list = images.gids
     uuid_gid_list = [str(item) for item in images.uuids]
-    results_list = depc.get_property('localizations', gid_list, None, config=config)  # NOQA
-
+    results_list = depc.get_property(
+        'localizations', gid_list, None, config=config
+    )  # NOQA
 
     results_list2 = []
     multi_gids = []
@@ -56,7 +56,7 @@ def classifyShark(ibs, gid_list):
             # Take only a single annotation per bounding box.
             multi_gids.append(gid)
             idx = conf_list.argmax()
-            res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
+            res2 = (gid, bbox_list[idx : idx + 1], theta_list[idx : idx + 1])
             results_list2.append(res2)
 
     # Reorder empty_info to be aligned with results
@@ -66,24 +66,22 @@ def classifyShark(ibs, gid_list):
     bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
     thetas = np.array(ut.take_column(results_list2, 2))[:, 0]
 
-
     species = ['whale_shark'] * len(localized_imgs)
-    aid_list = ibs.add_annots(localized_imgs.gids, bbox_list=bboxes,
-                            theta_list=thetas,
-                            species_list=species)
+    aid_list = ibs.add_annots(
+        localized_imgs.gids, bbox_list=bboxes, theta_list=thetas, species_list=species
+    )
 
-    config = {
-        'dim_size': (224, 224),
-        'resize_dim': 'wh'
-    }
-    chip_gen = ibs.depc_annot.get('chips', aid_list, 'img',
-                              eager=False, config=config)
+    config = {'dim_size': (224, 224), 'resize_dim': 'wh'}
+    chip_gen = ibs.depc_annot.get('chips', aid_list, 'img', eager=False, config=config)
     data_shape = config['dim_size'] + (3,)
     iter_ = iter(ut.ProgIter(chip_gen, nTotal=len(aid_list), lbl='load chip'))
     shape = (len(aid_list),) + data_shape
     data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
     results = model._predict(data)
-    predictions = results["predictions"]
-    classes = np.array(["healthy", "injured"])
+    predictions = results['predictions']
+    classes = np.array(['healthy', 'injured'])
     prediction_class = classes[np.array(predictions)]
-    return {'predictions' : prediction_class.tolist(), 'confidences' : results["confidences"].tolist()}
+    return {
+        'predictions': prediction_class.tolist(),
+        'confidences': results['confidences'].tolist(),
+    }

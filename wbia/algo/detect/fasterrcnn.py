@@ -10,6 +10,7 @@ from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import sys
 import cv2
+
 (print, rrr, profile) = ut.inject2(__name__, '[faster r-cnn]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
@@ -32,18 +33,18 @@ if not ut.get_argflag('--no-faster-rcnn'):
         add_path(lib_path)
 
         import caffe
+
         ut.reload_module(caffe)
         from fast_rcnn.config import cfg
         from fast_rcnn.test import im_detect
+
         # from fast_rcnn.nms_wrapper import nms
     except AssertionError as ex:
-        print('WARNING Failed to find py-faster-rcnn. '
-              'Faster R-CNN is unavailable')
+        print('WARNING Failed to find py-faster-rcnn. ' 'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError as ex:
-        print('WARNING Failed to import fast_rcnn. '
-              'Faster R-CNN is unavailable')
+        print('WARNING Failed to import fast_rcnn. ' 'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
 
@@ -53,15 +54,12 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 CONFIG_URL_DICT = {
     # 'pretrained-fast-vgg-pascal' : 'https://wildbookiarepository.azureedge.net/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-
-    'pretrained-vgg-pascal'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    'pretrained-zf-pascal'       : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
-
-    'pretrained-vgg-ilsvrc'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-    'pretrained-zf-ilsvrc'       : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-
-    'default'                    : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    None                         : 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-zf-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-ilsvrc': 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-zf-ilsvrc': 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'default': 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    None: 'https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 }
 
 
@@ -159,16 +157,29 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
-            bbox_list = [ bbox ]
+            bbox = (
+                result['xtl'],
+                result['ytl'],
+                result['width'],
+                result['height'],
+            )
+            bbox_list = [bbox]
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0,
-           **kwargs):
+def detect(
+    gpath_list,
+    config_filepath,
+    weight_filepath,
+    class_filepath,
+    sensitivity,
+    verbose=VERBOSE_SS,
+    use_gpu=True,
+    use_gpu_id=0,
+    **kwargs
+):
     """
     Args:
         gpath_list (list of str): the list of image paths that need proposal candidates
@@ -184,8 +195,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
         config_url = CONFIG_URL_DICT[config_filepath]
-        config_filepath = ut.grab_file_url(config_url, appname='wbia',
-                                           check_hash=True)
+        config_filepath = ut.grab_file_url(config_url, appname='wbia', check_hash=True)
 
     # Get correct weights if specified with shorthand
     if weight_filepath in CONFIG_URL_DICT:
@@ -194,13 +204,13 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         else:
             config_url_ = CONFIG_URL_DICT[weight_filepath]
         weight_url = _parse_weight_from_cfg(config_url_)
-        weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
-                                            check_hash=True)
+        weight_filepath = ut.grab_file_url(weight_url, appname='wbia', check_hash=True)
 
     if class_filepath is None:
         class_url = _parse_classes_from_cfg(config_url)
-        class_filepath = ut.grab_file_url(class_url, appname='wbia',
-                                          check_hash=True, verbose=verbose)
+        class_filepath = ut.grab_file_url(
+            class_url, appname='wbia', check_hash=True, verbose=verbose
+        )
     class_list = _parse_class_list(class_filepath)
 
     # Need to convert unicode strings to Python strings to support Boost Python
@@ -234,12 +244,9 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         result_list_ = []
         for class_index, class_name in enumerate(class_list[1:]):
             class_index += 1  # because we skipped background
-            class_boxes = bbox_list[:, 4 * class_index: 4 * (class_index + 1)]
+            class_boxes = bbox_list[:, 4 * class_index : 4 * (class_index + 1)]
             class_scores = score_list[:, class_index]
-            dets_list = np.hstack((
-                class_boxes,
-                class_scores[:, np.newaxis])
-            )
+            dets_list = np.hstack((class_boxes, class_scores[:, np.newaxis]))
             dets_list = dets_list.astype(np.float32)
             # # Perform NMS
             # keep_list = nms(dets_list, nms_sensitivity)
@@ -254,12 +261,12 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
                 ybr = int(np.around(ybr))
                 confidence = float(conf)
                 result_dict = {
-                    'xtl'        : xtl,
-                    'ytl'        : ytl,
-                    'width'      : xbr - xtl,
-                    'height'     : ybr - ytl,
-                    'class'      : class_name,
-                    'confidence' : confidence,
+                    'xtl': xtl,
+                    'ytl': ytl,
+                    'width': xbr - xtl,
+                    'height': ybr - ytl,
+                    'class': class_name,
+                    'confidence': confidence,
                 }
                 result_list_.append(result_dict)
         results_list_.append(result_list_)

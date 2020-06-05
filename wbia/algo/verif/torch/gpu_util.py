@@ -85,9 +85,13 @@ def gpu_info():
     gpus = {}
     for num, lines in enumerate(gpu_lines):
         gpu = parse_gpu_lines(lines)
-        assert num == gpu['num'], (
-            'nums ({}, {}) do not agree. probably a parsing error'.format(num, gpu['num']))
-        assert num not in gpus, (
-            'Multiple GPUs labeled as num {}. Probably a parsing error'.format(num))
+        assert (
+            num == gpu['num']
+        ), 'nums ({}, {}) do not agree. probably a parsing error'.format(
+            num, gpu['num']
+        )
+        assert (
+            num not in gpus
+        ), 'Multiple GPUs labeled as num {}. Probably a parsing error'.format(num)
         gpus[num] = gpu
     return gpus

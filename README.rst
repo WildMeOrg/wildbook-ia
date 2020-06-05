@@ -1,11 +1,11 @@
-|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor|
 
 .. image:: https://i.imgur.com/L0k84xQ.png
 
 This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
 
-IBEIS - Image Analysis 
+IBEIS - Image Analysis
 ----------------------
 
 I.B.E.I.S. = Image Based Ecological Information System
@@ -96,27 +96,27 @@ IBEIS program for the storage and management of images and derived data for
 use in computer vision algorithms. It aims to compute who an animal is, what
 species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.  This This repo Image Analysis image
-analysis module of IBEIS. It is both a python module and standalone program. 
+analysis module of IBEIS. It is both a python module and standalone program.
 
 Currently the system is build around and SQLite database, a PyQt4 / PyQt5 GUI,
 and matplotlib visualizations. Algorithms employed are: random forest species
 detection and localization, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
 Algorithms in development are SMK (selective match kernel) for identification
-and deep neural networks for detection and localization. 
+and deep neural networks for detection and localization.
 
 The core of IBEIS is the IBEISController class. It provides an API into IBEIS
 data management and algorithms. The IBEIS API Documentation can be found here:
 `http://erotemic.github.io/wbia`
 
-The IBEIS GUI (graphical user interface) is built on top of the API. 
+The IBEIS GUI (graphical user interface) is built on top of the API.
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
 Self Installing Executables
 ---------------------------
 
-Unfortunately we have not released self-installing-executables for IBEIS yet. 
-We ~plan~ hope to release these "soon". 
+Unfortunately we have not released self-installing-executables for IBEIS yet.
+We ~plan~ hope to release these "soon".
 
 However there are old HotSpotter (the software which IBEIS is based on)
 binaries available. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
@@ -134,7 +134,7 @@ Visual Demo
    :alt: Nearest Neighbors
 
 
-Match Scoring 
+Match Scoring
 -------------
 
 .. image:: http://imgur.com/Hj43Xxy.png
@@ -165,7 +165,7 @@ Name Scoring
 
     python -m wbia.algo.hots.chip_match show_single_namematch --qaid 1 --show
 
-Identification Ranking 
+Identification Ranking
 ----------------------
 
 .. image:: http://i.imgur.com/BlajchI.jpg
@@ -193,10 +193,10 @@ Inference
 Internal Modules
 ----------------
 
-In the interest of modular code we are actively developing several different modules. 
+In the interest of modular code we are actively developing several different modules.
 
 
-Erotemic's IBEIS Image Analysis module dependencies 
+Erotemic's IBEIS Image Analysis module dependencies
 
 * https://github.com/Erotemic/utool
 
@@ -215,19 +215,19 @@ bluemellophone's IBEIS Image Analysis modules
   docs: http://bluemellophone.github.io/pyrf
 
 
-The IBEIS module itself: 
+The IBEIS module itself:
 
 * https://github.com/WildbookOrg/wbia
 
-IBEIS Development Environment Setup 
+IBEIS Development Environment Setup
 ------------------------------------
 
 .. code:: bash
 
-    # The following install script install wbia and all dependencies. 
+    # The following install script install wbia and all dependencies.
     # If it doesnt you can look at the older instructions which follow
     # and try to figure it out. After running this you should have a code
-    # directory with all of the above repos. 
+    # directory with all of the above repos.
 
     # Navigate to your code directory
     export CODE_DIR=~/code
@@ -259,9 +259,9 @@ IBEIS Development Environment Setup
     python setup.py develop
 
     # Optional: set a workdir and download a test dataset
-    .python -m wbia.dev 
-    .python -m wbia.dev -t mtest 
-    python -m wbia.dev -t nauts 
+    .python -m wbia.dev
+    .python -m wbia.dev -t mtest
+    python -m wbia.dev -t nauts
     ./reset_dbs.py
 
     python -m wbia --set-workdir ~/data/work --preload-exit
@@ -290,7 +290,7 @@ Reference `pre-commit's installation instructions <https://pre-commit.com/#insta
 Python
 ~~~~~~
 
-Try to conform to pep8. 
+Try to conform to pep8.
 You should set up your preferred editor to use flake8 as linter.
 If using vim I recommend syntastic.
 
@@ -314,7 +314,7 @@ C++ (Cplusplus)
 
 For C++ code use ``astyle`` to format your code::
 
-  atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
+  atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets
 
 
 Example usage
@@ -390,7 +390,7 @@ Example usage
     # Dump/Print contents of params.args as a dict
     python -m wbia.dev --prequit --dump-argv
 
-    # Dump Current SQL Schema to stdout 
+    # Dump Current SQL Schema to stdout
     python -m wbia.dev --dump-schema --postquit
 
 
@@ -517,7 +517,7 @@ Example usage
 
     # More rerank vsone tests
     python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
-    sh Tbig.sh -t custom:rrvsone_on=True custom 
+    sh Tbig.sh -t custom:rrvsone_on=True custom
     sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 
     #----

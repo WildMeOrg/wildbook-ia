@@ -109,10 +109,14 @@ def autogen_ipynb(ibs, launch=None, run=None):
         output_fpath = ut.export_notebook(run_nb, fname)
         ut.startfile(output_fpath)
     elif launch:
-        command = ' '.join(['jupyter-notebook',
-                            '--NotebookApp.iopub_data_rate_limit=10000000',
-                            '--NotebookApp.token=',
-                            nb_fpath])
+        command = ' '.join(
+            [
+                'jupyter-notebook',
+                '--NotebookApp.iopub_data_rate_limit=10000000',
+                '--NotebookApp.token=',
+                nb_fpath,
+            ]
+        )
         ut.cmd2(command, detatch=True, verbose=True)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
@@ -140,7 +144,7 @@ def get_default_cell_template_list(ibs):
 
     dev_analysis = [
         cells.config_overlap,
-        #cells.dbsize_expt,
+        # cells.dbsize_expt,
         # None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
         cells.all_annot_scoresep,
         cells.success_annot_scoresep,
@@ -234,7 +238,9 @@ def make_wbia_notebook(ibs):
 
 def make_wbia_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
-    autogen_str = '# python -m wbia autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
+    autogen_str = '# python -m wbia autogen_ipynb --launch --dbdir %r' % (
+        ibs.get_dbdir()
+    )
     # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
     dbdir = ibs.dbdir
@@ -246,15 +252,14 @@ def make_wbia_cell_list(ibs):
     default_pcfgstr = ut.repr3(default_pcfgstr_list, nobr=True)
 
     if asreport:
-        annotconfig_list_body = ut.codeblock(
-            ut.repr2(default_acfgstr) )
-        pipeline_list_body = ut.codeblock(
-            default_pcfgstr
-        )
+        annotconfig_list_body = ut.codeblock(ut.repr2(default_acfgstr))
+        pipeline_list_body = ut.codeblock(default_pcfgstr)
     else:
         annotconfig_list_body = ut.codeblock(
-            ut.repr2(default_acfgstr) + '\n' +
-            ut.codeblock('''
+            ut.repr2(default_acfgstr)
+            + '\n'
+            + ut.codeblock(
+                """
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
             #'default:is_known=True,minqual=good,require_timestamp=True,dcrossval_enc=1,view=left'
@@ -270,17 +275,21 @@ def make_wbia_cell_list(ibs):
             #'default:minqual=ok,require_timestamp=True,view=left,dcrossval_enc=1,joinme=2',
             #'default:minqual=ok,require_timestamp=True,view=right,dcrossval_enc=1,joinme=2',
 
-            ''')
+            """
+            )
         )
         pipeline_list_body = ut.codeblock(
-            default_pcfgstr + '\n' +
-            ut.codeblock('''
+            default_pcfgstr
+            + '\n'
+            + ut.codeblock(
+                """
             #'default',
             #'default:K=1,AI=False,QRH=True',
             #'default:K=1,RI=True,AI=False',
             #'default:K=1,adapteq=True',
             #'default:fg_on=[True,False]',
-            ''')
+            """
+            )
         )
 
     locals_ = locals()
@@ -297,6 +306,8 @@ if __name__ == '__main__':
         python -m wbia.templates.generate_notebook --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

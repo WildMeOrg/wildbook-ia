@@ -6,10 +6,13 @@ import numpy as np
 from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
 from wbia.control import controller_inject
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
 # def get_annotmatch_rowids_subset_from_aids(ibs, aids):
@@ -35,57 +38,79 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
         list: annotmatch_rowid_list
     """
     from wbia.control import manual_annotmatch_funcs
+
     colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid1_list)
     if True:
         # HACK IN INDEX
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid1});
-            '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
-                       annot_rowid1=manual_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
+            """.format(
+                ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
+                annot_rowid1=manual_annotmatch_funcs.ANNOT_ROWID1,
+            )
+        ).fetchall()
     where_colnames = [manual_annotmatch_funcs.ANNOT_ROWID1]
     annotmatch_rowid_list = ibs.db.get_where_eq(
-        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
-        eager=eager, nInput=nInput, unpack_scalars=False)
+        ibs.const.ANNOTMATCH_TABLE,
+        colnames,
+        params_iter,
+        where_colnames,
+        eager=eager,
+        nInput=nInput,
+        unpack_scalars=False,
+    )
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
 
 
 @register_ibs_method
 @profile
-def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
-                                    force_method=None):
+def get_annotmatch_rowids_from_aid2(
+    ibs, aid2_list, eager=True, nInput=None, force_method=None
+):
     """
     # This one is slow because aid2 is the second part of the index
     Returns a list of the aids that were reviewed as candidate matches to the input aid
     """
     from wbia.control import manual_annotmatch_funcs
+
     if nInput is None:
         nInput = len(aid2_list)
     if True:
         # HACK IN INDEX
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid2});
-            '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
-                       annot_rowid2=manual_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
+            """.format(
+                ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
+                annot_rowid2=manual_annotmatch_funcs.ANNOT_ROWID2,
+            )
+        ).fetchall()
     colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid2_list)
     where_colnames = [manual_annotmatch_funcs.ANNOT_ROWID2]
     annotmatch_rowid_list = ibs.db.get_where_eq(
-        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
-        eager=eager, nInput=nInput, unpack_scalars=False)
+        ibs.const.ANNOTMATCH_TABLE,
+        colnames,
+        params_iter,
+        where_colnames,
+        eager=eager,
+        nInput=nInput,
+        unpack_scalars=False,
+    )
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
 
 
 @register_ibs_method
 @profile
-def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
-                                   force_method=None):
+def get_annotmatch_rowids_from_aid(
+    ibs, aid_list, eager=True, nInput=None, force_method=None
+):
     """
     Undirected version
     Returns a list of the aids that were reviewed as candidate matches to the input aid
@@ -107,15 +132,14 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
         >>> result = ('annotmatch_rowid_list = %s' % (str(annotmatch_rowid_list),))
         >>> print(result)
     """
-    #from wbia.control import manual_annotmatch_funcs
+    # from wbia.control import manual_annotmatch_funcs
     if nInput is None:
         nInput = len(aid_list)
     if nInput == 0:
         return []
     rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
     rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)
-    annotmatch_rowid_list = [ut.unique(ut.flatten(p))
-                             for p in zip(rowids1, rowids2)]
+    annotmatch_rowid_list = [ut.unique(ut.flatten(p)) for p in zip(rowids1, rowids2)]
     # Ensure funciton output is consistent
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
@@ -152,10 +176,15 @@ def get_annotmatch_rowid_from_edges(ibs, aid_pairs):
 @register_ibs_method
 def get_annotmatch_rowids_in_cliques(ibs, aids_list):
     # Equivalent call:
-    #ibs.get_annotmatch_rowids_between_groups(ibs, aids_list, aids_list)
+    # ibs.get_annotmatch_rowids_between_groups(ibs, aids_list, aids_list)
     import itertools
-    ams_list = [ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*itertools.combinations(aids, 2)))
-                for aids in ut.ProgIter(aids_list, lbl='loading clique am rowids')]
+
+    ams_list = [
+        ibs.get_annotmatch_rowid_from_undirected_superkey(
+            *zip(*itertools.combinations(aids, 2))
+        )
+        for aids in ut.ProgIter(aids_list, lbl='loading clique am rowids')
+    ]
     ams_list = [[] if ams is None else ut.filter_Nones(ams) for ams in ams_list]
     return ams_list
 
@@ -240,6 +269,7 @@ def add_annotmatch_undirected(ibs, aids1, aids2, **kwargs):
         return []
     edges = list(zip(aids1, aids2))
     from wbia.algo.graph import nx_utils as nxu
+
     # Enforce new undirected constraint
     edges = ut.estarmap(nxu.e_, edges)
     aids1, aids2 = list(zip(*edges))
@@ -311,7 +341,8 @@ def get_annotedge_viewdist(ibs, edges):
     DIST = ibs.const.VIEW.DIST
     view_dists = [
         DIST[tup] if tup in DIST else DIST[tup[::-1]]
-        for tup in zip(view_ints1, view_ints2)]
+        for tup in zip(view_ints1, view_ints2)
+    ]
     view_dists = np.array(ut.replace_nones(view_dists, np.nan))
     return view_dists
 
@@ -349,7 +380,9 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         >>> result = str(num_annot_reviewed_list)
         >>> print(result)
     """
-    aids_list = ibs.get_annot_reviewed_matching_aids(aid1_list, eager=eager, nInput=nInput)
+    aids_list = ibs.get_annot_reviewed_matching_aids(
+        aid1_list, eager=eager, nInput=nInput
+    )
     num_annot_reviewed_list = list(map(len, aids_list))
     return num_annot_reviewed_list
 
@@ -364,9 +397,15 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     params_iter = [(aid,) for aid in aid_list]
     colnames = (ANNOT_ROWID2,)
     where_colnames = (ANNOT_ROWID1,)
-    aids_list = ibs.db.get_where_eq(ibs.const.ANNOTMATCH_TABLE, colnames,
-                                    params_iter, where_colnames, eager=eager,
-                                    unpack_scalars=False, nInput=nInput)
+    aids_list = ibs.db.get_where_eq(
+        ibs.const.ANNOTMATCH_TABLE,
+        colnames,
+        params_iter,
+        where_colnames,
+        eager=eager,
+        unpack_scalars=False,
+        nInput=nInput,
+    )
     return aids_list
 
 
@@ -376,8 +415,9 @@ def get_annotmatch_aids(ibs, annotmatch_rowid_list):
     ANNOT_ROWID2 = 'annot_rowid2'
     id_iter = annotmatch_rowid_list
     colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
-    aid_pairs = ibs.db.get(ibs.const.ANNOTMATCH_TABLE, colnames,
-                           id_iter, id_colname='rowid')
+    aid_pairs = ibs.db.get(
+        ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return aid_pairs
 
 
@@ -410,8 +450,10 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         104
     """
     am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
-    return [None if user is None else user.startswith('user:')
-            for user in ibs.get_annotmatch_reviewer(am_rowids)]
+    return [
+        None if user is None else user.startswith('user:')
+        for user in ibs.get_annotmatch_reviewer(am_rowids)
+    ]
 
 
 @register_ibs_method
@@ -422,14 +464,17 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
         truth = ibs.const.EVIDENCE_DECISION.UNKNOWN
     else:
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-        truth = (ibs.const.EVIDENCE_DECISION.POSITIVE if (nid1 == nid2) else
-                 ibs.const.EVIDENCE_DECISION.NEGATIVE)
+        truth = (
+            ibs.const.EVIDENCE_DECISION.POSITIVE
+            if (nid1 == nid2)
+            else ibs.const.EVIDENCE_DECISION.NEGATIVE
+        )
 
     # Ensure a row exists for this pair
     annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
 
     # Old functionality, remove. Reviewing should not set truth
-    confidence  = ibs.const.CONFIDENCE.CODE_TO_INT['guessing']
+    confidence = ibs.const.CONFIDENCE.CODE_TO_INT['guessing']
     ibs.set_annotmatch_evidence_decision(annotmatch_rowids, [truth])
     user_id = ut.get_user_name() + '@' + ut.get_computer_name()
     ibs.set_annotmatch_reviewer(annotmatch_rowids, ['user:' + user_id])
@@ -438,8 +483,9 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
 
 
 @register_ibs_method
-def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
-                                     on_nontrivial_merge=None, logger=None):
+def set_annot_pair_as_positive_match(
+    ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None, logger=None
+):
     """
     Safe way to perform links. Errors on invalid operations.
 
@@ -472,6 +518,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         >>> status = set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
         >>> print(status)
     """
+
     def _set_annot_name_rowids(aid_list, nid_list):
         if not ut.QUIET:
             print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
@@ -484,12 +531,20 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
                 new_names = ibs.get_name_texts(nid_list)
                 annot_uuids = ibs.get_annot_uuids(aid_list)
                 annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
-                log((
-                    'REVIEW_PAIR AS TRUE: (annot_uuid_pair=%r) '
-                    'CHANGE NAME of %d (annot_uuids=%r) '
-                    'WITH (previous_names=%r) to (new_names=%r)' ) % (
-                        annot_uuid_pair, len(annot_uuids), annot_uuids,
-                        previous_names, new_names))
+                log(
+                    (
+                        'REVIEW_PAIR AS TRUE: (annot_uuid_pair=%r) '
+                        'CHANGE NAME of %d (annot_uuids=%r) '
+                        'WITH (previous_names=%r) to (new_names=%r)'
+                    )
+                    % (
+                        annot_uuid_pair,
+                        len(annot_uuids),
+                        annot_uuids,
+                        previous_names,
+                        new_names,
+                    )
+                )
 
             ibs.set_annot_name_rowids(aid_list, nid_list)
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
@@ -498,6 +553,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
         status = _combo_aids_list
         return status
+
     print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
 
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
@@ -514,33 +570,39 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         if isunknown1 and isunknown2:
             print('...match unknown1 to unknown2 into 1 new name')
             next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
+            status = _set_annot_name_rowids([aid1, aid2], next_nids * 2)
         elif not isunknown1 and not isunknown2:
             print('...merge known1 into known2')
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
             aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
-            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
+            trivial_merge = (
+                len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
+            )
             if not trivial_merge:
                 if on_nontrivial_merge is None:
-                    raise Exception('no function is set up to handle nontrivial merges!')
+                    raise Exception(
+                        'no function is set up to handle nontrivial merges!'
+                    )
                 else:
                     on_nontrivial_merge(ibs, aid1, aid2)
-            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] *
-                                             len(aid1_and_groundtruth))
+            status = _set_annot_name_rowids(
+                aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth)
+            )
         elif isunknown2 and not isunknown1:
             print('...match unknown2 into known1')
-            status =  _set_annot_name_rowids([aid2], [nid1])
+            status = _set_annot_name_rowids([aid2], [nid1])
         elif isunknown1 and not isunknown2:
             print('...match unknown1 into known2')
-            status =  _set_annot_name_rowids([aid1], [nid2])
+            status = _set_annot_name_rowids([aid1], [nid2])
         else:
             raise AssertionError('impossible state')
     return status
 
 
 @register_ibs_method
-def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
-                                     on_nontrivial_split=None, logger=None):
+def set_annot_pair_as_negative_match(
+    ibs, aid1, aid2, dryrun=False, on_nontrivial_split=None, logger=None
+):
     """
     TODO: ELEVATE THIS FUNCTION
 
@@ -563,6 +625,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
         >>> print(result)
     """
+
     def _set_annot_name_rowids(aid_list, nid_list):
         print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
         if not dryrun:
@@ -572,14 +635,23 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
                 new_names = ibs.get_name_texts(nid_list)
                 annot_uuids = ibs.get_annot_uuids(aid_list)
                 annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
-                log((
-                    'REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) '
-                    'CHANGE NAME of %d (annot_uuids=%r) '
-                    'WITH (previous_names=%r) to (new_names=%r)' ) % (
-                        annot_uuid_pair, len(annot_uuids), annot_uuids,
-                        previous_names, new_names))
+                log(
+                    (
+                        'REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) '
+                        'CHANGE NAME of %d (annot_uuids=%r) '
+                        'WITH (previous_names=%r) to (new_names=%r)'
+                    )
+                    % (
+                        annot_uuid_pair,
+                        len(annot_uuids),
+                        annot_uuids,
+                        previous_names,
+                        new_names,
+                    )
+                )
             ibs.set_annot_name_rowids(aid_list, nid_list)
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
+
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
         print('images are marked as having the same name... we must tread carefully')
@@ -588,7 +660,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
             # this is the only safe case for same name split
             # Change so the names are not the same
             next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
+            status = _set_annot_name_rowids([aid1], next_nids)
         else:
             if on_nontrivial_split is None:
                 raise Exception('no function is set up to handle nontrivial splits!')
@@ -599,7 +671,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         if isunknown1 and isunknown2:
             print('...nomatch unknown1 and unknown2 into 2 new names')
             next_nids = ibs.make_next_nids(num=2)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
+            status = _set_annot_name_rowids([aid1, aid2], next_nids)
         elif not isunknown1 and not isunknown2:
             print('...nomatch known1 and known2... nothing to do (yet)')
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
@@ -607,15 +679,18 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
             if logger is not None:
                 log = logger.info
                 annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
-                log('REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) NO CHANGE' % annot_uuid_pair)
+                log(
+                    'REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) NO CHANGE'
+                    % annot_uuid_pair
+                )
         elif isunknown2 and not isunknown1:
             print('...nomatch unknown2 -> newname and known1')
             next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid2], next_nids)
+            status = _set_annot_name_rowids([aid2], next_nids)
         elif isunknown1 and not isunknown2:
             print('...nomatch unknown1 -> newname and known2')
             next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
+            status = _set_annot_name_rowids([aid1], next_nids)
         else:
             raise AssertionError('impossible state')
     return status
@@ -681,6 +756,8 @@ if __name__ == '__main__':
         python -m wbia.annotmatch_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

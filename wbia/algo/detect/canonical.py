@@ -11,6 +11,7 @@ import time
 import os
 import copy
 import PIL
+
 (print, rrr, profile) = ut.inject2(__name__, '[canonical]')
 
 
@@ -33,11 +34,11 @@ if not ut.get_argflag('--no-pytorch'):
         import torch.nn as nn
         import torch.optim as optim
         import torchvision
+
         print('PyTorch Version: ', torch.__version__)
         print('Torchvision Version: ', torchvision.__version__)
     except ImportError:
-        print('WARNING Failed to import pytorch. '
-              'PyTorch is unavailable')
+        print('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
         if ut.SUPER_STRICT:
             raise
 
@@ -52,51 +53,58 @@ if not ut.get_argflag('--no-pytorch'):
         class TrainAugmentations(Augmentations):
             def __init__(self):
                 from imgaug import augmenters as iaa
-                self.aug = iaa.Sequential([
-                    iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.ContrastNormalization((0.75, 1.25)),
-                    iaa.AddElementwise((-20, 20), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-5, 5), per_channel=True),
-                    iaa.Multiply((0.75, 1.25)),
-                    # iaa.Dropout(p=(0.0, 0.1)),
-                    iaa.PiecewiseAffine(scale=(0.0001, 0.0005)),
-                    iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
-                    iaa.Grayscale(alpha=(0.0, 0.25)),
-                ])
+
+                self.aug = iaa.Sequential(
+                    [
+                        iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
+                        iaa.ContrastNormalization((0.75, 1.25)),
+                        iaa.AddElementwise((-20, 20), per_channel=0.5),
+                        iaa.AddToHueAndSaturation(value=(-5, 5), per_channel=True),
+                        iaa.Multiply((0.75, 1.25)),
+                        # iaa.Dropout(p=(0.0, 0.1)),
+                        iaa.PiecewiseAffine(scale=(0.0001, 0.0005)),
+                        iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
+                        iaa.Grayscale(alpha=(0.0, 0.25)),
+                    ]
+                )
 
         class ValidAugmentations(Augmentations):
             def __init__(self):
                 from imgaug import augmenters as iaa
-                self.aug = iaa.Sequential([
-                    iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                ])
+
+                self.aug = iaa.Sequential([iaa.Scale((INPUT_SIZE, INPUT_SIZE)),])
 
         AGUEMTNATION = {
             'train': TrainAugmentations,
-            'val':   ValidAugmentations,
-            'test':  ValidAugmentations,
+            'val': ValidAugmentations,
+            'test': ValidAugmentations,
         }
 
         TRANSFORMS = {
-            phase: torchvision.transforms.Compose([
-                AGUEMTNATION[phase](),
-                lambda array: PIL.Image.fromarray(array),
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
+            phase: torchvision.transforms.Compose(
+                [
+                    AGUEMTNATION[phase](),
+                    lambda array: PIL.Image.fromarray(array),
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Normalize(
+                        [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+                    ),
+                ]
+            )
             for phase in AGUEMTNATION.keys()
         }
     except ImportError:
         AGUEMTNATION = {}
         TRANSFORMS = {}
-        print('WARNING Failed to import imgaug. '
-              'install with pip install git+https://github.com/aleju/imgaug')
+        print(
+            'WARNING Failed to import imgaug. '
+            'install with pip install git+https://github.com/aleju/imgaug'
+        )
         if ut.SUPER_STRICT:
             raise
 
 
 class ImageFilePathList(torch.utils.data.Dataset):
-
     def __init__(self, filepaths, targets=True, transform=None, target_transform=None):
         from torchvision.datasets.folder import default_loader
 
@@ -106,12 +114,18 @@ class ImageFilePathList(torch.utils.data.Dataset):
             targets = []
             for filepath in filepaths:
                 path, ext = os.path.splitext(filepath)
-                target = '%s.csv' % (path, )
-                assert os.path.exists(target), 'Missing target %s for %s' % (target, filepath, )
+                target = '%s.csv' % (path,)
+                assert os.path.exists(target), 'Missing target %s for %s' % (
+                    target,
+                    filepath,
+                )
                 targets.append(target)
-            args = (filepaths, targets, )
+            args = (
+                filepaths,
+                targets,
+            )
         else:
-            args = (filepaths, )
+            args = (filepaths,)
 
         self.samples = list(zip(*args))
 
@@ -146,7 +160,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        result = (sample, target, ) if self.targets else (sample, )
+        result = (sample, target,) if self.targets else (sample,)
         return result
 
     def __len__(self):
@@ -156,13 +170,26 @@ class ImageFilePathList(torch.utils.data.Dataset):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
         fmt_str += '    Number of samples: {}\n'.format(self.__len__())
         tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}\n'.format(
+            tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
+        )
         tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}'.format(
+            tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
+        )
         return fmt_str
 
 
-def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=1.0):
+def finetune(
+    model,
+    dataloaders,
+    optimizer,
+    scheduler,
+    device,
+    num_epochs=128,
+    under=1.0,
+    over=1.0,
+):
     phases = ['train', 'val']
 
     start = time.time()
@@ -185,7 +212,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()  # Set model to evaluate mode
 
             running_loss_ = np.zeros((1, 4))
             running_loss_under_ = np.zeros((1, 4))
@@ -213,7 +240,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
                     undershoots = labels - outputs
                     overshoots = outputs - labels
 
-                    #partition
+                    # partition
                     undershoots[undershoots < 0] = 0
                     overshoots[overshoots < 0] = 0
 
@@ -277,31 +304,52 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
             x1 *= INPUT_SIZE
             y1 *= INPUT_SIZE
             best_str = '!' if best else ''
-            print('{:<5} Loss: {:.4f}\t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
+            print(
+                '{:<5} Loss: {:.4f}\t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)\t{}'.format(
+                    phase, epoch_loss, x0, y0, x1, y1, best_str
+                )
+            )
 
             x0_, y0_, x1_, y1_ = epoch_loss_under_
             x0_ *= INPUT_SIZE
             y0_ *= INPUT_SIZE
             x1_ *= INPUT_SIZE
             y1_ *= INPUT_SIZE
-            print('{:<5} Under Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(phase, x0_, y0_, x1_, y1_))
+            print(
+                '{:<5} Under Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(
+                    phase, x0_, y0_, x1_, y1_
+                )
+            )
 
             x0_, y0_, x1_, y1_ = epoch_loss_over_
             x0_ *= INPUT_SIZE
             y0_ *= INPUT_SIZE
             x1_ *= INPUT_SIZE
             y1_ *= INPUT_SIZE
-            print('{:<5}  Over Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(phase, x0_, y0_, x1_, y1_))
+            print(
+                '{:<5}  Over Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(
+                    phase, x0_, y0_, x1_, y1_
+                )
+            )
 
             if phase == 'val':
                 if best:
                     best_model_state = copy.deepcopy(model.state_dict())
-                    best_correction = (x0, y0, x1, y1, )
+                    best_correction = (
+                        x0,
+                        y0,
+                        x1,
+                        y1,
+                    )
 
                 scheduler.step(epoch_loss)
 
                 time_elapsed_batch = time.time() - start_batch
-                print('time: {:.0f}m {:.0f}s'.format(time_elapsed_batch // 60, time_elapsed_batch % 60))
+                print(
+                    'time: {:.0f}m {:.0f}s'.format(
+                        time_elapsed_batch // 60, time_elapsed_batch % 60
+                    )
+                )
 
                 ratio = last_loss['train'] / last_loss['val']
                 print('ratio: {:.04f}'.format(ratio))
@@ -309,8 +357,12 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
         print('\n')
 
     time_elapsed = time.time() - start
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Suggested correction offsets: %r' % (best_correction, ))
+    print(
+        'Training complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60
+        )
+    )
+    print('Suggested correction offsets: %r' % (best_correction,))
 
     # load best model weights
     model.load_state_dict(best_model_state)
@@ -319,8 +371,9 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
 
 def visualize_augmentations(dataset, augmentation, tag, num=20):
     import matplotlib.pyplot as plt
+
     samples = dataset.samples
-    print('Dataset %r has %d samples' % (tag, len(samples), ))
+    print('Dataset %r has %d samples' % (tag, len(samples),))
 
     index_list = list(range(len(samples)))
     random.shuffle(index_list)
@@ -363,7 +416,9 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
         canvas_list.append(canvas)
     canvas = np.vstack(canvas_list)
 
-    canvas_filepath = expanduser(join('~', 'Desktop', 'canonical-augmentation-%s.png' % (tag, )))
+    canvas_filepath = expanduser(
+        join('~', 'Desktop', 'canonical-augmentation-%s.png' % (tag,))
+    )
     plt.imsave(canvas_filepath, canvas)
 
 
@@ -379,8 +434,7 @@ def train(data_path, output_path, batch_size=32):
 
     # Create training and validation datasets
     filepaths = {
-        phase: ut.glob(os.path.join(data_path, phase, '*.png'))
-        for phase in phases
+        phase: ut.glob(os.path.join(data_path, phase, '*.png')) for phase in phases
     }
 
     datasets = {
@@ -394,7 +448,7 @@ def train(data_path, output_path, batch_size=32):
             datasets[phase],
             batch_size=batch_size,
             num_workers=batch_size // 8,
-            pin_memory=using_gpu
+            pin_memory=using_gpu,
         )
         for phase in phases
     }
@@ -404,10 +458,7 @@ def train(data_path, output_path, batch_size=32):
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Sequential(
-        nn.Dropout(0.5),
-        nn.Linear(num_ftrs, 4),
-    )
+    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4),)
 
     # Send the model to GPU
     model = model.to(device)
@@ -429,7 +480,9 @@ def train(data_path, output_path, batch_size=32):
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.0005, momentum=0.9)
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=16, min_lr=1e-6)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, 'min', factor=0.5, patience=16, min_lr=1e-6
+    )
 
     print('Start Training...')
 
@@ -439,7 +492,7 @@ def train(data_path, output_path, batch_size=32):
     ut.ensuredir(output_path)
     weights_path = os.path.join(output_path, 'localizer.canonical.weights')
     weights = {
-        'state':   copy.deepcopy(model.state_dict()),
+        'state': copy.deepcopy(model.state_dict()),
     }
     torch.save(weights, weights_path)
 
@@ -455,14 +508,13 @@ def test_single(filepath_list, weights_path, batch_size=512):
     print('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
-    dataset = ImageFilePathList(filepath_list, transform=TRANSFORMS['test'], targets=False)
+    dataset = ImageFilePathList(
+        filepath_list, transform=TRANSFORMS['test'], targets=False
+    )
 
     # Create training and validation dataloaders
     dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        num_workers=0,
-        pin_memory=using_gpu
+        dataset, batch_size=batch_size, num_workers=0, pin_memory=using_gpu
     )
 
     print('Initializing Model...')
@@ -475,10 +527,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Sequential(
-        nn.Dropout(0.5),
-        nn.Linear(num_ftrs, 4),
-    )
+    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4),)
 
     model.load_state_dict(state)
 
@@ -491,7 +540,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     start = time.time()
 
     outputs = []
-    for inputs, in tqdm.tqdm(dataloader, desc='test'):
+    for (inputs,) in tqdm.tqdm(dataloader, desc='test'):
         inputs = inputs.to(device)
         with torch.set_grad_enabled(False):
             output = model(inputs)
@@ -501,7 +550,11 @@ def test_single(filepath_list, weights_path, batch_size=512):
     outputs = np.vstack(outputs)
 
     time_elapsed = time.time() - start
-    print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print(
+        'Testing complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60
+        )
+    )
 
     classes = ['x0', 'y0', 'x1', 'y1']
     result_list = []
@@ -549,7 +602,9 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         archive_url = ARCHIVE_URL_DICT[canonical_weight_filepath]
         archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
-        raise RuntimeError('canonical_weight_filepath %r not recognized' % (canonical_weight_filepath, ))
+        raise RuntimeError(
+            'canonical_weight_filepath %r not recognized' % (canonical_weight_filepath,)
+        )
 
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
@@ -559,21 +614,28 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         ut.unarchive_file(archive_path, output_dir=ensemble_path)
 
     assert os.path.exists(ensemble_path)
-    direct = Directory(ensemble_path, include_file_extensions=['weights'], recursive=True)
+    direct = Directory(
+        ensemble_path, include_file_extensions=['weights'], recursive=True
+    )
     weights_path_list = direct.files()
     weights_path_list = sorted(weights_path_list)
     assert len(weights_path_list) > 0
 
     if ensemble_index is not None:
         assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
-        weights_path_list = [ weights_path_list[ensemble_index] ]
+        weights_path_list = [weights_path_list[ensemble_index]]
         assert len(weights_path_list) > 0
 
-    print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
+    print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list),))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
         x0 = max(result['x0'], 0.0)
         y0 = max(result['y0'], 0.0)
         x1 = max(result['x1'], 0.0)
         y1 = max(result['y1'], 0.0)
-        yield (x0, y0, x1, y1, )
+        yield (
+            x0,
+            y0,
+            x1,
+            y1,
+        )

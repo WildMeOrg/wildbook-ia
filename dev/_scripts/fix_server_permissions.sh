@@ -6,4 +6,4 @@ sudo chown -R root:wbia "$(git rev-parse --show-toplevel)/.git"
 sudo chmod -R g+w "$(git rev-parse --show-toplevel)/.git"
 sudo chmod -R g+w *
 sudo chown -R root:wbia *
-$USER:$USER 
+$USER:$USER

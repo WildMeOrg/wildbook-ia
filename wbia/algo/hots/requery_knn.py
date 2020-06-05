@@ -4,6 +4,7 @@ import utool as ut
 import vtool as vt
 import itertools as it
 from six.moves import range, zip, map  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -28,6 +29,7 @@ class FinalResults(ut.NiceRepr):
 
 class TempQuery(ut.NiceRepr):
     """ queries that are incomplete """
+
     def __init__(query, vecs, invalid_axs, get_neighbors, get_axs):
         # Static attributes
         query.invalid_axs = invalid_axs
@@ -66,9 +68,9 @@ class TempResults(ut.NiceRepr):
         return str(cand.index)
 
     def compress(cand, flags):
-        qfx    = cand.index.compress(flags, axis=0)
-        idx_   = cand.idxs.compress(flags, axis=0)
-        dist_  = cand.dists.compress(flags, axis=0)
+        qfx = cand.index.compress(flags, axis=0)
+        idx_ = cand.idxs.compress(flags, axis=0)
+        dist_ = cand.dists.compress(flags, axis=0)
         valid_ = cand.validflags.compress(flags, axis=0)
         return TempResults(qfx, idx_, dist_, valid_)
 
@@ -111,8 +113,16 @@ def in1d_shape(arr1, arr2):
     return np.in1d(arr1, arr2).reshape(arr1.shape)
 
 
-def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],
-                pad=2, limit=4, recover=True):
+def requery_knn(
+    get_neighbors,
+    get_axs,
+    qfx2_vec,
+    num_neighbs,
+    invalid_axs=[],
+    pad=2,
+    limit=4,
+    recover=True,
+):
     """
     Searches for `num_neighbs`, while ignoring certain matches.  K is
     increassed until enough valid neighbors are found or a limit is reached.
@@ -226,9 +236,12 @@ def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],
         if at_limit:
             if len(done_flags) == 0:
                 import utool
+
                 utool.embed()
-            print('[knn] Hit limit=%r and found %d/%d' % (
-                limit, sum(done_flags), len(done_flags)))
+            print(
+                '[knn] Hit limit=%r and found %d/%d'
+                % (limit, sum(done_flags), len(done_flags))
+            )
             break
 
     if at_limit and recover:

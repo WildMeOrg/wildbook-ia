@@ -7,6 +7,7 @@ import networkx as nx
 import opengm
 import wbia.plottool as pt  # NOQA
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 # pd.set_option('display.float_format', lambda x: '%.4f' % x)
@@ -28,8 +29,8 @@ def register_test(func):
 @register_test
 def chain1():
     uvw_list = [
-        ('a', 'b', .8),
-        ('b', 'c', .8),
+        ('a', 'b', 0.8),
+        ('b', 'c', 0.8),
     ]
     pass_values = None
     fail_values = None
@@ -39,8 +40,8 @@ def chain1():
 @register_test
 def chain2():
     uvw_list = [
-        ('a', 'b', .8),
-        ('b', 'c', .2),
+        ('a', 'b', 0.8),
+        ('b', 'c', 0.2),
     ]
     pass_values = None
     fail_values = None
@@ -50,8 +51,8 @@ def chain2():
 @register_test
 def chain3():
     uvw_list = [
-        ('a', 'b', .2),
-        ('b', 'c', .2),
+        ('a', 'b', 0.2),
+        ('b', 'c', 0.2),
     ]
     pass_values = None
     fail_values = None
@@ -61,9 +62,9 @@ def chain3():
 @register_test
 def triangle1():
     uvw_list = [
-        ('a', 'b', .8),
-        ('b', 'c', .8),
-        ('c', 'a', .8),
+        ('a', 'b', 0.8),
+        ('b', 'c', 0.8),
+        ('c', 'a', 0.8),
     ]
     pass_values = None
     fail_values = None
@@ -73,9 +74,9 @@ def triangle1():
 @register_test
 def triangle2():
     uvw_list = [
-        ('a', 'b', .8),
-        ('b', 'c', .2),
-        ('c', 'a', .2),
+        ('a', 'b', 0.8),
+        ('b', 'c', 0.2),
+        ('c', 'a', 0.2),
     ]
     pass_values = None
     fail_values = None
@@ -85,9 +86,9 @@ def triangle2():
 @register_test
 def triangle3():
     uvw_list = [
-        ('a', 'b', .8),
-        ('b', 'c', .8),
-        ('c', 'a', .2),
+        ('a', 'b', 0.8),
+        ('b', 'c', 0.8),
+        ('c', 'a', 0.2),
     ]
     pass_values = None
     fail_values = None
@@ -97,10 +98,10 @@ def triangle3():
 @register_test
 def missing_lots():
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .2),
-        ('e', 'f', .2),
-        ('g', 'h', .2),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.2),
+        ('e', 'f', 0.2),
+        ('g', 'h', 0.2),
     ]
     pass_values = None
     fail_values = None
@@ -126,16 +127,14 @@ def consistent_info():
     [0, 0, 1, 1]
     """
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .8),
-        ('b', 'c', .2),
-        ('a', 'c', .2),
-        ('a', 'd', .2),
-        ('b', 'd', .2),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.8),
+        ('b', 'c', 0.2),
+        ('a', 'c', 0.2),
+        ('a', 'd', 0.2),
+        ('b', 'd', 0.2),
     ]
-    pass_values = [
-        [0, 0, 1, 1]
-    ]
+    pass_values = [[0, 0, 1, 1]]
     fail_values = None
     return uvw_list, pass_values, fail_values
 
@@ -165,21 +164,19 @@ def inconsistent_info():
     BUT IT SHOULD NOT BE [0, 0, 1, 1]
     """
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .8),
-        ('b', 'c', .2),
-        ('a', 'c', .2),
-        ('a', 'd', .2),
-        ('b', 'd', .99999),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.8),
+        ('b', 'c', 0.2),
+        ('a', 'c', 0.2),
+        ('a', 'd', 0.2),
+        ('b', 'd', 0.99999),
     ]
     pass_values = [
         [0, 1, 1, 1],
         [1, 1, 0, 1],
         [1, 1, 1, 1],
     ]
-    fail_values = [
-        [0, 0, 1, 1]
-    ]
+    fail_values = [[0, 0, 1, 1]]
     return uvw_list, pass_values, fail_values
 
 
@@ -189,12 +186,12 @@ def inconsistent_info2():
     ALso ensures that b and c are very likely to be different
     """
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .8),
-        ('b', 'c', .001),
-        ('a', 'c', .2),
-        ('a', 'd', .2),
-        ('b', 'd', .99999),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.8),
+        ('b', 'c', 0.001),
+        ('a', 'c', 0.2),
+        ('a', 'd', 0.2),
+        ('b', 'd', 0.99999),
     ]
     pass_values = [
         [0, 1, 1, 1],
@@ -202,9 +199,7 @@ def inconsistent_info2():
         [1, 1, 1, 1],
         [0, 1, 2, 1],
     ]
-    fail_values = [
-        [0, 0, 1, 1]
-    ]
+    fail_values = [[0, 0, 1, 1]]
     return uvw_list, pass_values, fail_values
 
 
@@ -224,16 +219,16 @@ def pos_incomplete():
     [0, 0, 1, 1, 1]
     """
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .8),
-        ('b', 'c', .2),
-        ('a', 'c', .2),
-        ('a', 'd', .2),
-        ('b', 'd', .2),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.8),
+        ('b', 'c', 0.2),
+        ('a', 'c', 0.2),
+        ('a', 'd', 0.2),
+        ('b', 'd', 0.2),
         # ('e', 'a', .00001),
         # ('e', 'b', .00001),
-        ('e', 'c', .51),
-        ('e', 'd', .51),
+        ('e', 'c', 0.51),
+        ('e', 'd', 0.51),
     ]
     pass_values = None
     fail_values = None
@@ -256,16 +251,16 @@ def neg_incomplete():
     [0, 0, 1, 1, 1]
     """
     uvw_list = [
-        ('a', 'b', .8),
-        ('c', 'd', .8),
-        ('b', 'c', .2),
-        ('a', 'c', .2),
-        ('a', 'd', .2),
-        ('b', 'd', .2),
+        ('a', 'b', 0.8),
+        ('c', 'd', 0.8),
+        ('b', 'c', 0.2),
+        ('a', 'c', 0.2),
+        ('a', 'd', 0.2),
+        ('b', 'd', 0.2),
         # ('e', 'a', .00001),
         # ('e', 'b', .00001),
-        ('e', 'c', .49),
-        ('e', 'd', .49),
+        ('e', 'c', 0.49),
+        ('e', 'd', 0.49),
     ]
     pass_values = None
     fail_values = None
@@ -307,8 +302,17 @@ def get_edge_id_probs(G, aid1, aid2, n_names):
     return p_same, p_diff
 
 
-def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
-                       use_unaries=True, edge_probs=None, operator='multiplier'):
+def build_factor_graph(
+    G,
+    nodes,
+    edges,
+    n_annots,
+    n_names,
+    lookup_annot_idx,
+    use_unaries=True,
+    edge_probs=None,
+    operator='multiplier',
+):
 
     node_state_card = np.ones(n_annots, dtype=index_type) * n_names
     numberOfStates = node_state_card
@@ -344,7 +348,7 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
 
         use_logit = operator == 'adder'
         if use_logit:
-            eps = 1E-9
+            eps = 1e-9
             p_same = np.clip(p_same, eps, 1.0 - eps)
             same_weight = scipy.special.logit(p_same)
             # valueEqual = -same_weight
@@ -364,9 +368,9 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
         p_same, p_diff = get_edge_id_probs(G, aid1, aid2, n_names)
         pairwise_factor_idxs.append(count)
 
-        potts_func = opengm.PottsFunction((n_names, n_names),
-                                          valueEqual=valueEqual,
-                                          valueNotEqual=valueNotEqual)
+        potts_func = opengm.PottsFunction(
+            (n_names, n_names), valueEqual=valueEqual, valueNotEqual=valueNotEqual
+        )
         potts_func_id = gm.addFunction(potts_func)
         gm.addFactor(potts_func_id, var_indicies)
 
@@ -375,16 +379,34 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
     return gm
 
 
-def cut_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx, edge_probs, pass_values, fail_values):
+def cut_step(
+    G,
+    nodes,
+    edges,
+    n_annots,
+    n_names,
+    lookup_annot_idx,
+    edge_probs,
+    pass_values,
+    fail_values,
+):
     # Create nodes in the graphical model.  In this case there are <num_vars>
     # nodes and each node can be assigned to one of <num_vars> possible labels
     space = np.full((n_annots,), fill_value=n_names, dtype=opengm.index_type)
     gm = opengm.gm(space, operator='adder')
 
     # Use one potts function for each edge
-    gm = build_factor_graph(G, nodes, edges , n_annots, n_names,
-                            lookup_annot_idx, use_unaries=False,
-                            edge_probs=edge_probs, operator='adder')
+    gm = build_factor_graph(
+        G,
+        nodes,
+        edges,
+        n_annots,
+        n_names,
+        lookup_annot_idx,
+        use_unaries=False,
+        edge_probs=edge_probs,
+        operator='adder',
+    )
 
     with ut.Indenter('[CUTS]'):
         ut.cprint('Brute Force Labels: (energy minimization)', 'blue')
@@ -394,15 +416,22 @@ def cut_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx, edge_probs, p
         print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
         print('value = %r' % (infr.value(),))
 
-        mc_params = opengm.InfParam(maximalNumberOfConstraintsPerRound=1000000,
-                                    initializeWith3Cycles=True,
-                                    edgeRoundingValue=1e-08, timeOut=36000000.0,
-                                    cutUp=1e+75, reductionMode=3, numThreads=0,
-                                    # allowCutsWithin=?
-                                    # workflow=workflow
-                                    verbose=False, verboseCPLEX=False)
-        infr = opengm.inference.Multicut(gm, parameter=mc_params,
-                                         accumulator='minimizer')
+        mc_params = opengm.InfParam(
+            maximalNumberOfConstraintsPerRound=1000000,
+            initializeWith3Cycles=True,
+            edgeRoundingValue=1e-08,
+            timeOut=36000000.0,
+            cutUp=1e75,
+            reductionMode=3,
+            numThreads=0,
+            # allowCutsWithin=?
+            # workflow=workflow
+            verbose=False,
+            verboseCPLEX=False,
+        )
+        infr = opengm.inference.Multicut(
+            gm, parameter=mc_params, accumulator='minimizer'
+        )
 
         infr.infer()
         labels = infr.arg()
@@ -435,10 +464,18 @@ def cut_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx, edge_probs, p
     # print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
 
 
-def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
-    gm = build_factor_graph(G, nodes, edges , n_annots, n_names,
-                            lookup_annot_idx, use_unaries=False,
-                            edge_probs=None, operator='multiplier')
+def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
+    gm = build_factor_graph(
+        G,
+        nodes,
+        edges,
+        n_annots,
+        n_names,
+        lookup_annot_idx,
+        use_unaries=False,
+        edge_probs=None,
+        operator='multiplier',
+    )
 
     with ut.Indenter('[BELIEF]'):
         ut.cprint('Brute Force Labels: (probability maximization)', 'blue')
@@ -448,9 +485,12 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
         print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
         print('value = %r' % (infr.value(),))
 
-        lpb_parmas = opengm.InfParam(damping=0.00, steps=10000,
-                                     # convergenceBound=0,
-                                     isAcyclic=False)
+        lpb_parmas = opengm.InfParam(
+            damping=0.00,
+            steps=10000,
+            # convergenceBound=0,
+            isAcyclic=False,
+        )
         # http://www.andres.sc/publications/opengm-2.0.2-beta-manual.pdf
         # I believe multiplier + integrator = marginalization
         # Manual says multiplier + adder = marginalization
@@ -460,21 +500,27 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
         # LBP_algorithm = opengm.inference.TreeReweightedBp
 
         ut.cprint('Belief Propogation (maximization)', 'blue')
-        infr = LBP_algorithm(
-            gm, parameter=lpb_parmas,
-            accumulator='maximizer'
-        )
+        infr = LBP_algorithm(gm, parameter=lpb_parmas, accumulator='maximizer')
         infr.infer()
         labels = rectify_labels(G, infr.arg())
         pairwise_factor_idxs = gm.pairwise_factor_idxs
         factor_marginals = infr.factorMarginals(pairwise_factor_idxs)
         # print('factor_marginals =\n%r' % (factor_marginals,))
-        edge_marginals_same_diff_ = [(np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum()) for f in factor_marginals]
+        edge_marginals_same_diff_ = [
+            (np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum())
+            for f in factor_marginals
+        ]
         edge_marginals_same_diff_ = np.array(edge_marginals_same_diff_)
         edge_marginals_same_diff = edge_marginals_same_diff_.copy()
         edge_marginals_same_diff /= edge_marginals_same_diff.sum(axis=1, keepdims=True)
         print('Unnormalized Edge Marginals:')
-        print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
+        print(
+            pd.DataFrame(
+                edge_marginals_same_diff,
+                columns=['same', 'diff'],
+                index=pd.Series(edges),
+            )
+        )
         # print('Edge marginals after Belief Propogation')
         # print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
         print('Labels:')
@@ -482,21 +528,27 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
         print('value = %r' % (infr.value(),))
 
         ut.cprint('Belief Propogation (marginalization)', 'blue')
-        infr = LBP_algorithm(
-            gm, parameter=lpb_parmas,
-            accumulator='integrator'
-        )
+        infr = LBP_algorithm(gm, parameter=lpb_parmas, accumulator='integrator')
         infr.infer()
         labels = rectify_labels(G, infr.arg())
         pairwise_factor_idxs = gm.pairwise_factor_idxs
         factor_marginals = infr.factorMarginals(pairwise_factor_idxs)
         # print('factor_marginals =\n%r' % (factor_marginals,))
-        edge_marginals_same_diff_ = [(np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum()) for f in factor_marginals]
+        edge_marginals_same_diff_ = [
+            (np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum())
+            for f in factor_marginals
+        ]
         edge_marginals_same_diff_ = np.array(edge_marginals_same_diff_)
         edge_marginals_same_diff = edge_marginals_same_diff_.copy()
         edge_marginals_same_diff /= edge_marginals_same_diff.sum(axis=1, keepdims=True)
         print('Unnormalized Edge Marginals:')
-        print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
+        print(
+            pd.DataFrame(
+                edge_marginals_same_diff,
+                columns=['same', 'diff'],
+                index=pd.Series(edges),
+            )
+        )
         # print('Edge marginals after Belief Propogation')
         # print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
         print('Labels:')
@@ -524,10 +576,18 @@ def viz_factor_graph(gm):
     ut.qtensure()
     import networkx
     from networkx.drawing.nx_agraph import graphviz_layout
+
     networkx.graphviz_layout = graphviz_layout
-    opengm.visualizeGm(gm, show=False, layout="neato", plotUnaries=True,
-                        iterations=1000, plotFunctions=True,
-                        plotNonShared=False, relNodeSize=1.0)
+    opengm.visualizeGm(
+        gm,
+        show=False,
+        layout='neato',
+        plotUnaries=True,
+        iterations=1000,
+        plotFunctions=True,
+        plotNonShared=False,
+        relNodeSize=1.0,
+    )
 
     _ = pt.show_nx(gm.G)  # NOQA
 
@@ -546,7 +606,10 @@ def build_graph(uvw_list):
     _edges = [(u, v, {'weight': w}) for (u, v, w) in uvw_list]
     G = nx.Graph()
     G.add_edges_from(_edges)
-    node_to_label = {e: '%s,%s\n%s' % (e + (d,)) for e, d in nx.get_edge_attributes(G, 'weight').items()}
+    node_to_label = {
+        e: '%s,%s\n%s' % (e + (d,))
+        for e, d in nx.get_edge_attributes(G, 'weight').items()
+    }
     nx.set_edge_attributes(G, name='label', values=node_to_label)
     return G
 
@@ -576,19 +639,34 @@ def main():
         lookup_annot_idx = ut.dzip(nodes, annot_idxs)
         nx.set_node_attributes(G, name='annot_idx', values=lookup_annot_idx)
 
-        edge_probs = np.array([get_edge_id_probs(G, aid1, aid2, n_names) for aid1, aid2 in edges])
+        edge_probs = np.array(
+            [get_edge_id_probs(G, aid1, aid2, n_names) for aid1, aid2 in edges]
+        )
 
         print('nodes = %r' % (nodes,))
         # print('edges = %r' % (edges,))
         print('Noisy Observations')
-        print(pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges)))
+        print(
+            pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges))
+        )
         edge_probs = None
 
-        cut_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx, edge_probs, pass_values, fail_values)
+        cut_step(
+            G,
+            nodes,
+            edges,
+            n_annots,
+            n_names,
+            lookup_annot_idx,
+            edge_probs,
+            pass_values,
+            fail_values,
+        )
 
-        edge_probs = bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx)
+        edge_probs = bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx)
 
         # cut_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx, edge_probs, None, fail_values)
+
 
 if __name__ == '__main__':
     r"""

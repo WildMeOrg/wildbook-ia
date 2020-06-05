@@ -29,19 +29,20 @@ def check_merge(ibs_src, ibs_dst):
     aids_list1 = ibs_src.get_image_aids(gid_list1)
     aids_list2 = ibs_dst.get_image_aids(gid_list2)
 
-    avuuids_list1 = ibs_src.unflat_map(
-        ibs_src.get_annot_visual_uuids, aids_list1)
-    avuuids_list2 = ibs_dst.unflat_map(
-        ibs_dst.get_annot_visual_uuids, aids_list2)
+    avuuids_list1 = ibs_src.unflat_map(ibs_src.get_annot_visual_uuids, aids_list1)
+    avuuids_list2 = ibs_dst.unflat_map(ibs_dst.get_annot_visual_uuids, aids_list2)
 
-    issubset_list = [set(avuuids1).issubset(set(avuuids2))
-                     for avuuids1, avuuids2 in zip(avuuids_list1, avuuids_list2)]
-    assert all(issubset_list), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (
-        issubset_list,)
-    #aids_depth1 = ut.depth_profile(aids_list1)
-    #aids_depth2 = ut.depth_profile(aids_list2)
+    issubset_list = [
+        set(avuuids1).issubset(set(avuuids2))
+        for avuuids1, avuuids2 in zip(avuuids_list1, avuuids_list2)
+    ]
+    assert all(
+        issubset_list
+    ), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (issubset_list,)
+    # aids_depth1 = ut.depth_profile(aids_list1)
+    # aids_depth2 = ut.depth_profile(aids_list2)
     # depth might not be true if ibs_dst is not empty
-    #ut.assert_lists_eq(aids_depth1, aids_depth2, 'failed depth')
+    # ut.assert_lists_eq(aids_depth1, aids_depth2, 'failed depth')
     print('Merge seems ok...')
 
 
@@ -90,8 +91,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     """
     # TODO: ensure images are localized
     # otherwise this wont work
-    print('BEGIN MERGE OF %r into %r' %
-          (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+    print('BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
     # ibs_src.run_integrity_checks()
     # ibs_dst.run_integrity_checks()
     ibs_dst.update_annot_visual_uuids(ibs_dst.get_valid_aids())
@@ -110,8 +110,11 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     if localize_images:
         ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
     ignore_tables = [
-        'lblannot', 'lblimage', 'image_lblimage_relationship',
-        'annotation_lblannot_relationship', 'keys'
+        'lblannot',
+        'lblimage',
+        'image_lblimage_relationship',
+        'annotation_lblannot_relationship',
+        'keys',
     ]
     # ignore_tables += [
     #     'contributors', 'party', 'configs'
@@ -125,9 +128,9 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     ]
     ignore_tables += error_tables
     ibs_dst.db.merge_databases_new(
-        ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
-    print('FINISHED MERGE %r into %r' %
-          (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+        ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets
+    )
+    print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
 
 
 def make_new_dbpath(ibs, id_label, id_list):
@@ -135,9 +138,16 @@ def make_new_dbpath(ibs, id_label, id_list):
     Creates a new database path unique to the exported subset of ids.
     """
     import wbia
+
     tag_hash = ut.hashstr_arr(id_list, hashlen=8, alphabet=ut.ALPHABET_27)
-    base_fmtstr = ibs.get_dbname() + '_' + id_label + 's=' + \
-        tag_hash.replace('(', '_').replace(')', '_') + '_%d'
+    base_fmtstr = (
+        ibs.get_dbname()
+        + '_'
+        + id_label
+        + 's='
+        + tag_hash.replace('(', '_').replace(')', '_')
+        + '_%d'
+    )
     dpath = wbia.get_workdir()
     new_dbpath = ut.non_existing_path(base_fmtstr, dpath)
     return new_dbpath
@@ -179,6 +189,7 @@ def export_names(ibs, nid_list, new_dbpath=None):
 
 def find_gid_list(ibs, min_count=500, ensure_annots=False):
     import random
+
     gid_list = ibs.get_valid_gids()
     reviewed_list = ibs.get_image_reviewed(gid_list)
 
@@ -190,11 +201,7 @@ def find_gid_list(ibs, min_count=500, ensure_annots=False):
         ]
 
     # Filter by reviewed
-    gid_list = [
-        gid
-        for gid, reviewed in zip(gid_list, reviewed_list)
-        if reviewed == 1
-    ]
+    gid_list = [gid for gid, reviewed in zip(gid_list, reviewed_list) if reviewed == 1]
 
     if len(gid_list) < min_count:
         return None
@@ -208,12 +215,12 @@ def find_gid_list(ibs, min_count=500, ensure_annots=False):
 
 def __export_reviewed_subset(ibs, min_count=500, ensure_annots=False):
     from os.path import join
-    gid_list = find_gid_list(
-        ibs, min_count=min_count, ensure_annots=ensure_annots)
+
+    gid_list = find_gid_list(ibs, min_count=min_count, ensure_annots=ensure_annots)
     if gid_list is None:
         return None
     new_dbpath = '/' + join('Datasets', 'BACKGROUND', ibs.dbname)
-    print('Exporting to %r with %r images' % (new_dbpath, len(gid_list), ))
+    print('Exporting to %r with %r images' % (new_dbpath, len(gid_list),))
     return export_images(ibs, gid_list, new_dbpath=new_dbpath)
 
 
@@ -322,18 +329,15 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     import wbia
 
     imgsetid_list = ut.unique_unordered(ut.flatten(ibs.get_image_imgsetids(gid_list)))
-    gsgrid_list = ut.unique_unordered(
-        ut.flatten(ibs.get_image_gsgrids(gid_list)))
+    gsgrid_list = ut.unique_unordered(ut.flatten(ibs.get_image_gsgrids(gid_list)))
 
     # TODO: write SQL query to do this
     am_rowids = ibs._get_all_annotmatch_rowids()
-    flags1_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(am_rowids)]
-    flags2_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(am_rowids)]
+    flags1_list = [aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(am_rowids)]
+    flags2_list = [aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(am_rowids)]
     flag_list = ut.and_lists(flags1_list, flags2_list)
     am_rowids = ut.compress(am_rowids, flag_list)
-    #am_rowids = ibs.get_valid_aids(ibs.get_valid_aids())
+    # am_rowids = ibs.get_valid_aids(ibs.get_valid_aids())
 
     rowid_subsets = {
         const.ANNOTATION_TABLE: aid_list,
@@ -363,12 +367,12 @@ def slow_merge_test():
     """
     from wbia.dbio import export_subset
     import wbia
+
     ibs1 = wbia.opendb('testdb2')
     ibs1.fix_invalid_annotmatches()
-    ibs_dst = wbia.opendb(
-        db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
+    ibs_dst = wbia.opendb(db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
     export_subset.merge_databases(ibs1, ibs_dst)
-    #ibs_src = ibs1
+    # ibs_src = ibs1
     check_merge(ibs1, ibs_dst)
 
     ibs2 = wbia.opendb('testdb1')
@@ -379,18 +383,18 @@ def slow_merge_test():
     ibs_dst.print_dbinfo()
 
     export_subset.merge_databases(ibs2, ibs_dst)
-    #ibs_src = ibs2
+    # ibs_src = ibs2
     check_merge(ibs2, ibs_dst)
 
     ibs3 = wbia.opendb('PZ_MTEST')
     export_subset.merge_databases(ibs3, ibs_dst)
-    #ibs_src = ibs2
+    # ibs_src = ibs2
     check_merge(ibs3, ibs_dst)
 
     ibs_dst.print_dbinfo()
     return ibs_dst
 
-    #ibs_src.print_annotation_table(exclude_columns=['annot_verts',
+    # ibs_src.print_annotation_table(exclude_columns=['annot_verts',
     #'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid',
     #'annot_exemplar_flag,'])
     # ibs_dst.print_annotation_table()
@@ -398,6 +402,7 @@ def slow_merge_test():
 
 def fix_bidirectional_annotmatch(ibs):
     import wbia
+
     infr = wbia.AnnotInference(ibs=ibs, aids='all', verbose=5)
     infr.initialize_graph()
     annots = ibs.annots()
@@ -417,19 +422,23 @@ def fix_bidirectional_annotmatch(ibs):
     isect_edges2 = [p[::-1] for p in isect_edges]
 
     import pandas as pd
+
     extra_ = {}
     fixme_edges = []
     d1 = df.loc[isect_edges1].reset_index(drop=False)
     d2 = df.loc[isect_edges2].reset_index(drop=False)
     flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
     from wbia.tag_funcs import _parse_tags
+
     for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
         v1, v2 = r1[1], r2[1]
         aid1 = v1['annot_rowid1']
         aid2 = v1['annot_rowid2']
-        truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
-                      if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                      ibs.const.EVIDENCE_DECISION.NEGATIVE)
+        truth_real = (
+            ibs.const.EVIDENCE_DECISION.POSITIVE
+            if aid_to_nid[aid1] == aid_to_nid[aid2]
+            else ibs.const.EVIDENCE_DECISION.NEGATIVE
+        )
         truth1 = v1['annotmatch_evidence_decision']
         truth2 = v2['annotmatch_evidence_decision']
         t1 = _parse_tags(v1['annotmatch_tag_text'])
@@ -446,8 +455,10 @@ def fix_bidirectional_annotmatch(ibs):
             print('--')
             print('t1, t2 = %r, %r' % (t1, t2))
             print('newtag = %r' % (newtag,))
-            print('truth_real, truth1, truth2 = %r, %r, %r' % (
-                truth_real, truth1, truth2,))
+            print(
+                'truth_real, truth1, truth2 = %r, %r, %r'
+                % (truth_real, truth1, truth2,)
+            )
             print('aid1, aid2 = %r, %r' % (aid1, aid2))
             fixme_edges.append(tuple(sorted((aid1, aid2))))
         else:
@@ -481,8 +492,12 @@ def fix_bidirectional_annotmatch(ibs):
     aids1, aids2 = ut.listT(new_pairs)
 
     # Delete the old
-    ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
-                           d2['annotmatch_rowid'].values.tolist()))
+    ibs.delete_annotmatch(
+        (
+            d1['annotmatch_rowid'].values.tolist()
+            + d2['annotmatch_rowid'].values.tolist()
+        )
+    )
 
     # Add the new
     ams = ibs.add_annotmatch_undirected(aids1, aids2)
@@ -491,9 +506,11 @@ def fix_bidirectional_annotmatch(ibs):
 
     if False:
         import wbia.guitool as gt
+
         gt.ensure_qapp()
         ut.qtensure()
         from wbia.gui import inspect_gui
+
         inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
 
 
@@ -508,6 +525,7 @@ def fix_annotmatch_pzmaster1():
     object
     """
     import wbia
+
     ibs = wbia.opendb('PZ_Master1')
     infr = wbia.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(), verbose=5)
     infr.initialize_graph()
@@ -525,6 +543,7 @@ def fix_annotmatch_pzmaster1():
     if False:
         annotmatch = ibs.db.get_table_as_pandas('annotmatch')
         import pandas as pd
+
         flags1 = pd.isnull(annotmatch['annotmatch_evidence_decision'])
         flags2 = annotmatch['annotmatch_tag_text'] == ''
         bad_part = annotmatch[flags1 & flags2]
@@ -554,8 +573,7 @@ def fix_annotmatch_pzmaster1():
             (3707, 3727): (False, ['photobomb']),
             (86, 103): (False, ['photobomb']),
         }
-        extra_ = {
-        }
+        extra_ = {}
 
         fixme_edges = []
 
@@ -563,13 +581,16 @@ def fix_annotmatch_pzmaster1():
         d2 = df.loc[isect_edges2].reset_index(drop=False)
         flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
         from wbia.tag_funcs import _parse_tags
+
         for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
             v1, v2 = r1[1], r2[1]
             aid1 = v1['annot_rowid1']
             aid2 = v1['annot_rowid2']
-            truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
-                          if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                          ibs.const.EVIDENCE_DECISION.NEGATIVE)
+            truth_real = (
+                ibs.const.EVIDENCE_DECISION.POSITIVE
+                if aid_to_nid[aid1] == aid_to_nid[aid2]
+                else ibs.const.EVIDENCE_DECISION.NEGATIVE
+            )
             truth1 = v1['annotmatch_evidence_decision']
             truth2 = v2['annotmatch_evidence_decision']
             t1 = _parse_tags(v1['annotmatch_tag_text'])
@@ -603,8 +624,12 @@ def fix_annotmatch_pzmaster1():
         aids1, aids2 = ut.listT(new_pairs)
 
         # Delete the old
-        ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
-                               d2['annotmatch_rowid'].values.tolist()))
+        ibs.delete_annotmatch(
+            (
+                d1['annotmatch_rowid'].values.tolist()
+                + d2['annotmatch_rowid'].values.tolist()
+            )
+        )
 
         # Add the new
         ams = ibs.add_annotmatch_undirected(aids1, aids2)
@@ -613,9 +638,11 @@ def fix_annotmatch_pzmaster1():
 
         if False:
             import wbia.guitool as gt
+
             gt.ensure_qapp()
             ut.qtensure()
             from wbia.gui import inspect_gui
+
             inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
 
         # pairs2 = pairs1.T[::-1].T
@@ -628,6 +655,7 @@ def fix_annotmatch_pzmaster1():
     x = ut.ddict(list)
     annotmatch = ibs.db.get_table_as_pandas('annotmatch')
     import ubelt as ub
+
     _iter = annotmatch.iterrows()
     prog = ub.ProgIter(_iter, length=len(annotmatch))
     for k, m in prog:
@@ -648,7 +676,7 @@ def fix_annotmatch_pzmaster1():
     ut.dict_hist(annotmatch.loc[x['disagree1']]['annotmatch_tag_text'])
 
     disagree1 = annotmatch.loc[x['disagree1']]
-    pb_disagree1 =  disagree1[disagree1['annotmatch_tag_text'] == 'photobomb']
+    pb_disagree1 = disagree1[disagree1['annotmatch_tag_text'] == 'photobomb']
     aids1 = pb_disagree1['annot_rowid1'].values.tolist()
     aids2 = pb_disagree1['annot_rowid2'].values.tolist()
     aid_pairs = list(zip(aids1, aids2))
@@ -668,8 +696,11 @@ def fix_annotmatch_pzmaster1():
 
     # ut.dict_hist(disagree1['annotmatch_tag_text'])
     import networkx as nx
+
     graph = nx.Graph()
-    graph.add_edges_from(zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2']))
+    graph.add_edges_from(
+        zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2'])
+    )
     list(nx.connected_components(graph))
 
     set(annotmatch.loc[x['disagree2']]['annotmatch_tag_text'])
@@ -725,6 +756,7 @@ def remerge_subset():
         python -m wbia.dbio.export_subset remerge_subset
     """
     import wbia
+
     ibs1 = wbia.opendb('PZ_PB_RF_TRAIN')
     ibs2 = wbia.opendb('PZ_Master1')
 
@@ -754,8 +786,15 @@ def remerge_subset():
 
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
-        'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
-        'age_months_est_max', 'age_months_est_min',  # 'sex_texts'
+        'yaws',
+        'bboxes',
+        'thetas',
+        'qual',
+        'species',
+        'case_tags',
+        'multiple',
+        'age_months_est_max',
+        'age_months_est_min',  # 'sex_texts'
     ]
     to_change = {}
     for key in annot_unary_props:
@@ -784,8 +823,7 @@ def remerge_subset():
         print('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
-    infr1 = wbia.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
-                                 autoinit=False)
+    infr1 = wbia.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3, autoinit=False)
 
     # infr2 = wbia.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
     aids2 = ibs2.get_valid_aids(is_known=True)
@@ -991,12 +1029,20 @@ def check_database_overlap(ibs1, ibs2):
         set1_ = set(items1)
         set2_ = set(items2)
         items_isect = set1_.intersection(set2_)
-        fmtkw1 = dict(part=1, lbl=lbl, num=len(set1_),
-                      num_isect=len(items_isect),
-                      percent=100 * len(items_isect) / len(set1_))
-        fmtkw2 = dict(part=2, lbl=lbl, num=len(set2_),
-                      num_isect=len(items_isect),
-                      percent=100 * len(items_isect) / len(set2_))
+        fmtkw1 = dict(
+            part=1,
+            lbl=lbl,
+            num=len(set1_),
+            num_isect=len(items_isect),
+            percent=100 * len(items_isect) / len(set1_),
+        )
+        fmtkw2 = dict(
+            part=2,
+            lbl=lbl,
+            num=len(set2_),
+            num_isect=len(items_isect),
+            percent=100 * len(items_isect) / len(set2_),
+        )
         fmt_a = '  * Num {lbl} {part}: {num_isect} / {num} = {percent:.2f}%'
         # fmt_b = '  * Num {lbl} isect: {num}'
         print('Checking {lbl} intersection'.format(lbl=lbl))
@@ -1028,15 +1074,14 @@ def check_database_overlap(ibs1, ibs2):
                 # Debug code
                 import wbia.viz
                 import wbia.plottool as pt
+
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for gid1, gid2 in pairs:
-                        wbia.viz.show_image(
-                            ibs1, gid1, pnum=pnum_(), fnum=fnum)
-                        wbia.viz.show_image(
-                            ibs2, gid2, pnum=pnum_(), fnum=fnum)
+                        wbia.viz.show_image(ibs1, gid1, pnum=pnum_(), fnum=fnum)
+                        wbia.viz.show_image(ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
     # if False:
     #     aids1 = ibs1.get_valid_aids()
@@ -1050,14 +1095,17 @@ def check_database_overlap(ibs1, ibs2):
     image_aids_isect1 = gids_isect1.aids
     image_aids_isect2 = gids_isect2.aids
     image_avuuids_isect1 = np.array(
-        ibs1.unflat_map(ibs1.get_annot_visual_uuids, image_aids_isect1))
+        ibs1.unflat_map(ibs1.get_annot_visual_uuids, image_aids_isect1)
+    )
     image_avuuids_isect2 = np.array(
-        ibs2.unflat_map(ibs2.get_annot_visual_uuids, image_aids_isect2))
-    changed_image_xs = np.nonzero(
-        image_avuuids_isect1 != image_avuuids_isect2)[0]
+        ibs2.unflat_map(ibs2.get_annot_visual_uuids, image_aids_isect2)
+    )
+    changed_image_xs = np.nonzero(image_avuuids_isect1 != image_avuuids_isect2)[0]
     if len(changed_image_xs) > 0:
-        print('There are %d images with changes in annotation visual information' % (
-            len(changed_image_xs),))
+        print(
+            'There are %d images with changes in annotation visual information'
+            % (len(changed_image_xs),)
+        )
         changed_gids1 = ut.take(gids_isect1, changed_image_xs)
         changed_gids2 = ut.take(gids_isect2, changed_image_xs)
 
@@ -1084,12 +1132,11 @@ def check_database_overlap(ibs1, ibs2):
     aids2 = ibs2.annots()
 
     # Check for overlapping annotations (visual + semantic info) in general
-    aux_list1, aux_list2 = print_isect(
-        aids1.uuids, aids2.uuids, 'uuids')
-    avx_list1, avx_list2 = print_isect(
-        aids1.visual_uuids, aids2.visual_uuids, 'vuuids')
+    aux_list1, aux_list2 = print_isect(aids1.uuids, aids2.uuids, 'uuids')
+    avx_list1, avx_list2 = print_isect(aids1.visual_uuids, aids2.visual_uuids, 'vuuids')
     asx_list1, asx_list2 = print_isect(
-        aids1.semantic_uuids, aids2.semantic_uuids, 'suuids')
+        aids1.semantic_uuids, aids2.semantic_uuids, 'suuids'
+    )
 
     # Check which images with the same visual uuids have different semantic
     # uuids
@@ -1097,7 +1144,8 @@ def check_database_overlap(ibs1, ibs2):
     changed_ax_list2 = ut.setdiff_ordered(avx_list2, asx_list2)
     assert len(changed_ax_list1) == len(changed_ax_list2)
     assert ut.take(aids1.visual_uuids, changed_ax_list1) == ut.take(
-        aids2.visual_uuids, changed_ax_list2)
+        aids2.visual_uuids, changed_ax_list2
+    )
 
     changed_aids1 = np.array(ut.take(aids1, changed_ax_list1))
     changed_aids2 = np.array(ut.take(aids2, changed_ax_list2))
@@ -1112,30 +1160,32 @@ def check_database_overlap(ibs1, ibs2):
         colxs, rowxs = np.nonzero(is_semantic_diff)
         colx2_rowids = ut.group_items(rowxs, colxs)
         prop2_rowids = ut.map_dict_keys(
-            changed_sinfo1._fields.__getitem__, colx2_rowids)
-        print('changed_value_counts = ' +
-              ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
+            changed_sinfo1._fields.__getitem__, colx2_rowids
+        )
+        print('changed_value_counts = ' + ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
         yawx = changed_sinfo1._fields.index('yaw')
 
         # Show change in viewpoints
         if len(colx2_rowids[yawx]) > 0:
             vp_category_diff = ibsfuncs.viewpoint_diff(
-                sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(np.float)
+                sinfo1_arr[yawx], sinfo2_arr[yawx]
+            ).astype(np.float)
             # Look for category changes
-            #any_diff = np.floor(vp_category_diff) > 0
-            #_xs    = np.nonzero(any_diff)[0]
-            #_aids1 = changed_aids1.take(_xs)
-            #_aids2 = changed_aids2.take(_xs)
+            # any_diff = np.floor(vp_category_diff) > 0
+            # _xs    = np.nonzero(any_diff)[0]
+            # _aids1 = changed_aids1.take(_xs)
+            # _aids2 = changed_aids2.take(_xs)
             # Look for significant changes
             is_significant_diff = np.floor(vp_category_diff) > 1
             significant_xs = np.nonzero(is_significant_diff)[0]
             significant_aids1 = changed_aids1.take(significant_xs)
             significant_aids2 = changed_aids2.take(significant_xs)
-            print('There are %d significant viewpoint changes' %
-                  (len(significant_aids2),))
-            #vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
-            #zip(ibs1.get_annot_viewpoint_code(significant_aids1),
-            #ibs2.get_annot_viewpoint_code(significant_aids2))
+            print(
+                'There are %d significant viewpoint changes' % (len(significant_aids2),)
+            )
+            # vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
+            # zip(ibs1.get_annot_viewpoint_code(significant_aids1),
+            # ibs2.get_annot_viewpoint_code(significant_aids2))
             # print('yawdiff = %r' % )
             # if False:
             # Hack: Apply fixes
@@ -1146,16 +1196,29 @@ def check_database_overlap(ibs1, ibs2):
                 # Debug code
                 import wbia.viz
                 import wbia.plottool as pt
-                #aid_pairs = list(zip(_aids1, _aids2))
+
+                # aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
                 pairs_iter = ut.ichunks(aid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for aid1, aid2 in pairs:
                         wbia.viz.show_chip(
-                            ibs1, aid1, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
+                            ibs1,
+                            aid1,
+                            pnum=pnum_(),
+                            fnum=fnum,
+                            show_viewcode=True,
+                            nokpts=True,
+                        )
                         wbia.viz.show_chip(
-                            ibs2, aid2, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
+                            ibs2,
+                            aid2,
+                            pnum=pnum_(),
+                            fnum=fnum,
+                            show_viewcode=True,
+                            nokpts=True,
+                        )
 
     #
     nAnnots_per_image1 = np.array(ibs1.get_image_num_annotations(gids1))
@@ -1167,6 +1230,7 @@ def check_database_overlap(ibs1, ibs2):
     print('images_without_annots2 = %r' % (images_without_annots2,))
 
     nAnnots_per_image1
+
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
@@ -1206,5 +1270,6 @@ if __name__ == '__main__':
     python -m wbia.dbio.export_subset --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     ut.doctest_funcs()

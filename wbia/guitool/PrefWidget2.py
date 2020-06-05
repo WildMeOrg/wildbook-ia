@@ -17,6 +17,7 @@ from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 from wbia.guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
 from wbia.guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
 import utool as ut
+
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
 VERBOSE_CONFIG = ut.VERBOSE or ut.get_argflag('--verbconf')
@@ -26,6 +27,7 @@ def report_thread_error(fn):
     """
     Decorator to help catch errors that QT wont report
     """
+
     def report_thread_error_wrapper(*args, **kwargs):
         try:
             ret = fn(*args, **kwargs)
@@ -36,18 +38,20 @@ def report_thread_error(fn):
             sys.stdout.flush()
             et, ei, tb = sys.exc_info()
             raise
+
     return report_thread_error_wrapper
 
 
 def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
-#DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
+
+# DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
 # DELEGATE_BASE = QtWidgets.QItemDelegate
 DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
-#def inject_none_on_delete_event(editor):
+# def inject_none_on_delete_event(editor):
 #    def keyPressEvent(self, event):
 #        if event.matches(QtGui.QKeySequence.Delete):
 #            utool.embed()
@@ -56,16 +60,17 @@ DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 #        #return super(NoneSpinBox, self).keyPressEvent(event)
 
 
-#class NoneSpinBox(QtWidgets.QDoubleSpinBox):
+# class NoneSpinBox(QtWidgets.QDoubleSpinBox):
 class NoneSpinBox(QtWidgets.QDoubleSpinBox):
     """
     Custom spin box that handles None / nan values
     """
+
     _EXP = 29
-    HARD_MIN = float(-2 ** _EXP) - 1.0
+    HARD_MIN = float(-(2 ** _EXP)) - 1.0
     HARD_MAX = float(2 ** _EXP) + 1.0
     NONE_VALUE = HARD_MIN + 1.0
-    #NONE_VALUE = float('nan')
+    # NONE_VALUE = float('nan')
 
     def __init__(self, *args, **kwargs):
         self.type_ = kwargs.pop('type_', float)
@@ -85,38 +90,43 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
     def setMinimum(self, min_):
         """ hack to get around None being invalid """
         self._hack_min = min_
-        #super(NoneSpinBox, self).setMinimum(-2 ** 29)
+        # super(NoneSpinBox, self).setMinimum(-2 ** 29)
 
     def setMaximum(self, max_):
         self._hack_max = max_
-        #super(NoneSpinBox, self).setMaximum(2 ** 29)
+        # super(NoneSpinBox, self).setMaximum(2 ** 29)
 
     def setRange(self, min_, max_):
         self._hack_min = min_
         self._hack_max = max_
-        #super(NoneSpinBox, self).setRange(-2 ** 29, 2 ** 29)
+        # super(NoneSpinBox, self).setRange(-2 ** 29, 2 ** 29)
 
     def stepBy(self, steps):
-        #print('step by %r' % (steps,))
+        # print('step by %r' % (steps,))
         current_value = self.value()
         if current_value is None:
             self.setValue(self.post_nan_value)
         else:
             self.setValue(current_value + steps * self.singleStep())
-            #super(NoneSpinBox, self).stepBy(steps)
+            # super(NoneSpinBox, self).stepBy(steps)
 
     def validate(self, text, pos):
         import re
-        #print('validate text = %r, pos=%r' % (text, pos))
+
+        # print('validate text = %r, pos=%r' % (text, pos))
         if self.none_ok and (len(text) == 0 or text.lower().startswith('n')):
             state = (QtGui.QValidator.Acceptable, text, pos)
         else:
-            #state =  super(NoneSpinBox, self).validate(text, pos)
+            # state =  super(NoneSpinBox, self).validate(text, pos)
             if self._hack_min >= 0 and text.startswith('-'):
                 state = (QtGui.QValidator.Invalid, text, pos)
             else:
-                if not re.match(r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$', text, flags=re.MULTILINE):
-                    #print('INVALIDATE text = %r' % (text,))
+                if not re.match(
+                    r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$',
+                    text,
+                    flags=re.MULTILINE,
+                ):
+                    # print('INVALIDATE text = %r' % (text,))
                     state = (QtGui.QValidator.Invalid, text, pos)
                 else:
                     try:
@@ -127,7 +137,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                             state = (QtGui.QValidator.Invalid, text, pos)
                     except Exception:
                         state = (QtGui.QValidator.Intermediate, text, pos)
-        #print('state = %r' % (state,))
+        # print('state = %r' % (state,))
         return state
 
     def value(self):
@@ -138,26 +148,26 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
             return internal_value
 
     def setValue(self, value):
-        #print('[spin] setValue = %r' % (value,))
+        # print('[spin] setValue = %r' % (value,))
         if value is None:
             value = self.NONE_VALUE
         if isinstance(value, six.string_types):
             value = self.valueFromText(value)
-            #if value.lower().startswith('n'):
+            # if value.lower().startswith('n'):
             #    value = self.NONE_VALUE
-            #else:
+            # else:
             #    value = self.type_(value)
         if value != self.NONE_VALUE:
-            #print('value = %r' % (value,))
-            #print('self._hack_min = %r' % (self._hack_min,))
-            #print('self._hack_max = %r' % (self._hack_max,))
+            # print('value = %r' % (value,))
+            # print('self._hack_min = %r' % (self._hack_min,))
+            # print('self._hack_max = %r' % (self._hack_max,))
             value = max(value, self._hack_min)
             value = min(value, self._hack_max)
-            #print('value = %r' % (value,))
+            # print('value = %r' % (value,))
         return super(NoneSpinBox, self).setValue(value)
 
     def valueFromText(self, text):
-        #print('[spin] valueFromText text = %r' % (text,))
+        # print('[spin] valueFromText text = %r' % (text,))
         if self.none_ok and (len(text) == 0 or text[0].lower().startswith('n')):
             value = self.NONE_VALUE
         else:
@@ -167,14 +177,14 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 value = self.type_(text)
             else:
                 raise ValueError('unknown self.type_=%r' % (self.type_,))
-        #print(' * return value = %r' % (value,))
+        # print(' * return value = %r' % (value,))
         return value
 
     def textFromValue(self, value):
-        #print('[spin] textFromValue value = %r' % (value,))
+        # print('[spin] textFromValue value = %r' % (value,))
         if self.none_ok and value is None or value == self.NONE_VALUE:
             text = 'None'
-            #return str(self.NONE_VALUE)
+            # return str(self.NONE_VALUE)
         else:
             if self.type_ is int:
                 text = str(int(value))
@@ -182,8 +192,8 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 text = str(float(value))
             else:
                 raise ValueError('unknown self.type_=%r' % (self.type_,))
-                #return super(NoneSpinBox, self).textFromValue(value)
-        #print(' * return text = %r' % (text,))
+                # return super(NoneSpinBox, self).textFromValue(value)
+        # print(' * return text = %r' % (text,))
         return text
 
 
@@ -206,6 +216,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         #http://doc.qt.io/qt-4.8/style-reference.html
 
     """
+
     # def __init__(self, parent):
     #     super(ConfigValueDelegate, self).__init__(parent)
 
@@ -221,8 +232,8 @@ class ConfigValueDelegate(DELEGATE_BASE):
         #     leafNode.print_tree()
         #     # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode.is_combo:
-            #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
-            #painter.save()
+            # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
+            # painter.save()
             curent_value = six.text_type(index.model().data(index))
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionComboBox()
@@ -247,9 +258,9 @@ class ConfigValueDelegate(DELEGATE_BASE):
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionSpinBox()
             # opt.currentText doesn't exist for SpinBox
-            #opt.currentText = curent_value  #
+            # opt.currentText = curent_value  #
             opt.rect = option.rect
-            #opt.editable = False
+            # opt.editable = False
             if leafNode.qt_is_editable():
                 opt.state |= style.State_Enabled
             element = QtWidgets.QStyle.CE_ItemViewItem
@@ -257,7 +268,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             painter.save()
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
-            #self.drawDisplay(painter, opt, opt.rect, str(curent_value))
+            # self.drawDisplay(painter, opt, opt.rect, str(curent_value))
             option.rect.setLeft(option.rect.left() + 3)
             curent_value = six.text_type(index.model().data(index))
             painter.drawText(option.rect, Qt.AlignLeft, str(curent_value))
@@ -265,7 +276,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         else:
             return super(ConfigValueDelegate, self).paint(painter, option, index)
 
-    #def sizeHint(self, option, index):
+    # def sizeHint(self, option, index):
     #    size_hint = super(ConfigValueDelegate, self).sizeHint(option, index)
     #    print('size_hint = %r' % (size_hint,))
     #    #size_hint = QtCore.QSize(50, 21)
@@ -283,6 +294,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             print('[DELEGATE] newEditor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode is not None and leafNode.is_combo:
             import wbia.guitool
+
             options = leafNode.valid_values
             curent_value = index.model().data(index)
             if VERBOSE_CONFIG:
@@ -290,7 +302,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             editor.setAutoFillBackground(True)
-        #elif leafNode is not None and leafNode.type_ is float:
+        # elif leafNode is not None and leafNode.type_ is float:
         #    curent_value = index.model().data(index)
         #    # TODO: min / max
         #    if False:
@@ -299,9 +311,9 @@ class ConfigValueDelegate(DELEGATE_BASE):
         #    editor.setSingleStep(0.1)
         #    editor.setAutoFillBackground(True)
         #    editor.setHidden(False)
-        elif (leafNode is not None and leafNode.is_spin):
+        elif leafNode is not None and leafNode.is_spin:
             # TODO: Find a way for the user to enter a None into int boxes
-            #editor = QtWidgets.QDoubleSpinBox(parent)
+            # editor = QtWidgets.QDoubleSpinBox(parent)
             editor = NoneSpinBox(parent, type_=leafNode.type_, none_ok=leafNode.none_ok)
 
             if leafNode.min_ is not None:
@@ -312,7 +324,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             step_ = leafNode.step_
             if step_ is None:
                 if leafNode.type_ is float:
-                    step_ = .1
+                    step_ = 0.1
                 else:
                     step_ = 1
             editor.setSingleStep(step_)
@@ -320,19 +332,23 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor.setAutoFillBackground(True)
             editor.setHidden(False)
             curent_value = index.model().data(index)
-            #print('curent_value = %r' % (curent_value,))
+            # print('curent_value = %r' % (curent_value,))
             editor.setValue(curent_value)
         else:
-            editor = super(ConfigValueDelegate, self).createEditor(parent, option, index)
+            editor = super(ConfigValueDelegate, self).createEditor(
+                parent, option, index
+            )
             editor.setAutoFillBackground(True)
             editor.keyPressEvent
-            #none_ok
+            # none_ok
         return editor
 
     def setEditorData(self, editor, index):
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
-            print('[DELEGATE] setEditorData for %s at %s' % (leafNode, qindexstr(index)))
+            print(
+                '[DELEGATE] setEditorData for %s at %s' % (leafNode, qindexstr(index))
+            )
         if leafNode is not None and leafNode.is_combo:
             editor.blockSignals(True)
             current_data = index.model().data(index)
@@ -352,15 +368,15 @@ class ConfigValueDelegate(DELEGATE_BASE):
             if VERBOSE_CONFIG:
                 print('[DELEGATE] * current_value = %r' % (current_value,))
             model.setData(index, current_value)
-        elif (leafNode is not None and leafNode.is_spin):
+        elif leafNode is not None and leafNode.is_spin:
             current_value = editor.value()
-            #if editor.textFromValue(current_value) == 'None':
+            # if editor.textFromValue(current_value) == 'None':
             #    current_value = None
             model.setData(index, current_value)
         else:
             return super(ConfigValueDelegate, self).setModelData(editor, model, index)
 
-    #def onKeyPress():
+    # def onKeyPress():
     #    pass
 
     # @QtCore.pyqtSlot()
@@ -382,27 +398,30 @@ class ConfigValueDelegate(DELEGATE_BASE):
         if VERBOSE_CONFIG:
             print('[DELEGATE] updateEditorGeometry at %s' % (qindexstr(index)))
         editor.setGeometry(option.rect)
-        #return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)
+        # return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)
 
     def editorEvent(self, event, model, option, index):
         if True and VERBOSE_CONFIG:
-            print('[DELEGATE] editorEvent event=%r with model=%r, option=%r, index=%r' % (event, model, option, index,))
+            print(
+                '[DELEGATE] editorEvent event=%r with model=%r, option=%r, index=%r'
+                % (event, model, option, index,)
+            )
         return super(ConfigValueDelegate, self).editorEvent(event, model, option, index)
 
     def eventFilter(self, editor, event):
         if VERBOSE_CONFIG:
             print('[DELEGATE] eventFilter editor=%r, event=%r' % (editor, event))
-        #if event.type() == QtCore.QEvent.KeyPress:
+        # if event.type() == QtCore.QEvent.KeyPress:
         #    if event.matches(QtGui.QKeySequence.Delete):
         #        #self.valueChanged.emit(None)
         #        print('[DELEGATE] DELETE eventFilter editor=%r, event=%r' % (editor, event))
         #        return True
-        handled =  super(ConfigValueDelegate, self).eventFilter(editor, event)
+        handled = super(ConfigValueDelegate, self).eventFilter(editor, event)
         if VERBOSE_CONFIG:
             print('handled = %r' % (handled,))
         return handled
 
-    #def editorChanged(self, index):
+    # def editorChanged(self, index):
     #    check = self.editor.itemText(index)
     #    id_seq = self.parent.selectedIndexes[0][0]
     #    update.updateCheckSeq(self.parent.db, id_seq, check)
@@ -412,10 +431,11 @@ class QConfigModel(QAbstractItemModel):
     """
     Convention states only items with column index 0 can have children
     """
+
     @report_thread_error
     def __init__(self, parent=None, rootNode=None):
         super(QConfigModel, self).__init__(parent)
-        self.rootNode  = rootNode
+        self.rootNode = rootNode
 
     @report_thread_error
     def index2Pref(self, index=QModelIndex()):
@@ -426,7 +446,7 @@ class QConfigModel(QAbstractItemModel):
                 return item
         return self.rootNode
 
-    #-----------
+    # -----------
     # Overloaded ItemModel Read Functions
     @report_thread_error
     def rowCount(self, parent=QModelIndex()):
@@ -448,17 +468,20 @@ class QConfigModel(QAbstractItemModel):
             return QVariantHack()
         # Specify CheckState Role:
         flags = self.flags(qtindex)
-        #if role == Qt.CheckStateRole and (flags & Qt.ItemIsUserCheckable or flags & Qt.ItemIsTristate):
+        # if role == Qt.CheckStateRole and (flags & Qt.ItemIsUserCheckable or flags & Qt.ItemIsTristate):
         if role == Qt.CheckStateRole and flags & Qt.ItemIsUserCheckable:
             data = self.index2Pref(qtindex).qt_get_data(qtindex.column())
             data_to_state = {
-                True: Qt.Checked, 'True': Qt.Checked,
-                None: Qt.PartiallyChecked, 'None': Qt.PartiallyChecked,
-                False: Qt.Unchecked, 'False': Qt.Unchecked,
+                True: Qt.Checked,
+                'True': Qt.Checked,
+                None: Qt.PartiallyChecked,
+                'None': Qt.PartiallyChecked,
+                False: Qt.Unchecked,
+                'False': Qt.Unchecked,
             }
             state = data_to_state[data]
             return state
-        #elif role == QtCore.Qt.SizeHintRole:
+        # elif role == QtCore.Qt.SizeHintRole:
         #    #return QtCore.QSize(40, 30)
         #    return QVariantHack()
         if role != Qt.DisplayRole and role != Qt.EditRole:
@@ -479,8 +502,11 @@ class QConfigModel(QAbstractItemModel):
         if role == Qt.EditRole:
             data = value
         elif role == Qt.CheckStateRole:
-            state_to_data = {Qt.Checked: True, Qt.PartiallyChecked: None,
-                             Qt.Unchecked: False}
+            state_to_data = {
+                Qt.Checked: True,
+                Qt.PartiallyChecked: None,
+                Qt.Unchecked: False,
+            }
             data = state_to_data[value]
         else:
             return False
@@ -495,8 +521,9 @@ class QConfigModel(QAbstractItemModel):
             print('[setData] type(value) = %r' % type(value))
         result = leafPref.qt_set_data(data)
         if VERBOSE_CONFIG:
-            print('[setData] Notified of %s' %
-                  ('acceptance' if result else 'rejection'))
+            print(
+                '[setData] Notified of %s' % ('acceptance' if result else 'rejection')
+            )
         self.dataChanged.emit(qtindex, qtindex)
         if VERBOSE_CONFIG:
             print('[setData] --- FINISH setData() ---')
@@ -511,7 +538,7 @@ class QConfigModel(QAbstractItemModel):
         if parent.isValid() and parent.column() != 0:
             return QModelIndex()
         parentPref = self.index2Pref(parent)
-        childPref  = parentPref.qt_child(row)
+        childPref = parentPref.qt_child(row)
         if childPref:
             return self.createIndex(row, col, childPref)
         else:
@@ -548,9 +575,9 @@ class QConfigModel(QAbstractItemModel):
             if childPref and childPref.qt_is_editable():
                 if childPref.is_checkable():
                     flags = Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
-                    #flags = Qt.ItemIsEnabled | Qt.ItemIsTristate | Qt.ItemIsUserCheckable
-                    #flags |= Qt.ItemIsSelectable
-                    #flags = Qt.ItemIsEnabled | Qt.ItemIsTristate
+                    # flags = Qt.ItemIsEnabled | Qt.ItemIsTristate | Qt.ItemIsUserCheckable
+                    # flags |= Qt.ItemIsSelectable
+                    # flags = Qt.ItemIsEnabled | Qt.ItemIsTristate
                 else:
                     flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             else:
@@ -653,6 +680,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
     """
     Wraps a dtool.Config object for internal qt use
     """
+
     def __init__(self, name=None, config=None, parent=None, param_info=None):
         self.name = name
         self.config = config
@@ -851,7 +879,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if column == 0:
             return self.name
         data = self.value
-        #if data is None:
+        # if data is None:
         #    data = 'None'
         return data
 
@@ -928,12 +956,13 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> widget.resize(400, 500)
         >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
+
     # data_changed(key)
     data_changed = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None, config=None, user_mode=False,
-                 with_buttons=True,
-                 changed=None):
+    def __init__(
+        self, parent=None, config=None, user_mode=False, with_buttons=True, changed=None
+    ):
         super(EditConfigWidget, self).__init__(parent)
         rootNode = ConfigNodeWrapper('root', config)
         self.user_mode = user_mode
@@ -947,6 +976,7 @@ class EditConfigWidget(QtWidgets.QWidget):
 
     def init_layout(self):
         import wbia.guitool as gt
+
         # Create the tree view and buttons
         self.tree_view = QtWidgets.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
@@ -954,23 +984,29 @@ class EditConfigWidget(QtWidgets.QWidget):
 
         if self._with_buttons:
             buttons = []
-            self.default_but = gt.newButton(self, 'Defaults', pressed=self.reset_to_default)
+            self.default_but = gt.newButton(
+                self, 'Defaults', pressed=self.reset_to_default
+            )
             buttons.append(self.default_but)
 
-            self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
+            self.orig_but = gt.newButton(
+                self, 'Original', pressed=self.reset_to_original
+            )
             buttons.append(self.orig_but)
 
             if not self.user_mode:
-                self.print_internals = gt.newButton(self, 'Print Internals',
-                                                    pressed=self.print_internals)
+                self.print_internals = gt.newButton(
+                    self, 'Print Internals', pressed=self.print_internals
+                )
                 buttons.append(self.print_internals)
 
             # Add compoments to the layout
             self.hbox = QtWidgets.QHBoxLayout()
             for button in buttons:
                 self.hbox.addWidget(button)
-                button.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                     QtWidgets.QSizePolicy.Maximum)
+                button.setSizePolicy(
+                    QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum
+                )
 
         self.vbox = QtWidgets.QVBoxLayout(self)
         self.vbox.addWidget(self.tree_view)
@@ -981,51 +1017,55 @@ class EditConfigWidget(QtWidgets.QWidget):
     def init_mvc(self):
         import operator
         from six.moves import reduce
-        edit_triggers = reduce(operator.__or__, [
-            QtWidgets.QAbstractItemView.CurrentChanged,
-            QtWidgets.QAbstractItemView.DoubleClicked,
-            QtWidgets.QAbstractItemView.SelectedClicked,
-            # QtWidgets.QAbstractItemView.EditKeyPressed,
-            # QtWidgets.QAbstractItemView.AnyKeyPressed,
-        ])
+
+        edit_triggers = reduce(
+            operator.__or__,
+            [
+                QtWidgets.QAbstractItemView.CurrentChanged,
+                QtWidgets.QAbstractItemView.DoubleClicked,
+                QtWidgets.QAbstractItemView.SelectedClicked,
+                # QtWidgets.QAbstractItemView.EditKeyPressed,
+                # QtWidgets.QAbstractItemView.AnyKeyPressed,
+            ],
+        )
         self.tree_view.setEditTriggers(edit_triggers)
         self.tree_view.setModel(self.config_model)
         view_header = self.tree_view.header()
-        #import utool
-        #utool.embed()
-        #view_header.setDefaultSectionSize(250)
-        #self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # import utool
+        # utool.embed()
+        # view_header.setDefaultSectionSize(250)
+        # self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        #view_header.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+        # view_header.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
         #                          QtWidgets.QSizePolicy.MinimumExpanding)
-        #view_header.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+        # view_header.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
         #                          QtWidgets.QSizePolicy.Preferred)
         self.tree_view.resizeColumnToContents(0)
         self.tree_view.resizeColumnToContents(1)
-        #self.tree_view.setAnimated(True)
-        #view_header.setStretchLastSection(True)
+        # self.tree_view.setAnimated(True)
+        # view_header.setStretchLastSection(True)
         try:
             view_header.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         except AttributeError:
             view_header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
-        #view_header.setResizeMode(QtWidgets.QHeaderView.Interactive)
-        #import utool
-        #utool.embed()
-        #self.tree_view.header().resizeSection(0, 250)
-        #setDefaultSectionSize(
+        # view_header.setResizeMode(QtWidgets.QHeaderView.Interactive)
+        # import utool
+        # utool.embed()
+        # self.tree_view.header().resizeSection(0, 250)
+        # setDefaultSectionSize(
 
         # from wbia.guitool import api_item_view
         # api_item_view.set_column_persistant_editor(self.tree_view, 1)
         # # Persistant editors
-        #num_rows = 4  # self.tree_view.model.rowCount()
-        #print('view.set_persistant: %r rows' % num_rows)
+        # num_rows = 4  # self.tree_view.model.rowCount()
+        # print('view.set_persistant: %r rows' % num_rows)
         if False:
             view = self.tree_view
             model = self.config_model
             column = 1
             for row in range(model.rowCount()):
-                index  = model.index(row, column)
+                index = model.index(row, column)
                 view.openPersistentEditor(index)
 
         self.config_model.dataChanged.connect(self._on_change)
@@ -1076,6 +1116,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.PrefWidget2 --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

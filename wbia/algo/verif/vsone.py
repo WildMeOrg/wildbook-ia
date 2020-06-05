@@ -10,7 +10,12 @@ CommandLine:
     python -m wbia.algo.verif.vsone deploy --db GZ_Master1
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)  # NOQA
 import utool as ut
 import ubelt as ub
 import itertools as it
@@ -32,6 +37,7 @@ from wbia.algo.verif import pairfeat, verifier
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
 from six.moves import zip
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -75,6 +81,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         >>> pblm.load_samples()
         >>> pblm.load_features()
     """
+
     appname = 'vsone_rf_train'
 
     def __init__(pblm, infr=None, verbose=None, **params):
@@ -100,26 +107,36 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.infr = infr
         pblm.qreq_ = None
 
-        hyper_params = dt.Config.from_dict(ut.odict([
-            ('subsample', None),
-            ('pair_sample', PairSampleConfig()),
-            ('chip', pairfeat.ChipConfig()),
-            ('vsone_kpts', pairfeat.VsOneFeatConfig()),
-            ('vsone_match', pairfeat.VsOneMatchConfig()),
-            ('pairwise_feats', pairfeat.PairFeatureConfig()),
-            ('xval_kw', pblm.xval_kw),
-            ('need_lnbnn', False),
-            # ('sample_method', 'lnbnn'),
-            ('sample_method', 'random'),
-            ('sample_search', dict(
-                K=4, Knorm=1, requery=True, score_method='csum',
-                prescore_method='csum')),
-        ]),
-            tablename='HyperParams'
+        hyper_params = dt.Config.from_dict(
+            ut.odict(
+                [
+                    ('subsample', None),
+                    ('pair_sample', PairSampleConfig()),
+                    ('chip', pairfeat.ChipConfig()),
+                    ('vsone_kpts', pairfeat.VsOneFeatConfig()),
+                    ('vsone_match', pairfeat.VsOneMatchConfig()),
+                    ('pairwise_feats', pairfeat.PairFeatureConfig()),
+                    ('xval_kw', pblm.xval_kw),
+                    ('need_lnbnn', False),
+                    # ('sample_method', 'lnbnn'),
+                    ('sample_method', 'random'),
+                    (
+                        'sample_search',
+                        dict(
+                            K=4,
+                            Knorm=1,
+                            requery=True,
+                            score_method='csum',
+                            prescore_method='csum',
+                        ),
+                    ),
+                ]
+            ),
+            tablename='HyperParams',
         )
 
         # Use multiple ratio bins
-        hyper_params['pairwise_feats']['bins'] = (.625, .8)
+        hyper_params['pairwise_feats']['bins'] = (0.625, 0.8)
 
         bins = hyper_params['pairwise_feats']['bins']
         hyper_params['vsone_match']['ratio_thresh'] = max(bins)
@@ -215,11 +232,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         multi_species = infr.ibs.get_database_species(infr.aids)
         # if infr.ibs.has_species_detector(species):
         if all(infr.ibs.has_species_detector(s) for s in multi_species):
-            print("HACKING FGWEIGHTS OFF")
+            print('HACKING FGWEIGHTS OFF')
             hyper_params.vsone_match['weight'] = 'fgweights'
             hyper_params.pairwise_feats['sorters'] = ut.unique(
-                hyper_params.pairwise_feats['sorters'] +
-                [
+                hyper_params.pairwise_feats['sorters']
+                + [
                     # 'weighted_ratio_score',
                     # 'weighted_lnbnn'
                 ]
@@ -258,6 +275,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Use `pblm.load_samples` to sample a set of pairs
         """
         import wbia
+
         infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)
         infr.ensure_mst()
@@ -265,8 +283,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return pblm
 
     @classmethod
-    def from_labeled_aidpairs(OneVsOneProblem, ibs, labeled_aid_pairs,
-                              class_names, task_name, **params):
+    def from_labeled_aidpairs(
+        OneVsOneProblem, ibs, labeled_aid_pairs, class_names, task_name, **params
+    ):
         r"""
         Build a OneVsOneProblem directly from a set of aid pairs.
         It is not necessary to call `pblm.load_samples`.
@@ -281,6 +300,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         y_enc = [t[2] for t in labeled_aid_pairs]
         aids = sorted(set(ut.flatten(aid_pairs)))
         import wbia
+
         infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)
         infr.ensure_mst()
@@ -290,8 +310,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if pblm.verbose > 0:
             ut.cprint('[pblm] apply custom task labels', color='blue')
         # custom multioutput-multiclass / multi-task
-        pblm.samples.apply_encoded_labels(y_enc, class_names=class_names,
-                                          task_name=task_name)
+        pblm.samples.apply_encoded_labels(
+            y_enc, class_names=class_names, task_name=task_name
+        )
         # pblm.samples.apply_multi_task_multi_label()
         return pblm
 
@@ -307,6 +328,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # defaultdb = 'GZ_Master1'
             # defaultdb = 'PZ_MTEST'
         import wbia
+
         ibs, aids = wbia.testdata_aids(defaultdb, a=':species=primary')
         pblm = OneVsOneProblem.from_aids(ibs, aids, **params)
         return pblm
@@ -335,16 +357,21 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         if aids is None:
             aids = ibs.filter_annots_general(
-                infr.aids, min_pername=3, species='primary')
+                infr.aids, min_pername=3, species='primary'
+            )
 
         # cfgdict = pblm.hyper_params['sample_search'].copy()
         cfgdict = pblm._make_lnbnn_pcfg()
 
         infr.relabel_using_reviews(rectify=False)
         custom_nid_lookup = infr.get_node_attrs('name_label', aids)
-        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                      verbose=False,
-                                      custom_nid_lookup=custom_nid_lookup)
+        qreq_ = ibs.new_query_request(
+            aids,
+            aids,
+            cfgdict=cfgdict,
+            verbose=False,
+            custom_nid_lookup=custom_nid_lookup,
+        )
 
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
@@ -357,20 +384,24 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if pblm.verbose > 0:
             print('[pblm] gather lnbnn match-state cases')
 
-        aids = ibs.filter_annots_general(
-            infr.aids, min_pername=3, species='primary')
+        aids = ibs.filter_annots_general(infr.aids, min_pername=3, species='primary')
         qreq_ = pblm._make_lnbnn_qreq(aids)
 
         use_cache = False
         use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cacher1 = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
-                            cfgstr=cfgstr, appname=pblm.appname,
-                            enabled=use_cache, verbose=pblm.verbose)
+        cacher1 = ub.Cacher(
+            'pairsample_1_v6' + ibs.get_dbname(),
+            cfgstr=cfgstr,
+            appname=pblm.appname,
+            enabled=use_cache,
+            verbose=pblm.verbose,
+        )
 
         # make sure changes is names doesn't change the pair sample so I can
         # iterate a bit faster. Ensure this is turned off later.
         import datetime
+
         deadline = datetime.date(year=2017, month=8, day=1)
         nowdate = datetime.datetime.now().date()
         HACK_LOAD_STATIC_DATASET = nowdate < deadline
@@ -406,7 +437,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # For each query, choose same, different, and random training pairs
             rng = np.random.RandomState(42)
             aid_pairs_ = infr._cm_training_pairs(
-                rng=rng, **pblm.hyper_params.pair_sample)
+                rng=rng, **pblm.hyper_params.pair_sample
+            )
             cacher1.save(aid_pairs_)
             data = aid_pairs_
             print('Finished using LNBNN to compute pairs')
@@ -428,10 +460,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         pair_sample = pblm.hyper_params.pair_sample
 
-        n_pos = sum(ut.take(
-            pair_sample, ['top_gt', 'mid_gt', 'bot_gt', 'rand_gt']))
-        n_neg = sum(ut.take(
-            pair_sample, ['top_gf', 'mid_gf', 'bot_gf', 'rand_gf']))
+        n_pos = sum(ut.take(pair_sample, ['top_gt', 'mid_gt', 'bot_gt', 'rand_gt']))
+        n_neg = sum(ut.take(pair_sample, ['top_gf', 'mid_gf', 'bot_gf', 'rand_gf']))
         print('n_neg = {!r}'.format(n_neg))
         print('n_pos = {!r}'.format(n_pos))
 
@@ -440,9 +470,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         cfgstr += ibs.get_annot_hashid_semantic_uuid(pblm.infr.aids)
 
-        cacher = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
-                            cfgstr=cfgstr, appname=pblm.appname,
-                            verbose=pblm.verbose)
+        cacher = ub.Cacher(
+            'pairsample_1_v6' + ibs.get_dbname(),
+            cfgstr=cfgstr,
+            appname=pblm.appname,
+            verbose=pblm.verbose,
+        )
 
         data = cacher.tryload()
         if data is None:
@@ -476,9 +509,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             rng = ut.ensure_rng(282695095)
             per_pair = 1
-            for cc1, cc2 in ut.ProgIter(ut.random_combinations(pccs, 2, rng=rng), label='neg sample'):
-                neg_pairs = edgeset(ut.random_product((cc1, cc2), num=per_pair,
-                                                      rng=rng))
+            for cc1, cc2 in ut.ProgIter(
+                ut.random_combinations(pccs, 2, rng=rng), label='neg sample'
+            ):
+                neg_pairs = edgeset(
+                    ut.random_product((cc1, cc2), num=per_pair, rng=rng)
+                )
                 aid_pairs.update(neg_pairs)
                 if len(aid_pairs) >= n_target:
                     break
@@ -511,8 +547,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         We can do the same for negatives.
         """
         from networkx.algorithms.connectivity import k_edge_subgraphs
+
         # from wbia.algo.graph import nx_utils as nxu
         import itertools as it
+
         infr = pblm.infr
 
         def edgeset(iterable):
@@ -526,8 +564,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             # Check if this edge is touching an inconsistent PCC
             is_touching_inconsistent_pcc = (
-                nid1 in infr.nid_to_errors or
-                nid2 in infr.nid_to_errors
+                nid1 in infr.nid_to_errors or nid2 in infr.nid_to_errors
             )
 
             if not is_touching_inconsistent_pcc:
@@ -557,19 +594,32 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         decision_to_samples[NEGTV] = edgeset(decision_to_samples[NEGTV])
         decision_to_samples[INCMP] = edgeset(decision_to_samples[INCMP])
 
-        balance = int(1.2 * min(len(decision_to_samples[POSTV]),
-                                len(decision_to_samples[NEGTV])))
+        balance = int(
+            1.2 * min(len(decision_to_samples[POSTV]), len(decision_to_samples[NEGTV]))
+        )
 
-        decision_to_samples[POSTV] = ut.shuffle(list(decision_to_samples[POSTV]))[0:balance]
-        decision_to_samples[NEGTV] = ut.shuffle(list(decision_to_samples[NEGTV]))[0:balance]
-        decision_to_samples[INCMP] = ut.shuffle(list(decision_to_samples[INCMP]))[0:balance]
+        decision_to_samples[POSTV] = ut.shuffle(list(decision_to_samples[POSTV]))[
+            0:balance
+        ]
+        decision_to_samples[NEGTV] = ut.shuffle(list(decision_to_samples[NEGTV]))[
+            0:balance
+        ]
+        decision_to_samples[INCMP] = ut.shuffle(list(decision_to_samples[INCMP]))[
+            0:balance
+        ]
 
         # Union all edges together and return
-        aid_pairs = sorted(edgeset(ub.flatten([
-            decision_to_samples[POSTV],
-            decision_to_samples[NEGTV],
-            decision_to_samples[INCMP],
-        ])))
+        aid_pairs = sorted(
+            edgeset(
+                ub.flatten(
+                    [
+                        decision_to_samples[POSTV],
+                        decision_to_samples[NEGTV],
+                        decision_to_samples[INCMP],
+                    ]
+                )
+            )
+        )
         return aid_pairs
 
     @profile
@@ -663,7 +713,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
         feat_extract_config = pblm.feat_extract_config
         extr = pairfeat.PairwiseFeatureExtractor(
-            ibs, verbose=10, config=feat_extract_config)
+            ibs, verbose=10, config=feat_extract_config
+        )
         X_all = extr.transform(edges)
 
         pblm.raw_X_dict = {'learn(all)': X_all}
@@ -688,10 +739,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(ibs.dbname), feat_hashid])
 
-        cacher = ub.Cacher('simple_scores_' + ibs.dbname,
-                           cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=0,
-                           verbose=pblm.verbose)
+        cacher = ub.Cacher(
+            'simple_scores_' + ibs.dbname,
+            cfgstr=cfgstr,
+            appname=pblm.appname,
+            enabled=0,
+            verbose=pblm.verbose,
+        )
         data = cacher.tryload()
         if data is None:
             # ---------------
@@ -719,12 +773,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 edge_data = ut.take(edge_to_data, aid_pairs)
                 lnbnn_score_list = [d.get('score', 0) for d in edge_data]
                 lnbnn_rank_list = [d.get('rank', np.inf) for d in edge_data]
-                lnbnn_score_list = [0 if s is None else s
-                                    for s in lnbnn_score_list]
+                lnbnn_score_list = [0 if s is None else s for s in lnbnn_score_list]
 
                 simple_scores = simple_scores.assign(
-                    score_lnbnn_1vM=lnbnn_score_list,
-                    rank_lnbnn_1vM=lnbnn_rank_list,
+                    score_lnbnn_1vM=lnbnn_score_list, rank_lnbnn_1vM=lnbnn_rank_list,
                 )
 
             simple_scores[pd.isnull(simple_scores)] = 0
@@ -881,6 +933,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         # selected_data_keys = ut.ddict(list)
         from utool.experimental.pandas_highlight import to_string_monkey
+
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
         print('data_keys = %r' % (data_keys,))
@@ -892,27 +945,41 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Combine results over datasets
             print('clf_key = %s' % (ut.repr2(clf_key),))
             data_combo_res = pblm.task_combo_res[task_key][clf_key]
-            df_auc_ovr = pd.DataFrame(dict([
-                (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
-                for datakey in data_keys
-            ]), index=labels.one_vs_rest_task_names())
+            df_auc_ovr = pd.DataFrame(
+                dict(
+                    [
+                        (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
+                        for datakey in data_keys
+                    ]
+                ),
+                index=labels.one_vs_rest_task_names(),
+            )
             ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
             print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
             if clf_key.endswith('-OVR') and labels.n_classes > 2:
                 # Report un-normalized ovr measures if they available
-                ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,),
-                          'yellow')
-                df_auc_ovr_hat = pd.DataFrame(dict([
-                    (datakey,
-                     list(data_combo_res[datakey].roc_scores_ovr_hat()))
-                    for datakey in data_keys
-                ]), index=labels.one_vs_rest_task_names())
+                ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,), 'yellow')
+                df_auc_ovr_hat = pd.DataFrame(
+                    dict(
+                        [
+                            (
+                                datakey,
+                                list(data_combo_res[datakey].roc_scores_ovr_hat()),
+                            )
+                            for datakey in data_keys
+                        ]
+                    ),
+                    index=labels.one_vs_rest_task_names(),
+                )
                 print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
             roc_scores = dict(
-                [(datakey, [data_combo_res[datakey].roc_score()])
-                 for datakey in data_keys])
+                [
+                    (datakey, [data_combo_res[datakey].roc_score()])
+                    for datakey in data_keys
+                ]
+            )
             df_auc = pd.DataFrame(roc_scores)
             ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
             print(to_string_monkey(df_auc, highlight_cols='all'))
@@ -923,21 +990,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # selected_data_keys[task_key].append(best_data_key)
 
             combo_res = data_combo_res[best_data_key]
-            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,),
-                      'darkgreen')
+            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'darkgreen')
             with ut.Indenter('[%s] ' % (best_data_key,)):
                 combo_res.extended_clf_report()
             res = combo_res
             if 1:
                 pos_threshes = res.report_thresholds()  # NOQA
             if 0:
-                importance_datakeys = set([
-                    # 'learn(all)'
-                ] + [best_data_key])
+                importance_datakeys = set(
+                    [
+                        # 'learn(all)'
+                    ]
+                    + [best_data_key]
+                )
 
                 for data_key in importance_datakeys:
-                    pblm.report_importance(task_key, clf_key,
-                                                      data_key)
+                    pblm.report_importance(task_key, clf_key, data_key)
 
         # ut.cprint('\n--- FEATURE INFO ---', 'blue')
         # for best_data_key in selected_data_keys:
@@ -954,11 +1022,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             samples = pblm.samples
             meta = res.hardness_analysis(samples).copy()
             import wbia
+
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = pblm.qreq_.ibs
-            infr = wbia.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs,
-                                                   verbose=3)
+            infr = wbia.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs, verbose=3)
             infr.reset_feedback('staging')
             infr.reset_labels_to_wbia()
             infr.apply_feedback_edges()
@@ -979,8 +1047,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         target_names = probs.columns
         print('----------------------')
         print('Want Photobomb Report')
-        clf_helpers.classification_report2(
-            y_true, y_pred, target_names=target_names)
+        clf_helpers.classification_report2(y_true, y_pred, target_names=target_names)
 
         # Make labels for entire set
         task_key = 'match_state'
@@ -988,24 +1055,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         primary_labels = want_samples[task_key]
         y_true_enc = primary_labels.encoded_df
         y_true = y_true_enc.loc[primary_probs.index.tolist()]
-        y_pred = primary_probs.idxmax(axis=1).apply(
-            primary_labels.lookup_class_idx)
+        y_pred = primary_probs.idxmax(axis=1).apply(primary_labels.lookup_class_idx)
         target_names = primary_probs.columns
         print('----------------------')
         print('Want Match Report')
-        clf_helpers.classification_report2(
-            y_true, y_pred, target_names=target_names)
+        clf_helpers.classification_report2(y_true, y_pred, target_names=target_names)
         print('----------------------')
         print('Autoclassification Report')
         auto_edges = is_auto[is_auto].index
         clf_helpers.classification_report2(
-            y_true.loc[auto_edges], y_pred.loc[auto_edges],
-            target_names=target_names)
+            y_true.loc[auto_edges], y_pred.loc[auto_edges], target_names=target_names
+        )
         print('----------------------')
 
-    def auto_decisions_at_threshold(pblm, primary_task, task_probs,
-                                    task_thresh, task_keys, clf_key,
-                                    data_key):
+    def auto_decisions_at_threshold(
+        pblm, primary_task, task_probs, task_thresh, task_keys, clf_key, data_key
+    ):
         # task_thresh = {}
         # for task_key in task_keys:
         #     metric, value = operating_points[task_key]
@@ -1022,8 +1087,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pos_flags_df = probs > thresh
             pos_flags_df = pos_flags_df & ismax_flags
             if __debug__:
-                assert all(f < 2 for f in pos_flags_df.sum(axis=1).unique()), (
-                    'unsupported multilabel decision')
+                assert all(
+                    f < 2 for f in pos_flags_df.sum(axis=1).unique()
+                ), 'unsupported multilabel decision'
             task_pos_flags[task_key] = pos_flags_df
 
         # Define the primary task and which tasks confound it
@@ -1041,8 +1107,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         primary_confounders = task_confounders[primary_task]
         for task_key, confounding_classes in primary_confounders:
             pos_flags = task_pos_flags[task_key]
-            nonconfounding_classes = pos_flags.columns.difference(
-                confounding_classes)
+            nonconfounding_classes = pos_flags.columns.difference(confounding_classes)
             likely = pos_flags[confounding_classes].any(axis=1)
             unlikely = pos_flags[nonconfounding_classes].any(axis=1)
             flags = likely if True else likely | ~unlikely
@@ -1066,8 +1131,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
-    def _make_evaluation_verifiers(pblm, task_keys=None, clf_key=None,
-                                   data_key=None):
+    def _make_evaluation_verifiers(pblm, task_keys=None, clf_key=None, data_key=None):
         if clf_key is None:
             clf_key = pblm.default_clf_key
         if data_key is None:
@@ -1077,8 +1141,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         verifiers = {}
         for task_key in task_keys:
-            verifiers[task_key] = verifier.IntraVerifier(pblm, task_key,
-                                                         clf_key, data_key)
+            verifiers[task_key] = verifier.IntraVerifier(
+                pblm, task_key, clf_key, data_key
+            )
         return verifiers
 
     def build_feature_subsets(pblm):
@@ -1112,6 +1177,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         X_dict = ut.odict()
         pblm.feat_extract_info = {}
+
         def register_data_key(data_key, cols):
             if pblm.eval_data_keys is not None:
                 if data_key not in pblm.eval_data_keys:
@@ -1127,25 +1193,39 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         if True:
             # Use only summary stats without global attributes
-            cols = featinfo.select_columns([
-                ('measure_type', '==', 'summary'),
-            ])
+            cols = featinfo.select_columns([('measure_type', '==', 'summary'),])
             register_data_key('learn(sum)', cols)
 
         if True:
             # Use summary and global single thresholds with raw unaries
-            cols = featinfo.select_columns([
-                ('measure_type', '==', 'summary'),
-                ('summary_measure', '!=', 'ratio')
-            ])
-            cols.update(featinfo.select_columns([
-                ('measure_type', '==', 'global'),
-                ('measure', 'not in', {
-                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
-                    'view_1', 'view_2', 'gps_1[0]', 'gps_2[0]', 'gps_1[1]',
-                    'gps_2[1]', 'time_1', 'time_2'
-                })
-            ]))
+            cols = featinfo.select_columns(
+                [('measure_type', '==', 'summary'), ('summary_measure', '!=', 'ratio')]
+            )
+            cols.update(
+                featinfo.select_columns(
+                    [
+                        ('measure_type', '==', 'global'),
+                        (
+                            'measure',
+                            'not in',
+                            {
+                                'qual_1',
+                                'qual_2',
+                                'yaw_1',
+                                'yaw_2',
+                                'view_1',
+                                'view_2',
+                                'gps_1[0]',
+                                'gps_2[0]',
+                                'gps_1[1]',
+                                'gps_2[1]',
+                                'time_1',
+                                'time_2',
+                            },
+                        ),
+                    ]
+                )
+            )
             register_data_key('learn(sum,glob)', cols)
 
             # if True:
@@ -1164,35 +1244,44 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             if True:
                 # Use summary and global single thresholds with raw unaries
-                sumcols1 = featinfo.select_columns([
-                    ('summary_op', 'in', {'med'})
-                ])
+                sumcols1 = featinfo.select_columns([('summary_op', 'in', {'med'})])
                 m1_cols = set.difference(cols, set(sumcols1))
                 register_data_key('learn(sum-1,glob)', m1_cols)
 
-                sumcols2 = featinfo.select_columns([
-                    ('summary_op', 'in', {'std'})
-                ])
+                sumcols2 = featinfo.select_columns([('summary_op', 'in', {'std'})])
                 m2_cols = set.difference(cols, set(sumcols2))
                 register_data_key('learn(sum-2,glob)', m2_cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
-                multibin_cols = featinfo.select_columns([
-                    ('summary_binval', '>', 0.625)
-                ])
+                multibin_cols = featinfo.select_columns(
+                    [('summary_binval', '>', 0.625)]
+                )
                 onebin_cols = set.difference(cols, set(multibin_cols))
                 register_data_key('learn(sum,glob,onebin)', onebin_cols)
 
             if True:
                 # Remove view columns
-                view_cols = featinfo.select_columns([
-                    ('measure_type', '==', 'global'),
-                    ('measure', 'in', [
-                        'yaw_1', 'yaw_2', 'delta_yaw', 'min_yaw', 'max_yaw'
-                        'view_1', 'view_2', 'delta_view', 'min_view', 'max_view'
-                    ]),
-                ])
+                view_cols = featinfo.select_columns(
+                    [
+                        ('measure_type', '==', 'global'),
+                        (
+                            'measure',
+                            'in',
+                            [
+                                'yaw_1',
+                                'yaw_2',
+                                'delta_yaw',
+                                'min_yaw',
+                                'max_yaw' 'view_1',
+                                'view_2',
+                                'delta_view',
+                                'min_view',
+                                'max_view',
+                            ],
+                        ),
+                    ]
+                )
                 noview_cols = set.difference(cols, view_cols)
                 register_data_key('learn(sum,glob,-view)', noview_cols)
 
@@ -1215,8 +1304,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Remove scores that arent worth reporting
             for k in list(score_dict.keys())[:]:
                 ignore = [
-                    'sum(norm_x', 'sum(norm_y',  # ))
-                    'sum(sver_err', 'sum(scale',  # ))
+                    'sum(norm_x',
+                    'sum(norm_y',  # ))
+                    'sum(sver_err',
+                    'sum(scale',  # ))
                     'sum(match_dist)',
                     'sum(weighted_norm_dist',  # )
                 ]
@@ -1255,24 +1346,25 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def report_simple_scores(pblm, task_key=None):
         from utool.experimental.pandas_highlight import to_string_monkey
+
         if task_key is None:
             task_key = pblm.primary_task_key
         force_keep = ['score_lnbnn_1vM']
         simple_aucs = pblm.simple_aucs
         n_keep = 5
-        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_key],
-                                               orient='index')
+        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_key], orient='index')
         # Take only a subset of the columns that scored well in something
         rankings = df_simple_auc.values.argsort(axis=1).argsort(axis=1)
         rankings = rankings.shape[1] - rankings - 1
-        ordered_ranks = np.array(vt.ziptake(rankings.T,
-                                            rankings.argsort(axis=0).T)).T
+        ordered_ranks = np.array(vt.ziptake(rankings.T, rankings.argsort(axis=0).T)).T
         sortx = np.lexsort(ordered_ranks[::-1])
         keep_cols = df_simple_auc.columns[sortx][0:n_keep]
         extra = np.setdiff1d(force_keep, np.intersect1d(keep_cols, force_keep))
-        keep_cols = keep_cols[:len(keep_cols) - len(extra)].tolist() + extra.tolist()
+        keep_cols = keep_cols[: len(keep_cols) - len(extra)].tolist() + extra.tolist()
         # Now print them
-        ut.cprint('\n[None] ROC-AUC of simple scoring measures for %s' % (task_key,), 'yellow')
+        ut.cprint(
+            '\n[None] ROC-AUC of simple scoring measures for %s' % (task_key,), 'yellow'
+        )
         print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
     def feature_importance(pblm, task_key=None, clf_key=None, data_key=None):
@@ -1305,9 +1397,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         X = pblm.samples.X_dict[data_key]
         clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
-        feature_importances = np.mean([
-            clf_.feature_importances_ for clf_ in clf_list
-        ], axis=0)
+        feature_importances = np.mean(
+            [clf_.feature_importances_ for clf_ in clf_list], axis=0
+        )
         importances = ut.dzip(X.columns, feature_importances)
         return importances
 
@@ -1322,8 +1414,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo = vt.AnnotPairFeatInfo(importances=importances)
 
         # Take average feature importance
-        ut.cprint('MARGINAL IMPORTANCE INFO for %s on task %s' % (
-            data_key, task_key), 'yellow')
+        ut.cprint(
+            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key),
+            'yellow',
+        )
         print(' Caption:')
         print(' * The NaN row ensures that `weight` always sums to 1')
         print(' * `num` indicates how many dimensions the row groups')
@@ -1402,8 +1496,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         prog = ut.ProgIter(iter_, label='prune')
         for _ in prog:
             prog.ensure_newline()
-            clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
-                                                            clf_key, feat_dims)
+            clf_list, res_list = pblm._train_evaluation_clf(
+                task_key, data_key, clf_key, feat_dims
+            )
             combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
             rs = [res.extended_clf_report(verbose=0) for res in res_list]
             report = combo_res.extended_clf_report(verbose=0)
@@ -1413,8 +1508,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             reports.append(report)
             sub_reports.append(rs)
 
-            clf_importances = np.array(
-                [clf_.feature_importances_ for clf_ in clf_list])
+            clf_importances = np.array([clf_.feature_importances_ for clf_ in clf_list])
             feature_importances = np.mean(clf_importances, axis=0)
             importances = ut.dzip(feat_dims, feature_importances)
 
@@ -1430,6 +1524,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         s = mccs2.std(axis=0)
 
         import wbia.plottool as pt
+
         pt.qtensure()
         pt.plot(n_dims, u, label='mean')
         ax = pt.gca()
@@ -1516,18 +1611,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # only review big ccs
         if False:
-            n_other1 = np.array([len(infr.pos_graph.connected_to(a))
-                                 for a in unsure_cases['aid1']])
-            n_other2 = np.array([len(infr.pos_graph.connected_to(a))
-                                 for a in unsure_cases['aid2']])
+            n_other1 = np.array(
+                [len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid1']]
+            )
+            n_other2 = np.array(
+                [len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid2']]
+            )
             unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
 
         if True:
             # only review certain cases
             # probably comparable
-            flags1 = ((unsure_cases['pred'] == 1) & (unsure_cases['real'] == 2))
+            flags1 = (unsure_cases['pred'] == 1) & (unsure_cases['real'] == 2)
             # probably positive
-            flags2 = ((unsure_cases['pred'] == 1) & (unsure_cases['real'] == 0))
+            flags2 = (unsure_cases['pred'] == 1) & (unsure_cases['real'] == 0)
             flags = flags1 | flags2
 
             unsure_cases = unsure_cases[flags]
@@ -1660,13 +1757,14 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         label_hashid = samples.task_label_hashid(task_key)
         tasksamp_hashstr = ut.hash_data([edge_hashid, label_hashid])[0:16]
         tasksamp_hashid = 'tasksamp-{},{}-{}'.format(
-            len(samples), labels.n_classes, tasksamp_hashstr)
+            len(samples), labels.n_classes, tasksamp_hashstr
+        )
         return tasksamp_hashid
 
     def set_simple_scores(samples, simple_scores):
         if simple_scores is not None:
             edges = ut.emap(tuple, samples.aid_pairs.tolist())
-            assert (edges == simple_scores.index.tolist())
+            assert edges == simple_scores.index.tolist()
         samples.simple_scores = simple_scores
 
     def set_feats(samples, X_dict):
@@ -1727,10 +1825,10 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         infr = samples.infr
         edges = samples.aid_pairs
         assert edges is not None
-        tags = [None if d is None else d.get('tags')
-                for d in map(infr.get_edge_data, edges)]
-        flags = [None if t is None else 'photobomb' in t
-                 for t in tags]
+        tags = [
+            None if d is None else d.get('tags') for d in map(infr.get_edge_data, edges)
+        ]
+        flags = [None if t is None else 'photobomb' in t for t in tags]
         return np.array(flags, dtype=np.bool)
         # return samples.infr.is_photobomb(samples.aid_pairs)
 
@@ -1739,6 +1837,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     def is_comparable(samples):
         infr = samples.infr
         edges = samples.aid_pairs
+
         def _check(u, v):
             if infr.incomp_graph.has_edge(u, v):
                 return False
@@ -1753,6 +1852,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
             elif infr.neg_graph.has_edge(u, v):
                 return True
             return np.nan
+
         flags = np.array([_check(*edge) for edge in edges])
         # hack guess if comparable based on viewpoint
         guess_flags = np.isnan(flags)
@@ -1765,17 +1865,29 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     @profile
     def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
-        tasks_to_indicators = ut.odict([
-            ('match_state', ut.odict([
-                (NEGTV, ~samples.is_same() & samples.is_comparable()),
-                (POSTV,  samples.is_same() & samples.is_comparable()),
-                (INCMP, ~samples.is_comparable()),
-            ])),
-            ('photobomb_state', ut.odict([
-                ('notpb', ~samples.is_photobomb()),
-                ('pb',   samples.is_photobomb()),
-            ]))
-        ])
+        tasks_to_indicators = ut.odict(
+            [
+                (
+                    'match_state',
+                    ut.odict(
+                        [
+                            (NEGTV, ~samples.is_same() & samples.is_comparable()),
+                            (POSTV, samples.is_same() & samples.is_comparable()),
+                            (INCMP, ~samples.is_comparable()),
+                        ]
+                    ),
+                ),
+                (
+                    'photobomb_state',
+                    ut.odict(
+                        [
+                            ('notpb', ~samples.is_photobomb()),
+                            ('pb', samples.is_photobomb()),
+                        ]
+                    ),
+                ),
+            ]
+        )
         samples.apply_indicators(tasks_to_indicators)
         samples['match_state'].default_class_name = POSTV
         samples['photobomb_state'].default_class_name = 'pb'
@@ -1784,18 +1896,30 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     def apply_multi_task_binary_label(samples):
         assert False
         # multioutput-multiclass / multi-task
-        tasks_to_indicators = ut.odict([
-            ('same_state', ut.odict([
-                ('notsame', ~samples.is_same()),
-                ('same',     samples.is_same())
-                # (NEGTV, ~samples.is_same() | ~samples.is_comparable()),
-                # (POSTV,    samples.is_same() & samples.is_comparable()),
-            ])),
-            ('photobomb_state', ut.odict([
-                ('notpb', ~samples.is_photobomb()),
-                ('pb',   samples.is_photobomb()),
-            ]))
-        ])
+        tasks_to_indicators = ut.odict(
+            [
+                (
+                    'same_state',
+                    ut.odict(
+                        [
+                            ('notsame', ~samples.is_same()),
+                            ('same', samples.is_same())
+                            # (NEGTV, ~samples.is_same() | ~samples.is_comparable()),
+                            # (POSTV,    samples.is_same() & samples.is_comparable()),
+                        ]
+                    ),
+                ),
+                (
+                    'photobomb_state',
+                    ut.odict(
+                        [
+                            ('notpb', ~samples.is_photobomb()),
+                            ('pb', samples.is_photobomb()),
+                        ]
+                    ),
+                ),
+            ]
+        )
         samples.apply_indicators(tasks_to_indicators)
 
     @profile
@@ -1803,17 +1927,24 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         assert False
         is_comp = samples.is_comparable()
         is_same = samples.is_same()
-        is_pb   = samples.is_photobomb()
-        tasks_to_indicators = ut.odict([
-            ('match_pb_state', ut.odict([
-                ('is_notcomp',       ~is_comp & ~is_pb),
-                ('is_match',          is_same & is_comp & ~is_pb),
-                ('is_nomatch',       ~is_same & is_comp & ~is_pb),
-                ('is_notcomp_pb',    ~is_comp & is_pb),
-                ('is_match_pb',       is_same & is_comp & is_pb),
-                ('is_nomatch_pb',    ~is_same & is_comp & is_pb),
-            ])),
-        ])
+        is_pb = samples.is_photobomb()
+        tasks_to_indicators = ut.odict(
+            [
+                (
+                    'match_pb_state',
+                    ut.odict(
+                        [
+                            ('is_notcomp', ~is_comp & ~is_pb),
+                            ('is_match', is_same & is_comp & ~is_pb),
+                            ('is_nomatch', ~is_same & is_comp & ~is_pb),
+                            ('is_notcomp_pb', ~is_comp & is_pb),
+                            ('is_match_pb', is_same & is_comp & is_pb),
+                            ('is_nomatch_pb', ~is_same & is_comp & is_pb),
+                        ]
+                    ),
+                ),
+            ]
+        )
         samples.apply_indicators(tasks_to_indicators)
 
     @property
@@ -1824,9 +1955,9 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         name or between the same names will have the same groupid.
         """
         infr = samples.infr
-        name_edges = np.array([
-            infr.e_(*infr.pos_graph.node_labels(u, v))
-            for u, v in samples.aid_pairs])
+        name_edges = np.array(
+            [infr.e_(*infr.pos_graph.node_labels(u, v)) for u, v in samples.aid_pairs]
+        )
         # Edges within the same name or between the same name, must be grouped
         # together. This will prevent identity-specific effects.
         group_ids = vt.get_undirected_edge_ids(name_edges)
@@ -1846,6 +1977,8 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.vsone --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

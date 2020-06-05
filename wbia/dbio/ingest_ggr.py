@@ -21,7 +21,9 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Alex\ Peltier\ -\ Plane\ -\ Ngurnit/giraffe\ grevy\ count\ feb\ 18/')
+    src_uri = join(
+        ggr_path, 'Alex\ Peltier\ -\ Plane\ -\ Ngurnit/giraffe\ grevy\ count\ feb\ 18/'
+    )
     dst_uri = join(ggr_path, '232/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '232B/')
@@ -30,7 +32,9 @@ def _fix_ggr2018_directory_structure(ggr_path):
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark', 'PANORAMA/')
+    src_uri = join(
+        ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark', 'PANORAMA/'
+    )
     ut.delete(src_uri.replace('\\', ''))
 
     src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1/')
@@ -298,8 +302,9 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri)
 
 
-def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
-                             apply_updates=True, **kwargs):
+def convert_ggr2018_to_wbia(
+    ggr_path, dbdir=None, purge=True, dry_run=False, apply_updates=True, **kwargs
+):
     r"""Convert the raw GGR2 (2018) data to an wbia database.
 
     Args
@@ -329,12 +334,14 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     ################################################################################
 
-    blacklist_filepath_set = set([
-        join(ggr_path, 'Cameras info.numbers'),
-        join(ggr_path, 'Cameras info.xlsx'),
-        join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
-        join(ggr_path, 'Cameras info-2.numbers'),
-    ])
+    blacklist_filepath_set = set(
+        [
+            join(ggr_path, 'Cameras info.numbers'),
+            join(ggr_path, 'Cameras info.xlsx'),
+            join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
+            join(ggr_path, 'Cameras info-2.numbers'),
+        ]
+    )
 
     # Check root files
     direct = Directory(ggr_path)
@@ -343,7 +350,7 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
             assert filepath in blacklist_filepath_set
             ut.delete(filepath)
         except AssertionError:
-            print('Unresolved root file found in %r' % (filepath, ))
+            print('Unresolved root file found in %r' % (filepath,))
             continue
 
     ################################################################################
@@ -361,19 +368,19 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
     direct1_list.sort(key=lambda x: int(x.base()), reverse=False)
     for direct1 in direct1_list:
         if not dry_run:
-            print('Processing directory: %r' % (direct1, ))
+            print('Processing directory: %r' % (direct1,))
         base1 = direct1.base()
 
         try:
             int(base1)
         except ValueError:
-            print('Error found in %r' % (direct1, ))
+            print('Error found in %r' % (direct1,))
             continue
 
         try:
             assert len(direct1.files(recursive=False)) == 0
         except AssertionError:
-            print('Files found in %r' % (direct1, ))
+            print('Files found in %r' % (direct1,))
             continue
 
         seen_letter_list = []
@@ -386,7 +393,7 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
             try:
                 assert base2.startswith(base1)
             except AssertionError:
-                print('Folder name heredity conflict %r with %r' % (direct2, direct1, ))
+                print('Folder name heredity conflict %r with %r' % (direct2, direct1,))
                 continue
 
             try:
@@ -400,17 +407,19 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
                 assert letter in ALLOWED_LETTERS
                 seen_letter_list.append(letter)
             except ValueError:
-                print('Error found in %r' % (direct2, ))
+                print('Error found in %r' % (direct2,))
                 continue
             except AssertionError:
-                print('Folder name format error found in %r' % (direct2, ))
+                print('Folder name format error found in %r' % (direct2,))
                 continue
 
-            direct2_ = Directory(direct2.absolute_directory_path, recursive=True, images=True)
+            direct2_ = Directory(
+                direct2.absolute_directory_path, recursive=True, images=True
+            )
             try:
                 assert len(direct2_.directories()) == 0
             except AssertionError:
-                print('Folders exist in file only level %r' % (direct2, ))
+                print('Folders exist in file only level %r' % (direct2,))
                 continue
 
             filepath_list = sorted(direct2_.files())
@@ -421,13 +430,15 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
                     gid_list = ut.filter_Nones(gid_list)
                     gid_list = sorted(list(set(gid_list)))
 
-                    imageset_text = 'GGR2,%d,%s' % (number, letter, )
+                    imageset_text = 'GGR2,%d,%s' % (number, letter,)
                     note_list = [
                         '%s,%05d' % (imageset_text, index + 1)
                         for index, gid in enumerate(gid_list)
                     ]
                     ibs.set_image_notes(gid_list, note_list)
-                    ibs.set_image_imagesettext(gid_list, [imageset_text] * len(gid_list))
+                    ibs.set_image_imagesettext(
+                        gid_list, [imageset_text] * len(gid_list)
+                    )
                 except Exception as ex:  # NOQA
                     ut.embed()
 
@@ -435,13 +446,15 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
         try:
             assert len(seen_letter_set) == len(seen_letter_list)
         except AssertionError:
-            print('Duplicate letters in %r with letters %r' % (direct1, seen_letter_list, ))
+            print(
+                'Duplicate letters in %r with letters %r' % (direct1, seen_letter_list,)
+            )
             continue
 
         try:
             assert 'A' in seen_letter_set
         except AssertionError:
-            print('WARNING: A camera not found in %r' % (direct1, ))
+            print('WARNING: A camera not found in %r' % (direct1,))
             continue
 
     return ibs

@@ -6,6 +6,7 @@ class _OldPainter(object):
     References:
         http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
     """
+
     def __init__(self, fig, ax, mask):
         self.button_pressed = False
         self.mask = mask
@@ -23,10 +24,10 @@ class _OldPainter(object):
 
     def draw(self):
         self.fig.canvas.draw()
-        #print('draw')
+        # print('draw')
 
     def do_blit(self):
-        if self.background is  None:
+        if self.background is None:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
         else:
             self.fig.canvas.restore_region(self.background)
@@ -38,16 +39,23 @@ class _OldPainter(object):
 
     def button_press_callback(self, event):
         import cv2
-        if(event.button == 1):
+
+        if event.button == 1:
             self.button_pressed = True
             try:
                 x = int(math.floor(event.xdata))
                 y = int(math.floor(event.ydata))
-                cv2.circle(self.mask, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+                cv2.circle(
+                    self.mask,
+                    (x, y),
+                    int(self.brush_size / 2),
+                    (self.color, self.color, self.color),
+                    -1,
+                )
             except TypeError:
                 pass
         self.update_image()
-        #update the image
+        # update the image
         self.do_blit()
 
     def update_image(self):
@@ -58,16 +66,23 @@ class _OldPainter(object):
         self.button_pressed = False
         self.update_image()
         self.draw()
-        #cv2.imwrite('test.png', self.mask)
+        # cv2.imwrite('test.png', self.mask)
         self.do_blit()
 
     def on_move(self, event):
         import cv2
-        if(self.button_pressed):
+
+        if self.button_pressed:
             try:
                 x = int(math.floor(event.xdata))
                 y = int(math.floor(event.ydata))
-                cv2.circle(self.mask, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+                cv2.circle(
+                    self.mask,
+                    (x, y),
+                    int(self.brush_size / 2),
+                    (self.color, self.color, self.color),
+                    -1,
+                )
             except TypeError:
                 pass
             self.update_image()

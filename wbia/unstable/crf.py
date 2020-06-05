@@ -24,16 +24,17 @@ def crftest():
     """
     import pystruct
     import pystruct.models
+
     inference_method_options = ['lp', 'max-product']
     inference_method = inference_method_options[1]
 
-    #graph = pystruct.models.GraphCRF(
+    # graph = pystruct.models.GraphCRF(
     #    n_states=None,
     #    n_features=None,
     #    inference_method=inference_method,
     #    class_weight=None,
     #    directed=False,
-    #)
+    # )
 
     num_annots = 5
     num_names = num_annots
@@ -47,13 +48,11 @@ def crftest():
     node_features = np.zeros((num_annots, num_names))
     node_features[(aids, hidden_nids)] = 1
 
-    toy_params = {
-        True: {'mu': 1.0, 'sigma': 2.2},
-        False: {'mu': 7.0, 'sigma': .9}
-    }
+    toy_params = {True: {'mu': 1.0, 'sigma': 2.2}, False: {'mu': 7.0, 'sigma': 0.9}}
     if False:
         import vtool as vt
         import wbia.plottool as pt
+
         pt.ensureqt()
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
@@ -69,7 +68,9 @@ def crftest():
         return np.clip(rng.normal(mu, sigma), 0, np.inf)
 
     pairwise_aidxs = list(ut.iprod(range(num_annots), range(num_annots)))
-    pairwise_labels = np.array([hidden_nids[a1] == hidden_nids[a2] for a1, a2 in pairwise_aidxs])
+    pairwise_labels = np.array(
+        [hidden_nids[a1] == hidden_nids[a2] for a1, a2 in pairwise_aidxs]
+    )
     pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
     pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
 
@@ -87,9 +88,7 @@ def crftest():
     gm = opengm.gm(np.ones(numVar, dtype=opengm.label_type) * 3)
     unary_fids = gm.addFunctions(unaries)
     gm.addFactors(unary_fids, np.arange(numVar))
-    infParam = opengm.InfParam(
-        workflow=ut.ensure_ascii('(IC)(TTC-I,CC-I)'),
-    )
+    infParam = opengm.InfParam(workflow=ut.ensure_ascii('(IC)(TTC-I,CC-I)'),)
     inf = opengm.inference.Multicut(gm, parameter=infParam)
     visitor = inf.verboseVisitor(printNth=1, multiline=False)
     inf.infer(visitor)
@@ -114,6 +113,7 @@ def crftest():
 
 def chain_crf():
     from pystruct.datasets import load_letters
+
     letters = load_letters()
     X, y, folds = ut.take(letters, ['data', 'labels', 'folds'])
     X, y = np.array(X), np.array(y)

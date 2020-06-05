@@ -11,7 +11,7 @@
 		<height>600</height>
 		<depth>3</depth>
 	</size>
-	<segmented>0</segmented>	
+	<segmented>0</segmented>
 	<object>
 		<name>wilddog</name>
 		<pose>Unspecified</pose>
@@ -23,7 +23,7 @@
 			<ymax>497</ymax>
 			<ymin>407</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>wilddog</name>
 		<pose>Unspecified</pose>
@@ -35,7 +35,7 @@
 			<ymax>573</ymax>
 			<ymin>484</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>wilddog</name>
 		<pose>Unspecified</pose>
@@ -47,7 +47,7 @@
 			<ymax>496</ymax>
 			<ymin>275</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>wilddog</name>
 		<pose>Unspecified</pose>

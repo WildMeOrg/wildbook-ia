@@ -36,7 +36,7 @@ futures_actors
 utool >= 2.1.2
 wbia-vtool >= 2.1.0
 
-pyqt5>= 5.11.2;python_version>'2.7'  
+pyqt5>= 5.11.2;python_version>'2.7'
 
 pynmea2>=1.5.3
 tornado>=4.2.1

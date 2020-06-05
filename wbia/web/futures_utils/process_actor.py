@@ -22,8 +22,7 @@ import utool as ut
 __author__ = 'Jon Crall (erotemic@gmail.com)'
 
 
-def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
-                             **kwargs):
+def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args, **kwargs):
     """
     actor event loop run in a separate process.
 
@@ -43,11 +42,9 @@ def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
             r = actor.handle(call_item.message)
         except BaseException as e:
             exc = process._ExceptionWithTraceback(e, e.__traceback__)
-            _result_queue.put(process._ResultItem(
-                call_item.work_id, exception=exc))
+            _result_queue.put(process._ResultItem(call_item.work_id, exception=exc))
         else:
-            _result_queue.put(process._ResultItem(
-                call_item.work_id, result=r))
+            _result_queue.put(process._ResultItem(call_item.work_id, result=r))
 
 
 class _WorkItem(object):
@@ -62,9 +59,7 @@ class _CallItem(object):
         self.message = message
 
 
-def _add_call_item_to_queue(pending_work_items,
-                            work_ids,
-                            call_queue):
+def _add_call_item_to_queue(pending_work_items, work_ids, call_queue):
     """Fills call_queue with _WorkItems from pending_work_items.
 
     This function never blocks.
@@ -90,20 +85,20 @@ def _add_call_item_to_queue(pending_work_items,
             work_item = pending_work_items[work_id]
 
             if work_item.future.set_running_or_notify_cancel():
-                call_queue.put(_CallItem(work_id,
-                                         work_item.message),
-                               block=True)
+                call_queue.put(_CallItem(work_id, work_item.message), block=True)
             else:
                 del pending_work_items[work_id]
                 continue
 
 
-def _queue_management_worker(executor_reference,
-                             _manager,
-                             pending_work_items,
-                             work_ids_queue,
-                             _call_queue,
-                             _result_queue):
+def _queue_management_worker(
+    executor_reference,
+    _manager,
+    pending_work_items,
+    work_ids_queue,
+    _call_queue,
+    _result_queue,
+):
     """Manages the communication between this process and the worker processes."""
     executor = None
 
@@ -123,9 +118,7 @@ def _queue_management_worker(executor_reference,
     reader = _result_queue._reader
 
     while True:
-        _add_call_item_to_queue(pending_work_items,
-                                work_ids_queue,
-                                _call_queue)
+        _add_call_item_to_queue(pending_work_items, work_ids_queue, _call_queue)
 
         sentinel = _manager.sentinel
         assert sentinel
@@ -143,10 +136,11 @@ def _queue_management_worker(executor_reference,
             for work_id, work_item in pending_work_items.items():
                 work_item.future.set_exception(
                     process.BrokenProcessPool(
-                        "A process in the process pool was "
-                        "terminated abruptly while the future was "
-                        "running or pending."
-                    ))
+                        'A process in the process pool was '
+                        'terminated abruptly while the future was '
+                        'running or pending.'
+                    )
+                )
                 # Delete references to object. See issue16284
                 del work_item
             pending_work_items.clear()
@@ -194,7 +188,6 @@ def _queue_management_worker(executor_reference,
 
 
 class ProcessActorExecutor(_base_actor.ActorExecutor):
-
     def __init__(self, _ActorClass, *args, **kwargs):
         process._check_system_limits()
 
@@ -231,7 +224,8 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
             if self._broken:
                 raise process.BrokenProcessPool(
                     'A child process terminated '
-                    'abruptly, the process pool is not usable anymore')
+                    'abruptly, the process pool is not usable anymore'
+                )
             if self._shutdown_thread:
                 raise RuntimeError('cannot schedule new futures after shutdown')
 
@@ -246,6 +240,7 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
 
             self._start_queue_management_thread()
             return f
+
     post.__doc__ = _base_actor.ActorExecutor.post.__doc__
 
     def _start_queue_management_thread(self):
@@ -260,12 +255,15 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
             self._initialize_actor()
             self._queue_management_thread = threading.Thread(
                 target=_queue_management_worker,
-                args=(weakref.ref(self, weakref_cb),
-                      self._manager,
-                      self._pending_work_items,
-                      self._work_ids,
-                      self._call_queue,
-                      self._result_queue))
+                args=(
+                    weakref.ref(self, weakref_cb),
+                    self._manager,
+                    self._pending_work_items,
+                    self._work_ids,
+                    self._call_queue,
+                    self._result_queue,
+                ),
+            )
             self._queue_management_thread.daemon = True
             self._queue_management_thread.start()
             # use structures already in futures as much as possible
@@ -278,9 +276,9 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
             # We only maintain one thread process for an actor
             self._manager = multiprocessing.Process(
                 target=_process_actor_eventloop,
-                args=(self._call_queue,
-                      self._result_queue, self._ActorClass) + args,
-                kwargs=kwargs)
+                args=(self._call_queue, self._result_queue, self._ActorClass) + args,
+                kwargs=kwargs,
+            )
             self._manager.start()
 
     def shutdown(self, wait=True):
@@ -297,14 +295,16 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
         self._call_queue = None
         self._result_queue = None
         self._manager = None
+
     shutdown.__doc__ = _base.Executor.shutdown.__doc__
 
 
 class ProcessActor(_base_actor.Actor):
-
     @classmethod
     def executor(cls, *args, **kwargs):
         return ProcessActorExecutor(cls, *args, **kwargs)
+
     # executor.__doc__ = _base_actor.Actor.executor.__doc___
+
 
 # ProcessActor.__doc__ = _base_actor.Actor.__doc___

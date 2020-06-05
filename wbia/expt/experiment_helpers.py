@@ -12,12 +12,14 @@ from wbia.expt import experiment_configs
 from wbia.expt import cfghelpers
 from wbia.algo import Config
 from wbia.init import filter_annots
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
     if pipecfg_list is None:
         from wbia.algo import Config
+
         cfg_default_dict = dict(Config.QueryConfig().parse_items())
         cfgx2_lbl = ut.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
     else:
@@ -85,8 +87,10 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     if verbose is None:
         verbose = ut.VERBOSE
     if ut.VERBOSE:
-        print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
-              test_cfg_name_list)
+        print(
+            '[expt_help.get_pipecfg_list] building pipecfg_list using: %s'
+            % test_cfg_name_list
+        )
     if isinstance(test_cfg_name_list, six.string_types):
         test_cfg_name_list = [test_cfg_name_list]
     _standard_cfg_names = []
@@ -97,31 +101,32 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         if test_cfg_name.startswith('custom:') or test_cfg_name == 'custom':
             print('[expthelpers] Parsing nonstandard custom config')
             assert False, 'custom is no longer supported'
-            #if test_cfg_name.startswith('custom:'):
+            # if test_cfg_name.startswith('custom:'):
             #    # parse out modifications to custom
             #    cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
             #    augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
-            #else:
+            # else:
             #    augcfgdict = {}
             ## Take the configuration from the wbia object
-            #pipe_cfg = ibs.--cfg.query_cfg.deepcopy()
+            # pipe_cfg = ibs.--cfg.query_cfg.deepcopy()
             ## Update with augmented params
-            #pipe_cfg.update_query_cfg(**augcfgdict)
+            # pipe_cfg.update_query_cfg(**augcfgdict)
             ## Parse out a standard cfgdict
-            #cfgdict = dict(pipe_cfg.parse_items())
-            #cfgdict['_cfgname'] = 'custom'
-            #cfgdict['_cfgstr'] = test_cfg_name
-            #_pcfgdict_list.append(cfgdict)
+            # cfgdict = dict(pipe_cfg.parse_items())
+            # cfgdict['_cfgname'] = 'custom'
+            # cfgdict['_cfgstr'] = test_cfg_name
+            # _pcfgdict_list.append(cfgdict)
         else:
             _standard_cfg_names.append(test_cfg_name)
     # Handle stanndard configs next
     if len(_standard_cfg_names) > 0:
         # Get parsing information
-        #cfg_default_dict = dict(Config.QueryConfig().parse_items())
-        #valid_keys = list(cfg_default_dict.keys())
+        # cfg_default_dict = dict(Config.QueryConfig().parse_items())
+        # valid_keys = list(cfg_default_dict.keys())
         cfgstr_list = _standard_cfg_names
         named_defaults_dict = ut.dict_subset(
-            experiment_configs.__dict__, experiment_configs.TEST_NAMES)
+            experiment_configs.__dict__, experiment_configs.TEST_NAMES
+        )
         alias_keys = experiment_configs.ALIAS_KEYS
         # Parse standard pipeline cfgstrings
         metadata = {'ibs': ibs}
@@ -131,9 +136,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
             cfgtype=None,
             alias_keys=alias_keys,
             # Hack out valid keys for humpbacks
-            #valid_keys=valid_keys,
+            # valid_keys=valid_keys,
             strict=False,
-            metadata=metadata
+            metadata=metadata,
         )
         # Get varied params (there may be duplicates)
         _pcfgdict_list.extend(ut.flatten(dict_comb_list))
@@ -145,13 +150,18 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     else:
         root_to_config = ibs.depc_annot.configclass_dict.copy()
         from wbia.algo.smk import smk_pipeline
+
         root_to_config['smk'] = smk_pipeline.SMKRequestConfig
         configclass_list = [
-            root_to_config.get(_cfgdict.get('pipeline_root', _cfgdict.get('proot', 'vsmany')),
-                               Config.QueryConfig)
-            for _cfgdict in _pcfgdict_list]
-    _pipecfg_list = [cls(**_cfgdict)
-                     for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)]
+            root_to_config.get(
+                _cfgdict.get('pipeline_root', _cfgdict.get('proot', 'vsmany')),
+                Config.QueryConfig,
+            )
+            for _cfgdict in _pcfgdict_list
+        ]
+    _pipecfg_list = [
+        cls(**_cfgdict) for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)
+    ]
 
     # Enforce rule that removes duplicate configs
     # by using feasiblity from wbia.algo.Config
@@ -162,11 +172,13 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     cfgdict_list = ut.compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.compress(_pipecfg_list, _flag_list)
     if verbose:
-        #for cfg in _pipecfg_list:
+        # for cfg in _pipecfg_list:
         #    print(cfg.get_cfgstr())
         #    print(cfg)
-        print('[harn.help] return %d / %d unique pipeline configs from: %r' %
-              (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
+        print(
+            '[harn.help] return %d / %d unique pipeline configs from: %r'
+            % (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list)
+        )
 
     if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
         ut.colorprint('Requested PcfgInfo for tests... ', 'red')
@@ -178,8 +190,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
 
 def print_pipe_configs(cfgdict_list, pipecfg_list):
     pipecfg_lbls = get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list)
-    #pipecfg_lbls = pipecfg_list
-    #assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
+    # pipecfg_lbls = pipecfg_list
+    # assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
     for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
         print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
         ut.colorprint(lbl, 'white')
@@ -189,8 +201,7 @@ def print_pipe_configs(cfgdict_list, pipecfg_list):
 
 def testdata_acfg_names(default_acfg_name_list=['default']):
     flags = ('--aidcfg', '--acfg', '-a')
-    acfg_name_list = ut.get_argval(flags, type_=list,
-                                   default=default_acfg_name_list)
+    acfg_name_list = ut.get_argval(flags, type_=list, default=default_acfg_name_list)
     return acfg_name_list
 
 
@@ -238,12 +249,22 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
     """
     from wbia.expt import annotation_configs
-    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
-                                       annotation_configs.TEST_NAMES)
-    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
-    named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-                                   ut.get_list_column(named_defaults_dict, 'dcfg')))
+
+    named_defaults_dict = ut.dict_take(
+        annotation_configs.__dict__, annotation_configs.TEST_NAMES
+    )
+    named_qcfg_defaults = dict(
+        zip(
+            annotation_configs.TEST_NAMES,
+            ut.get_list_column(named_defaults_dict, 'qcfg'),
+        )
+    )
+    named_dcfg_defaults = dict(
+        zip(
+            annotation_configs.TEST_NAMES,
+            ut.get_list_column(named_defaults_dict, 'dcfg'),
+        )
+    )
     alias_keys = annotation_configs.ALIAS_KEYS
     # need to have the cfgstr_lists be the same for query and database so they
     # can be combined properly for now
@@ -259,7 +280,8 @@ def parse_acfg_combo_list(acfg_name_list):
         alias_keys=alias_keys,
         expand_nested=False,
         special_join_dict=special_join_dict,
-        is_nestedcfgtype=True)
+        is_nestedcfgtype=True,
+    )
 
     # Parse Data Annot Config
     nested_dcfg_combo_list = cfghelpers.parse_cfgstr_list2(
@@ -269,11 +291,13 @@ def parse_acfg_combo_list(acfg_name_list):
         alias_keys=alias_keys,
         expand_nested=False,
         special_join_dict=special_join_dict,
-        is_nestedcfgtype=True)
+        is_nestedcfgtype=True,
+    )
 
     acfg_combo_list = []
-    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list,
-                                                    nested_dcfg_combo_list):
+    for nested_qcfg_combo, nested_dcfg_combo in zip(
+        nested_qcfg_combo_list, nested_dcfg_combo_list
+    ):
         acfg_combo = []
         # Only the inner nested combos are combinatorial
         for qcfg_combo, dcfg_combo in zip(nested_qcfg_combo, nested_dcfg_combo):
@@ -286,8 +310,7 @@ def parse_acfg_combo_list(acfg_name_list):
     return acfg_combo_list
 
 
-def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
-                           verbose=None):
+def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbose=None):
     """
     Removes configs with the same expanded aids list
 
@@ -297,6 +320,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
 
     """
     from wbia.expt import annotation_configs
+
     if verbose is None:
         verbose = ut.VERBOSE
     acfg_list_ = []
@@ -313,7 +337,8 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
             acfg_list_.append(acfg)
     if verbose:
         duplicate_configs = dict(
-            [(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
+            [(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1]
+        )
         if len(duplicate_configs) > 0:
             print('The following configs produced duplicate annnotation configs')
             for key, val in duplicate_configs.items():
@@ -322,23 +347,36 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
                 nonvaried_compressed_dict, varied_compressed_dict_list = _tup
                 print('+--')
                 print('key = %r' % (key,))
-                print('duplicate_varied_cfgs = %s' % (
-                    ut.repr2(varied_compressed_dict_list),))
-                print('duplicate_nonvaried_cfgs = %s' % (
-                    ut.repr2(nonvaried_compressed_dict),))
+                print(
+                    'duplicate_varied_cfgs = %s'
+                    % (ut.repr2(varied_compressed_dict_list),)
+                )
+                print(
+                    'duplicate_nonvaried_cfgs = %s'
+                    % (ut.repr2(nonvaried_compressed_dict),)
+                )
                 print('L__')
 
         if verbose >= 1:
-            print('[harn.help] parsed %d / %d unique annot configs' %
-                  (len(acfg_list_), len(acfg_list),))
+            print(
+                '[harn.help] parsed %d / %d unique annot configs'
+                % (len(acfg_list_), len(acfg_list),)
+            )
         if verbose > 2:
             print('[harn.help] parsed from: %r' % (acfg_name_list,))
     return expanded_aids_list_, acfg_list_
 
 
-def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
-                      qaid_override=None, daid_override=None,
-                      initial_aids=None, use_cache=None, verbose=None):
+def get_annotcfg_list(
+    ibs,
+    acfg_name_list,
+    filter_dups=True,
+    qaid_override=None,
+    daid_override=None,
+    initial_aids=None,
+    use_cache=None,
+    verbose=None,
+):
     r"""
     For now can only specify one acfg name list
 
@@ -399,13 +437,17 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from wbia.expt import annotation_configs
+
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
-    #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
+    # acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
     # HACK: Sliceing happens before expansion (dependenceis get)
-    combo_slice = ut.get_argval('--combo_slice', type_='fuzzy_subset', default=slice(None))
-    acfg_combo_list = [ut.take(acfg_combo_, combo_slice)
-                       for acfg_combo_ in acfg_combo_list]
+    combo_slice = ut.get_argval(
+        '--combo_slice', type_='fuzzy_subset', default=slice(None)
+    )
+    acfg_combo_list = [
+        ut.take(acfg_combo_, combo_slice) for acfg_combo_ in acfg_combo_list
+    ]
 
     if ut.get_argflag('--consistent'):
         # Expand everything as one consistent annot list
@@ -413,11 +455,14 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
 
     # + --- Do Parsing ---
     expanded_aids_combo_list = [
-        filter_annots.expand_acfgs_consistently(ibs, acfg_combo_,
-                                                initial_aids=initial_aids,
-                                                use_cache=use_cache,
-                                                verbose=verbose,
-                                                base=base)
+        filter_annots.expand_acfgs_consistently(
+            ibs,
+            acfg_combo_,
+            initial_aids=initial_aids,
+            use_cache=use_cache,
+            verbose=verbose,
+            base=base,
+        )
         for base, acfg_combo_ in enumerate(acfg_combo_list)
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
@@ -432,25 +477,34 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         expanded_aids_list = ut.take(expanded_aids_list, acfg_slice)
 
     # + --- Hack: Override qaids ---
-    _qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=qaid_override)
+    _qaids = ut.get_argval(
+        ('--qaid', '--qaid-override'), type_=list, default=qaid_override
+    )
     if _qaids is not None:
         expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
     # more hack for daids
-    _daids = ut.get_argval(('--daids-override', '--daid-override'), type_=list, default=daid_override)
+    _daids = ut.get_argval(
+        ('--daids-override', '--daid-override'), type_=list, default=daid_override
+    )
     if _daids is not None:
         expanded_aids_list = [(qaids, _daids) for qaids, daids in expanded_aids_list]
     # L___
 
     if filter_dups:
         expanded_aids_list, acfg_list = filter_duplicate_acfgs(
-            expanded_aids_list, acfg_list, acfg_name_list)
+            expanded_aids_list, acfg_list, acfg_name_list
+        )
 
-    if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')):
+    if ut.get_argflag(
+        ('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')
+    ):
         ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
         print('combo_slice = %r' % (combo_slice,))
         print('acfg_slice = %r' % (acfg_slice,))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-        ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
+        ut.colorprint(
+            '[experiment_helpers] exiting due to AcfgInfo info request', 'red'
+        )
         sys.exit(0)
 
     return acfg_list, expanded_aids_list
@@ -464,6 +518,8 @@ if __name__ == '__main__':
         python -m wbia.expt.experiment_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

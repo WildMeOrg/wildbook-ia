@@ -13,24 +13,23 @@ BINS = [
     'right',
     'back_right',
     'back',
-    'back_left'
+    'back_left',
 ]
 
 
 class PASCAL_Object(object):
-
     def __init__(pascalo, _xml, width, height, name=None, **kwargs):
         if name is None:
             pascalo.name = com.get(_xml, 'name')
             pascalo.pose = com.get(_xml, 'pose')
-            pascalo.truncated = com.get(_xml, 'truncated') == "1"
-            pascalo.difficult = com.get(_xml, 'difficult') == "1"
+            pascalo.truncated = com.get(_xml, 'truncated') == '1'
+            pascalo.difficult = com.get(_xml, 'difficult') == '1'
 
             bndbox = com.get(_xml, 'bndbox', text=False)
-            pascalo.xmax = min(width,  int(float(com.get(bndbox, 'xmax'))))
-            pascalo.xmin = max(0,      int(float(com.get(bndbox, 'xmin'))))
+            pascalo.xmax = min(width, int(float(com.get(bndbox, 'xmax'))))
+            pascalo.xmin = max(0, int(float(com.get(bndbox, 'xmin'))))
             pascalo.ymax = min(height, int(float(com.get(bndbox, 'ymax'))))
-            pascalo.ymin = max(0,      int(float(com.get(bndbox, 'ymin'))))
+            pascalo.ymin = max(0, int(float(com.get(bndbox, 'ymin'))))
 
             pascalo.parts = [
                 PASCAL_Part(part)
@@ -42,10 +41,10 @@ class PASCAL_Object(object):
             pascalo.truncated = False
             pascalo.difficult = False
 
-            pascalo.xmax = min(width,  int(_xml['xmax']))
-            pascalo.xmin = max(0,      int(_xml['xmin']))
+            pascalo.xmax = min(width, int(_xml['xmax']))
+            pascalo.xmin = max(0, int(_xml['xmin']))
             pascalo.ymax = min(height, int(_xml['ymax']))
-            pascalo.ymin = max(0,      int(_xml['ymin']))
+            pascalo.ymin = max(0, int(_xml['ymin']))
 
             pascalo.parts = []
         # Pose
@@ -69,13 +68,13 @@ class PASCAL_Object(object):
         return len(pascalo.parts)
 
     def bounding_box(pascalo, parts=False):
-        _parts = [ part.bounding_box() for part in pascalo.parts ]
+        _parts = [part.bounding_box() for part in pascalo.parts]
         retval = [
             pascalo.name,
             pascalo.xmax,
             pascalo.xmin,
             pascalo.ymax,
             pascalo.ymin,
-            _parts
+            _parts,
         ]
         return retval

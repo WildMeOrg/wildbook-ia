@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+
 # import warning
 import numpy as np
 import utool as ut
 import pandas as pd
 
 from sklearn.utils.validation import check_array
+
 # from sklearn.utils import check_random_state
 from sklearn.externals.six.moves import zip
+
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
-from sklearn.model_selection._split import (_BaseKFold,)
+from sklearn.model_selection._split import _BaseKFold
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -90,8 +94,9 @@ class StratifiedGroupKFold(_BaseKFold):
         unique_groups, group_idxs = ut.group_indices(groups)
         # grouped_ids = list(grouping.keys())
         grouped_y = ut.apply_grouping(y, group_idxs)
-        grouped_y_counts = np.array([
-            bincount(y_, minlength=n_classes) for y_ in grouped_y])
+        grouped_y_counts = np.array(
+            [bincount(y_, minlength=n_classes) for y_ in grouped_y]
+        )
 
         target_freq = grouped_y_counts.sum(axis=0)
         target_ratio = target_freq / target_freq.sum()
@@ -115,10 +120,12 @@ class StratifiedGroupKFold(_BaseKFold):
             # Compute loss
             losses = []
             # others = np.nan_to_num(split_diffs)
-            other_diffs = np.array([
-                sum(split_diffs[x + 1:]) + sum(split_diffs[:x])
-                for x in range(n_splits)
-            ])
+            other_diffs = np.array(
+                [
+                    sum(split_diffs[x + 1 :]) + sum(split_diffs[:x])
+                    for x in range(n_splits)
+                ]
+            )
             # penalize unbalanced splits
             ratio_loss = other_diffs + cand_diffs
             # penalize heavy splits
@@ -128,7 +135,7 @@ class StratifiedGroupKFold(_BaseKFold):
             # print('group_freq = %r' % (group_freq,))
             # print('freq_loss = %s' % (ut.repr2(freq_loss, precision=2),))
             # print('ratio_loss = %s' % (ut.repr2(ratio_loss, precision=2),))
-            #-------
+            # -------
             splitx = np.argmin(losses)
             # print('losses = %r, splitx=%r' % (losses, splitx))
             split_freq[splitx] = cand_freq[splitx]
@@ -178,6 +185,7 @@ class StratifiedGroupKFold(_BaseKFold):
 def temp(samples):
     from sklearn import model_selection
     from wbia.algo.verif import sklearn_utils
+
     def check_balance(idxs):
         # from sklearn.utils.fixes import bincount
         print('-------')
@@ -230,13 +238,14 @@ def testdata_ypred(y_true, p_wrong, rng):
     # Make mistakes at specified rate
     classes_ = list(range(len(p_wrong)))
     y_pred = np.array(
-        [y if rng.rand() > p_wrong[y] else rng.choice(classes_)
-         for y in y_true])
+        [y if rng.rand() > p_wrong[y] else rng.choice(classes_) for y in y_true]
+    )
     return y_pred
 
 
-def classification_report2(y_true, y_pred, target_names=None,
-                           sample_weight=None, verbose=True):
+def classification_report2(
+    y_true, y_pred, target_names=None, sample_weight=None, verbose=True
+):
     """
     References:
         https://csem.flinders.edu.au/research/techreps/SIE07001.pdf
@@ -299,8 +308,7 @@ def classification_report2(y_true, y_pred, target_names=None,
     # Real data is on the rows,
     # Pred data is on the cols.
 
-    cm = sklearn.metrics.confusion_matrix(
-        y_true_, y_pred_, sample_weight=sample_weight)
+    cm = sklearn.metrics.confusion_matrix(y_true_, y_pred_, sample_weight=sample_weight)
     confusion = cm  # NOQA
 
     k = len(cm)  # number of classes
@@ -332,8 +340,7 @@ def classification_report2(y_true, y_pred, target_names=None,
     pprob = pred_total / N
 
     if len(cm) == 2:
-        [[A, B],
-         [C, D]] = cm
+        [[A, B], [C, D]] = cm
         (A * D - B * C) / np.sqrt((A + C) * (B + D) * (A + B) * (C + D))
 
         # c2 = vt.ConfusionMetrics().fit(scores, y)
@@ -350,15 +357,17 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     mccs = np.sign(bms) * np.sqrt(np.abs(bms * mks))
 
-    perclass_data = ut.odict([
-        ('precision', tpas),
-        ('recall', tprs),
-        ('fpr', fprs),
-        ('markedness', mks),
-        ('bookmaker', bms),
-        ('mcc', mccs),
-        ('support', real_total),
-    ])
+    perclass_data = ut.odict(
+        [
+            ('precision', tpas),
+            ('recall', tprs),
+            ('fpr', fprs),
+            ('markedness', mks),
+            ('bookmaker', bms),
+            ('mcc', mccs),
+            ('support', real_total),
+        ]
+    )
 
     tpa = np.nansum(tpas * rprob)
     tpr = np.nansum(tprs * rprob)
@@ -375,26 +384,30 @@ def classification_report2(y_true, y_pred, target_names=None,
     else:
         mcc_combo = np.nanmean(mccs_)
 
-    combined_data = ut.odict([
-        ('precision', tpa),
-        ('recall', tpr),
-        ('fpr', fpr),
-        ('markedness', mk),
-        ('bookmaker', bm),
-        # ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
-        ('mcc', mcc_combo),
-        # np.sign(bm) * np.sqrt(np.abs(bm * mk))),
-        ('support', real_total.sum())
-    ])
+    combined_data = ut.odict(
+        [
+            ('precision', tpa),
+            ('recall', tpr),
+            ('fpr', fpr),
+            ('markedness', mk),
+            ('bookmaker', bm),
+            # ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+            ('mcc', mcc_combo),
+            # np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+            ('support', real_total.sum()),
+        ]
+    )
 
     # Not sure how to compute this. Should it agree with the sklearn impl?
     if verbose == 'hack':
         verbose = False
         mcc_known = sklearn.metrics.matthews_corrcoef(
-            y_true, y_pred, sample_weight=sample_weight)
+            y_true, y_pred, sample_weight=sample_weight
+        )
         mcc_raw = np.sign(bm) * np.sqrt(np.abs(bm * mk))
 
         import scipy as sp
+
         def gmean(x, w=None):
             if w is None:
                 return sp.stats.gmean(x)
@@ -464,16 +477,17 @@ def classification_report2(y_true, y_pred, target_names=None,
     real_id = ['%s' % m for m in target_names]
     confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
 
-    confusion_df = confusion_df.append(pd.DataFrame(
-        [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
+    confusion_df = confusion_df.append(
+        pd.DataFrame([confusion.sum(axis=0)], columns=pred_id, index=['Σp'])
+    )
     confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [0]])
     confusion_df.index.name = 'real'
     confusion_df.columns.name = 'pred'
 
-    if np.all(confusion_df - np.floor(confusion_df) < .000001):
+    if np.all(confusion_df - np.floor(confusion_df) < 0.000001):
         confusion_df = confusion_df.astype(np.int)
     confusion_df.iloc[(-1, -1)] = N
-    if np.all(confusion_df - np.floor(confusion_df) < .000001):
+    if np.all(confusion_df - np.floor(confusion_df) < 0.000001):
         confusion_df = confusion_df.astype(np.int)
     # np.nan
 
@@ -499,10 +513,14 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     def matthews_corrcoef(y_true, y_pred, sample_weight=None):
         from sklearn.metrics.classification import (
-            _check_targets, LabelEncoder, confusion_matrix)
+            _check_targets,
+            LabelEncoder,
+            confusion_matrix,
+        )
+
         y_type, y_true, y_pred = _check_targets(y_true, y_pred)
-        if y_type not in {"binary", "multiclass"}:
-            raise ValueError("%s is not supported" % y_type)
+        if y_type not in {'binary', 'multiclass'}:
+            raise ValueError('%s is not supported' % y_type)
         lb = LabelEncoder()
         lb.fit(np.hstack([y_true, y_pred]))
         y_true = lb.transform(y_true)
@@ -517,7 +535,7 @@ def classification_report2(y_true, y_pred, target_names=None,
         cov_ytyt = n_samples ** 2 - np.dot(t_sum, t_sum)
         mcc = cov_ytyp / np.sqrt(cov_ytyt * cov_ypyp)
         if np.isnan(mcc):
-            return 0.
+            return 0.0
         else:
             return mcc
 
@@ -528,15 +546,17 @@ def classification_report2(y_true, y_pred, target_names=None,
         # These scales are chosen somewhat arbitrarily in the context of a
         # computer vision application with relatively reasonable quality data
         # https://stats.stackexchange.com/questions/118219/how-to-interpret
-        mcc_significance_scales = ut.odict([
-            (1.0, 'perfect'),
-            (0.9, 'very strong'),
-            (0.7, 'strong'),
-            (0.5, 'significant'),
-            (0.3, 'moderate'),
-            (0.2, 'weak'),
-            (0.0, 'negligible'),
-        ])
+        mcc_significance_scales = ut.odict(
+            [
+                (1.0, 'perfect'),
+                (0.9, 'very strong'),
+                (0.7, 'strong'),
+                (0.5, 'significant'),
+                (0.3, 'moderate'),
+                (0.2, 'weak'),
+                (0.0, 'negligible'),
+            ]
+        )
         for k, v in mcc_significance_scales.items():
             if np.abs(mcc) >= k:
                 if verbose:
@@ -544,7 +564,7 @@ def classification_report2(y_true, y_pred, target_names=None,
                 break
         if verbose:
             float_precision = 2
-            print(('MCC\' = %.' + str(float_precision) + 'f') % (mcc,))
+            print(("MCC' = %." + str(float_precision) + 'f') % (mcc,))
         report['mcc'] = mcc
     except ValueError:
         pass
@@ -566,6 +586,7 @@ def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
         >>>                            target_names=probs.columns)
     """
     import six
+
     if isinstance(method, six.string_types) and method == 'argmax':
         if isinstance(probs, pd.DataFrame):
             pred_enc = pd.Series(probs.values.argmax(axis=1), index=probs.index)
@@ -577,8 +598,9 @@ def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
     return pred_enc
 
 
-def predict_with_thresh(probs, threshes, target_names=None, force=False,
-                        multi=True, return_flags=False):
+def predict_with_thresh(
+    probs, threshes, target_names=None, force=False, multi=True, return_flags=False
+):
     """
 
     if force is true, everything will make a prediction, even if nothing passes
@@ -618,11 +640,11 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
 
     # if force:
     #     bin_flags = (probs >= threshes)
-    bin_flags = (probs > threshes)
+    bin_flags = probs > threshes
     num_states = bin_flags.sum(axis=1)
 
-    no_predict    = (num_states == 0)
-    multi_predict = (num_states > 1)
+    no_predict = num_states == 0
+    multi_predict = num_states > 1
 
     pred_enc = bin_flags.argmax(axis=1)
 
@@ -680,8 +702,7 @@ def predict_proba_df(clf, X_df, class_names=None):
         missing = ut.setdiff(class_names, columns)
         if missing:
             for classname in missing:
-                probs_df = probs_df.assign(**{
-                    classname: np.zeros(len(probs_df))})
+                probs_df = probs_df.assign(**{classname: np.zeros(len(probs_df))})
     return probs_df
 
 
@@ -691,6 +712,7 @@ class PrefitEstimatorEnsemble(object):
     hacks around limitations of sklearn.ensemble.VotingClassifier
 
     """
+
     def __init__(self, clf_list, voting='soft', weights=None):
         self.clf_list = clf_list
         self.voting = voting
@@ -727,8 +749,9 @@ class PrefitEstimatorEnsemble(object):
             n_samples = X.shape[0]
             n_classes = len(self.classes_)
             probas = np.zeros((n_estimators, n_samples, n_classes))
-            for ex, (clf, mapper) in enumerate(zip(self.clf_list,
-                                                   self.class_idx_mappers)):
+            for ex, (clf, mapper) in enumerate(
+                zip(self.clf_list, self.class_idx_mappers)
+            ):
                 proba = clf.predict_proba(X)
                 # Use mapper to map indicies of clf classes to ensemble classes
                 probas[ex][:, mapper] = proba
@@ -737,8 +760,9 @@ class PrefitEstimatorEnsemble(object):
     def predict_proba(self, X):
         """Predict class probabilities for X in 'soft' voting """
         if self.voting == 'hard':
-            raise AttributeError("predict_proba is not available when"
-                                 " voting=%r" % self.voting)
+            raise AttributeError(
+                'predict_proba is not available when' ' voting=%r' % self.voting
+            )
         avg = np.average(self._collect_probas(X), axis=0, weights=self.weights)
         return avg
 
@@ -760,11 +784,11 @@ class PrefitEstimatorEnsemble(object):
             maj = np.argmax(self.predict_proba(X), axis=1)
         else:  # 'hard' voting
             predictions = self._predict(X)
-            maj = np.apply_along_axis(lambda x:
-                                      np.argmax(np.bincount(x,
-                                                weights=self.weights)),
-                                      axis=1,
-                                      arr=predictions.astype('int'))
+            maj = np.apply_along_axis(
+                lambda x: np.argmax(np.bincount(x, weights=self.weights)),
+                axis=1,
+                arr=predictions.astype('int'),
+            )
         return maj
 
     def _predict(self, X):

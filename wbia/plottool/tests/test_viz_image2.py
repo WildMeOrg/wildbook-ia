@@ -17,14 +17,14 @@ def test_viz_image(img_fpath):
     # Clear figure
     fig.clf()
     # Build parameters
-    bbox_list = [dummy_bbox(img), dummy_bbox(img, (-.25, -.25), .1)]
+    bbox_list = [dummy_bbox(img), dummy_bbox(img, (-0.25, -0.25), 0.1)]
     showkw = {
-        'title'      : 'test axis title',
+        'title': 'test axis title',
         # The list of bounding boxes to be drawn on the image
-        'bbox_list'  : bbox_list,
-        'theta_list' : [tau * .7, tau * .9],
-        'sel_list'   : [True, False],
-        'label_list' : ['test label', 'lbl2'],
+        'bbox_list': bbox_list,
+        'theta_list': [tau * 0.7, tau * 0.9],
+        'sel_list': [True, False],
+        'label_list': ['test label', 'lbl2'],
     }
     # Print the keyword arguments to illustrate their format
     print('showkw = ' + utool.repr2(showkw))
@@ -37,7 +37,9 @@ def test_viz_image(img_fpath):
 if __name__ == '__main__':
     TEST_IMAGES_URL = 'https://wildbookiarepository.azureedge.net/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
-    imgpaths       = utool.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
+    imgpaths = utool.list_images(
+        test_image_dir, fullpath=True, recursive=False
+    )  # test image paths
     # Get one image filepath to load and display
     img_fpath = imgpaths[0]
     # Run Test

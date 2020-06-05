@@ -63,6 +63,7 @@ from six.moves import zip
 import utool as ut
 import vtool as vt
 import numpy as np
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -106,7 +107,7 @@ def cast_residual_integer(rvecs):
         >>> assert np.all(measured_error[~is_inside] < theory_error_out)
     """
     # maybe don't round?
-    #return np.clip(rvecs * 255.0, -127, 127).astype(np.int8)
+    # return np.clip(rvecs * 255.0, -127, 127).astype(np.int8)
     # TODO: -128, 127
     return np.clip(np.round(rvecs * 255.0), -127, 127).astype(np.int8)
 
@@ -159,19 +160,14 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         >>> agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
         >>> assert len(agg_flags_list) == len(flat_offsets) - 1
     """
-    grouped_wxs = [flat_wxs_assign[l:r]
-                   for l, r in ut.itertwo(flat_offsets)]
+    grouped_wxs = [flat_wxs_assign[l:r] for l, r in ut.itertwo(flat_offsets)]
 
     # Assume single assignment, aggregate everything
     # across the entire database
     flat_offsets = np.array(flat_offsets)
 
     idx_to_dx = (
-        np.searchsorted(
-            flat_offsets,
-            np.arange(len(flat_wxs_assign)),
-            side='right'
-        ) - 1
+        np.searchsorted(flat_offsets, np.arange(len(flat_wxs_assign)), side='right') - 1
     ).astype(np.int32)
 
     if isinstance(flat_wxs_assign, np.ma.masked_array):
@@ -182,24 +178,20 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
 
     dim = flat_vecs.shape[1]
     if isinstance(flat_wxs_assign, np.ma.masked_array):
-        dx_to_wxs = [np.unique(wxs.compressed())
-                     for wxs in grouped_wxs]
+        dx_to_wxs = [np.unique(wxs.compressed()) for wxs in grouped_wxs]
     else:
-        dx_to_wxs = [np.unique(wxs.ravel())
-                     for wxs in grouped_wxs]
+        dx_to_wxs = [np.unique(wxs.ravel()) for wxs in grouped_wxs]
     dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
     num_agg_vecs = sum(dx_to_nagg)
     # all_agg_wxs = np.hstack(dx_to_wxs)
     agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
     # Preallocate agg residuals for all dxs
-    all_agg_vecs = np.empty((num_agg_vecs, dim),
-                            dtype=np.float32)
+    all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
     all_agg_vecs[:, :] = np.nan
 
     # precompute agg residual stack
     i_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
-    subgroup = [vt.group_indices(dxs)
-                for dxs in ut.ProgIter(i_to_dxs)]
+    subgroup = [vt.group_indices(dxs) for dxs in ut.ProgIter(i_to_dxs)]
     i_to_unique_dxs = ut.take_column(subgroup, 0)
     i_to_dx_groupxs = ut.take_column(subgroup, 1)
     num_words = len(unique_wx)
@@ -211,11 +203,10 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         xs = groupxs[i]
         dxs = i_to_unique_dxs[i]
         dx_groupxs = i_to_dx_groupxs[i]
-        word = words[wx:wx + 1]
+        word = words[wx : wx + 1]
 
         offsets1 = agg_offset_list.take(dxs)
-        offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0]
-                    for dx in dxs]
+        offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0] for dx in dxs]
         offsets = np.add(offsets1, offsets2, out=offsets1)
 
         # if __debug__:
@@ -230,8 +221,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         rvecs[np.all(np.isnan(rvecs), axis=1)] = 0
         # Aggregate across same images
         grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
-        agg_rvecs_ = [rvec_group.sum(axis=0)
-                      for rvec_group in grouped_rvecs]
+        agg_rvecs_ = [rvec_group.sum(axis=0) for rvec_group in grouped_rvecs]
         # agg_rvecs = np.vstack(agg_rvecs_)
         all_agg_vecs[offsets, :] = agg_rvecs_
 
@@ -348,8 +338,13 @@ def aggregate_rvecs(rvecs, maws, error_flags):
     return agg_rvec, agg_flag
 
 
-def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
-                         massign_sigma=80.0, massign_equal_weights=False):
+def weight_multi_assigns(
+    _idx_to_wx,
+    _idx_to_wdist,
+    massign_alpha=1.2,
+    massign_sigma=80.0,
+    massign_equal_weights=False,
+):
     r"""
     Multi Assignment Weight Filtering from Improving Bag of Features
 
@@ -419,7 +414,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         flag_too_close = np.isclose(ma_thresh, 0)
         ma_thresh[flag_too_close] = _idx_to_wdist.T[1:2].T[flag_too_close]
         # Compute a threshold based on the nearest assignment.
-        eps = .001
+        eps = 0.001
         ma_thresh = np.add(eps, ma_thresh, out=ma_thresh)
         ma_thresh = np.multiply(massign_alpha, ma_thresh, out=ma_thresh)
         # Invalidate assignments that are too far away
@@ -433,11 +428,11 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
 
         if massign_equal_weights:
             # Performance hack from jegou paper: just give everyone equal weight
-            idx_to_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid,
-                                            fill_value=-1)
+            idx_to_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid, fill_value=-1)
             # idx_to_wxs  = ut.lmap(ut.filter_Nones, masked_wxs.tolist())
-            idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=np.nan,
-                                     dtype=np.float32)
+            idx_to_maws = np.ma.ones(
+                idx_to_wxs.shape, fill_value=np.nan, dtype=np.float32
+            )
             idx_to_maws.mask = idx_to_wxs.mask
             # idx_to_maws = [np.ones(len(wxs), dtype=np.float32)
             #                for wxs in idx_to_wxs]
@@ -446,7 +441,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             # Weighting as in Lost in Quantization
             gauss_numer = np.negative(_idx_to_wdist)
             gauss_denom = 2 * (massign_sigma ** 2)
-            gauss_exp   = np.divide(gauss_numer, gauss_denom)
+            gauss_exp = np.divide(gauss_numer, gauss_denom)
             unnorm_maw = np.exp(gauss_exp)
             # Mask invalid multiassignment weights
             masked_unorm_maw = np.ma.masked_array(unnorm_maw, mask=invalid)
@@ -466,9 +461,15 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
     return idx_to_wxs, idx_to_maws
 
 
-def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
-                    massign_sigma=80.0, massign_equal_weights=False,
-                    verbose=None):
+def assign_to_words(
+    vocab,
+    idx_to_vec,
+    nAssign,
+    massign_alpha=1.2,
+    massign_sigma=80.0,
+    massign_equal_weights=False,
+    verbose=None,
+):
     """
     Assigns descriptor-vectors to nearest word.
 
@@ -516,14 +517,17 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
     _idx_to_wx, _idx_to_wdist = vocab.nn_index(idx_to_vec, nAssign)
     if nAssign > 1:
         idx_to_wxs, idx_to_maws = weight_multi_assigns(
-            _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
-            massign_equal_weights)
+            _idx_to_wx,
+            _idx_to_wdist,
+            massign_alpha,
+            massign_sigma,
+            massign_equal_weights,
+        )
     else:
         # idx_to_wxs = _idx_to_wx.tolist()
         # idx_to_maws = [[1.0]] * len(idx_to_wxs)
         idx_to_wxs = np.ma.masked_array(_idx_to_wx, fill_value=-1)
-        idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=-1,
-                                 dtype=np.float32)
+        idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=-1, dtype=np.float32)
         idx_to_maws.mask = idx_to_wxs.mask
     return idx_to_wxs, idx_to_maws
 
@@ -747,8 +751,7 @@ def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
 
 
 @profile
-def match_scores_sep(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
-                     thresh):
+def match_scores_sep(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, thresh):
     """
     Scores matches to multiple words using lists of separeated residual vectors
 
@@ -794,17 +797,18 @@ def build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
     """
     # Build feature matches
     # Spread word score according to contriubtion (maw) weight
-    unflat_contrib = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                      for maws1, maws2 in zip(X_maws, Y_maws)]
+    unflat_contrib = [
+        maws1[:, None].dot(maws2[:, None].T).ravel()
+        for maws1, maws2 in zip(X_maws, Y_maws)
+    ]
     unflat_factor = [contrib / contrib.sum() for contrib in unflat_contrib]
-    #factor_list = np.divide(score_list, factor_list, out=factor_list)
+    # factor_list = np.divide(score_list, factor_list, out=factor_list)
     for score, factor in zip(score_list, unflat_factor):
         np.multiply(score, factor, out=factor)
     unflat_fs = unflat_factor
 
     # itertools.product seems fastest for small arrays
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
+    unflat_fm = (ut.product(fxs1, fxs2) for fxs1, fxs2 in zip(X_fxs, Y_fxs))
 
     fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
     fs = np.array(ut.flatten(unflat_fs), dtype=np.float32)
@@ -844,8 +848,7 @@ def build_matches_sep(X_fxs, Y_fxs, scores_list):
         >>> assert np.isclose(np.sum(ut.total_flatten(scores_list)), fs.sum())
     """
     fs = np.array(ut.total_flatten(scores_list), dtype=np.float32)
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
+    unflat_fm = (ut.product(fxs1, fxs2) for fxs1, fxs2 in zip(X_fxs, Y_fxs))
     fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
     isvalid = np.greater(fs, 0)
     fm = fm.compress(isvalid, axis=0)
@@ -880,8 +883,9 @@ def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
 
 @profile
 def gamma_sep(phisX_list, flagsX_list, weight_list, alpha, thresh):
-    scores_list = match_scores_sep(phisX_list, phisX_list, flagsX_list,
-                                   flagsX_list, alpha, thresh)
+    scores_list = match_scores_sep(
+        phisX_list, phisX_list, flagsX_list, flagsX_list, alpha, thresh
+    )
     scores = np.array([scores.sum() for scores in scores_list])
     sccw = sccw_normalize(scores)
     return sccw
@@ -952,8 +956,8 @@ def selectivity(u, alpha=3.0, thresh=0.0, out=None):
     score = np.multiply(isign, score, out=out)
     score[flags] = 0
     #
-    #score = np.sign(u) * np.power(np.abs(u), alpha)
-    #score *= flags
+    # score = np.sign(u) * np.power(np.abs(u), alpha)
+    # score *= flags
     return score
 
 
@@ -998,8 +1002,9 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
         >>> ut.show_if_requested()
     """
     from sklearn.metrics.pairwise import euclidean_distances
+
     rng = np.random.RandomState(42)
-    #dim = dim
+    # dim = dim
     # nvecs = 13
     # nwords = 5
     words = rng.rand(nwords, dim)
@@ -1013,8 +1018,8 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
     vecs[1:3, :] = 2.0
     vecs[1, 0] = 1.2
     vecs[2, 0] = 2.2
-    #vt.normalize(words, axis=1, inplace=True)
-    #vt.normalize(vecs, axis=1, inplace=True)
+    # vt.normalize(words, axis=1, inplace=True)
+    # vt.normalize(vecs, axis=1, inplace=True)
     dist_mat = euclidean_distances(vecs, words)
     nAssign = 1
     sortx2d = dist_mat.argsort(axis=1)
@@ -1048,6 +1053,8 @@ if __name__ == '__main__':
         python -m wbia.algo.smk.smk_funcs --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

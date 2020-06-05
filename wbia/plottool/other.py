@@ -6,6 +6,7 @@ import cv2
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
 import utool as ut
+
 ut.noinject(__name__, '[pt.other]')
 
 
@@ -18,8 +19,8 @@ def color_orimag(gori, gmag):
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
     hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
     # Desaturate colors based on magnitude
-    hsv_ori[:, :, 1] = (gmag / 255.0)
-    hsv_ori[:, :, 2] = (gmag / 255.0)
+    hsv_ori[:, :, 1] = gmag / 255.0
+    hsv_ori[:, :, 2] = gmag / 255.0
     # Convert back to bgr
     bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
     return bgr_ori
@@ -43,8 +44,8 @@ def draw_hist_subbin_maxima(hist, centers=None):
         xpoints.append(x_pts)
         ypoints.append(y_pts)
 
-    plt.plot(centers, hist, 'bo-')            # Draw hist
-    plt.plot(maxima_x, maxima_y, 'ro')        # Draw maxbin
+    plt.plot(centers, hist, 'bo-')  # Draw hist
+    plt.plot(maxima_x, maxima_y, 'ro')  # Draw maxbin
     plt.plot(submaxima_x, submaxima_y, 'rx')  # Draw maxsubbin
     for x_pts, y_pts in zip(xpoints, ypoints):
-        plt.plot(x_pts, y_pts, 'g--')         # Draw parabola
+        plt.plot(x_pts, y_pts, 'g--')  # Draw parabola

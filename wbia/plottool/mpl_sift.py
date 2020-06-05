@@ -5,12 +5,13 @@ import numpy as np
 import matplotlib as mpl
 import utool as ut
 from wbia.plottool import color_funcs as color_fns
+
 ut.noinject(__name__, '[pt.mpl_sift]')
 
 
 TAU = 2 * np.pi  # References: tauday.com
-BLACK  = np.array((0.0, 0.0, 0.0, 1.0))
-RED    = np.array((1.0, 0.0, 0.0, 1.0))
+BLACK = np.array((0.0, 0.0, 0.0, 1.0))
+RED = np.array((1.0, 0.0, 0.0, 1.0))
 
 
 def testdata_sifts():
@@ -18,7 +19,7 @@ def testdata_sifts():
     randstate = np.random.RandomState(1)
     sifts_float = randstate.rand(1, 128)
     sifts_float = sifts_float / np.linalg.norm(sifts_float)
-    sifts_float[sifts_float > .2] = .2
+    sifts_float[sifts_float > 0.2] = 0.2
     sifts_float = sifts_float / np.linalg.norm(sifts_float)
     sifts = (sifts_float * 512).astype(np.uint8)
     return sifts
@@ -33,10 +34,21 @@ def _circl_collection(patch_list, color, alpha):
     return coll
 
 
-def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
-                        arm2_color=BLACK, arm_alpha=1.0, arm1_lw=1.0,
-                        arm2_lw=2.0, stroke=1.0, circ_alpha=.5, fidelity=256,
-                        scaling=True, **kwargs):
+def get_sift_collection(
+    sift,
+    aff=None,
+    bin_color=BLACK,
+    arm1_color=RED,
+    arm2_color=BLACK,
+    arm_alpha=1.0,
+    arm1_lw=1.0,
+    arm2_lw=2.0,
+    stroke=1.0,
+    circ_alpha=0.5,
+    fidelity=256,
+    scaling=True,
+    **kwargs
+):
     """
     Creates a collection of SIFT matplotlib patches
 
@@ -81,20 +93,23 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         aff = mpl.transforms.Affine2D()
     MULTI_COLORED_ARMS = kwargs.pop('multicolored_arms', False)
     _kwarm = kwargs.copy()
-    _kwarm.update(dict(head_width=1e-10, length_includes_head=False,
-                       transform=aff, color=[1, 1, 0]))
+    _kwarm.update(
+        dict(
+            head_width=1e-10, length_includes_head=False, transform=aff, color=[1, 1, 0]
+        )
+    )
     _kwcirc = dict(transform=aff)
-    DSCALE   =  0.25  # Descriptor scale factor
-    XYSCALE  =  0.5   # Position scale factor
-    XYOFFST  = -0.75  # Position offset
+    DSCALE = 0.25  # Descriptor scale factor
+    XYSCALE = 0.5  # Position scale factor
+    XYOFFST = -0.75  # Position offset
     NORI, NX, NY = 8, 4, 4  # SIFT BIN CONSTANTS
     NBINS = NX * NY
-    discrete_ori = (np.arange(0, NORI) * (TAU / NORI))
+    discrete_ori = np.arange(0, NORI) * (TAU / NORI)
 
     # import utool
     # utool.embed()
     # Arm magnitude and orientations
-    #arm_mag = sift / 255.0
+    # arm_mag = sift / 255.0
     # If given the correct fidelity, each arm will have a max magnitude of 1.0
     # Because the diameter of each circle is 1.0
     arm_mag = sift / (float(fidelity))
@@ -110,7 +125,7 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         entropy = -np.nansum(p * np.log2(p))
         # Alpha is 1 when entropy is maximum
         # When entropy is maximum, we want to scale things up a bit
-        alpha = (entropy / maximum_entropy)
+        alpha = entropy / maximum_entropy
 
         max_ = arm_mag.max()
         # Always scale up, but no more than max.
@@ -121,20 +136,19 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         arm_mag = arm_mag * scale_factor
     # arm_mag *= 4
 
-    ori_dxy = np.hstack([np.cos(arm_ori)[:, None],
-                         np.sin(arm_ori)[:, None]])
+    ori_dxy = np.hstack([np.cos(arm_ori)[:, None], np.sin(arm_ori)[:, None]])
 
     # Arm orientation in dxdy format
     # arm_dx = np.cos(arm_ori) * arm_mag
     # arm_dy = np.sin(arm_ori) * arm_mag
     # arm_dxy = np.hstack([arm_dx[:, None], arm_dy[:, None]])
     # assert np.all(np.isclose(np.sqrt(arm_dy ** 2 + arm_dx ** 2), arm_mag))
-    #np.linalg.norm(arm_dxy, axis=1).max()
+    # np.linalg.norm(arm_dxy, axis=1).max()
 
     # Arm locations and dxdy index
     yxt_gen = it.product(range(NY), range(NX), range(NORI))
     # Circle x,y locations
-    yx_gen  = it.product(range(NY), range(NX))
+    yx_gen = it.product(range(NY), range(NX))
     # Draw 8 directional arms in each of the 4x4 grid cells
 
     # MOVETO = mpl.path.Path.MOVETO
@@ -147,13 +161,13 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         (dx, dy) = ori_dxy[index]
         mag = arm_mag[index]
         # (mdx, mdy) = arm_dxy[index]
-        arm_x  = (x * XYSCALE) + XYOFFST  # MULTIPLY BY -1 to invert X axis
-        arm_y  = (y * XYSCALE) + XYOFFST
-        arm_dy = (dy * mag * DSCALE)
-        arm_dx = (dx * mag * DSCALE)
+        arm_x = (x * XYSCALE) + XYOFFST  # MULTIPLY BY -1 to invert X axis
+        arm_y = (y * XYSCALE) + XYOFFST
+        arm_dy = dy * mag * DSCALE
+        arm_dx = dx * mag * DSCALE
 
         # Move arms a little bit away from the center
-        nudge = .05
+        nudge = 0.05
         arm_x = arm_x + dx * (nudge * DSCALE)
         arm_y = arm_y + dy * (nudge * DSCALE)
         arm_dx = arm_dx + dx * (nudge * DSCALE)
@@ -202,6 +216,7 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     ENABLE_PATH_EFFECTS = 0
     if ENABLE_PATH_EFFECTS:
         from matplotlib import patheffects
+
         print('stroke = %r' % (stroke,))
         if stroke > 0:
             path_effects.append(
@@ -263,10 +278,11 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
     if invVR_aff2Ds is None:
         invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in range(len(sifts))]
     if isinstance(invVR_aff2Ds, (list, np.ndarray)):
-        invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_)
-                        for aff_ in invVR_aff2Ds]
-    colltup_list = [get_sift_collection(sift, aff, **kwargs)
-                    for sift, aff in zip(sifts, invVR_aff2Ds)]
+        invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_) for aff_ in invVR_aff2Ds]
+    colltup_list = [
+        get_sift_collection(sift, aff, **kwargs)
+        for sift, aff in zip(sifts, invVR_aff2Ds)
+    ]
     ax.invert_xaxis()
 
     for coll_tup in colltup_list:
@@ -281,6 +297,7 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
 
 def draw_sift_on_patch(patch, sift, **kwargs):
     import wbia.plottool as pt
+
     pt.imshow(patch)
     ax = pt.gca()
     half_size = patch.shape[0] / 2
@@ -292,6 +309,7 @@ def draw_sift_on_patch(patch, sift, **kwargs):
 
 def render_sift_on_patch(patch, sift):
     import wbia.plottool as pt
+
     with pt.RenderingContext() as render:
         draw_sift_on_patch(patch, sift)
     rendered = render.image
@@ -306,6 +324,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.mpl_sift --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

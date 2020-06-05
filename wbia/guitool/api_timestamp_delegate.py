@@ -1,17 +1,18 @@
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
-#from wbia.guitool import guitool_components
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
+
+# from wbia.guitool import guitool_components
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
+
 ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)
 
 
 DELEGATE_BASE = QtWidgets.QItemDelegate
-#DELEGATE_BASE = QtWidgets.QStyledItemDelegate
+# DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 class APITimestampDelegate(DELEGATE_BASE):
-
     def __init__(dgt, parent=None):
         assert parent is not None, 'parent must be a view'
         DELEGATE_BASE.__init__(dgt, parent)
@@ -23,7 +24,7 @@ class APITimestampDelegate(DELEGATE_BASE):
 
         painter.restore()
 
-    #def editorEvent(dgt, event, model, option, qtindex):
+    # def editorEvent(dgt, event, model, option, qtindex):
     #    event_type = event.type()
     #    if event_type == QtCore.QEvent.MouseButtonPress:
     #        # store the position that is clicked

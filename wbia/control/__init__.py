@@ -4,6 +4,7 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
+
 ut.noinject(__name__, '[wbia.control.__init__]', DEBUG=False)
 
 
@@ -14,6 +15,7 @@ from wbia.control import accessor_decors
 from wbia.control import controller_inject
 from wbia.control import docker_control
 import utool
+
 print, rrr, profile = utool.inject2(__name__)
 
 
@@ -27,6 +29,8 @@ def reload_subs(verbose=True):
     getattr(controller_inject, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(docker_control, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

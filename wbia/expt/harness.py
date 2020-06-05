@@ -9,25 +9,33 @@ import numpy as np  # NOQA
 import utool as ut
 from wbia.expt import experiment_helpers
 from wbia.expt import test_result
+
 print, rrr, profile = ut.inject2(__name__)
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
-NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'),
-                                  False)
-USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
-                                          '--nocache-test')) and
-                      ut.USE_CACHE and
-                      not NOCACHE_TESTRES)
+NOCACHE_TESTRES = ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
+USE_BIG_TEST_CACHE = (
+    not ut.get_argflag(('--no-use-testcache', '--nocache-test'))
+    and ut.USE_CACHE
+    and not NOCACHE_TESTRES
+)
 USE_BIG_TEST_CACHE = False
 TEST_INFO = True
 
 # dont actually query. Just print labels and stuff
-DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))
+DRY_RUN = ut.get_argflag(('--dryrun', '--dry'))
 
 
-def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
-             qaid_override=None, daid_override=None, initial_aids=None):
+def run_expt(
+    ibs,
+    acfg_name_list,
+    test_cfg_name_list,
+    use_cache=None,
+    qaid_override=None,
+    daid_override=None,
+    initial_aids=None,
+):
     r"""
     Loops over annot configs.
 
@@ -61,22 +69,32 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         raise ValueError('must give acfg name list')
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
-        ibs, acfg_name_list, qaid_override=qaid_override,
-        daid_override=daid_override, initial_aids=initial_aids,
-        use_cache=use_cache)
+        ibs,
+        acfg_name_list,
+        qaid_override=qaid_override,
+        daid_override=daid_override,
+        initial_aids=initial_aids,
+        use_cache=use_cache,
+    )
 
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
-        test_cfg_name_list, ibs=ibs)
+        test_cfg_name_list, ibs=ibs
+    )
 
     cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
     # NOTE: Can specify --pcfginfo or --acfginfo
 
     if ut.NOT_QUIET:
-        ut.colorprint(textwrap.dedent("""
+        ut.colorprint(
+            textwrap.dedent(
+                """
 
         [harn]================
-        [harn] harness.test_configurations2()""").strip(), 'white')
+        [harn] harness.test_configurations2()"""
+            ).strip(),
+            'white',
+        )
         msg = '[harn] Running %s using %s and %s' % (
             ut.quantstr('test', len(acfg_list) * len(cfgdict_list)),
             ut.quantstr('pipeline config', len(cfgdict_list)),
@@ -88,27 +106,39 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
 
     nAcfg = len(acfg_list)
 
-    testnameid = (ibs.get_dbname() + ' ' + str(test_cfg_name_list) +
-                  str(acfg_name_list))
+    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
-    expanded_aids_iter = ut.ProgIter(expanded_aids_list, lbl='annot config',
-                                     freq=1, autoadjust=False,
-                                     enabled=ut.NOT_QUIET)
+    expanded_aids_iter = ut.ProgIter(
+        expanded_aids_list,
+        lbl='annot config',
+        freq=1,
+        autoadjust=False,
+        enabled=ut.NOT_QUIET,
+    )
 
     for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
-        assert len(qaids) != 0, ('[harness] No query annots specified')
-        assert len(daids) != 0, ('[harness] No database annotas specified')
+        assert len(qaids) != 0, '[harness] No query annots specified'
+        assert len(daids) != 0, '[harness] No database annotas specified'
         acfg = acfg_list[acfgx]
         if ut.NOT_QUIET:
-            ut.colorprint('\n---Annot config testnameid=%r' % (
-                testnameid,), 'turquoise')
-        subindexer_partial = ut.ProgPartial(parent_index=acfgx,
-                                            parent_length=nAcfg,
-                                            enabled=ut.NOT_QUIET)
-        testres_ = make_single_testres(ibs, qaids, daids, pipecfg_list,
-                                       cfgx2_lbl, cfgdict_list, lbl,
-                                       testnameid, use_cache=use_cache,
-                                       subindexer_partial=subindexer_partial)
+            ut.colorprint(
+                '\n---Annot config testnameid=%r' % (testnameid,), 'turquoise'
+            )
+        subindexer_partial = ut.ProgPartial(
+            parent_index=acfgx, parent_length=nAcfg, enabled=ut.NOT_QUIET
+        )
+        testres_ = make_single_testres(
+            ibs,
+            qaids,
+            daids,
+            pipecfg_list,
+            cfgx2_lbl,
+            cfgdict_list,
+            lbl,
+            testnameid,
+            use_cache=use_cache,
+            subindexer_partial=subindexer_partial,
+        )
         if DRY_RUN:
             continue
         testres_.acfg = acfg
@@ -125,9 +155,18 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
 
 
 @profile
-def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
-                        cfgdict_list, lbl, testnameid, use_cache=None,
-                        subindexer_partial=ut.ProgIter):
+def make_single_testres(
+    ibs,
+    qaids,
+    daids,
+    pipecfg_list,
+    cfgx2_lbl,
+    cfgdict_list,
+    lbl,
+    testnameid,
+    use_cache=None,
+    subindexer_partial=ut.ProgIter,
+):
     """
     CommandLine:
         python -m wbia run_expt
@@ -143,8 +182,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
     cfgx2_qreq_ = [
         ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
-        for pipe_cfg in ut.ProgIter(pipecfg_list, lbl='Building qreq_',
-                                    enabled=False)
+        for pipe_cfg in ut.ProgIter(pipecfg_list, lbl='Building qreq_', enabled=False)
     ]
 
     if use_cache is None:
@@ -153,8 +191,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     if use_cache:
         try:
             bt_cachedir = ut.ensuredir((ibs.get_cachedir(), 'BULK_TEST_CACHE2'))
-            cfgstr_list = [qreq_.get_cfgstr(with_input=True)
-                           for qreq_ in cfgx2_qreq_]
+            cfgstr_list = [qreq_.get_cfgstr(with_input=True) for qreq_ in cfgx2_qreq_]
             bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
             bt_cachename = 'BULKTESTCACHE2_v2'
             testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
@@ -164,8 +201,9 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint('[harn] single testres cache hit... returning',
-                              'turquoise')
+                ut.colorprint(
+                    '[harn] single testres cache hit... returning', 'turquoise'
+                )
             return testres
 
     if ibs.table_cache:
@@ -173,17 +211,19 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         prev_feat_cfgstr = None
 
     cfgx2_cmsinfo = []
-    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)), lbl='pipe config',
-                                 freq=1, adjust=False)
+    cfgiter = subindexer_partial(
+        range(len(cfgx2_qreq_)), lbl='pipe config', freq=1, adjust=False
+    )
     # Run each pipeline configuration
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
         cprint = ut.colorprint
         cprint('testnameid=%r' % (testnameid,), 'green')
-        cprint('annot_cfgstr = %s' % (
-            qreq_.get_cfgstr(with_input=True, with_pipe=False),), 'yellow')
-        cprint('pipe_cfgstr= %s' % (
-            qreq_.get_cfgstr(with_data=False),), 'turquoise')
+        cprint(
+            'annot_cfgstr = %s' % (qreq_.get_cfgstr(with_input=True, with_pipe=False),),
+            'yellow',
+        )
+        cprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'turquoise')
         cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'teal')
         if DRY_RUN:
             continue
@@ -191,8 +231,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         indent_prefix = '[%s cfg %d/%d]' % (
             dbname,
             # cfgiter.count (doesnt work when quiet)
-            (cfgiter.parent_index * cfgiter.length) + cfgx ,
-            cfgiter.length * cfgiter.parent_length
+            (cfgiter.parent_index * cfgiter.length) + cfgx,
+            cfgiter.length * cfgiter.parent_length,
         )
 
         with ut.Indenter(indent_prefix):
@@ -205,8 +245,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 st_cachename = 'smalltest'
                 ut.ensuredir(st_cachedir)
                 try:
-                    cmsinfo = ut.load_cache(st_cachedir, st_cachename,
-                                            st_cfgstr)
+                    cmsinfo = ut.load_cache(st_cachedir, st_cachename, st_cfgstr)
                 except IOError:
                     _need_compute = True
                 else:
@@ -214,19 +253,20 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             if _need_compute:
                 assert not ibs.table_cache
                 if ibs.table_cache:
-                    if (len(prev_feat_cfgstr is not None and
-                            prev_feat_cfgstr != qreq_.qparams.feat_cfgstr)):
+                    if len(
+                        prev_feat_cfgstr is not None
+                        and prev_feat_cfgstr != qreq_.qparams.feat_cfgstr
+                    ):
                         # Clear features to preserve memory
                         ibs.clear_table_cache()
-                        #qreq_.ibs.print_cachestats_str()
+                        # qreq_.ibs.print_cachestats_str()
                 cm_list = qreq_.execute()
                 cmsinfo = test_result.build_cmsinfo(cm_list, qreq_)
                 # record previous feature configuration
                 if ibs.table_cache:
                     prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
                 if use_cache:
-                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr,
-                                  cmsinfo)
+                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cmsinfo)
         if not NOMEMORY:
             # Store the results
             cfgx2_cmsinfo.append(cmsinfo)
@@ -241,8 +281,9 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
-    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cmsinfo,
-                                     cfgx2_qreq_)
+    testres = test_result.TestResult(
+        pipecfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_
+    )
     testres.testnameid = testnameid
     testres.lbl = lbl
     testres.cfgdict_list = cfgdict_list
@@ -264,6 +305,8 @@ if __name__ == '__main__':
         python -m wbia.expt.harness --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -18,14 +18,16 @@ from functools import update_wrapper
 import warnings
 from functools import wraps
 from os.path import abspath, join, dirname
+
 # import simplejson as json
-#import json
-#import pickle
-#from six.moves import cPickle as pickle
+# import json
+# import pickle
+# from six.moves import cPickle as pickle
 import traceback
 from hashlib import sha1
 import os
-#import numpy as np
+
+# import numpy as np
 import hmac
 from wbia import constants as const
 import string
@@ -37,18 +39,19 @@ import base64
 try:
     import flask
     from flask import session, request
+
     HAS_FLASK = True
 except Exception:
     HAS_FLASK = False
-    msg = ('Missing flask and/or Flask-session.\n'
-           'pip install Flask')
+    msg = 'Missing flask and/or Flask-session.\n' 'pip install Flask'
     warnings.warn(msg)
     if ut.STRICT:
         raise
 
 try:
-    #from flask.ext.cors import CORS
+    # from flask.ext.cors import CORS
     from flask_cors import CORS
+
     HAS_FLASK_CORS = True
 except Exception:
     HAS_FLASK_CORS = False
@@ -59,15 +62,18 @@ except Exception:
 try:
     from flask_cas import CAS  # NOQA
     from flask_cas import login_required as login_required_cas
-    #from flask.ext.cas import CAS
-    #from flask.ext.cas import login_required
+
+    # from flask.ext.cas import CAS
+    # from flask.ext.cas import login_required
     # HAS_FLASK_CAS = True
     HAS_FLASK_CAS = False
 except Exception:
     HAS_FLASK_CAS = False
     login_required_cas = ut.identity
-    msg = ('Missing flask.ext.cas.\n'
-           'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
+    msg = (
+        'Missing flask.ext.cas.\n'
+        'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git'
+    )
     warnings.warn(msg)
     # sudo
     print('')
@@ -79,12 +85,14 @@ except Exception:
 print, rrr, profile = ut.inject2(__name__)
 
 
-#INJECTED_MODULES = []
+# INJECTED_MODULES = []
 UTOOL_AUTOGEN_SPHINX_RUNNING = not (
-    os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
+    os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF'
+)
 
-GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
-                      not ut.get_argflag('--no-flask') and HAS_FLASK)
+GLOBAL_APP_ENABLED = (
+    not UTOOL_AUTOGEN_SPHINX_RUNNING and not ut.get_argflag('--no-flask') and HAS_FLASK
+)
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = os.urandom(64)
 
@@ -99,15 +107,19 @@ WEB_DEBUG_INCLUDE_TRACE = True
 
 CONTROLLER_CLASSNAME = 'IBEISController'
 
-MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag('--microsoft')  # True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)
-MICROSOFT_API_PREFIX  = '/v0.1/wildbook/'
-MICROSOFT_API_DEBUG   = True
+MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
+    '--microsoft'
+)  # True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)
+MICROSOFT_API_PREFIX = '/v0.1/wildbook/'
+MICROSOFT_API_DEBUG = True
 
 if MICROSOFT_API_ENABLED:
     WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG
 
 
-STRICT_VERSION_API = False  # True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)
+STRICT_VERSION_API = (
+    False  # True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)
+)
 
 
 def get_flask_app(templates_auto_reload=True):
@@ -132,12 +144,12 @@ def get_flask_app(templates_auto_reload=True):
             print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
             print('[get_flask_app] static_dpath = %r' % (static_dpath,))
             print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
-        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
-                                 template_folder=tempalte_dpath,
-                                 static_folder=static_dpath)
+        GLOBAL_APP = flask.Flask(
+            GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath
+        )
 
         if ut.VERBOSE:
-            print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
+            print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET,))
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
 
         if templates_auto_reload:
@@ -148,7 +160,9 @@ def get_flask_app(templates_auto_reload=True):
         GLOBAL_APP.GRAPH_CLIENT_DICT = {}
 
         if HAS_FLASK_CORS:
-            GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
+            GLOBAL_CORS = CORS(
+                GLOBAL_APP, resources={r'/api/*': {'origins': '*'}}
+            )  # NOQA
 
         # if HAS_FLASK_CAS:
         #     GLOBAL_CAS = CAS(GLOBAL_APP, '/cas')
@@ -157,6 +171,7 @@ def get_flask_app(templates_auto_reload=True):
         #     GLOBAL_APP.config['CAS_SERVER']      = 'https://cas-auth.rpi.edu'
         #     GLOBAL_APP.config['CAS_AFTER_LOGIN'] = 'root'
     return GLOBAL_APP
+
 
 # try and load flask
 try:
@@ -178,9 +193,10 @@ class WebException(ut.NiceRepr, Exception):
         self.rawreturn = rawreturn
 
         from wbia.web.app import PROMETHEUS
+
         if PROMETHEUS:
             ibs = flask.current_app.ibs
-            tag = '%s' % (self.code, )
+            tag = '%s' % (self.code,)
             ibs.prometheus_increment_exception(tag)
 
     def get_rawreturn(self, debug_stack_trace=False):
@@ -198,11 +214,14 @@ class WebException(ut.NiceRepr, Exception):
 
 class WebMissingUUIDException(WebException):
     def __init__(self, missing_image_uuid_list=[], missing_annot_uuid_list=[]):
-        args = (len(missing_image_uuid_list), len(missing_annot_uuid_list), )
+        args = (
+            len(missing_image_uuid_list),
+            len(missing_annot_uuid_list),
+        )
         message = 'Missing image and/or annotation UUIDs (%d, %d)' % args
         rawreturn = {
-            'missing_image_uuid_list' : missing_image_uuid_list,
-            'missing_annot_uuid_list' : missing_annot_uuid_list,
+            'missing_image_uuid_list': missing_image_uuid_list,
+            'missing_annot_uuid_list': missing_annot_uuid_list,
         }
         code = 600
         super(WebMissingUUIDException, self).__init__(message, rawreturn, code)
@@ -210,16 +229,16 @@ class WebMissingUUIDException(WebException):
 
 class WebDuplicateUUIDException(WebException):
     def __init__(self, qdup_pos_map={}, ddup_pos_map={}):
-        message = ('Some UUIDs are specified more than once at positions:\n'
-                   'duplicate_database_uuids=%s\n'
-                   'duplicate_query_uuids=%s\n') % (
-                       ut.repr3(qdup_pos_map, nl=1),
-                       ut.repr3(ddup_pos_map, nl=1))
+        message = (
+            'Some UUIDs are specified more than once at positions:\n'
+            'duplicate_database_uuids=%s\n'
+            'duplicate_query_uuids=%s\n'
+        ) % (ut.repr3(qdup_pos_map, nl=1), ut.repr3(ddup_pos_map, nl=1))
         qdup_pos_map_ = {str(k): v for k, v in qdup_pos_map.items()}
         ddup_pos_map_ = {str(k): v for k, v in ddup_pos_map.items()}
         rawreturn = {
-            'qdup_pos_map' : qdup_pos_map_,
-            'ddup_pos_map' : ddup_pos_map_,
+            'qdup_pos_map': qdup_pos_map_,
+            'ddup_pos_map': ddup_pos_map_,
         }
         code = 601
         super(WebDuplicateUUIDException, self).__init__(message, rawreturn, code)
@@ -228,11 +247,14 @@ class WebDuplicateUUIDException(WebException):
 class WebUnknownUUIDException(WebException):
     def __init__(self, unknown_uuid_type_list, unknown_uuid_list):
         uuid_type_str = ', '.join(sorted(set(unknown_uuid_type_list)))
-        args = (uuid_type_str, len(unknown_uuid_list), )
+        args = (
+            uuid_type_str,
+            len(unknown_uuid_list),
+        )
         message = 'Unknown %s UUIDs (%d)' % args
         rawreturn = {
-            'unknown_uuid_type_list' : unknown_uuid_type_list,
-            'unknown_uuid_list' : unknown_uuid_list,
+            'unknown_uuid_type_list': unknown_uuid_type_list,
+            'unknown_uuid_list': unknown_uuid_list,
         }
         code = 602
         super(WebUnknownUUIDException, self).__init__(message, rawreturn, code)
@@ -240,10 +262,10 @@ class WebUnknownUUIDException(WebException):
 
 class WebReviewNotReadyException(WebException):
     def __init__(self, query_uuid):
-        args = (query_uuid, )
+        args = (query_uuid,)
         message = 'The query_uuid %r is not yet ready for review' % args
         rawreturn = {
-            'query_uuid' : query_uuid,
+            'query_uuid': query_uuid,
         }
         code = 603
         super(WebReviewNotReadyException, self).__init__(message, rawreturn, code)
@@ -252,11 +274,14 @@ class WebReviewNotReadyException(WebException):
 class WebUnavailableUUIDException(WebException):
     def __init__(self, unavailable_annot_uuid_list, query_uuid):
         self.query_uuid = query_uuid
-        args = (query_uuid, )
-        message = 'A running query %s is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.' % args
+        args = (query_uuid,)
+        message = (
+            'A running query %s is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.'
+            % args
+        )
         rawreturn = {
             'unavailable_annot_uuid_list': unavailable_annot_uuid_list,
-            'query_uuid' : query_uuid,
+            'query_uuid': query_uuid,
         }
         code = 604
         super(WebUnavailableUUIDException, self).__init__(message, rawreturn, code)
@@ -264,10 +289,10 @@ class WebUnavailableUUIDException(WebException):
 
 class WebReviewFinishedException(WebException):
     def __init__(self, query_uuid):
-        args = (query_uuid, )
+        args = (query_uuid,)
         message = 'The query_uuid %r has nothing more to review' % args
         rawreturn = {
-            'query_uuid' : query_uuid,
+            'query_uuid': query_uuid,
         }
         code = 605
         super(WebReviewFinishedException, self).__init__(message, rawreturn, code)
@@ -275,14 +300,18 @@ class WebReviewFinishedException(WebException):
 
 class WebMultipleNamedDuplicateException(WebException):
     def __init__(self, bad_dict):
-        message = ('Duplcate UUIDs are specified with more than one name:\n'
-                   'bad_database_uuids=%s\n') % (ut.repr3(bad_dict, nl=1),)
+        message = (
+            'Duplcate UUIDs are specified with more than one name:\n'
+            'bad_database_uuids=%s\n'
+        ) % (ut.repr3(bad_dict, nl=1),)
         bad_dict = {str(k): v for k, v in bad_dict.items()}
         rawreturn = {
-            'bad_dict' : bad_dict,
+            'bad_dict': bad_dict,
         }
         code = 606
-        super(WebMultipleNamedDuplicateException, self).__init__(message, rawreturn, code)
+        super(WebMultipleNamedDuplicateException, self).__init__(
+            message, rawreturn, code
+        )
 
 
 class WebMatchThumbException(WebException):
@@ -299,11 +328,14 @@ class WebMatchThumbException(WebException):
 
 class WebInvalidUUIDException(WebException):
     def __init__(self, invalid_image_uuid_list=[], invalid_annot_uuid_list=[]):
-        args = (len(invalid_image_uuid_list), len(invalid_annot_uuid_list), )
+        args = (
+            len(invalid_image_uuid_list),
+            len(invalid_annot_uuid_list),
+        )
         message = 'Invalid image and/or annotation UUIDs (%d, %d)' % args
         rawreturn = {
-            'invalid_image_uuid_list' : invalid_image_uuid_list,
-            'invalid_annot_uuid_list' : invalid_annot_uuid_list,
+            'invalid_image_uuid_list': invalid_image_uuid_list,
+            'invalid_annot_uuid_list': invalid_annot_uuid_list,
         }
         code = 608
         super(WebInvalidUUIDException, self).__init__(message, rawreturn, code)
@@ -313,8 +345,8 @@ class WebInvalidMatchException(WebException):
     def __init__(self, qaid_list, daid_list):
         message = 'The ID request is invalid because the daid_list is empty (after filtering out the qaid_list)'
         rawreturn = {
-            'qaid_list' : qaid_list,
-            'daid_list' : daid_list,
+            'qaid_list': qaid_list,
+            'daid_list': daid_list,
         }
         code = 609
         super(WebInvalidMatchException, self).__init__(message, rawreturn, code)
@@ -346,18 +378,25 @@ class WebInvalidInput(WebException):
 
 class WebRuntimeException(WebException):
     def __init__(self, message):
-        rawreturn = {
-            'message': message
-        }
+        rawreturn = {'message': message}
         code = 500
         super(WebRuntimeException, self).__init__(message, rawreturn, code)
 
 
-def translate_wbia_webreturn(rawreturn, success=True, code=None, message=None,
-                              jQuery_callback=None, cache=None, __skip_microsoft_validation__=False):
+def translate_wbia_webreturn(
+    rawreturn,
+    success=True,
+    code=None,
+    message=None,
+    jQuery_callback=None,
+    cache=None,
+    __skip_microsoft_validation__=False,
+):
     if MICROSOFT_API_ENABLED and not __skip_microsoft_validation__:
         if rawreturn is not None:
-            assert isinstance(rawreturn, dict), 'Microsoft APIs must return a Python dictionary'
+            assert isinstance(
+                rawreturn, dict
+            ), 'Microsoft APIs must return a Python dictionary'
         template = rawreturn
     else:
         if code is None:
@@ -369,17 +408,17 @@ def translate_wbia_webreturn(rawreturn, success=True, code=None, message=None,
         template = {
             'status': {
                 'success': success,
-                'code':    code,
+                'code': code,
                 'message': message,
-                'cache':   cache,
+                'cache': cache,
                 #'debug': {}  # TODO
             },
-            'response' : rawreturn
+            'response': rawreturn,
         }
     response = ut.to_json(template)
 
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
-        print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
+        print('[web] Including jQuery callback function: %r' % (jQuery_callback,))
         response = '%s(%s)' % (jQuery_callback, response)
     return response
 
@@ -389,15 +428,22 @@ def _process_input(multidict=None):
         return {}
     if isinstance(multidict, dict):
         from werkzeug.datastructures import ImmutableMultiDict
+
         multidict = ImmutableMultiDict([item for item in multidict.items()])
     kwargs2 = {}
     for (arg, value) in multidict.lists():
         if len(value) > 1:
-            raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
+            raise WebException('Cannot specify a parameter more than once: %r' % (arg,))
         # value = str(value[0])
         value = value[0]
-        if ',' in value and '[' not in value and ']' not in value and '{' not in value and '}' not in value:
-            value = '[%s]' % (value, )
+        if (
+            ',' in value
+            and '[' not in value
+            and ']' not in value
+            and '{' not in value
+            and '}' not in value
+        ):
+            value = '[%s]' % (value,)
         if value in ['True', 'False']:
             value = value.lower()
         try:
@@ -405,10 +451,10 @@ def _process_input(multidict=None):
         except Exception:
             # try making string and try again...
             try:
-                value_ = '"%s"' % (value, )
+                value_ = '"%s"' % (value,)
                 converted = ut.from_json(value_)
             except Exception as ex:
-                print('FAILED TO JSON CONVERT: %s' % (ex, ))
+                print('FAILED TO JSON CONVERT: %s' % (ex,))
                 print(ut.repr3(value))
                 converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
@@ -417,13 +463,14 @@ def _process_input(multidict=None):
             else:
                 converted = [converted]
         # Allow JSON formatted strings to be placed into note fields
-        if ((arg.endswith('note_list') or arg.endswith('notes_list')) and
-           isinstance(converted, (list, tuple))):
+        if (arg.endswith('note_list') or arg.endswith('notes_list')) and isinstance(
+            converted, (list, tuple)
+        ):
             type_ = type(converted)
             temp_list = []
             for _ in converted:
                 if isinstance(_, dict):
-                    temp_list.append('%s' % (_, ))
+                    temp_list.append('%s' % (_,))
                 else:
                     temp_list.append(_)
             converted = type_(temp_list)
@@ -507,9 +554,14 @@ def translate_wbia_webcall(func, *args, **kwargs):
                             length2 = len(set(map(str, values)))
                         length3 = min(length1, 3)
                         mod = '...' if length1 != length3 else ''
-                        message_ = 'length %d with unique %d of %s%s' % (length1, length2, values[:length3], mod, )
+                        message_ = 'length %d with unique %d of %s%s' % (
+                            length1,
+                            length2,
+                            values[:length3],
+                            mod,
+                        )
                 else:
-                    message_ = '%s' % (values, )
+                    message_ = '%s' % (values,)
             except Exception:
                 type_ = 'UNKNOWN'
                 message_ = 'ERROR IN PARSING'
@@ -527,7 +579,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 key_ = key_.rjust(length1)
                 type_ = type_.ljust(length2)
                 try:
-                    print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_, ))
+                    print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_,))
                 except UnicodeEncodeError:
                     print('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
     except Exception:
@@ -544,12 +596,14 @@ def translate_wbia_webcall(func, *args, **kwargs):
         except Exception as ex2:  # NOQA
             if MICROSOFT_API_ENABLED:
                 if isinstance(ex2, TypeError) and 'required positional' in str(ex2):
-                    parameter = str(ex2).split(':')[1].strip().strip('\'')
+                    parameter = str(ex2).split(':')[1].strip().strip("'")
                     raise WebMissingInput('Missing required parameter', parameter)
                 elif isinstance(ex2, WebException):
                     raise
                 else:
-                    raise WebRuntimeException('An unknown error has occurred, please contact the API administrator at dev@wildme.org.')
+                    raise WebRuntimeException(
+                        'An unknown error has occurred, please contact the API administrator at dev@wildme.org.'
+                    )
             else:
                 msg_list = []
                 # msg_list.append('Error in translate_wbia_webcall')
@@ -558,13 +612,13 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 msg_list.append('Received Function Parameters:')
                 for key in kwargs:
                     value = kwargs[key]
-                    value_str = '%r' % (value, )
+                    value_str = '%r' % (value,)
                     value_str = ut.truncate_str(value_str, maxlen=256)
-                    msg_list.append('\t%r: %s' % (key, value_str, ))
+                    msg_list.append('\t%r: %s' % (key, value_str,))
                 # msg_list.append('\targs = %r' % (args,))
                 # msg_list.append('flask.request.args = %r' % (flask.request.args,))
                 # msg_list.append('flask.request.form = %r' % (flask.request.form,))
-                msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
+                msg_list.append('%s: %s' % (type(ex2).__name__, ex2,))
                 if WEB_DEBUG_INCLUDE_TRACE:
                     trace = str(traceback.format_exc())
                     msg_list.append(trace)
@@ -575,7 +629,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
             # error_msg = ut.strip_ansi(error_msg)
             # raise Exception(error_msg)
             raise Exception(msg)
-            #raise
+            # raise
     resp_tup = (output, True, 200, None)
     return resp_tup
 
@@ -587,7 +641,9 @@ def authentication_challenge():
     code = 401
     message = 'Could not verify your authentication, login with proper credentials.'
     jQuery_callback = None
-    webreturn = translate_wbia_webreturn(rawreturn, success, code, message, jQuery_callback)
+    webreturn = translate_wbia_webreturn(
+        rawreturn, success, code, message, jQuery_callback
+    )
     response = flask.make_response(webreturn, code)
     response.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
     return response
@@ -612,14 +668,16 @@ def authentication_user_only(func):
         if not authentication_user_validate():
             return authentication_challenge()
         return func(*args, **kwargs)
-    #wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)
+
+    # wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)
     return wrp_authenticate_user
 
 
 def create_key():
     hyphen_list = [8, 13, 18, 23]
-    key_list = ['-' if _ in hyphen_list else random.choice(string.hexdigits)
-                for _ in xrange(36) ]
+    key_list = [
+        '-' if _ in hyphen_list else random.choice(string.hexdigits) for _ in xrange(36)
+    ]
     return ''.join(key_list).upper()
 
 
@@ -647,7 +705,7 @@ def get_signature(key, message):
 
 def get_url_authorization(url):
     hash_ = get_signature(GLOBAL_APP_SECRET, url)
-    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_,)
     return hash_challenge
 
 
@@ -656,11 +714,12 @@ def authentication_hash_validate():
     This function is called to check if a username /
     password combination is valid.
     """
+
     def last_occurence_delete(string, character):
         index = string.rfind(character)
         if index is None or index < 0:
             return string
-        return string[:index] + string[index + 1:]
+        return string[:index] + string[index + 1 :]
 
     hash_response = str(flask.request.headers.get('Authorization', ''))
     if len(hash_response) == 0:
@@ -687,22 +746,30 @@ def authentication_hash_only(func):
         if not authentication_hash_validate():
             return authentication_challenge()
         return func(*args, **kwargs)
+
     return wrp_authentication_hash
 
 
 def authentication_either(func):
     """ authenticated by either hash or user """
+
     @wraps(func)
     def wrp_authentication_either(*args, **kwargs):
         if not (authentication_hash_validate() or authentication_user_validate()):
             return authentication_challenge()
         return func(*args, **kwargs)
+
     return wrp_authentication_either
 
 
-def crossdomain(origin=None, methods=None, headers=None,
-                max_age=21600, attach_to_all=True,
-                automatic_options=True):
+def crossdomain(
+    origin=None,
+    methods=None,
+    headers=None,
+    max_age=21600,
+    attach_to_all=True,
+    automatic_options=True,
+):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
     if headers is not None and not isinstance(headers, basestring):
@@ -744,6 +811,7 @@ def crossdomain(origin=None, methods=None, headers=None,
 
         f.provide_automatic_options = False
         return update_wrapper(wrapped_function, f)
+
     return decorator
 
 
@@ -759,6 +827,7 @@ def remote_api_wrapper(func):
             kwargs.update(kwargs_)
             kwargs.pop('ibs', None)
             return api_remote_wbia(REMOTE_PROXY_URL, func, REMOTE_PROXY_PORT, **kwargs)
+
     remote_api_call = ut.preserve_sig(remote_api_call, func)
     return remote_api_call
 
@@ -771,16 +840,18 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_api(rule,
-                         __api_plural_check__=True,
-                         __api_microsoft_check__=True,
-                         **options):
+
+        def register_api(
+            rule, __api_plural_check__=True, __api_microsoft_check__=True, **options
+        ):
             global API_SEEN_SET
             assert rule.endswith('/'), 'An API should always end in a forward-slash'
-            assert 'methods' in options, 'An api should always have a specified methods list'
+            assert (
+                'methods' in options
+            ), 'An api should always have a specified methods list'
             rule_ = rule + ':'.join(options['methods'])
             if rule_ in API_SEEN_SET:
-                msg = 'An API rule (%s) has been duplicated' % (rule_, )
+                msg = 'An API rule (%s) has been duplicated' % (rule_,)
                 warnings.warn(msg + '. Ignoring duplicate (may break web)')
                 return ut.identity
                 # raise AssertionError(msg)
@@ -792,12 +863,16 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    print('Registering API rule=%r' % (rule_, ))
+                    print('Registering API rule=%r' % (rule_,))
 
             try:
                 if not MICROSOFT_API_ENABLED:
-                    assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
-                assert 'imgset' not in rule, 'An API should use "imageset" instead of imgset(s)"'
+                    assert (
+                        'annotation' not in rule
+                    ), 'An API rule should use "annot" instead of annotation(s)"'
+                assert (
+                    'imgset' not in rule
+                ), 'An API should use "imageset" instead of imgset(s)"'
                 assert '_' not in rule, 'An API should never contain an underscore'
                 assert '-' not in rule, 'An API should never contain a hyphen'
                 if __api_plural_check__:
@@ -812,11 +887,16 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     'metadata',
                 ]
                 for check in check_list:
-                    assert '/api/%s/' % (check, ) not in rule, 'failed check=%r' % (check,)
+                    assert '/api/%s/' % (check,) not in rule, 'failed check=%r' % (
+                        check,
+                    )
             except Exception:
                 iswarning = not ut.SUPER_STRICT
-                ut.printex('CONSIDER RENAMING API RULE: %r' % (rule, ),
-                           iswarning=iswarning, tb=True)
+                ut.printex(
+                    'CONSIDER RENAMING API RULE: %r' % (rule,),
+                    iswarning=iswarning,
+                    tb=True,
+                )
                 if not iswarning:
                     raise
 
@@ -825,22 +905,28 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
+
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')
                 # @authentication_either
                 @wraps(func)
-                #def translated_call(*args, **kwargs):
+                # def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
                     def html_newlines(text):
                         r = '<br />\n'
                         text = text.replace(' ', '&nbsp;')
-                        text = text.replace('\r\n', r).replace('\n\r', r).replace('\r', r).replace('\n', r)
+                        text = (
+                            text.replace('\r\n', r)
+                            .replace('\n\r', r)
+                            .replace('\r', r)
+                            .replace('\n', r)
+                        )
                         return text
 
                     __format__ = False  # Default __format__ value
                     ignore_cookie_set = False
                     try:
-                        #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+                        # print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
@@ -861,8 +947,8 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             jQuery_callback = str(kwargs.pop('callback', None))
                             kwargs.pop('_', None)
 
-                        #print('KWARGS:  %s' % (kwargs, ))
-                        #print('COOKIES: %s' % (request.cookies, ))
+                        # print('KWARGS:  %s' % (kwargs, ))
+                        # print('COOKIES: %s' % (request.cookies, ))
                         __format__ = request.cookies.get('__format__', None)
                         __format__ = kwargs.pop('__format__', __format__)
                         if __format__ is not None:
@@ -871,6 +957,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             __format__ = __format__ in ['true', 'enabled', 'enable']
 
                         from wbia.web.app import PROMETHEUS
+
                         if PROMETHEUS:
                             exclude_tag_list = [
                                 '/api/test/heartbeat/',
@@ -886,14 +973,16 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         # ut.printex(webex)
-                        print('CAUGHT2: %r' % (webex, ))
-                        rawreturn = webex.get_rawreturn(DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE)
+                        print('CAUGHT2: %r' % (webex,))
+                        rawreturn = webex.get_rawreturn(
+                            DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE
+                        )
                         success = False
                         code = webex.code
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
-                        print('CAUGHT2: %r' % (ex, ))
+                        print('CAUGHT2: %r' % (ex,))
                         # ut.printex(ex)
                         rawreturn = None
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
@@ -904,40 +993,61 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         # errmsg = str(ex)
                         # message = 'API error, Python Exception thrown: %s' % (errmsg)
                         if "'int' object is not iterable" in message:
-                            rawreturn = '''
+                            rawreturn = """
                             HINT: the input for this call is most likely expected to be a list.
                             Try adding a comma at the end of the input (to cast the conversion into a list) or encapsulate the input with [].
-                            '''
+                            """
                         jQuery_callback = None
 
-                    #print('RECEIVED FORMAT: %r' % (__format__, ))
+                    # print('RECEIVED FORMAT: %r' % (__format__, ))
 
                     if __format__:
                         # Hack for readable error messages
                         webreturn = translate_wbia_webreturn(
-                            rawreturn, success, code, message, jQuery_callback)
+                            rawreturn, success, code, message, jQuery_callback
+                        )
                         webreturn = ut.repr3(ut.from_json(webreturn), strvals=True)
 
                         try:
                             from ansi2html import Ansi2HTMLConverter
+
                             conv = Ansi2HTMLConverter()
                             webreturn = conv.convert(webreturn)
                         except ImportError as ex:
                             ut.printex(ex, 'pip install ansi2html', iswarning=True)
                             webreturn = ut.strip_ansi(webreturn)
-                            webreturn = '<p><samp>\n' + html_newlines(webreturn) + '\n</samp></p>'
-                            webreturn = '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n' + webreturn
+                            webreturn = (
+                                '<p><samp>\n'
+                                + html_newlines(webreturn)
+                                + '\n</samp></p>'
+                            )
+                            webreturn = (
+                                '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n'
+                                + webreturn
+                            )
 
                         def get_func_href(funcname):
-                            url = 'http://' + request.environ['HTTP_HOST'] + flask.url_for(funcname) + '?__format__=True'
+                            url = (
+                                'http://'
+                                + request.environ['HTTP_HOST']
+                                + flask.url_for(funcname)
+                                + '?__format__=True'
+                            )
                             return '<a href="{url}">{url}</a>'.format(url=url)
 
                         if not success:
-                            webreturn += '<pre>See logs for details: %s</pre>' % get_func_href('get_current_log_text')
-                            webreturn += '<pre>Might also look into db_info: %s</pre>' % get_func_href('get_dbinfo')
+                            webreturn += (
+                                '<pre>See logs for details: %s</pre>'
+                                % get_func_href('get_current_log_text')
+                            )
+                            webreturn += (
+                                '<pre>Might also look into db_info: %s</pre>'
+                                % get_func_href('get_dbinfo')
+                            )
                     else:
                         webreturn = translate_wbia_webreturn(
-                            rawreturn, success, code, message, jQuery_callback)
+                            rawreturn, success, code, message, jQuery_callback
+                        )
                         webreturn = ut.strip_ansi(webreturn)
 
                     resp = flask.make_response(webreturn, code)
@@ -945,7 +1055,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
 
                     if not __format__:
                         resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-                        resp.headers['mimetype']     = 'application/json'
+                        resp.headers['mimetype'] = 'application/json'
 
                     if not ignore_cookie_set:
                         if __format__:
@@ -954,12 +1064,15 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             resp.set_cookie('__format__', '', expires=0)
 
                     return resp
+
                 # return the original unmodified function
                 if REMOTE_PROXY_URL is None:
                     return func
                 else:
                     return remote_api_wrapper(func)
+
             return regsiter_closure
+
         return register_api
     else:
         return ut.dummy_args_decor
@@ -992,9 +1105,9 @@ def get_user(username=None, name=None, organization=None):
             assert isinstance(username, six.string_types), 'user must be a string'
             username = username.lower()
             session[USER_KEY] = {
-                'username'     : username,
-                'name'         : name,
-                'organization' : organization,
+                'username': username,
+                'name': name,
+                'organization': organization,
             }
 
     return session[USER_KEY]
@@ -1005,11 +1118,13 @@ def login_required_session(function):
     def wrap(*args, **kwargs):
         if not authenticated():
             from wbia.web import appfuncs as appf
+
             refer = flask.request.url.replace(flask.request.url_root, '')
             refer = appf.encode_refer_url(refer)
             return flask.redirect(flask.url_for('login', refer=refer))
         else:
             return function(*args, **kwargs)
+
     return wrap
 
 
@@ -1018,12 +1133,15 @@ def get_wbia_flask_route(__name__):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_route(rule,
-                           __route_prefix_check__=True,
-                           __route_postfix_check__=True,
-                           __route_authenticate__=True,
-                           __route_microsoft_check__=True,
-                           **options):
+
+        def register_route(
+            rule,
+            __route_prefix_check__=True,
+            __route_postfix_check__=True,
+            __route_authenticate__=True,
+            __route_microsoft_check__=True,
+            **options
+        ):
 
             # GLOBALLY DISABLE LOGINS
             __route_authenticate__ = False
@@ -1035,15 +1153,21 @@ def get_wbia_flask_route(__name__):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    print('Registering Route rule=%r' % (rule, ))
+                    print('Registering Route rule=%r' % (rule,))
 
             if __route_prefix_check__:
-                assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
+                assert not rule.startswith(
+                    '/api/'
+                ), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule,)
             else:
                 __route_authenticate__ = False
             if __route_postfix_check__:
-                assert rule.endswith('/'), 'A route should always end in a forward-slash'
-            assert 'methods' in options, 'A route should always have a specified methods list'
+                assert rule.endswith(
+                    '/'
+                ), 'A route should always end in a forward-slash'
+            assert (
+                'methods' in options
+            ), 'A route should always have a specified methods list'
 
             # if '_' in rule:
             #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
@@ -1065,7 +1189,7 @@ def get_wbia_flask_route(__name__):
                 @login_required
                 @wraps(func)
                 def translated_call(**kwargs):
-                    #debug = {'kwargs': kwargs}
+                    # debug = {'kwargs': kwargs}
                     try:
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
@@ -1084,9 +1208,13 @@ def get_wbia_flask_route(__name__):
                             kwargs.pop('_', None)
 
                         args = ()
-                        print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+                        print(
+                            'Processing: %r with args: %r and kwargs: %r'
+                            % (func, args, kwargs,)
+                        )
 
                         from wbia.web.app import PROMETHEUS
+
                         if PROMETHEUS:
                             ibs = flask.current_app.ibs
                             tag = request.url_rule.rule
@@ -1097,27 +1225,34 @@ def get_wbia_flask_route(__name__):
                         rawreturn = str(traceback.format_exc())
                         success = False
                         code = 400
-                        message = (
-                            'Route error, Python Exception thrown: %r' %
-                            (str(ex), ))
+                        message = 'Route error, Python Exception thrown: %r' % (
+                            str(ex),
+                        )
                         jQuery_callback = None
-                        result = translate_wbia_webreturn(rawreturn, success,
-                                                           code, message,
-                                                           jQuery_callback,
-                                                           __skip_microsoft_validation__=True)
+                        result = translate_wbia_webreturn(
+                            rawreturn,
+                            success,
+                            code,
+                            message,
+                            jQuery_callback,
+                            __skip_microsoft_validation__=True,
+                        )
                     return result
-                #wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
+
+                # wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
                 # return the original unmodified function
                 return func
+
             return regsiter_closure
+
         return register_route
     else:
         return ut.dummy_args_decor
 
 
-def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001,
-                     **kwargs):
+def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **kwargs):
     import requests
+
     if GLOBAL_APP_ENABLED and GLOBAL_APP is None:
         raise ValueError('Flask has not been initialized')
     api_name = remote_api_func.__name__
@@ -1133,9 +1268,7 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001,
 
     args = (remote_wbia_url, remote_wbia_port, api_route)
     remote_api_url = 'http://%s:%s%s' % args
-    headers = {
-        'Authorization': get_url_authorization(remote_api_url)
-    }
+    headers = {'Authorization': get_url_authorization(remote_api_url)}
 
     for key in kwargs.keys():
         value = kwargs[key]
@@ -1143,32 +1276,36 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001,
             value = str(list(value))
         kwargs[key] = value
 
-    print('[REMOTE] %s' % ('-' * 80, ))
-    print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
-    print('[REMOTE] \tMethod:  %r' % (remote_api_method, ))
+    print('[REMOTE] %s' % ('-' * 80,))
+    print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url,))
+    print('[REMOTE] \tMethod:  %r' % (remote_api_method,))
     if ut.DEBUG2 or ut.VERBOSE:
-        print('[REMOTE] \tHeaders: %s' % (ut.repr2(headers), ))
-        print('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs), ))
+        print('[REMOTE] \tHeaders: %s' % (ut.repr2(headers),))
+        print('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs),))
 
     # Make request to server
     try:
         if remote_api_method == 'GET':
-            req = requests.get(remote_api_url, headers=headers, data=kwargs,
-                               verify=False)
+            req = requests.get(
+                remote_api_url, headers=headers, data=kwargs, verify=False
+            )
         elif remote_api_method == 'POST':
-            req = requests.post(remote_api_url, headers=headers, data=kwargs,
-                                verify=False)
+            req = requests.post(
+                remote_api_url, headers=headers, data=kwargs, verify=False
+            )
         elif remote_api_method == 'PUT':
-            req = requests.put(remote_api_url, headers=headers, data=kwargs,
-                               verify=False)
+            req = requests.put(
+                remote_api_url, headers=headers, data=kwargs, verify=False
+            )
         elif remote_api_method == 'DELETE':
-            req = requests.delete(remote_api_url, headers=headers, data=kwargs,
-                                  verify=False)
+            req = requests.delete(
+                remote_api_url, headers=headers, data=kwargs, verify=False
+            )
         else:
-            message = '_api_result got unsupported method=%r' % (remote_api_method, )
+            message = '_api_result got unsupported method=%r' % (remote_api_method,)
             raise KeyError(message)
     except requests.exceptions.ConnectionError as ex:
-        message = '_api_result could not connect to server %s' % (ex, )
+        message = '_api_result could not connect to server %s' % (ex,)
         raise IOError(message)
     response = req.text
     converted = ut.from_json(value)
@@ -1181,6 +1318,7 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001,
 
 ##########################################################################################
 
+
 def dev_autogen_explicit_imports():
     r"""
     CommandLine:
@@ -1192,6 +1330,7 @@ def dev_autogen_explicit_imports():
         >>> dev_autogen_explicit_imports()
     """
     import wbia  # NOQA
+
     classname = CONTROLLER_CLASSNAME
     print(ut.autogen_import_list(classname))
 
@@ -1208,15 +1347,17 @@ def dev_autogen_explicit_injects():
     """
     import wbia  # NOQA
     import wbia.control.IBEISControl
+
     classname = CONTROLLER_CLASSNAME
-    regen_command = (
-        'python -m wbia dev_autogen_explicit_injects')
+    regen_command = 'python -m wbia dev_autogen_explicit_injects'
     conditional_imports = [
-        modname for modname in wbia.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
+        modname
+        for modname in wbia.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
         if isinstance(modname, tuple)
     ]
     source_block = ut.autogen_explicit_injectable_metaclass(
-        classname, regen_command, conditional_imports)
+        classname, regen_command, conditional_imports
+    )
     dpath = ut.get_module_dir(wbia.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
     ut.writeto(fpath, source_block, verbose=2)
@@ -1229,33 +1370,36 @@ def make_ibs_register_decorator(modname):
     CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)
     # Create dectorator to inject these functions into the IBEISController
     register_ibs_unaliased_method = ut.make_class_method_decorator(
-        CLASS_INJECT_KEY, modname)
+        CLASS_INJECT_KEY, modname
+    )
 
     # TODO Replace IBEISContoller INEJECTED MODULES with this one
-    #INJECTED_MODULES.append(sys.modules[modname])
+    # INJECTED_MODULES.append(sys.modules[modname])
 
     def register_ibs_method(func):
         """ registers autogenerated functions with the utool class method injector """
-        #func  = profile(func)
+        # func  = profile(func)
         register_ibs_unaliased_method(func)
-        #aliastup = (func, '_injected_' + ut.get_funcname(func))
-        #register_ibs_aliased_method(aliastup)
+        # aliastup = (func, '_injected_' + ut.get_funcname(func))
+        # register_ibs_aliased_method(aliastup)
         return func
+
     return CLASS_INJECT_KEY, register_ibs_method
+
 
 _decors_image = dtool.make_depcache_decors(const.IMAGE_TABLE)
 _decors_annot = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-_decors_part  = dtool.make_depcache_decors(const.PART_TABLE)
+_decors_part = dtool.make_depcache_decors(const.PART_TABLE)
 
 register_preprocs = {
-    'image' : _decors_image['preproc'],
-    'annot' : _decors_annot['preproc'],
-    'part'  : _decors_part['preproc'],
+    'image': _decors_image['preproc'],
+    'annot': _decors_annot['preproc'],
+    'part': _decors_part['preproc'],
 }
 register_subprops = {
-    'image' : _decors_image['subprop'],
-    'annot' : _decors_annot['subprop'],
-    'part'  : _decors_part['subprop'],
+    'image': _decors_image['subprop'],
+    'annot': _decors_annot['subprop'],
+    'part': _decors_part['subprop'],
 }
 
 
@@ -1267,6 +1411,8 @@ if __name__ == '__main__':
         python -m wbia.control.controller_inject --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

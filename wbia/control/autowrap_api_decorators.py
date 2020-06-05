@@ -11,26 +11,26 @@ BLACKLIST = ['get_images', 'get_annotations', 'get_chips']
 
 def get_func(line):
     index = line.find('(')
-    line = line[4: index]
+    line = line[4:index]
     return line
 
 
 def get_parts(line, sub):
     line = get_func(line)
     if line.startswith('_'):
-        print('Processing Line: %r' % (line, ))
-        print('    Stripped: %r' % (line, ))
+        print('Processing Line: %r' % (line,))
+        print('    Stripped: %r' % (line,))
         raw_input('SKIPPED')
         return None, None, None
     if line in BLACKLIST:
-        print('Processing Line: %r' % (line, ))
-        print('    Stripped: %r' % (line, ))
+        print('Processing Line: %r' % (line,))
+        print('    Stripped: %r' % (line,))
         raw_input('BLACKLISTED')
         return None, None, None
     # Ascertain method
-    if line == 'delete_%s' % (sub, ):
+    if line == 'delete_%s' % (sub,):
         return sub, '', 'delete'
-    if line == 'delete_%ss' % (sub, ):
+    if line == 'delete_%ss' % (sub,):
         return sub, '', 'delete'
     if '_valid_' in line and 'rowid' not in line:
         return sub, '', 'get'
@@ -51,17 +51,17 @@ def get_parts(line, sub):
         method = 'post'
         return sub, '', method
     else:
-        print('Processing Line: %r' % (line, ))
-        print('    Stripped: %r' % (line, ))
+        print('Processing Line: %r' % (line,))
+        print('    Stripped: %r' % (line,))
         raw_input('FAILED')
         return None, None, None
     # print('    Method-less: %r' % (line, ))
     submodule = sub
     # print('    Submodule: %r' % (submodule, ))
-    line = line.replace('%ss_' % (submodule, ), '')
-    line = line.replace('%s_' % (submodule, ), '')
-    line = line.replace('_%ss' % (submodule, ), '')
-    line = line.replace('_%s' % (submodule, ), '')
+    line = line.replace('%ss_' % (submodule,), '')
+    line = line.replace('%s_' % (submodule,), '')
+    line = line.replace('_%ss' % (submodule,), '')
+    line = line.replace('_%s' % (submodule,), '')
     func = line
     # print('    Function: %r' % (func, ))
     return submodule, func, method
@@ -71,16 +71,16 @@ def get_decorator(submodule, func, method):
     if submodule is None or func is None or method is None:
         return None
     if len(func) > 0:
-        url = '/api/%s/%s/' % (submodule, func, )
+        url = '/api/%s/%s/' % (submodule, func,)
     else:
-        url = '/api/%s/' % (submodule, )
+        url = '/api/%s/' % (submodule,)
     method = method.upper()
     return url, method
 
 
 def process_file(filename, sub):
-    filename_src = '%s.py' % (filename, )
-    filename_dst = '%s_processed.py' % (filename, )
+    filename_src = '%s.py' % (filename,)
+    filename_dst = '%s_processed.py' % (filename,)
     # filename_cmp = '%s_manual.py' % (filename, )
     # Open source file
     with open(filename_src, 'r') as src:
@@ -89,7 +89,7 @@ def process_file(filename, sub):
     lines = lines.replace(":\n    ''' ", ":\n    r'''\n    ")
     lines = lines.replace(':\n    """', ':\n    r"""')
     lines = lines.replace(":\n    '''", ":\n    r'''")
-    lines = ['%s\n' % (line, ) for line in lines.split('\n') ]
+    lines = ['%s\n' % (line,) for line in lines.split('\n')]
 
     # Expand docs
     preprocessed = []
@@ -109,13 +109,13 @@ def process_file(filename, sub):
                 line_ = line_.replace("'''", '')
                 line_ = line_.strip()
                 preprocessed.append('    r"""\n')
-                preprocessed.append('    %s\n' % (line_, ))
+                preprocessed.append('    %s\n' % (line_,))
                 preprocessed.append('    """\n')
                 func = None
                 continue
             elif line.count('"""') == 0 and line.count("'''") == 0:
                 preprocessed.append('    r"""\n')
-                preprocessed.append('    Auto-docstr for %r\n' % (func, ))
+                preprocessed.append('    Auto-docstr for %r\n' % (func,))
                 preprocessed.append('    """\n')
                 preprocessed.append(line)
                 func = None
@@ -149,14 +149,16 @@ def process_file(filename, sub):
                 url, method = latest
                 processed.append('\n')
                 processed.append('    RESTful:\n')
-                processed.append('        Method: %s\n' % (method, ))
-                processed.append('        URL:    %s\n' % (url, ))
+                processed.append('        Method: %s\n' % (method,))
+                processed.append('        URL:    %s\n' % (url,))
                 incomment = False
-            if latest is not None and (line == '    Example:\n' or line == '    Example0:\n'):
+            if latest is not None and (
+                line == '    Example:\n' or line == '    Example0:\n'
+            ):
                 url, method = latest
                 processed.append('    RESTful:\n')
-                processed.append('        Method: %s\n' % (method, ))
-                processed.append('        URL:    %s\n' % (url, ))
+                processed.append('        Method: %s\n' % (method,))
+                processed.append('        URL:    %s\n' % (url,))
                 processed.append('\n')
                 incomment = False
         if line == '    r"""\n':
@@ -166,7 +168,7 @@ def process_file(filename, sub):
             latest = get_decorator(submodule, func, method)
             if latest is not None:
                 url, method = latest
-                wrapper = '@register_api(\'%s\', methods=[\'%s\'])\n' % (url, method, )
+                wrapper = "@register_api('%s', methods=['%s'])\n" % (url, method,)
                 # print(wrapper)
                 processed.append(wrapper)
         processed.append(line)
@@ -177,6 +179,7 @@ def process_file(filename, sub):
 
     # output = os.popen('diff %s %s' % (filename_dst, filename_cmp, )).read()
     # print(output)
+
 
 if __name__ == '__main__':
     # filename = 'manual_image_funcs'

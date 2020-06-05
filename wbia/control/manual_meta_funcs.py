@@ -10,22 +10,31 @@ from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.algo import Config
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 print, print_, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/contributor/', methods=['POST'])
-def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None,
-                     loc_city_list=None, loc_state_list=None,
-                     loc_country_list=None, loc_zip_list=None,
-                     notes_list=None):
+def add_contributors(
+    ibs,
+    tag_list,
+    uuid_list=None,
+    name_first_list=None,
+    name_last_list=None,
+    loc_city_list=None,
+    loc_state_list=None,
+    loc_country_list=None,
+    loc_zip_list=None,
+    notes_list=None,
+):
     r"""
     Adds a list of contributors.
 
@@ -37,6 +46,7 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
         URL:    /api/contributor/
     """
     import datetime
+
     def _valid_zip(_zip, default='00000'):
         _zip = str(_zip)
         if len(_zip) == 5 and _zip.isdigit():
@@ -59,30 +69,49 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
     if loc_zip_list is None:
         loc_zip_list = [''] * len(tag_list)
     if notes_list is None:
-        notes_list = [ "Created %s" % (datetime.datetime.now(),) for _ in range(len(tag_list))]
+        notes_list = [
+            'Created %s' % (datetime.datetime.now(),) for _ in range(len(tag_list))
+        ]
 
-    loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
+    loc_zip_list = [_valid_zip(_zip) for _zip in loc_zip_list]
 
     if uuid_list is None:
-        #contributor_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)
-        #uuid_list = ibs.get_contributor_uuid(contributor_rowid_list)
-        #uuid_list = ibs.get_contributor_uuid(contributor_rowid_list)
-        #uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]
+        # contributor_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)
+        # uuid_list = ibs.get_contributor_uuid(contributor_rowid_list)
+        # uuid_list = ibs.get_contributor_uuid(contributor_rowid_list)
+        # uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]
         # DETERMENISTIC UUIDS
         zero_uuid = ut.get_zero_uuid()
         uuid_list = [ut.augment_uuid(zero_uuid, tag) for tag in tag_list]
 
-    colnames = ['contributor_uuid', 'contributor_tag', 'contributor_name_first',
-                'contributor_name_last', 'contributor_location_city',
-                'contributor_location_state', 'contributor_location_country',
-                'contributor_location_zip', 'contributor_note']
-    params_iter = zip(uuid_list, tag_list, name_first_list,
-                      name_last_list, loc_city_list, loc_state_list,
-                      loc_country_list, loc_zip_list, notes_list)
+    colnames = [
+        'contributor_uuid',
+        'contributor_tag',
+        'contributor_name_first',
+        'contributor_name_last',
+        'contributor_location_city',
+        'contributor_location_state',
+        'contributor_location_country',
+        'contributor_location_zip',
+        'contributor_note',
+    ]
+    params_iter = zip(
+        uuid_list,
+        tag_list,
+        name_first_list,
+        name_last_list,
+        loc_city_list,
+        loc_state_list,
+        loc_country_list,
+        loc_zip_list,
+        notes_list,
+    )
 
     get_rowid_from_superkey = ibs.get_contributor_rowid_from_uuid
-    #get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?
-    contributor_id_list = ibs.db.add_cleanly(const.CONTRIBUTOR_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    # get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?
+    contributor_id_list = ibs.db.add_cleanly(
+        const.CONTRIBUTOR_TABLE, colnames, params_iter, get_rowid_from_superkey
+    )
     return contributor_id_list
 
 
@@ -95,8 +124,9 @@ def add_version(ibs, versiontext_list):
     # FIXME: Configs are still handled poorly
     params_iter = ((versiontext,) for versiontext in versiontext_list)
     get_rowid_from_superkey = ibs.get_version_rowid_from_superkey
-    versionid_list = ibs.db.add_cleanly(const.VERSIONS_TABLE, ('version_text',),
-                                        params_iter, get_rowid_from_superkey)
+    versionid_list = ibs.db.add_cleanly(
+        const.VERSIONS_TABLE, ('version_text',), params_iter, get_rowid_from_superkey
+    )
     return versionid_list
 
 
@@ -115,7 +145,9 @@ def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
         URL:    /api/metadata/value/
     """
     db = db[0]  # Unwrap tuple, required by @accessor_decors.setter decorator
-    metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
+    metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(
+        metadata_key_list, db
+    )
     id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
     val_list = ((metadata_value,) for metadata_value in metadata_value_list)
     db.set(const.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
@@ -127,6 +159,7 @@ def set_database_version(ibs, db, version):
     Sets the specified database's version from the controller
     """
     db.set_db_version(version)
+
 
 # SETTERS::CONTRIBUTORS
 
@@ -156,55 +189,104 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
         URL:    /api/contributor/new/temp/
     """
     name_first = ibs.get_dbname()
-    name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
-    print('[collect_transfer_data] Contributor default first name: %s' % (name_first, ))
-    print('[collect_transfer_data] Contributor default last name:  %s' % (name_last, ))
+    name_last = (
+        ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
+    )
+    print('[collect_transfer_data] Contributor default first name: %s' % (name_first,))
+    print('[collect_transfer_data] Contributor default last name:  %s' % (name_last,))
     if user_prompt:
-        name_first = input('\n[collect_transfer_data] Change first name (Enter to use default): ')
-        name_last  = input('\n[collect_transfer_data] Change last name (Enter to use default): ')
+        name_first = input(
+            '\n[collect_transfer_data] Change first name (Enter to use default): '
+        )
+        name_last = input(
+            '\n[collect_transfer_data] Change last name (Enter to use default): '
+        )
 
     if autolocate:
-        success, location_city, location_state, location_country, location_zip = ut.geo_locate()
+        (
+            success,
+            location_city,
+            location_state,
+            location_country,
+            location_zip,
+        ) = ut.geo_locate()
     else:
         success = False
 
     if success:
-        print('\n[collect_transfer_data] Your location was be determined automatically.')
-        print('[collect_transfer_data] Contributor default city: %s'    % (location_city, ))
-        print('[collect_transfer_data] Contributor default state: %s'   % (location_state, ))
-        print('[collect_transfer_data] Contributor default zip: %s'     % (location_country, ))
-        print('[collect_transfer_data] Contributor default country: %s' % (location_zip, ))
+        print(
+            '\n[collect_transfer_data] Your location was be determined automatically.'
+        )
+        print('[collect_transfer_data] Contributor default city: %s' % (location_city,))
+        print(
+            '[collect_transfer_data] Contributor default state: %s' % (location_state,)
+        )
+        print(
+            '[collect_transfer_data] Contributor default zip: %s' % (location_country,)
+        )
+        print(
+            '[collect_transfer_data] Contributor default country: %s' % (location_zip,)
+        )
         if user_prompt:
-            location_city    = input('\n[collect_transfer_data] Change default location city (Enter to use default): ')
-            location_state   = input('\n[collect_transfer_data] Change default location state (Enter to use default): ')
-            location_zip     = input('\n[collect_transfer_data] Change default location zip (Enter to use default): ')
-            location_country = input('\n[collect_transfer_data] Change default location country (Enter to use default): ')
+            location_city = input(
+                '\n[collect_transfer_data] Change default location city (Enter to use default): '
+            )
+            location_state = input(
+                '\n[collect_transfer_data] Change default location state (Enter to use default): '
+            )
+            location_zip = input(
+                '\n[collect_transfer_data] Change default location zip (Enter to use default): '
+            )
+            location_country = input(
+                '\n[collect_transfer_data] Change default location country (Enter to use default): '
+            )
     else:
         if user_prompt:
             print('\n')
-        print('[collect_transfer_data] Your location could not be determined automatically.')
+        print(
+            '[collect_transfer_data] Your location could not be determined automatically.'
+        )
         if user_prompt:
-            location_city    = input('[collect_transfer_data] Enter your location city (Enter to skip): ')
-            location_state   = input('[collect_transfer_data] Enter your location state (Enter to skip): ')
-            location_zip     = input('[collect_transfer_data] Enter your location zip (Enter to skip): ')
-            location_country = input('[collect_transfer_data] Enter your location country (Enter to skip): ')
+            location_city = input(
+                '[collect_transfer_data] Enter your location city (Enter to skip): '
+            )
+            location_state = input(
+                '[collect_transfer_data] Enter your location state (Enter to skip): '
+            )
+            location_zip = input(
+                '[collect_transfer_data] Enter your location zip (Enter to skip): '
+            )
+            location_country = input(
+                '[collect_transfer_data] Enter your location country (Enter to skip): '
+            )
         else:
-            location_city    = ''
-            location_state   = ''
-            location_zip     = ''
+            location_city = ''
+            location_state = ''
+            location_zip = ''
             location_country = ''
 
-    #tag = '::'.join([name_first, name_last, location_city, location_state, location_zip, location_country])
-    tag_components = [name_first, name_last, location_city, location_state, location_zip, location_country]
+    # tag = '::'.join([name_first, name_last, location_city, location_state, location_zip, location_country])
+    tag_components = [
+        name_first,
+        name_last,
+        location_city,
+        location_state,
+        location_zip,
+        location_country,
+    ]
     if offset is not None:
         tag_components += [str(offset)]
     tag_components_clean = [comp.replace(';', '<semi>') for comp in tag_components]
     tag = ','.join(tag_components_clean)
     contributor_rowid = ibs.add_contributors(
-        [tag], name_first_list=[name_first],
-        name_last_list=[name_last], loc_city_list=[location_city],
-        loc_state_list=[location_state], loc_country_list=[location_country],
-        loc_zip_list=[location_zip])[0]
+        [tag],
+        name_first_list=[name_first],
+        name_last_list=[name_last],
+        loc_city_list=[location_city],
+        loc_state_list=[location_state],
+        loc_country_list=[location_country],
+        loc_zip_list=[location_zip],
+    )[0]
     return contributor_rowid
 
 
@@ -245,21 +327,32 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
     """
     # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config
     if not ut.QUIET:
-        print('[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r' % (ibs.get_dbname()))
+        print(
+            '[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r'
+            % (ibs.get_dbname())
+        )
     contributor_rowid_list = ibs.get_valid_contributor_rowids()
     unassigned_gid_list = ibs.get_all_uncontributed_images()
     if not ut.QUIET:
-        print('[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned' %
-              (len(contributor_rowid_list), len(unassigned_gid_list)))
+        print(
+            '[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned'
+            % (len(contributor_rowid_list), len(unassigned_gid_list))
+        )
     if len(unassigned_gid_list) > 0:
-        new_contributor_rowid = ibs.add_new_temp_contributor(offset=len(contributor_rowid_list), user_prompt=user_prompt, autolocate=autolocate)
+        new_contributor_rowid = ibs.add_new_temp_contributor(
+            offset=len(contributor_rowid_list),
+            user_prompt=user_prompt,
+            autolocate=autolocate,
+        )
         # SET UNASSIGNED IMAGE CONTRIBUTORS
-        ibs.set_image_contributor_rowid(unassigned_gid_list, [new_contributor_rowid] * len(unassigned_gid_list))
+        ibs.set_image_contributor_rowid(
+            unassigned_gid_list, [new_contributor_rowid] * len(unassigned_gid_list)
+        )
         # ibs.ensure_imageset_configs_populated()
     # make sure that all images have assigned contributors
     # Get new non-conflicting contributor for unassigned images
-    #contributor_rowid_list = list([new_contributor_rowid]) * len(unassigned_gid_list)
-    #ibs.set_config_contributor_rowid(unassigned_gid_list, contributor_rowid_list)
+    # contributor_rowid_list = list([new_contributor_rowid]) * len(unassigned_gid_list)
+    # ibs.set_config_contributor_rowid(unassigned_gid_list, contributor_rowid_list)
     return ibs.get_valid_contributor_rowids()
 
 
@@ -274,7 +367,9 @@ def get_all_uncontributed_images(ibs):
     """
     gid_list = ibs.get_valid_gids()
     contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list)
-    is_unassigned = [contributor_rowid is None for contributor_rowid in contributor_rowid_list]
+    is_unassigned = [
+        contributor_rowid is None for contributor_rowid in contributor_rowid_list
+    ]
     unassigned_gid_list = ut.compress(gid_list, is_unassigned)
     return unassigned_gid_list
 
@@ -290,8 +385,12 @@ def get_all_uncontributed_configs(ibs):
     """
     config_rowid_list = ibs.get_valid_configids()
     contributor_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
-    isunassigned_list = [_contributor_rowid is None for _contributor_rowid in contributor_rowid_list]
-    unassigned_config_rowid_list = ut.compress(contributor_rowid_list, isunassigned_list)
+    isunassigned_list = [
+        _contributor_rowid is None for _contributor_rowid in contributor_rowid_list
+    ]
+    unassigned_config_rowid_list = ut.compress(
+        contributor_rowid_list, isunassigned_list
+    )
     return unassigned_config_rowid_list
 
 
@@ -307,7 +406,10 @@ def set_config_contributor_unassigned(ibs, contributor_rowid):
     # IS THIS NECESSARY?
     unassigned_config_rowid_list = ibs.get_all_uncontributed_configs()
     contributor_rowid_list = [contributor_rowid] * len(unassigned_config_rowid_list)
-    ibs.set_config_contributor_rowid(unassigned_config_rowid_list, contributor_rowid_list)
+    ibs.set_config_contributor_rowid(
+        unassigned_config_rowid_list, contributor_rowid_list
+    )
+
 
 #
 # GETTERS::.CONTRIBUTOR_TABLE
@@ -326,10 +428,12 @@ def get_contributor_rowid_from_uuid(ibs, contributor_uuid_list):
         URL:    /api/contributor/rowid/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    contributor_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE,
-                                        ('contributor_rowid',),
-                                        contributor_uuid_list,
-                                        id_colname='contributor_uuid')
+    contributor_rowid_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE,
+        ('contributor_rowid',),
+        contributor_uuid_list,
+        id_colname='contributor_uuid',
+    )
     return contributor_rowid_list
 
 
@@ -346,10 +450,12 @@ def get_contributor_rowid_from_tag(ibs, contributor_tag_list):
         URL:    /api/contributor/rowid/tag/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    contributor_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE,
-                                        ('contributor_rowid',),
-                                        contributor_tag_list,
-                                        id_colname='contributor_tag')
+    contributor_rowid_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE,
+        ('contributor_rowid',),
+        contributor_tag_list,
+        id_colname='contributor_tag',
+    )
     return contributor_rowid_list
 
 
@@ -365,27 +471,30 @@ def get_contributor_uuid(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/uuid/
     """
-    contributor_uuid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_uuid',), contributor_rowid_list)
+    contributor_uuid_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_uuid',), contributor_rowid_list
+    )
     return contributor_uuid_list
 
 
-CONTRIBUTOR_LOCATION_CITY    = 'contributor_location_city'
+CONTRIBUTOR_LOCATION_CITY = 'contributor_location_city'
 CONTRIBUTOR_LOCATION_COUNTRY = 'contributor_location_country'
-CONTRIBUTOR_LOCATION_STATE   = 'contributor_location_state'
-CONTRIBUTOR_LOCATION_ZIP     = 'contributor_location_zip'
-CONTRIBUTOR_NAME_FIRST       = 'contributor_name_first'
-CONTRIBUTOR_NAME_LAST        = 'contributor_name_last'
-CONTRIBUTOR_NOTE             = 'contributor_note'
-CONTRIBUTOR_ROWID            = 'contributor_rowid'
-CONTRIBUTOR_TAG              = 'contributor_tag'
-CONTRIBUTOR_UUID             = 'contributor_uuid'
-FEATWEIGHT_ROWID             = 'featweight_rowid'
+CONTRIBUTOR_LOCATION_STATE = 'contributor_location_state'
+CONTRIBUTOR_LOCATION_ZIP = 'contributor_location_zip'
+CONTRIBUTOR_NAME_FIRST = 'contributor_name_first'
+CONTRIBUTOR_NAME_LAST = 'contributor_name_last'
+CONTRIBUTOR_NOTE = 'contributor_note'
+CONTRIBUTOR_ROWID = 'contributor_rowid'
+CONTRIBUTOR_TAG = 'contributor_tag'
+CONTRIBUTOR_UUID = 'contributor_uuid'
+FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 def testdata_ibs():
     r"""
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
@@ -452,7 +561,13 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
     id_iter = contributor_rowid_list
     colnames = (CONTRIBUTOR_TAG,)
     contributor_tag_list = ibs.db.get(
-        const.CONTRIBUTOR_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.CONTRIBUTOR_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return contributor_tag_list
 
 
@@ -468,7 +583,9 @@ def get_contributor_first_name(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/name/first/
     """
-    contributor_name_first_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_name_first',), contributor_rowid_list)
+    contributor_name_first_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_name_first',), contributor_rowid_list
+    )
     return contributor_name_first_list
 
 
@@ -484,7 +601,9 @@ def get_contributor_last_name(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/name/last/
     """
-    contributor_name_last_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_name_last',), contributor_rowid_list)
+    contributor_name_last_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_name_last',), contributor_rowid_list
+    )
     return contributor_name_last_list
 
 
@@ -506,15 +625,11 @@ def get_contributor_name_string(ibs, contributor_rowid_list, include_tag=False):
         tag_list = ibs.get_contributor_tag(contributor_rowid_list)
         name_list = zip(first_list, last_list, tag_list)
         contributor_name_list = [
-            "%s %s (%s)" % (first, last, tag)
-            for first, last, tag in name_list
+            '%s %s (%s)' % (first, last, tag) for first, last, tag in name_list
         ]
     else:
         name_list = zip(first_list, last_list)
-        contributor_name_list = [
-            "%s %s" % (first, last)
-            for first, last in name_list
-        ]
+        contributor_name_list = ['%s %s' % (first, last) for first, last in name_list]
 
     return contributor_name_list
 
@@ -531,7 +646,9 @@ def get_contributor_city(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/location/city/
     """
-    contributor_city_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_location_city',), contributor_rowid_list)
+    contributor_city_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_location_city',), contributor_rowid_list
+    )
     return contributor_city_list
 
 
@@ -547,7 +664,9 @@ def get_contributor_state(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/location/state/
     """
-    contributor_state_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_location_state',), contributor_rowid_list)
+    contributor_state_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_location_state',), contributor_rowid_list
+    )
     return contributor_state_list
 
 
@@ -563,7 +682,11 @@ def get_contributor_country(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/location/country/
     """
-    contributor_country_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_location_country',), contributor_rowid_list)
+    contributor_country_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE,
+        ('contributor_location_country',),
+        contributor_rowid_list,
+    )
     return contributor_country_list
 
 
@@ -579,7 +702,9 @@ def get_contributor_zip(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/location/zip/
     """
-    contributor_zip_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_location_zip',), contributor_rowid_list)
+    contributor_zip_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_location_zip',), contributor_rowid_list
+    )
     return contributor_zip_list
 
 
@@ -601,7 +726,7 @@ def get_contributor_location_string(ibs, contributor_rowid_list):
     country_list = ibs.get_contributor_country(contributor_rowid_list)
     location_list = zip(city_list, state_list, zip_list, country_list)
     contributor_list = [
-        "%s, %s\n%s %s" % (city, state, _zip, country)
+        '%s, %s\n%s %s' % (city, state, _zip, country)
         for city, state, _zip, country in location_list
     ]
     return contributor_list
@@ -619,7 +744,9 @@ def get_contributor_note(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/note/
     """
-    contributor_note_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_note',), contributor_rowid_list)
+    contributor_note_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, ('contributor_note',), contributor_rowid_list
+    )
     return contributor_note_list
 
 
@@ -635,7 +762,13 @@ def get_contributor_imgsetids(ibs, config_rowid_list):
         Method: GET
         URL:    /api/contributor/imageset/rowids/
     """
-    imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
+    imgsetid_list = ibs.db.get(
+        const.IMAGESET_TABLE,
+        ('imageset_rowid',),
+        config_rowid_list,
+        id_colname='config_rowid',
+        unpack_scalars=False,
+    )
     return imgsetid_list
 
 
@@ -653,7 +786,13 @@ def get_contributor_gids(ibs, contributor_rowid_list):
         Method: GET
         URL:    /api/contributor/gids/
     """
-    gid_list = ibs.db.get(const.IMAGE_TABLE, ('image_rowid',), contributor_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
+    gid_list = ibs.db.get(
+        const.IMAGE_TABLE,
+        ('image_rowid',),
+        contributor_rowid_list,
+        id_colname='contributor_rowid',
+        unpack_scalars=False,
+    )
     return gid_list
 
 
@@ -669,7 +808,9 @@ def get_config_contributor_rowid(ibs, config_rowid_list):
         Method: GET
         URL:    /api/contributor/config/rowid/
     """
-    cfgsuffix_list = ibs.db.get(const.CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
+    cfgsuffix_list = ibs.db.get(
+        const.CONFIG_TABLE, ('contributor_rowid',), config_rowid_list
+    )
     return cfgsuffix_list
 
 
@@ -685,7 +826,9 @@ def get_config_suffixes(ibs, config_rowid_list):
         Method: GET
         URL:    /api/contributor/config/suffixes/
     """
-    cfgsuffix_list = ibs.db.get(const.CONFIG_TABLE, ('config_suffix',), config_rowid_list)
+    cfgsuffix_list = ibs.db.get(
+        const.CONFIG_TABLE, ('config_suffix',), config_rowid_list
+    )
     return cfgsuffix_list
 
 
@@ -707,11 +850,11 @@ def delete_contributors(ibs, contributor_rowid_list):
     # Delete configs (UNSURE IF THIS IS CORRECT)
     # CONTRIBUTORS SHOULD NOT DELETE IMAGES
     # Delete imagesets
-    #imgsetid_list = ibs.get_valid_imgsetids()
-    #imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)
-    #valid_list = [config in config_rowid_list for config in imgsetid_config_list ]
-    #imgsetid_list = ut.compress(imgsetid_list, valid_list)
-    #ibs.delete_imagesets(imgsetid_list)
+    # imgsetid_list = ibs.get_valid_imgsetids()
+    # imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)
+    # valid_list = [config in config_rowid_list for config in imgsetid_config_list ]
+    # imgsetid_list = ut.compress(imgsetid_list, valid_list)
+    # ibs.delete_imagesets(imgsetid_list)
     # Remote image contributors ~~~Delete images~~~~
     gid_list = ut.flatten(ibs.get_contributor_gids(contributor_rowid_list))
     ibs.set_image_contributor_rowid(gid_list, [None] * len(gid_list))
@@ -763,7 +906,13 @@ def get_metadata_value(ibs, metadata_key_list, db):
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
     where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_value_list = db.get_where(const.METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+    metadata_value_list = db.get_where(
+        const.METADATA_TABLE,
+        ('metadata_value',),
+        params_iter,
+        where_clause,
+        unpack_scalars=True,
+    )
     return metadata_value_list
 
 
@@ -781,7 +930,13 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
     where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_rowid_list = db.get_where(const.METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+    metadata_rowid_list = db.get_where(
+        const.METADATA_TABLE,
+        ('metadata_rowid',),
+        params_iter,
+        where_clause,
+        unpack_scalars=True,
+    )
     return metadata_rowid_list
 
 
@@ -837,8 +992,12 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
     # Add imageset text names to database
     colnames = ['metadata_key', 'metadata_value']
     params_iter = zip(metadata_key_list, metadata_value_list)
-    get_rowid_from_superkey = functools.partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))
-    metadata_rowid_list = db.add_cleanly(const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    get_rowid_from_superkey = functools.partial(
+        ibs.get_metadata_rowid_from_metadata_key, db=(db,)
+    )
+    metadata_rowid_list = db.add_cleanly(
+        const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey
+    )
     return metadata_rowid_list
 
 
@@ -864,15 +1023,15 @@ def _init_config(ibs):
         print('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
-    #species_list = ibs.get_database_species()
+    # species_list = ibs.get_database_species()
     if current_species is None:
-        #species_list = ibs.get_database_species()
-        #species_list[0] if len(species_list) == 1 else None
+        # species_list = ibs.get_database_species()
+        # species_list[0] if len(species_list) == 1 else None
         primary_species = ibs.get_primary_database_species()
         current_species = primary_species
     cfgname = 'cfg' if current_species is None else current_species
     if ut.VERBOSE and ut.NOT_QUIET:
-        #print('[_init_config] Loading database with species_list = %r ' % (species_list,))
+        # print('[_init_config] Loading database with species_list = %r ' % (species_list,))
         print('[_init_config] Using cfgname=%r' % (cfgname,))
     # try to be intelligent about the default speceis
     ibs._load_named_config(cfgname)
@@ -885,7 +1044,7 @@ def _init_burned_in_species(ibs):
         'Giraffe (Masai)',
         'Giraffe (Reticulated)',
         'Other',
-        'Zebra (Grevy\'s)',
+        "Zebra (Grevy's)",
         'Zebra (Hybrid)',
         'Zebra (Plains)',
     ]
@@ -916,7 +1075,7 @@ def _load_named_config(ibs, cfgname=None):
     """
     # TODO: update cfgs between versions
     # Try to load previous config otherwise default
-    #use_config_cache = not (ut.is_developer() and not ut.get_argflag(('--nocache-pref',)))
+    # use_config_cache = not (ut.is_developer() and not ut.get_argflag(('--nocache-pref',)))
     use_config_cache = not ut.get_argflag(('--nocache-pref',))
     ibs.cfg = Config.load_named_config(cfgname, ibs.get_dbdir(), use_config_cache)
     ibs.reset_table_cache()
@@ -957,8 +1116,8 @@ def _default_config(ibs, cfgname=None, new=True):
 
     cfg = ibs.cfg
     """
-    #species_list = ibs.get_database_species()
-    #if len(species_list) == 1:
+    # species_list = ibs.get_database_species()
+    # if len(species_list) == 1:
     #    # try to be intelligent about the default speceis
     #    cfgname = species_list[0]
     ibs.cfg = Config._default_config(ibs.cfg, cfgname, new=new)
@@ -989,6 +1148,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_meta_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

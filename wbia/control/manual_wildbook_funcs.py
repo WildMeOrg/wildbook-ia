@@ -46,6 +46,7 @@ import requests
 from wbia.control import controller_inject
 from wbia.control import wildbook_manager as wb_man  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -55,11 +56,11 @@ DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
-#PREFERED_BROWSER = 'chrome'
-#webbrowser._tryorder
+# PREFERED_BROWSER = 'chrome'
+# webbrowser._tryorder
 PREFERED_BROWSER = None
 if ut.get_computer_name() == 'hyrule':
     PREFERED_BROWSER = 'firefox'
@@ -82,13 +83,13 @@ def get_wildbook_base_url(ibs, wb_target=None):
         wb_hostname = '127.0.0.1'
 
     wb_hostname = str(wb_hostname)
-    wb_port     = str(wb_port)
-    wb_target   = str(wb_target)
+    wb_port = str(wb_port)
+    wb_target = str(wb_target)
 
-    wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target, )
+    wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target,)
     wildbook_base_url = wildbook_base_url.strip('/')
 
-    print('USING WB BASEURL: %r' % (wildbook_base_url, ))
+    print('USING WB BASEURL: %r' % (wildbook_base_url,))
     return wildbook_base_url
 
 
@@ -106,7 +107,9 @@ def assert_ia_available_for_wb(ibs, wb_target=None):
         print('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
         return None
     except Exception as ex:
-        ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
+        ut.printex(
+            ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True
+        )
     else:
         have_server = False
         for count in ut.delayed_retry_gen([1], timeout=3, raise_=False):
@@ -138,6 +141,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
         >>> print('ia_url = %r' % (ia_url,))
     """
     import requests
+
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
@@ -150,14 +154,15 @@ def get_wildbook_ia_url(ibs, wb_target=None):
         raise Exception('Could not get IA status from wildbook')
     json_response = response.json()
     ia_url = json_response.get('iaURL')
-    #print('response = %r' % (response,))
+    # print('response = %r' % (response,))
     return ia_url
 
 
 @register_ibs_method
 @register_api('/api/wildbook/signal/annot/name/', methods=['PUT'])
-def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
-                                       dryrun=False):
+def wildbook_signal_annot_name_changes(
+    ibs, aid_list=None, wb_target=None, dryrun=False
+):
     r"""
     Args:
         aid_list (int):  list of annotation ids(default = None)
@@ -222,7 +227,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
         >>> # Signal what currently exists (should put them back to normal)
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)
     """
-    print('[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook')
+    print(
+        '[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook'
+    )
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
@@ -241,10 +248,14 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
     grouped_uuids = ut.group_items(annot_uuid_list, annot_name_text_list)
     url = wb_url + '/ia'
     payloads = [
-        {'resolver': {'assignNameToAnnotations': {
-            'name': new_name,
-            'annotationIds' : ut.lmap(str, annot_uuids),
-        }}}
+        {
+            'resolver': {
+                'assignNameToAnnotations': {
+                    'name': new_name,
+                    'annotationIds': ut.lmap(str, annot_uuids),
+                }
+            }
+        }
         for new_name, annot_uuids in grouped_uuids.items()
     ]
     status_list = []
@@ -264,8 +275,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
 
 @register_ibs_method
 @register_api('/api/wildbook/signal/name/', methods=['PUT'])
-def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
-                                 dryrun=False):
+def wildbook_signal_name_changes(
+    ibs, nid_list, new_name_list, wb_target=None, dryrun=False
+):
     r"""
     Args:
         nid_list (int):  list of name ids
@@ -353,10 +365,14 @@ def wildbook_get_existing_names(ibs, wb_target=None):
 
 @register_ibs_method
 @register_api('/api/wildbook/signal/imageset/', methods=['PUT'])
-def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
-                                  set_shipped_flag=True,
-                                  open_url_on_complete=True,
-                                  wb_target=None, dryrun=False):
+def wildbook_signal_imgsetid_list(
+    ibs,
+    imgsetid_list=None,
+    set_shipped_flag=True,
+    open_url_on_complete=True,
+    wb_target=None,
+    dryrun=False,
+):
     """
     Exports specified imagesets to wildbook. This is a synchronous call.
 
@@ -457,37 +473,40 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     for imgsetid in imgsetid_list:
         # First, check if imageset can be pushed
         aid_list = ibs.get_imageset_aids(imgsetid)
-        assert len(aid_list) > 0, (
-            'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,))
+        assert (
+            len(aid_list) > 0
+        ), 'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,)
         unknown_flags = ibs.is_aid_unknown(aid_list)
         unnamed_aid_list = ut.compress(aid_list, unknown_flags)
-        unnamed_ok_aid_list = ibs.filter_annots_general(
-            unnamed_aid_list,
-            minqual='ok',
-        )
+        unnamed_ok_aid_list = ibs.filter_annots_general(unnamed_aid_list, minqual='ok',)
         nUnnamedOk = sum(unnamed_ok_aid_list)
         assert nUnnamedOk == 0, (
-            ('ImageSet imgsetid=%r1 cannot be shipped becuase '
-             'annotation(s) %r with an identifiable quality have '
-             'not been named') % (imgsetid, unnamed_ok_aid_list, ))
+            'ImageSet imgsetid=%r1 cannot be shipped becuase '
+            'annotation(s) %r with an identifiable quality have '
+            'not been named'
+        ) % (imgsetid, unnamed_ok_aid_list,)
 
     # Call Wildbook url to signal update
-    print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
-        imgsetid_list, ))
+    print(
+        '[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook'
+        % (imgsetid_list,)
+    )
     imageset_uuid_list = ibs.get_imageset_uuid(imgsetid_list)
-    print('[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook' % (
-        imageset_uuid_list, ))
+    print(
+        '[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook'
+        % (imageset_uuid_list,)
+    )
 
     url = wb_url + '/ia'
     dbname = ibs.db.get_db_init_uuid()
-    occur_url_fmt = (wb_url + '/occurrence.jsp?number={uuid}&dbname={dbname}')
-    #enc_url_fmt = (wb_url + '/encounters/encounter.jsp?number={uuid}')
+    occur_url_fmt = wb_url + '/occurrence.jsp?number={uuid}&dbname={dbname}'
+    # enc_url_fmt = (wb_url + '/encounters/encounter.jsp?number={uuid}')
 
     # Check and push 'done' imagesets
     status_list = []
     for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
-        print('[_send] URL=%r' % (url, ))
-        json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid) }}
+        print('[_send] URL=%r' % (url,))
+        json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid)}}
         if dryrun:
             status = False
         else:
@@ -497,7 +516,9 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
             if set_shipped_flag:
                 ibs.set_imageset_shipped_flags([imgsetid], [status])
                 if status and open_url_on_complete:
-                    view_occur_url = occur_url_fmt.format(uuid=imageset_uuid, dbname=dbname)
+                    view_occur_url = occur_url_fmt.format(
+                        uuid=imageset_uuid, dbname=dbname
+                    )
                     _browser = ut.get_prefered_browser(PREFERED_BROWSER)
                     _browser.open_new_tab(view_occur_url)
         status_list.append(status)
@@ -523,13 +544,13 @@ def get_flukebook_image_uuids(ibs):
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'flukebook.image.admid.%s.json' % (timestamp, )
+    filename = 'flukebook.image.admid.%s.json' % (timestamp,)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    print('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json), ))
+    print('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json),))
 
     uuid_list = []
     for uuid_str in file_json:
@@ -539,9 +560,9 @@ def get_flukebook_image_uuids(ibs):
         except ValueError:
             continue
 
-    print('Validated %d Image UUIDs from Flukebook' % (len(uuid_list), ))
+    print('Validated %d Image UUIDs from Flukebook' % (len(uuid_list),))
     flukebook_image_uuid_list = list(set(uuid_list))
-    print('Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list), ))
+    print('Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list),))
 
     return flukebook_image_uuid_list
 
@@ -553,11 +574,21 @@ def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
     gid_list = ibs.get_valid_gids()
     local_image_uuid_list = ibs.get_image_uuids(gid_list)
 
-    unknown_uuid_list = list(set(flukebook_image_uuid_list) - set(local_image_uuid_list))
-    candidate_uuid_list = list(set(local_image_uuid_list) - set(flukebook_image_uuid_list))
+    unknown_uuid_list = list(
+        set(flukebook_image_uuid_list) - set(local_image_uuid_list)
+    )
+    candidate_uuid_list = list(
+        set(local_image_uuid_list) - set(flukebook_image_uuid_list)
+    )
 
-    print('There are %d Image UUIDs in Flukebook that are not here' % (len(unknown_uuid_list), ))
-    print('There are %d Image UUIDs in here that are not in Flukebook' % (len(candidate_uuid_list), ))
+    print(
+        'There are %d Image UUIDs in Flukebook that are not here'
+        % (len(unknown_uuid_list),)
+    )
+    print(
+        'There are %d Image UUIDs in here that are not in Flukebook'
+        % (len(candidate_uuid_list),)
+    )
 
     if auto_delete and len(candidate_uuid_list) > 0:
         candidate_gid_list = ibs.get_image_gids_from_uuid(candidate_uuid_list)
@@ -579,13 +610,13 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'flukebook.annot.admid.%s.json' % (timestamp, )
+    filename = 'flukebook.annot.admid.%s.json' % (timestamp,)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    print('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json), ))
+    print('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json),))
 
     uuid_list = []
     species_list = []
@@ -628,7 +659,7 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
 
     assert len(uuid_list) == len(species_list)
     assert len(uuid_list) == len(set(uuid_list))
-    print('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list), ))
+    print('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list),))
 
     flukebook_annot_uuid_list = uuid_list
     flukebook_annot_species_list = species_list
@@ -639,16 +670,30 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
 @register_ibs_method
 def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
     from wbia import constants as const
-    flukebook_annot_uuid_list, flukebook_annot_species_list = ibs.get_flukebook_annot_uuids()
+
+    (
+        flukebook_annot_uuid_list,
+        flukebook_annot_species_list,
+    ) = ibs.get_flukebook_annot_uuids()
 
     aid_list = ibs.get_valid_aids()
     local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    unknown_uuid_list = list(set(flukebook_annot_uuid_list) - set(local_annot_uuid_list))
-    candidate_uuid_list = list(set(local_annot_uuid_list) - set(flukebook_annot_uuid_list))
+    unknown_uuid_list = list(
+        set(flukebook_annot_uuid_list) - set(local_annot_uuid_list)
+    )
+    candidate_uuid_list = list(
+        set(local_annot_uuid_list) - set(flukebook_annot_uuid_list)
+    )
 
-    print('There are %d Annot UUIDs in Flukebook that are not here' % (len(unknown_uuid_list), ))
-    print('There are %d Annot UUIDs in here that are not in Flukebook' % (len(candidate_uuid_list), ))
+    print(
+        'There are %d Annot UUIDs in Flukebook that are not here'
+        % (len(unknown_uuid_list),)
+    )
+    print(
+        'There are %d Annot UUIDs in here that are not in Flukebook'
+        % (len(candidate_uuid_list),)
+    )
 
     if auto_delete and len(candidate_uuid_list) > 0:
         candidate_aid_list = ibs.get_annot_aids_from_uuid(candidate_uuid_list)
@@ -663,25 +708,31 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
     known_aid_list = ibs.get_annot_aids_from_uuid(known_uuid_list)
     assert None not in known_aid_list
 
-    flukebook_species_dict = dict(zip(flukebook_annot_uuid_list, flukebook_annot_species_list))
+    flukebook_species_dict = dict(
+        zip(flukebook_annot_uuid_list, flukebook_annot_species_list)
+    )
     known_species_list = ibs.get_annot_species(known_aid_list)
 
     flukebook_species_mapping = {
-        'humpback_whale' : 'megaptera_novaeangliae',
-        'tursiops_sp.'   : 'tursiops_sp',
+        'humpback_whale': 'megaptera_novaeangliae',
+        'tursiops_sp.': 'tursiops_sp',
     }
 
     update_dict = {}
     update_aid_list = []
     update_species_list = []
-    for known_aid, known_uuid, known_species in zip(known_aid_list, known_uuid_list, known_species_list):
+    for known_aid, known_uuid, known_species in zip(
+        known_aid_list, known_uuid_list, known_species_list
+    ):
         flukebook_species = flukebook_species_dict.get(known_uuid, None)
         if flukebook_species is None:
             flukebook_species = const.UNKNOWN
         assert flukebook_species is not None
         flukebook_species = flukebook_species.lower()
         flukebook_species = flukebook_species.replace(' ', '_')
-        flukebook_species = flukebook_species_mapping.get(flukebook_species, flukebook_species)
+        flukebook_species = flukebook_species_mapping.get(
+            flukebook_species, flukebook_species
+        )
 
         if known_species != flukebook_species:
 
@@ -712,9 +763,9 @@ def flukebook_sync(ibs, **kwargs):
     candidate_annot_uuid_list, update_dict = ibs.delete_flukebook_orphaned_annot_uuids()
 
     result_dict = {
-        'deleted_images' : len(candidate_image_uuid_list),
-        'deleted_annots' : len(candidate_annot_uuid_list),
-        'species_update' : update_dict,
+        'deleted_images': len(candidate_image_uuid_list),
+        'deleted_annots': len(candidate_annot_uuid_list),
+        'species_update': update_dict,
     }
     return result_dict
 
@@ -727,6 +778,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_wildbook_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

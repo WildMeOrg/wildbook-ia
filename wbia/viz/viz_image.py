@@ -7,6 +7,7 @@ from wbia.plottool import plot_helpers as ph
 from wbia.plottool import viz_image2
 import numpy as np
 from wbia.viz import viz_helpers as vh
+
 (print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
 
 
@@ -14,14 +15,16 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
     try:
         raise NotImplementedError('use pt.viz_image2.draw_image_overlay')
         # draw chips in the image
-        aid_list    = ibs.get_image_aids(gid)
-        bbox_list   = ibs.get_annot_bboxes(aid_list)
-        theta_list  = ibs.get_annot_thetas(aid_list)
-        text_list  = vh.get_annot_text(ibs, aid_list, draw_lbls)
+        aid_list = ibs.get_image_aids(gid)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        theta_list = ibs.get_annot_thetas(aid_list)
+        text_list = vh.get_annot_text(ibs, aid_list, draw_lbls)
         annotation_centers = vh.get_bbox_centers(bbox_list)
-        sel_list    = [aid in sel_aids for aid in aid_list]
+        sel_list = [aid in sel_aids for aid in aid_list]
 
-        viz_image2.draw_image_overlay(ax, bbox_list, theta_list, text_list, sel_list, draw_lbls, annote)
+        viz_image2.draw_image_overlay(
+            ax, bbox_list, theta_list, text_list, sel_list, draw_lbls, annote
+        )
         # Draw all chip indexes in the image
         if annote:
             annotation_iter = zip(bbox_list, theta_list, text_list, sel_list)
@@ -32,16 +35,18 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
         ph.set_plotdat(ax, 'annotation_bbox_list', bbox_list)
         ph.set_plotdat(ax, 'aid_list', aid_list)
     except Exception as ex:
-        ut.printex(ex, 'error drawing image overlay', key_list=['ibs', 'ax', 'gid', 'sel_aids'])
+        ut.printex(
+            ex, 'error drawing image overlay', key_list=['ibs', 'ax', 'gid', 'sel_aids']
+        )
         raise
 
 
 def get_annot_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
     annotekw = {
-        'bbox_list'  : ibs.get_annot_bboxes(aid_list),
-        'theta_list' : ibs.get_annot_thetas(aid_list),
-        'text_list' : vh.get_annot_text(ibs, aid_list, draw_lbls),
-        'sel_list'   : [aid in sel_aids for aid in aid_list],
+        'bbox_list': ibs.get_annot_bboxes(aid_list),
+        'theta_list': ibs.get_annot_thetas(aid_list),
+        'text_list': vh.get_annot_text(ibs, aid_list, draw_lbls),
+        'sel_list': [aid in sel_aids for aid in aid_list],
     }
     return annotekw
 
@@ -71,13 +76,17 @@ def drive_test_script(ibs):
         >>> drive_test_script(ibs)
     """
     import wbia
+
     aid_list = wbia.testdata_aids(a='default:pername=1')
     print('Running with (annot) aid_list = %r' % (aid_list))
     gid_list = ibs.get_annot_gids(aid_list)
     print('Running with (image) gid_list = %r' % (gid_list))
     avuuid_list = ibs.get_annot_visual_uuids(aid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
-    print('Running with annot_visual_uuid_list = %s' % (ut.repr2(zip(aid_list, avuuid_list))))
+    print(
+        'Running with annot_visual_uuid_list = %s'
+        % (ut.repr2(zip(aid_list, avuuid_list)))
+    )
     print('Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list))))
     for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
         print('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
@@ -124,37 +133,46 @@ def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
         pt.imshow_null(fnum=fnum, **kwargs)
         return fig
     # Trigger computation of all chips in parallel
-    #ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+    # ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
 
     rc = ut.get_argval('--rc', type_=list, default=None)
     if rc is None:
         nRows, nCols = ph.get_square_row_cols(nGids)
     else:
         nRows, nCols = rc
-    #notitle = ut.get_argflag('--notitle')
-    #draw_lbls = not ut.get_argflag('--no-draw_lbls')
-    #show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
-    #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
-    #gs2 = gridspec.GridSpec(nRows, nCols)
+    # notitle = ut.get_argflag('--notitle')
+    # draw_lbls = not ut.get_argflag('--no-draw_lbls')
+    # show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
+    # print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
+    # gs2 = gridspec.GridSpec(nRows, nCols)
     pnum_ = pt.get_pnum_func(nRows, nCols)
     fig = pt.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
     fig.clf()
     for px, gid in enumerate(gid_list):
         print(pnum_(px))
         _fig, _ax1 = show_image(ibs, gid, fnum=fnum, pnum=pnum_(px), **kwargs)
-        #ax = pt.gca()
-        #if aid in sel_aids:
+        # ax = pt.gca()
+        # if aid in sel_aids:
         #    pt.draw_border(ax, pt.GREEN, 4)
-        #if ut.get_argflag('--numlbl') and not DOBOTH:
+        # if ut.get_argflag('--numlbl') and not DOBOTH:
         #    ax.set_xlabel('(' + str(px + 1) + ')')
-        #plot_aid3(ibs, aid)
+        # plot_aid3(ibs, aid)
     pass
 
 
-#@ut.indent_func
-def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
-               notitle=False,
-               rich_title=False, pnum=(1, 1, 1), **kwargs):
+# @ut.indent_func
+def show_image(
+    ibs,
+    gid,
+    sel_aids=[],
+    fnum=None,
+    annote=True,
+    draw_lbls=True,
+    notitle=False,
+    rich_title=False,
+    pnum=(1, 1, 1),
+    **kwargs
+):
     """
     Driver function to show images
 
@@ -213,10 +231,10 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
         title += ', aids=%r' % (aid_list)
         title += ', db=%r' % (ibs.get_dbname())
     showkw = {
-        'title'      : title,
-        'annote'     : annote,
-        'fnum'       : fnum,
-        'pnum'       : pnum,
+        'title': title,
+        'annote': annote,
+        'fnum': fnum,
+        'pnum': pnum,
     }
     if notitle:
         del showkw['title']
@@ -229,6 +247,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
     ph.set_plotdat(ax, 'gid', gid)
     return fig, ax
 
+
 if __name__ == '__main__':
     """
     CommandLine:
@@ -237,6 +256,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_image --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

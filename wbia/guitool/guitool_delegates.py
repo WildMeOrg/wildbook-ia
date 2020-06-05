@@ -3,11 +3,13 @@ from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
+
 ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 
 
 class APIDelegate(QtWidgets.QItemDelegate):
     is_persistant_editable = True
+
     def __init__(self, parent):
         QtWidgets.QItemDelegate.__init__(self, parent)
 
@@ -26,7 +28,7 @@ class ImageDelegate(QtWidgets.QStyledItemDelegate):
         painter.fillRect(option.rect, QtGui.QColor(191, 222, 185))
 
         # path = "path\to\my\image.jpg"
-        self.path = "image.bmp"
+        self.path = 'image.bmp'
 
         image = QtGui.QImage(str(self.path))
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -39,6 +41,7 @@ class ComboDelegate(APIDelegate):
     A delegate that places a fully functioning QComboBox in every
     cell of the column to which it's applied
     """
+
     def __init__(self, parent):
         APIDelegate.__init__(self, parent)
 
@@ -50,8 +53,12 @@ class ComboDelegate(APIDelegate):
             self.connect(combo.currentIndexChanged, self.currentIndexChanged)
         else:
             # I believe this particular option is broken in pyqt4
-            self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
-                         self, QtCore.SLOT("currentIndexChanged()"))
+            self.connect(
+                combo,
+                QtCore.SIGNAL('currentIndexChanged(int)'),
+                self,
+                QtCore.SLOT('currentIndexChanged()'),
+            )
         return combo
 
     def setEditorData(self, editor, index):
@@ -72,6 +79,7 @@ class ButtonDelegate(APIDelegate):
     A delegate that places a fully functioning QPushButton in every
     cell of the column to which it's applied
     """
+
     def __init__(self, parent):
         # The parent is not an optional argument for the delegate as
         # we need to reference it in the paint method (see below)
@@ -91,8 +99,8 @@ class ButtonDelegate(APIDelegate):
                 QtWidgets.QPushButton(
                     index.data().toString(),
                     self.parent(),
-                    clicked=self.parent().cellButtonClicked
-                )
+                    clicked=self.parent().cellButtonClicked,
+                ),
             )
 
 

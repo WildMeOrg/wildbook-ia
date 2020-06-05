@@ -12,6 +12,7 @@ from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.guitool import qtype
 import utool as ut
 from utool import util_type
+
 ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
 
 VERBOSE_PREF = ut.get_argflag('--verbpref')
@@ -19,6 +20,7 @@ VERBOSE_PREF = ut.get_argflag('--verbpref')
 
 def report_thread_error(fn):
     """ Decorator to help catch errors that QT wont report """
+
     def report_thread_error_wrapper(*args, **kwargs):
         try:
             ret = fn(*args, **kwargs)
@@ -29,6 +31,7 @@ def report_thread_error(fn):
             sys.stdout.flush()
             et, ei, tb = sys.exc_info()
             raise
+
     return report_thread_error_wrapper
 
 
@@ -40,9 +43,11 @@ def _qt_set_leaf_data(self, qvar):
         print('[pref.qt_set_leaf_data] qvar = %r' % qvar)
         print('[pref.qt_set_leaf_data] _intern.name=%r' % self._intern.name)
         print('[pref.qt_set_leaf_data] _intern.type_=%r' % self._intern.get_type())
-        print('[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value))
+        print(
+            '[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value)
+        )
         print('[pref.qt_set_leaf_data] _intern.value=%r' % self._intern.value)
-        #print('[pref.qt_set_leaf_data] qvar.toString()=%s' % str(qvar.toString()))
+        # print('[pref.qt_set_leaf_data] qvar.toString()=%s' % str(qvar.toString()))
     if self._tree.parent is None:
         raise Exception('[Pref.qtleaf] Cannot set root preference')
     if self.qt_is_editable():
@@ -58,32 +63,33 @@ def _qt_set_leaf_data(self, qvar):
                         return ret
                     except Exception:
                         continue
+
             new_val = cast_order(str(qvar))
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
-            #new_val = bool(qvar.toBool())
+            # new_val = bool(qvar.toBool())
             print('qvar = %r' % (qvar,))
             new_val = util_type.smart_cast(qvar, bool)
-            #new_val = bool(eval(qvar, {}, {}))
+            # new_val = bool(eval(qvar, {}, {}))
             print('new_val = %r' % (new_val,))
         elif isinstance(self._intern.value, int):
-            #new_val = int(qvar.toInt()[0])
+            # new_val = int(qvar.toInt()[0])
             new_val = int(qvar)
         # elif isinstance(self._intern.value, float):
         elif self._intern.get_type() in util_type.VALID_FLOAT_TYPES:
-            #new_val = float(qvar.toDouble()[0])
+            # new_val = float(qvar.toDouble()[0])
             new_val = float(qvar)
         elif isinstance(self._intern.value, six.string_types):
-            #new_val = str(qvar.toString())
+            # new_val = str(qvar.toString())
             new_val = str(qvar)
         elif isinstance(self._intern.value, PrefChoice):
-            #new_val = qvar.toString()
+            # new_val = qvar.toString()
             new_val = str(qvar)
             if new_val.upper() == 'NONE':
                 new_val = None
         else:
             try:
-                #new_val = str(qvar.toString())
+                # new_val = str(qvar.toString())
                 type_ = self._intern.get_type()
                 if type_ is not None:
                     new_val = type_(str(qvar))
@@ -91,10 +97,14 @@ def _qt_set_leaf_data(self, qvar):
                     new_val = str(qvar)
             except Exception:
                 raise NotImplementedError(
-                    ('[Pref.qtleaf] Unknown internal type. '
-                     'type(_intern.value) = %r, '
-                     '_intern.get_type() = %r, ')
-                    % type(self._intern.value), self._intern.get_type())
+                    (
+                        '[Pref.qtleaf] Unknown internal type. '
+                        'type(_intern.value) = %r, '
+                        '_intern.get_type() = %r, '
+                    )
+                    % type(self._intern.value),
+                    self._intern.get_type(),
+                )
         # Check for a set of None
         if isinstance(new_val, six.string_types):
             if new_val.lower() == 'none':
@@ -117,10 +127,11 @@ def _qt_set_leaf_data(self, qvar):
 
 class QPreferenceModel(QtCore.QAbstractItemModel):
     """ Convention states only items with column index 0 can have children """
+
     @report_thread_error
     def __init__(self, pref_struct, parent=None):
         super(QPreferenceModel, self).__init__(parent)
-        self.rootPref  = pref_struct
+        self.rootPref = pref_struct
 
     @report_thread_error
     def index2Pref(self, index=QtCore.QModelIndex()):
@@ -131,7 +142,7 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
                 return item
         return self.rootPref
 
-    #-----------
+    # -----------
     # Overloaded ItemModel Read Functions
     @report_thread_error
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -159,17 +170,17 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
             return QVariantHack()
         nodePref = self.index2Pref(qtindex)
         data = nodePref.qt_get_data(qtindex.column())
-        #print('--- data() ---')
-        #print('role = %r' % role)
-        #print('data = %r' % data)
-        #print('type(data) = %r' % type(data))
+        # print('--- data() ---')
+        # print('role = %r' % role)
+        # print('data = %r' % data)
+        # print('type(data) = %r' % type(data))
         # <SIP.API_MODE(1)>
-        #var = QVariantHack(data)
-        #if isinstance(data, float):
+        # var = QVariantHack(data)
+        # if isinstance(data, float):
         #    var = QVariantHack(QString.number(data, format='g', precision=6))
-        #if isinstance(data, bool):
+        # if isinstance(data, bool):
         #    var = QVariantHack(data).toString()
-        #if isinstance(data, int):
+        # if isinstance(data, int):
         #    var = QVariantHack(data).toString()
         # </SIP.API_MODE(1)>
         # <SIP.API_MODE(2)>
@@ -178,8 +189,8 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
         else:
             var = data
         # </SIP.API_MODE(2)>
-        #print('var= %r' % var)
-        #print('type(var)= %r' % type(var))
+        # print('var= %r' % var)
+        # print('type(var)= %r' % type(var))
         return str(var)
 
     @report_thread_error
@@ -188,7 +199,7 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
         if role == Qt.EditRole:
             data = value
         elif role == Qt.CheckStateRole:
-            data = (value == Qt.Checked)
+            data = value == Qt.Checked
         else:
             return False
 
@@ -208,8 +219,8 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
             result = _qt_set_leaf_data(leafPref, data)
             if VERBOSE_PREF:
                 print('[qt] result = %r' % (result,))
-            #if result is True:
-            #return result
+            # if result is True:
+            # return result
         self.dataChanged.emit(qtindex, qtindex)
         return True
 
@@ -220,7 +231,7 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
         if parent.isValid() and parent.column() != 0:
             return QtCore.QModelIndex()
         parentPref = self.index2Pref(parent)
-        childPref  = parentPref.qt_get_child(row)
+        childPref = parentPref.qt_get_child(row)
         if childPref:
             return self.createIndex(row, col, childPref)
         else:
@@ -252,9 +263,9 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
         if childPref:
             if childPref.qt_is_editable():
                 if childPref._intern.get_type() is bool:
-                    #print(childPref)
-                    #print(childPref._intern.get_type())
-                    #print(childPref._intern.get_type() is bool)
+                    # print(childPref)
+                    # print(childPref._intern.get_type())
+                    # print(childPref._intern.get_type() is bool)
                     return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
                 else:
                     return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -274,6 +285,7 @@ class Ui_editPrefSkel(object):
     """
     THE PREFERENCE SKELETON
     """
+
     def setupUi(self, editPrefSkel):
         editPrefSkel.setObjectName(_fromUtf8('editPrefSkel'))
         editPrefSkel.resize(668, 530)
@@ -288,13 +300,13 @@ class Ui_editPrefSkel(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8('horizontalLayout'))
         #
-        #self.redrawBUT = QtWidgets.QPushButton(editPrefSkel)
-        #self.redrawBUT.setObjectName(_fromUtf8('redrawBUT'))
-        #self.horizontalLayout.addWidget(self.redrawBUT)
+        # self.redrawBUT = QtWidgets.QPushButton(editPrefSkel)
+        # self.redrawBUT.setObjectName(_fromUtf8('redrawBUT'))
+        # self.horizontalLayout.addWidget(self.redrawBUT)
         ##
-        #self.unloadFeaturesAndModelsBUT = QtWidgets.QPushButton(editPrefSkel)
-        #self.unloadFeaturesAndModelsBUT.setObjectName(_fromUtf8('unloadFeaturesAndModelsBUT'))
-        #self.horizontalLayout.addWidget(self.unloadFeaturesAndModelsBUT)
+        # self.unloadFeaturesAndModelsBUT = QtWidgets.QPushButton(editPrefSkel)
+        # self.unloadFeaturesAndModelsBUT.setObjectName(_fromUtf8('unloadFeaturesAndModelsBUT'))
+        # self.horizontalLayout.addWidget(self.unloadFeaturesAndModelsBUT)
         #
         self.defaultPrefsBUT = QtWidgets.QPushButton(editPrefSkel)
         self.defaultPrefsBUT.setObjectName(_fromUtf8('defaultPrefsBUT'))
@@ -306,9 +318,11 @@ class Ui_editPrefSkel(object):
 
     def retranslateUi(self, editPrefSkel):
         # UTF-8 Support
-        editPrefSkel.setWindowTitle(_translate('editPrefSkel', 'Edit Preferences', None))
-        #self.redrawBUT.setText(_translate('editPrefSkel', 'Redraw', None))
-        #self.unloadFeaturesAndModelsBUT.setText(_translate('editPrefSkel', 'Unload Features and Models', None))
+        editPrefSkel.setWindowTitle(
+            _translate('editPrefSkel', 'Edit Preferences', None)
+        )
+        # self.redrawBUT.setText(_translate('editPrefSkel', 'Redraw', None))
+        # self.unloadFeaturesAndModelsBUT.setText(_translate('editPrefSkel', 'Unload Features and Models', None))
         self.defaultPrefsBUT.setText(_translate('editPrefSkel', 'Defaults', None))
 
 
@@ -317,23 +331,24 @@ class Ui_editPrefSkel(object):
 # ---
 class EditPrefWidget(QtWidgets.QWidget):
     """The Settings Pane; Subclass of Main Windows."""
+
     def __init__(self, pref_struct):
         super(EditPrefWidget, self).__init__()
         self.ui = Ui_editPrefSkel()
         self.ui.setupUi(self)
         self.pref_model = None
         self.populatePrefTreeSlot(pref_struct)
-        #self.ui.redrawBUT.clicked.connect(fac.redraw)
-        #self.ui.defaultPrefsBUT.clicked.connect(fac.default_prefs)
-        #self.ui.unloadFeaturesAndModelsBUT.clicked.connect(fac.unload_features_and_models)
+        # self.ui.redrawBUT.clicked.connect(fac.redraw)
+        # self.ui.defaultPrefsBUT.clicked.connect(fac.default_prefs)
+        # self.ui.unloadFeaturesAndModelsBUT.clicked.connect(fac.unload_features_and_models)
 
     @QtCore.pyqtSlot(Pref, name='populatePrefTreeSlot')
     def populatePrefTreeSlot(self, pref_struct):
         """Populates the Preference Tree Model"""
-        #printDBG('Bulding Preference Model of: ' + repr(pref_struct))
-        #Creates a QStandardItemModel that you can connect to a QTreeView
+        # printDBG('Bulding Preference Model of: ' + repr(pref_struct))
+        # Creates a QStandardItemModel that you can connect to a QTreeView
         self.pref_model = QPreferenceModel(pref_struct)
-        #printDBG('Built: ' + repr(self.pref_model))
+        # printDBG('Built: ' + repr(self.pref_model))
         self.ui.prefTreeView.setModel(self.pref_model)
         self.ui.prefTreeView.header().resizeSection(0, 250)
 
@@ -357,6 +372,7 @@ def test_preference_gui():
         >>> guitool.qtapp_loop(freq=10)
     """
     from wbia import dtool
+
     class DtoolConfig(dtool.Config):
         _param_info_list = [
             ut.ParamInfo('str_option2', 'hello'),
@@ -381,8 +397,9 @@ def test_preference_gui():
     old.new = new_wrap
     epw = old.createQWidget()
     from wbia.plottool import fig_presenter
+
     fig_presenter.register_qt4_win(epw)
-    #epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
+    # epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
     epw.show()
     return old, epw
 
@@ -394,6 +411,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.PreferenceWidget --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

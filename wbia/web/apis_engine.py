@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-#if False:
+
+# if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import six
@@ -8,12 +9,14 @@ import utool as ut
 import uuid  # NOQA
 from wbia.control import accessor_decors, controller_inject
 import wbia.constants as const
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 def ensure_simple_server(port=5832):
@@ -54,7 +57,10 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
     zipped = zip(annot_uuid_list, name_list)
     for index, (annot_uuid, name) in enumerate(zipped):
         if not isinstance(annot_uuid, (uuid.UUID, six.string_types)):
-            raise ValueError('Received UUID %r that is not a UUID or string at index %s' % (annot_uuid, index, ))
+            raise ValueError(
+                'Received UUID %r that is not a UUID or string at index %s'
+                % (annot_uuid, index,)
+            )
 
         if annot_uuid not in annot_dict:
             annot_dict[annot_uuid] = set([])
@@ -66,10 +72,7 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
             bad_uuid_set.add(annot_uuid)
 
     if len(bad_uuid_set) > 0:
-        bad_dict = {
-            bad_uuid: annot_dict[bad_uuid]
-            for bad_uuid in bad_uuid_set
-        }
+        bad_dict = {bad_uuid: annot_dict[bad_uuid] for bad_uuid in bad_uuid_set}
         raise controller_inject.WebMultipleNamedDuplicateException(bad_dict)
 
     annot_uuid_list_ = []
@@ -81,7 +84,9 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
         elif len(names) == 1:
             name = names[0]
         else:
-            raise RuntimeError('Sanity check failed in web_check_annot_uuids_with_names')
+            raise RuntimeError(
+                'Sanity check failed in web_check_annot_uuids_with_names'
+            )
 
         annot_uuid_list_.append(annot_uuid)
         name_list_.append(name)
@@ -143,7 +148,10 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         try:
             assert isinstance(image_uuid, uuid.UUID)
         except Exception:
-            value = (index, image_uuid, )
+            value = (
+                index,
+                image_uuid,
+            )
             invalid_image_uuid_list.append(value)
 
     invalid_annot_uuid_list = []
@@ -151,13 +159,16 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         try:
             assert isinstance(annot_uuid, uuid.UUID)
         except Exception:
-            value = (index, annot_uuid, )
+            value = (
+                index,
+                annot_uuid,
+            )
             invalid_annot_uuid_list.append(value)
 
     if len(invalid_image_uuid_list) > 0 or len(invalid_annot_uuid_list) > 0:
         kwargs = {
-            'invalid_image_uuid_list' : invalid_image_uuid_list,
-            'invalid_annot_uuid_list' : invalid_annot_uuid_list,
+            'invalid_image_uuid_list': invalid_image_uuid_list,
+            'invalid_annot_uuid_list': invalid_annot_uuid_list,
         }
         raise controller_inject.WebInvalidUUIDException(**kwargs)
 
@@ -168,8 +179,8 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
     missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
     if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
         kwargs = {
-            'missing_image_uuid_list' : missing_image_uuid_list,
-            'missing_annot_uuid_list' : missing_annot_uuid_list,
+            'missing_image_uuid_list': missing_image_uuid_list,
+            'missing_annot_uuid_list': missing_annot_uuid_list,
         }
         raise controller_inject.WebMissingUUIDException(**kwargs)
     ddup_pos_map = ut.find_duplicate_items(qannot_uuid_list)
@@ -181,8 +192,14 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/query/annot/rowid/', methods=['GET', 'POST'])
-def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
-                          pipecfg={}, callback_url=None, callback_method=None):
+def start_identify_annots(
+    ibs,
+    qannot_uuid_list,
+    dannot_uuid_list=None,
+    pipecfg={},
+    callback_url=None,
+    callback_method=None,
+):
     r"""
     REST:
         Method: GET
@@ -279,9 +296,9 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     # Check UUIDs
     ibs.web_check_uuids([], qannot_uuid_list, dannot_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     qannot_uuid_list = ensure_uuid_list(qannot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(dannot_uuid_list)
 
@@ -295,16 +312,18 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         else:
             daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
-    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids',
-                          auuid_list=qannot_uuid_list)
-    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids',
-                          auuid_list=dannot_uuid_list)
+    ibs.assert_valid_aids(
+        qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list
+    )
+    ibs.assert_valid_aids(
+        daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list
+    )
     args = (qaid_list, daid_list, pipecfg)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict',
-                                               callback_url, callback_method,
-                                               *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_simple_dict', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -314,14 +333,17 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 @register_ibs_method
 # @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/complete/', methods=['GET', 'POST'])
-def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
-                                         annot_name_list=None,
-                                         matching_state_list=[],
-                                         query_config_dict={},
-                                         k=5,
-                                         echo_query_params=True,
-                                         callback_url=None,
-                                         callback_method=None):
+def start_identify_annots_query_complete(
+    ibs,
+    annot_uuid_list=None,
+    annot_name_list=None,
+    matching_state_list=[],
+    query_config_dict={},
+    k=5,
+    echo_query_params=True,
+    callback_url=None,
+    callback_method=None,
+):
     r"""
     REST:
         Method: GET
@@ -351,7 +373,9 @@ def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
 
     # Ensure annotations
-    if annot_uuid_list is None or (len(annot_uuid_list) == 1 and annot_uuid_list[0] is None):
+    if annot_uuid_list is None or (
+        len(annot_uuid_list) == 1 and annot_uuid_list[0] is None
+    ):
         aid_list = ibs.get_valid_aids()
     else:
         aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -363,32 +387,39 @@ def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
 
-    ibs.assert_valid_aids(aid_list, msg='error in start_identify qaids',
-                          auuid_list=annot_uuid_list)
+    ibs.assert_valid_aids(
+        aid_list, msg='error in start_identify qaids', auuid_list=annot_uuid_list
+    )
 
-    args = (aid_list, query_config_dict, k, )
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph_complete',
-                                               callback_url, callback_method,
-                                               *args)
+    args = (
+        aid_list,
+        query_config_dict,
+        k,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph_complete', callback_url, callback_method, *args
+    )
     return jobid
 
 
 @register_ibs_method
 # @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
-def start_identify_annots_query(ibs,
-                                query_annot_uuid_list=None,
-                                # query_annot_name_uuid_list=None,
-                                query_annot_name_list=None,
-                                database_annot_uuid_list=None,
-                                # database_annot_name_uuid_list=None,
-                                database_annot_name_list=None,
-                                matching_state_list=[],
-                                query_config_dict={},
-                                echo_query_params=True,
-                                include_qaid_in_daids=True,
-                                callback_url=None,
-                                callback_method=None):
+def start_identify_annots_query(
+    ibs,
+    query_annot_uuid_list=None,
+    # query_annot_name_uuid_list=None,
+    query_annot_name_list=None,
+    database_annot_uuid_list=None,
+    # database_annot_name_uuid_list=None,
+    database_annot_name_list=None,
+    matching_state_list=[],
+    query_config_dict={},
+    echo_query_params=True,
+    include_qaid_in_daids=True,
+    callback_url=None,
+    callback_method=None,
+):
     r"""
     REST:
         Method: GET
@@ -451,8 +482,11 @@ def start_identify_annots_query(ibs,
     """
     valid_states = {
         'match': ['matched'],  # ['match', 'matched'],
-        'nomatch': ['notmatched', 'nonmatch'],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
-        'notcomp' :  ['notcomparable'],
+        'nomatch': [
+            'notmatched',
+            'nonmatch',
+        ],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
+        'notcomp': ['notcomparable'],
     }
     prefered_states = ut.take_column(valid_states.values(), 0)
     flat_states = ut.flatten(valid_states.values())
@@ -460,7 +494,10 @@ def start_identify_annots_query(ibs,
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
-        assert state in flat_states, 'matching_state_list has unrecognized states. Should be one of %r' % (prefered_states,)
+        assert state in flat_states, (
+            'matching_state_list has unrecognized states. Should be one of %r'
+            % (prefered_states,)
+        )
         return state
 
     # HACK
@@ -474,8 +511,13 @@ def start_identify_annots_query(ibs,
     qname_list = query_annot_name_list
 
     # Check inputs
-    assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time. Got %d ' % (len(query_annot_uuid_list),)
-    assert database_annot_uuid_list is None or len(database_annot_uuid_list) > 0, 'Cannot specify an empty database_annot_uuid_list (e.g. []), specify or use None instead'
+    assert len(query_annot_uuid_list) == 1, (
+        'Can only identify one query annotation at a time. Got %d '
+        % (len(query_annot_uuid_list),)
+    )
+    assert (
+        database_annot_uuid_list is None or len(database_annot_uuid_list) > 0
+    ), 'Cannot specify an empty database_annot_uuid_list (e.g. []), specify or use None instead'
 
     if qname_list is not None:
         assert len(query_annot_uuid_list) == len(qname_list)
@@ -484,7 +526,11 @@ def start_identify_annots_query(ibs,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke'):
+    if proot.lower() in (
+        'curvrankdorsal',
+        'curvrankfinfindrhybriddorsal',
+        'curvrankfluke',
+    ):
         curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', '')
         if len(curvrank_daily_tag) > 144:
             message = 'The curvrank_daily_tag cannot have more than 128 characters, please shorten and try again.'
@@ -495,7 +541,7 @@ def start_identify_annots_query(ibs,
         print(ut.repr3(query_config_dict))
         pop_key_list = ['curvrank_daily_tag']
         for pop_key in pop_key_list:
-            print('Popping irrelevant key for config: %r' % (pop_key, ))
+            print('Popping irrelevant key for config: %r' % (pop_key,))
             query_config_dict.pop(pop_key, None)
 
     # Check UUIDs
@@ -504,9 +550,9 @@ def start_identify_annots_query(ibs,
         database_annot_uuid_list, dname_list = vals
     ibs.web_check_uuids([], query_annot_uuid_list, database_annot_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
 
     qannot_uuid_list = ensure_uuid_list(query_annot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(database_annot_uuid_list)
@@ -514,10 +560,14 @@ def start_identify_annots_query(ibs,
     # Ensure annotations
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
 
-    if dannot_uuid_list is None or (len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None):
+    if dannot_uuid_list is None or (
+        len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None
+    ):
         qaid = qaid_list[0]
         species = ibs.get_annot_species_texts(qaid)
-        assert species != const.UNKNOWN, 'Cannot query an annotation with an empty (unset) species against an unspecified database_annot_uuid_list'
+        assert (
+            species != const.UNKNOWN
+        ), 'Cannot query an annotation with an empty (unset) species against an unspecified database_annot_uuid_list'
         daid_list = ibs.get_valid_aids()
         daid_list = ibs.filter_annotation_set(daid_list, species=species)
     else:
@@ -549,28 +599,38 @@ def start_identify_annots_query(ibs,
     state_list = map(sanitize, ut.take_column(matching_state_list, 2))
     # {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
     user_feedback = {
-        'aid1'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
-        'aid2'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
-        'p_match'   : [1.0 if state in valid_states['match'] else 0.0 for state in state_list],
-        'p_nomatch' : [1.0 if state in valid_states['nomatch'] else 0.0 for state in state_list],
-        'p_notcomp' : [1.0 if state in valid_states['notcomp'] else 0.0 for state in state_list],
+        'aid1': ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
+        'aid2': ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
+        'p_match': [
+            1.0 if state in valid_states['match'] else 0.0 for state in state_list
+        ],
+        'p_nomatch': [
+            1.0 if state in valid_states['nomatch'] else 0.0 for state in state_list
+        ],
+        'p_notcomp': [
+            1.0 if state in valid_states['notcomp'] else 0.0 for state in state_list
+        ],
     }
 
-    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids',
-                          auuid_list=qannot_uuid_list)
-    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids',
-                          auuid_list=dannot_uuid_list)
+    ibs.assert_valid_aids(
+        qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list
+    )
+    ibs.assert_valid_aids(
+        daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list
+    )
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph',
-                                               callback_url, callback_method,
-                                               *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph', callback_url, callback_method, *args
+    )
     return jobid
 
 
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/wic/cnn/', methods=['POST'])
-def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_wic_image(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
+):
     """
     REST:
         Method: GET
@@ -583,15 +643,20 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('wic_cnn_json', callback_url, callback_method, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'wic_cnn_json', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -601,7 +666,9 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_detect_image_yolo(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
+):
     """
     REST:
         Method: GET
@@ -614,15 +681,20 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'detect_cnn_yolo_json', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -632,19 +704,26 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/labeler/cnn/', methods=['POST'])
-def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_labeler_cnn(
+    ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs
+):
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    args = (aid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('labeler_cnn', callback_url, callback_method, *args)
+    args = (
+        aid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'labeler_cnn', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -654,22 +733,26 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/review/query/chip/best/', methods=['POST'])
-def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_method=None, **kwargs):
+def start_review_query_chips_best(
+    ibs, annot_uuid, callback_url=None, callback_method=None, **kwargs
+):
     annot_uuid_list = [annot_uuid]
 
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     aid = aid_list[0]
-    args = (aid, )
-    jobid = ibs.job_manager.jobiface.queue_job('review_query_chips_best', callback_url, callback_method, *args)
+    args = (aid,)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'review_query_chips_best', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -681,6 +764,7 @@ def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_m
 @register_api('/test/engine/detect/cnn/yolo/', methods=['GET'])
 def start_detect_image_test_yolo(ibs):
     from random import shuffle  # NOQA
+
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
@@ -692,7 +776,9 @@ def start_detect_image_test_yolo(ibs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
-def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_detect_image_lightnet(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
+):
     """
     REST:
         Method: GET/api/engine/detect/cnn/lightnet/
@@ -705,15 +791,20 @@ def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callbac
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_lightnet_json', callback_url, callback_method, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'detect_cnn_lightnet_json', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -725,6 +816,7 @@ def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callbac
 @register_api('/test/engine/detect/cnn/lightnet/', methods=['GET'])
 def start_detect_image_test_lightnet(ibs):
     from random import shuffle  # NOQA
+
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
@@ -736,7 +828,9 @@ def start_detect_image_test_lightnet(ibs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
-def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_predict_ws_injury_interim_svm(
+    ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs
+):
     """
     REST:
         Method: POST
@@ -769,15 +863,17 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
-    #import wbia
-    #from wbia.web import apis_engine
-    #ibs.load_plugin_module(apis_engine)
+    # import wbia
+    # from wbia.web import apis_engine
+    # ibs.load_plugin_module(apis_engine)
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     annots = ibs.annots(uuids=annot_uuid_list)
     args = (annots.aids,)
-    jobid = ibs.job_manager.jobiface.queue_job('predict_ws_injury_interim_svm', callback_url, callback_method, *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'predict_ws_injury_interim_svm', callback_url, callback_method, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -793,7 +889,9 @@ def start_web_query_all(ibs):
         Method: GET
         URL: /api/engine/query/web/
     """
-    jobid = ibs.job_manager.jobiface.queue_job('load_identification_query_object_worker')
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'load_identification_query_object_worker'
+    )
     return jobid
 
 
@@ -817,6 +915,8 @@ if __name__ == '__main__':
         python -m wbia.web.apis_engine --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

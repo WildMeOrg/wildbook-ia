@@ -51,7 +51,8 @@ Notes:
         python -m wbia.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-#if False:
+
+# if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import utool as ut
@@ -68,19 +69,23 @@ from os.path import join, exists, abspath, splitext, basename
 from functools import partial
 from wbia.control import controller_inject
 import threading
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
 NUM_ENGINES = 1
-VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
+VERBOSE_JOBS = (
+    ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
+)
 
 
 GLOBAL_SHELVE_LOCK = threading.Lock()
@@ -96,6 +101,7 @@ JOB_STATUS_CACHE = {}
 def update_proctitle(procname, dbname=None):
     try:
         import setproctitle
+
         print('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
         print('old_title = %r' % (old_title,))
@@ -103,7 +109,7 @@ def update_proctitle(procname, dbname=None):
         # new_title = procname + ' ' + old_title
         # new_title = 'wbia_zmq_loop'
         hostname = ut.get_computer_name()
-        new_title = 'IBEIS_%s_%s_%s' % (dbname, hostname, procname, )
+        new_title = 'IBEIS_%s_%s_%s' % (dbname, hostname, procname,)
         print('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
@@ -181,17 +187,18 @@ def initialize_job_manager(ibs):
     else:
         ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(
-            dbdir=ibs.get_dbdir(),
-            containerized=ibs.containerized,
+            dbdir=ibs.get_dbdir(), containerized=ibs.containerized,
         )
 
     # Delete any leftover locks from before
     lock_filepath_list = _get_engine_lock_paths(ibs)
-    print('Deleting %d leftover engine locks' % (len(lock_filepath_list), ))
+    print('Deleting %d leftover engine locks' % (len(lock_filepath_list),))
     for lock_filepath in lock_filepath_list:
         ut.delete(lock_filepath)
 
-    ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict, ibs=ibs)
+    ibs.job_manager.jobiface = JobInterface(
+        0, ibs.job_manager.reciever.port_dict, ibs=ibs
+    )
     ibs.job_manager.jobiface.initialize_client_thread()
     # Wait until the collector becomes live
     while 0 and True:
@@ -254,7 +261,9 @@ def get_job_id_list(ibs):
 
 
 @register_ibs_method
-@register_api('/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False)
+@register_api(
+    '/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False
+)
 def get_job_status(ibs, jobid=None):
     """
     Web call that returns the status of a job
@@ -297,7 +306,9 @@ def get_job_status(ibs, jobid=None):
 
 
 @register_ibs_method
-@register_api('/api/engine/job/metadata/', methods=['GET', 'POST'], __api_plural_check__=False)
+@register_api(
+    '/api/engine/job/metadata/', methods=['GET', 'POST'], __api_plural_check__=False
+)
 def get_job_metadata(ibs, jobid):
     """
     Web call that returns the metadata of a job
@@ -340,7 +351,7 @@ def get_job_result(ibs, jobid):
 
 @register_ibs_method
 @register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
-def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
+def wait_for_job_result(ibs, jobid, timeout=10, freq=0.1):
     ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
     result = ibs.job_manager.jobiface.get_unpacked_result(jobid)
     return result
@@ -375,9 +386,11 @@ def job_engine_tester():
     reciever = JobBackend(use_static_ports=True)
     jobiface = JobInterface(client_id, reciever.port_dict)
     from wbia.init import sysres
+
     if ut.get_argflag('--bg'):
-        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
-                                      db=None, dbdir=None)
+        dbdir = sysres.get_args_dbdir(
+            defaultdb='cache', allow_newdir=False, db=None, dbdir=None
+        )
         reciever.initialize_background_processes(dbdir)
         print('[testzmq] parent process is looping forever')
         while True:
@@ -385,8 +398,9 @@ def job_engine_tester():
     elif ut.get_argflag('--fg'):
         jobiface.initialize_client_thread()
     else:
-        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
-                                      db=None, dbdir=None)
+        dbdir = sysres.get_args_dbdir(
+            defaultdb='cache', allow_newdir=False, db=None, dbdir=None
+        )
         reciever.initialize_background_processes(dbdir)
         jobiface.initialize_client_thread()
 
@@ -394,22 +408,21 @@ def job_engine_tester():
     print('... waiting for jobs')
     if ut.get_argflag('--cmd'):
         ut.embed()
-        #jobiface.queue_job()
+        # jobiface.queue_job()
     else:
         print('[test] ... emit test1')
         callback_url = None
         callback_method = None
         args = (1,)
-        jobid1 = jobiface.queue_job('helloworld', callback_url,
-                                    callback_method, *args)
+        jobid1 = jobiface.queue_job('helloworld', callback_url, callback_method, *args)
         jobiface.wait_for_job_result(jobid1)
         jobid_list = []
 
         args = ([1], [3, 4, 5])
         kwargs = dict(cfgdict={'K': 1})
-        identify_jobid = jobiface.queue_job('query_chips_simple_dict',
-                                            callback_url, callback_method,
-                                            *args, **kwargs)
+        identify_jobid = jobiface.queue_job(
+            'query_chips_simple_dict', callback_url, callback_method, *args, **kwargs
+        )
         for jobid in jobid_list:
             jobiface.wait_for_job_result(jobid)
 
@@ -419,7 +432,7 @@ def job_engine_tester():
 
 class JobBackend(object):
     def __init__(self, **kwargs):
-        #self.num_engines = 3
+        # self.num_engines = 3
         self.num_engines = NUM_ENGINES
         self.engine_queue_proc = None
         self.engine_procs = None
@@ -474,14 +487,14 @@ class JobBackend(object):
         # Assign ports
         assert len(key_list) == len(port_list)
         self.port_dict = {
-            key : '%s:%d' % (URL, port)
-            for key, port in list(zip(key_list, port_list))
+            key: '%s:%d' % (URL, port) for key, port in list(zip(key_list, port_list))
         }
 
-    def initialize_background_processes(self, dbdir=None, containerized=False,
-                                        thread=True):
+    def initialize_background_processes(
+        self, dbdir=None, containerized=False, thread=True
+    ):
         print = partial(ut.colorprint, color='fuchsia')
-        #if VERBOSE_JOBS:
+        # if VERBOSE_JOBS:
         print('Initialize Background Processes')
 
         def _spawner(func, *args, **kwargs):
@@ -501,7 +514,9 @@ class JobBackend(object):
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
 
         if self.spawn_collector:
-            self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir, containerized)
+            self.collect_proc = _spawner(
+                collector_loop, self.port_dict, dbdir, containerized
+            )
 
         if self.spawn_engine:
             if self.fg_engine:
@@ -532,7 +547,7 @@ class JobBackend(object):
 
 
 def get_shelve_lock_filepath(shelve_filepath):
-    shelve_lock_filepath = '%s.lock' % (shelve_filepath, )
+    shelve_lock_filepath = '%s.lock' % (shelve_filepath,)
     return shelve_lock_filepath
 
 
@@ -560,7 +575,7 @@ def wait_for_shelve_lock_file(shelve_filepath, timeout=600):
             return False
         time.sleep(1)
         if int(elapsed) % 5 == 0:
-            print('Waiting for %0.02f seconds for lock so far' % (elapsed, ))
+            print('Waiting for %0.02f seconds for lock so far' % (elapsed,))
     return True
 
 
@@ -597,8 +612,8 @@ def set_shelve_value(shelve_filepath, key, value):
 
 def get_shelve_filepaths(ibs, jobid):
     shelve_path = ibs.get_shelves_path()
-    shelve_input_filepath  = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
-    shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
+    shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid,)))
+    shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid,)))
     return shelve_input_filepath, shelve_output_filepath
 
 
@@ -625,17 +640,17 @@ class JobInterface(object):
         if jobiface.verbose:
             print('Initializing JobInterface')
         jobiface.engine_deal_sock = ctx.socket(zmq.DEALER)
-        jobiface.engine_deal_sock.setsockopt_string(zmq.IDENTITY,
-                                                    'client%s.engine.DEALER' %
-                                                    (jobiface.id_,))
+        jobiface.engine_deal_sock.setsockopt_string(
+            zmq.IDENTITY, 'client%s.engine.DEALER' % (jobiface.id_,)
+        )
         jobiface.engine_deal_sock.connect(jobiface.port_dict['engine_url1'])
         if jobiface.verbose:
             print('connect engine_url1 = %r' % (jobiface.port_dict['engine_url1'],))
 
         jobiface.collect_deal_sock = ctx.socket(zmq.DEALER)
-        jobiface.collect_deal_sock.setsockopt_string(zmq.IDENTITY,
-                                                     'client%s.collect.DEALER'
-                                                     % (jobiface.id_,))
+        jobiface.collect_deal_sock.setsockopt_string(
+            zmq.IDENTITY, 'client%s.collect.DEALER' % (jobiface.id_,)
+        )
         jobiface.collect_deal_sock.connect(jobiface.port_dict['collect_url1'])
         if jobiface.verbose:
             print('connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],))
@@ -662,18 +677,18 @@ class JobInterface(object):
 
             shelve_path = ibs.get_shelves_path()
             shelve_path = shelve_path.rstrip('/')
-            shelve_archive_path = '%s_ARCHIVE' % (shelve_path, )
+            shelve_archive_path = '%s_ARCHIVE' % (shelve_path,)
             ut.ensuredir(shelve_archive_path)
 
             record_filepath_list = _get_engine_job_paths(ibs)
 
             restart_jobcounter_list = []
-            restart_jobid_list      = []
-            restart_request_list    = []
+            restart_jobid_list = []
+            restart_request_list = []
 
             completed_jobcounter = 0
             num_registered, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
-            print('Reloading %d engine jobs...' % (len(record_filepath_list), ))
+            print('Reloading %d engine jobs...' % (len(record_filepath_list),))
             for record_filepath in tqdm.tqdm(record_filepath_list):
                 jobid = splitext(basename(record_filepath))[0]
 
@@ -681,16 +696,18 @@ class JobInterface(object):
                 record = ut.load_cPkl(record_filepath, verbose=False)
 
                 # Load the record info
-                engine_request = record.get('request',   None)
-                attempts       = record.get('attempts',  0)
-                completed      = record.get('completed', False)
+                engine_request = record.get('request', None)
+                attempts = record.get('attempts', 0)
+                completed = record.get('completed', False)
 
                 # Check status
-                suppressed     = attempts >= MAX_ATTEMPTS
-                corrupted      = engine_request is None
+                suppressed = attempts >= MAX_ATTEMPTS
+                corrupted = engine_request is None
 
                 # Load metadata
-                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(
+                    ibs, jobid
+                )
                 metadata = get_shelve_value(shelve_input_filepath, 'metadata')
 
                 if metadata is None:
@@ -711,22 +728,38 @@ class JobInterface(object):
                         completed_timestamp = times.get('completed', None)
                         if completed_timestamp is not None:
                             try:
-                                archive_elapsed = calculate_timedelta(completed_timestamp, archive_timestamp)
+                                archive_elapsed = calculate_timedelta(
+                                    completed_timestamp, archive_timestamp
+                                )
                                 job_age = archive_elapsed[-1]
                                 archive_flag = job_age > 0
                             except Exception:
-                                args = (completed_timestamp, archive_timestamp, )
-                                print('[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r' % args)
+                                args = (
+                                    completed_timestamp,
+                                    archive_timestamp,
+                                )
+                                print(
+                                    '[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r'
+                                    % args
+                                )
 
                         if archive_flag:
                             with ut.Indenter('[client %d] ' % (jobiface.id_)):
                                 color = 'brightmagenta'
                                 print_ = partial(ut.colorprint, color=color)
-                                print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age, ))
-                                job_scr_filepath_list = list(ut.iglob(join(shelve_path, '%s*' % (jobid, ))))
+                                print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age,))
+                                job_scr_filepath_list = list(
+                                    ut.iglob(join(shelve_path, '%s*' % (jobid,)))
+                                )
                                 for job_scr_filepath in job_scr_filepath_list:
-                                    job_dst_filepath = job_scr_filepath.replace(shelve_path, shelve_archive_path)
-                                    ut.copy(job_scr_filepath, job_dst_filepath, overwrite=True)  # ut.copy allows for overwrite, ut.move does not
+                                    job_dst_filepath = job_scr_filepath.replace(
+                                        shelve_path, shelve_archive_path
+                                    )
+                                    ut.copy(
+                                        job_scr_filepath,
+                                        job_dst_filepath,
+                                        overwrite=True,
+                                    )  # ut.copy allows for overwrite, ut.move does not
                                     ut.delete(job_scr_filepath)
                             num_archived += 1
 
@@ -735,7 +768,10 @@ class JobInterface(object):
                         color = 'brightblue' if attempts == 0 else 'brightred'
                         print_ = partial(ut.colorprint, color=color)
 
-                        print_('RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1, ))
+                        print_(
+                            'RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)'
+                            % (attempts + 1,)
+                        )
                         print_(ut.repr3(record_filepath))
                         # print_(ut.repr3(record))
 
@@ -779,25 +815,27 @@ class JobInterface(object):
                         completed_jobcounter = max(completed_jobcounter, jobcounter)
                     num_registered += 1
 
-            print('Registered %d jobs...' % (num_registered, ))
-            print('\t %d suppressed jobs' % (num_suppressed, ))
-            print('\t %d corrupted jobs' % (num_corrupted, ))
-            print('Archived %d jobs...' % (num_archived, ))
+            print('Registered %d jobs...' % (num_registered,))
+            print('\t %d suppressed jobs' % (num_suppressed,))
+            print('\t %d corrupted jobs' % (num_corrupted,))
+            print('Archived %d jobs...' % (num_archived,))
 
             # Update the jobcounter to be up to date
             update_notify = {
                 '__set_jobcounter__': completed_jobcounter,
             }
-            print('Updating completed job counter: %r' % (update_notify, ))
+            print('Updating completed job counter: %r' % (update_notify,))
             jobiface.engine_deal_sock.send_json(update_notify)
             reply = jobiface.engine_deal_sock.recv_json()
             jobcounter_ = reply['jobcounter']
             assert jobcounter_ == completed_jobcounter
 
-            print('Re-sending %d engine jobs...' % (len(restart_jobcounter_list), ))
+            print('Re-sending %d engine jobs...' % (len(restart_jobcounter_list),))
 
             index_list = np.argsort(restart_jobcounter_list)
-            zipped = list(zip(restart_jobcounter_list, restart_jobid_list, restart_request_list))
+            zipped = list(
+                zip(restart_jobcounter_list, restart_jobid_list, restart_request_list)
+            )
             zipped = ut.take(zipped, index_list)
 
             for jobcounter, jobid, engine_request in tqdm.tqdm(zipped):
@@ -808,7 +846,9 @@ class JobInterface(object):
                 assert jobcounter_ == jobcounter
                 assert jobid_ == jobid
 
-    def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
+    def queue_job(
+        jobiface, action, callback_url=None, callback_method=None, *args, **kwargs
+    ):
         r"""
         IBEIS:
             This is just a function that lives in the main thread and ships off
@@ -835,21 +875,21 @@ class JobInterface(object):
                     request = {
                         'endpoint': flask.request.path,
                         'function': flask.request.endpoint,
-                        'input'   : flask.request.processed,
+                        'input': flask.request.processed,
                     }
             except RuntimeError:
                 pass
 
             engine_request = {
-                'action'             : action,
-                'args'               : args,
-                'kwargs'             : kwargs,
-                'callback_url'       : callback_url,
-                'callback_method'    : callback_method,
-                'request'            : request,
-                'restart_jobid'      : None,
-                'restart_jobcounter' : None,
-                'restart_received'   : None,
+                'action': action,
+                'args': args,
+                'kwargs': kwargs,
+                'callback_url': callback_url,
+                'callback_method': callback_method,
+                'request': request,
+                'restart_jobid': None,
+                'restart_jobcounter': None,
+                'restart_received': None,
             }
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
@@ -864,23 +904,23 @@ class JobInterface(object):
                 shelve_path = ibs.get_shelves_path()
                 ut.ensuredir(shelve_path)
 
-                record_filename = '%s.pkl' % (jobid, )
+                record_filename = '%s.pkl' % (jobid,)
                 record_filepath = join(shelve_path, record_filename)
                 record = {
-                    'request':   engine_request,
-                    'attempts':  0,
+                    'request': engine_request,
+                    'attempts': 0,
                     'completed': False,
                 }
                 ut.save_cPkl(record_filepath, record, verbose=False)
 
             # Release memor
-            action          = None
-            args            = None
-            kwargs          = None
-            callback_url    = None
+            action = None
+            args = None
+            kwargs = None
+            callback_url = None
             callback_method = None
-            request         = None
-            engine_request  = None
+            request = None
+            engine_request = None
 
             return jobid
 
@@ -959,7 +999,7 @@ class JobInterface(object):
         json_result = None
         return result
 
-    def wait_for_job_result(jobiface, jobid, timeout=10, freq=.1):
+    def wait_for_job_result(jobiface, jobid, timeout=10, freq=0.1):
         t = ut.Timer(verbose=False)
         t.tic()
         while True:
@@ -968,7 +1008,7 @@ class JobInterface(object):
                 return
             elif reply['jobstatus'] == 'exception':
                 result = jobiface.get_unpacked_result(jobid)
-                #raise Exception(result)
+                # raise Exception(result)
                 print('Exception occured in engine')
                 return result
             elif reply['jobstatus'] == 'working':
@@ -993,6 +1033,7 @@ def make_queue_loop(name='collect'):
     assert name is not None, 'must name queue'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
+
     def queue_loop(port_dict):
         iface1, iface2 = port_dict['collect_url1'], port_dict['collect_url2']
         print = partial(ut.colorprint, color='green')
@@ -1044,6 +1085,7 @@ def make_queue_loop(name='collect'):
                 print('Caught ctrl+c in collector loop. Gracefully exiting')
             if VERBOSE_JOBS:
                 print('Exiting %s' % (loop_name,))
+
     ut.set_funcname(queue_loop, loop_name)
     return queue_loop
 
@@ -1071,20 +1113,26 @@ def engine_queue_loop(port_dict):
 
         # bind the client dealer to the queue router
         rout_sock = ctx.socket(zmq.ROUTER)
-        rout_sock.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'ROUTER')
+        rout_sock.setsockopt_string(
+            zmq.IDENTITY, 'special_queue.' + name + '.' + 'ROUTER'
+        )
         rout_sock.bind(iface1)
         if VERBOSE_JOBS:
             print('bind %s_url2 = %r' % (name, iface1,))
 
         # bind the server router to the queue dealer
         deal_sock = ctx.socket(zmq.DEALER)
-        deal_sock.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'DEALER')
+        deal_sock.setsockopt_string(
+            zmq.IDENTITY, 'special_queue.' + name + '.' + 'DEALER'
+        )
         deal_sock.bind(iface2)
         if VERBOSE_JOBS:
             print('bind %s_url2 = %r' % (name, iface2,))
 
         collect_deal_sock = ctx.socket(zmq.DEALER)
-        collect_deal_sock.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
+        collect_deal_sock.setsockopt_string(
+            zmq.IDENTITY, queue_name + '.collect.DEALER'
+        )
         collect_deal_sock.connect(port_dict['collect_url1'])
         if VERBOSE_JOBS:
             print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
@@ -1102,7 +1150,9 @@ def engine_queue_loop(port_dict):
                 evts = dict(poller.poll())
                 if rout_sock in evts:
                     # CALLER: job_client
-                    idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
+                    idents, engine_request = rcv_multipart_json(
+                        rout_sock, num=1, print=print
+                    )
 
                     set_jobcounter = engine_request.get('__set_jobcounter__', None)
                     if set_jobcounter is not None:
@@ -1110,35 +1160,44 @@ def engine_queue_loop(port_dict):
                         reply_notify = {
                             'jobcounter': global_jobcounter,
                         }
-                        print('... notifying client that jobcounter was updated to %d' % (global_jobcounter, ))
+                        print(
+                            '... notifying client that jobcounter was updated to %d'
+                            % (global_jobcounter,)
+                        )
                         # RETURNS: job_client_return
                         send_multipart_json(rout_sock, idents, reply_notify)
                         continue
 
                     # jobid = 'jobid-%04d' % (jobcounter,)
-                    jobid = '%s' % (uuid.uuid4(), )
+                    jobid = '%s' % (uuid.uuid4(),)
                     jobcounter = global_jobcounter + 1
                     received = _timestamp()
 
-                    action             = engine_request['action']
-                    args               = engine_request['args']
-                    kwargs             = engine_request['kwargs']
-                    callback_url       = engine_request['callback_url']
-                    callback_method    = engine_request['callback_method']
-                    request            = engine_request['request']
-                    restart_jobid      = engine_request.get('restart_jobid', None)
+                    action = engine_request['action']
+                    args = engine_request['args']
+                    kwargs = engine_request['kwargs']
+                    callback_url = engine_request['callback_url']
+                    callback_method = engine_request['callback_method']
+                    request = engine_request['request']
+                    restart_jobid = engine_request.get('restart_jobid', None)
                     restart_jobcounter = engine_request.get('restart_jobcounter', None)
-                    restart_received   = engine_request.get('restart_received', None)
+                    restart_received = engine_request.get('restart_received', None)
 
                     if restart_jobid is not None:
-                        '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (jobid, restart_jobid, )
+                        '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (
+                            jobid,
+                            restart_jobid,
+                        )
                         jobid = restart_jobid
 
                     if restart_jobcounter is not None:
-                        '[RESTARTING] Replacing jobcounter=%s with previous restart_jobcounter=%s' % (jobcounter, restart_jobcounter, )
+                        '[RESTARTING] Replacing jobcounter=%s with previous restart_jobcounter=%s' % (
+                            jobcounter,
+                            restart_jobcounter,
+                        )
                         jobcounter = restart_jobcounter
 
-                    print('Creating jobid %r (counter %d)' % (jobid, jobcounter, ))
+                    print('Creating jobid %r (counter %d)' % (jobid, jobcounter,))
 
                     if restart_received is not None:
                         received = restart_received
@@ -1147,10 +1206,10 @@ def engine_queue_loop(port_dict):
                     # Status: Received (Notify Collector)
                     # Reply immediately with a new jobid
                     reply_notify = {
-                        'jobid'      : jobid,
-                        'jobcounter' : jobcounter,
-                        'status'     : 'received',
-                        'action'     : 'notification',
+                        'jobid': jobid,
+                        'jobcounter': jobcounter,
+                        'status': 'received',
+                        'action': 'notification',
                     }
 
                     if VERBOSE_JOBS:
@@ -1172,23 +1231,23 @@ def engine_queue_loop(port_dict):
                     metadata_notify = {
                         'jobid': jobid,
                         'metadata': {
-                            'jobcounter'         : jobcounter,
-                            'action'             : action,
-                            'args'               : args,
-                            'kwargs'             : kwargs,
-                            'callback_url'       : callback_url,
-                            'callback_method'    : callback_method,
-                            'request'            : request,
-                            'times'              : {
-                                'received'       : received,
-                                'started'        : None,
-                                'updated'        : None,
-                                'completed'      : None,
-                                'runtime'        : None,
-                                'turnaround'     : None,
-                                'runtime_sec'    : None,
-                                'turnaround_sec' : None,
-                            }
+                            'jobcounter': jobcounter,
+                            'action': action,
+                            'args': args,
+                            'kwargs': kwargs,
+                            'callback_url': callback_url,
+                            'callback_method': callback_method,
+                            'request': request,
+                            'times': {
+                                'received': received,
+                                'started': None,
+                                'updated': None,
+                                'completed': None,
+                                'runtime': None,
+                                'turnaround': None,
+                                'runtime_sec': None,
+                                'turnaround_sec': None,
+                            },
                         },
                         'action': 'metadata',
                     }
@@ -1265,7 +1324,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     # NAME: engine_
     # CALLED_FROM: engine_queue
     import wbia
-    #base_print = print  # NOQA
+
+    # base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
     with ut.Indenter('[engine %d] ' % (id_)):
         if VERBOSE_JOBS:
@@ -1290,11 +1350,13 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
                 update_proctitle('engine_loop', dbname=ibs.dbname)
 
-                idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
+                idents, engine_request = rcv_multipart_json(
+                    engine_rout_sock, print=print
+                )
 
                 action = engine_request['action']
-                jobid  = engine_request['jobid']
-                args   = engine_request['args']
+                jobid = engine_request['jobid']
+                args = engine_request['args']
                 kwargs = engine_request['kwargs']
                 callback_url = engine_request['callback_url']
                 callback_method = engine_request['callback_method']
@@ -1328,7 +1390,10 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     callback_method=callback_method,
                 )
                 # if VERBOSE_JOBS:
-                print('...done working. pushing result to collector for jobid %s' % (jobid, ))
+                print(
+                    '...done working. pushing result to collector for jobid %s'
+                    % (jobid,)
+                )
 
                 # CALLS: collector_store
                 collect_deal_sock.send_json(collect_request)
@@ -1352,6 +1417,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 # Explicitly try to release GPU memory
                 try:
                     import torch
+
                     torch.cuda.empty_cache()
                 except Exception:
                     pass
@@ -1359,6 +1425,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 # Explicitly release Python memory
                 try:
                     import gc
+
                     gc.collect()
                 except Exception:
                     pass
@@ -1377,10 +1444,12 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         print('starting job=%r' % (jobid,))
     # Map actions to IBEISController calls here
     if action == 'helloworld':
+
         def helloworld(time_=0, *args, **kwargs):
             time.sleep(time_)
             retval = ('HELLO time_=%r ' % (time_,)) + ut.repr2((args, kwargs))
             return retval
+
         action_func = helloworld
     else:
         # check for ibs func
@@ -1399,11 +1468,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         exec_status = 'exception'
     json_result = ut.to_json(result)
     result = None  # Clear any used memory
-    engine_result = dict(
-        exec_status=exec_status,
-        json_result=json_result,
-        jobid=jobid,
-    )
+    engine_result = dict(exec_status=exec_status, json_result=json_result, jobid=jobid,)
     return engine_result
 
 
@@ -1412,6 +1477,7 @@ def collector_loop(port_dict, dbdir, containerized):
     Service that stores completed algorithm results
     """
     import wbia
+
     print = partial(ut.colorprint, color='yellow')
     with ut.Indenter('[collect] '):
         collect_rout_sock = ctx.socket(zmq.ROUTER)
@@ -1436,12 +1502,20 @@ def collector_loop(port_dict, dbdir, containerized):
                 # CALLER: collector_request_status
                 # CALLER: collector_request_metadata
                 # CALLER: collector_request_result
-                idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
+                idents, collect_request = rcv_multipart_json(
+                    collect_rout_sock, print=print
+                )
                 try:
-                    reply = on_collect_request(ibs, collect_request, collector_data,
-                                               shelve_path, containerized=containerized)
+                    reply = on_collect_request(
+                        ibs,
+                        collect_request,
+                        collector_data,
+                        shelve_path,
+                        containerized=containerized,
+                    )
                 except Exception as ex:
                     import traceback
+
                     print(ut.repr3(collect_request))
                     ut.printex(ex, 'ERROR in collection')
                     print(traceback.format_exc())
@@ -1454,6 +1528,7 @@ def collector_loop(port_dict, dbdir, containerized):
                 # Explicitly release Python memory
                 try:
                     import gc
+
                     gc.collect()
                 except Exception:
                     pass
@@ -1478,7 +1553,7 @@ def invalidate_global_cache(jobid):
 def get_collector_shelve_filepaths(collector_data, jobid):
     if jobid is None:
         return None, None
-    shelve_input_filepath  = collector_data.get(jobid, {}).get('input', None)
+    shelve_input_filepath = collector_data.get(jobid, {}).get('input', None)
     shelve_output_filepath = collector_data.get(jobid, {}).get('output', None)
     return shelve_input_filepath, shelve_output_filepath
 
@@ -1507,13 +1582,14 @@ def calculate_timedelta(start, end):
     return hours, minutes, seconds, total_seconds
 
 
-def on_collect_request(ibs, collect_request, collector_data,
-                       shelve_path, containerized=False):
+def on_collect_request(
+    ibs, collect_request, collector_data, shelve_path, containerized=False
+):
     """ Run whenever the collector recieves a message """
     import requests
 
     action = collect_request.get('action', None)
-    jobid  = collect_request.get('jobid',  None)
+    jobid = collect_request.get('jobid', None)
     status = collect_request.get('status', None)
 
     reply = {
@@ -1525,11 +1601,11 @@ def on_collect_request(ibs, collect_request, collector_data,
     if jobid is not None:
         if jobid not in collector_data:
             collector_data[jobid] = {
-                'status' : None,
-                'input'  : None,
-                'output' : None,
+                'status': None,
+                'input': None,
+                'output': None,
             }
-        runtime_lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
+        runtime_lock_filepath = join(shelve_path, '%s.lock' % (jobid,))
     else:
         runtime_lock_filepath = None
 
@@ -1552,7 +1628,7 @@ def on_collect_request(ibs, collect_request, collector_data,
                 ut.delete(runtime_lock_filepath)
 
             # Mark the engine request as finished
-            record_filename = '%s.pkl' % (jobid, )
+            record_filename = '%s.pkl' % (jobid,)
             record_filepath = join(shelve_path, record_filename)
             record = ut.load_cPkl(record_filepath, verbose=False)
             record['completed'] = True
@@ -1572,21 +1648,35 @@ def on_collect_request(ibs, collect_request, collector_data,
                 times['completed'] = _timestamp()
 
             # Calculate runtime
-            received   = times.get('received',   None)
-            started    = times.get('started',    None)
-            completed  = times.get('completed',  None)
-            runtime    = times.get('runtime',    None)
+            received = times.get('received', None)
+            started = times.get('started', None)
+            completed = times.get('completed', None)
+            runtime = times.get('runtime', None)
             turnaround = times.get('turnaround', None)
 
             if None not in [started, completed] and runtime is None:
-                hours, minutes, seconds, total_seconds = calculate_timedelta(started, completed)
-                args = (hours, minutes, seconds, total_seconds, )
+                hours, minutes, seconds, total_seconds = calculate_timedelta(
+                    started, completed
+                )
+                args = (
+                    hours,
+                    minutes,
+                    seconds,
+                    total_seconds,
+                )
                 times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
                 times['runtime_sec'] = total_seconds
 
             if None not in [received, completed] and turnaround is None:
-                hours, minutes, seconds, total_seconds = calculate_timedelta(received, completed)
-                args = (hours, minutes, seconds, total_seconds, )
+                hours, minutes, seconds, total_seconds = calculate_timedelta(
+                    received, completed
+                )
+                args = (
+                    hours,
+                    minutes,
+                    seconds,
+                    total_seconds,
+                )
                 times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
                 times['turnaround_sec'] = total_seconds
 
@@ -1610,9 +1700,9 @@ def on_collect_request(ibs, collect_request, collector_data,
                 status = 'corrupted'
 
         collector_data[jobid] = {
-            'status' : status,
-            'input'  : shelve_input_filepath,
-            'output' : shelve_output_filepath,
+            'status': status,
+            'input': shelve_input_filepath,
+            'output': shelve_output_filepath,
         }
         print('Register %s' % ut.repr3(collector_data[jobid]))
 
@@ -1637,8 +1727,8 @@ def on_collect_request(ibs, collect_request, collector_data,
         invalidate_global_cache(jobid)
 
         # From the Engine
-        engine_result   = collect_request.get('engine_result',   None)
-        callback_url    = collect_request.get('callback_url',    None)
+        engine_result = collect_request.get('engine_result', None)
+        callback_url = collect_request.get('callback_url', None)
         callback_method = collect_request.get('callback_method', None)
 
         # Get the engine result jobid
@@ -1656,19 +1746,28 @@ def on_collect_request(ibs, collect_request, collector_data,
 
         if callback_url is not None:
             if containerized:
-                callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
+                callback_url = callback_url.replace(
+                    '://localhost/', '://wildbook:8080/'
+                )
 
             if callback_method is None:
                 callback_method = 'POST'
 
             callback_method = callback_method.upper()
-            message = 'callback_method %r unsupported' % (callback_method, )
+            message = 'callback_method %r unsupported' % (callback_method,)
             assert callback_method in ['POST', 'GET', 'PUT'], message
 
             try:
                 data_dict = {'jobid': jobid}
-                args = (callback_url, callback_method, data_dict, )
-                print('Attempting job completion callback to %r\n\tHTTP Method: %r\n\tData Payload: %r' % args)
+                args = (
+                    callback_url,
+                    callback_method,
+                    data_dict,
+                )
+                print(
+                    'Attempting job completion callback to %r\n\tHTTP Method: %r\n\tData Payload: %r'
+                    % args
+                )
 
                 # Perform callback
                 if callback_method == 'POST':
@@ -1686,7 +1785,10 @@ def on_collect_request(ibs, collect_request, collector_data,
                 except Exception:
                     text = None
 
-                args = (response, text, )
+                args = (
+                    response,
+                    text,
+                )
                 print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
             except Exception:
                 print('Callback FAILED!')
@@ -1704,7 +1806,9 @@ def on_collect_request(ibs, collect_request, collector_data,
             else:
                 status = collector_data[jobid]['status']
 
-                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(
+                    ibs, jobid
+                )
                 metadata = get_shelve_value(shelve_input_filepath, 'metadata')
 
                 cache = True
@@ -1730,22 +1834,22 @@ def on_collect_request(ibs, collect_request, collector_data,
                     request = {}
 
                 job_status_data = {
-                    'status'              : status,
-                    'jobcounter'          : metadata.get('jobcounter', None),
-                    'action'              : metadata.get('action', None),
-                    'endpoint'            : request.get('endpoint', None),
-                    'function'            : request.get('function', None),
-                    'time_received'       : times.get('received', None),
-                    'time_started'        : times.get('started', None),
-                    'time_runtime'        : times.get('runtime', None),
-                    'time_updated'        : times.get('updated', None),
-                    'time_completed'      : times.get('completed', None),
-                    'time_turnaround'     : times.get('turnaround', None),
-                    'time_runtime_sec'    : times.get('runtime_sec', None),
-                    'time_turnaround_sec' : times.get('turnaround_sec', None),
+                    'status': status,
+                    'jobcounter': metadata.get('jobcounter', None),
+                    'action': metadata.get('action', None),
+                    'endpoint': request.get('endpoint', None),
+                    'function': request.get('function', None),
+                    'time_received': times.get('received', None),
+                    'time_started': times.get('started', None),
+                    'time_runtime': times.get('runtime', None),
+                    'time_updated': times.get('updated', None),
+                    'time_completed': times.get('completed', None),
+                    'time_turnaround': times.get('turnaround', None),
+                    'time_runtime_sec': times.get('runtime_sec', None),
+                    'time_turnaround_sec': times.get('turnaround_sec', None),
                 }
                 if cache:
-                    JOB_STATUS_CACHE[jobid]  = job_status_data
+                    JOB_STATUS_CACHE[jobid] = job_status_data
 
             json_result[jobid] = job_status_data
 
@@ -1835,12 +1939,15 @@ def _on_ctrl_c(signal, frame):
     print('[wbia.zmq] Caught ctrl+c')
     print('[wbia.zmq] sys.exit(0)')
     import sys
+
     sys.exit(0)
 
 
 def _init_signals():
     import signal
+
     signal.signal(signal.SIGINT, _on_ctrl_c)
+
 
 if __name__ == '__main__':
     """
@@ -1850,6 +1957,8 @@ if __name__ == '__main__':
         python -m wbia.web.job_engine --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

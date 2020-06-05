@@ -8,7 +8,7 @@ os.environ['IBIES_PARSE_ARGS'] = 'OFF'
 os.environ['UTOOL_AUTOGEN_SPHINX_RUNNING'] = 'ON'
 
 sys.path.append('/Users/jason.parham/code/ibeis')
-sys.path.append(sys.path.insert(0, os.path.abspath("../")))
+sys.path.append(sys.path.insert(0, os.path.abspath('../')))
 
 autosummary_generate = True
 
@@ -33,8 +33,10 @@ modindex_common_prefix = ['_']
 
 master_doc = 'index'
 
-html_theme = "sphinx_rtd_theme"
-html_theme_path = ["_themes", ]
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [
+    '_themes',
+]
 
 
 # -- Project information -----------------------------------------------------
@@ -61,6 +63,7 @@ release = '1.9.0.vulcan'
 MOCK_MODULES = []
 if len(MOCK_MODULES) > 0:
     import mock
+
     for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = mock.Mock()
 

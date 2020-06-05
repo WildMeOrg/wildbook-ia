@@ -4,7 +4,7 @@ import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-default =  {
+default = {
     'fail': None,
     'success': None,
     'min_gtrank': None,

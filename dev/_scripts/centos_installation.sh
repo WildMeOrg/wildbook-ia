@@ -92,7 +92,7 @@ sudo make altinstall
 sudo sh -c "echo '/usr/local/lib' >> /etc/ld.so.conf"
 #cat /etc/ld.so.conf
 # These modules are obsolete and it is ok that they are not found
-#bsddb185 dl imageop sunaudiodev 
+#bsddb185 dl imageop sunaudiodev
 #===================
 
 # Install Pip >= 1.5 for python2.7
@@ -236,10 +236,10 @@ sudo pip27 install scikit-learn
 sudo pip27 install statsmodels
 sudo pip27 install flask
 sudo pip27 install simplejson
-sudo pip27 install 
-sudo pip27 install 
-sudo pip27 install 
-sudo pip27 install 
+sudo pip27 install
+sudo pip27 install
+sudo pip27 install
+sudo pip27 install
 
 # Configuration of pyqt4 and sip
 # MAYBE Dont use virtualenv?

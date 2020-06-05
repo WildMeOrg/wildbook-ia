@@ -2,7 +2,7 @@
 
 ### v 1.3.2 (12/4/14)
 
-- Added abillity to count in svg text elements. 
+- Added abillity to count in svg text elements.
 
 ### v 1.3.1 (9/1/14)
 

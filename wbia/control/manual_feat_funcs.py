@@ -6,20 +6,23 @@ sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_fu
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
-from wbia.control.accessor_decors import (getter_1to1, getter_1toM, deleter)
+from wbia.control.accessor_decors import getter_1to1, getter_1toM, deleter
 import utool as ut
 from wbia.control import controller_inject
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 NEW_DEPC = True
 
-ANNOT_ROWID   = 'annot_rowid'
-CHIP_ROWID    = 'chip_rowid'
-FEAT_VECS     = 'feature_vecs'
-FEAT_KPTS     = 'feature_keypoints'
+ANNOT_ROWID = 'annot_rowid'
+CHIP_ROWID = 'chip_rowid'
+FEAT_VECS = 'feature_vecs'
+FEAT_KPTS = 'feature_keypoints'
 FEAT_NUM_FEAT = 'feature_num_feats'
 
 
@@ -63,8 +66,9 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                          config2_=None, num_retries=1):
+def get_annot_feat_rowids(
+    ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, num_retries=1
+):
     """
     CommandLine:
         python -m wbia.control.manual_feat_funcs get_annot_feat_rowids --show
@@ -80,17 +84,21 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> ut.remove_file_list(ibs.get_annot_chip_fpath(aids, config2_=config2_))
         >>> qfids = ibs.get_annot_feat_rowids(aids, ensure=True, config2_=config2_)
     """
-    return ibs.depc_annot.get_rowids('feat', aid_list, config=config2_,
-                                     ensure=ensure, eager=eager,
-                                     num_retries=num_retries)
+    return ibs.depc_annot.get_rowids(
+        'feat',
+        aid_list,
+        config=config2_,
+        ensure=ensure,
+        eager=eager,
+        num_retries=num_retries,
+    )
 
 
 @register_ibs_method
 @ut.accepts_numpy
 @getter_1toM
-#@cache_getter(const.ANNOTATION_TABLE, 'kpts')
-def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   config2_=None):
+# @cache_getter(const.ANNOTATION_TABLE, 'kpts')
+def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None):
     """
     Args:
         aid_list (int):  list of annotation ids
@@ -151,26 +159,28 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> wbia.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.extern_query_config2, ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
-    return ibs.depc_annot.get('feat', aid_list, 'kpts', config=config2_,
-                               ensure=ensure, eager=eager)
+    return ibs.depc_annot.get(
+        'feat', aid_list, 'kpts', config=config2_, ensure=ensure, eager=eager
+    )
 
 
 @register_ibs_method
 @getter_1toM
-def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   config2_=None):
+def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None):
     """
     Returns:
         vecs_list (list): annotation descriptor vectors
     """
-    return ibs.depc_annot.get('feat', aid_list, 'vecs', config=config2_,
-                               ensure=ensure, eager=eager)
+    return ibs.depc_annot.get(
+        'feat', aid_list, 'vecs', config=config2_, ensure=ensure, eager=eager
+    )
 
 
 @register_ibs_method
 @getter_1to1
-def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                        config2_=None, _debug=False):
+def get_annot_num_feats(
+    ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, _debug=False
+):
     """
     Args:
         aid_list (list):
@@ -206,12 +216,20 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         config = config2_
 
     """
-    return ibs.depc_annot.get('feat', aid_list, 'num_feats', config=config2_,
-                              ensure=ensure, eager=eager, _debug=_debug)
+    return ibs.depc_annot.get(
+        'feat',
+        aid_list,
+        'num_feats',
+        config=config2_,
+        ensure=ensure,
+        eager=eager,
+        _debug=_debug,
+    )
 
 
 def testdata_ibs():
     import wbia
+
     ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
@@ -225,6 +243,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_feat_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -3,6 +3,7 @@
 Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
+
 # from os.path import splitext, basename
 import uuid
 import six
@@ -13,12 +14,18 @@ import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_api('/api/imageset/json/', methods=['POST'])
-def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_rowid_list=None,
-                       imageset_notes_list=None, imageset_occurence_flag_list=None):
+def add_imagesets_json(
+    ibs,
+    imageset_text_list,
+    imageset_uuid_list=None,
+    config_rowid_list=None,
+    imageset_notes_list=None,
+    imageset_occurence_flag_list=None,
+):
     r"""
     Adds a list of imagesets.
 
@@ -35,11 +42,13 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
         Method: POST
         URL:    /api/imageset/json/
     """
-    imageset_rowid_list = ibs.add_imagesets(imageset_text_list,
-                                            imageset_uuid_list=imageset_uuid_list,
-                                            occurence_flag_list=imageset_occurence_flag_list,
-                                            config_rowid_list=config_rowid_list,
-                                            notes_list=imageset_notes_list)
+    imageset_rowid_list = ibs.add_imagesets(
+        imageset_text_list,
+        imageset_uuid_list=imageset_uuid_list,
+        occurence_flag_list=imageset_occurence_flag_list,
+        config_rowid_list=config_rowid_list,
+        notes_list=imageset_notes_list,
+    )
     imageset_uuid_list = ibs.get_imageset_uuid(imageset_rowid_list)
     return imageset_uuid_list
 
@@ -282,9 +291,14 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
 
 
 @register_api('/api/image/json/', methods=['POST'])
-def add_images_json(ibs, image_uri_list,
-                    image_unixtime_list=None, image_gps_lat_list=None,
-                    image_gps_lon_list=None, **kwargs):
+def add_images_json(
+    ibs,
+    image_uri_list,
+    image_unixtime_list=None,
+    image_gps_lat_list=None,
+    image_gps_lon_list=None,
+    **kwargs
+):
     """
     REST:
         Method: POST
@@ -379,6 +393,7 @@ def add_images_json(ibs, image_uri_list,
         >>> print(web_instance.get_image_paths(gid_list))
         >>> print(web_instance.get_image_uris_original(gid_list))
     """
+
     def _rectify(list_, default, length, func=None):
         if list_ is None:
             list_ = [None] * length
@@ -415,8 +430,14 @@ def add_images_json(ibs, image_uri_list,
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
-            args = (tag, length_, length, )
+            message = (
+                'The input list %s has the wrong length. Received: %d. Expected %d'
+            )
+            args = (
+                tag,
+                length_,
+                length,
+            )
             raise ValueError(message % args)
 
         error_list = []
@@ -427,7 +448,10 @@ def add_images_json(ibs, image_uri_list,
 
         if len(error_list) > 0:
             message = 'The input list %s has invalid values (index, value): %r'
-            args = (tag, error_list, )
+            args = (
+                tag,
+                error_list,
+            )
             raise ValueError(message % args)
 
         return list_
@@ -452,7 +476,10 @@ def add_images_json(ibs, image_uri_list,
             bad_list.append(depricated_value)
 
     if len(bad_list) > 0:
-        raise ValueError('This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.' % (bad_list, ))
+        raise ValueError(
+            'This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.'
+            % (bad_list,)
+        )
 
     expected_length = len(image_uri_list)
 
@@ -463,7 +490,9 @@ def add_images_json(ibs, image_uri_list,
 
     if image_unixtime_list is not None:
         image_unixtime_list = _rectify(image_unixtime_list, -1, expected_length, float)
-        image_unixtime_list = _verify(image_unixtime_list, 'image_unixtime_list', expected_length, allow_none=True)
+        image_unixtime_list = _verify(
+            image_unixtime_list, 'image_unixtime_list', expected_length, allow_none=True
+        )
 
         flag_list = [
             None not in [gid, image_unixtime]
@@ -472,32 +501,47 @@ def add_images_json(ibs, image_uri_list,
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
 
-        print('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_, ))
+        print('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_,))
         ibs.set_image_unixtime(gid_list_, image_unixtime_list_)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
         image_gps_lat_list = _rectify(image_gps_lat_list, -1.0, expected_length, float)
         image_gps_lon_list = _rectify(image_gps_lon_list, -1.0, expected_length, float)
-        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length, allow_none=True)
-        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length, allow_none=True)
+        image_gps_lat_list = _verify(
+            image_gps_lat_list, 'image_gps_lat_list', expected_length, allow_none=True
+        )
+        image_gps_lon_list = _verify(
+            image_gps_lon_list, 'image_gps_lon_list', expected_length, allow_none=True
+        )
 
         for index, value in enumerate(zip(image_gps_lat_list, image_gps_lon_list)):
             image_gps_lat, image_gps_lon = value
             if image_gps_lat is not None:
-                assert image_gps_lon is not None, 'Cannot specify a longitude without a latitude, index %d' % (index, )
+                assert (
+                    image_gps_lon is not None
+                ), 'Cannot specify a longitude without a latitude, index %d' % (index,)
             if image_gps_lon is not None:
-                assert image_gps_lat is not None, 'Cannot specify a longitude without a latitude, index %d' % (index, )
+                assert (
+                    image_gps_lat is not None
+                ), 'Cannot specify a longitude without a latitude, index %d' % (index,)
 
         flag_list = [
             None not in [gid, image_gps_lat_, image_gps_lon_]
-            for gid, image_gps_lat_, image_gps_lon_ in zip(gid_list, image_gps_lat_list, image_gps_lon_list)
+            for gid, image_gps_lat_, image_gps_lon_ in zip(
+                gid_list, image_gps_lat_list, image_gps_lon_list
+            )
         ]
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_gps_lat_list_ = ut.filter_items(image_gps_lat_list, flag_list)
         image_gps_lon_list_ = ut.filter_items(image_gps_lon_list, flag_list)
 
-        print('Setting gps: %r -> %r, %r' % (gid_list_, image_gps_lat_list_, image_gps_lon_list_, ))
-        ibs.set_image_gps(gid_list_, lat_list=image_gps_lat_list_, lon_list=image_gps_lon_list_)
+        print(
+            'Setting gps: %r -> %r, %r'
+            % (gid_list_, image_gps_lat_list_, image_gps_lon_list_,)
+        )
+        ibs.set_image_gps(
+            gid_list_, lat_list=image_gps_lat_list_, lon_list=image_gps_lon_list_
+        )
 
     image_uuid_list = ibs.get_image_uuids(gid_list)
     return image_uuid_list
@@ -509,10 +553,19 @@ class ParseError(object):
 
 
 @register_api('/api/annot/json/', methods=['POST'])
-def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
-                    annot_viewpoint_list=None, annot_quality_list=None,
-                    annot_species_list=None, annot_multiple_list=None,
-                    annot_interest_list=None, annot_name_list=None, **kwargs):
+def add_annots_json(
+    ibs,
+    image_uuid_list,
+    annot_bbox_list,
+    annot_theta_list,
+    annot_viewpoint_list=None,
+    annot_quality_list=None,
+    annot_species_list=None,
+    annot_multiple_list=None,
+    annot_interest_list=None,
+    annot_name_list=None,
+    **kwargs
+):
     """
     REST:
         Method: POST
@@ -562,6 +615,7 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
         >>> print(web_instance.get_annot_uuids(aid_list))
         >>> print(web_instance.get_annot_bboxes(aid_list))
     """
+
     def _rectify(list_, default, length, func=None):
         if list_ is None:
             list_ = [None] * length
@@ -582,8 +636,14 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
-            args = (tag, length_, length, )
+            message = (
+                'The input list %s has the wrong length. Received: %d. Expected %d'
+            )
+            args = (
+                tag,
+                length_,
+                length,
+            )
             raise ValueError(message % args)
 
         error_list = []
@@ -597,7 +657,10 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
 
         if len(error_list) > 0:
             message = 'The input list %s has invalid values (index, value): %r'
-            args = (tag, error_list, )
+            args = (
+                tag,
+                error_list,
+            )
             raise ValueError(message % args)
 
         return list_
@@ -630,66 +693,102 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
             bad_list.append(depricated_value)
 
     if len(bad_list) > 0:
-        raise ValueError('This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.' % (bad_list, ))
+        raise ValueError(
+            'This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.'
+            % (bad_list,)
+        )
 
     expected_length = len(image_uuid_list)
 
-    image_uuid_list  = _rectify(image_uuid_list,  None, expected_length, _uuid)
-    annot_bbox_list  = _rectify(annot_bbox_list,  None, expected_length, _bbox)
+    image_uuid_list = _rectify(image_uuid_list, None, expected_length, _uuid)
+    annot_bbox_list = _rectify(annot_bbox_list, None, expected_length, _bbox)
     annot_theta_list = _rectify(annot_theta_list, None, expected_length, float)
 
-    image_uuid_list  = _verify(image_uuid_list,  'image_uuid_list',  expected_length)
-    annot_bbox_list  = _verify(annot_bbox_list,  'annot_bbox_list',  expected_length)
+    image_uuid_list = _verify(image_uuid_list, 'image_uuid_list', expected_length)
+    annot_bbox_list = _verify(annot_bbox_list, 'annot_bbox_list', expected_length)
     annot_theta_list = _verify(annot_theta_list, 'annot_theta_list', expected_length)
 
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    gid_list  = _verify(gid_list,  'image_uuid_list',  expected_length)
+    gid_list = _verify(gid_list, 'image_uuid_list', expected_length)
 
-    aid_list = ibs.add_annots(gid_list, bbox_list=annot_bbox_list, theta_list=annot_theta_list)
+    aid_list = ibs.add_annots(
+        gid_list, bbox_list=annot_bbox_list, theta_list=annot_theta_list
+    )
 
     if annot_viewpoint_list is not None:
-        annot_viewpoint_list = _rectify(annot_viewpoint_list, const.VIEW.UNKNOWN, expected_length, str)
-        annot_viewpoint_list = _verify(annot_viewpoint_list, 'annot_viewpoint_list', expected_length, allow_none=True)
-        flag_list = [annot_viewpoint is not None for annot_viewpoint in annot_viewpoint_list]
+        annot_viewpoint_list = _rectify(
+            annot_viewpoint_list, const.VIEW.UNKNOWN, expected_length, str
+        )
+        annot_viewpoint_list = _verify(
+            annot_viewpoint_list,
+            'annot_viewpoint_list',
+            expected_length,
+            allow_none=True,
+        )
+        flag_list = [
+            annot_viewpoint is not None for annot_viewpoint in annot_viewpoint_list
+        ]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_viewpoint_list_ = ut.filter_items(annot_viewpoint_list, flag_list)
         ibs.set_annot_viewpoints(aid_list_, annot_viewpoint_list_)
 
     if annot_quality_list is not None:
-        annot_quality_list = _rectify(annot_quality_list, const.QUAL_UNKNOWN, expected_length, str)
-        annot_quality_list = _verify(annot_quality_list, 'annot_quality_list', expected_length, allow_none=True)
+        annot_quality_list = _rectify(
+            annot_quality_list, const.QUAL_UNKNOWN, expected_length, str
+        )
+        annot_quality_list = _verify(
+            annot_quality_list, 'annot_quality_list', expected_length, allow_none=True
+        )
         flag_list = [annot_quality is not None for annot_quality in annot_quality_list]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_quality_list_ = ut.filter_items(annot_quality_list, flag_list)
         ibs.set_annot_quality_texts(aid_list_, annot_quality_list_)
 
     if annot_species_list is not None:
-        annot_species_list = _rectify(annot_species_list, const.UNKNOWN, expected_length, str)
-        annot_species_list = _verify(annot_species_list, 'annot_species_list', expected_length, allow_none=True)
+        annot_species_list = _rectify(
+            annot_species_list, const.UNKNOWN, expected_length, str
+        )
+        annot_species_list = _verify(
+            annot_species_list, 'annot_species_list', expected_length, allow_none=True
+        )
         flag_list = [annot_species is not None for annot_species in annot_species_list]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_species_list_ = ut.filter_items(annot_species_list, flag_list)
         ibs.set_annot_species(aid_list_, annot_species_list_)
 
     if annot_multiple_list is not None:
-        annot_multiple_list = _rectify(annot_multiple_list, False, expected_length, bool)
-        annot_multiple_list = _verify(annot_multiple_list, 'annot_multiple_list', expected_length, allow_none=True)
-        flag_list = [annot_multiple is not None for annot_multiple in annot_multiple_list]
+        annot_multiple_list = _rectify(
+            annot_multiple_list, False, expected_length, bool
+        )
+        annot_multiple_list = _verify(
+            annot_multiple_list, 'annot_multiple_list', expected_length, allow_none=True
+        )
+        flag_list = [
+            annot_multiple is not None for annot_multiple in annot_multiple_list
+        ]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_multiple_list_ = ut.filter_items(annot_multiple_list, flag_list)
         ibs.set_annot_multiple(aid_list_, annot_multiple_list_)
 
     if annot_interest_list is not None:
-        annot_interest_list = _rectify(annot_interest_list, False, expected_length, bool)
-        annot_interest_list = _verify(annot_interest_list, 'annot_interest_list', expected_length, allow_none=True)
-        flag_list = [annot_interest is not None for annot_interest in annot_interest_list]
+        annot_interest_list = _rectify(
+            annot_interest_list, False, expected_length, bool
+        )
+        annot_interest_list = _verify(
+            annot_interest_list, 'annot_interest_list', expected_length, allow_none=True
+        )
+        flag_list = [
+            annot_interest is not None for annot_interest in annot_interest_list
+        ]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_interest_list_ = ut.filter_items(annot_interest_list, flag_list)
         ibs.set_annot_interest(aid_list_, annot_interest_list_)
 
     if annot_name_list is not None:
         annot_name_list = _rectify(annot_name_list, const.UNKNOWN, expected_length, str)
-        annot_name_list = _verify(annot_name_list, 'annot_name_list', expected_length, allow_none=True)
+        annot_name_list = _verify(
+            annot_name_list, 'annot_name_list', expected_length, allow_none=True
+        )
         flag_list = [annot_name is not None for annot_name in annot_name_list]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_name_list_ = ut.filter_items(annot_name_list, flag_list)
@@ -719,6 +818,7 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
             Defaults to 0.0 (no rotation).
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
     """
+
     def _rectify(list_, default, length, func=None):
         if list_ is None:
             list_ = [None] * length
@@ -739,8 +839,14 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
-            args = (tag, length_, length, )
+            message = (
+                'The input list %s has the wrong length. Received: %d. Expected %d'
+            )
+            args = (
+                tag,
+                length_,
+                length,
+            )
             raise ValueError(message % args)
 
         error_list = []
@@ -754,7 +860,10 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
 
         if len(error_list) > 0:
             message = 'The input list %s has invalid values (index, value): %r'
-            args = (tag, error_list, )
+            args = (
+                tag,
+                error_list,
+            )
             raise ValueError(message % args)
 
         return list_
@@ -779,56 +888,71 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
     expected_length = len(annot_uuid_list)
 
     annot_uuid_list = _rectify(annot_uuid_list, None, expected_length, _uuid)
-    part_bbox_list  = _rectify(part_bbox_list,  None, expected_length, _bbox)
+    part_bbox_list = _rectify(part_bbox_list, None, expected_length, _bbox)
     part_theta_list = _rectify(part_theta_list, None, expected_length, float)
 
-    annot_uuid_list = _verify(annot_uuid_list, 'image_uuid_list',  expected_length)
-    part_bbox_list  = _verify(part_bbox_list,  'part_bbox_list',  expected_length)
+    annot_uuid_list = _verify(annot_uuid_list, 'image_uuid_list', expected_length)
+    part_bbox_list = _verify(part_bbox_list, 'part_bbox_list', expected_length)
     part_theta_list = _verify(part_theta_list, 'part_theta_list', expected_length)
 
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     aid_list = _verify(aid_list, 'annot_uuid_list', expected_length)
 
-    part_rowid_list = ibs.add_parts(aid_list, bbox_list=part_bbox_list, theta_list=part_theta_list)
+    part_rowid_list = ibs.add_parts(
+        aid_list, bbox_list=part_bbox_list, theta_list=part_theta_list
+    )
     part_uuid_list = ibs.get_part_uuids(part_rowid_list)
     return part_uuid_list
 
 
 @register_api('/api/name/json/', methods=['POST'])
 def add_names_json(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
-    nid_list = ibs.add_names_json(name_text_list,
-                                  name_uuid_list=name_uuid_list,
-                                  name_note_list=name_note_list)
+    nid_list = ibs.add_names_json(
+        name_text_list, name_uuid_list=name_uuid_list, name_note_list=name_note_list
+    )
     return ibs.get_name_uuids(nid_list)
 
 
 @register_api('/api/species/json/', methods=['POST'], __api_plural_check__=False)
-def add_species_json(ibs, species_nice_list, species_text_list=None,
-                     species_code_list=None, species_uuid_list=None,
-                     species_note_list=None, skip_cleaning=False):
-    species_rowid_list = ibs.add_species(species_nice_list,
-                                         species_text_list=species_text_list,
-                                         species_code_list=species_code_list,
-                                         species_uuid_list=species_uuid_list,
-                                         species_note_list=species_note_list,
-                                         skip_cleaning=skip_cleaning)
+def add_species_json(
+    ibs,
+    species_nice_list,
+    species_text_list=None,
+    species_code_list=None,
+    species_uuid_list=None,
+    species_note_list=None,
+    skip_cleaning=False,
+):
+    species_rowid_list = ibs.add_species(
+        species_nice_list,
+        species_text_list=species_text_list,
+        species_code_list=species_code_list,
+        species_uuid_list=species_uuid_list,
+        species_note_list=species_note_list,
+        skip_cleaning=skip_cleaning,
+    )
     return ibs.get_species_uuids(species_rowid_list)
 
 
 @register_api('/api/match/json/', methods=['POST'])
-def add_annotmatch_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                        match_evidence_decision_list=None,
-                        match_meta_decision_list=None,
-                        match_confidence_list=None, match_user_list=None,
-                        match_tag_list=None, match_modified_list=None,
-                        match_count_list=None):
+def add_annotmatch_json(
+    ibs,
+    match_annot_uuid1_list,
+    match_annot_uuid2_list,
+    match_evidence_decision_list=None,
+    match_meta_decision_list=None,
+    match_confidence_list=None,
+    match_user_list=None,
+    match_tag_list=None,
+    match_modified_list=None,
+    match_count_list=None,
+):
     aids1 = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aids2 = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
 
     am_rowids = ibs.add_annotmatch_undirected(aids1, aids2)
     if match_evidence_decision_list:
-        ibs.set_annotmatch_evidence_decision(
-            am_rowids, match_evidence_decision_list)
+        ibs.set_annotmatch_evidence_decision(am_rowids, match_evidence_decision_list)
     if match_meta_decision_list:
         ibs.set_annotmatch_meta_decision(am_rowids, match_meta_decision_list)
     if match_confidence_list:
@@ -845,27 +969,39 @@ def add_annotmatch_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
 
 
 @register_api('/api/review/json/', methods=['POST'])
-def add_review_json(ibs, review_annot_uuid1_list, review_annot_uuid2_list,
-                    review_evidence_decision_list, review_meta_decision_list=None,
-                    review_uuid_list=None, review_user_list=None,
-                    review_user_confidence_list=None, review_tags_list=None,
-                    review_client_start_time_posix=None, review_client_end_time_posix=None,
-                    review_server_start_time_posix=None, review_server_end_time_posix=None):
+def add_review_json(
+    ibs,
+    review_annot_uuid1_list,
+    review_annot_uuid2_list,
+    review_evidence_decision_list,
+    review_meta_decision_list=None,
+    review_uuid_list=None,
+    review_user_list=None,
+    review_user_confidence_list=None,
+    review_tags_list=None,
+    review_client_start_time_posix=None,
+    review_client_end_time_posix=None,
+    review_server_start_time_posix=None,
+    review_server_end_time_posix=None,
+):
 
     aids1 = ibs.get_annot_aids_from_uuid(review_annot_uuid1_list)
     aids2 = ibs.get_annot_aids_from_uuid(review_annot_uuid2_list)
 
-    ibs.add_review(aids1, aids2,
-                   evidence_decision_list=review_evidence_decision_list,
-                   meta_decision_list=review_meta_decision_list,
-                   review_uuid_list=review_uuid_list,
-                   identity_list=review_user_list,
-                   user_confidence_list=review_user_confidence_list,
-                   tags_list=review_tags_list,
-                   review_client_start_time_posix=review_client_start_time_posix,
-                   review_client_end_time_posix=review_client_end_time_posix,
-                   review_server_start_time_posix=review_server_start_time_posix,
-                   review_server_end_time_posix=review_server_end_time_posix)
+    ibs.add_review(
+        aids1,
+        aids2,
+        evidence_decision_list=review_evidence_decision_list,
+        meta_decision_list=review_meta_decision_list,
+        review_uuid_list=review_uuid_list,
+        identity_list=review_user_list,
+        user_confidence_list=review_user_confidence_list,
+        tags_list=review_tags_list,
+        review_client_start_time_posix=review_client_start_time_posix,
+        review_client_end_time_posix=review_client_end_time_posix,
+        review_server_start_time_posix=review_server_start_time_posix,
+        review_server_end_time_posix=review_server_end_time_posix,
+    )
     return list(zip(review_annot_uuid1_list, review_annot_uuid2_list))
 
 
@@ -879,10 +1015,7 @@ def get_valid_imageset_uuids_json(ibs, **kwargs):
 def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
     imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     aids_list = ibs.get_imageset_aids(imgsetid_list)
-    annot_uuids_list = [
-        ibs.get_annot_uuids(aid_list)
-        for aid_list in aids_list
-    ]
+    annot_uuids_list = [ibs.get_annot_uuids(aid_list) for aid_list in aids_list]
     return annot_uuids_list
 
 
@@ -974,13 +1107,17 @@ def get_imageset_end_time_posix_json(ibs, imageset_uuid_list):
     return ibs.get_imageset_end_time_posix(imageset_rowid_list)
 
 
-@register_api('/api/imageset/gps/lat/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/imageset/gps/lat/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_imageset_gps_lats_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.get_imageset_gps_lats(imageset_rowid_list)
 
 
-@register_api('/api/imageset/gps/lon/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/imageset/gps/lon/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_imageset_gps_lons_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.get_imageset_gps_lons(imageset_rowid_list)
@@ -1053,7 +1190,7 @@ def get_image_uuids_with_annot_uuids(ibs, gid_list=None):
     aids_list = ibs.get_image_aids(gid_list)
     zipped = list(zip(gid_list, aids_list))
     combined_dict = {
-        str(ibs.get_image_uiids(gid)) : ibs.get_annot_uuids(aid_list)
+        str(ibs.get_image_uiids(gid)): ibs.get_annot_uuids(aid_list)
         for gid, aid_list in zipped
     }
     return combined_dict
@@ -1172,13 +1309,17 @@ def get_image_name_uuids_json(ibs, image_uuid_list):
     return ibs.get_image_name_uuids(gid_list)
 
 
-@register_api('/api/image/species/rowid/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/image/species/rowid/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_image_species_rowids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.get_image_species_rowids(gid_list)
 
 
-@register_api('/api/image/species/uuid/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/image/species/uuid/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_image_species_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.get_image_species_uuids(gid_list)
@@ -1237,13 +1378,17 @@ def get_image_annot_uuids_json(ibs, image_uuid_list):
     return ibs.get_image_annot_uuids(gid_list)
 
 
-@register_api('/api/image/annot/rowid/species/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/image/annot/rowid/species/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_image_aids_of_species_json(ibs, image_uuid_list, **kwargs):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.get_image_aids_of_species(gid_list, **kwargs)
 
 
-@register_api('/api/image/annot/uuid/species/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/image/annot/uuid/species/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_image_annot_uuids_of_species_json(ibs, image_uuid_list, **kwargs):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.get_image_annot_uuids_of_species(gid_list, **kwargs)
@@ -1303,8 +1448,9 @@ def get_annot_hashid_uuid_json(ibs, annot_uuid_list, **kwargs):
 
 
 @register_api('/api/annot/exemplar/json/', methods=['POST'])
-def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
-                                                  annot_name_list, **kwargs):
+def set_exemplars_from_quality_and_viewpoint_json(
+    ibs, annot_uuid_list, annot_name_list, **kwargs
+):
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     if annot_name_list is not None:
@@ -1401,19 +1547,25 @@ def get_annot_species_json(ibs, annot_uuid_list):
     return ibs.get_annot_species(aid_list)
 
 
-@register_api('/api/annot/species/rowid/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/species/rowid/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_species_rowids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_species_rowids(aid_list)
 
 
-@register_api('/api/annot/species/uuid/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/species/uuid/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_species_uuids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_species_uuids(aid_list)
 
 
-@register_api('/api/annot/species/text/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/species/text/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_species_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_species_texts(aid_list)
@@ -1465,8 +1617,7 @@ def get_annot_image_paths_json(ibs, annot_uuid_list):
 def get_annot_image_uuids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     image_uuid_list = [
-        None if aid is None else ibs.get_annot_image_uuids(aid)
-        for aid in aid_list
+        None if aid is None else ibs.get_annot_image_uuids(aid) for aid in aid_list
     ]
     return image_uuid_list
 
@@ -1532,37 +1683,49 @@ def get_annot_image_contributor_tag_json(ibs, annot_uuid_list):
     return ibs.get_annot_image_contributor_tag(aid_list)
 
 
-@register_api('/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est(aid_list, **kwargs)
 
 
-@register_api('/api/annot/age/months/text/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/text/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_texts_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_texts(aid_list, **kwargs)
 
 
-@register_api('/api/annot/age/months/min/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/min/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_min_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_min(aid_list, **kwargs)
 
 
-@register_api('/api/annot/age/months/max/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/max/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_max_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_max(aid_list, **kwargs)
 
 
-@register_api('/api/annot/age/months/min/text/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/min/text/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_min_texts_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_min_texts(aid_list, **kwargs)
 
 
-@register_api('/api/annot/age/months/max/text/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/max/text/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_max_texts(aid_list, **kwargs)
@@ -1617,7 +1780,9 @@ def set_annot_name_texts_json(ibs, annot_uuid_list, name_text_list, **kwargs):
     return ibs.set_annot_name_rowids(aid_list, nid_list)
 
 
-@register_api('/api/annot/note/json/', methods=['PUT'], )
+@register_api(
+    '/api/annot/note/json/', methods=['PUT'],
+)
 def set_annot_note_json(ibs, annot_uuid_list, annot_note_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.set_annot_notes(aid_list, annot_note_list)
@@ -1644,7 +1809,7 @@ def get_name_nids_with_gids_json(ibs, nid_list=None):
 
     zipped = list(zip(nid_list, name_list, gids_list))
     combined_dict = {
-        name : (ibs.get_name_uuids(nid), ibs.get_image_uuids(gid_list))
+        name: (ibs.get_name_uuids(nid), ibs.get_image_uuids(gid_list))
         for nid, name, gid_list in zipped
     }
     return combined_dict
@@ -1745,13 +1910,17 @@ def get_name_sex_text_json(ibs, name_uuid_list, **kwargs):
     return ibs.get_name_sex_text(nid_list, **kwargs)
 
 
-@register_api('/api/name/age/months/min/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/name/age/months/min/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_name_age_months_est_min_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
     return ibs.get_name_age_months_est_min(ibs, nid_list)
 
 
-@register_api('/api/name/age/months/max/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/name/age/months/max/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_name_age_months_est_max_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
     return ibs.get_name_age_months_est_max(ibs, nid_list)
@@ -1775,12 +1944,16 @@ def _get_all_species_rowids_json(ibs, **kwargs):
     return ibs.get_species_uuids(species_rowid_list, **kwargs)
 
 
-@register_api('/api/species/rowid/text/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/species/rowid/text/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_species_rowids_from_text_json(ibs, species_text_list, **kwargs):
     return ibs.get_species_rowids_from_text(species_text_list, **kwargs)
 
 
-@register_api('/api/species/rowid/uuid/json/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/species/rowid/uuid/json/', methods=['GET'], __api_plural_check__=False
+)
 def get_species_rowids_from_uuids_json(ibs, species_uuid_list):
     return ibs.get_species_rowids_from_uuids(species_uuid_list)
 
@@ -1858,17 +2031,21 @@ def set_part_types_json(ibs, part_uuid_list, type_text_list, **kwargs):
 
 
 @register_api('/api/match/decision/evidence/json/', methods=['PUT'])
-def set_annotmatch_evidence_decision_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                          match_decision_list, **kwargs):
+def set_annotmatch_evidence_decision_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_decision_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
-    return ibs.set_annotmatch_evidence_decision(annotmatch_rowid_list, match_decision_list)
+    return ibs.set_annotmatch_evidence_decision(
+        annotmatch_rowid_list, match_decision_list
+    )
 
 
 @register_api('/api/match/decision/meta/json/', methods=['PUT'])
-def set_annotmatch_meat_decision_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                      match_decision_list, **kwargs):
+def set_annotmatch_meat_decision_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_decision_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
@@ -1876,8 +2053,9 @@ def set_annotmatch_meat_decision_json(ibs, match_annot_uuid1_list, match_annot_u
 
 
 @register_api('/api/match/tags/json/', methods=['PUT'], __api_plural_check__=False)
-def set_annotmatch_tag_text_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                 match_tags_list, **kwargs):
+def set_annotmatch_tag_text_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_tags_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
@@ -1885,8 +2063,9 @@ def set_annotmatch_tag_text_json(ibs, match_annot_uuid1_list, match_annot_uuid2_
 
 
 @register_api('/api/match/confidence/json/', methods=['PUT'])
-def set_annotmatch_confidence_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                   match_confidence_list, **kwargs):
+def set_annotmatch_confidence_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_confidence_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
@@ -1894,8 +2073,9 @@ def set_annotmatch_confidence_json(ibs, match_annot_uuid1_list, match_annot_uuid
 
 
 @register_api('/api/match/user/json/', methods=['PUT'])
-def set_annotmatch_reviewer_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                 match_user_list, **kwargs):
+def set_annotmatch_reviewer_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_user_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
@@ -1903,8 +2083,9 @@ def set_annotmatch_reviewer_json(ibs, match_annot_uuid1_list, match_annot_uuid2_
 
 
 @register_api('/api/match/count/json/', methods=['PUT'])
-def set_annotmatch_count_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                 match_count_list, **kwargs):
+def set_annotmatch_count_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_count_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
@@ -1912,12 +2093,15 @@ def set_annotmatch_count_json(ibs, match_annot_uuid1_list, match_annot_uuid2_lis
 
 
 @register_api('/api/match/modified/json/', methods=['PUT'])
-def set_annotmatch_posixtime_modified_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
-                                           match_modified_list, **kwargs):
+def set_annotmatch_posixtime_modified_json(
+    ibs, match_annot_uuid1_list, match_annot_uuid2_list, match_modified_list, **kwargs
+):
     aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
     aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
-    return ibs.set_annotmatch_posixtime_modified(annotmatch_rowid_list, match_modified_list)
+    return ibs.set_annotmatch_posixtime_modified(
+        annotmatch_rowid_list, match_modified_list
+    )
 
 
 @register_api('/api/contributor/rowid/uuid/json/', methods=['GET'])
@@ -1942,6 +2126,7 @@ def chaos_imageset(ibs):
         image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
     """
     from random import shuffle, randint
+
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     sample = min(len(gid_list) // 2, 50)
@@ -2044,6 +2229,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

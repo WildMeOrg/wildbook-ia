@@ -19,17 +19,17 @@ def get_nTruePositive(atrank, was_retrieved, gt_ranks):
 
 def get_nFalseNegative(TP, atrank, nGroundTruth):
     """ the number of documents we should have retrieved but didn't """
-    #FN = min((atrank + 1) - TP, nGroundTruth - TP)
-    #nRetreived = (atrank + 1)
+    # FN = min((atrank + 1) - TP, nGroundTruth - TP)
+    # nRetreived = (atrank + 1)
     FN = nGroundTruth - TP
-    #min(atrank, nGroundTruth - TP)
+    # min(atrank, nGroundTruth - TP)
     return FN
 
 
 def get_nFalsePositive(TP, atrank):
     """ the number of documents we should not have retrieved """
-    #FP = min((atrank + 1) - TP, nGroundTruth)
-    nRetreived = (atrank + 1)
+    # FP = min((atrank + 1) - TP, nGroundTruth)
+    nRetreived = atrank + 1
     FP = nRetreived - TP
     return FP
 
@@ -57,7 +57,9 @@ def get_average_percision_(qres, ibs=None, gt_aids=None):
         http://en.wikipedia.org/wiki/Information_retrieval
 
     """
-    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
+    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(
+        qres, ibs=ibs, gt_aids=gt_aids
+    )
 
     if recall_range_ is None:
         ave_p = np.nan
@@ -69,8 +71,10 @@ def get_average_percision_(qres, ibs=None, gt_aids=None):
 
 def get_interpolated_precision_vs_recall_(qres, ibs=None, gt_aids=None):
     tup = get_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids)
-    ofrank_curve, precision_curve, recall_curve  = tup
-    recall_range_, p_interp_curve = interpolate_precision_recall_(precision_curve, recall_curve)
+    ofrank_curve, precision_curve, recall_curve = tup
+    recall_range_, p_interp_curve = interpolate_precision_recall_(
+        precision_curve, recall_curve
+    )
     return recall_range_, p_interp_curve
 
 
@@ -125,30 +129,40 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
         return None, None, None
 
     # From oxford:
-    #Precision is defined as the ratio of retrieved positive images to the total number retrieved.
-    #Recall is defined as the ratio of the number of retrieved positive images to the total
-    #number of positive images in the corpus.
+    # Precision is defined as the ratio of retrieved positive images to the total number retrieved.
+    # Recall is defined as the ratio of the number of retrieved positive images to the total
+    # number of positive images in the corpus.
 
-    #with ut.EmbedOnException():
+    # with ut.EmbedOnException():
     max_rank = gt_ranks.max()
     if max_rank is None:
         max_rank = 0
     ofrank_curve = np.arange(max_rank + 1)
 
-    truepos_curve  = np.array([get_nTruePositive(ofrank, was_retrieved, gt_ranks) for ofrank in ofrank_curve])
+    truepos_curve = np.array(
+        [get_nTruePositive(ofrank, was_retrieved, gt_ranks) for ofrank in ofrank_curve]
+    )
 
     falsepos_curve = np.array(
-        [get_nFalsePositive(TP, atrank)
-         for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
+        [
+            get_nFalsePositive(TP, atrank)
+            for TP, atrank in zip(truepos_curve, ofrank_curve)
+        ],
+        dtype=np.float32,
+    )
 
-    falseneg_curve = np.array([
-        get_nFalseNegative(TP, atrank, nGroundTruth)
-        for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
+    falseneg_curve = np.array(
+        [
+            get_nFalseNegative(TP, atrank, nGroundTruth)
+            for TP, atrank in zip(truepos_curve, ofrank_curve)
+        ],
+        dtype=np.float32,
+    )
 
     precision_curve = get_precision(truepos_curve, falsepos_curve)
-    recall_curve    = get_recall(truepos_curve, falseneg_curve)
+    recall_curve = get_recall(truepos_curve, falseneg_curve)
 
-    #print(np.vstack([precision_curve, recall_curve]).T)
+    # print(np.vstack([precision_curve, recall_curve]).T)
     return ofrank_curve, precision_curve, recall_curve
 
 
@@ -156,13 +170,18 @@ def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
     """
     CHANGE NAME TO REFERENCE QRES
     """
-    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
-    title_pref = qres.make_smaller_title() + '\n',
+    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(
+        qres, ibs=ibs, gt_aids=gt_aids
+    )
+    title_pref = (qres.make_smaller_title() + '\n',)
     return draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref, fnum)
 
 
-def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None, fnum=1):
+def draw_precision_recall_curve_(
+    recall_range_, p_interp_curve, title_pref=None, fnum=1
+):
     import wbia.plottool as pt
+
     if recall_range_ is None:
         recall_range_ = np.array([])
         p_interp_curve = np.array([])
@@ -173,13 +192,20 @@ def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None,
     else:
         ave_p = p_interp_curve.sum() / p_interp_curve.size
 
-    pt.plot2(recall_range_, p_interp_curve, marker='o--',
-              x_label='recall', y_label='precision', unitbox=True,
-              flipx=False, color='r',
-              title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
+    pt.plot2(
+        recall_range_,
+        p_interp_curve,
+        marker='o--',
+        x_label='recall',
+        y_label='precision',
+        unitbox=True,
+        flipx=False,
+        color='r',
+        title='Interplated Precision Vs Recall\n' + 'avep = %r' % ave_p,
+    )
     print('Interplated Precision')
     print(ut.repr2(list(zip(recall_range_, p_interp_curve))))
-    #fig.show()
+    # fig.show()
 
 
 if __name__ == '__main__':
@@ -190,6 +216,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.precision_recall --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

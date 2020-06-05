@@ -7,7 +7,7 @@
 # manual edits
 #manual edits of conf.py
 #make html
-#python -m utool.util_setup --exec-autogen_sphinx_apidoc 
+#python -m utool.util_setup --exec-autogen_sphinx_apidoc
 python -m utool.util_setup --exec-autogen_sphinx_apidoc  --nomake
 make -C _doc html
 mkdir _page
@@ -20,7 +20,7 @@ git add _page/.nojekyll
 git add _page/*
 #git add _page
 git commit -m "updated docs"
-#git subtree add --prefix _page origin gh-pages 
+#git subtree add --prefix _page origin gh-pages
 #git subtree pull --prefix _page origin gh-pages
 git subtree push --prefix _page origin gh-pages
 

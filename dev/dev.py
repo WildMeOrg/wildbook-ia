@@ -5,6 +5,7 @@ dev.py was moved to wbia/dev.py
 Now runnable via python -m wbia.dev
 """
 from __future__ import absolute_import, division, print_function
+
 # try:
 #     from os.path import abspath, exists
 #     newrelic_config_ini_filepath = abspath('newrelic.ini')
@@ -19,5 +20,6 @@ from wbia.dev import *  # NOQA
 
 if __name__ == '__main__':
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     devmain()

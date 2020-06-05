@@ -3,12 +3,14 @@ from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 from wbia.guitool import guitool_components
 import utool
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
+
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
+
 ut.noinject(__name__, '[api_button_delegate]', DEBUG=False)
 
 
-#DELEGATE_BASE = QtWidgets.QItemDelegate
+# DELEGATE_BASE = QtWidgets.QItemDelegate
 DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
@@ -20,9 +22,18 @@ def rgb_to_qbrush(rgb):
     return QtGui.QBrush(rgb_to_qcolor(rgb))
 
 
-def paint_button(painter, option, text='button', pressed=True, bgcolor=None,
-                 fgcolor=None, clicked=None, button=None, view=None):
-    #http://www.qtcentre.org/archive/index.php/t-31029.html
+def paint_button(
+    painter,
+    option,
+    text='button',
+    pressed=True,
+    bgcolor=None,
+    fgcolor=None,
+    clicked=None,
+    button=None,
+    view=None,
+):
+    # http://www.qtcentre.org/archive/index.php/t-31029.html
     opt = QtWidgets.QStyleOptionButton()
     opt.text = text
     opt.rect = option.rect
@@ -32,7 +43,7 @@ def paint_button(painter, option, text='button', pressed=True, bgcolor=None,
     else:
         opt.state = QtWidgets.QStyle.State_Enabled | QtWidgets.QStyle.State_Raised
 
-    #style = QtGui.Q Application.style()
+    # style = QtGui.Q Application.style()
     style = button.style()
     style.drawControl(QtWidgets.QStyle.CE_PushButton, opt, painter, button)
 
@@ -79,12 +90,16 @@ class APIButtonDelegate(DELEGATE_BASE):
         button = guitool_components.newButton(**butkw)
         pressed = dgt.is_qtindex_pressed(qtindex)
         view = dgt.parent()
-        paint_button(painter, option, button=button, pressed=pressed,
-                     view=view, **butkw)
+        paint_button(
+            painter, option, button=button, pressed=pressed, view=view, **butkw
+        )
         painter.restore()
 
     def is_qtindex_pressed(dgt, qtindex):
-        return dgt._pressed is not None and dgt._pressed == (qtindex.row(), qtindex.column())
+        return dgt._pressed is not None and dgt._pressed == (
+            qtindex.row(),
+            qtindex.column(),
+        )
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def on_button_click(dgt, qtindex):
@@ -96,7 +111,7 @@ class APIButtonDelegate(DELEGATE_BASE):
 
     def editorEvent(dgt, event, model, option, qtindex):
         # http://stackoverflow.com/questions/14585575/button-delegate-issue
-        #print('editor event')
+        # print('editor event')
         event_type = event.type()
         if event_type == QtCore.QEvent.MouseButtonPress:
             # store the position that is clicked
@@ -120,7 +135,7 @@ class APIButtonDelegate(DELEGATE_BASE):
                 qtindex.model().dataChanged.emit(oldIndex, oldIndex)
                 pass
             dgt._pressed = None
-            #print('mouse release')
+            # print('mouse release')
             return True
         elif event_type == QtCore.QEvent.Leave:
             print('leave')

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -14,8 +15,9 @@ class AlignedListDictProxy(ut.DictLike_old):
 
     DEPCIRATE AlignedListDictProxy's defaultdict behavior is weird
     """
+
     def __init__(self, key2_idx, key_list, val_list):
-        #if isinstance(key_list, np.ndarray):
+        # if isinstance(key_list, np.ndarray):
         #    key_list = key_list.tolist()
         self.key_list = key_list
         self.val_list = val_list
@@ -39,7 +41,7 @@ class AlignedListDictProxy(ut.DictLike_old):
             else:
                 raise
         return self.val_list[idx]
-        #return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))
+        # return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))
 
     def __setitem__(self, key, val):
         try:
@@ -55,7 +57,7 @@ class AlignedListDictProxy(ut.DictLike_old):
                 self.val_list.append(val)
             else:
                 raise
-            #else:
+            # else:
             #    offset = idx - len(self.val_list)
             #    self.val_list.extend(([None] * offset) + [val])
 
@@ -100,13 +102,19 @@ class _OldStyleChipMatchSimulator(object):
 
     @property
     def aid2_H(cm):
-        return (None if cm.H_list is None else
-                AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.H_list))
+        return (
+            None
+            if cm.H_list is None
+            else AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.H_list)
+        )
 
     @property
     def aid2_score(cm):
-        return ({} if cm.score_list is None else
-                AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.score_list))
+        return (
+            {}
+            if cm.score_list is None
+            else AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.score_list)
+        )
 
     @property
     def aid2_fs(cm):

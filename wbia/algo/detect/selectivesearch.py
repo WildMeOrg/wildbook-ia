@@ -13,17 +13,22 @@ import os
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import scipy.io
+
 (print, rrr, profile) = ut.inject2(__name__, '[selective search]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
-SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'selective_search_ijcv_with_python')))
+SCRIPT_PATH = abspath(
+    expanduser(join('~', 'code', 'selective_search_ijcv_with_python'))
+)
 
 if not ut.get_argflag('--no-selective-search'):
     try:
         assert exists(SCRIPT_PATH)
     except AssertionError as ex:
-        print('WARNING Failed to find selective_search_ijcv_with_python. '
-              'Selective Search is unavailable')
+        print(
+            'WARNING Failed to find selective_search_ijcv_with_python. '
+            'Selective Search is unavailable'
+        )
         # if ut.SUPER_STRICT:
         #     raise
 
@@ -105,8 +110,13 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
-            bbox_list = [ bbox ]
+            bbox = (
+                result['xtl'],
+                result['ytl'],
+                result['width'],
+                result['height'],
+            )
+            bbox_list = [bbox]
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
@@ -126,14 +136,14 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     # temporary results file.
     temp_file, temp_filepath = tempfile.mkstemp(suffix='.mat')
     os.close(temp_file)
-    gpath_str = '{%s}' % (','.join([ "'%s'" % (gpath, ) for gpath in gpath_list ]))
+    gpath_str = '{%s}' % (','.join(["'%s'" % (gpath,) for gpath in gpath_list]))
     matlab_command_str = "%s(%s, '%s')" % (matlab_command, gpath_str, temp_filepath)
     if verbose:
-        print('Calling: %s' % (matlab_command_str, ))
+        print('Calling: %s' % (matlab_command_str,))
 
     # Execute command in MATLAB.
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'
-    bash_str = bash_command % (matlab_command_str, )
+    bash_str = bash_command % (matlab_command_str,)
     bash_list = shlex.split(bash_str)
     with open('/dev/null', 'w') as null:
         process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
@@ -161,12 +171,12 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
             xbr = int(np.around(result[2]))
             ybr = int(np.around(result[3]))
             result_dict = {
-                'xtl'        : xtl,
-                'ytl'        : ytl,
-                'width'      : xbr - xtl,
-                'height'     : ybr - ytl,
-                'class'      : None,
-                'confidence' : 1.0,
+                'xtl': xtl,
+                'ytl': ytl,
+                'width': xbr - xtl,
+                'height': ybr - ytl,
+                'class': None,
+                'confidence': 1.0,
             }
             result_list_.append(result_dict)
         results_list_.append(result_list_)

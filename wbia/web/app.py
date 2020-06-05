@@ -23,6 +23,7 @@ try:
         from werkzeug.middleware.dispatcher import DispatcherMiddleware
     import prometheus_client
     from wbia.web import prometheus  # NOQA
+
     PROMETHEUS = True
 except ImportError:
     PROMETHEUS = False
@@ -45,7 +46,6 @@ def tst_html_error():
 
 
 class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
-
     def _log(self, status_code, request):
         if status_code < 400:
             log_method = access_log.info
@@ -67,14 +67,19 @@ class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
             return
 
         log_method(
-            "WALL=%s STATUS=%s METHOD=%s URL=%s IP=%s TIME=%.2fms",
+            'WALL=%s STATUS=%s METHOD=%s URL=%s IP=%s TIME=%.2fms',
             timestamp,
-            status_code, request.method,
-            request.uri, request.remote_ip, request_time)
+            status_code,
+            request.method,
+            request.uri,
+            request.remote_ip,
+            request_time,
+        )
 
 
-def start_tornado(ibs, port=None, browser=None, url_suffix=None,
-                  start_web_loop=True, fallback=True):
+def start_tornado(
+    ibs, port=None, browser=None, url_suffix=None, start_web_loop=True, fallback=True
+):
     """Initialize the web server"""
     if browser is None:
         browser = ut.get_argflag('--browser')
@@ -104,15 +109,16 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         if browser:
             url = app.server_url + url_suffix
             import webbrowser
+
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
 
         if PROMETHEUS:
             # Add prometheus wsgi middleware to route /metrics requests
             print('LOADING PROMETHEUS')
-            app_ = DispatcherMiddleware(app, {
-                '/metrics': prometheus_client.make_wsgi_app(),
-            })
+            app_ = DispatcherMiddleware(
+                app, {'/metrics': prometheus_client.make_wsgi_app(),}
+            )
             # Migrate the most essential settings
             app_.server_port = app.server_port
             app_.server_url = app.server_url
@@ -140,14 +146,28 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         except socket.error:
             fallback_port = ut.find_open_port(app.server_port)
             if fallback:
-                print('Port %s is unavailable, using fallback_port = %r' % (port, fallback_port, ))
-                start_tornado(ibs, port=fallback_port, browser=browser,
-                              url_suffix=url_suffix, start_web_loop=start_web_loop,
-                              fallback=False)
+                print(
+                    'Port %s is unavailable, using fallback_port = %r'
+                    % (port, fallback_port,)
+                )
+                start_tornado(
+                    ibs,
+                    port=fallback_port,
+                    browser=browser,
+                    url_suffix=url_suffix,
+                    start_web_loop=start_web_loop,
+                    fallback=False,
+                )
             else:
                 raise RuntimeError(
-                    (('The specified IBEIS web port %d is not available, '
-                      'but %d is') % (app.server_port, fallback_port)))
+                    (
+                        (
+                            'The specified IBEIS web port %d is not available, '
+                            'but %d is'
+                        )
+                        % (app.server_port, fallback_port)
+                    )
+                )
 
         # Add more verbose logging
         utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
@@ -194,9 +214,15 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     _start_tornado(ibs, port)
 
 
-def start_from_wbia(ibs, port=None, browser=None, precache=None,
-                     url_suffix=None, start_job_queue=None,
-                     start_web_loop=True):
+def start_from_wbia(
+    ibs,
+    port=None,
+    browser=None,
+    precache=None,
+    url_suffix=None,
+    start_job_queue=None,
+    start_web_loop=True,
+):
     """
     Parse command line options and start the server.
 
@@ -229,11 +255,11 @@ def start_from_wbia(ibs, port=None, browser=None, precache=None,
         print('[web] opening job manager')
         ibs.load_plugin_module(job_engine)
         ibs.load_plugin_module(apis_engine)
-        #import time
-        #time.sleep(1)
+        # import time
+        # time.sleep(1)
         # No need to sleep, this call should block until engine is live.
         ibs.initialize_job_manager()
-        #time.sleep(10)
+        # time.sleep(10)
 
     print('[web] starting tornado')
     try:
@@ -275,6 +301,7 @@ def start_web_annot_groupreview(ibs, aid_list):
         >>> print(result)
     """
     import wbia.web
+
     aid_strs = ','.join(list(map(str, aid_list)))
     url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
     wbia.web.app.start_from_wbia(ibs, url_suffix=url_suffix, browser=True)
@@ -288,6 +315,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -34,7 +34,6 @@
 #     return hashbytes_16
 
 
-
 def demo_single_pairwise_feature_vector():
     r"""
     CommandLine:
@@ -48,6 +47,7 @@ def demo_single_pairwise_feature_vector():
     """
     import vtool as vt
     import wbia
+
     ibs = wbia.opendb('testdb1')
     qaid, daid = 1, 2
     annot1 = ibs.annots([qaid])[0]._make_lazy_dict()
@@ -59,7 +59,7 @@ def demo_single_pairwise_feature_vector():
     match = vt.PairwiseMatch(annot1, annot2)
     cfgdict = {'checks': 200, 'symmetric': False}
     match.assign(cfgdict=cfgdict)
-    match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+    match.apply_ratio_test({'ratio_thresh': 0.638}, inplace=True)
     match.apply_sver(inplace=True)
 
     # match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
@@ -69,8 +69,6 @@ def demo_single_pairwise_feature_vector():
     # sorters = ['ratio', 'norm_dist', 'match_dist']
     match.make_feature_vector()
     return match
-
-
 
     def demo_classes(pblm):
         r"""
@@ -137,6 +135,7 @@ def demo_single_pairwise_feature_vector():
 
         import wbia.plottool as pt
         import wbia.guitool as gt
+
         gt.ensure_qapp()
         pt.qtensure()
 
@@ -186,6 +185,7 @@ def demo_single_pairwise_feature_vector():
         matches = infr._exec_pairwise_match(edges, config)
 
         import wbia.plottool as pt
+
         pt.qtensure()
         thresholds = np.linspace(0, 1.0, 100)
         pos_truth = task.y_bin.T[pos_idx]
@@ -204,8 +204,7 @@ def demo_single_pairwise_feature_vector():
 
         if True:
             pt.plt.plot(thresholds, aucs, 'r-', label='')
-            pt.plt.plot(opt_thresh, opt_auc, 'ro',
-                        label='L opt=%r' % (opt_thresh,))
+            pt.plt.plot(opt_thresh, opt_auc, 'ro', label='L opt=%r' % (opt_thresh,))
             pt.set_ylabel('auc')
             pt.set_xlabel('ratio threshold')
             pt.legend()

@@ -7,25 +7,26 @@ from wbia.plottool.viz_featrow import draw_feat_row
 from wbia.viz import viz_helpers as vh
 import wbia.plottool as pt  # NOQA
 import six  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
-    #raise NotImplementedError('this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params')
-    #from . import match_chips3 as mc3
-    #ibs._init_query_requestor()
+    # raise NotImplementedError('this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params')
+    # from . import match_chips3 as mc3
+    # ibs._init_query_requestor()
     if qreq_ is None:
         daid_list = ibs.get_valid_aids()
         qreq_ = ibs.new_query_request([qaid], daid_list)
     qreq_.load_indexer()  # TODO: ensure lazy
 
-    #if isinstance(qfx, six.string_types):
-    special = (qfx == 'special')
+    # if isinstance(qfx, six.string_types):
+    special = qfx == 'special'
     if special:
         qfx2_vecs = ibs.get_annot_vecs(qaid)
     else:
         qfx = int(qfx)
-        qfx2_vecs = ibs.get_annot_vecs(qaid)[qfx:(qfx + 1)]
+        qfx2_vecs = ibs.get_annot_vecs(qaid)[qfx : (qfx + 1)]
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
     if ut.VERBOSE:
@@ -34,12 +35,13 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
 
     if special:
         import numpy as np
+
         # Find a query feature with "good" results
         qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
         qfx2_dnid = ibs.get_annot_nids(qfx2_daid)
         nid = ibs.get_annot_nids(qaid)
 
-        #slice_ = slice(None)
+        # slice_ = slice(None)
         slice_ = slice(0, K + Knorm)
         flags = qfx2_dnid.T[slice_].T == nid
         flags = np.logical_and(flags, qfx2_daid[:, slice_] != qaid)
@@ -62,11 +64,11 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         print('top_candxs = %r' % (top_candxs,))
 
         cand_idx = top_candxs[1]
-        #cand_idx = ut.take_percentile(top_candxs, .1)[-1]
+        # cand_idx = ut.take_percentile(top_candxs, .1)[-1]
         qfx = candidate_qfxs[cand_idx]
         print('qfx = %r' % (qfx,))
-        qfx2_dist = qfx2_dist[qfx:(qfx + 1)]
-        qfx2_idx = qfx2_idx[qfx:(qfx + 1)]
+        qfx2_dist = qfx2_dist[qfx : (qfx + 1)]
+        qfx2_idx = qfx2_idx[qfx : (qfx + 1)]
 
     qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
     qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_idx)
@@ -107,11 +109,13 @@ def show_top_featmatches(qreq_, cm_list):
     import numpy as np
     import vtool as vt
     from functools import partial
+
     # Stack chipmatches
     ibs = qreq_.ibs
     infos = [cm.get_flat_fm_info() for cm in cm_list]
-    flat_metadata = dict([(k, np.concatenate(v))
-                          for k, v in ut.dict_stack2(infos).items()])
+    flat_metadata = dict(
+        [(k, np.concatenate(v)) for k, v in ut.dict_stack2(infos).items()]
+    )
     fsv_flat = flat_metadata['fsv']
     flat_metadata['fs'] = fsv_flat.prod(axis=1)
     aids1 = flat_metadata['aid1'][:, None]
@@ -128,10 +132,11 @@ def show_top_featmatches(qreq_, cm_list):
 
     annots = {}
     aids = np.unique(np.hstack((aid1s, aid2s)))
-    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams)
-              for aid in aids}
+    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams) for aid in aids}
 
-    label_lists = ibs.get_match_truths(aid1s, aid2s) == ibs.const.EVIDENCE_DECISION.POSITIVE
+    label_lists = (
+        ibs.get_match_truths(aid1s, aid2s) == ibs.const.EVIDENCE_DECISION.POSITIVE
+    )
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):
@@ -140,24 +145,33 @@ def show_top_featmatches(qreq_, cm_list):
         kpts = annot['kpts']
         rchip = annot['rchip']
         kpts_m = kpts.take(fxs, axis=0)
-        warped_patches, warped_subkpts = vt.get_warped_patches(rchip, kpts_m,
-                                                               patch_size=patch_size)
+        warped_patches, warped_subkpts = vt.get_warped_patches(
+            rchip, kpts_m, patch_size=patch_size
+        )
         return warped_patches
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
     import wbia.plottool as pt  # NOQA
+
     pt.ensureqt()
     import ibeis_cnn
+
     inter = ibeis_cnn.draw_results.interact_patches(
-        label_lists, data_lists, flat_metadata_top, chunck_sizes=(2, 4),
-        ibs=ibs, hack_one_per_aid=False, sortby='fs', qreq_=qreq_)
+        label_lists,
+        data_lists,
+        flat_metadata_top,
+        chunck_sizes=(2, 4),
+        ibs=ibs,
+        hack_one_per_aid=False,
+        sortby='fs',
+        qreq_=qreq_,
+    )
     inter.show()
 
 
-#@ut.indent_func('[show_neardesc]')
-def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
-                             qreq_=None, **kwargs):
+# @ut.indent_func('[show_neardesc]')
+def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **kwargs):
     r"""
     Args:
         ibs (wbia.IBEISController): image analysis api
@@ -207,24 +221,27 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> pt.show_if_requested()
     """
     import wbia.plottool as pt  # NOQA
+
     consecutive_distance_compare = True
-    draw_chip     = kwargs.get('draw_chip', False)
-    draw_desc     = kwargs.get('draw_desc', True)
-    draw_warped   = kwargs.get('draw_warped', True)
+    draw_chip = kwargs.get('draw_chip', False)
+    draw_desc = kwargs.get('draw_desc', True)
+    draw_warped = kwargs.get('draw_warped', True)
     draw_unwarped = kwargs.get('draw_unwarped', True)
-    #skip = kwargs.get('skip', True)
+    # skip = kwargs.get('skip', True)
     # Plots the nearest neighbors of a given feature (qaid, qfx)
     if fnum is None:
         fnum = df2.next_fnum()
     try:
         # Flann NN query
-        (qfx, qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=qreq_)
+        (qfx, qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(
+            ibs, qaid, qfx, qreq_=qreq_
+        )
 
         # Adds metadata to a feature match
         def get_extract_tuple(aid, fx, k=-1):
             rchip = ibs.get_annot_chips(aid)
-            kp    = ibs.get_annot_kpts(aid)[fx]
-            sift  = ibs.get_annot_vecs(aid)[fx]
+            kp = ibs.get_annot_kpts(aid)[fx]
+            sift = ibs.get_annot_vecs(aid)[fx]
             if not ut.get_argflag('--texknormplot'):
                 aidstr = vh.get_aidstrs(aid)
                 nidstr = vh.get_nidstrs(ibs.get_annot_nids(aid))
@@ -246,24 +263,35 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                 type_ = 'Query'
             elif k < K:
                 type_ = 'Match'
-                if ut.get_argflag('--texknormplot') and  pt.is_texmode():
-                    #info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
+                if ut.get_argflag('--texknormplot') and pt.is_texmode():
+                    # info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
-                    info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
+                    info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (
+                        k,
+                        qfx2_dist[0, k],
+                    )
                     # info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
-                    info += '\n$s=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    info += '\n$s=%.3f$' % (
+                        qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k]
+                    )
                 else:
                     info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
-                    info += '\nLNBNN=%.3f' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    info += '\nLNBNN=%.3f' % (
+                        qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k]
+                    )
             elif k < Knorm + K:
                 type_ = 'Norm'
-                if ut.get_argflag('--texknormplot') and  pt.is_texmode():
-                    #info = 'Norm: $j_%r$\ndist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                if ut.get_argflag('--texknormplot') and pt.is_texmode():
+                    # info = 'Norm: $j_%r$\ndist=%.3f' % (id_str, k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
                     info += 'Norm: $j_%r$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
                     info += '\n\\_'
                 else:
-                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (id_str, k, qfx2_dist[0, k])
+                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (
+                        id_str,
+                        k,
+                        qfx2_dist[0, k],
+                    )
             else:
                 raise Exception('[viz] problem k=%r')
             return (rchip, kp, sift, fx, aid, info, type_)
@@ -274,7 +302,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         origsift = extracted_list[0][2]
         skipped = 0
         for k in range(K + Knorm):
-            #if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:
+            # if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:
             if qfx2_daid[0, k] == qaid:
                 skipped += 1
                 continue
@@ -290,13 +318,15 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         px_shift = 0  # plot stride shift
         nExtracted = len(extracted_list)
         featrow_kw = dict(
-            draw_chip=draw_chip, draw_desc=draw_desc, draw_warped=draw_warped,
+            draw_chip=draw_chip,
+            draw_desc=draw_desc,
+            draw_warped=draw_warped,
             draw_unwarped=draw_unwarped,
         )
         if ut.get_argflag('--texknormplot'):
             featrow_kw['ell_color'] = pt.ORANGE
             featrow_kw['ell_linewidth'] = 1
-            featrow_kw['arm1_lw'] = .5
+            featrow_kw['arm1_lw'] = 0.5
             featrow_kw['stroke'] = 0
             pass
         for listx, tup in enumerate(extracted_list):
@@ -309,9 +339,21 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                 px_shift = px
                 df2.figure(fnum=_fnum, docla=True, doclf=True)
             px_ = px - px_shift
-            px = draw_feat_row(rchip, fx, kp, sift, _fnum, _nRows, px=px_,
-                               prevsift=prevsift, origsift=origsift, aid=aid,
-                               info=info, type_=type_, **featrow_kw)
+            px = draw_feat_row(
+                rchip,
+                fx,
+                kp,
+                sift,
+                _fnum,
+                _nRows,
+                px=px_,
+                prevsift=prevsift,
+                origsift=origsift,
+                aid=aid,
+                info=info,
+                type_=type_,
+                **featrow_kw
+            )
 
             px += px_shift
             if prevsift is None or consecutive_distance_compare:
@@ -333,6 +375,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_nearest_descriptors --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

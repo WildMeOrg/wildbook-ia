@@ -16,22 +16,32 @@ import numpy as np
 import utool as ut
 import cv2
 from wbia.control import controller_inject
-from wbia.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
-                                     localizer_parse_pred, general_overlap)
-from wbia.other.detectcore import nms, classifier_visualize_training_localizations, _bootstrap_mine
+from wbia.other.detectfuncs import (
+    general_parse_gt,
+    general_get_imageset_gids,
+    localizer_parse_pred,
+    general_overlap,
+)
+from wbia.other.detectcore import (
+    nms,
+    classifier_visualize_training_localizations,
+    _bootstrap_mine,
+)
 
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectgrave]')
 
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
 @register_ibs_method
-def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
-                        output_path=None, **kwargs):
+def bootstrap_pca_train(
+    ibs, dims=64, pca_limit=500000, ann_batch=50, output_path=None, **kwargs
+):
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import IncrementalPCA
     from annoy import AnnoyIndex
@@ -43,8 +53,8 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         if shuffle:
             random.shuffle(gid_list_)
         config = {
-            'algo'         : '_COMBINED',
-            'features'     : True,
+            'algo': '_COMBINED',
+            'features': True,
             'feature2_algo': 'resnet',
         }
         total = 0
@@ -54,15 +64,13 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         for gid in gid_iter:
             if limit is not None and total >= limit:
                 break
-            feature_list = depc.get_property('localizations_features', gid,
-                                             'vector', config=config)
+            feature_list = depc.get_property(
+                'localizations_features', gid, 'vector', config=config
+            )
             total += len(feature_list)
-            index_list += [
-                (gid, offset, )
-                for offset in range(len(feature_list))
-            ]
+            index_list += [(gid, offset,) for offset in range(len(feature_list))]
             features_list.append(feature_list)
-        print('\nUsed %d images to mine %d features' % (len(features_list), total, ))
+        print('\nUsed %d images to mine %d features' % (len(features_list), total,))
         data_list = np.vstack(features_list)
         if len(data_list) > limit:
             data_list = data_list[:limit]
@@ -92,7 +100,7 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
     pca_model.fit(data_list)
 
     pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
-    print('PCA Variance Quality: %0.04f %%' % (pca_quality, ))
+    print('PCA Variance Quality: %0.04f %%' % (pca_quality,))
 
     # Fit ANN for PCA's vectors
     index = 0
@@ -104,10 +112,10 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
         stop_index = min(stop_index, len(gid_list))
-        print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
+        print('Slicing index range: [%r, %r)' % (start_index, stop_index,))
 
         # Slice gids and get feature data
-        gid_list_ = gid_list[start_index: stop_index]
+        gid_list_ = gid_list[start_index:stop_index]
         total, data_list, index_list = _get_data(depc, gid_list_)
 
         # Scaler
@@ -120,12 +128,15 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         data_iter = ut.ProgIter(zipped, lbl='add vectors to ANN model', bs=True)
         for (gid, offset), feature in data_iter:
             ann_model.add_item(index, feature)
-            manifest_dict[index] = (gid, offset, )
+            manifest_dict[index] = (
+                gid,
+                offset,
+            )
             index += 1
 
     # Build forest
     trees = index // 100000
-    print('Build ANN model using %d feature vectors and %d trees' % (index, trees, ))
+    print('Build ANN model using %d feature vectors and %d trees' % (index, trees,))
     ann_model.build(trees)
 
     # Save forest
@@ -134,13 +145,17 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(output_path, scaler_filename)
-    print('Saving scaler model to: %r' % (scaler_filepath, ))
-    model_tup = (pca_model, scaler, manifest_dict, )
+    print('Saving scaler model to: %r' % (scaler_filepath,))
+    model_tup = (
+        pca_model,
+        scaler,
+        manifest_dict,
+    )
     ut.save_cPkl(scaler_filepath, model_tup)
 
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
-    print('Saving ANN model to: %r' % (forest_filepath, ))
+    print('Saving ANN model to: %r' % (forest_filepath,))
     ann_model.save(forest_filepath)
 
     # ibs.bootstrap_pca_test(model_path=output_path)
@@ -148,9 +163,18 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
 
 @register_ibs_method
-def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
-                       model_path=None, output_path=None, neighbors=1000,
-                       nms_thresh=0.5, min_confidence=0.3, **kwargs):
+def bootstrap_pca_test(
+    ibs,
+    dims=64,
+    pca_limit=500000,
+    ann_batch=50,
+    model_path=None,
+    output_path=None,
+    neighbors=1000,
+    nms_thresh=0.5,
+    min_confidence=0.3,
+    **kwargs
+):
     from annoy import AnnoyIndex
     import random
 
@@ -169,21 +193,21 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(model_path, scaler_filename)
-    print('Loading scaler model from: %r' % (scaler_filepath, ))
+    print('Loading scaler model from: %r' % (scaler_filepath,))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
     forest_filename = 'forest.ann'
     forest_filepath = join(model_path, forest_filename)
-    print('Loading ANN model from: %r' % (forest_filepath, ))
+    print('Loading ANN model from: %r' % (forest_filepath,))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
     config = {
-        'algo'         : '_COMBINED',
-        'features'     : True,
+        'algo': '_COMBINED',
+        'features': True,
         'feature2_algo': 'resnet',
-        'classify'     : True,
+        'classify': True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
@@ -208,10 +232,10 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
         example_limit = 1
         worst_idx_list = index_list[:example_limit]
-        best_idx_list = index_list[-1 * example_limit:]
+        best_idx_list = index_list[-1 * example_limit :]
 
-        print('Worst ovelap: %r' % (overlap[:, worst_idx_list], ))
-        print('Best ovelap:  %r' % (overlap[:, best_idx_list], ))
+        print('Worst ovelap: %r' % (overlap[:, worst_idx_list],))
+        print('Best ovelap:  %r' % (overlap[:, best_idx_list],))
 
         for idx_list in [best_idx_list, worst_idx_list]:
             example_list = ut.take(pred_list, idx_list)
@@ -226,10 +250,14 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                 data_list_ = pca_model.transform(data_list)[0]
 
                 neighbor_index_list = ann_model.get_nns_by_vector(data_list_, neighbors)
-                neighbor_manifest_list = list(set([
-                    manifest_dict[neighbor_index]
-                    for neighbor_index in neighbor_index_list
-                ]))
+                neighbor_manifest_list = list(
+                    set(
+                        [
+                            manifest_dict[neighbor_index]
+                            for neighbor_index in neighbor_index_list
+                        ]
+                    )
+                )
                 neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
                 neighbor_gid_list_ = [gid] + neighbor_gid_list_
                 neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
@@ -243,11 +271,14 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                     for gid, image in zip(neighbor_gid_set_, neighbor_image_list)
                 }
 
-                neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
-                                                          **config)
+                neighbor_pred_dict = localizer_parse_pred(
+                    ibs, test_gid_list=neighbor_gid_set_, **config
+                )
 
                 neighbor_dict = {}
-                zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_offset_list_)
+                zipped = zip(
+                    neighbor_gid_list_, neighbor_uuid_list_, neighbor_offset_list_
+                )
                 for neighbor_gid, neighbor_uuid, neighbor_offset in zipped:
                     if neighbor_gid not in neighbor_dict:
                         neighbor_dict[neighbor_gid] = []
@@ -269,7 +300,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                 ytl = int(ytl * height)
                 # Get chips
                 try:
-                    chip = query_image[ytl: ybr, xtl: xbr, :]
+                    chip = query_image[ytl:ybr, xtl:xbr, :]
                     chip = cv2.resize(chip, (192, 192), **warpkw)
                     chip_list.append(chip)
                 except Exception:
@@ -315,9 +346,11 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                         ytl = int(ytl * height)
                         # Get chips
                         try:
-                            chip = neighbor_image[ytl: ybr, xtl: xbr, :]
+                            chip = neighbor_image[ytl:ybr, xtl:xbr, :]
                             chip = cv2.resize(chip, (192, 192), **warpkw)
-                            color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
+                            color = (
+                                (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
+                            )
                             cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
                             chip_list.append(chip)
                         except Exception:
@@ -329,15 +362,28 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
                 chip_list = chip_list[:min_chips]
                 canvas = np.hstack(chip_list)
-                output_filename = 'neighbors_%d_%d.png' % (gid, offset, )
+                output_filename = 'neighbors_%d_%d.png' % (gid, offset,)
                 output_filepath = join(output_path, output_filename)
                 cv2.imwrite(output_filepath, canvas)
 
 
 @register_ibs_method
-def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
-              output_path=None, precompute=True, precompute_test=True,
-              recompute=False, visualize=True, C=1.0, kernel='rbf', **kwargs):
+def bootstrap(
+    ibs,
+    species_list=['zebra'],
+    N=10,
+    rounds=20,
+    scheme=2,
+    ensemble=9,
+    output_path=None,
+    precompute=True,
+    precompute_test=True,
+    recompute=False,
+    visualize=True,
+    C=1.0,
+    kernel='rbf',
+    **kwargs
+):
     from sklearn import svm, preprocessing
 
     # Establish variables
@@ -352,7 +398,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    print('Using output_path = %r' % (output_path, ))
+    print('Using output_path = %r' % (output_path,))
     if recompute:
         ut.delete(output_path)
     ut.ensuredir(output_path)
@@ -361,14 +407,18 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     depc = ibs.depc_image
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
-    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
+    wic_model_filepath = ibs.classifier_train_image_svm(
+        species_list, output_path=output_path, dryrun=True
+    )
     is_wic_model_trained = exists(wic_model_filepath)
     ######################################################################################
     # Step 1: train whole-image classifier
     #         this will compute and cache any ResNet features that
     #         haven't been computed
     if not is_wic_model_trained:
-        wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
+        wic_model_filepath = ibs.classifier_train_image_svm(
+            species_list, output_path=output_path
+        )
 
     # Load model pickle
     model_tup = ut.load_cPkl(wic_model_filepath)
@@ -392,15 +442,15 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     sorted_gid_list = [comb[1] for comb in comb_list]
 
     config = {
-        'algo'         : '_COMBINED',
-        'species_set'  : set(species_list),
-        'features'     : True,
+        'algo': '_COMBINED',
+        'species_set': set(species_list),
+        'features': True,
         'feature2_algo': 'resnet',
-        'classify'     : True,
+        'classify': True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': wic_model_filepath,
-        'nms'          : True,
-        'nms_thresh'   : 0.50,
+        'nms': True,
+        'nms_thresh': 0.50,
         # 'thresh'       : True,
         # 'index_thresh' : 0.25,
     }
@@ -419,7 +469,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     if precompute and precompute_test:
         # depc.get_rowids('localizations_features', test_gid_list, config=config)
         if not is_wic_model_trained:
-            depc.delete_property('localizations_classifier', test_gid_list, config=config)
+            depc.delete_property(
+                'localizations_classifier', test_gid_list, config=config
+            )
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     # return
@@ -431,7 +483,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     reviewed_gid_dict = {}
     for current_round in range(rounds):
         print('------------------------------------------------------')
-        print('Current Round %r' % (current_round, ))
+        print('Current Round %r' % (current_round,))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -443,14 +495,20 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 round_gid_list.append(temp_gid)
             temp_index += 1
 
-        args = (len(round_gid_list), round_gid_list, )
+        args = (
+            len(round_gid_list),
+            round_gid_list,
+        )
         print('Found %d unreviewed gids: %r' % args)
 
         ##################################################################################
         # Step 5: add any images reviewed from a previous round
 
         reviewed_gid_list = reviewed_gid_dict.keys()
-        args = (len(reviewed_gid_list), reviewed_gid_list, )
+        args = (
+            len(reviewed_gid_list),
+            reviewed_gid_list,
+        )
         print('Adding %d previously reviewed gids: %r' % args)
 
         # All gids that have been reviewed
@@ -458,7 +516,12 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
         # Get model ensemble path
         limit = len(round_gid_list)
-        args = (species_list_str, limit, kernel, C, )
+        args = (
+            species_list_str,
+            limit,
+            kernel,
+            C,
+        )
         output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
@@ -476,7 +539,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
         if not is_svm_model_trained:
             print('\tDelete Old Classifications')
-            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+            depc.delete_property(
+                'localizations_classifier', round_gid_list, config=config
+            )
 
         print('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
@@ -487,18 +552,21 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Train models, one-by-one
         for current_ensemble in range(1, ensemble + 1):
             # Mine for a new set of (static) positives and (random) negatives
-            values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
-                                     reviewed_gid_dict, **kwargs)
+            values = _bootstrap_mine(
+                ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict, **kwargs
+            )
             mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
 
             if visualize:
                 output_visualize_path = join(svm_model_path, 'visualize')
                 ut.ensuredir(output_visualize_path)
-                output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
+                output_visualize_path = join(
+                    output_visualize_path, '%s' % (current_ensemble,)
+                )
                 ut.ensuredir(output_visualize_path)
-                classifier_visualize_training_localizations(ibs, None,
-                                                            output_path=output_visualize_path,
-                                                            values=values)
+                classifier_visualize_training_localizations(
+                    ibs, None, output_path=output_visualize_path, values=values
+                )
 
             # Get the confidences of the selected positives and negatives
             pos_conf_list = []
@@ -515,7 +583,10 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 np.std(pos_conf_list),
                 np.max(pos_conf_list),
             )
-            print('Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+            print(
+                'Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
+                % args
+            )
             neg_conf_list = np.array(neg_conf_list)
             args = (
                 np.min(neg_conf_list),
@@ -523,7 +594,10 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 np.std(neg_conf_list),
                 np.max(neg_conf_list),
             )
-            print('Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+            print(
+                'Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
+                % args
+            )
 
             # Train new models
             if not is_svm_model_trained:
@@ -540,7 +614,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 data_list = np.array(data_list)
                 label_list = np.array(label_list)
 
-                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                print('Train Ensemble SVM (%d)' % (current_ensemble,))
                 # Train scaler
                 scaler = preprocessing.StandardScaler().fit(data_list)
                 data_list = scaler.transform(data_list)
@@ -549,10 +623,17 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 model.fit(data_list, label_list)
 
                 # Save model pickle
-                args = (species_list_str, limit, current_ensemble, )
+                args = (
+                    species_list_str,
+                    limit,
+                    current_ensemble,
+                )
                 svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
                 svm_model_filepath = join(svm_model_path, svm_model_filename)
-                model_tup = (model, scaler, )
+                model_tup = (
+                    model,
+                    scaler,
+                )
                 ut.save_cPkl(svm_model_filepath, model_tup)
 
         ##################################################################################
@@ -566,7 +647,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         #         the new model ensemble
         if precompute and precompute_test:
             if not is_svm_model_trained:
-                depc.delete_property('localizations_classifier', test_gid_list, config=config)
+                depc.delete_property(
+                    'localizations_classifier', test_gid_list, config=config
+                )
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     # Return the list of used configs
@@ -574,13 +657,31 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
 
 @register_ibs_method
-def bootstrap2(ibs, species_list=['zebra'],
-               alpha=10, gamma=16, epsilon=0.3, rounds=20, ensemble=3, dims=64, pca_limit=1000000,
-               nms_thresh_pos=0.5, nms_thresh_neg=0.90, C=1.0, kernel='rbf', theta=1.0,
-               output_path=None,
-               precompute=True, precompute_test=True, recompute=False, recompute_classifications=True,
-               overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
-               **kwargs):
+def bootstrap2(
+    ibs,
+    species_list=['zebra'],
+    alpha=10,
+    gamma=16,
+    epsilon=0.3,
+    rounds=20,
+    ensemble=3,
+    dims=64,
+    pca_limit=1000000,
+    nms_thresh_pos=0.5,
+    nms_thresh_neg=0.90,
+    C=1.0,
+    kernel='rbf',
+    theta=1.0,
+    output_path=None,
+    precompute=True,
+    precompute_test=True,
+    recompute=False,
+    recompute_classifications=True,
+    overlap_thresh_cat_1=0.75,
+    overlap_thresh_cat_2=0.25,
+    overlap_thresh_cat_3=0.0,
+    **kwargs
+):
     from sklearn import svm, preprocessing
     from annoy import AnnoyIndex
 
@@ -592,7 +693,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     if output_path is None:
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    print('Using output_path = %r' % (output_path, ))
+    print('Using output_path = %r' % (output_path,))
 
     if recompute:
         ut.delete(output_path)
@@ -609,11 +710,11 @@ def bootstrap2(ibs, species_list=['zebra'],
     if not is_ann_model_trained:
         ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit, output_path=output_path)
 
-    print('Loading scaler model from: %r' % (scaler_filepath, ))
+    print('Loading scaler model from: %r' % (scaler_filepath,))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
-    print('Loading ANN model from: %r' % (forest_filepath, ))
+    print('Loading ANN model from: %r' % (forest_filepath,))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
@@ -621,14 +722,18 @@ def bootstrap2(ibs, species_list=['zebra'],
     depc = ibs.depc_image
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list, **kwargs)
 
-    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
+    wic_model_filepath = ibs.classifier_train_image_svm(
+        species_list, output_path=output_path, dryrun=True
+    )
     is_wic_model_trained = exists(wic_model_filepath)
     ######################################################################################
     # Step 1: train whole-image classifier
     #         this will compute and cache any ResNet features that
     #         haven't been computed
     if not is_wic_model_trained:
-        wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
+        wic_model_filepath = ibs.classifier_train_image_svm(
+            species_list, output_path=output_path
+        )
 
     # Load model pickle
     model_tup = ut.load_cPkl(wic_model_filepath)
@@ -652,12 +757,12 @@ def bootstrap2(ibs, species_list=['zebra'],
     sorted_gid_list = [comb[1] for comb in comb_list]
 
     config = {
-        'algo'           : '_COMBINED',
-        'species_set'    : set(species_list),
+        'algo': '_COMBINED',
+        'species_set': set(species_list),
         # 'features'       : True,
-        'features_lazy'  : True,
-        'feature2_algo'  : 'resnet',
-        'classify'       : True,
+        'features_lazy': True,
+        'feature2_algo': 'resnet',
+        'classify': True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': wic_model_filepath,
         # 'nms'          : True,
@@ -677,7 +782,9 @@ def bootstrap2(ibs, species_list=['zebra'],
     if precompute and precompute_test:
         # depc.get_rowids('localizations_features', test_gid_list, config=config)
         if not is_wic_model_trained:
-            depc.delete_property('localizations_classifier', test_gid_list, config=config)
+            depc.delete_property(
+                'localizations_classifier', test_gid_list, config=config
+            )
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     ######################################################################################
@@ -688,7 +795,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     reviewed_gid_list = []
     for current_round in range(rounds):
         print('------------------------------------------------------')
-        print('Current Round %r' % (current_round, ))
+        print('Current Round %r' % (current_round,))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -700,13 +807,19 @@ def bootstrap2(ibs, species_list=['zebra'],
                 round_gid_list.append(temp_gid)
             temp_index += 1
 
-        args = (len(round_gid_list), round_gid_list, )
+        args = (
+            len(round_gid_list),
+            round_gid_list,
+        )
         print('Found %d unreviewed gids: %r' % args)
 
         ##################################################################################
         # Step 5: add any images reviewed from a previous round
 
-        args = (len(reviewed_gid_list), reviewed_gid_list, )
+        args = (
+            len(reviewed_gid_list),
+            reviewed_gid_list,
+        )
         print('Adding %d previously reviewed gids: %r' % args)
 
         # All gids that have been reviewed
@@ -715,7 +828,12 @@ def bootstrap2(ibs, species_list=['zebra'],
 
         # Get model ensemble path
         limit = len(round_gid_list)
-        args = (species_list_str, limit, kernel, C, )
+        args = (
+            species_list_str,
+            limit,
+            kernel,
+            C,
+        )
         output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
@@ -732,15 +850,24 @@ def bootstrap2(ibs, species_list=['zebra'],
             # Step 7: gather predictions from all algorithms combined
             if recompute_classifications:
                 print('\tDelete Old Classifications')
-                depc.delete_property('localizations_classifier', round_gid_list, config=config)
+                depc.delete_property(
+                    'localizations_classifier', round_gid_list, config=config
+                )
 
             print('\tGather Predictions')
-            pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+            pred_dict = localizer_parse_pred(
+                ibs, test_gid_list=round_gid_list, **config
+            )
 
             category_dict = {}
             for image_index, image_uuid in enumerate(gt_dict.keys()):
                 image_gid = ibs.get_image_gids_from_uuid(image_uuid)
-                args = (image_gid, image_uuid, image_index + 1, len(round_gid_list), )
+                args = (
+                    image_gid,
+                    image_uuid,
+                    image_index + 1,
+                    len(round_gid_list),
+                )
                 print('Processing neighbors for image %r, %r (%d / %d)' % args)
 
                 # Get the gt and prediction list
@@ -755,7 +882,10 @@ def bootstrap2(ibs, species_list=['zebra'],
                 # Find overlap category bins
                 cat1_idx_list = max_overlap >= overlap_thresh_cat_1
                 # cat2_idx_list = np.logical_and(overlap_thresh_cat_1 > max_overlap, max_overlap >= overlap_thresh_cat_2)
-                cat3_idx_list = np.logical_and(overlap_thresh_cat_2 > max_overlap, max_overlap > overlap_thresh_cat_3)
+                cat3_idx_list = np.logical_and(
+                    overlap_thresh_cat_2 > max_overlap,
+                    max_overlap > overlap_thresh_cat_3,
+                )
                 cat4_idx_list = overlap_thresh_cat_3 >= max_overlap
 
                 # Mine for prediction neighbors in category 1
@@ -771,7 +901,10 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                     # Take the predictions for this category
                     cat_pred_list = ut.compress(pred_list, list(cat_idx_list))
-                    args = (cat_tag, len(cat_pred_list), )
+                    args = (
+                        cat_tag,
+                        len(cat_pred_list),
+                    )
                     print('\t Working on category %r with %d predictions' % args)
 
                     # Add raw predictions
@@ -782,7 +915,9 @@ def bootstrap2(ibs, species_list=['zebra'],
                     if cat_tag == 'cat1':
                         # Go over predictions and find neighbors, sorting into either cat1 or cat3
                         neighbor_manifest_list = []
-                        cat_pred_iter = ut.ProgIter(cat_pred_list, lbl='find neighbors', bs=True)
+                        cat_pred_iter = ut.ProgIter(
+                            cat_pred_list, lbl='find neighbors', bs=True
+                        )
                         for cat_pred in cat_pred_iter:
                             feature = cat_pred.get('feature', None)
                             if feature is None:
@@ -795,7 +930,9 @@ def bootstrap2(ibs, species_list=['zebra'],
                             data_list = scaler.transform(feature_list)
                             data_list_ = pca_model.transform(data_list)[0]
 
-                            neighbor_index_list = ann_model.get_nns_by_vector(data_list_, gamma)
+                            neighbor_index_list = ann_model.get_nns_by_vector(
+                                data_list_, gamma
+                            )
                             neighbor_manifest_list += [
                                 manifest_dict[neighbor_index]
                                 for neighbor_index in neighbor_index_list
@@ -813,15 +950,27 @@ def bootstrap2(ibs, species_list=['zebra'],
                                 round_neighbor_gid_hist[neighbor_gid_] = 0
                             round_neighbor_gid_hist[neighbor_gid_] += 1
 
-                        args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
+                        args = (
+                            len(neighbor_gid_set_),
+                            len(neighbor_manifest_list),
+                        )
                         print('\t\tGetting %d images for %d neighbors' % args)
-                        neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=list(neighbor_gid_set_),
-                                                                  **config)
+                        neighbor_pred_dict = localizer_parse_pred(
+                            ibs, test_gid_list=list(neighbor_gid_set_), **config
+                        )
 
-                        zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_)
+                        zipped = zip(
+                            neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_
+                        )
                         for neighbor_gid, neighbor_uuid, neighbor_idx in zipped:
-                            neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_idx]
-                            cat_tag_ = 'cat1' if neighbor_pred['confidence'] >= epsilon else 'cat3'
+                            neighbor_pred = neighbor_pred_dict[neighbor_uuid][
+                                neighbor_idx
+                            ]
+                            cat_tag_ = (
+                                'cat1'
+                                if neighbor_pred['confidence'] >= epsilon
+                                else 'cat3'
+                            )
                             if cat_tag_ not in category_dict:
                                 category_dict[cat_tag_] = {}
                             if neighbor_gid not in category_dict[cat_tag_]:
@@ -850,7 +999,11 @@ def bootstrap2(ibs, species_list=['zebra'],
                     coord_list = np.vstack(coord_list)
                     confs_list = np.array(confs_list)
                     # Perform NMS
-                    nms_thresh = nms_thresh_pos if cat_tag in ['cat1', 'cat3'] else nms_thresh_neg
+                    nms_thresh = (
+                        nms_thresh_pos
+                        if cat_tag in ['cat1', 'cat3']
+                        else nms_thresh_neg
+                    )
                     keep_indices_list = nms(coord_list, confs_list, nms_thresh)
                     keep_indices_set = set(keep_indices_list)
                     pred_list_ = [
@@ -859,7 +1012,10 @@ def bootstrap2(ibs, species_list=['zebra'],
                         if index in keep_indices_set
                     ]
                     cat_pred_list += pred_list_
-                print('NMS Proposals (start) for category %r: %d' % (cat_tag, cat_pred_total, ))
+                print(
+                    'NMS Proposals (start) for category %r: %d'
+                    % (cat_tag, cat_pred_total,)
+                )
                 # Print stats
                 conf_list = []
                 for cat_pred in cat_pred_list:
@@ -872,11 +1028,14 @@ def bootstrap2(ibs, species_list=['zebra'],
                     np.std(conf_list),
                     np.max(conf_list),
                 )
-                print('Category %r Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+                print(
+                    'Category %r Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
+                    % args
+                )
                 # Overwrite GID dictionary with a list of predictions
                 category_dict[cat_tag] = cat_pred_list
                 cat_total = len(cat_pred_list)
-                print('NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total, ))
+                print('NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total,))
 
             ##################################################################################
             # Step 8: train SVM ensemble using fresh mined data for each ensemble
@@ -892,7 +1051,7 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                 num_pos = len(mined_pos_list)
                 num_target = int(num_pos / theta)
-                print('Mining %d target negatives' % (num_target, ))
+                print('Mining %d target negatives' % (num_target,))
 
                 if len(mined_hard_list) > num_target:
                     print('Sampling Hard')
@@ -915,7 +1074,10 @@ def bootstrap2(ibs, species_list=['zebra'],
                     num_neg,
                     num_pos / num_total,
                 )
-                print('Training with %d positives and %d (%d + %d) negatives (%0.02f split)' % args)
+                print(
+                    'Training with %d positives and %d (%d + %d) negatives (%0.02f split)'
+                    % args
+                )
 
                 temp_list = [
                     ('pos', 1, mined_pos_list),
@@ -928,7 +1090,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                 data_list = None
                 label_list = []
                 for label_tag, label, mined_data_list in temp_list:
-                    lbl = 'gathering training features for %s' % (label_tag, )
+                    lbl = 'gathering training features for %s' % (label_tag,)
                     mined_data_iter = ut.ProgIter(mined_data_list, lbl=lbl, bs=True)
                     for data in mined_data_iter:
                         feature = data.get('feature', None)
@@ -940,7 +1102,10 @@ def bootstrap2(ibs, species_list=['zebra'],
                             # data['feature'] = feature
                         if data_list is None:
                             num_dims = len(feature)
-                            data_shape = (num_total, num_dims, )
+                            data_shape = (
+                                num_total,
+                                num_dims,
+                            )
                             data_list = np.zeros(data_shape, dtype=feature.dtype)
                         # Add feature and label to list
                         # data_list.append(feature)
@@ -951,7 +1116,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                 # data_list = np.array(data_list)
                 label_list = np.array(label_list)
 
-                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                print('Train Ensemble SVM (%d)' % (current_ensemble,))
                 # Train scaler
                 scaler = preprocessing.StandardScaler().fit(data_list)
                 data_list = scaler.transform(data_list)
@@ -960,26 +1125,26 @@ def bootstrap2(ibs, species_list=['zebra'],
                 model.fit(data_list, label_list)
 
                 # Save model pickle
-                args = (current_ensemble, )
+                args = (current_ensemble,)
                 svm_model_filename = 'classifier.svm.localization.%d.pkl' % args
                 svm_model_filepath = join(svm_model_path, svm_model_filename)
-                model_tup = (model, scaler, )
+                model_tup = (
+                    model,
+                    scaler,
+                )
                 ut.save_cPkl(svm_model_filepath, model_tup)
 
         ##################################################################################
         # Step 8: update the sorted_gid_list based on what neighbors were samples
         if len(round_neighbor_gid_hist) >= alpha:
             vals_list = [
-                (
-                    round_neighbor_gid_hist[neighbor_gid_],
-                    neighbor_gid_,
-                )
+                (round_neighbor_gid_hist[neighbor_gid_], neighbor_gid_,)
                 for neighbor_gid_ in round_neighbor_gid_hist
             ]
             vals_list = sorted(vals_list, reverse=True)
             vals_list = vals_list[:alpha]
-            print('Reference Histogram: %r' % (vals_list, ))
-            top_referenced_neighbor_gid_list = [ _[1] for _ in vals_list ]
+            print('Reference Histogram: %r' % (vals_list,))
+            top_referenced_neighbor_gid_list = [_[1] for _ in vals_list]
             round_neighbor_gid_set = set(top_referenced_neighbor_gid_list)
 
             # Partition set
@@ -995,9 +1160,14 @@ def bootstrap2(ibs, species_list=['zebra'],
             ]
             sorted_gid_list_ = higher_sorted_gid_list + lower_sorted_gid_list
 
-            assert len(sorted_gid_list_) == len(higher_sorted_gid_list) + len(lower_sorted_gid_list)
+            assert len(sorted_gid_list_) == len(higher_sorted_gid_list) + len(
+                lower_sorted_gid_list
+            )
             assert len(sorted_gid_list_) == len(sorted_gid_list)
-            args = (len(higher_sorted_gid_list), len(lower_sorted_gid_list), )
+            args = (
+                len(higher_sorted_gid_list),
+                len(lower_sorted_gid_list),
+            )
             print('Round Sorted Image Re-index: %d Above + %d Below' % args)
         else:
             print('NO IMAGE RE-INDEXING: NOT ENOUGH NEIGHBOR IMAGES SEEN')
@@ -1013,7 +1183,9 @@ def bootstrap2(ibs, species_list=['zebra'],
         #          the new model ensemble
         if precompute and precompute_test:
             if not is_svm_model_trained:
-                depc.delete_property('localizations_classifier', test_gid_list, config=config)
+                depc.delete_property(
+                    'localizations_classifier', test_gid_list, config=config
+                )
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     # Return the list of used configs
@@ -1032,15 +1204,17 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
     import random
 
     if species_set is None:
-        species_set = set([
-            'giraffe_masai',
-            'giraffe_reticulated',
-            'turtle_green',
-            'turtle_hawksbill',
-            'whale_fluke',
-            'zebra_grevys',
-            'zebra_plains'
-        ])
+        species_set = set(
+            [
+                'giraffe_masai',
+                'giraffe_reticulated',
+                'turtle_green',
+                'turtle_hawksbill',
+                'whale_fluke',
+                'zebra_grevys',
+                'zebra_plains',
+            ]
+        )
 
     gid_list = ibs.get_valid_gids()
     ibs.set_image_reviewed(gid_list, [0] * len(gid_list))
@@ -1101,13 +1275,14 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
                 # print('Recovering %d' % (recover, ))
                 gid_list.append(recover)
 
-        print('%r: %d' % (species, len(gid_list), ))
+        print('%r: %d' % (species, len(gid_list),))
 
     redo = raw_input('Redo? [enter to continue] ')
     redo = redo.strip()
     if len(redo) == 0:
-        ibs.set_reviewed_from_target_species_count(species_set=species_set,
-                                                   target=target)
+        ibs.set_reviewed_from_target_species_count(
+            species_set=species_set, target=target
+        )
     else:
         gid_list = []
         for species in species_set:
@@ -1130,14 +1305,10 @@ def get_classifier2_rf_data_labels(ibs, dataset_tag, category_list):
     # Load targets
     aids_list = ibs.get_image_aids(train_gid_set)
     species_set_list = [
-        set(ibs.get_annot_species_texts(aid_list_))
-        for aid_list_ in aids_list
+        set(ibs.get_annot_species_texts(aid_list_)) for aid_list_ in aids_list
     ]
     label_list = [
-        [
-            1.0 if category in species_set else 0.0
-            for category in category_list
-        ]
+        [1.0 if category in species_set else 0.0 for category in category_list]
         for species_set in species_set_list
     ]
     label_list = np.array(label_list)
@@ -1160,12 +1331,10 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
     aids_list = ibs.get_image_aids(train_gid_set)
     category_set = set(species_list)
     species_set_list = [
-        set(ibs.get_annot_species_texts(aid_list_))
-        for aid_list_ in aids_list
+        set(ibs.get_annot_species_texts(aid_list_)) for aid_list_ in aids_list
     ]
     label_list = [
-        1 if len(species_set & category_set) else 0
-        for species_set in species_set_list
+        1 if len(species_set & category_set) else 0 for species_set in species_set_list
     ]
     label_list = np.array(label_list)
 
@@ -1174,8 +1343,9 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False,
-                               C=1.0, kernel='rbf'):
+def classifier_train_image_svm(
+    ibs, species_list, output_path=None, dryrun=False, C=1.0, kernel='rbf'
+):
     from sklearn import svm, preprocessing
 
     # Load data
@@ -1189,7 +1359,11 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     species_list_str = '.'.join(species_list)
     kernel = str(kernel.lower())
 
-    args = (species_list_str, kernel, C, )
+    args = (
+        species_list_str,
+        kernel,
+        C,
+    )
     output_filename = 'classifier.svm.image.%s.%s.%s.pkl' % args
     output_filepath = join(output_path, output_filename)
     if not dryrun:
@@ -1204,7 +1378,10 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         model = svm.SVC(C=C, kernel=kernel, probability=True)
         model.fit(data_list, label_list)
 
-        model_tup = (model, scaler, )
+        model_tup = (
+            model,
+            scaler,
+        )
         ut.save_cPkl(output_filepath, model_tup)
 
         # Load model pickle
@@ -1236,11 +1413,11 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        print('Accuracy: %0.02f' % (accuracy, ))
-        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
-        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
-        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
-        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+        print('Accuracy: %0.02f' % (accuracy,))
+        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
+        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
+        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
+        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
 
     return output_filepath
 
@@ -1261,21 +1438,21 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
     ]
     output_filepath_list = []
     for C, kernel in config_list:
-        output_filepath = ibs.classifier_train_image_svm(species_list, C=C,
-                                                         kernel=kernel,
-                                                         **kwargs)
+        output_filepath = ibs.classifier_train_image_svm(
+            species_list, C=C, kernel=kernel, **kwargs
+        )
         output_filepath_list.append(output_filepath)
 
         if precompute:
             config = {
-                'algo'                       : '_COMBINED',
-                'features'                   : True,
-                'feature2_algo'              : 'resnet',
-                'feature2_chip_masking'      : False,
-                'classify'                   : True,
-                'classifier_algo'            : 'svm',
-                'classifier_masking'         : False,
-                'classifier_weight_filepath' : output_filepath,
+                'algo': '_COMBINED',
+                'features': True,
+                'feature2_algo': 'resnet',
+                'feature2_chip_masking': False,
+                'classify': True,
+                'classifier_algo': 'svm',
+                'classifier_masking': False,
+                'classifier_weight_filepath': output_filepath,
             }
             depc.get_rowids('localizations_features', test_gid_list, config=config)
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
@@ -1288,8 +1465,9 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
 
 
 @register_ibs_method
-def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False,
-                               n_estimators=100):
+def classifier2_train_image_rf(
+    ibs, species_list, output_path=None, dryrun=False, n_estimators=100
+):
     from sklearn import ensemble, preprocessing
 
     # Load data
@@ -1302,7 +1480,10 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
 
-    args = (species_list_str, n_estimators, )
+    args = (
+        species_list_str,
+        n_estimators,
+    )
     output_filename = 'classifier2.rf.image.%s.%s.pkl' % args
     output_filepath = join(output_path, output_filename)
     if not dryrun:
@@ -1314,11 +1495,15 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
         scaler = preprocessing.StandardScaler().fit(data_list)
         data_list = scaler.transform(data_list)
         print('Train RF model using features and target labels')
-        model = ensemble.RandomForestClassifier(n_estimators=n_estimators,
-                                                max_features=None)
+        model = ensemble.RandomForestClassifier(
+            n_estimators=n_estimators, max_features=None
+        )
         model.fit(data_list, label_list)
 
-        model_tup = (model, scaler, )
+        model_tup = (
+            model,
+            scaler,
+        )
         ut.save_cPkl(output_filepath, model_tup)
 
         # Load model pickle
@@ -1350,11 +1535,11 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        print('Accuracy: %0.02f' % (accuracy, ))
-        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
-        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
-        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
-        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+        print('Accuracy: %0.02f' % (accuracy,))
+        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
+        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
+        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
+        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
 
     return output_filepath
 
@@ -1370,15 +1555,15 @@ def classifier2_train_image_rf_sweep(ibs, species_list, precompute=True, **kwarg
     ]
     output_filepath_list = []
     for n_estimators in config_list:
-        output_filepath = ibs.classifier2_train_image_rf(species_list,
-                                                         n_estimators=n_estimators,
-                                                         **kwargs)
+        output_filepath = ibs.classifier2_train_image_rf(
+            species_list, n_estimators=n_estimators, **kwargs
+        )
         output_filepath_list.append(output_filepath)
 
         if precompute:
             config = {
-                'classifier_two_algo'            : 'rf',
-                'classifier_two_weight_filepath' : output_filepath,
+                'classifier_two_algo': 'rf',
+                'classifier_two_weight_filepath': output_filepath,
             }
             depc.get_rowids('classifier_two', test_gid_list, config=config)
 
@@ -1386,8 +1571,6 @@ def classifier2_train_image_rf_sweep(ibs, species_list, precompute=True, **kwarg
 
 
 config_list = [
-
-
     # {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
     # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[0] ]},
     # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[1] ]},
@@ -1395,8 +1578,6 @@ config_list = [
     # {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[3] ]},
     # {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[4] ]},
     # {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[5] ]},
-
-
     # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
     # {'label': 'V1 (GRID)',      'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
     # {'label': 'V2',             'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
@@ -1405,41 +1586,154 @@ config_list = [
     # {'label': 'V3 (GRID)',      'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
     # {'label': 'V3 Whale Shark', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
     # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-
     # {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
     # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
     # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
-
     # {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green']), 'check_species': False},
     # {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill']), 'check_species': False},
     # {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green', 'turtle_hawksbill']), 'check_species': False},
     # {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head']), 'check_species': False},
     # {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head']), 'check_species': False},
-
     # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
     # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
-
     # {'label': 'Hammerhead',        'grid' : False, 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
     # {'label': 'Hammerhead (Grid)', 'grid' : True,  'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
-
     # {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
     # {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
     # {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
-
     # {'label': 'Sea Turtle (Green)',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_green'])},
-
-    {'label': 'Hawksbill 00',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 10',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 20',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 30',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 40',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 50',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 60',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 70',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 80',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 90',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill'])},
-    {'label': 'Hawksbill 100',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill'])},
-
+    {
+        'label': 'Hawksbill 00',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.00,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 10',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.10,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 20',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.20,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 30',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.30,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 40',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.40,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 50',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.50,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 60',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.60,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 70',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.70,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 80',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.80,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 90',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 0.90,
+        'species_set': set(['turtle_hawksbill']),
+    },
+    {
+        'label': 'Hawksbill 100',
+        'grid': False,
+        'algo': 'lightnet',
+        'config_filepath': 'seaturtle',
+        'weight_filepath': 'seaturtle',
+        'include_parts': True,
+        'sensitivity': 0.01,
+        'nms': True,
+        'nms_thresh': 1.00,
+        'species_set': set(['turtle_hawksbill']),
+    },
     # {'label': 'Hawksbill Heads 00',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill+head'])},
     # {'label': 'Hawksbill Heads 10',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill+head'])},
     # {'label': 'Hawksbill Heads 20',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill+head'])},
@@ -1451,14 +1745,12 @@ config_list = [
     # {'label': 'Hawksbill Heads 80',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill+head'])},
     # {'label': 'Hawksbill Heads 90',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill+head'])},
     # {'label': 'Hawksbill Heads 100',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill+head'])},
-
     # {'label': 'Sea Turtle 00%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
     # {'label': 'Sea Turtle 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
     # {'label': 'Sea Turtle 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
     # {'label': 'Sea Turtle 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
     # {'label': 'Sea Turtle 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
     # {'label': 'Sea Turtle 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
-
     # {'label': 'Hammerhead Shark 00%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
     # {'label': 'Hammerhead Shark 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
     # {'label': 'Hammerhead Shark 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
@@ -1470,10 +1762,8 @@ config_list = [
     # {'label': 'Hammerhead Shark 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
     # {'label': 'Hammerhead Shark 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
     # {'label': 'Hammerhead Shark 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
-
     # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
     # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
-
     # {'label': 'V3',          'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
     # {'label': 'V3 PZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
     # {'label': 'V3 GZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
@@ -1482,9 +1772,7 @@ config_list = [
     # {'label': 'V3 OCEAN',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['lionfish', 'turtle_sea', 'whale_shark', 'whale_fluke'])},
     # {'label': 'V3 PERSON',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['person'])},
     # {'label': 'V3 VEHICLE',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['car', 'bicycle', 'motorcycle', 'truck', 'boat', 'bus', 'train', 'airplane'])},
-
     # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
-
     # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
     # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
     # {'label': 'YOLO1^', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'classifier_masking': True},
@@ -1495,7 +1783,6 @@ config_list = [
     # {'label': 'YOLO1^ 0.7', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.7, 'classifier_masking': True},
     # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
     # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
-
     # {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
     # {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
     # {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
@@ -1505,10 +1792,8 @@ config_list = [
     # {'label': 'SSD2', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
     # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
     # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
-
     # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
     # {'label': 'COMBINED~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.50, 'line_dotted': True},
-
     # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
     # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
     # {'label': 'COMBINED` 0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.05},
@@ -1522,7 +1807,6 @@ config_list = [
     # {'label': 'COMBINED 3 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'},
     # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
     # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
-
     # {
     #     'label'        : 'C_0',
     #     'algo'         : '_COMBINED',
@@ -1644,7 +1928,6 @@ config_list = [
     #     'nms_thresh'   : 0.50,
     #     # 'line_dotted'  : True,
     # },
-
     # {
     #     'label'        : 'LINEAR,0.5',
     #     'algo'         : '_COMBINED',
@@ -1759,7 +2042,6 @@ config_list = [
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
     # },
-
     # {
     #     'label'        : 'WIC',
     #     'algo'         : '_COMBINED',
@@ -1768,7 +2050,6 @@ config_list = [
     #     'classifier_algo': 'svm',
     #     'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     # },
-
     # {
     #     'label'        : 'COMBINED ~0.75',
     #     'algo'         : '_COMBINED',
@@ -1776,7 +2057,6 @@ config_list = [
     #     'nms'          : True,
     #     'nms_thresh'   : 0.75,
     # },
-
     # {
     #     'label'        : 'COMBINED ~0.50',
     #     'algo'         : '_COMBINED',
@@ -1785,7 +2065,6 @@ config_list = [
     #     'nms_thresh'   : 0.50,
     #     'line_dotted'  : True,
     # },
-
     # {
     #     'label'        : 'COMBINED ~0.25',
     #     'algo'         : '_COMBINED',
@@ -1793,7 +2072,6 @@ config_list = [
     #     'nms'          : True,
     #     'nms_thresh'   : 0.25,
     # },
-
     # {
     #     'label'        : 'WIC',
     #     'algo'         : '_COMBINED',
@@ -1804,7 +2082,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'WIC ~0.25',
     #     'algo'         : '_COMBINED',
@@ -1817,7 +2094,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'WIC ~0.5',
     #     'algo'         : '_COMBINED',
@@ -1830,7 +2106,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'WIC ~0.75',
     #     'algo'         : '_COMBINED',
@@ -1843,9 +2118,7 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     ###################
-
     # {
     #     'label'        : 'LOC-E 1',
     #     'algo'         : '_COMBINED',
@@ -1858,7 +2131,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 2',
     #     'algo'         : '_COMBINED',
@@ -1871,7 +2143,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 3',
     #     'algo'         : '_COMBINED',
@@ -1884,7 +2155,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 4',
     #     'algo'         : '_COMBINED',
@@ -1897,7 +2167,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 5',
     #     'algo'         : '_COMBINED',
@@ -1910,7 +2179,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 6',
     #     'algo'         : '_COMBINED',
@@ -1923,7 +2191,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 7',
     #     'algo'         : '_COMBINED',
@@ -1936,7 +2203,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 8',
     #     'algo'         : '_COMBINED',
@@ -1949,7 +2215,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 9',
     #     'algo'         : '_COMBINED',
@@ -1962,7 +2227,6 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {
     #     'label'        : 'LOC-E 10',
     #     'algo'         : '_COMBINED',
@@ -1975,35 +2239,28 @@ config_list = [
     #     # 'thresh'       : True,
     #     # 'index_thresh' : 0.25,
     # },
-
     # {'label': 'COMBINED`* 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.5},
     # {'label': 'COMBINED`* 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.1},
     # {'label': 'COMBINED`* 0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.05},
     # {'label': 'COMBINED`* 0.01', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.01},
     # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
-
     # {'label': 'COMBINED`0.1* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.1},
     # {'label': 'COMBINED`0.5* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.5},
-
     # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.1},
     # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.1},
     # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
-
     # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1},
     # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1},
     # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
-
     # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'limited': True},
     # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},
-
     # {'label': 'COMBINED !0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.1},
     # {'label': 'COMBINED !0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.5},
     # {'label': 'COMBINED !0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.9},
     # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1},
     # {'label': 'COMBINED ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.5},
     # {'label': 'COMBINED ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.9},
-
     # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
     # # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
     # # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
@@ -2020,7 +2277,6 @@ config_list = [
     # {'label': 'COMBINED* ~0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.05},
     # {'label': 'COMBINED* ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.5},
     # {'label': 'COMBINED* ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.9},
-
     # {'label': 'COMBINED 0.0', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.0},
     # {'label': 'COMBINED 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.1},
     # {'label': 'COMBINED 0.2', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.2},
@@ -2044,5 +2300,6 @@ if __name__ == '__main__':
         python -m wbia.other.detectgrave --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

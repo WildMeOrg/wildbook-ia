@@ -7,6 +7,7 @@ from wbia.algo.detect import randomforest
 from os.path import splitext
 from wbia.plottool import viz_image2
 import wbia.plottool as pt
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -18,10 +19,12 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
 
     if species is None:
         species = ibs.get_
-        #.cfg.detect_cfg.species_text
+        # .cfg.detect_cfg.species_text
     src_gpath_list = ibs.get_image_detectpaths([gid])
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    hough_gpath_list = [gpath + '_' + species + '_hough.png' for gpath in dst_gpath_list]
+    hough_gpath_list = [
+        gpath + '_' + species + '_hough.png' for gpath in dst_gpath_list
+    ]
     # Detect with hough
     config = {
         'output_gpath_list': hough_gpath_list,
@@ -33,8 +36,11 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     print('This image is computed as needed and not cached to disk.')
     print('')
     print('-' * 80)
-    results_list = list(randomforest.detect_gpath_list_with_species(  # NOQA
-        ibs, src_gpath_list, species, **config))
+    results_list = list(
+        randomforest.detect_gpath_list_with_species(  # NOQA
+            ibs, src_gpath_list, species, **config
+        )
+    )
     # Get path
     hough_gpath = hough_gpath_list[0]
     img = vt.imread(hough_gpath)
@@ -42,8 +48,9 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     return fig, ax
 
 
-def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None,
-                          blend=False, **kwargs):
+def show_probability_chip(
+    ibs, aid, species=None, fnum=None, config2_=None, blend=False, **kwargs
+):
     """
     TODO: allow species override in controller
 
@@ -82,6 +89,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_hough --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()
