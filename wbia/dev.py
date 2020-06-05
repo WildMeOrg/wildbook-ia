@@ -39,17 +39,19 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import sys
 import numpy as np
-from wbia._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
+from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
-#from wbia.algo.hots import smk
+
+# from wbia.algo.hots import smk
 import wbia.plottool as pt
 import wbia
+
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
 #     wbia._preload()
-#utool.util_importer.dynamic_import(__name__, ('_devcmds_wbia', None),
+# utool.util_importer.dynamic_import(__name__, ('_devcmds_wbia', None),
 #                                   developing=True)
 from wbia._devscript import devcmd, devprecmd  # NOQA
 from os.path import split, join, expanduser  # NOQA
@@ -57,19 +59,40 @@ from wbia.plottool import draw_func2 as df2  # NOQA
 from wbia import sysres  # NOQA
 from wbia.other import ibsfuncs  # NOQA
 from wbia.dbio import ingest_hsdb  # NOQA
-from wbia._devcmds_wbia import (GZ_VIEWPOINT_EXPORT_PAIRS, MOTHERS_VIEWPOINT_EXPORT_PAIRS, change_names, convert_hsdbs, delete_all_chips, delete_all_feats, delete_cache, ensure_mtest, ensure_nauts, ensure_wilddogs, export, list_dbs, list_unconverted_hsdbs, openworkdirs_test, query_aids, show_aids, sver_aids, vdd,)  # NOQA
+from wbia._devcmds_wbia import (
+    GZ_VIEWPOINT_EXPORT_PAIRS,
+    MOTHERS_VIEWPOINT_EXPORT_PAIRS,
+    change_names,
+    convert_hsdbs,
+    delete_all_chips,
+    delete_all_feats,
+    delete_cache,
+    ensure_mtest,
+    ensure_nauts,
+    ensure_wilddogs,
+    export,
+    list_dbs,
+    list_unconverted_hsdbs,
+    openworkdirs_test,
+    query_aids,
+    show_aids,
+    sver_aids,
+    vdd,
+)  # NOQA
+
 # IBEIS
 from wbia.init import main_helpers  # NOQA
 from wbia.other import dbinfo  # NOQA
 from wbia.expt import experiment_configs  # NOQA
 from wbia.expt import harness  # NOQA
 from wbia import params  # NOQA
+
 print, rrr, profile = utool.inject2(__name__)
 
 
-#------------------
+# ------------------
 # DEV DEVELOPMENT
-#------------------
+# ------------------
 # This is where you write all of the functions that will become pristine
 # and then go in _devcmds_wbia.py
 
@@ -84,10 +107,13 @@ print, rrr, profile = utool.inject2(__name__)
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('wbia.expt.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
+    (
+        'wbia.expt.experiment_drawing',
+        'draw_case_timedeltas',
+        ['timedelta_hist', 'timedelta_pie'],
+    ),
     ('wbia.expt.experiment_drawing', 'draw_match_cases', ['draw_cases', 'cases']),
     ('wbia.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
-
     ('wbia.expt.old_storage', 'draw_results'),
     ('wbia.expt.experiment_drawing', 'draw_rank_cmc', ['rank_cmc']),
     ('wbia.other.dbinfo', 'get_dbinfo'),
@@ -98,7 +124,11 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('wbia.expt.experiment_printres', 'print_results', ['printres', 'print']),
     ('wbia.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('wbia.dbio.export_subset', 'export_annots'),
-    ('wbia.expt.experiment_drawing', 'draw_annot_scoresep', ['scores', 'scores_good', 'scores_all']),
+    (
+        'wbia.expt.experiment_drawing',
+        'draw_annot_scoresep',
+        ['scores', 'scores_good', 'scores_all'],
+    ),
 ]
 
 
@@ -111,12 +141,14 @@ def _exec_doctest_func(modname, funcname):
 
 def _register_doctest_precmds():
     from functools import partial
+
     for tup in REGISTERED_DOCTEST_EXPERIMENTS:
         modname, funcname = tup[:2]
         aliases = tup[2] if len(tup) == 3 else []
         aliases += [funcname]
         _doctest_func = partial(_exec_doctest_func, modname, funcname)
         devprecmd(*aliases)(_doctest_func)
+
 
 _register_doctest_precmds()
 
@@ -141,21 +173,28 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     """
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
-    print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    print(
+        'Tunning flann for species={species}:'.format(
+            species=ibs.get_database_species(all_aids)
+        )
+    )
     import vtool as vt
-    tuned_params = vt.tune_flann(vecs,
-                                 target_precision=.98,
-                                 build_weight=0.05,
-                                 memory_weight=0.00,
-                                 sample_fraction=0.1)
+
+    tuned_params = vt.tune_flann(
+        vecs,
+        target_precision=0.98,
+        build_weight=0.05,
+        memory_weight=0.00,
+        sample_fraction=0.1,
+    )
     tuned_params
 
-    #tuned_params2 = vt.tune_flann(vecs,
+    # tuned_params2 = vt.tune_flann(vecs,
     #                              target_precision=.90,
     #                              build_weight=0.001,
     #                              memory_weight=0.00,
     #                              sample_fraction=0.5)
-    #tuned_params2
+    # tuned_params2
 
 
 @devcmd('incremental', 'inc')
@@ -190,6 +229,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         >>> daid_list = None
     """
     from wbia.algo.hots import automated_matcher
+
     ibs1 = ibs
     num_initial = ut.get_argval('--ninit', type_=int, default=0)
     return automated_matcher.incremental_test(ibs1, num_initial)
@@ -199,13 +239,14 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from wbia.gui import inspect_gui
+
     return inspect_gui.test_review_widget(ibs, qaid_list, daid_list)
 
 
 def get_ibslist(ibs):
     print('[dev] get_ibslist')
-    ibs_GV  = ibs
-    ibs_RI  = ibs.clone_handle(nogravity_hack=True)
+    ibs_GV = ibs
+    ibs_RI = ibs.clone_handle(nogravity_hack=True)
     ibs_RIW = ibs.clone_handle(nogravity_hack=True, gravity_weighting=True)
     ibs_list = [ibs_GV, ibs_RI, ibs_RIW]
     return ibs_list
@@ -218,12 +259,13 @@ def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
     for ibs_ in ibs_list:
         draw_annot_scoresep(ibs_, qaid_list)
 
-#--------------------
+
+# --------------------
 # RUN DEV EXPERIMENTS
-#--------------------
+# --------------------
 
 
-#def run_registered_precmd(precmd_name):
+# def run_registered_precmd(precmd_name):
 #    # Very hacky way to run just a single registered precmd
 #    for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
 #        for aliases in func_aliases:
@@ -236,9 +278,10 @@ def run_devprecmds():
     """
     Looks for pre-tests specified with the -t flag and runs them
     """
-    #input_precmd_list = params.args.tests[:]
+    # input_precmd_list = params.args.tests[:]
     input_precmd_list = ut.get_argval('-e', type_=list, default=[])
     valid_precmd_list = []
+
     def intest(*args, **kwargs):
         for precmd_name in args:
             valid_precmd_list.append(precmd_name)
@@ -257,7 +300,7 @@ def run_devprecmds():
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
         if intest(*func_aliases):
-            #with utool.Indenter('[dev.' + get_funcname(func) + ']'):
+            # with utool.Indenter('[dev.' + get_funcname(func) + ']'):
             func()
             print('Exiting after first precommand')
             sys.exit(1)
@@ -265,13 +308,13 @@ def run_devprecmds():
         raise AssertionError('Unhandled tests: ' + repr(input_precmd_list))
 
 
-#@utool.indent_func('[dev]')
+# @utool.indent_func('[dev]')
 def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     """
     This function runs tests passed in with the -t flag
     """
     print('\n')
-    #print('[dev] run_devcmds')
+    # print('[dev] run_devcmds')
     print('==========================')
     print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
@@ -330,9 +373,9 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
             funcname = get_funcname(func)
-            #with utool.Indenter('[dev.' + funcname + ']'):
+            # with utool.Indenter('[dev.' + funcname + ']'):
             with utool.Timer(funcname):
-                #print('[dev] qid_list=%r' % (qaid_list,))
+                # print('[dev] qid_list=%r' % (qaid_list,))
                 # FIXME: , daid_list
                 if len(ut.get_func_argspec(func).args) == 0:
                     ret = func()
@@ -367,8 +410,10 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
         # Run Experiments
         # backwards compatibility yo
         acfgstr_name_list = {'OVERRIDE_HACK': (qaid_list, daid_list)}
-        assert False, 'This way of running tests no longer works. It may be fixed in the future'
-        #acfg
+        assert (
+            False
+        ), 'This way of running tests no longer works. It may be fixed in the future'
+        # acfg
         harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
@@ -385,14 +430,15 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     return locals_
 
 
-#-------------------
+# -------------------
 # CUSTOM DEV FUNCS
-#-------------------
+# -------------------
 
 
-#------------------
+# ------------------
 # DEV MAIN
-#------------------
+# ------------------
+
 
 def dev_snippets(main_locals):
     """ Common variables for convineince when interacting with IPython """
@@ -413,28 +459,32 @@ def dev_snippets(main_locals):
             model = ibswgt.models['names_tree']
             selection_model = view.selectionModel()
     if ibs is not None:
-        #ibs.dump_tables()
+        # ibs.dump_tables()
         annots = ibs.annots()
         images = ibs.images()
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
-        #nid_list = ibs.get_valid_nids()
-        #valid_nid_list   = ibs.get_annot_name_rowids(aid_list)
-        #valid_aid_names  = ibs.get_annot_names(aid_list)
-        #valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
+        # nid_list = ibs.get_valid_nids()
+        # valid_nid_list   = ibs.get_annot_name_rowids(aid_list)
+        # valid_aid_names  = ibs.get_annot_names(aid_list)
+        # valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
     return locals()
 
 
 def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
     sortx = key_list.argsort()
     ndigits = max(len(str(key_list.max())), 0 if keylbl is None else len(keylbl))
-    keyfmt  = '%' + str(ndigits) + 'd'
+    keyfmt = '%' + str(ndigits) + 'd'
     if keylbl is not None:
         header = keylbl + ' --- ' + strlbl
     else:
         header = None
 
-    sorted_strs = ([(keyfmt % key + ' --- ' + str_) for str_, key in zip(str_list[sortx], key_list[sortx])])
+    sorted_strs = [
+        (keyfmt % key + ' --- ' + str_)
+        for str_, key in zip(str_list[sortx], key_list[sortx])
+    ]
+
     def boxjoin(list_, header=None):
         topline = '+----------'
         botline = 'L__________'
@@ -448,6 +498,7 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
         boxlines.append(body + '\n ')
         boxlines.append(botline + '\n')
         return ''.join(boxlines)
+
     return boxjoin(sorted_strs, header)
 
 
@@ -521,7 +572,7 @@ def run_dev(ibs):
         if ut.get_argflag('--expanded-aids'):
             ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
             print('[run_def] Test Annotations:')
-            #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+            # print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
         else:
             qaid_list = []
             daid_list = []
@@ -530,9 +581,9 @@ def run_dev(ibs):
             assert len(daid_list) > 0, 'daid_list!'
         except AssertionError as ex:
             message = ' (try using command line argument --expanded-aids to enable)'
-            utool.printex(ex, 'len(qaid_list) = 0%s' % (message, ), iswarning=True)
-            utool.printex(ex, 'or len(daid_list) = 0%s' % (message, ), iswarning=True)
-            #qaid_list = ibs.get_valid_aids()[0]
+            utool.printex(ex, 'len(qaid_list) = 0%s' % (message,), iswarning=True)
+            utool.printex(ex, 'or len(daid_list) = 0%s' % (message,), iswarning=True)
+            # qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
             # Run the dev experiments
@@ -544,9 +595,9 @@ def run_dev(ibs):
     return locals()
 
 
-#-------------
+# -------------
 # EXAMPLE TEXT
-#-------------
+# -------------
 
 EXAMPLE_TEXT = '''
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
@@ -609,10 +660,10 @@ python dev.py --hard -t best vsone nsum
 >>>
 '''
 
-#L______________
+# L______________
 
 
-#def run_devmain2():
+# def run_devmain2():
 #    input_test_list = ut.get_argval(('--tests', '-t',), type_=list, default=[])[:]
 #    print('input_test_list = %s' % (ut.repr2(input_test_list),))
 #    # fnum = 1
@@ -668,6 +719,7 @@ def devmain():
         -t     # run list of tests
     """
     from wbia import params
+
     params.parse_args()
 
     print('DEVMAIN INIT - PRELOGGING')
@@ -685,13 +737,14 @@ def devmain():
         of configurations specified by a Config object.
 
         Dev caches information in order to get quicker results.  # FIXME: Provide quicker results  # FIXME: len(line)
-        ''')
+        '''
+    )
 
     INTRO_TITLE = 'The dev.py Script'
-    #INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+    # INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
     INTRO_TEXT = ut.bubbletext(INTRO_TITLE, font='cybermedium')
 
-    INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
+    INTRO_STR = ut.msgblock('dev.py Intro', INTRO_TEXT)
 
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
@@ -700,7 +753,7 @@ def devmain():
     if ut.get_argflag(('--help', '--verbose')):
         print(EXAMPLE_STR)
 
-    CMD   = ut.get_argflag('--cmd')
+    CMD = ut.get_argflag('--cmd')
     NOGUI = not ut.get_argflag('--gui')
 
     if len(sys.argv) == 1:
@@ -715,7 +768,7 @@ def devmain():
     # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
     main_locals = wbia.main(gui=ut.get_argflag('--gui'))
-    #utool.set_process_title('IBEIS_dev')
+    # utool.set_process_title('IBEIS_dev')
 
     #
     #
@@ -739,17 +792,16 @@ def devmain():
     if command is not None:
         result = eval(command, globals(), locals())
         print('result = %r' % (result,))
-        #ibs.search_annot_notes('360')
+        # ibs.search_annot_notes('360')
 
     #
     #
     # Main Loop (IPython interaction, or some exec loop)
-    #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
+    # if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
     ut.show_if_requested()
     if ut.get_argflag(('--show', '--wshow')):
         pt.present()
-    main_execstr = wbia.main_loop(main_locals, rungui=not NOGUI,
-                                   ipy=(NOGUI or CMD))
+    main_execstr = wbia.main_loop(main_locals, rungui=not NOGUI, ipy=(NOGUI or CMD))
     exec(main_execstr)
 
     #
@@ -776,14 +828,19 @@ def ggr_random_name_splits():
         >>> ggr_random_name_splits()
     """
     import wbia.guitool as gt
+
     gt.ensure_qtapp()
-    #nid_list = ibs.get_valid_nids(filter_empty=True)
+    # nid_list = ibs.get_valid_nids(filter_empty=True)
     import wbia
+
     dbdir = '/media/danger/GGR/GGR-IBEIS'
-    dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    dbdir = (
+        dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    )
     ibs = wbia.opendb(dbdir=dbdir, allow_newdir=False)
 
     import datetime
+
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
@@ -794,34 +851,39 @@ def ggr_random_name_splits():
         'is_known': True,
         'min_pername': 2,
     }
-    orig_aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
-        orig_filter_kw, {
-            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
-            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
-        })
+    orig_aids = ibs.filter_annots_general(
+        filter_kw=ut.dict_union(
+            orig_filter_kw,
+            {
+                'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+                'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+            },
+        )
     )
     orig_all_annots = ibs.annots(orig_aids)
     orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
     # Ensure we get everything
-    orig_grouped_annots = [ibs.annots(aids_)
-                           for aids_ in ibs.get_name_aids(orig_unique_nids)]
+    orig_grouped_annots = [
+        ibs.annots(aids_) for aids_ in ibs.get_name_aids(orig_unique_nids)
+    ]
 
     # pip install quantumrandom
     if False:
         import quantumrandom
+
         data = quantumrandom.uint16()
         seed = data.sum()
         print('seed = %r' % (seed,))
-        #import Crypto.Random
-        #from Crypto import Random
-        #quantumrandom.get_data()
-        #StrongRandom = Crypto.Random.random.StrongRandom
-        #aes.reseed(3340258)
-        #chars = [str(chr(x)) for x in data.view(np.uint8)]
-        #aes_seed = str('').join(chars)
-        #aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()
-        #aes.reseed(aes_seed)
-        #aes.pseudo_random_data(10)
+        # import Crypto.Random
+        # from Crypto import Random
+        # quantumrandom.get_data()
+        # StrongRandom = Crypto.Random.random.StrongRandom
+        # aes.reseed(3340258)
+        # chars = [str(chr(x)) for x in data.view(np.uint8)]
+        # aes_seed = str('').join(chars)
+        # aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()
+        # aes.reseed(aes_seed)
+        # aes.pseudo_random_data(10)
 
     orig_rand_idxs = ut.random_indexes(len(orig_grouped_annots), seed=3340258)
     orig_sample_size = 75
@@ -838,13 +900,17 @@ def ggr_random_name_splits():
         'min_pername': 2,
     }
     filter_kw_ = ut.dict_union(
-        filter_kw, {
+        filter_kw,
+        {
             'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
             'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
-        })
-    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)
-                         for annot in orig_annot_sample]
-    is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
+        },
+    )
+    refiltered_sample = [
+        ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)
+        for annot in orig_annot_sample
+    ]
+    is_ok = np.array(ut.lmap(len, refiltered_sample)) >= 2
     ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
     ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
 
@@ -854,7 +920,7 @@ def ggr_random_name_splits():
     unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
     grouped_annots = grouped_annots_
     # Ensure we get everything
-    #grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+    # grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
 
     pop = len(grouped_annots)
     pername_list = ut.lmap(len, grouped_annots)
@@ -862,20 +928,23 @@ def ggr_random_name_splits():
     match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
     tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
     print('name_pop = %r' % (pop,))
-    print('Annots per Multiton Name' + ut.repr3(
-        ut.get_stats(pername_list, use_median=True)))
+    print(
+        'Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True))
+    )
     print('Name Tag Hist ' + ut.repr3(tag_case_hist))
     print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
     print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
 
     # Remove the ok part from this sample
     remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
-    remain_grouped_annots = [ibs.annots(aids_) for aids_ in
-                             ibs.get_name_aids(remain_unique_nids)]
+    remain_grouped_annots = [
+        ibs.annots(aids_) for aids_ in ibs.get_name_aids(remain_unique_nids)
+    ]
 
     sample_size = 75
     import vtool as vt
-    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
+
+    vt.calc_sample_from_error_bars(0.05, pop, conf_level=0.95, prior=0.05)
 
     remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
     remain_sample_size = sample_size - len(ok_part_orig_nids)
@@ -892,11 +961,13 @@ def ggr_random_name_splits():
 
     win = None
     from wbia.viz import viz_graph2
+
     for annots in ut.InteractiveIter(annot_sample):
         if win is not None:
             win.close()
-        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids,
-                                                 init_mode='rereview')
+        win = viz_graph2.make_qt_graph_interface(
+            ibs, aids=annots.aids, init_mode='rereview'
+        )
         print(win)
 
     sample_groups = wbia.annots.AnnotGroups(annot_sample, ibs)
@@ -906,18 +977,18 @@ def ggr_random_name_splits():
     print('Using Split and Photobomb')
     is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
     num_positive = sum(is_positive)
-    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=0.95)
 
     print('Only Photobomb')
     is_positive = ['photobomb' in t for t in flat_tags]
     num_positive = sum(is_positive)
-    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=0.95)
 
     print('Only SplitCase')
     is_positive = ['splitcase' in t for t in flat_tags]
     num_positive = sum(is_positive)
-    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
-    #gt.qtapp_loop(qwin=win)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=0.95)
+    # gt.qtapp_loop(qwin=win)
 
 
 r"""

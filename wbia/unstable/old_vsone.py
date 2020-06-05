@@ -215,16 +215,17 @@ def gridsearch_ratio_thresh(matches):
     import sklearn
     import sklearn.metrics
     import vtool as vt
+
     # Param search for vsone
     import wbia.plottool as pt
+
     pt.qt4ensure()
 
-    skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
-                                                  random_state=119372)
+    skf = sklearn.model_selection.StratifiedKFold(n_splits=10, random_state=119372)
 
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
 
-    basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
+    basis = {'ratio_thresh': np.linspace(0.6, 0.7, 50).tolist()}
     grid = ut.all_dict_combinations(basis)
     xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
 
@@ -252,9 +253,10 @@ def gridsearch_ratio_thresh(matches):
         match_list_ = ut.take(matches, train_idx)
         y_true = y.take(train_idx)
         auc_list = _ratio_thresh(y_true, match_list_)
-        subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
+        subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=0.8)
         best_ratio_thresh = subx[suby.argmax()]
         skf_results.append(best_ratio_thresh)
     print('skf_results.append = %r' % (np.mean(skf_results),))
     import utool
+
     utool.embed()

@@ -11,6 +11,7 @@ import functools
 import six
 import numpy as np
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -27,25 +28,38 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
     print('[qd_info] * daid_list = %s' % bigstr(str(daid_list)))
     print('[qd_info] * len(qaid_list) = %d' % len(qaid_list))
     print('[qd_info] * len(daid_list) = %d' % len(daid_list))
-    print('[qd_info] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
+    print(
+        '[qd_info] * intersection = %r'
+        % len(list(set(daid_list).intersection(set(qaid_list))))
+    )
     if verbose:
-        infokw = dict(with_contrib=False, with_agesex=False, with_header=False, verbose=False)
-        d_info_str = get_dbinfo(ibs, aid_list=daid_list, tag='DataInfo', **infokw)['info_str2']
-        q_info_str = get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)['info_str2']
+        infokw = dict(
+            with_contrib=False, with_agesex=False, with_header=False, verbose=False
+        )
+        d_info_str = get_dbinfo(ibs, aid_list=daid_list, tag='DataInfo', **infokw)[
+            'info_str2'
+        ]
+        q_info_str = get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)[
+            'info_str2'
+        ]
         print(q_info_str)
         print('\n')
         print(d_info_str)
 
 
-def get_dbinfo(ibs, verbose=True,
-               with_imgsize=False,
-               with_bytes=False,
-               with_contrib=False,
-               with_agesex=False,
-               with_header=True,
-               short=False,
-               tag='dbinfo',
-               aid_list=None, aids=None):
+def get_dbinfo(
+    ibs,
+    verbose=True,
+    with_imgsize=False,
+    with_bytes=False,
+    with_contrib=False,
+    with_agesex=False,
+    with_header=True,
+    short=False,
+    tag='dbinfo',
+    aid_list=None,
+    aids=None,
+):
     """
 
     Returns dictionary of digestable database information
@@ -162,20 +176,22 @@ def get_dbinfo(ibs, verbose=True,
             acfg_name_list = [aid_list]
             print('Specified custom aids via acfgname %s' % (acfg_name_list,))
             from wbia.expt import experiment_helpers
+
             acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
-                ibs, acfg_name_list)
+                ibs, acfg_name_list
+            )
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
-            #aid_list =
+            # aid_list =
         if verbose:
             print('Specified %d custom aids' % (len(aid_list,)))
         request_annot_subset = True
         valid_aids = aid_list
         valid_nids = list(
-            set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)) -
-            {const.UNKNOWN_NAME_ROWID}
+            set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False))
+            - {const.UNKNOWN_NAME_ROWID}
         )
         valid_gids = list(set(ibs.get_annot_gids(aid_list)))
-    #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
+    # associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     valid_images = ibs.images(valid_gids)
     valid_annots = ibs.annots(valid_aids)
 
@@ -186,12 +202,13 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        gx2_aids = [list(set(aids_).intersection(valid_aids_set))
-                    for aids_ in gx2_aids]
+        gx2_aids = [list(set(aids_).intersection(valid_aids_set)) for aids_ in gx2_aids]
 
     gx2_nAnnots = np.array(list(map(len, gx2_aids)))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats = ut.repr4(ut.get_stats(gx2_nAnnots, use_median=True), nl=0, precision=2, si=True)
+    gx2_nAnnots_stats = ut.repr4(
+        ut.get_stats(gx2_nAnnots, use_median=True), nl=0, precision=2, si=True
+    )
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -201,8 +218,7 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        nx2_aids = [list(set(aids_).intersection(valid_aids_set))
-                    for aids_ in nx2_aids]
+        nx2_aids = [list(set(aids_).intersection(valid_aids_set)) for aids_ in nx2_aids]
     associated_nids = ut.compress(valid_nids, list(map(len, nx2_aids)))
 
     ibs.check_name_mapping_consistency(nx2_aids)
@@ -211,16 +227,22 @@ def get_dbinfo(ibs, verbose=True,
         # Occurrence Info
         def compute_annot_occurrence_ids(ibs, aid_list):
             from wbia.algo.preproc import preproc_occurrence
+
             gid_list = ibs.get_annot_gids(aid_list)
             gid2_aids = ut.group_items(aid_list, gid_list)
             config = {'seconds_thresh': 4 * 60 * 60}
             flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
-                ibs, gid_list, config=config, verbose=False)
+                ibs, gid_list, config=config, verbose=False
+            )
             occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
-            occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
+            occurid2_aids = {
+                oid: ut.flatten(ut.take(gid2_aids, gids))
+                for oid, gids in occurid2_gids.items()
+            }
             return occurid2_aids
 
         import utool
+
         with utool.embed_on_exception_context:
             occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids)
             occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
@@ -230,36 +252,51 @@ def get_dbinfo(ibs, verbose=True,
                 for nid in nids:
                     nid2_occurxs[nid].append(occurx)
 
-        nid2_occurx_single = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1}
-        nid2_occurx_resight = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1}
+        nid2_occurx_single = {
+            nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1
+        }
+        nid2_occurx_resight = {
+            nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1
+        }
         singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
 
-        singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
-        resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
+        singlesight_annot_stats = ut.get_stats(
+            list(map(len, singlesight_encounters)), use_median=True, use_sum=True
+        )
+        resight_name_stats = ut.get_stats(
+            list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True
+        )
 
     # Encounter Info
     def break_annots_into_encounters(aids):
         from wbia.algo.preproc import occurrence_blackbox
         import datetime
+
         thresh_sec = datetime.timedelta(minutes=30).seconds
         posixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(aids))
-        #latlons = ibs.get_annot_image_gps(aids)
-        labels = occurrence_blackbox.cluster_timespace2(posixtimes, None, thresh_sec=thresh_sec)
+        # latlons = ibs.get_annot_image_gps(aids)
+        labels = occurrence_blackbox.cluster_timespace2(
+            posixtimes, None, thresh_sec=thresh_sec
+        )
         return labels
-        #ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
-        #ut.square_pdist(ave_enc_time)
+        # ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
+        # ut.square_pdist(ave_enc_time)
 
     try:
-        am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[0]
+        am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
+            0
+        ]
         aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
-        undirected_tags = ibs.get_aidpair_tags(aid_pairs.T[0], aid_pairs.T[1], directed=False)
+        undirected_tags = ibs.get_aidpair_tags(
+            aid_pairs.T[0], aid_pairs.T[1], directed=False
+        )
         tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
         tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
         pair_tag_info = ut.map_dict_vals(len, tag_dict)
     except Exception:
         pair_tag_info = {}
 
-    #print(ut.repr2(pair_tag_info))
+    # print(ut.repr2(pair_tag_info))
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -283,11 +320,11 @@ def get_dbinfo(ibs, verbose=True,
         print('Checking Multiton/Singleton Species')
     nx2_nAnnots = np.array(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
-    multiton_nxs  = np.where(nx2_nAnnots > 1)[0]
+    multiton_nxs = np.where(nx2_nAnnots > 1)[0]
     singleton_nxs = np.where(nx2_nAnnots == 1)[0]
     unassociated_nxs = np.where(nx2_nAnnots == 0)[0]
     assert len(np.intersect1d(singleton_nxs, multiton_nxs)) == 0, 'intersecting names'
-    valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
+    valid_nxs = np.hstack([multiton_nxs, singleton_nxs])
     num_names_with_gt = len(multiton_nxs)
 
     # Annot Info
@@ -308,29 +345,32 @@ def get_dbinfo(ibs, verbose=True,
         if verbose:
             print('Checking ImageSize Info')
         gpath_list = ibs.get_image_paths(valid_gids)
+
         def wh_print_stats(wh_list):
             if len(wh_list) == 0:
                 return '{empty}'
             wh_list = np.asarray(wh_list)
             stat_dict = collections.OrderedDict(
-                [( 'max', wh_list.max(0)),
-                 ( 'min', wh_list.min(0)),
-                 ('mean', wh_list.mean(0)),
-                 ( 'std', wh_list.std(0))])
+                [
+                    ('max', wh_list.max(0)),
+                    ('min', wh_list.min(0)),
+                    ('mean', wh_list.mean(0)),
+                    ('std', wh_list.std(0)),
+                ]
+            )
+
             def arr2str(var):
-                return ('[' + (
-                    ', '.join(list(map(lambda x: '%.1f' % x, var)))
-                ) + ']')
-            ret = (',\n    '.join([
-                '%s:%s' % (key, arr2str(val))
-                for key, val in stat_dict.items()
-            ]))
+                return '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
+
+            ret = ',\n    '.join(
+                ['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]
+            )
             return '{\n    ' + ret + '\n}'
 
         print('reading image sizes')
         # Image size stats
-        img_size_list  = ibs.get_image_sizes(valid_gids)
-        img_size_stats  = wh_print_stats(img_size_list)
+        img_size_list = ibs.get_image_sizes(valid_gids)
+        img_size_stats = wh_print_stats(img_size_list)
 
         # Chip size stats
         annotation_bbox_list = ibs.get_annot_bboxes(valid_aids)
@@ -351,12 +391,14 @@ def get_dbinfo(ibs, verbose=True,
     if verbose:
         print('Building Stats String')
 
-    multiton_stats = ut.repr3(ut.get_stats(multiton_nid2_nannots, use_median=True), nl=0, precision=2, si=True)
+    multiton_stats = ut.repr3(
+        ut.get_stats(multiton_nid2_nannots, use_median=True), nl=0, precision=2, si=True
+    )
 
     # Time stats
     unixtime_list = valid_images.unixtime2
-    #valid_unixtime_list = [time for time in unixtime_list if time != -1]
-    #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
+    # valid_unixtime_list = [time for time in unixtime_list if time != -1]
+    # unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
         show_time_distributions(ibs, unixtime_list)
         ut.show_if_requested()
@@ -365,19 +407,19 @@ def get_dbinfo(ibs, verbose=True,
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
-    gps_list  = ut.compress(gps_list_, gpsvalid_list)
+    gps_list = ut.compress(gps_list_, gpsvalid_list)
 
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
         annot_age_months_est_max = ibs.get_annot_age_months_est_max(aid_list)
-        age_dict = ut.ddict((lambda : 0))
+        age_dict = ut.ddict((lambda: 0))
         for min_age, max_age in zip(annot_age_months_est_min, annot_age_months_est_max):
             if max_age is None:
                 max_age = min_age
             if min_age is None:
                 min_age = max_age
             if max_age is None and min_age is None:
-                print('Found UNKNOWN Age: %r, %r' % (min_age, max_age, ))
+                print('Found UNKNOWN Age: %r, %r' % (min_age, max_age,))
                 age_dict['UNKNOWN'] += 1
             elif (min_age is None or min_age < 12) and max_age < 12:
                 age_dict['Infant'] += 1
@@ -391,17 +433,23 @@ def get_dbinfo(ibs, verbose=True,
         annot_sextext_list = ibs.get_annot_sex_texts(aid_list)
         sextext2_aids = ut.group_items(aid_list, annot_sextext_list)
         sex_keys = list(ibs.const.SEX_TEXT_TO_INT.keys())
-        assert set(sex_keys) >= set(annot_sextext_list), 'bad keys: ' + str(set(annot_sextext_list) - set(sex_keys))
-        sextext2_nAnnots = ut.odict([(key, len(sextext2_aids.get(key, []))) for key in sex_keys])
+        assert set(sex_keys) >= set(annot_sextext_list), 'bad keys: ' + str(
+            set(annot_sextext_list) - set(sex_keys)
+        )
+        sextext2_nAnnots = ut.odict(
+            [(key, len(sextext2_aids.get(key, []))) for key in sex_keys]
+        )
         # Filter 0's
-        sextext2_nAnnots = {key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0}
+        sextext2_nAnnots = {
+            key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0
+        }
         return sextext2_nAnnots
 
     def get_annot_qual_stats(ibs, aid_list):
         annots = ibs.annots(aid_list)
         qualtext2_nAnnots = ut.order_dict_by(
             ut.map_vals(len, annots.group_items(annots.quality_texts)),
-            list(ibs.const.QUALITY_TEXT_TO_INT.keys())
+            list(ibs.const.QUALITY_TEXT_TO_INT.keys()),
         )
         return qualtext2_nAnnots
 
@@ -409,7 +457,7 @@ def get_dbinfo(ibs, verbose=True,
         annots = ibs.annots(aid_list)
         viewcode2_nAnnots = ut.order_dict_by(
             ut.map_vals(len, annots.group_items(annots.viewpoint_code)),
-            list(ibs.const.VIEW.CODE_TO_INT.keys()) + [None]
+            list(ibs.const.VIEW.CODE_TO_INT.keys()) + [None],
         )
         return viewcode2_nAnnots
 
@@ -428,16 +476,27 @@ def get_dbinfo(ibs, verbose=True,
     # hack remove colon for image alignment
     def fix_tag_list(tag_list):
         return [None if tag is None else tag.replace(':', ';') for tag in tag_list]
+
     image_contributor_tags = fix_tag_list(ibs.get_image_contributor_tag(valid_gids))
     annot_contributor_tags = fix_tag_list(ibs.get_annot_image_contributor_tag(valid_aids))
     contributor_tag_to_gids = ut.group_items(valid_gids, image_contributor_tags)
     contributor_tag_to_aids = ut.group_items(valid_aids, annot_contributor_tags)
 
-    contributor_tag_to_qualstats = {key: get_annot_qual_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
-    contributor_tag_to_viewstats = {key: get_annot_viewpoint_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_qualstats = {
+        key: get_annot_qual_stats(ibs, aids)
+        for key, aids in six.iteritems(contributor_tag_to_aids)
+    }
+    contributor_tag_to_viewstats = {
+        key: get_annot_viewpoint_stats(ibs, aids)
+        for key, aids in six.iteritems(contributor_tag_to_aids)
+    }
 
-    contributor_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)}
-    contributor_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_nImages = {
+        key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)
+    }
+    contributor_tag_to_nAnnots = {
+        key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)
+    }
 
     if verbose:
         print('Summarizing')
@@ -446,7 +505,7 @@ def get_dbinfo(ibs, verbose=True,
     num_names = len(valid_nids)
     num_names_unassociated = len(valid_nids) - len(associated_nids)
     num_names_singleton = len(singleton_nxs)
-    num_names_multiton =  len(multiton_nxs)
+    num_names_multiton = len(multiton_nxs)
 
     num_singleton_annots = len(singleton_aids)
     num_multiton_annots = len(multiton_aids)
@@ -456,9 +515,9 @@ def get_dbinfo(ibs, verbose=True,
     if with_bytes:
         if verbose:
             print('Checking Disk Space')
-        ibsdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
-        dbdir_space    = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
-        imgdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
+        ibsdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
+        dbdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
+        imgdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
         cachedir_space = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
     if True:
@@ -466,25 +525,32 @@ def get_dbinfo(ibs, verbose=True,
             print('Check asserts')
         try:
             bad_aids = np.intersect1d(multiton_aids, unknown_annots)
-            _num_names_total_check = num_names_singleton + num_names_unassociated + num_names_multiton
-            _num_annots_total_check = num_unknown_annots + num_singleton_annots + num_multiton_annots
+            _num_names_total_check = (
+                num_names_singleton + num_names_unassociated + num_names_multiton
+            )
+            _num_annots_total_check = (
+                num_unknown_annots + num_singleton_annots + num_multiton_annots
+            )
             assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
             assert _num_names_total_check == num_names, 'inconsistent num names'
-            #if not request_annot_subset:
+            # if not request_annot_subset:
             # dont check this if you have an annot subset
             assert _num_annots_total_check == num_annots, 'inconsistent num annots'
         except Exception as ex:
-            ut.printex(ex, keys=[
-                '_num_names_total_check',
-                'num_names',
-                '_num_annots_total_check',
-                'num_annots',
-                'num_names_singleton',
-                'num_names_multiton',
-                'num_unknown_annots',
-                'num_multiton_annots',
-                'num_singleton_annots',
-            ])
+            ut.printex(
+                ex,
+                keys=[
+                    '_num_names_total_check',
+                    'num_names',
+                    '_num_annots_total_check',
+                    'num_annots',
+                    'num_names_singleton',
+                    'num_names_multiton',
+                    'num_unknown_annots',
+                    'num_multiton_annots',
+                    'num_singleton_annots',
+                ],
+            )
             raise
 
     # Get contributor statistics
@@ -501,14 +567,14 @@ def get_dbinfo(ibs, verbose=True,
         str_ = ut.repr2(dict_, si=True)
         return align2(str_)
 
-    header_block_lines = (
-        [('+============================'), ] + (
-            [
-                ('+ singleton := single sighting'),
-                ('+ multiton  := multiple sightings'),
-                ('--' * num_tabs),
-            ] if not short and with_header else []
-        )
+    header_block_lines = [('+============================'),] + (
+        [
+            ('+ singleton := single sighting'),
+            ('+ multiton  := multiple sightings'),
+            ('--' * num_tabs),
+        ]
+        if not short and with_header
+        else []
     )
 
     source_block_lines = [
@@ -517,14 +583,18 @@ def get_dbinfo(ibs, verbose=True,
         ('DB NumContrib: %d' % num_contributors),
     ]
 
-    bytes_block_lines = [
-        ('--' * num_tabs),
-        ('DB Bytes: '),
-        ('     +- dbdir nBytes:         ' + dbdir_space),
-        ('     |  +- _ibsdb nBytes:     ' + ibsdir_space),
-        ('     |  |  +-imgdir nBytes:   ' + imgdir_space),
-        ('     |  |  +-cachedir nBytes: ' + cachedir_space),
-    ] if with_bytes else []
+    bytes_block_lines = (
+        [
+            ('--' * num_tabs),
+            ('DB Bytes: '),
+            ('     +- dbdir nBytes:         ' + dbdir_space),
+            ('     |  +- _ibsdb nBytes:     ' + ibsdir_space),
+            ('     |  |  +-imgdir nBytes:   ' + imgdir_space),
+            ('     |  |  +-cachedir nBytes: ' + cachedir_space),
+        ]
+        if with_bytes
+        else []
+    )
 
     name_block_lines = [
         ('--' * num_tabs),
@@ -544,60 +614,82 @@ def get_dbinfo(ibs, verbose=True,
         ('# Annots (multiton)          = %d' % num_multiton_annots),
     ]
 
-    annot_per_basic_block_lines = [
-        ('--' * num_tabs),
-        ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
-        ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
-        ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
-    ] if not short else []
+    annot_per_basic_block_lines = (
+        [
+            ('--' * num_tabs),
+            ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
+            ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
+            ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
+        ]
+        if not short
+        else []
+    )
 
-    occurrence_block_lines = [
-        ('--' * num_tabs),
-        #('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
-        #('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
-        ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
-    ] if not short else []
+    occurrence_block_lines = (
+        [
+            ('--' * num_tabs),
+            # ('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
+            # ('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
+            ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
+        ]
+        if not short
+        else []
+    )
 
     annot_per_qualview_block_lines = [
         None if short else '# Annots per Viewpoint = %s' % align_dict2(viewcode2_nAnnots),
         None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
     ]
 
-    annot_per_agesex_block_lines = [
-        '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
-        '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
-    ] if not short  and with_agesex else []
+    annot_per_agesex_block_lines = (
+        [
+            '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
+            '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
+        ]
+        if not short and with_agesex
+        else []
+    )
 
-    contributor_block_lines = [
-        '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
-        '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
-        '# Quality per contributor      = ' + ut.repr2(contributor_tag_to_qualstats, sorted_=True),
-        '# Viewpoint per contributor    = ' + ut.repr2(contributor_tag_to_viewstats, sorted_=True),
-    ] if with_contrib else []
+    contributor_block_lines = (
+        [
+            '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
+            '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
+            '# Quality per contributor      = '
+            + ut.repr2(contributor_tag_to_qualstats, sorted_=True),
+            '# Viewpoint per contributor    = '
+            + ut.repr2(contributor_tag_to_viewstats, sorted_=True),
+        ]
+        if with_contrib
+        else []
+    )
 
     img_block_lines = [
         ('--' * num_tabs),
         ('# Img                        = %d' % len(valid_gids)),
-        None if short else ('# Img reviewed               = %d' % sum(image_reviewed_list)),
+        None
+        if short
+        else ('# Img reviewed               = %d' % sum(image_reviewed_list)),
         None if short else ('# Img with gps               = %d' % len(gps_list)),
-        #('# Img with timestamp         = %d' % len(valid_unixtime_list)),
-        None if short else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
+        # ('# Img with timestamp         = %d' % len(valid_unixtime_list)),
+        None
+        if short
+        else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
     ]
 
     info_str_lines = (
-        header_block_lines +
-        bytes_block_lines +
-        source_block_lines +
-        name_block_lines +
-        annot_block_lines +
-        annot_per_basic_block_lines +
-        occurrence_block_lines +
-        annot_per_qualview_block_lines +
-        annot_per_agesex_block_lines +
-        img_block_lines +
-        contributor_block_lines +
-        imgsize_stat_lines +
-        [('L============================'), ]
+        header_block_lines
+        + bytes_block_lines
+        + source_block_lines
+        + name_block_lines
+        + annot_block_lines
+        + annot_per_basic_block_lines
+        + occurrence_block_lines
+        + annot_per_qualview_block_lines
+        + annot_per_agesex_block_lines
+        + img_block_lines
+        + contributor_block_lines
+        + imgsize_stat_lines
+        + [('L============================'),]
     )
     info_str = '\n'.join(ut.filter_Nones(info_str_lines))
     info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
@@ -629,47 +721,52 @@ def hackshow_names(ibs, aid_list, fnum=None):
     """
     import wbia.plottool as pt
     import vtool as vt
+
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     yaws_list = ibs.unflat_map(ibs.get_annot_yaws, grouped_aids)
-    #markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]
+    # markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]
 
     unixtime_list = ut.flatten(unixtimes_list)
     timemax = np.nanmax(unixtime_list)
     timemin = np.nanmin(unixtime_list)
     timerange = timemax - timemin
-    unixtimes_list = [((unixtimes[:] - timemin) / timerange) for unixtimes in unixtimes_list]
+    unixtimes_list = [
+        ((unixtimes[:] - timemin) / timerange) for unixtimes in unixtimes_list
+    ]
     for unixtimes in unixtimes_list:
         num_nan = sum(np.isnan(unixtimes))
-        unixtimes[np.isnan(unixtimes)] = np.linspace(-1, -.5, num_nan)
-    #ydata_list = [np.arange(len(aids)) for aids in grouped_aids]
+        unixtimes[np.isnan(unixtimes)] = np.linspace(-1, -0.5, num_nan)
+    # ydata_list = [np.arange(len(aids)) for aids in grouped_aids]
     sortx_list = vt.argsort_groups(unixtimes_list, reverse=False)
-    #markers_list = ut.list_ziptake(markers_list, sortx_list)
+    # markers_list = ut.list_ziptake(markers_list, sortx_list)
     yaws_list = ut.list_ziptake(yaws_list, sortx_list)
     ydatas_list = vt.ziptake(unixtimes_list, sortx_list)
-    #ydatas_list = sortx_list
-    #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
+    # ydatas_list = sortx_list
+    # ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
 
     # Sort by num members
-    #ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
-    xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
-    #markers = ut.flatten(markers_list)
-    #yaws = np.array(ut.flatten(yaws_list))
+    # ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
+    xdatas_list = [
+        np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)
+    ]
+    # markers = ut.flatten(markers_list)
+    # yaws = np.array(ut.flatten(yaws_list))
     y_data = np.array(ut.flatten(ydatas_list))
     x_data = np.array(ut.flatten(xdatas_list))
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum)
     ax = pt.gca()
 
-    #unique_yaws, groupxs = vt.group_indices(yaws)
+    # unique_yaws, groupxs = vt.group_indices(yaws)
 
     ax.scatter(x_data, y_data, color=[1, 0, 0], s=1, marker='.')
-    #pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle='')
+    # pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle='')
     pt.dark_background()
     ax = pt.gca()
-    ax.set_xlim(min(x_data) - .1, max(x_data) + .1)
-    ax.set_ylim(min(y_data) - .1, max(y_data) + .1)
+    ax.set_xlim(min(x_data) - 0.1, max(x_data) + 0.1)
+    ax.set_ylim(min(y_data) - 0.1, max(y_data) + 0.1)
 
 
 def show_image_time_distributions(ibs, gid_list):
@@ -702,8 +799,9 @@ def show_image_time_distributions(ibs, gid_list):
 def show_time_distributions(ibs, unixtime_list):
     r"""
     """
-    #import vtool as vt
+    # import vtool as vt
     import wbia.plottool as pt
+
     unixtime_list = np.array(unixtime_list)
     num_nan = np.isnan(unixtime_list).sum()
     num_total = len(unixtime_list)
@@ -711,46 +809,54 @@ def show_time_distributions(ibs, unixtime_list):
 
     from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
+
     mpl.rcParams.update(TMP_RC)
 
     if False:
         from matplotlib import dates as mpldates
-        #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
+
+        # data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
         n, bins, patches = pt.plt.hist(unixtime_list, 365)
-        #n_ = list(map(ut.unixtime_to_datetimeobj, n))
-        #bins_ = list(map(ut.unixtime_to_datetimeobj, bins))
+        # n_ = list(map(ut.unixtime_to_datetimeobj, n))
+        # bins_ = list(map(ut.unixtime_to_datetimeobj, bins))
         pt.plt.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
         ax = pt.gca()
-        #ax.xaxis.set_major_locator(mpldates.YearLocator())
-        #hfmt = mpldates.DateFormatter('%y/%m/%d')
-        #ax.xaxis.set_major_formatter(hfmt)
+        # ax.xaxis.set_major_locator(mpldates.YearLocator())
+        # hfmt = mpldates.DateFormatter('%y/%m/%d')
+        # ax.xaxis.set_major_formatter(hfmt)
         mpldates.num2date(unixtime_list)
-        #pt.gcf().autofmt_xdate()
-        #y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())
-        #ax.set_xticks(bins_)
-        #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
+        # pt.gcf().autofmt_xdate()
+        # y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())
+        # ax.set_xticks(bins_)
+        # l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
     else:
         pt.draw_time_distribution(unixtime_list)
-        #pt.draw_histogram()
+        # pt.draw_histogram()
         ax = pt.gca()
         ax.set_xlabel('Date')
-        ax.set_title('Timestamp distribution of %s. #nan=%d/%d' % (
-            ibs.get_dbname_alias(),
-            num_nan, num_total))
+        ax.set_title(
+            'Timestamp distribution of %s. #nan=%d/%d'
+            % (ibs.get_dbname_alias(), num_nan, num_total)
+        )
         pt.gcf().autofmt_xdate()
 
         icon = ibs.get_database_icon()
         if False and icon is not None:
-            #import matplotlib as mpl
-            #import vtool as vt
+            # import matplotlib as mpl
+            # import vtool as vt
             ax = pt.gca()
             # Overlay a species icon
             # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
-            #icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
+            # icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
             # pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))
-            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
-                            as_artist=1, max_asize=(100, 200))
-            #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+            pt.overlay_icon(
+                icon,
+                coords=(0, 1),
+                bbox_alignment=(0, 1),
+                as_artist=1,
+                max_asize=(100, 200),
+            )
+            # imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
             ##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
             ##ax.set_xlim(1, 100)
             ##ax.set_ylim(0, 100)
@@ -762,16 +868,16 @@ def show_time_distributions(ibs, unixtime_list):
             ##xy = [x, y]
             ##print('xy = %r' % (xy,))
             ##ax.get_ylim()[0]]
-            #xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
-            #ab = mpl.offsetbox.AnnotationBbox(
+            # xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
+            # ab = mpl.offsetbox.AnnotationBbox(
             #    imagebox, xy, xycoords='data',
             #    xybox=(-0., 0.),
             #    boxcoords="offset points",
             #    box_alignment=(0, 1), pad=0.0)
-            #ax.add_artist(ab)
+            # ax.add_artist(ab)
 
     if ut.get_argflag('--contextadjust'):
-        #pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        # pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
         pt.adjust_subplots(use_argv=True)
 
 
@@ -807,62 +913,70 @@ def latex_dbstats(ibs_list, **kwargs):
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
     import wbia
+
     # Parse for aids test data
     aids_list = [wbia.testdata_aids(ibs=ibs) for ibs in ibs_list]
 
-    #dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
-    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False, aid_list=aids)
-                   for ibs, aids in zip(ibs_list, aids_list)]
+    # dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
+    dbinfo_list = [
+        get_dbinfo(ibs, with_contrib=False, verbose=False, aid_list=aids)
+        for ibs, aids in zip(ibs_list, aids_list)
+    ]
 
-    #title = db_name + ' database statistics'
+    # title = db_name + ' database statistics'
     title = 'Database statistics'
     stat_title = '# Annotations per name (multiton)'
 
-    #col_lbls = [
+    # col_lbls = [
     #    'multiton',
     #    #'singleton',
     #    'total',
     #    'multiton',
     #    'singleton',
     #    'total',
-    #]
+    # ]
     key_to_col_lbls = {
-        'num_names_multiton':   'multiton',
-        'num_names_singleton':  'singleton',
-        'num_names':            'total',
-
-        'num_multiton_annots':  'multiton',
+        'num_names_multiton': 'multiton',
+        'num_names_singleton': 'singleton',
+        'num_names': 'total',
+        'num_multiton_annots': 'multiton',
         'num_singleton_annots': 'singleton',
-        'num_unknown_annots':   'unknown',
-        'num_annots':           'total',
+        'num_unknown_annots': 'unknown',
+        'num_annots': 'total',
     }
     # Structure of columns / multicolumns
     multi_col_keys = [
-        ('# Names', (
-            'num_names_multiton',
-            #'num_names_singleton',
-            'num_names',
-        )),
-
-        ('# Annots', (
-            'num_multiton_annots',
-            'num_singleton_annots',
-            #'num_unknown_annots',
-            'num_annots')),
+        (
+            '# Names',
+            (
+                'num_names_multiton',
+                #'num_names_singleton',
+                'num_names',
+            ),
+        ),
+        (
+            '# Annots',
+            (
+                'num_multiton_annots',
+                'num_singleton_annots',
+                #'num_unknown_annots',
+                'num_annots',
+            ),
+        ),
     ]
-    #multicol_lbls = [('# Names', 3), ('# Annots', 3)]
+    # multicol_lbls = [('# Names', 3), ('# Annots', 3)]
     multicol_lbls = [(mcolname, len(mcols)) for mcolname, mcols in multi_col_keys]
 
     # Flatten column labels
     col_keys = ut.flatten(ut.get_list_column(multi_col_keys, 1))
     col_lbls = ut.dict_take(key_to_col_lbls, col_keys)
 
-    row_lbls   = []
+    row_lbls = []
     row_values = []
 
-    #stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
+    # stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
     stat_col_lbls = ['max', 'min', 'mean', 'std', 'med']
-    #stat_row_lbls = ['# Annot per Name (multiton)']
+    # stat_row_lbls = ['# Annot per Name (multiton)']
     stat_row_lbls = []
     stat_row_values = []
 
@@ -873,7 +987,9 @@ def latex_dbstats(ibs_list, **kwargs):
         row_ = ut.dict_take(dbinfo_locals, col_keys)
         dbname = ibs.get_dbname_alias()
         row_lbls.append(dbname)
-        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'], use_median=True, nl=1)
+        multiton_annot_stats = ut.get_stats(
+            dbinfo_locals['multiton_nid2_nannots'], use_median=True, nl=1
+        )
         stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
         if SINGLE_TABLE:
             row_.extend(stat_rows)
@@ -886,9 +1002,14 @@ def latex_dbstats(ibs_list, **kwargs):
     CENTERLINE = False
     AS_TABLE = True
     tablekw = dict(
-        astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False, precision=2,
-        col_sep='', multicol_sep='|',
-        **kwargs)
+        astable=AS_TABLE,
+        centerline=CENTERLINE,
+        FORCE_INT=False,
+        precision=2,
+        col_sep='',
+        multicol_sep='|',
+        **kwargs
+    )
 
     if EXTRA:
         extra_keys = [
@@ -907,42 +1028,86 @@ def latex_dbstats(ibs_list, **kwargs):
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
-                extra_collbls[key] = ut.unique_ordered(extra_collbls[key] + list(dbinfo_locals[key].keys()))
+                extra_collbls[key] = ut.unique_ordered(
+                    extra_collbls[key] + list(dbinfo_locals[key].keys())
+                )
 
-        extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
-        #extra_collbls['viewcode2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
-        extra_collbls['viewcode2_nAnnots'] = ['BL', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
+        extra_collbls['qualtext2_nAnnots'] = [
+            'excellent',
+            'good',
+            'ok',
+            'poor',
+            'junk',
+            'UNKNOWN',
+        ]
+        # extra_collbls['viewcode2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
+        extra_collbls['viewcode2_nAnnots'] = [
+            'BL',
+            'L',
+            'FL',
+            'F',
+            'FR',
+            'R',
+            'BR',
+            'B',
+            None,
+        ]
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
-                extra_rowvalues[key].append(ut.dict_take(dbinfo_locals[key], extra_collbls[key], 0))
+                extra_rowvalues[key].append(
+                    ut.dict_take(dbinfo_locals[key], extra_collbls[key], 0)
+                )
 
         qualalias = {'UNKNOWN': None}
 
-        extra_collbls['viewcode2_nAnnots'] = [ibs.const.YAWALIAS.get(val, val) for val in extra_collbls['viewcode2_nAnnots']]
-        extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
+        extra_collbls['viewcode2_nAnnots'] = [
+            ibs.const.YAWALIAS.get(val, val) for val in extra_collbls['viewcode2_nAnnots']
+        ]
+        extra_collbls['qualtext2_nAnnots'] = [
+            qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']
+        ]
 
         for key in extra_keys:
             extra_tables[key] = ut.util_latex.make_score_tabular(
-                row_lbls, extra_collbls[key], extra_rowvalues[key],
-                title=extra_titles[key], col_align='r', table_position='[h!]', **tablekw)
+                row_lbls,
+                extra_collbls[key],
+                extra_rowvalues[key],
+                title=extra_titles[key],
+                col_align='r',
+                table_position='[h!]',
+                **tablekw
+            )
 
-    #tabular_str = util_latex.tabular_join(tabular_body_list)
+    # tabular_str = util_latex.tabular_join(tabular_body_list)
     if SINGLE_TABLE:
         col_lbls += stat_col_lbls
         multicol_lbls += [(stat_title, len(stat_col_lbls))]
 
     count_tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, table_position='[ht!]', **tablekw)
+        row_lbls,
+        col_lbls,
+        row_values,
+        title=title,
+        multicol_lbls=multicol_lbls,
+        table_position='[ht!]',
+        **tablekw
+    )
 
-    #print(row_lbls)
+    # print(row_lbls)
 
     if SINGLE_TABLE:
         tabular_str = count_tabular_str
     else:
         stat_tabular_str = ut.util_latex.make_score_tabular(
-            stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title,
-            col_align='r', table_position='[h!]', **tablekw)
+            stat_row_lbls,
+            stat_col_lbls,
+            stat_row_values,
+            title=stat_title,
+            col_align='r',
+            table_position='[h!]',
+            **tablekw
+        )
 
         # Make a table of statistics
         if tablekw['astable']:
@@ -950,7 +1115,10 @@ def latex_dbstats(ibs_list, **kwargs):
         else:
             tablesep = '\\\\\n%--\n'
         if EXTRA:
-            tabular_str = tablesep.join([count_tabular_str, stat_tabular_str] + ut.dict_take(extra_tables, extra_keys))
+            tabular_str = tablesep.join(
+                [count_tabular_str, stat_tabular_str]
+                + ut.dict_take(extra_tables, extra_keys)
+            )
         else:
             tabular_str = tablesep.join([count_tabular_str, stat_tabular_str])
 
@@ -983,30 +1151,35 @@ def get_short_infostr(ibs):
         num_names = 7
     """
     dbname = ibs.get_dbname()
-    #workdir = ut.unixpath(ibs.get_workdir())
+    # workdir = ut.unixpath(ibs.get_workdir())
     num_images = ibs.get_num_images()
     num_annotations = ibs.get_num_annotations()
     num_names = ibs.get_num_names()
-    #workdir = %r
-    infostr = ut.codeblock('''
+    # workdir = %r
+    infostr = ut.codeblock(
+        '''
     dbname = %s
     num_images = %r
     num_annotations = %r
     num_names = %r
-    ''' % (ut.repr2(dbname), num_images, num_annotations, num_names))
+    '''
+        % (ut.repr2(dbname), num_images, num_annotations, num_names)
+    )
     return infostr
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
     print('[dev stats] cache_memory_stats()')
-    #kpts_list = ibs.get_annot_kpts(cid_list)
-    #desc_list = ibs.get_annot_vecs(cid_list)
-    #nFeats_list = map(len, kpts_list)
+    # kpts_list = ibs.get_annot_kpts(cid_list)
+    # desc_list = ibs.get_annot_vecs(cid_list)
+    # nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 
     bytes_map = {
         'chip dbytes': [ut.file_bytes(fpath) for fpath in ibs.get_rchip_path(cid_list)],
-        'img dbytes':  [ut.file_bytes(gpath) for gpath in ibs.gx2_gname(gx_list, full=True)],
+        'img dbytes': [
+            ut.file_bytes(gpath) for gpath in ibs.gx2_gname(gx_list, full=True)
+        ],
         #'flann dbytes':  ut.file_bytes(flann_fpath),
     }
 
@@ -1016,8 +1189,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         'KB': 2 ** 10,
     }
 
-    tabular_body_list = [
-    ]
+    tabular_body_list = []
 
     convert_to = 'KB'
     for key, val in six.iteritems(bytes_map):
@@ -1049,6 +1221,8 @@ if __name__ == '__main__':
         python -m wbia.other.dbinfo --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

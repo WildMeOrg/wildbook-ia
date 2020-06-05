@@ -41,11 +41,12 @@ import cv2
 
 
 # Must import class before injection
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
@@ -81,8 +82,7 @@ def postinject_func(ibs):
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ut.inject_func_as_method(ibs, unflat_getter,
-                                 allow_override=ibs.allow_override)
+        ut.inject_func_as_method(ibs, unflat_getter, allow_override=ibs.allow_override)
     # very hacky, but useful
     ibs.unflat_map = unflat_map
 
@@ -90,6 +90,7 @@ def postinject_func(ibs):
 @register_ibs_method
 def export_to_hotspotter(ibs):
     from wbia.dbio import export_hsdb
+
     export_hsdb.export_wbia_to_hotspotter(ibs)
 
 
@@ -98,8 +99,8 @@ def get_image_time_statstr(ibs, gid_list=None):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
     unixtime_list_ = ibs.get_image_unixtime(gid_list)
-    utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = list(ub.compress(unixtime_list_, utvalid_list))
+    utvalid_list = [time != -1 for time in unixtime_list_]
+    unixtime_list = list(ub.compress(unixtime_list_, utvalid_list))
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
     return unixtime_statstr
 
@@ -156,8 +157,7 @@ def compute_all_chips(ibs, aid_list=None, **kwargs):
 
 
 @register_ibs_method
-def ensure_annotation_data(ibs, aid_list, chips=True, feats=True,
-                           featweights=False):
+def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=False):
     if featweights:
         ibs.depc_annot.get_rowids('featweight', aid_list)
     elif feats:
@@ -180,24 +180,39 @@ def add_trivial_annotations(ibs, *args, **kwargs):
 
 
 @register_ibs_method
-def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
-                              notes_list=None, adjust_percent=0.0,
-                              tags_list=None):
+def use_images_as_annotations(
+    ibs,
+    gid_list,
+    name_list=None,
+    nid_list=None,
+    notes_list=None,
+    adjust_percent=0.0,
+    tags_list=None,
+):
     """ Adds an annotation the size of the entire image to each image.
     adjust_percent - shrinks the ANNOTATION by percentage on each side
     """
     pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_sizes(gid_list)
     # Build bounding boxes as images size minus padding
-    bbox_list  = [(int( 0 + (gw * pct)),
-                   int( 0 + (gh * pct)),
-                   int(gw - (gw * pct * 2)),
-                   int(gh - (gh * pct * 2)))
-                  for (gw, gh) in gsize_list]
+    bbox_list = [
+        (
+            int(0 + (gw * pct)),
+            int(0 + (gh * pct)),
+            int(gw - (gw * pct * 2)),
+            int(gh - (gh * pct * 2)),
+        )
+        for (gw, gh) in gsize_list
+    ]
     theta_list = [0.0 for _ in range(len(gsize_list))]
-    aid_list = ibs.add_annots(gid_list, bbox_list, theta_list,
-                              name_list=name_list, nid_list=nid_list,
-                              notes_list=notes_list)
+    aid_list = ibs.add_annots(
+        gid_list,
+        bbox_list,
+        theta_list,
+        name_list=name_list,
+        nid_list=nid_list,
+        notes_list=notes_list,
+    )
     if tags_list is not None:
         ibs.append_annot_case_tags(aid_list, tags_list)
     return aid_list
@@ -216,18 +231,17 @@ def get_annot_been_adjusted(ibs, aid_list):
     been_ori_adjusted = ori_list != 0
 
     adjusted_list = [
-        (bbox[0] / gw,
-         bbox[1] / gh,
-         (1 - (bbox[2] / gw)) / 2,
-         (1 - (bbox[3] / gh)) / 2,)
+        (bbox[0] / gw, bbox[1] / gh, (1 - (bbox[2] / gw)) / 2, (1 - (bbox[3] / gh)) / 2,)
         for bbox, (gw, gh) in zip(bbox_list, size_list)
     ]
 
     # Has the bounding box been moved past the default value?
-    been_bbox_adjusted = np.array([
-        np.abs(np.diff(np.array(list(ut.iprod(pcts, pcts))), axis=1)).max() > 1e-2
-        for pcts in adjusted_list
-    ])
+    been_bbox_adjusted = np.array(
+        [
+            np.abs(np.diff(np.array(list(ut.iprod(pcts, pcts))), axis=1)).max() > 1e-2
+            for pcts in adjusted_list
+        ]
+    )
 
     been_adjusted = np.logical_or(been_ori_adjusted, been_bbox_adjusted)
     return been_adjusted
@@ -244,8 +258,9 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             for species in species_list
         ]
         assert all(isvalid_list), 'invalid species found in %r: %r' % (
-            ut.get_caller_name(range(1, 3)), ut.compress(
-                species_list, ut.not_list(isvalid_list)),)
+            ut.get_caller_name(range(1, 3)),
+            ut.compress(species_list, ut.not_list(isvalid_list)),
+        )
     except AssertionError as ex:
         ut.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -257,12 +272,14 @@ def assert_singleton_relationship(ibs, alrids_list):
     if ut.NO_ASSERTS:
         return
     try:
-        assert all([len(alrids) == 1 for alrids in alrids_list]), (
-            'must only have one relationship of a type')
+        assert all(
+            [len(alrids) == 1 for alrids in alrids_list]
+        ), 'must only have one relationship of a type'
     except AssertionError as ex:
         parent_locals = ut.get_parent_frame().f_locals
-        ut.printex(ex, 'parent_locals=' + ut.repr2(parent_locals),
-                   key_list=['alrids_list', ])
+        ut.printex(
+            ex, 'parent_locals=' + ut.repr2(parent_locals), key_list=['alrids_list',]
+        )
         raise
 
 
@@ -273,11 +290,12 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
         assert not any(isinvalid_list), 'invalid gids: %r' % (
-            ut.compress(gid_list, isinvalid_list),)
-        isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES)
-                          for gid in gid_list]
+            ut.compress(gid_list, isinvalid_list),
+        )
+        isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES) for gid in gid_list]
         assert not any(isinvalid_list), 'invalidly typed gids: %r' % (
-            ut.compress(gid_list, isinvalid_list),)
+            ut.compress(gid_list, isinvalid_list),
+        )
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -287,7 +305,9 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
 
 
 @register_ibs_method
-def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', auuid_list=None):
+def assert_valid_aids(
+    ibs, aid_list, verbose=False, veryverbose=False, msg='', auuid_list=None
+):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -328,33 +348,41 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', a
         >>> print(result)
         >>> print(result)
     """
-    #if ut.NO_ASSERTS and not force:
+    # if ut.NO_ASSERTS and not force:
     #    return
-    #valid_aids = set(ibs.get_valid_aids())
-    #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
-    #isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    # valid_aids = set(ibs.get_valid_aids())
+    # invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
+    # isinvalid_list = [aid not in valid_aids for aid in aid_list]
     isinvalid_list = [aid is None for aid in ibs.get_annot_aid(aid_list)]
-    #isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    # isinvalid_list = [aid not in valid_aids for aid in aid_list]
     invalid_aids = ut.compress(aid_list, isinvalid_list)
     try:
         assert not any(isinvalid_list), '%d/%d invalid aids: %r' % (
-            sum(isinvalid_list), len(aid_list), invalid_aids,)
-        isinvalid_list = [
-            not ut.is_int(aid) for aid in aid_list]
+            sum(isinvalid_list),
+            len(aid_list),
+            invalid_aids,
+        )
+        isinvalid_list = [not ut.is_int(aid) for aid in aid_list]
         invalid_aids = ut.compress(aid_list, isinvalid_list)
         assert not any(isinvalid_list), '%d/%d invalidly typed aids: %r' % (
-            sum(isinvalid_list), len(aid_list), invalid_aids,)
+            sum(isinvalid_list),
+            len(aid_list),
+            invalid_aids,
+        )
     except AssertionError as ex:
         if auuid_list is not None and len(auuid_list) == len(aid_list):
             invalid_auuids = ut.compress(auuid_list, isinvalid_list)  # NOQA
         else:
             invalid_auuids = 'not-available'
         dbname = ibs.get_dbname()  # NOQA
-        locals_ = dict(dbname=dbname, invalid_auuids=invalid_auuids, invalid_aids=invalid_aids)
+        locals_ = dict(
+            dbname=dbname, invalid_auuids=invalid_auuids, invalid_aids=invalid_aids
+        )
         ut.printex(
-            ex, 'assert_valid_aids: ' + msg,
+            ex,
+            'assert_valid_aids: ' + msg,
             locals_=locals_,
-            keys=['invalid_aids', 'invalid_auuids', 'dbname']
+            keys=['invalid_aids', 'invalid_auuids', 'dbname'],
         )
         raise
     if veryverbose:
@@ -415,10 +443,7 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
         gid_list = ibs.get_valid_gids()
 
     gpath_list = ibs.get_image_paths(gid_list)
-    hash_list = [
-        ut.get_file_hash(gpath, hexdigest=True)
-        for gpath in gpath_list
-    ]
+    hash_list = [ut.get_file_hash(gpath, hexdigest=True) for gpath in gpath_list]
 
     if len(hash_list) != len(set(hash_list)):
         hash_histogram = {}
@@ -433,18 +458,20 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
         global_delete_gid_list = []
         for key, gid_gpath_list_ in hash_histogram.items():
             if len(gid_gpath_list_) >= 2:
-                gid_list   = [_[0] for _ in gid_gpath_list_]
+                gid_list = [_[0] for _ in gid_gpath_list_]
                 gpath_list = [_[1] for _ in gid_gpath_list_]
 
                 aids_list = ibs.get_image_aids(gid_list)
-                aids_len_list = list(map(len,  aids_list))
+                aids_len_list = list(map(len, aids_list))
                 max_aids = max(aids_len_list)
 
-                filtered_gid_list = sorted([
-                    gid
-                    for gid, aids_len in zip(gid_list, aids_len_list)
-                    if aids_len == max_aids
-                ])
+                filtered_gid_list = sorted(
+                    [
+                        gid
+                        for gid, aids_len in zip(gid_list, aids_len_list)
+                        if aids_len == max_aids
+                    ]
+                )
 
                 survive_gid = filtered_gid_list[0]
                 delete_gid_list = list(gid_list)
@@ -468,26 +495,31 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
                 # print('-' * 40)
 
         total = len(hash_histogram.keys())
-        print('Found [%d / %d / %d] images that have duplicates...' % (divergent, counter, total, ))
+        print(
+            'Found [%d / %d / %d] images that have duplicates...'
+            % (divergent, counter, total,)
+        )
         ibs.delete_images(global_delete_gid_list)
-        print('Deleted %d images.' % (len(global_delete_gid_list), ))
+        print('Deleted %d images.' % (len(global_delete_gid_list),))
 
 
 def assert_valid_names(name_list):
     """ Asserts that user specified names do not conflict with the standard unknown name """
     if ut.NO_ASSERTS:
         return
+
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, const.UNKNOWN)
-                       for name in name_list]
-    assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
-                                  'cannot start a name with four underscores')
+
+    valid_namecheck = [not isconflict(name, const.UNKNOWN) for name in name_list]
+    assert all(valid_namecheck), (
+        'A name conflicts with UKNONWN Name. -- '
+        'cannot start a name with four underscores'
+    )
 
 
 @ut.on_exception_report_input
-def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,
-                                    valid_lbltype_rowid):
+def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
     if ut.NO_ASSERTS:
         return
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
@@ -498,23 +530,23 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,
         ut.assert_same_len(lbltype_rowid_list, lbltype_rowid_list)
         ut.assert_scalar_list(lblannot_rowid_list)
         validtype_list = [
-            (lbltype_rowid == valid_lbltype_rowid) or
-            (lbltype_rowid is None and
-             lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
-            for lbltype_rowid, lblannot_rowid in
-            zip(lbltype_rowid_list, lblannot_rowid_list)
+            (lbltype_rowid == valid_lbltype_rowid)
+            or (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
+            for lbltype_rowid, lblannot_rowid in zip(
+                lbltype_rowid_list, lblannot_rowid_list
+            )
         ]
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
-        tup_list = list(map(str, list(
-            zip(lbltype_rowid_list, lblannot_rowid_list))))
-        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' +
-              ut.indentjoin(tup_list))
-        print('[!!!] valid_lbltype_rowid: %r' %
-              (valid_lbltype_rowid,))
+        tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
+        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list))
+        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
 
-        ut.printex(ex, 'not all types match valid type',
-                      keys=['valid_lbltype_rowid', 'lblannot_rowid_list'])
+        ut.printex(
+            ex,
+            'not all types match valid type',
+            keys=['valid_lbltype_rowid', 'lblannot_rowid_list'],
+        )
         raise
 
 
@@ -568,7 +600,7 @@ def check_image_consistency(ibs, gid_list=None):
     assert_images_exist(ibs, gid_list)
     image_uuid_list = ibs.get_image_uuids(gid_list)
     assert len(ut.debug_duplicate_items(image_uuid_list)) == 0
-    #check_image_uuid_consistency(ibs, gid_list)
+    # check_image_uuid_consistency(ibs, gid_list)
 
 
 @register_ibs_method
@@ -625,12 +657,10 @@ def check_image_loadable(ibs, gid_list=None):
     gpath_list = ibs.get_image_paths(gid_list)
     orient_list = ibs.get_image_orientation(gid_list)
 
-    arg_iter = list(zip(
-        gpath_list,
-        orient_list,
-    ))
-    flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter,
-                                           futures_threaded=True)
+    arg_iter = list(zip(gpath_list, orient_list,))
+    flag_list = ut.util_parallel.generate2(
+        check_image_loadable_worker, arg_iter, futures_threaded=True
+    )
     flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
     exif_list = ut.take_column(flag_list, 1)
@@ -695,11 +725,11 @@ def check_image_duplcates(ibs, gid_list=None):
             keep_index = uuid_list.index(uuid)
         else:
             reviewed_list = ibs.get_image_reviewed(duplcate_gid_list)
-            aids_list     = ibs.get_image_aids(duplcate_gid_list)
-            length_list   = list(map(len, aids_list))
-            index_list    = list(range(len(duplcate_gid_list)))
-            zipped        = sorted(list(zip(reviewed_list, length_list, index_list)))
-            keep_index    = zipped[-1][2]
+            aids_list = ibs.get_image_aids(duplcate_gid_list)
+            length_list = list(map(len, aids_list))
+            index_list = list(range(len(duplcate_gid_list)))
+            zipped = sorted(list(zip(reviewed_list, length_list, index_list)))
+            keep_index = zipped[-1][2]
 
         assert keep_index is not None
 
@@ -805,12 +835,14 @@ def check_annot_consistency(ibs, aid_list=None):
     num_None_annot_gids = sum(ut.flag_None_items(annot_gid_list))
     print('num_None_annot_gids = %r ' % (num_None_annot_gids,))
     assert num_None_annot_gids == 0
-    #print(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
+    # print(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
     cfpath_list = ibs.get_annot_chip_fpath(aid_list, ensure=False)
-    valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
+    valid_chip_list = [
+        None if cfpath is None else exists(cfpath) for cfpath in cfpath_list
+    ]
     invalid_list = [flag is False for flag in valid_chip_list]
     invalid_aids = ut.compress(aid_list, invalid_list)
     if len(invalid_aids) > 0:
@@ -876,7 +908,7 @@ def check_name_consistency(ibs, nid_list):
         >>> result = check_name_consistency(ibs, nid_list)
         >>> print(result)
     """
-    #aids_list = ibs.get_name_aids(nid_list)
+    # aids_list = ibs.get_name_aids(nid_list)
     print('check name consistency. len(nid_list)=%r' % len(nid_list))
     aids_list = ibs.get_name_aids(nid_list)
     print('Checking that all annotations of a name have the same species')
@@ -884,13 +916,16 @@ def check_name_consistency(ibs, nid_list):
     error_list = []
     for aids, sids in zip(aids_list, species_rowids_list):
         if not ut.allsame(sids):
-            error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (
-                aids, ibs.get_species_texts(ut.unique_ordered(sids)))
+            error_msg = (
+                'aids=%r have the same name, but belong to multiple species=%r'
+                % (aids, ibs.get_species_texts(ut.unique_ordered(sids)))
+            )
             print(error_msg)
             error_list.append(error_msg)
     if len(error_list) > 0:
-        raise AssertionError('A total of %d names failed check_name_consistency' % (
-            len(error_list)))
+        raise AssertionError(
+            'A total of %d names failed check_name_consistency' % (len(error_list))
+        )
 
 
 @register_ibs_method
@@ -899,11 +934,12 @@ def check_name_mapping_consistency(ibs, nx2_aids):
     # DEBUGGING CODE
     try:
         from wbia import ibsfuncs
+
         _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
         assert all(map(ut.allsame, _nids_list))
     except Exception as ex:
         # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
-        #name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
+        # name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
         bad = 0
         good = 0
         huh = 0
@@ -939,6 +975,7 @@ def check_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT """
     import vtool.exif as exif
     from PIL import Image  # NOQA
+
     gpath_list = ibs.get_image_paths(gid_list)
     exif_dict_list = []
     for ix in ut.ProgIter(range(len(gpath_list)), lbl='checking exif: '):
@@ -946,7 +983,7 @@ def check_exif_data(ibs, gid_list):
         pil_img = Image.open(gpath, 'r')  # NOQA
         exif_dict = exif.get_exif_dict(pil_img)
         exif_dict_list.append(exif_dict)
-        #if len(exif_dict) > 0:
+        # if len(exif_dict) > 0:
         #    break
 
     has_latlon = []
@@ -1077,7 +1114,7 @@ def fix_and_clean_database(ibs):
         * warn if scenery matches have the same name
 
     """
-    #TODO: Call more stuff, maybe rename to 'apply duct tape'
+    # TODO: Call more stuff, maybe rename to 'apply duct tape'
     with ut.Indenter('[FIX_AND_CLEAN]'):
         print('starting fixes and consistency checks')
         ibs.fix_unknown_exemplars()
@@ -1114,6 +1151,7 @@ def fix_exif_data(ibs, gid_list):
     """
     import vtool as vt
     from PIL import Image  # NOQA
+
     gpath_list = ibs.get_image_paths(gid_list)
 
     pil_img_gen = (Image.open(gpath, 'r') for gpath in gpath_list)  # NOQA
@@ -1121,44 +1159,49 @@ def fix_exif_data(ibs, gid_list):
     exif_dict_list = [
         vt.get_exif_dict(pil_img)
         for pil_img in ut.ProgIter(
-            pil_img_gen, length=len(gpath_list), lbl='reading exif: ',
-            adjust=True)
+            pil_img_gen, length=len(gpath_list), lbl='reading exif: ', adjust=True
+        )
     ]
 
-    def fix_property(exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname='property'):
+    def fix_property(
+        exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname='property'
+    ):
         exif_prop_list = [exif_getter(_dict, None) for _dict in exif_dict_list]
         hasprop_list = [prop is not None for prop in exif_prop_list]
 
         exif_prop_list_ = ut.compress(exif_prop_list, hasprop_list)
-        gid_list_       = ut.compress(gid_list, hasprop_list)
-        ibs_prop_list   = ibs_getter(gid_list_)
-        isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
+        gid_list_ = ut.compress(gid_list, hasprop_list)
+        ibs_prop_list = ibs_getter(gid_list_)
+        isdirty_list = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
-        print('%d / %d need %s update' % (sum(isdirty_list),
-                                          len(isdirty_list), propname))
+        print('%d / %d need %s update' % (sum(isdirty_list), len(isdirty_list), propname))
 
-        if False and sum(isdirty_list)  > 0:
-            assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
-            #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
+        if False and sum(isdirty_list) > 0:
+            assert sum(isdirty_list) == len(
+                isdirty_list
+            ), 'safety. remove and evaluate if hit'
+            # ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
             new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
             dirty_gid_list = ut.compress(gid_list_, isdirty_list)
             ibs_setter(dirty_gid_list, new_exif_prop_list)
 
     FIX_GPS = True
     if FIX_GPS:
-        fix_property(vt.get_lat_lon, ibs.get_image_gps, ibs.set_image_gps, (-1, -1), 'gps')
-        #latlon_list = [vt.get_lat_lon(_dict, None) for _dict in exif_dict_list]
-        #hasprop_list = [latlon is not None for latlon in latlon_list]
+        fix_property(
+            vt.get_lat_lon, ibs.get_image_gps, ibs.set_image_gps, (-1, -1), 'gps'
+        )
+        # latlon_list = [vt.get_lat_lon(_dict, None) for _dict in exif_dict_list]
+        # hasprop_list = [latlon is not None for latlon in latlon_list]
 
-        #latlon_list_ = ut.compress(latlon_list, hasprop_list)
-        #gid_list_    = ut.compress(gid_list, hasprop_list)
-        #gps_list = ibs.get_image_gps(gid_list_)
-        #isdirty_list = [gps == (-1, -1) for gps in gps_list]
+        # latlon_list_ = ut.compress(latlon_list, hasprop_list)
+        # gid_list_    = ut.compress(gid_list, hasprop_list)
+        # gps_list = ibs.get_image_gps(gid_list_)
+        # isdirty_list = [gps == (-1, -1) for gps in gps_list]
 
-        #print('%d / %d need gps update' % (sum(isdirty_list),
+        # print('%d / %d need gps update' % (sum(isdirty_list),
         #                                   len(isdirty_list)))
 
-        #if False and sum(isdirty_list)  > 0:
+        # if False and sum(isdirty_list)  > 0:
         #    assert sum(isdirty_list) == len(isdirty_list), (
         #        'safety. remove and evaluate if hit')
         #    #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
@@ -1174,18 +1217,18 @@ def fix_exif_data(ibs, gid_list):
         ibs_getter = ibs.get_image_unixtime
         ibs_setter = ibs.set_image_unixtime
         fix_property(exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname)
-        #exif_prop_list = [vt.get_unixtime(_dict, None) for _dict in exif_dict_list]
-        #hasprop_list = [prop is not None for prop in exif_prop_list]
+        # exif_prop_list = [vt.get_unixtime(_dict, None) for _dict in exif_dict_list]
+        # hasprop_list = [prop is not None for prop in exif_prop_list]
 
-        #exif_prop_list_ = ut.compress(exif_prop_list, hasprop_list)
-        #gid_list_       = ut.compress(gid_list, hasprop_list)
-        #ibs_prop_list   = ibs.get_image_unixtime(gid_list_)
-        #isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
+        # exif_prop_list_ = ut.compress(exif_prop_list, hasprop_list)
+        # gid_list_       = ut.compress(gid_list, hasprop_list)
+        # ibs_prop_list   = ibs.get_image_unixtime(gid_list_)
+        # isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
-        #print('%d / %d need time update' % (sum(isdirty_list),
+        # print('%d / %d need time update' % (sum(isdirty_list),
         #                                    len(isdirty_list)))
 
-        #if False and sum(isdirty_list)  > 0:
+        # if False and sum(isdirty_list)  > 0:
         #    assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
         #    #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
         #    new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
@@ -1225,9 +1268,11 @@ def fix_invalid_nids(ibs):
     if any(is_invalid_nid_list):
         invalid_nids = ut.compress(nid_list, is_invalid_nid_list)
         invalid_texts = ut.compress(name_text_list, is_invalid_nid_list)
-        if (len(invalid_nids) == 0 and
-              invalid_nids[0] == const.UNKNOWN_NAME_ROWID and
-              invalid_texts[0] == const.UNKNOWN):
+        if (
+            len(invalid_nids) == 0
+            and invalid_nids[0] == const.UNKNOWN_NAME_ROWID
+            and invalid_texts[0] == const.UNKNOWN
+        ):
             print('[ibs] found bad name rowids = %r' % (invalid_nids,))
             print('[ibs] found bad name texts  = %r' % (invalid_texts,))
             ibs.delete_names([const.UNKNOWN_NAME_ROWID])
@@ -1265,14 +1310,18 @@ def fix_invalid_name_texts(ibs):
     # Get actual names from sql database (no postprocessing)
     name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
     invalid_name_set = {'', const.UNKNOWN}
-    is_invalid_name_text_list = [name_text in invalid_name_set
-                                 for name_text in name_text_list]
+    is_invalid_name_text_list = [
+        name_text in invalid_name_set for name_text in name_text_list
+    ]
     if any(is_invalid_name_text_list):
         invalid_nids = ut.compress(nid_list, is_invalid_name_text_list)
         invalid_texts = ut.compress(name_text_list, is_invalid_name_text_list)
-        for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
+        for count, (invalid_nid, invalid_text) in enumerate(
+            zip(invalid_nids, invalid_texts)
+        ):
             conflict_set = invalid_name_set.union(
-                set(ibs.get_name_texts(nid_list, apply_fix=False)))
+                set(ibs.get_name_texts(nid_list, apply_fix=False))
+            )
             base_str = 'fixedname%d' + invalid_text
             new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
             print('Fixing name %r -> %r' % (invalid_text, new_text))
@@ -1313,12 +1362,14 @@ def copy_imagesets(ibs, imgsetid_list):
     all_imagesettext_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
     imagesettext_list = ibs.get_imageset_text(imgsetid_list)
     new_imagesettext_list = [
-        ut.get_nonconflicting_string(imagesettext + '_Copy(%d)', set(all_imagesettext_list))
+        ut.get_nonconflicting_string(
+            imagesettext + '_Copy(%d)', set(all_imagesettext_list)
+        )
         for imagesettext in imagesettext_list
     ]
     new_imgsetid_list = ibs.add_imagesets(new_imagesettext_list)
     gids_list = ibs.get_imageset_gids(imgsetid_list)
-    #new_imgsetid_list =
+    # new_imgsetid_list =
     for gids, new_imgsetid in zip(gids_list, new_imgsetid_list):
         ibs.set_image_imgsetids(gids, [new_imgsetid] * len(gids))
     return new_imgsetid_list
@@ -1331,19 +1382,21 @@ def fix_unknown_exemplars(ibs):
     is associated with an unknown annotation
     """
     aid_list = ibs.get_valid_aids()
-    #nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+    # nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
     flag_list = ibs.get_annot_exemplar_flags(aid_list)
     unknown_list = ibs.is_aid_unknown(aid_list)
     # Exemplars should all be known
     unknown_exemplar_flags = ut.compress(flag_list, unknown_list)
     unknown_aid_list = ut.compress(aid_list, unknown_list)
-    print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
+    print(
+        'Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),)
+    )
     ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
-    #is_error = [not flag for flag in unknown_exemplar_flags]
-    #new_annots = [flag if nid != const.UNKNOWN_NAME_ROWID else 0
+    # is_error = [not flag for flag in unknown_exemplar_flags]
+    # new_annots = [flag if nid != const.UNKNOWN_NAME_ROWID else 0
     #              for nid, flag in
     #              zip(nid_list, flag_list)]
-    #ibs.set_annot_exemplar_flags(aid_list, new_annots)
+    # ibs.set_annot_exemplar_flags(aid_list, new_annots)
     pass
 
 
@@ -1586,21 +1639,23 @@ def unflat_map(method, unflat_rowids, **kwargs):
         >>> print(result)
         [[1, 1], [2, 2], [3], [4], [5], [6], [7]]
     """
-    #ut.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
+    # ut.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
     flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
     if True:
         assert len(flat_vals) == len(flat_rowids), (
-            'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d' %
-            (len(flat_vals), len(flat_rowids),))
+            'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d'
+            % (len(flat_vals), len(flat_rowids),)
+        )
     # Then ut.unflatten2 the results to the original input dimensions
     unflat_vals = ut.unflatten2(flat_vals, reverse_list)
     if True:
         assert len(unflat_vals) == len(unflat_rowids), (
-            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
-            (len(unflat_vals), len(unflat_rowids),))
+            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d'
+            % (len(unflat_vals), len(unflat_rowids),)
+        )
     return unflat_vals
 
 
@@ -1622,6 +1677,7 @@ def _make_unflat_getter_func(flat_getter):
         # Then ut.unflatten2 the list
         unflat_vals = ut.unflatten2(flat_vals, reverse_list)
         return unflat_vals
+
     set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
 
@@ -1631,13 +1687,15 @@ def ensure_unix_gpaths(gpath_list):
     Asserts that all paths are given with forward slashes.
     If not it fixes them
     """
-    #if ut.NO_ASSERTS:
+    # if ut.NO_ASSERTS:
     #    return
     try:
-        msg = ('gpath_list must be in unix format (no backslashes).'
-               'Failed on %d-th gpath=%r')
+        msg = (
+            'gpath_list must be in unix format (no backslashes).'
+            'Failed on %d-th gpath=%r'
+        )
         for count, gpath in enumerate(gpath_list):
-            assert gpath.find('\\') == -1, (msg % (count, gpath))
+            assert gpath.find('\\') == -1, msg % (count, gpath)
     except AssertionError as ex:
         ut.printex(ex, iswarning=True)
         gpath_list = list(map(ut.unixpath, gpath_list))
@@ -1674,7 +1732,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     key_list = []
     vals_list = []
 
-    #if len(aid_list) == 0:
+    # if len(aid_list) == 0:
     #    return []
 
     key = 'aid'
@@ -1756,8 +1814,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         key_list += [key]
 
     infodict_list = [
-        {key_: val for key_, val in zip(key_list, vals)}
-        for vals in zip(*vals_list)
+        {key_: val for key_, val in zip(key_list, vals)} for vals in zip(*vals_list)
     ]
     return infodict_list
 
@@ -1769,57 +1826,65 @@ def aidstr(aid, ibs=None, notes=False):
     else:
         assert ibs is not None
         notes = ibs.get_annot_notes(aid)
-        name  = ibs.get_annot_names(aid)
+        name = ibs.get_annot_names(aid)
         return 'aid%d-%r-%r' % (aid, str(name), str(notes))
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
+# @ut.time_func
+# @profile
 def update_exemplar_special_imageset(ibs):
     # FIXME SLOW
     exemplar_imgsetid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
-    #ibs.delete_imagesets(exemplar_imgsetid)
+    # ibs.delete_imagesets(exemplar_imgsetid)
     ibs.delete_gsgr_imageset_relations(exemplar_imgsetid)
-    #aid_list = ibs.get_valid_aids(is_exemplar=True)
-    #gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
+    # aid_list = ibs.get_valid_aids(is_exemplar=True)
+    # gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
     gid_list = list(set(_get_exemplar_gids(ibs)))
-    #ibs.set_image_imagesettext(gid_list, [const.EXEMPLAR_IMAGESETTEXT] * len(gid_list))
+    # ibs.set_image_imagesettext(gid_list, [const.EXEMPLAR_IMAGESETTEXT] * len(gid_list))
     ibs.set_image_imgsetids(gid_list, [exemplar_imgsetid] * len(gid_list))
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
-def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unreviewed=True):
+# @ut.time_func
+# @profile
+def update_reviewed_unreviewed_image_special_imageset(
+    ibs, reviewed=True, unreviewed=True
+):
     """
     Creates imageset of images that have not been reviewed
     and that have been reviewed (wrt detection)
     """
     # FIXME SLOW
     if unreviewed:
-        unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
+        unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(
+            const.UNREVIEWED_IMAGE_IMAGESETTEXT
+        )
         ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
         unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
-        ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
+        ibs.set_image_imgsetids(
+            unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids)
+        )
     if reviewed:
-        reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
+        reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(
+            const.REVIEWED_IMAGE_IMAGESETTEXT
+        )
         ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
-        #gid_list = ibs.get_valid_gids(reviewed=False)
-        #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
-        reviewed_gids  = _get_reviewed_gids(ibs)  # hack
+        # gid_list = ibs.get_valid_gids(reviewed=False)
+        # ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
+        reviewed_gids = _get_reviewed_gids(ibs)  # hack
         ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
+# @ut.time_func
+# @profile
 def update_all_image_special_imageset(ibs):
     # FIXME SLOW
     allimg_imgsetid = ibs.get_imageset_imgsetids_from_text(const.ALL_IMAGE_IMAGESETTEXT)
-    #ibs.delete_imagesets(allimg_imgsetid)
+    # ibs.delete_imagesets(allimg_imgsetid)
     gid_list = ibs.get_valid_gids()
-    #ibs.set_image_imagesettext(gid_list, [const.ALL_IMAGE_IMAGESETTEXT] * len(gid_list))
+    # ibs.set_image_imagesettext(gid_list, [const.ALL_IMAGE_IMAGESETTEXT] * len(gid_list))
     ibs.set_image_imgsetids(gid_list, [allimg_imgsetid] * len(gid_list))
 
 
@@ -1839,8 +1904,7 @@ def update_species_imagesets(ibs):
 
     key_list = sorted(species_dict.keys())
     imageset_text_list = [
-        'Species: %s' % (key.replace('_', ' ').title(), )
-        for key in key_list
+        'Species: %s' % (key.replace('_', ' ').title(),) for key in key_list
     ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -1860,8 +1924,10 @@ def get_special_imgsetids(ibs):
         const.REVIEWED_IMAGE_IMAGESETTEXT,
         const.EXEMPLAR_IMAGESETTEXT,
     ]
-    special_imgsetids_ = [get_imagesettext_imgsetid(imagesettext, ensure=False)
-                          for imagesettext in special_imagesettext_list]
+    special_imgsetids_ = [
+        get_imagesettext_imgsetid(imagesettext, ensure=False)
+        for imagesettext in special_imagesettext_list
+    ]
     special_imgsetids = [i for i in special_imgsetids_ if i is not None]
     return special_imgsetids
 
@@ -1897,14 +1963,16 @@ def get_ungrouped_gids(ibs):
     special_imgsetids = set(get_special_imgsetids(ibs))
     gid_list = ibs.get_valid_gids()
     imgsetids_list = ibs.get_image_imgsetids(gid_list)
-    has_imgsetids = [special_imgsetids.issuperset(set(imgsetids)) for imgsetids in imgsetids_list]
+    has_imgsetids = [
+        special_imgsetids.issuperset(set(imgsetids)) for imgsetids in imgsetids_list
+    ]
     ungrouped_gids = ut.compress(gid_list, has_imgsetids)
     return ungrouped_gids
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
+# @ut.time_func
+# @profile
 @profile
 def update_ungrouped_special_imageset(ibs):
     """
@@ -1925,7 +1993,9 @@ def update_ungrouped_special_imageset(ibs):
     # FIXME SLOW
     if ut.VERBOSE:
         print('[ibsfuncs] update_ungrouped_special_imageset.1')
-    ungrouped_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNGROUPED_IMAGES_IMAGESETTEXT)
+    ungrouped_imgsetid = ibs.get_imageset_imgsetids_from_text(
+        const.UNGROUPED_IMAGES_IMAGESETTEXT
+    )
     if ut.VERBOSE:
         print('[ibsfuncs] update_ungrouped_special_imageset.2')
     ibs.delete_gsgr_imageset_relations(ungrouped_imgsetid)
@@ -1940,7 +2010,7 @@ def update_ungrouped_special_imageset(ibs):
 
 
 @register_ibs_method
-#@ut.time_func
+# @ut.time_func
 @profile
 def update_special_imagesets(ibs, use_more_special_imagesets=False):
     if ut.get_argflag('--readonly-mode'):
@@ -1948,7 +2018,7 @@ def update_special_imagesets(ibs, use_more_special_imagesets=False):
         return
     # FIXME SLOW
     if use_more_special_imagesets:
-        #ibs.update_reviewed_unreviewed_image_special_imageset()
+        # ibs.update_reviewed_unreviewed_image_special_imageset()
         ibs.update_reviewed_unreviewed_image_special_imageset(reviewed=False)
         ibs.update_exemplar_special_imageset()
         ibs.update_all_image_special_imageset()
@@ -1990,8 +2060,12 @@ def _get_unreviewed_gids(ibs):
     gid_list_ = ut.compress(gid_list, ut.not_list(flag_list))
     # unreviewed and unshipped
     imgsets_list = ibs.get_image_imgsetids(gid_list_)
-    nonspecial_imgset_ids = [ut.compress(ids, ut.not_list(mask))
-                             for mask, ids in zip(ibs.unflat_map(ibs.is_special_imageset, imgsets_list), imgsets_list)]
+    nonspecial_imgset_ids = [
+        ut.compress(ids, ut.not_list(mask))
+        for mask, ids in zip(
+            ibs.unflat_map(ibs.is_special_imageset, imgsets_list), imgsets_list
+        )
+    ]
     flags_list = ibs.unflat_map(ibs.get_imageset_shipped_flags, nonspecial_imgset_ids)
     # Keep images that have at least one instance in an unshipped non-special set
     flag_list = [not all(flags) for flags in flags_list]
@@ -2022,8 +2096,11 @@ def _get_gids_in_imgsetid(ibs, imgsetid):
         FROM {GSG_RELATION_TABLE}
         WHERE
             imageset_rowid==?
-        '''.format(**const.__dict__),
-        params=(imgsetid,))
+        '''.format(
+            **const.__dict__
+        ),
+        params=(imgsetid,),
+    )
     return gid_list
 
 
@@ -2035,8 +2112,11 @@ def _get_dirty_reviewed_gids(ibs, imgsetid):
         WHERE
             imageset_rowid==? AND
             image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
-        '''.format(**const.__dict__),
-        params=(imgsetid,))
+        '''.format(
+            **const.__dict__
+        ),
+        params=(imgsetid,),
+    )
     return gid_list
 
 
@@ -2046,13 +2126,17 @@ def _get_exemplar_gids(ibs):
         SELECT image_rowid
         FROM {ANNOTATION_TABLE}
         WHERE annot_exemplar_flag=1
-        '''.format(**const.__dict__))
+        '''.format(
+            **const.__dict__
+        )
+    )
     return gid_list
 
 
 @register_ibs_method
 def print_dbinfo(ibs, **kwargs):
     from wbia.other import dbinfo
+
     dbinfo.get_dbinfo(ibs, *kwargs)
 
 
@@ -2083,9 +2167,16 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[], include_columns
         exclude_columns += ['annot_uuid', 'annot_verts']
     if verbosity < 4:
         exclude_columns += [
-            'annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',
-            'annot_theta', 'annot_yaw', 'annot_detect_confidence',
-            'annot_note', 'annot_parent_rowid']
+            'annot_xtl',
+            'annot_ytl',
+            'annot_width',
+            'annot_height',
+            'annot_theta',
+            'annot_yaw',
+            'annot_detect_confidence',
+            'annot_note',
+            'annot_parent_rowid',
+        ]
     for x in include_columns:
         try:
             exclude_columns.remove(x)
@@ -2131,8 +2222,11 @@ def print_chip_table(ibs):
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.FEATURE_TABLE, exclude_columns=[
-        'feature_keypoints', 'feature_vecs']))
+    print(
+        ibs.db.get_table_csv(
+            const.FEATURE_TABLE, exclude_columns=['feature_keypoints', 'feature_vecs']
+        )
+    )
 
 
 @register_ibs_method
@@ -2140,7 +2234,7 @@ def print_image_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
-    #, exclude_columns=['image_rowid']))
+    # , exclude_columns=['image_rowid']))
 
 
 @register_ibs_method
@@ -2148,7 +2242,7 @@ def print_party_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.PARTY_TABLE, **kwargs))
-    #, exclude_columns=['image_rowid']))
+    # , exclude_columns=['image_rowid']))
 
 
 @register_ibs_method
@@ -2207,8 +2301,15 @@ def print_egpairs_table(ibs, **kwargs):
 @register_ibs_method
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
-        exclude_columns = ['annot_uuid', 'lblannot_uuid', 'annot_verts', 'feature_keypoints',
-                           'feature_vecs', 'image_uuid', 'image_uri']
+        exclude_columns = [
+            'annot_uuid',
+            'lblannot_uuid',
+            'annot_verts',
+            'feature_keypoints',
+            'feature_vecs',
+            'image_uuid',
+            'image_uri',
+        ]
     if exclude_tables is None:
         exclude_tables = ['masks', 'recognitions', 'chips', 'features']
     for table_name in ibs.db.get_table_names():
@@ -2216,13 +2317,13 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
             continue
         print('\n')
         print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
-    #ibs.print_image_table()
-    #ibs.print_annotation_table()
-    #ibs.print_lblannots_table()
-    #ibs.print_alr_table()
-    #ibs.print_config_table()
-    #ibs.print_chip_table()
-    #ibs.print_feat_table()
+    # ibs.print_image_table()
+    # ibs.print_annotation_table()
+    # ibs.print_lblannots_table()
+    # ibs.print_alr_table()
+    # ibs.print_config_table()
+    # ibs.print_chip_table()
+    # ibs.print_feat_table()
     print('\n')
 
 
@@ -2262,9 +2363,11 @@ def is_aid_unknown(ibs, aid_list):
 
 
 @register_ibs_method
-def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
-                                         notify_wildbook=True, assert_wildbook=True):
+def batch_rename_consecutive_via_species(
+    ibs, imgsetid=None, location_text=None, notify_wildbook=True, assert_wildbook=True
+):
     import wbia
+
     wildbook_existing_name_list = []
     if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
         wildbook_existing_name_list = ibs.wildbook_get_existing_names()
@@ -2275,8 +2378,10 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
 
     """ actually sets the new consecutive names"""
     new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
-        imgsetid=imgsetid, location_text=location_text,
-        wildbook_existing_name_list=wildbook_existing_name_list)
+        imgsetid=imgsetid,
+        location_text=location_text,
+        wildbook_existing_name_list=wildbook_existing_name_list,
+    )
 
     def get_conflict_names(ibs, new_nid_list, new_name_list):
         other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
@@ -2291,8 +2396,13 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
 
     # Check to make sure new names dont conflict with other names
     _assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
-    ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET,
-                       notify_wildbook=notify_wildbook, assert_wildbook=assert_wildbook)
+    ibs.set_name_texts(
+        new_nid_list,
+        new_name_list,
+        verbose=ut.NOT_QUIET,
+        notify_wildbook=notify_wildbook,
+        assert_wildbook=assert_wildbook,
+    )
 
 
 def get_location_text(ibs, location_text, default_location_text):
@@ -2309,8 +2419,9 @@ def get_location_text(ibs, location_text, default_location_text):
 
 
 @register_ibs_method
-def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=None,
-                                             wildbook_existing_name_list=[]):
+def get_consecutive_newname_list_via_species(
+    ibs, imgsetid=None, location_text=None, wildbook_existing_name_list=[]
+):
     """
     Just creates the nams, but does not set them
 
@@ -2353,12 +2464,14 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         )
     """
     wildbook_existing_name_set = set(wildbook_existing_name_list)
-    args = (len(wildbook_existing_name_set), )
-    print('[ibs] get_consecutive_newname_list_via_species with %d existing WB names' % args)
+    args = (len(wildbook_existing_name_set),)
+    print(
+        '[ibs] get_consecutive_newname_list_via_species with %d existing WB names' % args
+    )
     location_text = get_location_text(ibs, location_text, 'IBEIS')
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
-    #name_list = ibs.get_name_texts(nid_list)
+    # name_list = ibs.get_name_texts(nid_list)
     aids_list = ibs.get_name_aids(nid_list)
 
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
@@ -2372,11 +2485,12 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         for nid, unique_species_rowid_list in zip(nid_list, unique_species_rowids_list):
             if len(unique_species_rowid_list) > 1:
                 inconsistent_nid_list.append(nid)
-        message = 'Inconsistent nid_list = %r' % (inconsistent_nid_list, )
+        message = 'Inconsistent nid_list = %r' % (inconsistent_nid_list,)
         raise ValueError(message)
     code_list = ibs.get_species_codes(species_rowid_list)
 
     _code2_count = ut.ddict(lambda: 0)
+
     def get_next_index(code):
         _code2_count[code] += 1
         return _code2_count[code]
@@ -2385,10 +2499,19 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         if imgsetid is not None:
             imgset_text = ibs.get_imageset_text(imgsetid)
             imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
-            args = (location_text, code, imgset_text, get_next_index(code), )
+            args = (
+                location_text,
+                code,
+                imgset_text,
+                get_next_index(code),
+            )
             new_name = '%s_%s_%s_%04d' % args
         else:
-            args = (location_text, code, get_next_index(code), )
+            args = (
+                location_text,
+                code,
+                get_next_index(code),
+            )
             new_name = '%s_%s_%04d' % args
         return new_name
 
@@ -2408,8 +2531,11 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
 def set_annot_names_to_same_new_name(ibs, aid_list):
     new_nid = ibs.make_next_nids(num=1)[0]
     if ut.VERBOSE:
-        print('Setting aid_list={aid_list} to have new_nid={new_nid}'.format(
-            aid_list=aid_list, new_nid=new_nid))
+        print(
+            'Setting aid_list={aid_list} to have new_nid={new_nid}'.format(
+                aid_list=aid_list, new_nid=new_nid
+            )
+        )
     ibs.set_annot_name_rowids(aid_list, [new_nid] * len(aid_list))
 
 
@@ -2417,8 +2543,11 @@ def set_annot_names_to_same_new_name(ibs, aid_list):
 def set_annot_names_to_different_new_names(ibs, aid_list, **kwargs):
     new_nid_list = ibs.make_next_nids(num=len(aid_list))
     if ut.VERBOSE:
-        print('Setting aid_list={aid_list} to have new_nid_list={new_nid_list}'.format(
-            aid_list=aid_list, new_nid_list=new_nid_list))
+        print(
+            'Setting aid_list={aid_list} to have new_nid_list={new_nid_list}'.format(
+                aid_list=aid_list, new_nid_list=new_nid_list
+            )
+        )
     ibs.set_annot_name_rowids(aid_list, new_nid_list, **kwargs)
 
 
@@ -2432,10 +2561,13 @@ def make_next_nids(ibs, num=None, str_format=2, species_text=None, location_text
     SeeAlso:
         make_next_name
     """
-    next_names = ibs.make_next_name(num=num, str_format=str_format,
-                                    species_text=species_text,
-                                    location_text=location_text)
-    next_nids  = ibs.add_names(next_names)
+    next_names = ibs.make_next_name(
+        num=num,
+        str_format=str_format,
+        species_text=species_text,
+        location_text=location_text,
+    )
+    next_nids = ibs.add_names(next_names)
     return next_nids
 
 
@@ -2490,11 +2622,13 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
     """
     # HACK TO FORCE TIMESTAMPS FOR NEW NAMES
-    #str_format = 1
+    # str_format = 1
     if species_text is None:
         # TODO: optionally specify qreq_ or qparams?
-        species_text  = ibs.cfg.detect_cfg.species_text
-    location_text = get_location_text(ibs, location_text, ibs.cfg.other_cfg.location_for_names)
+        species_text = ibs.cfg.detect_cfg.species_text
+    location_text = get_location_text(
+        ibs, location_text, ibs.cfg.other_cfg.location_for_names
+    )
     if num is None:
         num_ = 1
     else:
@@ -2509,7 +2643,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         if str_format == 1:
             user_id = ut.get_user_name()
             timestamp = ut.get_timestamp('tag')
-            #timestamp_suffix = '_TMP_'
+            # timestamp_suffix = '_TMP_'
             timestamp_suffix = '_'
             timestamp_prefix = ''
             name_prefix = timestamp_prefix + timestamp + timestamp_suffix + user_id + '_'
@@ -2521,7 +2655,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
             raise ValueError('Invalid str_format supplied')
         next_name = name_prefix + '%04d' % base_index
         if next_name not in names_used_list:
-            #names_used_list.add(next_name)
+            # names_used_list.add(next_name)
             next_name_list.append(next_name)
     # Return a list or a string
     if num is None:
@@ -2562,7 +2696,8 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
         [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
     nid_list = ibs.get_annot_name_rowids(
-        aid_list, distinguish_unknowns=distinguish_unknowns, assume_unique=assume_unique)
+        aid_list, distinguish_unknowns=distinguish_unknowns, assume_unique=assume_unique
+    )
     nid_list = np.array(nid_list)
     aid_list = np.array(aid_list)
     unique_nids, groupxs_list = vt.group_indices(nid_list)
@@ -2570,7 +2705,7 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
     return grouped_aids, unique_nids
 
 
-#def group_annots_by_known_names_nochecks(ibs, aid_list):
+# def group_annots_by_known_names_nochecks(ibs, aid_list):
 #    nid_list = ibs.get_annot_name_rowids(aid_list)
 #    nid2_aids = ut.group_items(aid_list, nid_list)
 #    return list(nid2_aids.values())
@@ -2601,8 +2736,10 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = ut.group_items(aid_list, nid_list)
+
     def aid_gen():
         return six.itervalues(nid2_aids)
+
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(ut.iflatten(ut.iter_compress(aid_gen(), isunknown_list)))
@@ -2645,14 +2782,15 @@ def get_primary_species_viewpoint(species, plus=0):
         primary_viewpoint = 'left'
     if plus != 0:
         # return an augmented primary viewpoint
-        primary_viewpoint = get_extended_viewpoints(primary_viewpoint, num1=1,
-                                                    num2=0,
-                                                    include_base=False)[0]
+        primary_viewpoint = get_extended_viewpoints(
+            primary_viewpoint, num1=1, num2=0, include_base=False
+        )[0]
     return primary_viewpoint
 
 
-def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
-                            num2=None, include_base=True):
+def get_extended_viewpoints(
+    base_yaw_text, towards='front', num1=0, num2=None, include_base=True
+):
     """
     Given a viewpoint returns the acceptable viewpoints around it
 
@@ -2671,6 +2809,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         extended_yaws_list = [['frontleft'], ['frontright'], ['backleft'], ['frontleft']]
     """
     import vtool as vt
+
     # DEPRICATE?
     ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
     ori2 = const.VIEWTEXT_TO_YAW_RADIANS[towards]
@@ -2679,7 +2818,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
     if yawdist == 0:
         # break ties
         print('warning extending viewpoint yaws from the same position as towards')
-        yawdist += 1E-3
+        yawdist += 1e-3
     if num1 is None:
         num1 = 0
     if num2 is None:
@@ -2688,14 +2827,18 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
     assert num2 >= 0, 'must specify positive num'
     yawtext_list = list(const.VIEW.CODE_TO_INT.keys())
     index = yawtext_list.index(base_yaw_text)
-    other_index_list1 = [int((index + (np.sign(yawdist) * count)) %
-                             len(yawtext_list))
-                         for count in range(1, num1 + 1)]
-    other_index_list2 = [int((index - (np.sign(yawdist) * count)) %
-                             len(yawtext_list))
-                         for count in range(1, num2 + 1)]
+    other_index_list1 = [
+        int((index + (np.sign(yawdist) * count)) % len(yawtext_list))
+        for count in range(1, num1 + 1)
+    ]
+    other_index_list2 = [
+        int((index - (np.sign(yawdist) * count)) % len(yawtext_list))
+        for count in range(1, num2 + 1)
+    ]
     if include_base:
-        extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
+        extended_index_list = sorted(
+            list(set(other_index_list1 + other_index_list2 + [index]))
+        )
     else:
         extended_index_list = sorted(list(set(other_index_list1 + other_index_list2)))
     extended_yaws = ut.take(yawtext_list, extended_index_list)
@@ -2740,13 +2883,13 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         >>> print(result)
     """
     species = get_primary_database_species(ibs, ibs.get_valid_aids())
-    #aid_list = ibs.get_valid_aids(species='zebra_plains', is_known=True)
+    # aid_list = ibs.get_valid_aids(species='zebra_plains', is_known=True)
     aid_list = ibs.get_valid_aids(species=species, is_known=True)
     # FILTER OUT UNUSABLE ANNOTATIONS
     # Get annots with timestamps
     aid_list = filter_aids_without_timestamps(ibs, aid_list)
     minqual = 'ok'
-    #valid_yaws = {'left', 'frontleft', 'backleft'}
+    # valid_yaws = {'left', 'frontleft', 'backleft'}
     if species == 'zebra_plains':
         valid_yawtexts = {'left', 'frontleft'}
     elif species == 'zebra_grevys':
@@ -2755,13 +2898,13 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
     aid_list = ut.compress(aid_list, flags_list)
-    #print('print subset info')
-    #print(ut.dict_hist(ibs.get_annot_viewpoints(aid_list)))
-    #print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
+    # print('print subset info')
+    # print(ut.dict_hist(ibs.get_annot_viewpoints(aid_list)))
+    # print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
     singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
     # process multitons
     hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
-    #pairxs_list = [vt.pdist_argsort(x) for x in hourdists_list]
+    # pairxs_list = [vt.pdist_argsort(x) for x in hourdists_list]
     # Get the pictures taken the furthest appart of each gt case
     best_pairx_list = [vt.pdist_argsort(x)[0] for x in hourdists_list]
 
@@ -2809,7 +2952,7 @@ def get_num_annots_per_name(ibs, aid_list):
         }
 
     """
-    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    aids_list, unique_nids = ibs.group_annots_by_name(aid_list)
     num_annots_per_name = list(map(len, aids_list))
     return num_annots_per_name, unique_nids
 
@@ -2890,20 +3033,21 @@ def get_yaw_viewtexts(yaw_list):
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
 
     """
-    #import vtool as vt
+    # import vtool as vt
     import numpy as np
+
     stdlblyaw_list = list(const.VIEWTEXT_TO_YAW_RADIANS.items())
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
-    #ALTERNATE = False
-    #if ALTERNATE:
+    # ALTERNATE = False
+    # if ALTERNATE:
     #    #with ut.Timer('fdsa'):
     #    TAU = np.pi * 2
     #    binsize = TAU / len(const.VIEWTEXT_TO_YAW_RADIANS)
     #    yaw_list_ = np.array([np.nan if yaw is None else yaw for yaw in yaw_list])
     #    index_list = np.floor(.5 + (yaw_list_ % TAU) / binsize)
     #    text_list = [None if np.isnan(index) else stdlbl_list[int(index)] for index in index_list]
-    #else:
-    #with ut.Timer('fdsa'):
+    # else:
+    # with ut.Timer('fdsa'):
     stdyaw_list = np.array(ut.take_column(stdlblyaw_list, 1))
 
     yaw_list
@@ -2919,25 +3063,27 @@ def get_yaw_viewtexts(yaw_list):
     index_list = textdists.argmin(axis=1)
     text_list_ = ut.take(stdlbl_list, index_list)
     if has_nones:
-        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)],
-                               maxval=len(is_not_none) - 1)
+        text_list = ut.ungroup(
+            [text_list_], [ut.where(is_not_none)], maxval=len(is_not_none) - 1
+        )
     else:
         text_list = text_list_
 
-    #textdists_list = [None if yaw is None else
+    # textdists_list = [None if yaw is None else
     #                  vt.ori_distance(stdyaw_list, yaw)
     #                  for yaw in yaw_list]
-    #index_list = [None if dists is None else dists.argmin()
+    # index_list = [None if dists is None else dists.argmin()
     #              for dists in textdists_list]
-    #text_list = [None if index is None else stdlbl_list[index] for index in index_list]
-    #yaw_list_ / binsize
-    #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
-    #return list(zip(yaw_list, errors, text_list))
+    # text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+    # yaw_list_ / binsize
+    # errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
+    # return list(zip(yaw_list, errors, text_list))
     return text_list
 
 
 def get_species_dbs(species_prefix):
     from wbia.init import sysres
+
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return ut.compress(ibs_dblist, isvalid_list)
@@ -3018,7 +3164,9 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
     if len(species_hist) == 0:
         primary_species = const.UNKNOWN
     else:
-        frequent_species = sorted(species_hist.items(), key=lambda item: item[1], reverse=True)
+        frequent_species = sorted(
+            species_hist.items(), key=lambda item: item[1], reverse=True
+        )
         primary_species = frequent_species[0][0]
     return primary_species
 
@@ -3077,6 +3225,7 @@ def get_database_species_count(ibs, aid_list=None):
 @register_ibs_method
 def get_dbinfo_str(ibs):
     from wbia.other import dbinfo
+
     return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
 
 
@@ -3091,6 +3240,7 @@ def get_infostr(ibs):
         str: infostr
     """
     from wbia.other import dbinfo
+
     return dbinfo.get_short_infostr(ibs)
 
 
@@ -3108,6 +3258,7 @@ def get_dbnotes(ibs):
 def set_dbnotes(ibs, notes):
     """ sets notes for an entire database """
     import wbia
+
     assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
     ut.write_to(ibs.get_dbnotes_fpath(), notes)
 
@@ -3139,14 +3290,17 @@ def merge_names(ibs, merge_name, other_names):
         >>> print(result)
         >>> ibs.print_names_table()
     """
-    print('[ibsfuncs] merging other_names=%r into merge_name=%r' %
-            (other_names, merge_name))
+    print(
+        '[ibsfuncs] merging other_names=%r into merge_name=%r' % (other_names, merge_name)
+    )
     other_nid_list = ibs.get_name_rowids_from_text(other_names)
     ibs.set_name_alias_texts(other_nid_list, [merge_name] * len(other_nid_list))
     other_aids_list = ibs.get_name_aids(other_nid_list)
     other_aids = ut.flatten(other_aids_list)
-    print('[ibsfuncs] ... %r annotations are being merged into merge_name=%r' %
-            (len(other_aids), merge_name))
+    print(
+        '[ibsfuncs] ... %r annotations are being merged into merge_name=%r'
+        % (len(other_aids), merge_name)
+    )
     ibs.set_annot_names(other_aids, [merge_name] * len(other_aids))
 
 
@@ -3154,6 +3308,7 @@ def inspect_nonzero_yaws(ibs):
     """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
     from wbia.viz import viz_chip
     import wbia.plottool as pt
+
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
@@ -3170,9 +3325,15 @@ def inspect_nonzero_yaws(ibs):
 
 @register_ibs_method
 @register_api('/api/annot/exemplar/', methods=['POST'])
-def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
-                                             exemplars_per_view=None, imgsetid=None,
-                                             dry_run=False, verbose=True, prog_hook=None):
+def set_exemplars_from_quality_and_viewpoint(
+    ibs,
+    aid_list=None,
+    exemplars_per_view=None,
+    imgsetid=None,
+    dry_run=False,
+    verbose=True,
+    prog_hook=None,
+):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -3237,11 +3398,15 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     if exemplars_per_view is None:
         exemplars_per_view = 2
     new_flag_list = get_annot_quality_viewpoint_subset(
-        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
-        verbose=verbose, prog_hook=prog_hook)
+        ibs,
+        aid_list=aid_list,
+        annots_per_view=exemplars_per_view,
+        verbose=verbose,
+        prog_hook=prog_hook,
+    )
 
     # Hack ensure each name has at least 1 exemplar
-    #if False:
+    # if False:
     #    nids = ibs.get_annot_nids(new_aid_list)
     #    uniquenids, groupxs = ut.group_indices(nids)
     #    num_hacked = 0
@@ -3261,9 +3426,15 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 
 
 @register_ibs_method
-def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
-                                       max_annots=None, verbose=False,
-                                       prog_hook=None, allow_unknown=False):
+def get_annot_quality_viewpoint_subset(
+    ibs,
+    aid_list=None,
+    annots_per_view=2,
+    max_annots=None,
+    verbose=False,
+    prog_hook=None,
+    allow_unknown=False,
+):
     """
     CommandLine:
         python -m wbia.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
@@ -3297,17 +3468,17 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
     INF = 999999  # effectively infinite
 
     qual2_value = {
-        const.QUAL_EXCELLENT : 30,
-        const.QUAL_GOOD      : 20,
-        const.QUAL_OK        : 10,
-        const.QUAL_UNKNOWN   : 0,
-        const.QUAL_POOR      : -30,
-        const.QUAL_JUNK      : -INF,
+        const.QUAL_EXCELLENT: 30,
+        const.QUAL_GOOD: 20,
+        const.QUAL_OK: 10,
+        const.QUAL_UNKNOWN: 0,
+        const.QUAL_POOR: -30,
+        const.QUAL_JUNK: -INF,
     }
 
     # Value of previously being an exemplar
     oldexemp2_value = {
-        True:  0,
+        True: 0,
         False: 1,
         None: 10,
     }
@@ -3323,9 +3494,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
         # The weight of each annotation is 1. The value is based off its properties
         # We like good more than ok, and junk is infeasible We prefer items that
         # had previously been exemplars
-        qual_value     = np.array(ut.take(qual2_value, ibs.get_annot_quality_texts(aids)))
-        oldexemp_value = np.array(ut.take(oldexemp2_value, ibs.get_annot_exemplar_flags(aids)))
-        ismulti_value  = np.array(ut.take(ismulti2_value, ibs.get_annot_multiple(aids)))
+        qual_value = np.array(ut.take(qual2_value, ibs.get_annot_quality_texts(aids)))
+        oldexemp_value = np.array(
+            ut.take(oldexemp2_value, ibs.get_annot_exemplar_flags(aids))
+        )
+        ismulti_value = np.array(ut.take(ismulti2_value, ibs.get_annot_multiple(aids)))
         base_value = 1
         values = qual_value + oldexemp_value + ismulti_value + base_value
 
@@ -3337,9 +3510,9 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
 
         # Greedy version is fine if all weights are 1, just pick the N maximum values
         total_value, chosen_items = ut.knapsack_greedy(items, maxweight=annots_per_view)
-        #try:
+        # try:
         #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
-        #except Exception:
+        # except Exception:
         #    print('WARNING: iterative method does not work correctly, but stack too big for recrusive')
         #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
 
@@ -3352,15 +3525,17 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
     nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
     unique_nids, groupxs_list = vt.group_indices(nid_list)
     grouped_aids = vt.apply_grouping(np.array(aid_list), groupxs_list)
-    #aids = grouped_aids[-6]
+    # aids = grouped_aids[-6]
     # for final settings because I'm too lazy to write
     new_aid_list = []
     new_flag_list = []
-    _iter = ut.ProgIter(zip(grouped_aids, unique_nids),
-                        length=len(unique_nids),
-                        #freq=100,
-                        lbl='Picking best annots per viewpoint',
-                        prog_hook=prog_hook)
+    _iter = ut.ProgIter(
+        zip(grouped_aids, unique_nids),
+        length=len(unique_nids),
+        # freq=100,
+        lbl='Picking best annots per viewpoint',
+        prog_hook=prog_hook,
+    )
     for aids_, nid in _iter:
         if not allow_unknown and ibs.is_nid_unknown(nid):
             # do not change unknown animals
@@ -3368,7 +3543,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
             new_flag_list.extend([False] * len(aids_))
         else:
             # subgroup the names by viewpoints
-            yawtexts  = ibs.get_annot_viewpoints(aids_)
+            yawtexts = ibs.get_annot_viewpoints(aids_)
             yawtext2_aids = ut.group_items(aids_, yawtexts)
             for yawtext, aids in six.iteritems(yawtext2_aids):
                 flags = get_chosen_flags(aids)
@@ -3388,22 +3563,22 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
 
 
 def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
-        if contributor_tag is not None and 'NNP GZC Car' in contributor_tag:
-            contributor_tag_split = contributor_tag.strip().split(',')
-            if len(contributor_tag_split) == 2:
-                contributor_tag = contributor_tag_split[0].strip()
-        elif distinguish_invalids:
-            contributor_tag = None
-        return contributor_tag
+    if contributor_tag is not None and 'NNP GZC Car' in contributor_tag:
+        contributor_tag_split = contributor_tag.strip().split(',')
+        if len(contributor_tag_split) == 2:
+            contributor_tag = contributor_tag_split[0].strip()
+    elif distinguish_invalids:
+        contributor_tag = None
+    return contributor_tag
 
 
 @register_ibs_method
 def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwargs):
     def sanitize_list(data_list):
-        data_list = [ str(data).replace(',', ':COMMA:') for data in list(data_list) ]
-        return_str = (','.join(data_list))
+        data_list = [str(data).replace(',', ':COMMA:') for data in list(data_list)]
+        return_str = ','.join(data_list)
         return_str = return_str.replace(',None,', ',NONE,')
-        return_str = return_str.replace(',%s,' % (const.UNKNOWN, ) , ',UNKNOWN,')
+        return_str = return_str.replace(',%s,' % (const.UNKNOWN,), ',UNKNOWN,')
         return_str = return_str.replace(',-1,', ',UNKNOWN,')
         return_str = return_str.replace(',-1,', ',UNKNOWN,')
         return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
@@ -3412,79 +3587,82 @@ def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwa
 
     def construct():
         if complete:
-            cols_list      = [
-                ('annotation_id',        aid_list),
-                ('annotation_xtl',       xtl_list),
-                ('annotation_ytl',       ytl_list),
-                ('annotation_width',     width_list),
-                ('annotation_height',    height_list),
-                ('annotation_species',   species_list),
+            cols_list = [
+                ('annotation_id', aid_list),
+                ('annotation_xtl', xtl_list),
+                ('annotation_ytl', ytl_list),
+                ('annotation_width', width_list),
+                ('annotation_height', height_list),
+                ('annotation_species', species_list),
                 ('annotation_viewpoint', viewpoint_list),
                 ('annotation_qualities', quality_list),
-                ('annotation_sex',       sex_list),
-                ('annotation_age_min',   age_min_list),
-                ('annotation_age_max',   age_max_list),
-                ('annotation_age',       age_list),
-                ('annotation_comment',   comment_list),
-                ('annotation_name',      name_list),
-                ('image_id',             gid_list),
-                ('image_contributor',    contributor_list),
-                ('image_car',            car_list),
-                ('image_filename',       uri_list),
-                ('image_unixtime',       unixtime_list),
-                ('image_time_str',       time_list),
-                ('image_date_str',       date_list),
-                ('image_lat',            lat_list),
-                ('image_lon',            lon_list),
-                ('flag_first_seen',      seen_list),
-                ('flag_marked',          marked_list),
+                ('annotation_sex', sex_list),
+                ('annotation_age_min', age_min_list),
+                ('annotation_age_max', age_max_list),
+                ('annotation_age', age_list),
+                ('annotation_comment', comment_list),
+                ('annotation_name', name_list),
+                ('image_id', gid_list),
+                ('image_contributor', contributor_list),
+                ('image_car', car_list),
+                ('image_filename', uri_list),
+                ('image_unixtime', unixtime_list),
+                ('image_time_str', time_list),
+                ('image_date_str', date_list),
+                ('image_lat', lat_list),
+                ('image_lon', lon_list),
+                ('flag_first_seen', seen_list),
+                ('flag_marked', marked_list),
             ]
         else:
-            cols_list      = [
-                ('annotation_id',        aid_list),
-                ('image_time_str',       time_list),
-                ('image_date_str',       date_list),
-                ('flag_first_seen',      seen_list),
-                ('image_lat',            lat_list),
-                ('image_lon',            lon_list),
-                ('image_car',            car_list),
-                ('annotation_age_min',   age_min_list),
-                ('annotation_age_max',   age_max_list),
-                ('annotation_sex',       sex_list),
+            cols_list = [
+                ('annotation_id', aid_list),
+                ('image_time_str', time_list),
+                ('image_date_str', date_list),
+                ('flag_first_seen', seen_list),
+                ('image_lat', lat_list),
+                ('image_lon', lon_list),
+                ('image_car', car_list),
+                ('annotation_age_min', age_min_list),
+                ('annotation_age_max', age_max_list),
+                ('annotation_sex', sex_list),
             ]
-        header_list    = [ sanitize_list([ cols[0] for cols in cols_list ]) ]
-        data_list      = zip(*[ cols[1] for cols in cols_list ])
-        line_list      = [ sanitize_list(data) for data in list(data_list) ]
+        header_list = [sanitize_list([cols[0] for cols in cols_list])]
+        data_list = zip(*[cols[1] for cols in cols_list])
+        line_list = [sanitize_list(data) for data in list(data_list)]
         return header_list, line_list
 
     # Grab primitives
     if complete:
-        aid_list   = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids()
     else:
-        aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+        aid_list = ibs.filter_aids_count(pre_unixtime_sort=False)
 
-    gid_list       = ibs.get_annot_gids(aid_list)
-    bbox_list      = ibs.get_annot_bboxes(aid_list)
-    xtl_list       = [ bbox[0] for bbox in bbox_list ]
-    ytl_list       = [ bbox[1] for bbox in bbox_list ]
-    width_list     = [ bbox[2] for bbox in bbox_list ]
-    height_list    = [ bbox[3] for bbox in bbox_list ]
-    species_list   = ibs.get_annot_species_texts(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    xtl_list = [bbox[0] for bbox in bbox_list]
+    ytl_list = [bbox[1] for bbox in bbox_list]
+    width_list = [bbox[2] for bbox in bbox_list]
+    height_list = [bbox[3] for bbox in bbox_list]
+    species_list = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     # quality_list   = ibs.get_annot_quality_texts(aid_list)
-    quality_list   = ibs.get_annot_qualities(aid_list)
-    metadata_list  = ibs.get_annot_metadata(aid_list)
-    comment_list   = [
+    quality_list = ibs.get_annot_qualities(aid_list)
+    metadata_list = ibs.get_annot_metadata(aid_list)
+    comment_list = [
         metadata.get('turk', {}).get('match', {}).get('comment', '')
         for metadata in metadata_list
     ]
-    contributor_list   = ibs.get_image_contributor_tag(gid_list)
-    car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
-    uri_list       = ibs.get_image_uris(gid_list)
-    sex_list       = ibs.get_annot_sex_texts(aid_list)
-    age_min_list   = ibs.get_annot_age_months_est_min(aid_list)
-    age_max_list   = ibs.get_annot_age_months_est_max(aid_list)
-    age_list       = []
+    contributor_list = ibs.get_image_contributor_tag(gid_list)
+    car_list = [
+        _split_car_contributor_tag(contributor_tag)
+        for contributor_tag in contributor_list
+    ]
+    uri_list = ibs.get_image_uris(gid_list)
+    sex_list = ibs.get_annot_sex_texts(aid_list)
+    age_min_list = ibs.get_annot_age_months_est_min(aid_list)
+    age_max_list = ibs.get_annot_age_months_est_max(aid_list)
+    age_list = []
     for age_min, age_max in zip(age_min_list, age_max_list):
         if age_min is None and age_max == 2:
             age = '0-3 Months'
@@ -3504,26 +3682,26 @@ def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwa
             age = 'Unknown'
         age_list.append(age)
 
-    name_list      = ibs.get_annot_names(aid_list)
-    unixtime_list  = ibs.get_image_unixtime(gid_list)
+    name_list = ibs.get_annot_names(aid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list)
     datetime_list = [
-        ut.unixtime_to_datetimestr(unixtime)
-        if unixtime is not None else
-        'UNKNOWN'
+        ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
         for unixtime in unixtime_list
     ]
-    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-    date_list      = [
+    datetime_split_list = [datetime.split(' ') for datetime in datetime_list]
+    date_list = [
         datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
-        for datetime_split in datetime_split_list ]
-    time_list      = [
+        for datetime_split in datetime_split_list
+    ]
+    time_list = [
         datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN'
-        for datetime_split in datetime_split_list ]
-    lat_list       = ibs.get_image_lat(gid_list)
-    lon_list       = ibs.get_image_lon(gid_list)
-    marked_list    = ibs.flag_aids_count(aid_list)
-    seen_list      = []
-    seen_set       = set()
+        for datetime_split in datetime_split_list
+    ]
+    lat_list = ibs.get_image_lat(gid_list)
+    lon_list = ibs.get_image_lon(gid_list)
+    marked_list = ibs.flag_aids_count(aid_list)
+    seen_list = []
+    seen_set = set()
     for name in name_list:
         if name is not None and name != const.UNKNOWN and name not in seen_set:
             seen_list.append(True)
@@ -3540,40 +3718,46 @@ def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwa
         missing_gid_list = sorted(list(all_gid_set - gid_set))
         filler = [''] * len(missing_gid_list)
 
-        aid_list       = filler
-        species_list   = filler
+        aid_list = filler
+        species_list = filler
         viewpoint_list = filler
-        quality_list   = filler
-        comment_list   = filler
-        sex_list       = filler
-        age_min_list   = filler
-        age_max_list   = filler
-        age_list       = filler
-        name_list      = filler
-        gid_list       = missing_gid_list
-        contributor_list   = ibs.get_image_contributor_tag(missing_gid_list)
-        car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
-        uri_list       = ibs.get_image_uris(missing_gid_list)
-        unixtime_list  = ibs.get_image_unixtime(missing_gid_list)
+        quality_list = filler
+        comment_list = filler
+        sex_list = filler
+        age_min_list = filler
+        age_max_list = filler
+        age_list = filler
+        name_list = filler
+        gid_list = missing_gid_list
+        contributor_list = ibs.get_image_contributor_tag(missing_gid_list)
+        car_list = [
+            _split_car_contributor_tag(contributor_tag)
+            for contributor_tag in contributor_list
+        ]
+        uri_list = ibs.get_image_uris(missing_gid_list)
+        unixtime_list = ibs.get_image_unixtime(missing_gid_list)
         datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
             for unixtime in unixtime_list
         ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list      = [
+        datetime_split_list = [datetime.split(' ') for datetime in datetime_list]
+        date_list = [
             datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
-            for datetime_split in datetime_split_list ]
-        time_list      = [
+            for datetime_split in datetime_split_list
+        ]
+        time_list = [
             datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN'
-            for datetime_split in datetime_split_list ]
-        lat_list       = ibs.get_image_lat(missing_gid_list)
-        lon_list       = ibs.get_image_lon(missing_gid_list)
-        seen_list      = filler
-        marked_list    = filler
+            for datetime_split in datetime_split_list
+        ]
+        lat_list = ibs.get_image_lat(missing_gid_list)
+        lon_list = ibs.get_image_lon(missing_gid_list)
+        seen_list = filler
+        marked_list = filler
 
-        header_list, line_list = construct()  # NOTE: discard the header list returned here
+        (
+            header_list,
+            line_list,
+        ) = construct()  # NOTE: discard the header list returned here
         return_list.extend(line_list)
 
     return return_list
@@ -3630,7 +3814,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     """
     minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
     qual_int_list = ibs.get_annot_qualities(aid_list)
-    #print('qual_int_list = %r' % (qual_int_list,))
+    # print('qual_int_list = %r' % (qual_int_list,))
     if unknown_ok:
         qual_flags = (
             (qual_int is None or qual_int == -1) or qual_int >= minqual_int
@@ -3647,7 +3831,9 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
 
 @register_ibs_method
 @profile
-def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume_unique=False):
+def get_viewpoint_filterflags(
+    ibs, aid_list, valid_yaws, unknown_ok=True, assume_unique=False
+):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -3674,14 +3860,19 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume
         >>> result = ('yaw_flags = %s' % (str(yaw_flags),))
         >>> print(result)
     """
-    assert valid_yaws is None or isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
+    assert valid_yaws is None or isinstance(
+        valid_yaws, (set, list, tuple)
+    ), 'valid_yaws is not a container'
     yaw_list = ibs.get_annot_viewpoints(aid_list, assume_unique=assume_unique)
     if unknown_ok:
-        yaw_flags  = (yaw is None or (valid_yaws is None or yaw in valid_yaws)
-                      for yaw in yaw_list)
+        yaw_flags = (
+            yaw is None or (valid_yaws is None or yaw in valid_yaws) for yaw in yaw_list
+        )
     else:
-        yaw_flags  = (yaw is not None and (valid_yaws is None or yaw in valid_yaws)
-                      for yaw in yaw_list)
+        yaw_flags = (
+            yaw is not None and (valid_yaws is None or yaw in valid_yaws)
+            for yaw in yaw_list
+        )
     yaw_flags = list(yaw_flags)
     return yaw_flags
 
@@ -3690,10 +3881,10 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume
 def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
     qual_flags = get_quality_filterflags(ibs, aid_list, minqual)
     yaw_flags = get_viewpoint_filterflags(ibs, aid_list, valid_yaws)
-    #qual_list = ibs.get_annot_qualities(aid_list)
-    #yaw_list = ibs.get_annot_viewpoints(aid_list)
-    #qual_flags = (qual is None or qual > minqual for qual in qual_list)
-    #yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
+    # qual_list = ibs.get_annot_qualities(aid_list)
+    # yaw_list = ibs.get_annot_viewpoints(aid_list)
+    # qual_flags = (qual is None or qual > minqual for qual in qual_list)
+    # yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
     flags_list = list(ut.and_iters(qual_flags, yaw_flags))
     return flags_list
 
@@ -3725,20 +3916,20 @@ def flag_aids_count(ibs, aid_list):
 
     """
     # Get primitives
-    unixtime_list  = ibs.get_annot_image_unixtimes(aid_list)
-    index_list     = ut.list_argsort(unixtime_list)
-    aid_list       = ut.sortedby(aid_list, unixtime_list)
-    gid_list       = ibs.get_annot_gids(aid_list)
-    nid_list       = ibs.get_annot_name_rowids(aid_list)
-    contributor_list   = ibs.get_image_contributor_tag(gid_list)
+    unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+    index_list = ut.list_argsort(unixtime_list)
+    aid_list = ut.sortedby(aid_list, unixtime_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    contributor_list = ibs.get_image_contributor_tag(gid_list)
     # Get filter flags for aids
     isunknown_list = ibs.is_aid_unknown(aid_list)
-    flag_list      = [not unknown  for unknown in isunknown_list]
+    flag_list = [not unknown for unknown in isunknown_list]
     # Filter by seen and car
-    flag_list_     = []
-    seen_dict      = ut.ddict(set)
+    flag_list_ = []
+    seen_dict = ut.ddict(set)
     # Mark the first annotation (for each name) seen per car
-    values_list    = zip(aid_list, gid_list, nid_list, flag_list, contributor_list)
+    values_list = zip(aid_list, gid_list, nid_list, flag_list, contributor_list)
     for aid, gid, nid, flag, contrib in values_list:
         if flag:
             contributor_ = _split_car_contributor_tag(contrib, distinguish_invalids=False)
@@ -3759,23 +3950,25 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
         aid_list = ibs.get_valid_aids()
         if pre_unixtime_sort:
             unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
-            aid_list      = ut.sortedby(aid_list, unixtime_list)
+            aid_list = ut.sortedby(aid_list, unixtime_list)
     flags_list = ibs.flag_aids_count(aid_list)
-    aid_list_  = list(ut.iter_compress(aid_list, flags_list))
+    aid_list_ = list(ut.iter_compress(aid_list, flags_list))
     return aid_list_
 
 
 @register_ibs_method
 @profile
 def get_unflat_annots_kmdists_list(ibs, aids_list):
-    #ibs.check_name_mapping_consistency(aids_list)
+    # ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
-    latlon_arrs   = [np.array(latlons) for latlons in latlons_list]
+    latlon_arrs = [np.array(latlons) for latlons in latlons_list]
     for arrs in latlon_arrs:
         # our database encodes -1 as invalid.
         # Silly, but its in the middle of the atlantic ocean
         arrs[arrs == -1] = np.nan
-    km_dists_list   = [ut.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs]
+    km_dists_list = [
+        ut.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs
+    ]
     return km_dists_list
 
 
@@ -3792,12 +3985,14 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
         >>> aids_list = [(aids) for aids in aids_list_]
         >>> ibs.get_unflat_annots_hourdists_list(aids_list)
     """
-    #assert all(list(map(ut.isunique, aids_list)))
+    # assert all(list(map(ut.isunique, aids_list)))
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
-    #assert all(list(map(ut.isunique, unixtimes_list)))
+    # assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff)
-                       for unixtime_arr in unixtime_arrs]
+    hour_dists_list = [
+        ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff)
+        for unixtime_arr in unixtime_arrs
+    ]
     return hour_dists_list
 
 
@@ -3814,12 +4009,13 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
         >>> aids_list = [(aids) for aids in aids_list_]
 
     """
-    #assert all(list(map(ut.isunique, aids_list)))
+    # assert all(list(map(ut.isunique, aids_list)))
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
-    #assert all(list(map(ut.isunique, unixtimes_list)))
+    # assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    timedelta_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for
-                      unixtime_arr in unixtime_arrs]
+    timedelta_list = [
+        ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for unixtime_arr in unixtime_arrs
+    ]
     return timedelta_list
 
 
@@ -3862,9 +4058,12 @@ def get_unflat_annots_speeds_list2(ibs, aids_list):
         # Lookup values in SQL only once
         unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
         unique_gps = ibs.get_annot_image_gps(unique_aids)
-        unique_gps = np.array([
-            (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
-            for (lat, lon) in unique_gps])
+        unique_gps = np.array(
+            [
+                (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+                for (lat, lon) in unique_gps
+            ]
+        )
         unique_gps = vt.atleast_nd(unique_gps, 2)
         if len(unique_gps) == 0:
             unique_gps.shape = (0, 2)
@@ -3874,12 +4073,14 @@ def get_unflat_annots_speeds_list2(ibs, aids_list):
         idxs1 = ut.take_column(idx_pairs, 0)
         idxs2 = ut.take_column(idx_pairs, 1)
         # Find differences in time and space
-        hour_dists = ut.unixtime_hourdiff(unique_unixtimes[idxs1], unique_unixtimes[idxs2])
+        hour_dists = ut.unixtime_hourdiff(
+            unique_unixtimes[idxs1], unique_unixtimes[idxs2]
+        )
         km_dists = vt.haversine(unique_gps[idxs1].T, unique_gps[idxs2].T)
         # Zero km-distances less than a small epsilon if the timediff is zero to
         # prevent infinity problems
         idxs = np.where(hour_dists == 0)[0]
-        under_eps = km_dists[idxs] < .5
+        under_eps = km_dists[idxs] < 0.5
         km_dists[idxs[under_eps]] = 0
         # Normal speed calculation
         speeds = km_dists / hour_dists
@@ -3901,13 +4102,16 @@ def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
     aid_to_idx = ut.make_index_lookup(unique_aids)
     idxs1 = ut.take(aid_to_idx, aids1)
     idxs2 = ut.take(aid_to_idx, aids2)
-    #idx_list = [ut.take(aid_to_idx, aids) for aids in aids_list]
+    # idx_list = [ut.take(aid_to_idx, aids) for aids in aids_list]
     # Lookup values in SQL only once
     unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
     unique_gps = ibs.get_annot_image_gps(unique_aids)
-    unique_gps = np.array([
-        (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
-        for (lat, lon) in unique_gps])
+    unique_gps = np.array(
+        [
+            (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+            for (lat, lon) in unique_gps
+        ]
+    )
     unique_gps = vt.atleast_nd(unique_gps, 2)
     if len(unique_gps) == 0:
         unique_gps.shape = (0, 2)
@@ -3917,7 +4121,7 @@ def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
     # Zero km-distances less than a small epsilon if the timediff is zero to
     # prevent infinity problems
     idxs = np.where(hour_dists == 0)[0]
-    under_eps = km_dists[idxs] < .5
+    under_eps = km_dists[idxs] < 0.5
     km_dists[idxs[under_eps]] = 0
     # Normal speed calculation
     speeds = km_dists / hour_dists
@@ -3938,7 +4142,7 @@ def get_unflat_am_rowids(ibs, aids_list):
     ams_ = ut.unflatten2(flat_ams_, cumsum)
     ams_list = [ut.filter_Nones(a) for a in ams_]
     return ams_list
-    #flat_ams = ut.filter_Nones(ams)
+    # flat_ams = ut.filter_Nones(ams)
 
 
 @register_ibs_method
@@ -3967,14 +4171,14 @@ def get_unflat_case_tags(ibs, aids_list):
 @profile
 def get_unflat_annots_speeds_list(ibs, aids_list):
     """ DEPRICATE. SLOWER """
-    km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
+    km_dists_list = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
 
-    #hour_dists_list = ut.replace_nones(hour_dists_list, [])
-    #km_dists_list = ut.replace_nones(km_dists_list, [])
-    #flat_hours, cumsum1 = np.array(ut.invertible_flatten2(hour_dists_list))
-    #flat_hours = np.array(flat_hours)
-    #flat_kms = np.array(ut.flatten(km_dists_list))
+    # hour_dists_list = ut.replace_nones(hour_dists_list, [])
+    # km_dists_list = ut.replace_nones(km_dists_list, [])
+    # flat_hours, cumsum1 = np.array(ut.invertible_flatten2(hour_dists_list))
+    # flat_hours = np.array(flat_hours)
+    # flat_kms = np.array(ut.flatten(km_dists_list))
 
     def compute_speed(km_dists, hours_dists):
         if km_dists is None or hours_dists is None:
@@ -3982,7 +4186,7 @@ def get_unflat_annots_speeds_list(ibs, aids_list):
         # Zero km-distances less than a small epsilon if the timediff is zero to
         # prevent infinity problems
         idxs = np.where(hours_dists == 0)[0]
-        under_eps = km_dists[idxs] < .5
+        under_eps = km_dists[idxs] < 0.5
         km_dists[idxs[under_eps]] = 0
         # Normal speed calculation
         speeds = km_dists / hours_dists
@@ -3991,24 +4195,24 @@ def get_unflat_annots_speeds_list(ibs, aids_list):
         speeds[flags] = 0
         return speeds
 
-    speeds_list     = [
+    speeds_list = [
         compute_speed(km_dists, hours_dists)
-        #vt.safe_div(km_dists, hours_dists)
-        for km_dists, hours_dists in
-        zip(km_dists_list, hour_dists_list)]
+        # vt.safe_div(km_dists, hours_dists)
+        for km_dists, hours_dists in zip(km_dists_list, hour_dists_list)
+    ]
     return speeds_list
 
 
 def testdata_ibs(defaultdb='testdb1'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     return ibs
 
 
 def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
-    ismultiton_list = [len((aids)) > 1
-                       for aids in ibs.get_name_aids(nid_list_)]
+    ismultiton_list = [len((aids)) > 1 for aids in ibs.get_name_aids(nid_list_)]
     nid_list = ut.compress(nid_list_, ismultiton_list)
     return nid_list
 
@@ -4036,7 +4240,9 @@ def make_next_imageset_text(ibs):
     """
     imgsetid_list = ibs.get_valid_imgsetids()
     old_imagesettext_list = ibs.get_imageset_text(imgsetid_list)
-    new_imagesettext = ut.get_nonconflicting_string('New ImageSet %d', old_imagesettext_list)
+    new_imagesettext = ut.get_nonconflicting_string(
+        'New ImageSet %d', old_imagesettext_list
+    )
     return new_imagesettext
 
 
@@ -4137,16 +4343,20 @@ def prepare_annotgroup_review(ibs, aid_list):
     # Build new names for source and dest annot groups
     all_annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
     all_annotgroup_text_list = ibs.get_annotgroup_text(all_annotgroup_rowid_list)
-    new_grouptext_src = ut.get_nonconflicting_string('Source Group %d', all_annotgroup_text_list)
+    new_grouptext_src = ut.get_nonconflicting_string(
+        'Source Group %d', all_annotgroup_text_list
+    )
     all_annotgroup_text_list += [new_grouptext_src]
-    new_grouptext_dst = ut.get_nonconflicting_string('Dest Group %d', all_annotgroup_text_list)
+    new_grouptext_dst = ut.get_nonconflicting_string(
+        'Dest Group %d', all_annotgroup_text_list
+    )
     # Add new empty groups
     annotgroup_text_list = [new_grouptext_src, new_grouptext_dst]
     annotgroup_uuid_list = list(map(ut.hashable_to_uuid, annotgroup_text_list))
     annotgroup_note_list = ['', '']
-    src_ag_rowid, dst_ag_rowid = ibs.add_annotgroup(annotgroup_uuid_list,
-                                                    annotgroup_text_list,
-                                                    annotgroup_note_list)
+    src_ag_rowid, dst_ag_rowid = ibs.add_annotgroup(
+        annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
+    )
     # Relate the annotations with the source group
     ibs.add_gar([src_ag_rowid] * len(aid_list), aid_list)
     return src_ag_rowid, dst_ag_rowid
@@ -4182,8 +4392,10 @@ def search_annot_notes(ibs, pattern, aid_list=None):
     # convert a list of patterns into an or statement
     if isinstance(pattern, (list, tuple)):
         pattern = '|'.join(['(%s)' % pat for pat in pattern])
-    valid_index_list, valid_match_list = ut.search_list(notes_list, pattern, flags=re.IGNORECASE)
-    #[match.group() for match in valid_match_list]
+    valid_index_list, valid_match_list = ut.search_list(
+        notes_list, pattern, flags=re.IGNORECASE
+    )
+    # [match.group() for match in valid_match_list]
     valid_aid_list = ut.take(aid_list, valid_index_list)
     return valid_aid_list
 
@@ -4211,7 +4423,9 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         operation = operation.format(aids=list_repr, minqual_int=minqual_int)
         aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
     else:
-        qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
+        qual_flags = list(
+            ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok)
+        )
         aid_list_ = ut.compress(aid_list, qual_flags)
     return aid_list_
 
@@ -4225,10 +4439,12 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
     valid_yaws = ['primary', 'primary1', 'primary-1']
     """
+
     def rectify_view_category(view):
         @ut.memoize
         def _primary_species():
             return ibs.get_primary_database_species()
+
         if view == 'primary':
             view = get_primary_species_viewpoint(_primary_species())
         if view == 'primary1':
@@ -4239,7 +4455,9 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
     valid_yaws = [rectify_view_category(view) for view in valid_yaws]
 
-    yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
+    yaw_flags = list(
+        ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok)
+    )
     aid_list_ = ut.compress(aid_list, yaw_flags)
     return aid_list_
 
@@ -4251,7 +4469,9 @@ def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
 
     TODO; rename to valid_viewpoint because this func uses category labels
     """
-    notyaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, invalid_yaws, unknown_ok=False))
+    notyaw_flags = list(
+        ibs.get_viewpoint_filterflags(aid_list, invalid_yaws, unknown_ok=False)
+    )
     yaw_flags = ut.not_list(notyaw_flags)
     aid_list_ = ut.compress(aid_list, yaw_flags)
     return aid_list_
@@ -4282,9 +4502,15 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         if invert:
-            operation = 'SELECT rowid from annotations WHERE name_rowid<=0 AND rowid IN (%s)' % (list_repr,)
+            operation = (
+                'SELECT rowid from annotations WHERE name_rowid<=0 AND rowid IN (%s)'
+                % (list_repr,)
+            )
         else:
-            operation = 'SELECT rowid from annotations WHERE name_rowid>0 AND rowid IN (%s)' % (list_repr,)
+            operation = (
+                'SELECT rowid from annotations WHERE name_rowid>0 AND rowid IN (%s)'
+                % (list_repr,)
+            )
         aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
     else:
         flag_list = ibs.is_aid_unknown(aid_list)
@@ -4328,8 +4554,9 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> ut.show_if_requested()
     """
     import vtool as vt
-    #min_timedelta = 60 * 60 * 24
-    #min_timedelta = 60 * 10
+
+    # min_timedelta = 60 * 60 * 24
+    # min_timedelta = 60 * 10
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     # Find the maximum size subset such that all timedeltas are less than a given value
@@ -4359,13 +4586,15 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     """
     chosen_idxs_list = [
         ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
-        for unixtimes in unixtimes_list]
+        for unixtimes in unixtimes_list
+    ]
     filtered_groups = vt.ziptake(grouped_aids, chosen_idxs_list)
     filtered_aids = ut.flatten(filtered_groups)
     if ut.DEBUG2:
         timedeltas = ibs.get_unflat_annots_timedelta_list(filtered_groups)
-        min_timedeltas = np.array([np.nan if dists is None else
-                                   np.nanmin(dists) for dists in timedeltas])
+        min_timedeltas = np.array(
+            [np.nan if dists is None else np.nanmin(dists) for dists in timedeltas]
+        )
         min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
         print('min_name_timedelta_stats = %s' % (ut.repr2(min_name_timedelta_stats),))
     return filtered_aids
@@ -4419,10 +4648,10 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
     else:
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
-        aid_list_          = ut.compress(aid_list, is_valid_species)
-        #flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
-        #aid_list_ = ut.compress(aid_list, flag_list)
+        is_valid_species = [sid == species_rowid for sid in species_rowid_list]
+        aid_list_ = ut.compress(aid_list, is_valid_species)
+        # flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
+        # aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -4480,19 +4709,20 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         [[2], [5, 6]]
         [[29, 30, 31, 32], [49]]
     """
-    #ibs.
+    # ibs.
     import wbia.control.IBEISControl
+
     assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
-    #ibs
-    #ibs.get_ann
+    # ibs
+    # ibs.get_ann
 
     grouped_aids1 = ibs.group_annots_by_name(aid_list1)[0]
     grouped_aids1 = [aids.tolist() for aids in grouped_aids1]
 
     # Get the group of available aids that a reference aid could match
     gropued_aids2 = ibs.get_annot_groundtruth(
-        ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2,
-        noself=False)
+        ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2, noself=False
+    )
 
     # Flag if there is a correspondence
     flag_list = [x > 0 for x in map(len, gropued_aids2)]
@@ -4503,10 +4733,9 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
 
     # Non-corresponding lists of aids groups
     gf_grouped_aids1 = ut.compress(grouped_aids1, ut.not_list(flag_list))
-    #gf_aids1 = ut.flatten(gf_grouped_aids1)
+    # gf_aids1 = ut.flatten(gf_grouped_aids1)
     gf_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
-    gf_grouped_aids2 = [aids.tolist() for aids in
-                        ibs.group_annots_by_name(gf_aids2)[0]]
+    gf_grouped_aids2 = [aids.tolist() for aids in ibs.group_annots_by_name(gf_aids2)[0]]
 
     gt_grouped_aids1 = list(map(sorted, gt_grouped_aids1))
     gt_grouped_aids2 = list(map(sorted, gt_grouped_aids2))
@@ -4528,26 +4757,29 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
 
     positive_list = [
         aid
-        for aid, yaw, qua, sex, (start, end) in
-        zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        for aid, yaw, qua, sex, (start, end) in zip(
+            aid_list, yaw_list, qua_list, sex_list, age_list
+        )
         if (
-            yaw.upper() == 'LEFT' and
-            qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and
-            sex.upper() in ['MALE', 'FEMALE'] and
-            start != -1 and end != -1
+            yaw.upper() == 'LEFT'
+            and qua.upper() in ['OK', 'GOOD', 'EXCELLENT']
+            and sex.upper() in ['MALE', 'FEMALE']
+            and start != -1
+            and end != -1
         )
     ]
 
     negative_list = [
         aid
-        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list,
-                                                    qua_list, sex_list,
-                                                    age_list)
+        for aid, yaw, qua, sex, (start, end) in zip(
+            aid_list, yaw_list, qua_list, sex_list, age_list
+        )
         if (
-            yaw.upper() == 'LEFT' and
-            qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and
-            sex.upper() == 'UNKNOWN SEX' and
-            start == -1 and end == -1
+            yaw.upper() == 'LEFT'
+            and qua.upper() in ['OK', 'GOOD', 'EXCELLENT']
+            and sex.upper() == 'UNKNOWN SEX'
+            and start == -1
+            and end == -1
         )
     ]
 
@@ -4570,33 +4802,34 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
         neg_age_list = ibs.get_annot_age_months_est(negative_list)
         neg_chip_list = ibs.get_annot_chip_fpath(negative_list)
 
-        print('positive_aid_list = %s\n' % (positive_list, ))
-        print('positive_yaw_list = %s\n' % (pos_yaw_list, ))
-        print('positive_qua_list = %s\n' % (pos_qua_list, ))
-        print('positive_sex_list = %s\n' % (pos_sex_list, ))
-        print('positive_age_list = %s\n' % (pos_age_list, ))
-        print('positive_chip_list = %s\n' % (pos_chip_list, ))
+        print('positive_aid_list = %s\n' % (positive_list,))
+        print('positive_yaw_list = %s\n' % (pos_yaw_list,))
+        print('positive_qua_list = %s\n' % (pos_qua_list,))
+        print('positive_sex_list = %s\n' % (pos_sex_list,))
+        print('positive_age_list = %s\n' % (pos_age_list,))
+        print('positive_chip_list = %s\n' % (pos_chip_list,))
 
         print('-' * 90, '\n')
 
-        print('negative_aid_list = %s\n' % (negative_list, ))
-        print('negative_yaw_list = %s\n' % (neg_yaw_list, ))
-        print('negative_qua_list = %s\n' % (neg_qua_list, ))
-        print('negative_sex_list = %s\n' % (neg_sex_list, ))
-        print('negative_age_list = %s\n' % (neg_age_list, ))
-        print('negative_chip_list = %s\n' % (neg_chip_list, ))
+        print('negative_aid_list = %s\n' % (negative_list,))
+        print('negative_yaw_list = %s\n' % (neg_yaw_list,))
+        print('negative_qua_list = %s\n' % (neg_qua_list,))
+        print('negative_sex_list = %s\n' % (neg_sex_list,))
+        print('negative_age_list = %s\n' % (neg_age_list,))
+        print('negative_chip_list = %s\n' % (neg_chip_list,))
 
         print('mkdir ~/Desktop/chips')
         for pos_chip in pos_chip_list:
-            print('cp "%s" ~/Desktop/chips/' % (pos_chip, ))
+            print('cp "%s" ~/Desktop/chips/' % (pos_chip,))
         for neg_chip in neg_chip_list:
-            print('cp "%s" ~/Desktop/chips/' % (neg_chip, ))
+            print('cp "%s" ~/Desktop/chips/' % (neg_chip,))
 
     return positive_list, negative_list
 
 
 def _stat_str(dict_, multi=False, precision=2, **kwargs):
     import utool as ut
+
     dict_ = dict_.copy()
     if dict_.get('num_nan', None) == 0:
         del dict_['num_nan']
@@ -4604,8 +4837,9 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
     if multi is True:
         str_ = ut.repr2(dict_, precision=precision, nl=2, strvals=True)
     else:
-        str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision,
-                                 exclude_keys=exclude_keys, **kwargs)
+        str_ = ut.get_stats_str(
+            stat_dict=dict_, precision=precision, exclude_keys=exclude_keys, **kwargs
+        )
     str_ = str_.replace('\'', '')
     str_ = str_.replace('num_nan: 0, ', '')
     return str_
@@ -4629,16 +4863,20 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     prop_basis = list(const.VIEW.CODE_TO_INT.keys())
 
     group_annots_by_view_and_name = functools.partial(
-        ibs.group_annots_by_prop_and_name, getter_func=getter_func)
-    group_annots_by_view = functools.partial(ibs.group_annots_by_prop,
-                                             getter_func=getter_func)
+        ibs.group_annots_by_prop_and_name, getter_func=getter_func
+    )
+    group_annots_by_view = functools.partial(
+        ibs.group_annots_by_prop, getter_func=getter_func
+    )
 
     prop2_nid2_aids = group_annots_by_view_and_name(aids)
 
     edge2_nid2_aids = group_prop_edges(prop2_nid2_aids, prop_basis, size=size, wrap=True)
     # Total number of names that have two viewpoints
-    #yawtext_edge_nid_hist = ut.map_dict_vals(len, edge2_nid2_aids)
-    edge2_grouped_aids = ut.map_dict_vals(lambda dict_: list(dict_.values()), edge2_nid2_aids)
+    # yawtext_edge_nid_hist = ut.map_dict_vals(len, edge2_nid2_aids)
+    edge2_grouped_aids = ut.map_dict_vals(
+        lambda dict_: list(dict_.values()), edge2_nid2_aids
+    )
     edge2_aids = ut.map_dict_vals(ut.flatten, edge2_grouped_aids)
     # Num annots of each type of viewpoint
 
@@ -4647,7 +4885,8 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     edge2_vp2_aids = ut.map_dict_vals(group_annots_by_view, edge2_aids)
     for edge, vp2_aids in edge2_vp2_aids.items():
         vp2_pernam_stats = ut.map_dict_vals(
-            functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids)
+            functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids
+        )
         edge2_vp2_pername_stats[edge] = vp2_pernam_stats
 
     return edge2_vp2_pername_stats
@@ -4713,7 +4952,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
     #%timeit multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
     #%timeit ut.group_items(aids, list(zip(*aid_prop_list)))
     multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
-    #multiprop2_aids = ut.group_items(aids, list(zip(*aid_prop_list)))
+    # multiprop2_aids = ut.group_items(aids, list(zip(*aid_prop_list)))
     return multiprop2_aids
 
 
@@ -4735,13 +4974,14 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     for edge in prop_edges:
         edge_nid2_aids_list = [prop2_nid2_aids.get(prop, {}) for prop in edge]
         isect_nid2_aids = reduce(
-            #functools.partial(ut.dict_intersection, combine=True),
+            # functools.partial(ut.dict_intersection, combine=True),
             ut.dict_isect_combine,
-            edge_nid2_aids_list)
+            edge_nid2_aids_list,
+        )
         edge2_nid2_aids[edge] = isect_nid2_aids
-        #common_nids = list(isect_nid2_aids.keys())
-        #common_num_prop1 = np.array([len(prop2_nid2_aids[prop1][nid]) for nid in common_nids])
-        #common_num_prop2 = np.array([len(prop2_nid2_aids[prop2][nid]) for nid in common_nids])
+        # common_nids = list(isect_nid2_aids.keys())
+        # common_num_prop1 = np.array([len(prop2_nid2_aids[prop1][nid]) for nid in common_nids])
+        # common_num_prop2 = np.array([len(prop2_nid2_aids[prop2][nid]) for nid in common_nids])
     return edge2_nid2_aids
 
 
@@ -4753,8 +4993,9 @@ def parse_annot_stats_filter_kws(ibs):
 
 # Indepdentent query / database stats
 @register_ibs_method
-def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
-                         use_hist=False, **kwargs):
+def get_annot_stats_dict(
+    ibs, aids, prefix='', forceall=False, old=True, use_hist=False, **kwargs
+):
     """ stats for a set of annots
 
     Args:
@@ -4875,25 +5116,32 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
 
     if kwargs.pop('bigstr', False or forceall):
         bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
-        keyval_list += [
-            (prefix + 'bigstr',
-             bigstr(str(aids)))]
+        keyval_list += [(prefix + 'bigstr', bigstr(str(aids)))]
 
     if kwargs.pop('hashid', True or forceall):
         # TODO: depricate semantic hashid
         keyval_list += [
-            (prefix + 'hashid',
-             ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
+            (
+                prefix + 'hashid',
+                ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()),
+            )
+        ]
 
     if kwargs.pop('hashid_visual', False or forceall):
         keyval_list += [
-            (prefix + 'hashid_visual',
-             ibs.get_annot_hashid_visual_uuid(aids, prefix=prefix.upper()))]
+            (
+                prefix + 'hashid_visual',
+                ibs.get_annot_hashid_visual_uuid(aids, prefix=prefix.upper()),
+            )
+        ]
 
     if kwargs.pop('hashid_uuid', False or forceall):
         keyval_list += [
-            (prefix + 'hashid_uuid',
-             ibs.get_annot_hashid_uuid(aids, prefix=prefix.upper()))]
+            (
+                prefix + 'hashid_uuid',
+                ibs.get_annot_hashid_uuid(aids, prefix=prefix.upper()),
+            )
+        ]
 
     if kwargs.pop('per_name', True or forceall):
         data = ibs.get_num_annots_per_name(aids)[0]
@@ -4902,12 +5150,14 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         if not use_hist:
             a = ibs.annots(aids)
             pername = ut.dict_hist(ut.lmap(len, a.group_items(a.nids).values()))
-            pername_bins = ut.odict([
-                ('1', sum(v for k, v in pername.items() if k == 1)),
-                ('2-3', sum(v for k, v in pername.items() if k >= 2 and k < 4)),
-                ('4-5', sum(v for k, v in pername.items() if k >= 4 and k < 6)),
-                ('>=6', sum(v for k, v in pername.items() if k >= 6)),
-            ])
+            pername_bins = ut.odict(
+                [
+                    ('1', sum(v for k, v in pername.items() if k == 1)),
+                    ('2-3', sum(v for k, v in pername.items() if k >= 2 and k < 4)),
+                    ('4-5', sum(v for k, v in pername.items() if k >= 4 and k < 6)),
+                    ('>=6', sum(v for k, v in pername.items() if k >= 6)),
+                ]
+            )
             keyval_list += [(prefix + 'per_name_bins', pername_bins)]
 
     # if kwargs.pop('per_name_dict', True or forceall):
@@ -4919,40 +5169,50 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
     if kwargs.pop('per_qual', False or forceall):
         qualtext2_nAnnots = ut.order_dict_by(
             ut.map_vals(len, annots.group_items(annots.quality_texts)),
-            list(ibs.const.QUALITY_TEXT_TO_INT.keys())
+            list(ibs.const.QUALITY_TEXT_TO_INT.keys()),
         )
-        keyval_list += [(prefix + 'per_qual',
-                         statwrap(qualtext2_nAnnots))]
+        keyval_list += [(prefix + 'per_qual', statwrap(qualtext2_nAnnots))]
 
-    #if kwargs.pop('per_vp', False):
+    # if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
         yawtext2_nAnnots = ut.order_dict_by(
             ut.map_vals(len, annots.group_items(annots.viewpoint_code)),
-            list(const.VIEW.CODE_TO_INT.keys())
+            list(const.VIEW.CODE_TO_INT.keys()),
         )
-        keyval_list += [(prefix + 'per_vp',
-                         statwrap(yawtext2_nAnnots))]
+        keyval_list += [(prefix + 'per_vp', statwrap(yawtext2_nAnnots))]
 
     if kwargs.pop('per_multiple', True or forceall):
         keyval_list += [
-            (prefix + 'per_multiple', statwrap(
-                ut.map_vals(len, annots.group_items(annots.multiple))))]
+            (
+                prefix + 'per_multiple',
+                statwrap(ut.map_vals(len, annots.group_items(annots.multiple))),
+            )
+        ]
 
     # information about overlapping viewpoints
     if kwargs.pop('per_name_vpedge', False or forceall):
         keyval_list += [
-            (prefix + 'per_name_vpedge',
-             statwrap(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+            (
+                prefix + 'per_name_vpedge',
+                statwrap(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True),
+            )
+        ]
 
     if kwargs.pop('per_enc', True or forceall):
         keyval_list += [
-            (prefix + 'per_enc',
-             statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_encounter_text)))]
+            (
+                prefix + 'per_enc',
+                statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_encounter_text)),
+            )
+        ]
 
     if kwargs.pop('per_image', False or forceall):
         keyval_list += [
-            (prefix + 'aid_per_image',
-             statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+            (
+                prefix + 'aid_per_image',
+                statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)),
+            )
+        ]
 
     if kwargs.pop('enc_per_name', True or forceall):
         # Does not handle None encounters. They show up as just another encounter
@@ -4961,54 +5221,65 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         name_to_num_enc = ut.map_vals(len, name_to_enc)
         num_enc_per_name = list(name_to_num_enc.values())
         stats = stat_func(num_enc_per_name)
-        keyval_list += [
-            (prefix + 'enc_per_name', stats)]
+        keyval_list += [(prefix + 'enc_per_name', stats)]
 
     if kwargs.pop('species_hist', False or forceall):
         keyval_list += [
-            (prefix + 'species_hist',
-             ut.dict_hist(ibs.get_annot_species_texts(aids)))
+            (prefix + 'species_hist', ut.dict_hist(ibs.get_annot_species_texts(aids)))
         ]
 
     if kwargs.pop('case_tag_hist', False or forceall):
         keyval_list += [
-            (prefix + 'case_tags', ut.dict_hist(ut.flatten(ibs.get_annot_case_tags(aids))))]
+            (
+                prefix + 'case_tags',
+                ut.dict_hist(ut.flatten(ibs.get_annot_case_tags(aids))),
+            )
+        ]
 
     if kwargs.pop('match_tag_hist', False or forceall):
         keyval_list += [
-            (prefix + 'match_tags', ut.dict_hist(ut.flatten(ibs.get_annot_annotmatch_tags(aids))))]
+            (
+                prefix + 'match_tags',
+                ut.dict_hist(ut.flatten(ibs.get_annot_annotmatch_tags(aids))),
+            )
+        ]
 
     if kwargs.pop('match_state', False or forceall):
         am_rowids = annots.get_am_rowids(internal=True)
         truths = ibs.get_annotmatch_evidence_decision(am_rowids)
         truths = np.array(ut.replace_nones(truths, np.nan))
-        match_state = ut.odict([
-            ('None', np.isnan(truths).sum()),
-            ('unknown', (truths == ibs.const.EVIDENCE_DECISION.UNKNOWN).sum()),
-            ('incomp', (truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE).sum()),
-            ('nomatch', (truths == ibs.const.EVIDENCE_DECISION.NEGATIVE).sum()),
-            ('match', (truths == ibs.const.EVIDENCE_DECISION.POSITIVE).sum()),
-        ])
-        keyval_list += [
-            (prefix + 'match_state', match_state)
-        ]
+        match_state = ut.odict(
+            [
+                ('None', np.isnan(truths).sum()),
+                ('unknown', (truths == ibs.const.EVIDENCE_DECISION.UNKNOWN).sum()),
+                ('incomp', (truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE).sum()),
+                ('nomatch', (truths == ibs.const.EVIDENCE_DECISION.NEGATIVE).sum()),
+                ('match', (truths == ibs.const.EVIDENCE_DECISION.POSITIVE).sum()),
+            ]
+        )
+        keyval_list += [(prefix + 'match_state', match_state)]
 
     if kwargs.pop('min_name_hourdist', False or forceall):
         grouped_aids = ibs.group_annots_by_name(aids)[0]
-        #ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+        # ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
         timedeltas = ibs.get_unflat_annots_timedelta_list(grouped_aids)
-        #timedeltas = [dists for dists in timedeltas if dists is not np.nan and
-        #dists is not None]
-        #timedeltas = [np.nan if dists is None else dists for dists in timedeltas]
-        #min_timedelta_list = [np.nan if dists is None else dists.min() / (60 *
-        #60 * 24) for dists in timedeltas]
+        # timedeltas = [dists for dists in timedeltas if dists is not np.nan and
+        # dists is not None]
+        # timedeltas = [np.nan if dists is None else dists for dists in timedeltas]
+        # min_timedelta_list = [np.nan if dists is None else dists.min() / (60 *
+        # 60 * 24) for dists in timedeltas]
         # convert to hours
         min_timedelta_list = [
-            np.nan if dists is None else dists.min() / (60 * 60)
-            for dists in timedeltas]
-        #min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
+            np.nan if dists is None else dists.min() / (60 * 60) for dists in timedeltas
+        ]
+        # min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
         min_name_timedelta_stats = ut.get_stats(min_timedelta_list, use_nan=True)
-        keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats, precision=4))]
+        keyval_list += [
+            (
+                prefix + 'min_name_hourdist',
+                _stat_str(min_name_timedelta_stats, precision=4),
+            )
+        ]
 
     aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict
@@ -5021,9 +5292,7 @@ def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
 
 
 @register_ibs_method
-def compare_nested_props(ibs, aids1_list,
-                         aids2_list, getter_func,
-                         cmp_func):
+def compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func):
     """
     Compares properties of query vs database annotations
 
@@ -5068,8 +5337,10 @@ def compare_nested_props(ibs, aids1_list,
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
+
     def replace_none_with_nan(x):
         import utool as ut
+
         return np.array(ut.replace_nones(x, np.nan))
 
     props1_list = ibs.unflat_map(getter_func, aids1_list)
@@ -5096,7 +5367,7 @@ def viewpoint_diff(ori1, ori2):
 
 @register_ibs_method
 def parse_annot_config_stats_filter_kws(ibs):
-    #kwkeys = ibs.parse_annot_stats_filter_kws() + ['combined', 'combo_gt_info', 'combo_enc_info', 'combo_dists']
+    # kwkeys = ibs.parse_annot_stats_filter_kws() + ['combined', 'combo_gt_info', 'combo_enc_info', 'combo_dists']
     kwkeys1 = ibs.parse_annot_stats_filter_kws()
     kwkeys2 = list(ut.get_func_kwargs(ibs.get_annotconfig_stats).keys())
     if 'verbose' in kwkeys2:
@@ -5112,16 +5383,25 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
         ibs.get_annotconfig_stats
     """
     annotconfig_stats = ibs.get_annotconfig_stats(qaids, daids, verbose=False, **kwargs)
-    stats_str2 = ut.repr4(annotconfig_stats, strvals=True, strkeys=True,
-                          nl=True, explicit=False, nobr=False)
+    stats_str2 = ut.repr4(
+        annotconfig_stats, strvals=True, strkeys=True, nl=True, explicit=False, nobr=False
+    )
     print(stats_str2)
 
 
 @register_ibs_method
-def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
-                          combo_gt_info=True, combo_enc_info=False,
-                          combo_dists=True, split_matchable_data=True,
-                          **kwargs):
+def get_annotconfig_stats(
+    ibs,
+    qaids,
+    daids,
+    verbose=False,
+    combined=False,
+    combo_gt_info=True,
+    combo_enc_info=False,
+    combo_dists=True,
+    split_matchable_data=True,
+    **kwargs
+):
     r"""
     Gets statistics about a query / database set of annotations
 
@@ -5160,6 +5440,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
     """
     import numpy as np
     import warnings
+
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
         warnings.filterwarnings('ignore', r'Mean of empty slice')
@@ -5168,7 +5449,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         # The aids that should be matched by a query
         grouped_qaids = ibs.group_annots_by_name(qaids)[0]
         grouped_groundtruth_list = ibs.get_annot_groundtruth(
-            ut.get_list_column(grouped_qaids, 0), daid_list=daids)
+            ut.get_list_column(grouped_qaids, 0), daid_list=daids
+        )
         # groundtruth_daids = ut.unique(ut.flatten(grouped_groundtruth_list))
         query_hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
         # The aids that should not match any query
@@ -5188,7 +5470,12 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         # Compare the query yaws to the yaws of its correct matches in the database
         # For each name there will be nQaids:nid x nDaids:nid comparisons
         gt_viewdist_list = compare_nested_props(
-            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_yaws, viewpoint_diff)
+            ibs,
+            grouped_qaids,
+            grouped_groundtruth_list,
+            ibs.get_annot_yaws,
+            viewpoint_diff,
+        )
 
         # Compare the query qualities to the qualities of its correct matches in the database
         # gt_qualdists_list = compare_nested_props(
@@ -5196,14 +5483,19 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
 
         # Compare timedelta differences
         gt_hourdelta_list = compare_nested_props(
-            ibs, grouped_qaids, grouped_groundtruth_list,
-            ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
+            ibs,
+            grouped_qaids,
+            grouped_groundtruth_list,
+            ibs.get_annot_image_unixtimes_asfloat,
+            ut.unixtime_hourdiff,
+        )
 
         def super_flatten(arr_list):
             import utool as ut
+
             return ut.flatten([arr.ravel() for arr in arr_list])
 
-        gt_viewdist_stats  = ut.get_stats(super_flatten(gt_viewdist_list), use_nan=True)
+        gt_viewdist_stats = ut.get_stats(super_flatten(gt_viewdist_list), use_nan=True)
         # gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
         gt_hourdelta_stats = ut.get_stats(super_flatten(gt_hourdelta_list), use_nan=True)
 
@@ -5213,10 +5505,10 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         daids2.sort()
         if not np.all(qaids2 == qaids):
             print('WARNING: qaids are not sorted')
-            #raise AssertionError('WARNING: qaids are not sorted')
+            # raise AssertionError('WARNING: qaids are not sorted')
         if not np.all(daids2 == daids):
             print('WARNING: daids are not sorted')
-            #raise AssertionError('WARNING: qaids are not sorted')
+            # raise AssertionError('WARNING: qaids are not sorted')
 
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
         daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd', **kwargs)
@@ -5227,8 +5519,12 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
             matchable_daids = ut.compress(daids, data_hasgt_list)
             confusor_daids = ut.compress(daids, ut.not_list(data_hasgt_list))
 
-            matchable_daid_stats_dict = ibs.get_annot_stats_dict(matchable_daids, 'd', **kwargs)
-            confusor_daid_stats_dict  = ibs.get_annot_stats_dict(confusor_daids, 'd', **kwargs)
+            matchable_daid_stats_dict = ibs.get_annot_stats_dict(
+                matchable_daids, 'd', **kwargs
+            )
+            confusor_daid_stats_dict = ibs.get_annot_stats_dict(
+                confusor_daids, 'd', **kwargs
+            )
 
             daid_stats_dict = ut.dict_subset(daid_stats_dict, ['num_daids', 'dhashid'])
 
@@ -5259,14 +5555,17 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
                 ('matchable_daid_stats', matchable_daid_stats_dict),
                 ('confusor_daid_stats', confusor_daid_stats_dict),
             ]
-            matchable_daid_stats_dict = ibs.get_annot_stats_dict(matchable_daids, 'd', **kwargs)
-            confusor_daid_stats_dict  = ibs.get_annot_stats_dict(confusor_daids, 'd', **kwargs)
+            matchable_daid_stats_dict = ibs.get_annot_stats_dict(
+                matchable_daids, 'd', **kwargs
+            )
+            confusor_daid_stats_dict = ibs.get_annot_stats_dict(
+                confusor_daids, 'd', **kwargs
+            )
         if combined:
             combined_aids = np.unique((np.hstack((qaids, daids))))
             combined_aids.sort()
             annotconfig_stats_strs_list1 += [
-                ('combined_aids', ibs.get_annot_stats_dict(combined_aids,
-                                                           **kwargs)),
+                ('combined_aids', ibs.get_annot_stats_dict(combined_aids, **kwargs)),
             ]
 
         if combo_gt_info:
@@ -5277,8 +5576,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
 
         if combo_enc_info:
             annotconfig_stats_strs_list1 += [
-                #('num_qnids', (len(qnids))),
-                #('num_dnids', (len(dnids))),
+                # ('num_qnids', (len(qnids))),
+                # ('num_dnids', (len(dnids))),
                 ('num_enc_intersect', (len(enc_intersect))),
                 ('num_name_intersect', (len(common_nids))),
             ]
@@ -5287,18 +5586,24 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
             annotconfig_stats_strs_list2 += [
                 # Distances between a query and its groundtruth
                 ('viewdist', _stat_str(gt_viewdist_stats)),
-                #('qualdist', _stat_str(gt_qualdist_stats)),
+                # ('qualdist', _stat_str(gt_qualdist_stats)),
                 ('hourdist', _stat_str(gt_hourdelta_stats, precision=4)),
             ]
 
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
 
-        annotconfig_stats = ut.odict(list(annotconfig_stats_strs1.items()) +
-                                          list(annotconfig_stats_strs2.items()))
+        annotconfig_stats = ut.odict(
+            list(annotconfig_stats_strs1.items()) + list(annotconfig_stats_strs2.items())
+        )
         if verbose:
-            stats_str2 = ut.repr2(annotconfig_stats, strvals=True,
-                                     newlines=True, explicit=False, nobraces=False)
+            stats_str2 = ut.repr2(
+                annotconfig_stats,
+                strvals=True,
+                newlines=True,
+                explicit=False,
+                nobraces=False,
+            )
             print('annot_config_stats = ' + stats_str2)
 
         return annotconfig_stats
@@ -5338,14 +5643,18 @@ def find_unlabeled_name_members(ibs, **kwargs):
     aids_list = ut.compress(aids_list, [len(aids) > 1 for aids in aids_list])
 
     def find_missing(props_list, flags_list):
-        missing_idx_list = ut.list_where([any(flags) and not all(flags) for flags in flags_list])
+        missing_idx_list = ut.list_where(
+            [any(flags) and not all(flags) for flags in flags_list]
+        )
         missing_flag_list = ut.take(flags_list, missing_idx_list)
         missing_aids_list = ut.take(aids_list, missing_idx_list)
-        #missing_prop_list = ut.take(props_list, missing_idx_list)
+        # missing_prop_list = ut.take(props_list, missing_idx_list)
         missing_aid_list = vt.zipcompress(missing_aids_list, missing_flag_list)
 
         if False:
-            missing_percent_list = [sum(flags) / len(flags) for flags in missing_flag_list]
+            missing_percent_list = [
+                sum(flags) / len(flags) for flags in missing_flag_list
+            ]
             print('Missing per name stats')
             print(ut.repr2(ut.get_stats(missing_percent_list, use_median=True)))
         return missing_aid_list
@@ -5376,16 +5685,21 @@ def find_unlabeled_name_members(ibs, **kwargs):
     if kwargs.get('suspect_yaws', False):
         yaws_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
         time_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
-        max_timedelta_list = np.array([
-            np.nanmax(ut.safe_pdist(unixtime_arr[:, None], metric=ut.absdiff))
-            for unixtime_arr in time_list])
+        max_timedelta_list = np.array(
+            [
+                np.nanmax(ut.safe_pdist(unixtime_arr[:, None], metric=ut.absdiff))
+                for unixtime_arr in time_list
+            ]
+        )
         flags = max_timedelta_list > 60 * 60 * 1
 
         aids1 = ut.compress(aids_list, flags)
-        max_yawdiff_list = np.array([
-            np.nanmax(ut.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
-            for yaws in ut.compress(yaws_list, flags)
-        ])
+        max_yawdiff_list = np.array(
+            [
+                np.nanmax(ut.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
+                for yaws in ut.compress(yaws_list, flags)
+            ]
+        )
 
         # Find annots with large timedeltas but 0 viewpoint difference
         flags2 = max_yawdiff_list == 0
@@ -5396,8 +5710,8 @@ def find_unlabeled_name_members(ibs, **kwargs):
     selected_aids = ut.unique_ordered(ut.flatten(y))
     return selected_aids
 
-    #ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)
-    #ibs.unflat_map(ibs.get_annot_viewpoints, aids_list)
+    # ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)
+    # ibs.unflat_map(ibs.get_annot_viewpoints, aids_list)
 
 
 @register_ibs_method
@@ -5424,10 +5738,13 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         >>> result = get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_, dconfig2_)
         >>> print(result)
     """
-    metadata = ut.LazyDict({
-        'annot1': get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_),
-        'annot2': get_annot_lazy_dict(ibs, daid, config2_=dconfig2_),
-    }, reprkw=dict(truncate=True))
+    metadata = ut.LazyDict(
+        {
+            'annot1': get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_),
+            'annot2': get_annot_lazy_dict(ibs, daid, config2_=dconfig2_),
+        },
+        reprkw=dict(truncate=True),
+    )
     return metadata
 
 
@@ -5481,7 +5798,10 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     # metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
     try:
         from wbia.viz.interact import interact_chip
-        metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
+
+        metadata[
+            'annot_context_options'
+        ] = lambda: interact_chip.build_annot_context_options(ibs, aid)
     except ImportError:
         pass
     return metadata
@@ -5508,19 +5828,22 @@ def get_image_lazydict(ibs, gid, config=None):
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> gid = 1
     """
-    #from wbia.viz.interact import interact_chip
-    metadata = ut.LazyDict({
-        'gid': gid,
-        'unixtime': lambda: ibs.get_image_unixtime(gid),
-        'datetime': lambda: ibs.get_image_datetime(gid),
-        'aids': lambda: ibs.get_image_aids(gid),
-        'size': lambda: ibs.get_image_sizes(gid),
-        'uri': lambda: ibs.get_image_uris(gid),
-        'uuid': lambda: ibs.get_image_uuids(gid),
-        'gps': lambda: ibs.get_image_gps(gid),
-        'orientation': lambda: ibs.get_image_orientation(gid),
-        #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
-    }, reprkw=dict(truncate=True))
+    # from wbia.viz.interact import interact_chip
+    metadata = ut.LazyDict(
+        {
+            'gid': gid,
+            'unixtime': lambda: ibs.get_image_unixtime(gid),
+            'datetime': lambda: ibs.get_image_datetime(gid),
+            'aids': lambda: ibs.get_image_aids(gid),
+            'size': lambda: ibs.get_image_sizes(gid),
+            'uri': lambda: ibs.get_image_uris(gid),
+            'uuid': lambda: ibs.get_image_uuids(gid),
+            'gps': lambda: ibs.get_image_gps(gid),
+            'orientation': lambda: ibs.get_image_orientation(gid),
+            #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+        },
+        reprkw=dict(truncate=True),
+    )
     return metadata
 
 
@@ -5570,21 +5893,25 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
     defaults = {
         'aid': aid,
         'name': lambda: ibs.get_annot_names(aid),
-        'rchip_fpath': lambda: ibs.depc_annot.get('chips', aid, 'img', config, read_extern=False),
+        'rchip_fpath': lambda: ibs.depc_annot.get(
+            'chips', aid, 'img', config, read_extern=False
+        ),
         'rchip': lambda: ibs.depc_annot.get('chips', aid, 'img', config),
-        'vecs': lambda:  ibs.depc_annot.get('feat', aid, 'vecs', config),
-        'kpts': lambda:  ibs.depc_annot.get('feat', aid, 'kpts', config),
+        'vecs': lambda: ibs.depc_annot.get('feat', aid, 'vecs', config),
+        'kpts': lambda: ibs.depc_annot.get('feat', aid, 'kpts', config),
         'dlen_sqrd': lambda: ibs.depc_annot['chips'].subproperties['dlen_sqrd'](
-            ibs.depc_annot, [aid], config)[0],
+            ibs.depc_annot, [aid], config
+        )[0],
     }
     try:
         from wbia.viz.interact import interact_chip
     except ImportError:
         pass
     else:
-        #get_annot_chip_dlensqrd([aid], config=config)[0],
-        defaults['annot_context_options'] = (
-            lambda: interact_chip.build_annot_context_options(ibs, aid))
+        # get_annot_chip_dlensqrd([aid], config=config)[0],
+        defaults[
+            'annot_context_options'
+        ] = lambda: interact_chip.build_annot_context_options(ibs, aid)
     metadata = ut.LazyDict(defaults)
     return metadata
 
@@ -5621,18 +5948,21 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_
         for aid in set(aids) - set(annots.keys()):
             annots[aid] = ibs.get_annot_lazy_dict(aid, config2_=config2_)
 
-    #for annot in annots.values():
+    # for annot in annots.values():
     #    annot.eager_eval('vecs')
 
     def extract_vecs(annots, aid, fxs):
         """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
         vecs = annots[aid]['vecs'].take(fxs, axis=0)
         return vecs
-    #unflat_vecs1 = vt.multigroup_lookup(annots, unflat_aids, unflat_fxs, extract_vecs)
+
+    # unflat_vecs1 = vt.multigroup_lookup(annots, unflat_aids, unflat_fxs, extract_vecs)
     # HACK
     # FIXME: naive and regular multigroup still arnt equivalent
-    #unflat_vecs = unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
-    unflat_vecs = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)  # NOQA
+    # unflat_vecs = unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
+    unflat_vecs = vt.multigroup_lookup_naive(
+        annots, unflat_aids, unflat_fxs, extract_vecs
+    )  # NOQA
     return unflat_vecs
 
 
@@ -5662,11 +5992,14 @@ def _clean_species(ibs):
         flag = '--allow-keyboard-database-update'
         from six.moves import input as raw_input_
         from wbia.control.manual_species_funcs import _convert_species_nice_to_code
+
         species_rowid_list = ibs._get_all_species_rowids()
         species_text_list = ibs.get_species_texts(species_rowid_list)
         species_nice_list = ibs.get_species_nice(species_rowid_list)
         species_code_list = ibs.get_species_codes(species_rowid_list)
-        for rowid, text, nice, code in zip(species_rowid_list, species_text_list, species_nice_list, species_code_list):
+        for rowid, text, nice, code in zip(
+            species_rowid_list, species_text_list, species_nice_list, species_code_list
+        ):
             alias = None
             if text in const.SPECIES_MAPPING:
                 species_code, species_nice = const.SPECIES_MAPPING[text]
@@ -5674,7 +6007,7 @@ def _clean_species(ibs):
                     alias = species_nice
                     species_code, species_nice = const.SPECIES_MAPPING[species_nice]
             elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
-                print('[_clean_species] deleting species: %r' % (text, ))
+                print('[_clean_species] deleting species: %r' % (text,))
                 ibs.delete_species(rowid)
                 continue
             elif len(nice) == 0:
@@ -5682,9 +6015,9 @@ def _clean_species(ibs):
                     species_nice = text
                     species_code = _convert_species_nice_to_code([species_nice])[0]
                 else:
-                    print('Found an unknown species: %r' % (text, ))
-                    species_nice = raw_input_('Input a NICE name for %r: ' % (text, ))
-                    species_code = raw_input_('Input a CODE name for %r: ' % (text, ))
+                    print('Found an unknown species: %r' % (text,))
+                    species_nice = raw_input_('Input a NICE name for %r: ' % (text,))
+                    species_code = raw_input_('Input a CODE name for %r: ' % (text,))
                     assert len(species_code) > 0 and len(species_nice) > 0
             else:
                 continue
@@ -5711,7 +6044,10 @@ def get_annot_encounter_text(ibs, aids):
     """ Encounter identifier for annotations """
     occur_texts = ibs.get_annot_occurrence_text(aids)
     name_texts = ibs.get_annot_names(aids)
-    enc_texts = [ot + '_' + nt if ot is not None and nt is not None else None for ot, nt in zip(occur_texts, name_texts)]
+    enc_texts = [
+        ot + '_' + nt if ot is not None and nt is not None else None
+        for ot, nt in zip(occur_texts, name_texts)
+    ]
     return enc_texts
 
 
@@ -5741,13 +6077,16 @@ def get_annot_occurrence_text(ibs, aids):
     """
     imgset_ids = ibs.get_annot_imgsetids(aids)
     flags = ibs.unflat_map(ibs.get_imageset_occurrence_flags, imgset_ids)
-    #flags = [[text.lower().startswith('occurrence') for text in texts]
+    # flags = [[text.lower().startswith('occurrence') for text in texts]
     #         for texts in imgset_texts]
     imgset_ids = ut.zipcompress(imgset_ids, flags)
     _occur_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
     if not all([len(t) == 1 for t in _occur_texts]):
-        print('[%s] WARNING: annot must be in exactly one occurrence' % (ut.get_caller_name(),))
+        print(
+            '[%s] WARNING: annot must be in exactly one occurrence'
+            % (ut.get_caller_name(),)
+        )
     occur_texts = ut.take_column(_occur_texts, 0)
     return occur_texts
 
@@ -5763,18 +6102,20 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
     patrol_tree = ET.parse(xml_path)
     namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
     # Load all waypoint elements
-    element = './/%swaypoints' % (namespace, )
+    element = './/%swaypoints' % (namespace,)
     waypoint_list = patrol_tree.findall(element)
     if len(waypoint_list) == 0:
         # raise IOError('There are no observations (waypoints) in this
         # Patrol XML file: %r' % (xml_path, ))
-        print('There are no observations (waypoints) in this Patrol XML file: %r' %
-              (xml_path, ))
+        print(
+            'There are no observations (waypoints) in this Patrol XML file: %r'
+            % (xml_path,)
+        )
     for waypoint in waypoint_list:
         # Get the relevant information about the waypoint
-        waypoint_id   = int(waypoint.get('id'))
-        waypoint_lat  = float(waypoint.get('y'))
-        waypoint_lon  = float(waypoint.get('x'))
+        waypoint_id = int(waypoint.get('id'))
+        waypoint_lat = float(waypoint.get('y'))
+        waypoint_lon = float(waypoint.get('x'))
         waypoint_time = waypoint.get('time')
         waypoint_info = [
             xml_name,
@@ -5784,11 +6125,11 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
         ]
         if None in waypoint_info:
             raise IOError(
-                'The observation (waypoint) is missing information: %r' %
-                (waypoint_info, ))
+                'The observation (waypoint) is missing information: %r' % (waypoint_info,)
+            )
         # Get all of the waypoint's observations (we expect only one
         # normally)
-        element = './/%sobservations' % (namespace, )
+        element = './/%sobservations' % (namespace,)
         observation_list = waypoint.findall(element)
         # if len(observation_list) == 0:
         #     raise IOError('There are no observations in this waypoint,
@@ -5797,62 +6138,77 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
             # Filter the observations based on type, we only care
             # about certain types
             categoryKey = observation.attrib['categoryKey']
-            if (categoryKey.startswith('animals.liveanimals') or
-                  categoryKey.startswith('animals.problemanimal')):
+            if categoryKey.startswith('animals.liveanimals') or categoryKey.startswith(
+                'animals.problemanimal'
+            ):
                 # Get the photonumber attribute for the waypoint's
                 # observation
-                element = './/%sattributes[@attributeKey="photonumber"]' % (
-                    namespace, )
+                element = './/%sattributes[@attributeKey="photonumber"]' % (namespace,)
                 photonumber = observation.find(element)
                 if photonumber is not None:
-                    element = './/%ssValue' % (namespace, )
+                    element = './/%ssValue' % (namespace,)
                     # Get the value for photonumber
-                    sValue  = photonumber.find(element)
+                    sValue = photonumber.find(element)
                     if sValue is None:
                         raise IOError(
-                            ('The photonumber sValue is missing from '
-                             'photonumber, waypoint_id: %r') %
-                            (waypoint_id, ))
+                            (
+                                'The photonumber sValue is missing from '
+                                'photonumber, waypoint_id: %r'
+                            )
+                            % (waypoint_id,)
+                        )
                     # Python cast the value
                     try:
                         photo_number = int(float(sValue.text)) - offset
                     except ValueError:
                         # raise IOError('The photonumber sValue is invalid,
                         # waypoint_id: %r' % (waypoint_id, ))
-                        print(('[ibs]     '
-                               'Skipped Invalid Observation with '
-                               'photonumber: %r, waypoint_id: %r')
-                              % (sValue.text, waypoint_id, ))
+                        print(
+                            (
+                                '[ibs]     '
+                                'Skipped Invalid Observation with '
+                                'photonumber: %r, waypoint_id: %r'
+                            )
+                            % (sValue.text, waypoint_id,)
+                        )
                         continue
                     # Check that the photo_number is within the acceptable bounds
                     if photo_number >= nTotal:
                         raise IOError(
                             'The Patrol XML file is looking for images '
-                            'that do not exist (too few images given)')
+                            'that do not exist (too few images given)'
+                        )
                     # Keep track of the last waypoint that was processed
                     # becuase we only have photono, which indicates start
                     # indices and doesn't specify the end index.  The
                     # ending index is extracted as the next waypoint's
                     # photonum minus 1.
-                    if (last_photo_number is not None and
-                         last_imageset_info is not None):
-                        imageset_info = (
-                            last_imageset_info + [(last_photo_number,
-                                                    photo_number)])
+                    if last_photo_number is not None and last_imageset_info is not None:
+                        imageset_info = last_imageset_info + [
+                            (last_photo_number, photo_number)
+                        ]
                         imageset_info_list.append(imageset_info)
                     last_photo_number = photo_number
                     last_imageset_info = waypoint_info
                 else:
                     # raise IOError('The photonumber value is missing from
                     # waypoint, waypoint_id: %r' % (waypoint_id, ))
-                    print(('[ibs]     Skipped Empty Observation with'
-                           '"categoryKey": %r, waypoint_id: %r') %
-                          (categoryKey, waypoint_id, ))
+                    print(
+                        (
+                            '[ibs]     Skipped Empty Observation with'
+                            '"categoryKey": %r, waypoint_id: %r'
+                        )
+                        % (categoryKey, waypoint_id,)
+                    )
             else:
-                print(('[ibs]     '
-                       'Skipped Incompatible Observation with '
-                       '"categoryKey": %r, waypoint_id: %r') %
-                      (categoryKey, waypoint_id, ))
+                print(
+                    (
+                        '[ibs]     '
+                        'Skipped Incompatible Observation with '
+                        '"categoryKey": %r, waypoint_id: %r'
+                    )
+                    % (categoryKey, waypoint_id,)
+                )
     # Append the last photo_number
     if last_photo_number is not None and last_imageset_info is not None:
         imageset_info = last_imageset_info + [(last_photo_number, nTotal)]
@@ -5868,35 +6224,39 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
     ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
     # Process the XML File
-    print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path, ))
+    print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path,))
     try:
         imageset_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
     except Exception as e:
         ibs.delete_images(gid_list)
-        print(('[ibs] ERROR: Parsing Patrol XML file failed, '
-               'rolling back by deleting %d images...') %
-              (len(gid_list, )))
+        print(
+            (
+                '[ibs] ERROR: Parsing Patrol XML file failed, '
+                'rolling back by deleting %d images...'
+            )
+            % (len(gid_list,))
+        )
         raise e
     if len(gid_list) > 0:
         # Sanity check
         assert len(imageset_info_list) > 0, (
-            ('Trying to added %d images, but the Patrol  '
-             'XML file has no observations') % (len(gid_list), ))
+            'Trying to added %d images, but the Patrol  ' 'XML file has no observations'
+        ) % (len(gid_list),)
     # Display the patrol imagesets
     for index, imageset_info in enumerate(imageset_info_list):
         smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = imageset_info
         start, end = range_
         gid_list_ = gid_list[start:end]
-        print('[ibs]     Found Patrol ImageSet: %r' % (imageset_info, ))
-        print('[ibs]         GIDs: %r' % (gid_list_, ))
+        print('[ibs]     Found Patrol ImageSet: %r' % (imageset_info,))
+        print('[ibs]         GIDs: %r' % (gid_list_,))
         if len(gid_list_) == 0:
             print('[ibs]         SKIPPING EMPTY IMAGESET')
             continue
         # Add the GPS data to the images
-        gps_list  = [gps] * len(gid_list_)
+        gps_list = [gps] * len(gid_list_)
         ibs.set_image_gps(gid_list_, gps_list)
         # Create a new imageset
-        imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )
+        imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1,)
         imgsetid = ibs.add_imagesets(imagesettext)
         # Add images to the imagesets
         imgsetid_list = [imgsetid] * len(gid_list_)
@@ -5948,13 +6308,15 @@ def compute_occurrences(ibs, config=None):
         >>> assert(images_to_remove[0] not in ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0])
     """
     from wbia.algo.preproc import preproc_occurrence
+
     print('[ibs] Computing and adding imagesets.')
     # Only ungrouped images are clustered
     gid_list = ibs.get_ungrouped_gids()
-    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+    # gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
-            ibs, gid_list, config=config)
+            ibs, gid_list, config=config
+        )
         sortx = ut.argsort(flat_imgsetids)
         flat_imgsetids = ut.take(flat_imgsetids, sortx)
         flat_gids = ut.take(flat_gids, sortx)
@@ -5964,10 +6326,10 @@ def compute_occurrences(ibs, config=None):
 
     # This way we can make sure that manually separated imagesets
     # remain untouched, and ensure that new imagesets are created
-    flat_imgsetids_offset = [imgsetid + imgsetid_offset
-                             for imgsetid in flat_imgsetids]
-    imagesettext_list = ['Occurrence ' + str(imgsetid)
-                         for imgsetid in flat_imgsetids_offset]
+    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
+    imagesettext_list = [
+        'Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset
+    ]
     print('[ibs] Finished computing, about to add imageset.')
     ibs.set_image_imagesettext(flat_gids, imagesettext_list)
     # HACK TO UPDATE IMAGESET POSIX TIMES
@@ -5985,39 +6347,37 @@ def compute_ggr_path_dict(ibs):
 
     # ADD ZONES
     point_dict = {
-        1  : [-0.829843, 35.732721],
-        2  : [-0.829843, 37.165353],
-        3  : [-0.829843, 38.566150],
-        4  : [ 0.405015, 37.165353],
-        5  : [ 0.405015, 38.566150],
-        6  : [ 1.292767, 35.732721],
-        7  : [ 1.292767, 36.701444],
-        8  : [ 1.292767, 37.029463],
-        9  : [ 1.292767, 37.415937],
-        10 : [ 1.292767, 38.566150],
-        11 : [ 2.641838, 35.732721],
-        12 : [ 2.641838, 37.029463],
-        13 : [ 2.641838, 37.415937],
-        14 : [ 2.641838, 38.566150],
+        1: [-0.829843, 35.732721],
+        2: [-0.829843, 37.165353],
+        3: [-0.829843, 38.566150],
+        4: [0.405015, 37.165353],
+        5: [0.405015, 38.566150],
+        6: [1.292767, 35.732721],
+        7: [1.292767, 36.701444],
+        8: [1.292767, 37.029463],
+        9: [1.292767, 37.415937],
+        10: [1.292767, 38.566150],
+        11: [2.641838, 35.732721],
+        12: [2.641838, 37.029463],
+        13: [2.641838, 37.415937],
+        14: [2.641838, 38.566150],
     }
 
     zone_dict = {
-        '1' : [1, 2, 4, 7, 6],
-        '2' : [2, 3, 5, 4],
-        '3' : [4, 5, 10, 7],
-        '4' : [6, 8, 12, 11],
-        '5' : [8, 9, 13, 12],
-        '6' : [9, 10, 14, 13],
-        'North' : [6, 10, 14, 11],
-        'Core' : [1, 3, 14, 11],
+        '1': [1, 2, 4, 7, 6],
+        '2': [2, 3, 5, 4],
+        '3': [4, 5, 10, 7],
+        '4': [6, 8, 12, 11],
+        '5': [8, 9, 13, 12],
+        '6': [9, 10, 14, 13],
+        'North': [6, 10, 14, 11],
+        'Core': [1, 3, 14, 11],
     }
 
     for zone in zone_dict:
-        point_list = [ point_dict[vertex] for vertex in zone_dict[zone] ]
-        name = 'Zone %s' % (zone, )
-        path_dict[name] = Path(np.array(
-            point_list
-        ))
+        point_list = [point_dict[vertex] for vertex in zone_dict[zone]]
+        name = 'Zone %s' % (zone,)
+        path_dict[name] = Path(np.array(point_list))
 
     # ADD COUNTIES
     name_list = [
@@ -6036,11 +6396,9 @@ def compute_ggr_path_dict(ibs):
         if name not in name_list:
             continue
         point_list = shape.points
-        point_list = [ list(point)[::-1] for point in point_list ]
-        name = 'County %s' % (name, )
-        path_dict[name] = Path(np.array(
-            point_list
-        ))
+        point_list = [list(point)[::-1] for point in point_list]
+        name = 'County %s' % (name,)
+        path_dict[name] = Path(np.array(point_list))
 
     # ADD LAND TENURES
     land_tenure_file_url = 'https://wildbookiarepository.azureedge.net/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
@@ -6052,18 +6410,17 @@ def compute_ggr_path_dict(ibs):
         if len(name) == 0:
             continue
         point_list = shape.points
-        point_list = [ list(point)[::-1] for point in point_list ]
-        name = 'Land Tenure %s' % (name, )
-        path_dict[name] = Path(np.array(
-            point_list
-        ))
+        point_list = [list(point)[::-1] for point in point_list]
+        name = 'Land Tenure %s' % (name,)
+        path_dict[name] = Path(np.array(point_list))
 
     return path_dict
 
 
 @register_ibs_method
-def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
-                          purge_all_old=False):
+def compute_ggr_imagesets(
+    ibs, gid_list=None, min_diff=86400, individual=False, purge_all_old=False
+):
 
     if purge_all_old:
         imageset_rowid_list_all = ibs.get_valid_imgsetids()
@@ -6081,7 +6438,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
     # GET DATA
     path_dict = ibs.compute_ggr_path_dict()
     zone_list = sorted(path_dict.keys()) + ['Zone 7']
-    imageset_dict = { zone : [] for zone in zone_list }
+    imageset_dict = {zone: [] for zone in zone_list}
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -6089,72 +6446,65 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
     gps_list = ibs.get_image_gps(gid_list)
     note_list = ibs.get_image_notes(gid_list)
     temp = -1 if individual else -2
-    note_list_ = [
-        ','.join(note.strip().split(',')[:temp])
-        for note in note_list
-    ]
-    note_list = [
-        ','.join(note.strip().split(',')[:-1])
-        for note in note_list
-    ]
+    note_list_ = [','.join(note.strip().split(',')[:temp]) for note in note_list]
+    note_list = [','.join(note.strip().split(',')[:-1]) for note in note_list]
 
     special_zone_map = {  # NOQA
-        'GGR,3,A'   : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,8,A'   : 'Zone 3,County Isiolo,Zone Core',
-        'GGR,10,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,13,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,14,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,15,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,19,A'  : 'Zone 2,County Samburu,Zone Core',
-        'GGR,23,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,24,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,25,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,27,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,29,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,37,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,37,B'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,38,C'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,40,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,41,B'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,44,A'  : None,
-        'GGR,45,A'  : 'Zone 2,County Isiolo,Zone Core',
-        'GGR,46,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,62,B'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,86,A'  : 'Zone 3,County Isiolo,Zone Core',
-        'GGR,96,A'  : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,97,B'  : 'Zone 2,County Samburu,Zone Core',
-        'GGR,108,A' : 'Zone 1,County Laikipia,Zone Core',
-        'GGR,118,C' : 'Zone 6,Zone North,County Marsabit,Zone Core',
-
-        'GGR2,8,D'   : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,39,A'  : 'Zone 1,County Laikipia,Zone Core,Land Tenure Colcheccio - Franscombe',
-        'GGR2,40,A'  : 'Zone 2,County Samburu,Zone Core,Land Tenure Kalama',
-        'GGR2,54,B'  : 'Zone 3,County Isiolo,Zone Core,Land Tenure Nasuulu',
-        'GGR2,92,D'  : 'Zone 2,County Samburu,Zone Core,Land Tenure Westgate',
-        'GGR2,94,C'  : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mukogodo',
-        'GGR2,103,A' : None,
-        'GGR2,106,A' : None,
-        'GGR2,107,A' : None,
-        'GGR2,107,B' : None,
-        'GGR2,126,B' : 'Zone 1,County Laikipia,Zone Core',
-        'GGR2,126,C' : 'Zone 1,County Laikipia,Zone Core',
-        'GGR2,137,B' : 'Zone 2,County Samburu,Zone Core,Land Tenure Sera',
-        'GGR2,160,E' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,192,A' : 'County Laikipia,Zone Core,Land Tenure Melako',
-        'GGR2,200,B' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,200,F' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,201,E' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,201,F' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,210,A' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mugie',
-        'GGR2,220,A' : None,
-        'GGR2,222,B' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Ol Jogi',
-        'GGR2,224,A' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,224,B' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
-        'GGR2,225,A' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Ol Jogi',
-        'GGR2,230,A' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Elkarama',
-        'GGR2,230,C' : 'Zone 1,County Laikipia,Zone Core,Land Tenure Elkarama',
-        'GGR2,231,B' : None,
-        'GGR2,232,B' : None,
+        'GGR,3,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,8,A': 'Zone 3,County Isiolo,Zone Core',
+        'GGR,10,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,13,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,14,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,15,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,19,A': 'Zone 2,County Samburu,Zone Core',
+        'GGR,23,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,24,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,25,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,27,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,29,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,37,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,37,B': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,38,C': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,40,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,41,B': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,44,A': None,
+        'GGR,45,A': 'Zone 2,County Isiolo,Zone Core',
+        'GGR,46,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,62,B': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,86,A': 'Zone 3,County Isiolo,Zone Core',
+        'GGR,96,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,97,B': 'Zone 2,County Samburu,Zone Core',
+        'GGR,108,A': 'Zone 1,County Laikipia,Zone Core',
+        'GGR,118,C': 'Zone 6,Zone North,County Marsabit,Zone Core',
+        'GGR2,8,D': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,39,A': 'Zone 1,County Laikipia,Zone Core,Land Tenure Colcheccio - Franscombe',
+        'GGR2,40,A': 'Zone 2,County Samburu,Zone Core,Land Tenure Kalama',
+        'GGR2,54,B': 'Zone 3,County Isiolo,Zone Core,Land Tenure Nasuulu',
+        'GGR2,92,D': 'Zone 2,County Samburu,Zone Core,Land Tenure Westgate',
+        'GGR2,94,C': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mukogodo',
+        'GGR2,103,A': None,
+        'GGR2,106,A': None,
+        'GGR2,107,A': None,
+        'GGR2,107,B': None,
+        'GGR2,126,B': 'Zone 1,County Laikipia,Zone Core',
+        'GGR2,126,C': 'Zone 1,County Laikipia,Zone Core',
+        'GGR2,137,B': 'Zone 2,County Samburu,Zone Core,Land Tenure Sera',
+        'GGR2,160,E': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,192,A': 'County Laikipia,Zone Core,Land Tenure Melako',
+        'GGR2,200,B': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,200,F': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,201,E': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,201,F': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,210,A': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mugie',
+        'GGR2,220,A': None,
+        'GGR2,222,B': 'Zone 1,County Laikipia,Zone Core,Land Tenure Ol Jogi',
+        'GGR2,224,A': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,224,B': 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
+        'GGR2,225,A': 'Zone 1,County Laikipia,Zone Core,Land Tenure Ol Jogi',
+        'GGR2,230,A': 'Zone 1,County Laikipia,Zone Core,Land Tenure Elkarama',
+        'GGR2,230,C': 'Zone 1,County Laikipia,Zone Core,Land Tenure Elkarama',
+        'GGR2,231,B': None,
+        'GGR2,232,B': None,
     }
 
     skipped_gid_list = []
@@ -6174,12 +6524,12 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
 
             # Get valid GPS
             gps_list = ibs.get_image_gps(sibling_gid_list)
-            flag_list = [ gps != (-1, -1) for gps in gps_list ]
-            gid_list_  = ut.compress(sibling_gid_list, flag_list)
+            flag_list = [gps != (-1, -1) for gps in gps_list]
+            gid_list_ = ut.compress(sibling_gid_list, flag_list)
 
             # If found, get closest image
             if len(gid_list_) > 0:
-                gps_list_  = ibs.get_image_gps(gid_list_)
+                gps_list_ = ibs.get_image_gps(gid_list_)
                 unixtime_list_ = ibs.get_image_unixtime(gid_list_)
                 # Find closest
                 closest_diff, closest_gps = np.inf, None
@@ -6219,18 +6569,22 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
 
     imageset_id_list = []
     for zone, gid_list in sorted(imageset_dict.items()):
-        imageset_str = 'GGR Special Zone - %s' % (zone, )
+        imageset_str = 'GGR Special Zone - %s' % (zone,)
         imageset_id = ibs.add_imagesets(imageset_str)
         imageset_id_list.append(imageset_id)
-        args = (imageset_str, imageset_id, len(gid_list), )
+        args = (
+            imageset_str,
+            imageset_id,
+            len(gid_list),
+        )
         print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
 
-    print('SKIPPED %d IMAGES' % (skipped, ))
+    print('SKIPPED %d IMAGES' % (skipped,))
     skipped_note_list = sorted(list(set(skipped_note_list)))
-    print('skipped_note_list = %r' % (skipped_note_list, ))
-    print('skipped_gid_list = %r' % (skipped_gid_list, ))
+    print('skipped_note_list = %r' % (skipped_note_list,))
+    print('skipped_gid_list = %r' % (skipped_gid_list,))
 
     return imageset_id_list, skipped_note_list, skipped_gid_list
 
@@ -6241,12 +6595,12 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
     gps_list = ibs.get_annot_image_gps(aid_list)
-    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    flag_list = [gps == (-1, -1) for gps in gps_list]
     # Get bad GPS aids
     aid_list = ut.filter_items(aid_list, flag_list)
     num_bad = len(aid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    flag_list = [ nid != const.UNKNOWN_NAME_ROWID for nid in nid_list ]
+    flag_list = [nid != const.UNKNOWN_NAME_ROWID for nid in nid_list]
     # Get KNOWN and bad GPS aids
     aid_list = ut.filter_items(aid_list, flag_list)
     num_known = len(aid_list)
@@ -6282,19 +6636,21 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             m = closest_diff // 60
             closest_diff %= 60
             s = closest_diff
-            print('FOUND LOCATION FOR AID %d' % (aid, ))
-            print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
-            print('\tNEW GPS: %s' % (closest_gps, ))
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
+            print('FOUND LOCATION FOR AID %d' % (aid,))
+            print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+            print('\tNEW GPS: %s' % (closest_gps,))
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
 @register_ibs_method
-def parse_ggr_name(ibs, imageset_text, verbose=False, allow_short=False, require_short=False):
+def parse_ggr_name(
+    ibs, imageset_text, verbose=False, allow_short=False, require_short=False
+):
     imageset_text = imageset_text.strip()
 
     if verbose:
-        print('Processing %r' % (imageset_text, ))
+        print('Processing %r' % (imageset_text,))
 
     imageset_text_ = imageset_text.split(',')
 
@@ -6323,14 +6679,16 @@ def parse_ggr_name(ibs, imageset_text, verbose=False, allow_short=False, require
         return None
 
     if verbose:
-        print('\tDataset: %r' % (dataset, ))
-        print('\tLetter : %r' % (letter, ))
-        print('\tNumber : %r' % (number, ))
+        print('\tDataset: %r' % (dataset,))
+        print('\tLetter : %r' % (letter,))
+        print('\tNumber : %r' % (number,))
 
     return dataset, letter, number
 
 
-def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, filepath_list, note_list, timeout):
+def search_ggr_qr_codes_worker(
+    imageset_rowid, imageset_text, values, gid_list, filepath_list, note_list, timeout
+):
     import pyzbar.pyzbar as pyzbar
     import cv2
 
@@ -6341,7 +6699,9 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
 
     ret_list = []
     match = False
-    for index, (gid, filepath, note) in enumerate(zip(gid_list, filepath_list, note_list)):
+    for index, (gid, filepath, note) in enumerate(
+        zip(gid_list, filepath_list, note_list)
+    ):
         if timeout is not None and index > timeout:
             print('\tTimeout exceeded')
             break
@@ -6350,7 +6710,7 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
             print('\tMatch was found')
             break
 
-        print('\tProcessing %r (%s)' % (filepath, note, ))
+        print('\tProcessing %r (%s)' % (filepath, note,))
 
         image = cv2.imread(filepath, 0)
         qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
@@ -6364,11 +6724,11 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
                 data = data.split('/')[-1].strip('?')
                 data = data.split('&')
                 data = sorted(data)
-                print('\t\t%r' % (data, ))
+                print('\t\t%r' % (data,))
 
-                assert data[0] == 'car=%d' % (number, )
+                assert data[0] == 'car=%d' % (number,)
                 assert data[1] == 'event=ggr2018'
-                assert data[2] == 'person=%s' % (letter.lower(), )
+                assert data[2] == 'person=%s' % (letter.lower(),)
 
                 match = True
                 print('\t\tPassed!')
@@ -6376,7 +6736,12 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
                 pass
                 print('\t\tFailed!')
 
-            ret = (imageset_text, gid, match, data, )
+            ret = (
+                imageset_text,
+                gid,
+                match,
+                data,
+            )
             ret_list.append(ret)
 
     return imageset_rowid, ret_list
@@ -6431,32 +6796,27 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=None, **kwargs):
 
     imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
     values_list = [
-        ibs.parse_ggr_name(imageset_text)
-        for imageset_text in imageset_text_list
+        ibs.parse_ggr_name(imageset_text) for imageset_text in imageset_text_list
     ]
     gids_list = [
         sorted(ibs.get_imageset_gids(imageset_rowid))
         for imageset_rowid in imageset_rowid_list
     ]
-    filepaths_list = [
-        ibs.get_image_paths(gid_list)
-        for gid_list in gids_list
-    ]
-    notes_list = [
-        ibs.get_image_notes(gid_list)
-        for gid_list in gids_list
-    ]
+    filepaths_list = [ibs.get_image_paths(gid_list) for gid_list in gids_list]
+    notes_list = [ibs.get_image_notes(gid_list) for gid_list in gids_list]
     timeouts_list = [timeout] * len(imageset_rowid_list)
 
-    arg_iter = list(zip(
-        imageset_rowid_list,
-        imageset_text_list,
-        values_list,
-        gids_list,
-        filepaths_list,
-        notes_list,
-        timeouts_list
-    ))
+    arg_iter = list(
+        zip(
+            imageset_rowid_list,
+            imageset_text_list,
+            values_list,
+            gids_list,
+            filepaths_list,
+            notes_list,
+            timeouts_list,
+        )
+    )
     result_list = ut.util_parallel.generate2(search_ggr_qr_codes_worker, arg_iter)
     result_list = list(result_list)
 
@@ -6472,86 +6832,86 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=None, **kwargs):
 def fix_ggr_qr_codes(ibs, imageset_qr_dict):
 
     qr_fix_dict = {
-        '5B'   : 1179,
-        '6A'   : 1359,
-        '8B'   : 2886,
-        '8C'   : 3072,
-        '8D'   : 3843,
-        '9A'   : 4128,
-        '14B'  : 4599,
-        '21A'  : 5027,
-        '21B'  : 5228,
-        '25A'  : 6291,
-        '26A'  : 6467,
-        '26B'  : 6655,
-        '27B'  : 8587,  # Three separate GPS records, using most prevalent
-        '33B'  : 10168,
-        '40A'  : 11189,
-        '42A'  : 13350,
-        '45B'  : 14338,
-        '45D'  : 14670,
-        '45E'  : 15217,
-        '49A'  : 16483,
-        '54A'  : 16815,
-        '54B'  : 18018,
-        '56A'  : 18204,
-        '59A'  : 18369,
-        '63B'  : 19465,
-        '76A'  : 21858,
-        '76B'  : 22233,
-        '76C'  : 22410,
-        '78A'  : 22734,
-        '82D'  : 24683,
-        '85B'  : 25746,
-        '87A'  : 26274,
-        '90A'  : 27221,
-        '91A'  : 27287,
-        '92C'  : 28700,
-        '92D'  : 29216,
-        '94A'  : 29632,
-        '94B'  : 30659,
-        '95A'  : 31961,
-        '100A' : 32224,
-        '100B' : 32615,
-        '100C' : 33034,
-        '100E' : 33688,
-        '108B' : 34524,
-        '114A' : 34963,
-        '115A' : 34969,
-        '116A' : 35569,
-        '122A' : 35737,
-        '122B' : 36134,
-        '126B' : 37333,
-        '126D' : 37791,
-        '130A' : 37877,
-        '133A' : 38113,
-        '136A' : 38184,
-        '136B' : 38462,
-        '137A' : 38548,
-        '137B' : 38559,
-        '137C' : 38831,
-        '138A' : 38919,
-        '138B' : 39124,
-        '149A' : 41079,
-        '155A' : 41886,
-        '159A' : 43129,
-        '160E' : 46284,
-        '160F' : 46823,
-        '163B' : 49228,
-        '163C' : 49544,
-        '164A' : 49730,
-        '169C' : 50387,
-        '189A' : 50961,
-        '190A' : 51382,
-        '191A' : 51626,
-        '192A' : 51843,
-        '201E' : 52494,
-        '202B' : 52525,
-        '222A' : 52907,
-        '222B' : 54182,
-        '223B' : 55114,
-        '225A' : 55968,
-        '226A' : 56005,
+        '5B': 1179,
+        '6A': 1359,
+        '8B': 2886,
+        '8C': 3072,
+        '8D': 3843,
+        '9A': 4128,
+        '14B': 4599,
+        '21A': 5027,
+        '21B': 5228,
+        '25A': 6291,
+        '26A': 6467,
+        '26B': 6655,
+        '27B': 8587,  # Three separate GPS records, using most prevalent
+        '33B': 10168,
+        '40A': 11189,
+        '42A': 13350,
+        '45B': 14338,
+        '45D': 14670,
+        '45E': 15217,
+        '49A': 16483,
+        '54A': 16815,
+        '54B': 18018,
+        '56A': 18204,
+        '59A': 18369,
+        '63B': 19465,
+        '76A': 21858,
+        '76B': 22233,
+        '76C': 22410,
+        '78A': 22734,
+        '82D': 24683,
+        '85B': 25746,
+        '87A': 26274,
+        '90A': 27221,
+        '91A': 27287,
+        '92C': 28700,
+        '92D': 29216,
+        '94A': 29632,
+        '94B': 30659,
+        '95A': 31961,
+        '100A': 32224,
+        '100B': 32615,
+        '100C': 33034,
+        '100E': 33688,
+        '108B': 34524,
+        '114A': 34963,
+        '115A': 34969,
+        '116A': 35569,
+        '122A': 35737,
+        '122B': 36134,
+        '126B': 37333,
+        '126D': 37791,
+        '130A': 37877,
+        '133A': 38113,
+        '136A': 38184,
+        '136B': 38462,
+        '137A': 38548,
+        '137B': 38559,
+        '137C': 38831,
+        '138A': 38919,
+        '138B': 39124,
+        '149A': 41079,
+        '155A': 41886,
+        '159A': 43129,
+        '160E': 46284,
+        '160F': 46823,
+        '163B': 49228,
+        '163C': 49544,
+        '164A': 49730,
+        '169C': 50387,
+        '189A': 50961,
+        '190A': 51382,
+        '191A': 51626,
+        '192A': 51843,
+        '201E': 52494,
+        '202B': 52525,
+        '222A': 52907,
+        '222B': 54182,
+        '223B': 55114,
+        '225A': 55968,
+        '226A': 56005,
     }
 
     for ggr_name in qr_fix_dict:
@@ -6562,7 +6922,7 @@ def fix_ggr_qr_codes(ibs, imageset_qr_dict):
         number = int(number)
         assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
 
-        imageset_name = 'GGR2,%d,%s' % (number, letter, )
+        imageset_name = 'GGR2,%d,%s' % (number, letter,)
         imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_name)
         gid_list = ibs.get_imageset_gids(imageset_id)
         assert qr_gid in gid_list
@@ -6581,11 +6941,7 @@ def fix_ggr_qr_codes(ibs, imageset_qr_dict):
             imageset_name,
             qr_gid,
             True,
-            [
-                'car=%s' % (number, ),
-                'event=ggr2018',
-                'person=%s' % (letter.lower(), ),
-            ],
+            ['car=%s' % (number,), 'event=ggr2018', 'person=%s' % (letter.lower(),),],
         ]
         imageset_list_.append(imageset)
 
@@ -6646,9 +7002,9 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         )
 
     cleared_imageset_rowid_list = [
-        2,    # NO QR AT ALL
-        63,   # INDIVIDUAL WITH NO QR (BUT HAS GPS)
-        77,   # INDIVIDUAL WITH NO QR (BUT HAS GPS)
+        2,  # NO QR AT ALL
+        63,  # INDIVIDUAL WITH NO QR (BUT HAS GPS)
+        77,  # INDIVIDUAL WITH NO QR (BUT HAS GPS)
         107,  # NO QR AT ALL
         185,  # INDIVIDUAL WITH NO QR (BUT HAS GPS)
         216,  # NO QR AT ALL
@@ -6663,7 +7019,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         letter_list = sorted(list(qr_dict.keys()))
         num_letters = len(letter_list)
         if num_letters == 0:
-            print('Empty car: %r' % (number, ))
+            print('Empty car: %r' % (number,))
             break
         elif num_letters == 1:
             letter = letter_list[0]
@@ -6672,11 +7028,14 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             match_gid = None
 
             if letter != 'A':
-                print('Individual car missing A: %r (%r)' % (number, letter, ))
+                print('Individual car missing A: %r (%r)' % (number, letter,))
                 match_gid = None
 
             if len(qr_list) == 0:
-                print('Individual car missing QR: %r %r (imageset_rowid = %r)' % (number, letter, imageset_rowid, ))
+                print(
+                    'Individual car missing QR: %r %r (imageset_rowid = %r)'
+                    % (number, letter, imageset_rowid,)
+                )
             else:
                 for qr in qr_list:
                     if qr[2]:
@@ -6684,11 +7043,14 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         break
 
                 if match_gid in [None, -1]:
-                    print('Individual car incorrect QR: %r %r (imageset_rowid = %r)' % (number, letter, imageset_rowid, ))
-                    print('\t%r' % (qr_list, ))
+                    print(
+                        'Individual car incorrect QR: %r %r (imageset_rowid = %r)'
+                        % (number, letter, imageset_rowid,)
+                    )
+                    print('\t%r' % (qr_list,))
 
             if imageset_rowid in cleared_imageset_rowid_list:
-                print('\tCleared Imageset: %d %r' % (number, letter, ))
+                print('\tCleared Imageset: %d %r' % (number, letter,))
 
             sync_dict[imageset_rowid] = match_gid
         else:
@@ -6715,19 +7077,25 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         failed_list.append((letter, imageset_rowid))
 
                 if imageset_rowid in cleared_imageset_rowid_list:
-                    print('\tCleared Imageset: %d %r' % (number, letter, ))
+                    print('\tCleared Imageset: %d %r' % (number, letter,))
 
                 sync_dict[imageset_rowid] = match_gid
 
             if len(missing_list) > 0:
-                print('Group car missing QR: %r (%r)' % (number, letter_list, ))
+                print('Group car missing QR: %r (%r)' % (number, letter_list,))
                 for missing, imageset_rowid in missing_list:
-                    print('\tNo QR for %r %r (imageset_rowid = %r)' % (number, missing, imageset_rowid, ))
+                    print(
+                        '\tNo QR for %r %r (imageset_rowid = %r)'
+                        % (number, missing, imageset_rowid,)
+                    )
 
             if len(failed_list) > 0:
-                print('Group car incorrect QR: %r (%r)' % (number, letter_list, ))
+                print('Group car incorrect QR: %r (%r)' % (number, letter_list,))
                 for failed, imageset_rowid in failed_list:
-                    print('\tBad QR for %r %r (imageset_rowid = %r)' % (number, failed, imageset_rowid, ))
+                    print(
+                        '\tBad QR for %r %r (imageset_rowid = %r)'
+                        % (number, failed, imageset_rowid,)
+                    )
 
     filename_qr_json = join(ibs.dbdir, 'imageset_qr_dict.final.json')
     ut.save_json(filename_qr_json, imageset_qr_dict)
@@ -6781,6 +7149,7 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
 
 def overwrite_unixtimes_from_gps_worker(path):
     from vtool.exif import parse_exif_unixtime_gps
+
     unixtime_gps = parse_exif_unixtime_gps(path)
     return unixtime_gps
 
@@ -6809,8 +7178,9 @@ def overwrite_unixtimes_from_gps(ibs, gid_list, gmt_offset=3.0):
     path_list = ibs.get_image_paths(gid_list)
     arg_iter = list(zip(path_list))
     unixtime_gps_list = list(
-        ut.util_parallel.generate2(overwrite_unixtimes_from_gps_worker, arg_iter,
-                                   ordered=True)
+        ut.util_parallel.generate2(
+            overwrite_unixtimes_from_gps_worker, arg_iter, ordered=True
+        )
     )
     unixtime_list = ibs.get_image_unixtime(gid_list)
 
@@ -6855,7 +7225,9 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
     """
     import datetime
 
-    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 24)))
+    lower_posix = ut.datetime_to_posixtime(
+        ut.date_to_datetime(datetime.date(2018, 1, 24))
+    )
     upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 2, 1)))
 
     lower_posix += local_offset * 60 * 60
@@ -6914,7 +7286,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             continue
 
         if qr_gid is None:
-            print('Skipping None QR %r' % (values, ))
+            print('Skipping None QR %r' % (values,))
             continue
 
         assert qr_gid in gid_list
@@ -6923,7 +7295,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
         assert anchor_gid != qr_gid
 
         if anchor_gid is None:
-            print('Skipping None Anchor %r' % (values, ))
+            print('Skipping None Anchor %r' % (values,))
             continue
 
         qr_time = ibs.get_image_unixtime(qr_gid)
@@ -6933,7 +7305,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             current_offset = ibs.get_image_timedelta_posix([qr_gid])[0]
             offset += current_offset
             ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
-            print('Correcting offset for %r: %d' % (values, offset, ))
+            print('Correcting offset for %r: %d' % (values, offset,))
 
         try:
             qr_time = ibs.get_image_unixtime(qr_gid)
@@ -6941,7 +7313,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             offset = anchor_time - qr_time
             assert offset == 0
         except AssertionError:
-            print('\tFailed to correct offset for %r: %d ' % (values, offset, ))
+            print('\tFailed to correct offset for %r: %d ' % (values, offset,))
 
         if imageset_rowid not in cleared_imageset_rowid_list:
             assert lower_posix <= qr_time and qr_time <= upper_posix
@@ -6963,15 +7335,25 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
 
 
 @register_ibs_method
-def query_ggr_gids_between_dates(ibs, gid_list=None, date1=(2018, 1, 27), date2=(2018, 1, 29),
-                                 local_offset=-8.0, gmt_offset=3.0):
+def query_ggr_gids_between_dates(
+    ibs,
+    gid_list=None,
+    date1=(2018, 1, 27),
+    date2=(2018, 1, 29),
+    local_offset=-8.0,
+    gmt_offset=3.0,
+):
     import datetime
 
     date1y, date1m, date1d = date1
     date2y, date2m, date2d = date2
 
-    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(date1y, date1m, date1d)))
-    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(date2y, date2m, date2d)))
+    lower_posix = ut.datetime_to_posixtime(
+        ut.date_to_datetime(datetime.date(date1y, date1m, date1d))
+    )
+    upper_posix = ut.datetime_to_posixtime(
+        ut.date_to_datetime(datetime.date(date2y, date2m, date2d))
+    )
 
     lower_posix += local_offset * 60 * 60
     upper_posix += local_offset * 60 * 60
@@ -6994,7 +7376,7 @@ def query_ggr_gids_between_dates(ibs, gid_list=None, date1=(2018, 1, 27), date2=
 @register_ibs_method
 def purge_ggr_unixtime_out_of_bounds(ibs, *args, **kwargs):
     delete_gid_list = ibs.sync_ggr_with_qr_codes(ibs, *args, **kwargs)
-    print('Deleting %d gids' % (len(delete_gid_list), ))
+    print('Deleting %d gids' % (len(delete_gid_list),))
     ibs.delete_images(delete_gid_list)
     # ibs.delete_empty_imgsetids()
 
@@ -7005,7 +7387,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
     gid_list = ibs.get_valid_gids()
     num_all = len(gid_list)
     gps_list = ibs.get_image_gps(gid_list)
-    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    flag_list = [gps == (-1, -1) for gps in gps_list]
     # Get bad GPS gids
     gid_list = ut.filter_items(gid_list, flag_list)
     num_bad = len(gid_list)
@@ -7020,10 +7402,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
     gid_list = ibs.get_valid_gids()
     note_list = ibs.get_image_notes(gid_list)
     temp = -1 if individual else -2
-    note_list = [
-        ','.join(note.strip().split(',')[:temp])
-        for note in note_list
-    ]
+    note_list = [','.join(note.strip().split(',')[:temp]) for note in note_list]
 
     not_found = set([])
     num_found = 0
@@ -7034,19 +7413,17 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
 
         # Find siblings in the same car
         sibling_gid_list = [
-            gid_
-            for gid_, note_ in zip(gid_list, note_list)
-            if note_ == note
+            gid_ for gid_, note_ in zip(gid_list, note_list) if note_ == note
         ]
 
         # Get valid GPS
         gps_list = ibs.get_image_gps(sibling_gid_list)
-        flag_list = [ gps != (-1, -1) for gps in gps_list ]
-        gid_list_  = ut.compress(sibling_gid_list, flag_list)
+        flag_list = [gps != (-1, -1) for gps in gps_list]
+        gid_list_ = ut.compress(sibling_gid_list, flag_list)
 
         # If found, get closest image
         if len(gid_list_) > 0:
-            gps_list_  = ibs.get_image_gps(gid_list_)
+            gps_list_ = ibs.get_image_gps(gid_list_)
             unixtime_list_ = ibs.get_image_unixtime(gid_list_)
             # Find closest
             closest_diff, closest_gps = np.inf, None
@@ -7066,20 +7443,20 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 m = closest_diff // 60
                 closest_diff %= 60
                 s = closest_diff
-                print('FOUND LOCATION FOR GID %d' % (gid, ))
-                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
-                print('\tNEW GPS: %s' % (closest_gps, ))
+                print('FOUND LOCATION FOR GID %d' % (gid,))
+                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+                print('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_gid_list)
     num_unrecovered = num_bad - len(recovered_gid_list)
-    print('Missing GPS: %d' % (num_bad, ))
-    print('Recovered  : %d' % (num_recovered, ))
-    print('Unrecovered: %d' % (num_unrecovered, ))
-    print('Not Found  : %r' % (not_found, ))
+    print('Missing GPS: %d' % (num_bad,))
+    print('Recovered  : %d' % (num_recovered,))
+    print('Unrecovered: %d' % (num_unrecovered,))
+    print('Not Found  : %r' % (not_found,))
     return recovered_gid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7089,7 +7466,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
     gps_list = ibs.get_annot_image_gps(aid_list)
-    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    flag_list = [gps == (-1, -1) for gps in gps_list]
     # Get bad GPS aids
     aid_list = ut.filter_items(aid_list, flag_list)
     num_bad = len(aid_list)
@@ -7102,10 +7479,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
     gid_list = ibs.get_valid_gids()
     note_list = ibs.get_image_notes(gid_list)
     temp = -1 if individual else -2
-    note_list = [
-        ','.join(note.strip().split(',')[:temp])
-        for note in note_list
-    ]
+    note_list = [','.join(note.strip().split(',')[:temp]) for note in note_list]
 
     not_found = set([])
     num_found = 0
@@ -7117,19 +7491,17 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
 
         # Find siblings in the same car
         sibling_gid_list = [
-            gid_
-            for gid_, note_ in zip(gid_list, note_list)
-            if note_ == note
+            gid_ for gid_, note_ in zip(gid_list, note_list) if note_ == note
         ]
 
         # Get valid GPS
         gps_list = ibs.get_image_gps(sibling_gid_list)
-        flag_list = [ gps != (-1, -1) for gps in gps_list ]
-        gid_list_  = ut.compress(sibling_gid_list, flag_list)
+        flag_list = [gps != (-1, -1) for gps in gps_list]
+        gid_list_ = ut.compress(sibling_gid_list, flag_list)
 
         # If found, get closest image
         if len(gid_list_) > 0:
-            gps_list_  = ibs.get_image_gps(gid_list_)
+            gps_list_ = ibs.get_image_gps(gid_list_)
             unixtime_list_ = ibs.get_image_unixtime(gid_list_)
             # Find closest
             closest_diff, closest_gps = np.inf, None
@@ -7149,20 +7521,20 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 m = closest_diff // 60
                 closest_diff %= 60
                 s = closest_diff
-                print('FOUND LOCATION FOR AID %d' % (aid, ))
-                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
-                print('\tNEW GPS: %s' % (closest_gps, ))
+                print('FOUND LOCATION FOR AID %d' % (aid,))
+                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+                print('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_aid_list)
     num_unrecovered = num_bad - len(recovered_aid_list)
-    print('Missing GPS: %d' % (num_bad, ))
-    print('Recovered  : %d' % (num_recovered, ))
-    print('Unrecovered: %d' % (num_unrecovered, ))
-    print('Not Found  : %r' % (not_found, ))
+    print('Missing GPS: %d' % (num_bad,))
+    print('Recovered  : %d' % (num_recovered,))
+    print('Unrecovered: %d' % (num_unrecovered,))
+    print('Not Found  : %r' % (not_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7194,7 +7566,9 @@ def commit_ggr_fix_gps(ibs, **kwargs):
     ibs.set_image_gps(assignment_gid_list, assignment_gps_list)
 
 
-def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10):
+def merge_ggr_staged_annots_marriage(
+    ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10
+):
     import itertools
     from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
 
@@ -7234,8 +7608,8 @@ def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, ind
     for marriage_aids in marriage_aid_list:
         aid1, aid2, aid3 = marriage_aids
         assert aid1 in aid_list and aid1 is not None
-        assert aid2 in aid_list or  aid2 is None
-        assert aid3 in aid_list or  aid3 is None
+        assert aid2 in aid_list or aid2 is None
+        assert aid3 in aid_list or aid3 is None
 
         aid_list_ = [aid1, aid2, aid3]
         missing = len(aid_list_) - aid_list_.count(None)
@@ -7272,7 +7646,9 @@ def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, ind
     return segment_list
 
 
-def merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.25):
+def merge_ggr_staged_annots_cluster(
+    ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.25
+):
     from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
     from sklearn import cluster
     from scipy import sparse
@@ -7289,15 +7665,15 @@ def merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict, aid_list, inde
     np.fill_diagonal(connectivity, 0.0)
     # Cannot match against your own reviewer
     for start, finish in index_list:
-        connectivity[start: finish, start: finish] = 0.0
+        connectivity[start:finish, start:finish] = 0.0
     # Ensure that the matrix is symmetric, which it should always be
     connectivity = sparse.csr_matrix(connectivity)
 
     algorithm = cluster.AgglomerativeClustering(
         n_clusters=num_clusters,
-        linkage="average",
-        affinity="cityblock",
-        connectivity=connectivity
+        linkage='average',
+        affinity='cityblock',
+        connectivity=connectivity,
     )
 
     bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -7343,6 +7719,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
         >>> new_aid_list, broken_gid_list = ibs.merge_ggr_staged_annots()
         >>> print('Encountered %d invalid gids: %r' % (len(broken_gid_list), broken_gid_list, ))
     """
+
     def _normalize_confidences(gt_list):
         for index in range(len(gt_list)):
             gt = gt_list[index]
@@ -7370,7 +7747,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
     broken_gid_list = []
     for gid, metadata_dict, aid_list in zipped:
-        print('Processing gid = %r with %d annots' % (gid, len(aid_list), ))
+        print('Processing gid = %r with %d annots' % (gid, len(aid_list),))
         if len(aid_list) < 2:
             continue
 
@@ -7378,10 +7755,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
         sessions = staged.get('sessions', {})
         user_id_list = sessions.get('user_ids', [])
         user_id_list = list(set(user_id_list))
-        user_dict = {
-            user_id: []
-            for user_id in user_id_list
-        }
+        user_dict = {user_id: [] for user_id in user_id_list}
 
         user_id_list = ibs.get_annot_staged_user_ids(aid_list)
 
@@ -7410,13 +7784,23 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
         try:
             if False:
-                segment_list = merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict,
-                                                               aid_list, index_list,
-                                                               min_overlap=min_overlap)
+                segment_list = merge_ggr_staged_annots_cluster(
+                    ibs,
+                    user_id_list,
+                    user_dict,
+                    aid_list,
+                    index_list,
+                    min_overlap=min_overlap,
+                )
             else:
-                segment_list = merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict,
-                                                                aid_list, index_list,
-                                                                min_overlap=min_overlap)
+                segment_list = merge_ggr_staged_annots_marriage(
+                    ibs,
+                    user_id_list,
+                    user_dict,
+                    aid_list,
+                    index_list,
+                    min_overlap=min_overlap,
+                )
         except Exception:
             print('\tInvalid GID')
             broken_gid_list.append(gid)
@@ -7446,8 +7830,8 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
             xtl = sum(xtl_list) / len(xtl_list)
             ytl = sum(ytl_list) / len(ytl_list)
-            w   = sum(w_list)   / len(w_list)
-            h   = sum(h_list)   / len(h_list)
+            w = sum(w_list) / len(w_list)
+            h = sum(h_list) / len(h_list)
             bbox = (xtl, ytl, w, h)
             aoi = aoi_list.count(True)
 
@@ -7458,21 +7842,23 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
             new_bbox_list.append(bbox)
             new_interest_list.append(interest)
 
-        print('\tSegments = %r' % (segment_list, ))
-        print('\tAIDS = %d' % (len(segment_list), ))
+        print('\tSegments = %r' % (segment_list,))
+        print('\tAIDS = %d' % (len(segment_list),))
 
-    print('Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list), ))
+    print('Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list),))
     ibs.delete_annots(existing_aid_list)
-    print('Adding %d new non-staged AIDS' % (len(new_gid_list), ))
-    new_aid_list = ibs.add_annots(new_gid_list, bbox_list=new_bbox_list,
-                                  interest_list=new_interest_list)
+    print('Adding %d new non-staged AIDS' % (len(new_gid_list),))
+    new_aid_list = ibs.add_annots(
+        new_gid_list, bbox_list=new_bbox_list, interest_list=new_interest_list
+    )
 
     return new_aid_list, broken_gid_list
 
 
 @register_ibs_method
-def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
-                         enable_grid=True, verbose=True):
+def check_ggr_valid_aids(
+    ibs, aid_list, species='zebra_grevys', threshold=0.75, enable_grid=True, verbose=True
+):
     num_start = len(aid_list)
 
     # Filter by species
@@ -7493,14 +7879,10 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
         metadata.get('confidence', {}).get('localization', 1.0)
         for metadata in metadata_list
     ]
-    excluded_list = [
-        metadata.get('excluded', False)
-        for metadata in metadata_list
-    ]
+    excluded_list = [metadata.get('excluded', False) for metadata in metadata_list]
 
     grid_list = [
-        metadata.get('turk', {}).get('grid', False)
-        for metadata in metadata_list
+        metadata.get('turk', {}).get('grid', False) for metadata in metadata_list
     ]
     if not enable_grid:
         grid_list = [False] * len(grid_list)
@@ -7515,7 +7897,10 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
     num_finish = len(aid_list)
     num_difference = num_start - num_finish
     if verbose:
-        print('Filtered out %d annotations from %d / %d' % (num_difference, num_finish, num_start, ))
+        print(
+            'Filtered out %d annotations from %d / %d'
+            % (num_difference, num_finish, num_start,)
+        )
 
     return aid_list
 
@@ -7539,10 +7924,7 @@ def create_ggr_match_trees(ibs):
     """
     imageset_rowid_list = ibs.get_valid_imgsetids()
     imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
-    tag_list = [
-        ibs.parse_ggr_name(imageset_text)
-        for imageset_text in imageset_text_list
-    ]
+    tag_list = [ibs.parse_ggr_name(imageset_text) for imageset_text in imageset_text_list]
 
     # Check that merged cars exist
     value_list = [
@@ -7561,7 +7943,7 @@ def create_ggr_match_trees(ibs):
         imageset_rowid_list_ = car_dict[car_key]
         gids_list = ibs.get_imageset_gids(imageset_rowid_list_)
         gid_list = ut.flatten(gids_list)
-        imageset_text_ = 'GGR2,%d' % (car_key, )
+        imageset_text_ = 'GGR2,%d' % (car_key,)
         if imageset_text_ not in imageset_text_list:
             ibs.set_image_imagesettext(gid_list, [imageset_text_] * len(gid_list))
 
@@ -7581,25 +7963,29 @@ def create_ggr_match_trees(ibs):
 
     k = 2
     species_list = [
-        ('Zebra High',   'zebra_grevys',        0.75, 5),
-        ('Zebra Low',    'zebra_grevys',        0.0,  6),
+        ('Zebra High', 'zebra_grevys', 0.75, 5),
+        ('Zebra Low', 'zebra_grevys', 0.0, 6),
         ('Giraffe High', 'giraffe_reticulated', 0.75, 4),
-        ('Giraffe Low',  'giraffe_reticulated', 0.0,  5),
+        ('Giraffe Low', 'giraffe_reticulated', 0.0, 5),
     ]
     for tag, species, threshold, levels in species_list:
-        print('Processing Tag: %r' % (tag, ))
+        print('Processing Tag: %r' % (tag,))
         len_list = []
         imageset_rowid_list = []
         for number, imageset_rowid in value_list:
             # print('Processing car %r (ImageSet ID: %r)' % (number, imageset_rowid, ))
             aid_list = ibs.get_imageset_aids(imageset_rowid)
-            aid_list_ = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=threshold, verbose=False)
+            aid_list_ = ibs.check_ggr_valid_aids(
+                aid_list, species=species, threshold=threshold, verbose=False
+            )
 
             if len(aid_list_) > 0:
                 imageset_rowid_list.append(imageset_rowid)
                 len_list.append(len(aid_list_))
 
-        args = partition_ordered_list_equal_sum_recursive(len_list, imageset_rowid_list, k, levels)
+        args = partition_ordered_list_equal_sum_recursive(
+            len_list, imageset_rowid_list, k, levels
+        )
         len_list_, imageset_rowid_list_ = args
         print_partition_sizes_recursive(len_list_, k)
         create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list_, k)
@@ -7618,10 +8004,12 @@ def print_partition_sizes_recursive(vals, k, level=0, index=0):
 
     length = 0
     for idx, val in enumerate(vals):
-        length += print_partition_sizes_recursive(val, k=k, level=level + 1, index=(k * index) + idx)
+        length += print_partition_sizes_recursive(
+            val, k=k, level=level + 1, index=(k * index) + idx
+        )
 
     prefix = '\t' * level
-    print('%sLevel %d, %d - %d' % (prefix, level, index, length, ))
+    print('%sLevel %d, %d - %d' % (prefix, level, index, length,))
 
     return length
 
@@ -7636,12 +8024,17 @@ def create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list, k, level=0,
 
     imageset_rowid_list_ = []
     for idx, val in enumerate(imageset_rowid_list):
-        imageset_rowid_list_ += create_ggr_match_leaves_recursive(ibs, tag, val, k=k, level=level + 1, index=(k * index) + idx)
+        imageset_rowid_list_ += create_ggr_match_leaves_recursive(
+            ibs, tag, val, k=k, level=level + 1, index=(k * index) + idx
+        )
 
     gid_list = ut.flatten(ibs.get_imageset_gids(imageset_rowid_list_))
-    imageset_text_ = 'Leaf - %s - %d - %d' % (tag, level, index, )
+    imageset_text_ = 'Leaf - %s - %d - %d' % (tag, level, index,)
 
-    print('Setting %d for %d to %r' % (len(gid_list), len(imageset_rowid_list_), imageset_text_, ))
+    print(
+        'Setting %d for %d to %r'
+        % (len(gid_list), len(imageset_rowid_list_), imageset_text_,)
+    )
     imageset_text_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
     if imageset_text_ not in imageset_text_list:
         ibs.set_image_imagesettext(gid_list, [imageset_text_] * len(gid_list))
@@ -7666,7 +8059,7 @@ def partition_ordered_list_equal_sum_recursive(vals, ids, k, level):
     start = 0
     for val_ in vals_:
         end = start + len(val_)
-        id_ = ids[start: end]
+        id_ = ids[start:end]
         ids_.append(id_)
         start = end
 
@@ -7676,7 +8069,9 @@ def partition_ordered_list_equal_sum_recursive(vals, ids, k, level):
         temp_ids_ = ids_[index]
 
         assert len(temp_vals_) == len(temp_ids_)
-        temp_vals_, temp_ids_ = partition_ordered_list_equal_sum_recursive(temp_vals_, temp_ids_, k, level - 1)
+        temp_vals_, temp_ids_ = partition_ordered_list_equal_sum_recursive(
+            temp_vals_, temp_ids_, k, level - 1
+        )
 
         vals_[index] = temp_vals_
         ids_[index] = temp_ids_
@@ -7718,7 +8113,7 @@ def partition_ordered_list_equal_sum(a, k):
     while True:
         starts = [0] + partition_between
         ends = partition_between + [len(a)]
-        partitions = [a[starts[i]:ends[i]] for i in range(k)]
+        partitions = [a[starts[i] : ends[i]] for i in range(k)]
         heights = list(map(sum, partitions))
 
         abs_height_diffs = list(map(lambda x: abs(average_height - x), heights))
@@ -7737,10 +8132,16 @@ def partition_ordered_list_equal_sum(a, k):
         count += 1
 
         move = -1 if worst_height_diff < 0 else 1
-        bound_to_move = 0 if worst_partition_index == 0 \
-                        else k - 2 if worst_partition_index == k - 1 \
-                        else worst_partition_index - 1 if (worst_height_diff < 0) ^ (heights[worst_partition_index - 1] > heights[worst_partition_index + 1]) \
-                        else worst_partition_index
+        bound_to_move = (
+            0
+            if worst_partition_index == 0
+            else k - 2
+            if worst_partition_index == k - 1
+            else worst_partition_index - 1
+            if (worst_height_diff < 0)
+            ^ (heights[worst_partition_index - 1] > heights[worst_partition_index + 1])
+            else worst_partition_index
+        )
         direction = -1 if bound_to_move < worst_partition_index else 1
         partition_between[bound_to_move] += move * direction
 
@@ -7750,21 +8151,20 @@ def alias_common_coco_species(ibs, **kwargs):
     aid_list = ibs.get_valid_aids()
     species_text_list = ibs.get_annot_species_texts(aid_list)
     alias_dict = {
-        'cat'                 : 'cat_domestic',
-        'cow'                 : 'cow_domestic',
-        'dog'                 : 'dog_domestic',
-        'horse'               : 'horse_domestic',
-        'sheep'               : 'sheep_domestic',
-        'elephant'            : 'elephant_savannah',
-        'giraffe'             : 'giraffe_reticulated',
-        'turtles'             : 'turtle_sea',
-        'wild_dog'            : 'dog_wild',
-        'whale_sharkbodyhalf' : 'whale_shark',
-        'whale_sharkpart'     : 'whale_shark',
+        'cat': 'cat_domestic',
+        'cow': 'cow_domestic',
+        'dog': 'dog_domestic',
+        'horse': 'horse_domestic',
+        'sheep': 'sheep_domestic',
+        'elephant': 'elephant_savannah',
+        'giraffe': 'giraffe_reticulated',
+        'turtles': 'turtle_sea',
+        'wild_dog': 'dog_wild',
+        'whale_sharkbodyhalf': 'whale_shark',
+        'whale_sharkpart': 'whale_shark',
     }
     species_fixed_text_list = [
-        alias_dict.get(species_text, species_text)
-        for species_text in species_text_list
+        alias_dict.get(species_text, species_text) for species_text in species_text_list
     ]
     ibs.set_annot_species(aid_list, species_fixed_text_list)
 
@@ -7779,7 +8179,9 @@ def fix_coco_species(ibs, **kwargs):
     species_set = set(['zebra_grevys', 'zebra_plains'])
     zipped = zip(species_text_list, species_text_list_)
     species_fixed_text_list = [
-        species_text_ if species_text == 'zebra' and species_text_ in species_set else species_text
+        species_text_
+        if species_text == 'zebra' and species_text_ in species_set
+        else species_text
         for species_text, species_text_ in zipped
     ]
     species_fixed_text_list = [
@@ -7797,13 +8199,12 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         header_line = input_file.readline()
         header_list = header_line.strip().split(',')
         line_list = input_file.readlines()
-        lines_list = [
-            line.strip().split(',')
-            for line in line_list
-        ]
+        lines_list = [line.strip().split(',') for line in line_list]
 
-    header_list = [ _.strip() for _ in header_list ]
-    imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False)))
+    header_list = [_.strip() for _ in header_list]
+    imageset_text_set = set(
+        ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False))
+    )
 
     seen_set = set([])
     invalid_list = []
@@ -7830,13 +8231,21 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         # Check ImageSetIDs
         imageset_rowid_ = int(metadata_dict.pop('ImageSetID'))
         if imageset_rowid != imageset_rowid_:
-            args = (imageset_text, imageset_rowid, imageset_rowid_, )
+            args = (
+                imageset_text,
+                imageset_rowid,
+                imageset_rowid_,
+            )
             print('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
         # Check #Imgs
         imageset_num_images = len(ibs.get_imageset_gids(imageset_rowid))
         imageset_num_images_ = int(metadata_dict.pop('#Imgs'))
         if imageset_num_images != imageset_num_images_:
-            args = (imageset_text, imageset_num_images, imageset_num_images_, )
+            args = (
+                imageset_text,
+                imageset_num_images,
+                imageset_num_images_,
+            )
             print('Invalid #Imgs for %r - WANTED: %r, GAVE: %r' % args)
         # ADD TO TRACKER
         seen_set.add(imageset_text)
@@ -7847,10 +8256,10 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
 
     invalid = len(invalid_list) + len(duplicate_list) + len(missing_list)
     if invalid > 0:
-        print('VALID:     %r' % (valid_list, ))
-        print('INVALID:   %r' % (invalid_list, ))
-        print('DUPLICATE: %r' % (duplicate_list, ))
-        print('MISSING:   %r' % (missing_list, ))
+        print('VALID:     %r' % (valid_list,))
+        print('INVALID:   %r' % (invalid_list,))
+        print('DUPLICATE: %r' % (duplicate_list,))
+        print('MISSING:   %r' % (missing_list,))
     else:
         ibs.set_imageset_metadata(imageset_rowid_list, metadata_list)
 
@@ -7863,12 +8272,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
         header_line = input_file.readline()
         header_list = header_line.strip().split(',')
         line_list = input_file.readlines()
-        lines_list = [
-            line.strip().split(',')
-            for line in line_list
-        ]
+        lines_list = [line.strip().split(',') for line in line_list]
 
-    header_list = [ _.strip() for _ in header_list ]
+    header_list = [_.strip() for _ in header_list]
     aid_list = ibs.get_valid_aids()
     # aid_set = set(aid_list)
     gid_list = ibs.get_valid_gids()
@@ -7898,7 +8304,12 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
         found1 = aid in aid_list
         found2 = gname in gname_list
         if not (found1 and found2):
-            args = (gname, aid, found1, found2, )
+            args = (
+                gname,
+                aid,
+                found1,
+                found2,
+            )
             print('Invalid Gname %r AID %r (aid %s, gname %s)' % args)
             if found2:
                 zip_list = [
@@ -7909,7 +8320,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 assert len(zip_list) == 1
                 gid_ = zip_list[0][1]
                 aid_list_ = ibs.get_image_aids(gid_)
-                print('\t AID_LIST: %r' % (aid_list_, ))
+                print('\t AID_LIST: %r' % (aid_list_,))
             invalid_list.append(aid)
             continue
         if aid in seen_aid_set:
@@ -7924,17 +8335,22 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
         # Check gname
         gname_ = ibs.get_annot_image_names(aid)
         if gname != gname_:
-            args = (gname, aid, gname_, gname, )
-            print('Invalid Photo# %r for AnnotationID for %r - WANTED: %r, GAVE: %r' % args)
+            args = (
+                gname,
+                aid,
+                gname_,
+                gname,
+            )
+            print(
+                'Invalid Photo# %r for AnnotationID for %r - WANTED: %r, GAVE: %r' % args
+            )
             zip_list = [
-                value
-                for value in list(zip(gname_list, gid_list))
-                if value[0] == gname
+                value for value in list(zip(gname_list, gid_list)) if value[0] == gname
             ]
             assert len(zip_list) == 1
             gid_ = zip_list[0][1]
             aid_list_ = ibs.get_image_aids(gid_)
-            print('\t AID_LIST: %r' % (aid_list_, ))
+            print('\t AID_LIST: %r' % (aid_list_,))
         seen_aid_set.add(aid)
         annot_rowid_list.append(aid)
         metadata_list.append(metadata_dict)
@@ -7949,23 +8365,40 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 aid2 = int(secondary_line_list[(index * 2) + 1])
                 nid2 = ibs.get_annot_nids(aid2)
                 if nid != nid2:
-                    args = (nid2, aid2, found1, found2, )
-                    print('Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args)
+                    args = (
+                        nid2,
+                        aid2,
+                        found1,
+                        found2,
+                    )
+                    print(
+                        'Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args
+                    )
                     if nid > 0 and nid is not None:
-                        print('\tfixing to %r...' % (nid, ))
+                        print('\tfixing to %r...' % (nid,))
                         ibs.set_annot_name_rowids([aid2], [nid])
                         aid2_list = ut.flatten(ibs.get_name_aids([nid]))
                 # Check if found
                 found1 = aid2 in aid2_list
                 found2 = gname2 in gname_list
                 if not (found1 and found2):
-                    args = (aid2, found1, found2, )
+                    args = (
+                        aid2,
+                        found1,
+                        found2,
+                    )
                     print('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
-                    args = (gname, aid, )
+                    args = (
+                        gname,
+                        aid,
+                    )
                     print('\tGname %r AID %r' % args)
-                    args = (nid2, nid, )
+                    args = (
+                        nid2,
+                        nid,
+                    )
                     print('\tNIDs - WANTED: %r, GAVE: %r' % args)
-                    args = (aid2_list, )
+                    args = (aid2_list,)
                     print('\tAID2_LIST: %r' % args)
                     invalid_list.append(aid2)
                     continue
@@ -7973,7 +8406,10 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 annot_rowid_list.append(aid2)
                 metadata_list.append(metadata_dict)
         except ValueError:
-            args = (gname, aid, )
+            args = (
+                gname,
+                aid,
+            )
             print('Invalid secondary list for Gname %r AID %r' % args)
             raise ValueError
 
@@ -7982,9 +8418,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
     invalid = len(invalid_list) + len(duplicate_list)  # + len(missing_list)
     if invalid > 0:
-        print('VALID:     %r' % (valid_list, ))
-        print('INVALID:   %r' % (invalid_list, ))
-        print('DUPLICATE: %r' % (duplicate_list, ))
+        print('VALID:     %r' % (valid_list,))
+        print('INVALID:   %r' % (invalid_list,))
+        print('DUPLICATE: %r' % (duplicate_list,))
         # print('MISSING:   %r' % (missing_list, ))
     else:
         ibs.set_annot_metadata(annot_rowid_list, metadata_list)
@@ -8013,21 +8449,26 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             if sex_symbol in ['M', 'F']:
                 name_sex_dict[name_rowid].append(sex_symbol)
             elif sex_symbol not in [None]:
-                raise ValueError('INVALID SEX: %r' % (sex_symbol, ))
+                raise ValueError('INVALID SEX: %r' % (sex_symbol,))
             # Get species
             if name_rowid not in name_species_dict:
                 name_species_dict[name_rowid] = []
             if species_symbol in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']:
                 name_species_dict[name_rowid].append(species_symbol)
             elif sex_symbol not in [None]:
-                raise ValueError('INVALID SPECIES: %r' % (species_symbol, ))
+                raise ValueError('INVALID SPECIES: %r' % (species_symbol,))
             # Get age
             if name_rowid not in name_age_dict:
                 name_age_dict[name_rowid] = []
-            if age_symbol in ['ADULT', 'JUVENILE', 'JUVENILE (6-9MO)', 'JUVENILE (1-1.5YR)']:
+            if age_symbol in [
+                'ADULT',
+                'JUVENILE',
+                'JUVENILE (6-9MO)',
+                'JUVENILE (1-1.5YR)',
+            ]:
                 name_age_dict[name_rowid].append(age_symbol)
             elif age_symbol not in [None]:
-                raise ValueError('INVALID AGE: %r' % (age_symbol, ))
+                raise ValueError('INVALID AGE: %r' % (age_symbol,))
 
         aid_list_ = []
         species_text_ = []
@@ -8059,21 +8500,33 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
             name_age_list = name_age_dict[name_rowid]
             if len(name_age_list) == 0:
-                age_tuple = (-1, -1, )
+                age_tuple = (
+                    -1,
+                    -1,
+                )
             else:
                 if 'JUVENILE (6-9MO)' in name_age_list:
                     assert 'JUVENILE (1-1.5YR)' not in name_age_list
-                    age_tuple = (6, 12, )
+                    age_tuple = (
+                        6,
+                        12,
+                    )
                 elif 'JUVENILE (1-1.5YR)' in name_age_list:
                     assert 'JUVENILE (6-9MO)' not in name_age_list
-                    age_tuple = (12, 24, )
+                    age_tuple = (
+                        12,
+                        24,
+                    )
                 else:
                     age_tag = max(set(name_age_list), key=name_age_list.count)
                     assert age_tag in ['ADULT', 'JUVENILE']
                     if age_tag == 'ADULT':
                         age_tuple = (36, None)
                     else:
-                        age_tuple = (-1, -1, )
+                        age_tuple = (
+                            -1,
+                            -1,
+                        )
             aid_list_ = ibs.get_name_aids(name_rowid)
             ibs.set_annot_age_months_est_min(aid_list_, [age_tuple[0]] * len(aid_list_))
             ibs.set_annot_age_months_est_max(aid_list_, [age_tuple[1]] * len(aid_list_))
@@ -8081,7 +8534,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 
 @register_ibs_method
-def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/horses/', threshold=0.39):
+def princeton_cameratrap_ocr_bottom_bar_csv(
+    ibs, prefix='/data/raw/unprocessed/horses/', threshold=0.39
+):
     gid_list = ibs.get_valid_gids()
     gid_list = sorted(gid_list)
 
@@ -8100,12 +8555,19 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
             label = ''
         groundtruth_list.append(label)
 
-    config = {'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan.densenet.v2'}
-    prediction_list = ibs.depc_image.get_property('classifier', gid_list, 'class', config=config)
-    confidence_list = ibs.depc_image.get_property('classifier', gid_list, 'score', config=config)
+    config = {
+        'classifier_algo': 'densenet',
+        'classifier_weight_filepath': 'ryan.densenet.v2',
+    }
+    prediction_list = ibs.depc_image.get_property(
+        'classifier', gid_list, 'class', config=config
+    )
+    confidence_list = ibs.depc_image.get_property(
+        'classifier', gid_list, 'score', config=config
+    )
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
+        for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
         'positive' if confidence >= threshold else 'negative'
@@ -8138,7 +8600,14 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
     ]
     line_list = [','.join(header_list)]
 
-    zipped = zip(uuid_list, uri_original_list, value_dict_list, groundtruth_list, prediction_list, same_list)
+    zipped = zip(
+        uuid_list,
+        uri_original_list,
+        value_dict_list,
+        groundtruth_list,
+        prediction_list,
+        same_list,
+    )
     for uuid_, uri_original, value_dict, groundtruth, prediction, same in zipped:
         datetime = value_dict.get('datetime')
         line = [
@@ -8176,14 +8645,8 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
     status_dict = {
         'success': 0,
     }
-    status_dict['failure'] = {
-        key: 0
-        for key in key_list
-    }
-    status_dict['sanity'] = {
-        key: 0
-        for key in key_list
-    }
+    status_dict['failure'] = {key: 0 for key in key_list}
+    status_dict['sanity'] = {key: 0 for key in key_list}
     status_dict['failure']['tempc'] = 0
     status_dict['failure']['tempf'] = 0
     status_dict['sanity']['tempc'] = 0
@@ -8238,13 +8701,13 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
             if (delta.seconds - offset) > 1:
                 printing = True
                 status_dict['sanity']['time'] += 1
-                difference_list.append('%0.02f' % (delta.seconds, ))
+                difference_list.append('%0.02f' % (delta.seconds,))
 
             delta = datetime_ - value_dict['datetime']
             if (delta.seconds - offset) > 1:
                 printing = True
                 status_dict['sanity']['datetime'] += 1
-                difference_list.append('%0.02f' % (delta.seconds, ))
+                difference_list.append('%0.02f' % (delta.seconds,))
 
             sequence = value_dict['sequence']
             if sequence < 0 or 10000 < sequence:
@@ -8254,7 +8717,7 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
             printing = True
 
         if printing:
-            print('Failed: %r' % (value_dict.get('split', None), ))
+            print('Failed: %r' % (value_dict.get('split', None),))
     print(ut.repr3(status_dict))
     return status_dict
 
@@ -8326,12 +8789,16 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             date = date.strip().replace('/', '')
             assert len(date) == 8
             month = date[0:2]
-            day   = date[2:4]
-            year  = date[4:8]
+            day = date[2:4]
+            year = date[4:8]
             month = int(month)
-            day   = int(day)
-            year  = int(year)
-            value_dict['date'] = (year, month, day, )
+            day = int(day)
+            year = int(year)
+            value_dict['date'] = (
+                year,
+                month,
+                day,
+            )
         except Exception:
             month, day, year = None, None, None
             pass
@@ -8340,19 +8807,25 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
             if len(time) == 8 and time[2] in ['1', '3'] and time[5] in ['1', '3']:
                 time = time[0:2] + time[3:5] + time[6:8]
             assert len(time) == 6
-            hour   = time[0:2]
+            hour = time[0:2]
             minute = time[2:4]
             second = time[4:6]
-            hour   = int(hour)
+            hour = int(hour)
             minute = int(minute)
             second = int(second)
-            value_dict['time'] = (hour, minute, second, )
+            value_dict['time'] = (
+                hour,
+                minute,
+                second,
+            )
         except Exception:
             hour, minute, second = None, None, None
             pass
         try:
             assert None not in [month, day, year, hour, minute, second]
-            value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
+            value_dict['datetime'] = datetime.datetime(
+                year, month, day, hour, minute, second
+            )
         except Exception:
             pass
         try:
@@ -8370,6 +8843,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
 @register_ibs_method
 def import_folder(ibs, path, recursive=True, **kwargs):
     from wbia.detecttools.directory import Directory
+
     direct = Directory(path, recursive=recursive, images=True)
     gid_list = ibs.add_images(direct.files(), **kwargs)
     return gid_list
@@ -8437,16 +8911,18 @@ def export_ggr_folders(ibs, output_path=None):
 
     VERIFY = True
 
-    zipped = list(zip(
-        gid_list,
-        uuid_list,
-        gpath_list,
-        datetime_list,
-        gps_list,
-        uri_original_list,
-        aids_list,
-        note_list
-    ))
+    zipped = list(
+        zip(
+            gid_list,
+            uuid_list,
+            gpath_list,
+            datetime_list,
+            gps_list,
+            uri_original_list,
+            aids_list,
+            note_list,
+        )
+    )
 
     tz = pytz.timezone('Africa/Nairobi')
 
@@ -8483,7 +8959,7 @@ def export_ggr_folders(ibs, output_path=None):
         output_path = join(output_path_clean, number, letter)
         ut.ensuredir(output_path)
 
-        output_filename = '%04d.jpg' % (image, )
+        output_filename = '%04d.jpg' % (image,)
         output_filepath = join(output_path, output_filename)
         assert '.jpg' in gpath
         # print(output_filepath)
@@ -8577,5 +9053,6 @@ if __name__ == '__main__':
         python -m wbia.other.ibsfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

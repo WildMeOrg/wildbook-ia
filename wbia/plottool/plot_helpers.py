@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
+
 # from . import draw_func2 as df2
 from wbia.plottool import fig_presenter
-#from wbia.plottool import custom_figure
-#from wbia.plottool import custom_constants
-#from os.path import join
+
+# from wbia.plottool import custom_figure
+# from wbia.plottool import custom_constants
+# from os.path import join
 import utool as ut
+
 ut.noinject(__name__, '[plot_helpers]')
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[plot_helpers]', DEBUG=False)
+# (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[plot_helpers]', DEBUG=False)
 
 
 SIFT_OR_VECFIELD = ut.get_argval('--vecfield', type_=bool)
@@ -18,7 +21,7 @@ def draw():
     fig_presenter.draw()
 
 
-#def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2,
+# def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2,
 #                   reset=True):
 #    """ Dumps figure to disk based on the figurename """
 #    if quality is True:
@@ -94,7 +97,7 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
             if nSubplots in [8]:
                 max_cols = 4
         nCols = int(min(nSubplots, max_cols))
-        #nCols = int(min(rounder(np.sqrt(nrids)), 5))
+        # nCols = int(min(rounder(np.sqrt(nrids)), 5))
         nRows = int(rounder(nSubplots / nCols))
     return nRows, nCols
 
@@ -128,8 +131,9 @@ def get_plotdat_dict(ax):
 
 
 def get_bbox_centers(bbox_list):
-    bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])
-                             for (x, y, w, h) in bbox_list])
+    bbox_centers = np.array(
+        [np.array([x + (w / 2), y + (h / 2)]) for (x, y, w, h) in bbox_list]
+    )
     return bbox_centers
 
 
@@ -143,8 +147,10 @@ def qt4ensure():
 
 def qtensure():
     import wbia.guitool as gt
+
     if ut.inIPython():
         import IPython
+
         ipython = IPython.get_ipython()
         if ipython is None:
             # we must have exited ipython at some point
@@ -158,24 +164,25 @@ def qtensure():
             # import matplotlib
             # matplotlib.use('Qt5Agg')
             # IPython.get_ipython().magic('matplotlib qt5')
-            #IPython.get_ipython().magic('pylab qt4')
+            # IPython.get_ipython().magic('pylab qt4')
             ipython.magic('pylab qt5 --no-import-all')
         else:
-            #IPython.get_ipython().magic('pylab qt4')
+            # IPython.get_ipython().magic('pylab qt4')
             ipython.magic('pylab qt4 --no-import-all')
 
 
 ensureqt = qt4ensure
 
-#==========================#
+# ==========================#
 #  --- TESTING FUNCS ---   #
-#==========================#
+# ==========================#
 
 
 def kp_info(kp):
     import vtool.keypoint as ktool
+
     kpts = np.array([kp])
-    xy_str    = ktool.get_xy_strs(kpts)[0]
+    xy_str = ktool.get_xy_strs(kpts)[0]
     shape_str = ktool.get_shape_strs(kpts)[0]
     ori_ = ktool.get_oris(kpts)[0]
     ori_str = 'ori=%.2f' % ori_

@@ -15,25 +15,26 @@ from wbia.control import accessor_decors, controller_inject
 import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 from wbia.web import routes_ajax
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
-PART_NOTE               = 'part_note'
-PART_NUM_VERTS          = 'part_num_verts'
-PART_ROWID              = 'part_rowid'
+PART_NOTE = 'part_note'
+PART_NUM_VERTS = 'part_num_verts'
+PART_ROWID = 'part_rowid'
 # PART_TAG_TEXT           = 'part_tag_text'
-PART_THETA              = 'part_theta'
-PART_VERTS              = 'part_verts'
-PART_UUID               = 'part_uuid'
-PART_QUALITY            = 'part_quality'
-PART_STAGED_FLAG        = 'part_staged_flag'
-PART_STAGED_USER_ID     = 'part_staged_user_identity'
+PART_THETA = 'part_theta'
+PART_VERTS = 'part_verts'
+PART_UUID = 'part_uuid'
+PART_QUALITY = 'part_quality'
+PART_STAGED_FLAG = 'part_staged_flag'
+PART_STAGED_USER_ID = 'part_staged_user_identity'
 
 
 # ==========
@@ -59,13 +60,18 @@ def _get_all_part_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/part/', methods=['GET'])
-def get_valid_part_rowids(ibs, include_only_aid_list=None,
-                          is_staged=False, viewpoint='no-filter', minqual=None):
+def get_valid_part_rowids(
+    ibs, include_only_aid_list=None, is_staged=False, viewpoint='no-filter', minqual=None
+):
     part_rowid_list = ibs._get_all_part_rowids()
 
     part_rowid_list = ibs.filter_part_set(
-        part_rowid_list, include_only_aid_list=include_only_aid_list,
-        is_staged=is_staged, viewpoint=viewpoint, minqual=minqual)
+        part_rowid_list,
+        include_only_aid_list=include_only_aid_list,
+        is_staged=is_staged,
+        viewpoint=viewpoint,
+        minqual=minqual,
+    )
     return part_rowid_list
 
 
@@ -92,29 +98,37 @@ def part_src_api(rowid=None):
 
 
 @register_ibs_method
-def filter_part_set(ibs, part_rowid_list, include_only_aid_list=None,
-                    is_staged=False, viewpoint='no-filter', minqual=None):
+def filter_part_set(
+    ibs,
+    part_rowid_list,
+    include_only_aid_list=None,
+    is_staged=False,
+    viewpoint='no-filter',
+    minqual=None,
+):
     # -- valid part_rowid filtering --
 
     # filter by is_staged
     if is_staged is True:
         # corresponding unoptimized hack for is_staged
         flag_list = ibs.get_part_staged_flags(part_rowid_list)
-        part_rowid_list  = ut.compress(part_rowid_list, flag_list)
+        part_rowid_list = ut.compress(part_rowid_list, flag_list)
     elif is_staged is False:
         flag_list = ibs.get_part_staged_flags(part_rowid_list)
-        part_rowid_list  = ut.filterfalse_items(part_rowid_list, flag_list)
+        part_rowid_list = ut.filterfalse_items(part_rowid_list, flag_list)
 
     if include_only_aid_list is not None:
-        gid_list     = ibs.get_part_gids(part_rowid_list)
+        gid_list = ibs.get_part_gids(part_rowid_list)
         is_valid_gid = [gid in include_only_aid_list for gid in gid_list]
-        part_rowid_list     = ut.compress(part_rowid_list, is_valid_gid)
+        part_rowid_list = ut.compress(part_rowid_list, is_valid_gid)
     if viewpoint != 'no-filter':
-        viewpoint_list     = ibs.get_part_viewpoints(part_rowid_list)
+        viewpoint_list = ibs.get_part_viewpoints(part_rowid_list)
         is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
-        part_rowid_list     = ut.compress(part_rowid_list, is_valid_viewpoint)
+        part_rowid_list = ut.compress(part_rowid_list, is_valid_viewpoint)
     if minqual is not None:
-        part_rowid_list = ibs.filter_part_rowids_to_quality(part_rowid_list, minqual, unknown_ok=True)
+        part_rowid_list = ibs.filter_part_rowids_to_quality(
+            part_rowid_list, minqual, unknown_ok=True
+        )
     part_rowid_list = sorted(part_rowid_list)
     return part_rowid_list
 
@@ -127,11 +141,22 @@ def filter_part_set(ibs, part_rowid_list, include_only_aid_list=None,
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/part/', methods=['POST'])
-def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
-                detect_confidence_list=None, notes_list=None,
-                vert_list=None, part_uuid_list=None, viewpoint_list=None,
-                quality_list=None, type_list=None, staged_uuid_list=None,
-                staged_user_id_list=None, **kwargs):
+def add_parts(
+    ibs,
+    aid_list,
+    bbox_list=None,
+    theta_list=None,
+    detect_confidence_list=None,
+    notes_list=None,
+    vert_list=None,
+    part_uuid_list=None,
+    viewpoint_list=None,
+    quality_list=None,
+    type_list=None,
+    staged_uuid_list=None,
+    staged_user_id_list=None,
+    **kwargs
+):
     r"""
     Adds an part to annotations
 
@@ -156,14 +181,16 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
         Method: POST
         URL:    /api/part/
     """
-    #ut.embed()
+    # ut.embed()
     from vtool import geometry
+
     if ut.VERBOSE:
         print('[ibs] adding parts')
     # Prepare the SQL input
     # For import only, we can specify both by setting import_override to True
-    assert bool(bbox_list is None) != bool(vert_list is None), (
-        'must specify exactly one of bbox_list or vert_list')
+    assert bool(bbox_list is None) != bool(
+        vert_list is None
+    ), 'must specify exactly one of bbox_list or vert_list'
     ut.assert_all_not_None(aid_list, 'aid_list')
 
     if vert_list is None:
@@ -174,17 +201,16 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     if theta_list is None:
         theta_list = [0.0 for _ in range(len(aid_list))]
 
-    len_bbox    = len(bbox_list)
-    len_vert    = len(vert_list)
-    len_aid     = len(aid_list)
-    len_theta   = len(theta_list)
+    len_bbox = len(bbox_list)
+    len_vert = len(vert_list)
+    len_aid = len(aid_list)
+    len_theta = len(theta_list)
     try:
-        assert len_vert  == len_bbox, 'bbox and verts are not of same size'
-        assert len_aid   == len_bbox, 'bbox and aid are not of same size'
-        assert len_aid   == len_theta, 'bbox and aid are not of same size'
+        assert len_vert == len_bbox, 'bbox and verts are not of same size'
+        assert len_aid == len_bbox, 'bbox and aid are not of same size'
+        assert len_aid == len_theta, 'bbox and aid are not of same size'
     except AssertionError as ex:
-        ut.printex(ex, key_list=['len_vert', 'len_aid', 'len_bbox'
-                                    'len_theta'])
+        ut.printex(ex, key_list=['len_vert', 'len_aid', 'len_bbox' 'len_theta'])
         raise
 
     if len(aid_list) == 0:
@@ -213,36 +239,62 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
 
     if staged_uuid_list is None:
         staged_uuid_list = [None] * len(aid_list)
-    is_staged_list = [
-        staged_uuid is not None
-        for staged_uuid in staged_uuid_list
-    ]
+    is_staged_list = [staged_uuid is not None for staged_uuid in staged_uuid_list]
     if staged_user_id_list is None:
         staged_user_id_list = [None] * len(aid_list)
 
     # Define arguments to insert
-    colnames = ('part_uuid', 'annot_rowid', 'part_xtl', 'part_ytl',
-                'part_width', 'part_height', 'part_theta', 'part_num_verts',
-                'part_verts', 'part_viewpoint', 'part_detect_confidence',
-                'part_note', 'part_type', 'part_staged_flag', 'part_staged_uuid',
-                'part_staged_user_identity')
+    colnames = (
+        'part_uuid',
+        'annot_rowid',
+        'part_xtl',
+        'part_ytl',
+        'part_width',
+        'part_height',
+        'part_theta',
+        'part_num_verts',
+        'part_verts',
+        'part_viewpoint',
+        'part_detect_confidence',
+        'part_note',
+        'part_type',
+        'part_staged_flag',
+        'part_staged_uuid',
+        'part_staged_user_identity',
+    )
 
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in part_uuid_list]
     if any(check_uuid_flags):
         pos = ut.list_where(check_uuid_flags)
         raise ValueError('positions %r have malformated UUIDS' % (pos,))
 
-    params_iter = list(zip(part_uuid_list, aid_list, xtl_list, ytl_list,
-                            width_list, height_list, theta_list, nVert_list,
-                            vertstr_list, viewpoint_list, detect_confidence_list,
-                            notes_list, type_list, is_staged_list, staged_uuid_list,
-                            staged_user_id_list))
+    params_iter = list(
+        zip(
+            part_uuid_list,
+            aid_list,
+            xtl_list,
+            ytl_list,
+            width_list,
+            height_list,
+            theta_list,
+            nVert_list,
+            vertstr_list,
+            viewpoint_list,
+            detect_confidence_list,
+            notes_list,
+            type_list,
+            is_staged_list,
+            staged_uuid_list,
+            staged_user_id_list,
+        )
+    )
 
     # Execute add PARTs SQL
     superkey_paramx = (0,)
     get_rowid_from_superkey = ibs.get_part_rowids_from_uuid
-    part_rowid_list = ibs.db.add_cleanly(const.PART_TABLE, colnames, params_iter,
-                                         get_rowid_from_superkey, superkey_paramx)
+    part_rowid_list = ibs.db.add_cleanly(
+        const.PART_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx
+    )
     return part_rowid_list
 
 
@@ -252,12 +304,25 @@ def get_part_rows(ibs, part_rowid_list):
     r"""
     Auto-docstr for 'get_part_rows'
     """
-    colnames = ('part_uuid', 'annot_rowid', 'part_xtl', 'part_ytl',
-                'part_width', 'part_height', 'part_theta', 'part_num_verts',
-                'part_verts', 'part_viewpoint', 'part_detect_confidence',
-                'part_note', 'part_quality', 'part_type')
-    rows_list = ibs.db.get(const.PART_TABLE, colnames, part_rowid_list,
-                           unpack_scalars=False)
+    colnames = (
+        'part_uuid',
+        'annot_rowid',
+        'part_xtl',
+        'part_ytl',
+        'part_width',
+        'part_height',
+        'part_theta',
+        'part_num_verts',
+        'part_verts',
+        'part_viewpoint',
+        'part_detect_confidence',
+        'part_note',
+        'part_quality',
+        'part_type',
+    )
+    rows_list = ibs.db.get(
+        const.PART_TABLE, colnames, part_rowid_list, unpack_scalars=False
+    )
     return rows_list
 
 
@@ -306,8 +371,9 @@ def get_part_rowids_from_uuid(ibs, uuid_list):
         URL:    /api/part/rowid/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    part_rowids_list = ibs.db.get(const.PART_TABLE, (PART_ROWID,), uuid_list,
-                                  id_colname=PART_UUID)
+    part_rowids_list = ibs.db.get(
+        const.PART_TABLE, (PART_ROWID,), uuid_list, id_colname=PART_UUID
+    )
     return part_rowids_list
 
 
@@ -321,7 +387,7 @@ def get_part_missing_uuid(ibs, uuid_list):
     """
     part_rowid_list = ibs.get_part_rowids_from_uuid(uuid_list)
     zipped = zip(part_rowid_list, uuid_list)
-    missing_uuid_list = [ uuid for part_rowid, uuid in zipped if part_rowid is None ]
+    missing_uuid_list = [uuid for part_rowid, uuid in zipped if part_rowid is None]
     return missing_uuid_list
 
 
@@ -338,7 +404,12 @@ def get_part_bboxes(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/bbox/
     """
-    colnames = ('part_xtl', 'part_ytl', 'part_width', 'part_height',)
+    colnames = (
+        'part_xtl',
+        'part_ytl',
+        'part_width',
+        'part_height',
+    )
     bbox_list = ibs.db.get(const.PART_TABLE, colnames, part_rowid_list)
     return bbox_list
 
@@ -355,9 +426,9 @@ def get_part_detect_confidence(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/detect/confidence/
     """
-    part_detect_confidence_list = ibs.db.get(const.PART_TABLE,
-                                              ('part_detect_confidence',),
-                                              part_rowid_list)
+    part_detect_confidence_list = ibs.db.get(
+        const.PART_TABLE, ('part_detect_confidence',), part_rowid_list
+    )
     return part_detect_confidence_list
 
 
@@ -432,7 +503,9 @@ def get_part_aids(ibs, part_rowid_list, assume_unique=False):
         >>> result = get_part_aids(ibs, part_rowid_list)
         >>> print(result)
     """
-    aid_list = ibs.db.get(const.PART_TABLE, ('annot_rowid',), part_rowid_list, assume_unique=assume_unique)
+    aid_list = ibs.db.get(
+        const.PART_TABLE, ('annot_rowid',), part_rowid_list, assume_unique=assume_unique
+    )
     return aid_list
 
 
@@ -519,9 +592,10 @@ def get_part_verts(ibs, part_rowid_list):
         URL:    /api/part/vert/
     """
     from wbia.algo.preproc import preproc_part
+
     vertstr_list = ibs.db.get(const.PART_TABLE, ('part_verts',), part_rowid_list)
     vert_list = preproc_part.postget_part_verts(vertstr_list)
-    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
+    # vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
     return vert_list
 
 
@@ -538,15 +612,20 @@ def get_part_rotated_verts(ibs, part_rowid_list):
         URL:    /api/part/vert/rotated/
     """
     import vtool as vt
+
     vert_list = ibs.get_part_verts(part_rowid_list)
     theta_list = ibs.get_part_thetas(part_rowid_list)
     # Convex bounding boxes for verticies
     bbox_list = vt.geometry.bboxes_from_vert_list(vert_list)
-    rot_list = [vt.rotation_around_bbox_mat3x3(theta, bbox)
-                for theta, bbox in zip(theta_list, bbox_list)]
-    rotated_vert_list = [vt.transform_points_with_homography(rot, np.array(verts).T).T.tolist()
-                         for rot, verts in zip(rot_list, vert_list)]
-    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
+    rot_list = [
+        vt.rotation_around_bbox_mat3x3(theta, bbox)
+        for theta, bbox in zip(theta_list, bbox_list)
+    ]
+    rotated_vert_list = [
+        vt.transform_points_with_homography(rot, np.array(verts).T).T.tolist()
+        for rot, verts in zip(rot_list, vert_list)
+    ]
+    # vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
     return rotated_vert_list
 
 
@@ -594,7 +673,9 @@ def get_part_viewpoints(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/note/
     """
-    part_viewpoint_list = ibs.db.get(const.PART_TABLE, ('part_viewpoint',), part_rowid_list)
+    part_viewpoint_list = ibs.db.get(
+        const.PART_TABLE, ('part_viewpoint',), part_rowid_list
+    )
     return part_viewpoint_list
 
 
@@ -655,7 +736,8 @@ def get_part_qualities(ibs, part_rowid_list, eager=True):
     id_iter = part_rowid_list
     colnames = (PART_QUALITY,)
     part_quality_list = ibs.db.get(
-        const.PART_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+        const.PART_TABLE, colnames, id_iter, id_colname='rowid', eager=eager
+    )
     return part_quality_list
 
 
@@ -683,7 +765,7 @@ def get_part_isjunk(ibs, part_rowid_list):
     Auto-docstr for 'get_part_isjunk'
     """
     qual_list = ibs.get_part_qualities(part_rowid_list)
-    #isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
+    # isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
     isjunk_list = [qual in const.QUALITY_TEXT_TO_INTS['junk'] for qual in qual_list]
     return isjunk_list
 
@@ -701,7 +783,9 @@ def get_part_reviewed(ibs, part_rowid_list):
         Method: GET
         URL:    /api/part/reviewed/
     """
-    reviewed_list = ibs.db.get(const.PART_TABLE, ('part_toggle_reviewed',), part_rowid_list)
+    reviewed_list = ibs.db.get(
+        const.PART_TABLE, ('part_toggle_reviewed',), part_rowid_list
+    )
     return reviewed_list
 
 
@@ -729,8 +813,7 @@ def get_part_tag_text(ibs, part_rowid_list, **kwargs):
     """
     part_type_list = ibs.get_part_types(part_rowid_list, **kwargs)
     part_type_list = [
-        part_type.lower().strip().replace(' ', '_')
-        for part_type in part_type_list
+        part_type.lower().strip().replace(' ', '_') for part_type in part_type_list
     ]
     return part_type_list
 
@@ -766,8 +849,9 @@ def get_part_staged_flags(ibs, part_rowid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    part_staged_flag_list = ibs.db.get(const.PART_TABLE,
-                                          (PART_STAGED_FLAG,), part_rowid_list)
+    part_staged_flag_list = ibs.db.get(
+        const.PART_TABLE, (PART_STAGED_FLAG,), part_rowid_list
+    )
     return part_staged_flag_list
 
 
@@ -818,8 +902,9 @@ def get_part_staged_user_ids(ibs, part_rowid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    part_staged_user_id_list = ibs.db.get(const.PART_TABLE,
-                                           (PART_STAGED_USER_ID,), part_rowid_list)
+    part_staged_user_id_list = ibs.db.get(
+        const.PART_TABLE, (PART_STAGED_USER_ID,), part_rowid_list
+    )
     return part_staged_user_id_list
 
 
@@ -835,7 +920,9 @@ def get_part_staged_metadata(ibs, part_rowid_list, return_raw=False):
         Method: GET
         URL:    /api/part/staged/metadata/
     """
-    metadata_str_list = ibs.db.get(const.PART_TABLE, ('part_staged_metadata_json',), part_rowid_list)
+    metadata_str_list = ibs.db.get(
+        const.PART_TABLE, ('part_staged_metadata_json',), part_rowid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -872,17 +959,11 @@ def update_part_rotate_90(ibs, part_rowid_list, direction):
         raise ValueError('Invalid direction supplied')
 
     theta_list = ibs.get_part_thetas(part_rowid_list)
-    theta_list = [
-        (theta + (val * PI / 2)) % TAU
-        for theta in theta_list
-    ]
+    theta_list = [(theta + (val * PI / 2)) % TAU for theta in theta_list]
     ibs.set_part_thetas(part_rowid_list, theta_list)
 
     bbox_list = ibs.get_part_bboxes(part_rowid_list)
-    bbox_list = [
-        _update_part_rotate_fix_bbox(bbox)
-        for bbox in bbox_list
-    ]
+    bbox_list = [_update_part_rotate_fix_bbox(bbox) for bbox in bbox_list]
     ibs.set_part_bboxes(part_rowid_list, bbox_list)
 
 
@@ -933,6 +1014,7 @@ def set_part_bboxes(ibs, part_rowid_list, bbox_list):
         URL:    /api/part/bbox/
     """
     from vtool import geometry
+
     # changing the bboxes also changes the bounding polygon
     vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     # naively overwrite the bounding polygon with a rectangle - for now trust the user!
@@ -1039,8 +1121,9 @@ def set_part_thetas(ibs, part_rowid_list, theta_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/part/vert/', methods=['PUT'])
-def set_part_verts(ibs, part_rowid_list, verts_list,
-                   delete_thumbs=True, notify_root=True):
+def set_part_verts(
+    ibs, part_rowid_list, verts_list, delete_thumbs=True, notify_root=True
+):
     r"""
     Sets the vertices [(x, y), ...] of a list of part_rowid_list
 
@@ -1049,6 +1132,7 @@ def set_part_verts(ibs, part_rowid_list, verts_list,
         URL:    /api/part/vert/
     """
     from vtool import geometry
+
     nInput = len(part_rowid_list)
     # Compute data to set
     if isinstance(verts_list, np.ndarray):
@@ -1056,21 +1140,30 @@ def set_part_verts(ibs, part_rowid_list, verts_list,
     for index, vert_list in enumerate(verts_list):
         if isinstance(vert_list, np.ndarray):
             verts_list[index] = vert_list.tolist()
-    num_verts_list   = list(map(len, verts_list))
+    num_verts_list = list(map(len, verts_list))
     verts_as_strings = list(map(six.text_type, verts_list))
     id_iter1 = ((part_rowid,) for part_rowid in part_rowid_list)
     # also need to set the internal number of vertices
-    val_iter1 = ((num_verts, verts) for (num_verts, verts)
-                 in zip(num_verts_list, verts_as_strings))
-    colnames = (PART_NUM_VERTS, PART_VERTS,)
+    val_iter1 = (
+        (num_verts, verts) for (num_verts, verts) in zip(num_verts_list, verts_as_strings)
+    )
+    colnames = (
+        PART_NUM_VERTS,
+        PART_VERTS,
+    )
     # SET VERTS in PART_TABLE
     ibs.db.set(const.PART_TABLE, colnames, val_iter1, id_iter1, nInput=nInput)
     # changing the vertices also changes the bounding boxes
-    bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
+    bbox_list = geometry.bboxes_from_vert_list(verts_list)  # new bboxes
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     val_iter2 = zip(xtl_list, ytl_list, width_list, height_list)
     id_iter2 = ((part_rowid,) for part_rowid in part_rowid_list)
-    colnames = ('part_xtl', 'part_ytl', 'part_width', 'part_height',)
+    colnames = (
+        'part_xtl',
+        'part_ytl',
+        'part_width',
+        'part_height',
+    )
     # SET BBOX in PART_TABLE
     ibs.db.set(const.PART_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
 
@@ -1171,10 +1264,7 @@ def set_part_staged_uuids(ibs, aid_list, part_uuid_list):
     id_iter = ((aid,) for aid in aid_list)
     val_iter = ((part_uuid,) for part_uuid in part_uuid_list)
     ibs.db.set(const.PART_TABLE, ('part_staged_uuid',), val_iter, id_iter)
-    flag_list = [
-        part_uuid is not None
-        for part_uuid in part_uuid_list
-    ]
+    flag_list = [part_uuid is not None for part_uuid in part_uuid_list]
     ibs._set_part_staged_flags(aid_list, flag_list)
 
 
@@ -1256,7 +1346,9 @@ def get_part_metadata(ibs, part_rowid_list, return_raw=False):
         Method: GET
         URL:    /api/part/metadata/
     """
-    metadata_str_list = ibs.db.get(const.PART_TABLE, ('part_metadata_json',), part_rowid_list)
+    metadata_str_list = ibs.db.get(
+        const.PART_TABLE, ('part_metadata_json',), part_rowid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -1328,7 +1420,9 @@ def get_part_contour(ibs, part_rowid_list, return_raw=False):
         Method: GET
         URL:    /api/part/contour/
     """
-    contour_str_list = ibs.db.get(const.PART_TABLE, ('part_contour_json',), part_rowid_list)
+    contour_str_list = ibs.db.get(
+        const.PART_TABLE, ('part_contour_json',), part_rowid_list
+    )
     contour_list = []
     for contour_str in contour_str_list:
         if contour_str in [None, '']:
@@ -1388,9 +1482,9 @@ def set_part_contour(ibs, part_rowid_list, contour_dict_list):
     ibs.db.set(const.PART_TABLE, ('part_contour_json',), val_list, id_iter)
 
 
-#==========
+# ==========
 # Testdata
-#==========
+# ==========
 
 
 def testdata_ibs():
@@ -1398,6 +1492,7 @@ def testdata_ibs():
     Auto-docstr for 'testdata_ibs'
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
@@ -1411,6 +1506,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_part_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

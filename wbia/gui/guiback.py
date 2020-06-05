@@ -42,6 +42,7 @@ from wbia.viz import interact
 from os.path import exists, join, dirname, normpath
 from wbia.plottool import fig_presenter
 from six.moves import zip
+
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 
 
@@ -53,6 +54,7 @@ def backreport(func):
     reports errors on backend functions
     should be around every function by default
     """
+
     def backreport_wrapper(back, *args, **kwargs):
         try:
             result = func(back, *args, **kwargs)
@@ -60,13 +62,15 @@ def backreport(func):
             print('handling user cancel')
             return None
         except Exception as ex:
-            #error_msg = "Error caught while performing function. \n %r" % ex
+            # error_msg = "Error caught while performing function. \n %r" % ex
             error_msg = 'Error: %s' % (ex,)
             import traceback  # NOQA
+
             detailed_msg = traceback.format_exc()
-            gt.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
+            gt.msgbox(title='Error Catch!', msg=error_msg, detailed_msg=detailed_msg)
             raise
         return result
+
     backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
     return backreport_wrapper
 
@@ -76,20 +80,22 @@ def backblock(func):
     TODO: This decorator has to be specific to either front or back. Is there a
     way to make it more general?
     """
+
     @functools.wraps(func)
-    #@gt.checks_qt_error
+    # @gt.checks_qt_error
     @backreport
     def bacblock_wrapper(back, *args, **kwargs):
         _wasBlocked_ = back.front.blockSignals(True)
         try:
             result = func(back, *args, **kwargs)
         except Exception:
-            #error_msg = "Error caught while performing function. \n %r" % ex
-            #gt.msgbox(title="Error Catch!", msg=error_msg)
+            # error_msg = "Error caught while performing function. \n %r" % ex
+            # gt.msgbox(title="Error Catch!", msg=error_msg)
             raise
         finally:
             back.front.blockSignals(_wasBlocked_)
         return result
+
     bacblock_wrapper = ut.preserve_sig(bacblock_wrapper, func)
     return bacblock_wrapper
 
@@ -100,6 +106,7 @@ def blocking_slot(*types_):
     In addition it also causes the gui frontend to block signals while
     the decorated function is processing.
     """
+
     def wrap_bslot(func):
         # @slot_(*types_)
         @QtCore.pyqtSlot(*types_)
@@ -109,8 +116,10 @@ def blocking_slot(*types_):
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
+
         wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot
+
     return wrap_bslot
 
 
@@ -136,11 +145,13 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
+
     def __init__(self, ibs):
         from wbia.expt import annotation_configs
         from wbia import dtool
         from wbia.guitool import PrefWidget2
         from wbia.guitool.__PYQT__.QtCore import Qt
+
         super(CustomAnnotCfgSelector, self).__init__()
         self.ibs = ibs
 
@@ -149,43 +160,61 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
         class TmpAnnotConfig(dtool.Config):
             _param_info_list = (
-                annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO +
-                annotation_configs.INTRAGROUP_DEFAULTS_PARAM_INFO +
-                annotation_configs.SAMPLE_DEFAULTS_PARAM_INFO +
-                annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
+                annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO
+                + annotation_configs.INTRAGROUP_DEFAULTS_PARAM_INFO
+                + annotation_configs.SAMPLE_DEFAULTS_PARAM_INFO
+                + annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
             )
 
         class TmpPipelineConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K, min_=1, none_ok=False),
-                ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm, min_=1, none_ok=False),
-                #ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
+                ut.ParamInfo(
+                    'Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm, min_=1, none_ok=False
+                ),
+                # ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('normalizer_rule'),
-                ut.ParamInfo('fgw_thresh', ibs.cfg.query_cfg.flann_cfg.fgw_thresh, type_=float, min_=0, max_=1),
-                ut.ParamInfo('query_rotation_heuristic', ibs.cfg.query_cfg.query_rotation_heuristic),
-                ut.ParamInfo('minscale_thresh', ibs.cfg.query_cfg.flann_cfg.minscale_thresh, type_=float),
-                ut.ParamInfo('maxscale_thresh', ibs.cfg.query_cfg.flann_cfg.maxscale_thresh, type_=float),
+                ut.ParamInfo(
+                    'fgw_thresh',
+                    ibs.cfg.query_cfg.flann_cfg.fgw_thresh,
+                    type_=float,
+                    min_=0,
+                    max_=1,
+                ),
+                ut.ParamInfo(
+                    'query_rotation_heuristic', ibs.cfg.query_cfg.query_rotation_heuristic
+                ),
+                ut.ParamInfo(
+                    'minscale_thresh',
+                    ibs.cfg.query_cfg.flann_cfg.minscale_thresh,
+                    type_=float,
+                ),
+                ut.ParamInfo(
+                    'maxscale_thresh',
+                    ibs.cfg.query_cfg.flann_cfg.maxscale_thresh,
+                    type_=float,
+                ),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('can_match_samename'),
-                #ut.ParamInfo('normalizer_rule', ibs.cfg.query_cfg.nnweight_cfg.normalizer_rule),
-                #ut.ParamInfo('AI', True),
+                # ut.ParamInfo('normalizer_rule', ibs.cfg.query_cfg.nnweight_cfg.normalizer_rule),
+                # ut.ParamInfo('AI', True),
             ]
 
         self.qcfg = TmpAnnotConfig()
         self.dcfg = TmpAnnotConfig()
 
         self.pcfg = TmpPipelineConfig()
-        self.review_cfg = dtool.Config.from_dict({
-            'filter_reviewed': True,
-            'ranks_top': 1,
-            'filter_true_matches': True,
-        })
-        self.info_cfg = dtool.Config.from_dict({
-            key: False for key in ibs.parse_annot_config_stats_filter_kws()
-        })
-        self.exemplar_cfg = dtool.Config.from_dict({
-            #'imgsetid': None,
-            'exemplars_per_view': ibs.cfg.other_cfg.exemplars_per_view,
-        })
+        self.review_cfg = dtool.Config.from_dict(
+            {'filter_reviewed': True, 'ranks_top': 1, 'filter_true_matches': True,}
+        )
+        self.info_cfg = dtool.Config.from_dict(
+            {key: False for key in ibs.parse_annot_config_stats_filter_kws()}
+        )
+        self.exemplar_cfg = dtool.Config.from_dict(
+            {
+                #'imgsetid': None,
+                'exemplars_per_view': ibs.cfg.other_cfg.exemplars_per_view,
+            }
+        )
 
         self.info_cfg['species_hist'] = True
         self.info_cfg['per_vp'] = True
@@ -200,8 +229,8 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             cfg['minqual'] = 'good'
             cfg['reviewed'] = True
             cfg['multiple'] = False
-            #cfg['min_pername'] = 0
-            #from wbia.other import ibsfuncs
+            # cfg['min_pername'] = 0
+            # from wbia.other import ibsfuncs
             cfg['species'] = self.ibs.get_primary_database_species()
             cfg['require_viewpoint'] = True
             cfg['view'] = ibsfuncs.get_primary_species_viewpoint(cfg['species'])
@@ -209,13 +238,14 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
         self.setWindowTitle('Custom Annot Selector')
 
-        #cfg_size_policy = (QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # cfg_size_policy = (QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         def new_confg_widget(cfg, changed=None):
             user_mode = 0
             cfg_widget = PrefWidget2.EditConfigWidget(
-                config=cfg, user_mode=user_mode, parent=self, changed=changed)
-            #cfg_widget.setSizePolicy(*cfg_size_policy)
+                config=cfg, user_mode=user_mode, parent=self, changed=changed
+            )
+            # cfg_widget.setSizePolicy(*cfg_size_policy)
             return cfg_widget
 
         self.editQueryConfig = new_confg_widget(self.qcfg, changed=self.on_cfg_changed)
@@ -223,7 +253,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.editPipeConfig = new_confg_widget(self.pcfg, changed=self.on_cfg_changed)
         self.editReviewConfig = new_confg_widget(self.review_cfg)
         self.editInfoConfig = new_confg_widget(self.info_cfg)
-        #self.editExemplarConfig = new_confg_widget(self.exemplar_cfg, changed=self.on_cfg_changed)
+        # self.editExemplarConfig = new_confg_widget(self.exemplar_cfg, changed=self.on_cfg_changed)
 
         tabwgt = self.addNewTabWidget(verticalStretch=1)
         tab1 = tabwgt.addNewTab('Custom Query')
@@ -244,12 +274,13 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         data_vframe = acfg_hframe.addNewVWidget()
         data_vframe.addWidget(QtWidgets.QLabel('Data Config'))
         data_vframe.addWidget(self.editDataConfig)
-        #data_vframe.setVisible(False)
+        # data_vframe.setVisible(False)
 
         info_vframe = acfg_hframe.addNewVWidget()
         info_vframe.addNewLabel('Exemplar Config')
         self.editExemplarConfig = info_vframe.addNewEditConfigWidget(
-            config=self.exemplar_cfg, changed=self.on_cfg_changed)
+            config=self.exemplar_cfg, changed=self.on_cfg_changed
+        )
         info_vframe.addNewButton('Set Exemplars', pressed=self.set_exemplars)
 
         pcfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
@@ -265,7 +296,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         info_vframe.addNewLabel('Info Config')
         info_vframe.addWidget(self.editInfoConfig)
 
-        #stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
+        # stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
         stats_vwidget = splitter.newWidget(orientation=Qt.Vertical, verticalStretch=1)
         stats_vwidget.addNewLabel('Expanded Annot Info (Info Config Changes Display)')
         self.qstats = QtWidgets.QTextEdit()
@@ -277,15 +308,21 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.qstats2.setReadOnly(True)
         self.qstats2.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         tab2.addWidget(self.qstats2)
-        #self.layout().addWidget(self.qstats)
+        # self.layout().addWidget(self.qstats)
 
         button_bar = self.addNewHWidget()
 
-        self.update_button = button_bar.addNewButton('Apply New Config', pressed=self.apply_new_config)
-        self.execute_button = button_bar.addNewButton('Execute New Query', pressed=self.execute_query)
-        self.load_bc_button = button_bar.addNewButton('Load Cached Query', pressed=self.load_bc)
+        self.update_button = button_bar.addNewButton(
+            'Apply New Config', pressed=self.apply_new_config
+        )
+        self.execute_button = button_bar.addNewButton(
+            'Execute New Query', pressed=self.execute_query
+        )
+        self.load_bc_button = button_bar.addNewButton(
+            'Load Cached Query', pressed=self.load_bc
+        )
 
-        #button_bar.addNewButton('TestLog', pressed=self.log_query)
+        # button_bar.addNewButton('TestLog', pressed=self.log_query)
         button_bar.addNewButton('Embed', pressed=self.embed)
         # testlog = QtWidgets.QPushButton('TestLog')
         # testlog.pressed.connect(self.log_query)
@@ -298,9 +335,9 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.bc_info = None
         self.load_bc_button.setEnabled(self.bc_info is not None)
         self.load_bc_button.setDisabled(self.bc_info is None)
-        #layout.addWidget(self.update_button, 3, 2, 1, 1)
-        #layout.addWidget(self.editQueryConfig)
-        #layout.addWidget(self.editDataConfig)
+        # layout.addWidget(self.update_button, 3, 2, 1, 1)
+        # layout.addWidget(self.editQueryConfig)
+        # layout.addWidget(self.editDataConfig)
         self.populate_table()
 
     def set_exemplars(self):
@@ -308,8 +345,9 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         ibs = self.ibs
         print('self.exemplar_cfg = %r' % (self.exemplar_cfg,))
         with gt.GuiProgContext('Querying', self.prog_bar) as ctx:  # NOQA
-            ibs.set_exemplars_from_quality_and_viewpoint(prog_hook=ctx.prog_hook,
-                                                         **self.exemplar_cfg)
+            ibs.set_exemplars_from_quality_and_viewpoint(
+                prog_hook=ctx.prog_hook, **self.exemplar_cfg
+            )
 
     def onstart(self):
         if self.saved_queries.rowCount() > 0:
@@ -320,17 +358,25 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
     def embed(self):
         import utool
+
         utool.embed()
 
     def make_commandline_str(self):
         from wbia.expt import experiment_helpers
         from wbia.expt import annotation_configs
+
         cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
-            ['default:'], ibs=self.ibs)
+            ['default:'], ibs=self.ibs
+        )
         default_pcfg = dict(pipecfg_list[0].parse_items())
         # Hackish ways to get cmdline string
         p = ut.get_cfg_lbl(self.pcfg.asdict(), name='default', default_cfg=default_pcfg)
-        a = 'default' + annotation_configs.get_varied_acfg_labels([self.acfg, annotation_configs.default])[0]
+        a = (
+            'default'
+            + annotation_configs.get_varied_acfg_labels(
+                [self.acfg, annotation_configs.default]
+            )[0]
+        )
         dbdir = self.ibs.get_dbdir()
         wbia_part = ['python', '-m', 'wbia']
         data_part = ['--dbdir', dbdir, '-a', a, '-t', p]
@@ -339,9 +385,10 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         return cmdstr
 
     def populate_table(self):
-        #data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
+        # data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
         print('Updating saved query table')
         from wbia.guitool.__PYQT__.QtCore import Qt
+
         self.table_data = self.get_saved_queries()
         horHeaders = ['fname', 'num_qaids', 'num_daids', 'has_bc']
         data = self.table_data
@@ -366,11 +413,11 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
     @property
     def acfg(self):
-        acfg =  {'qcfg': self.qcfg.asdict(), 'dcfg': self.dcfg.asdict()}
+        acfg = {'qcfg': self.qcfg.asdict(), 'dcfg': self.dcfg.asdict()}
         return acfg
 
     def expt_query_dir(self):
-        #dbdir = self.ibs.get_dbdir()
+        # dbdir = self.ibs.get_dbdir()
         dbdir = self.ibs.get_dbdir()
         expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
         expt_query_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'saved_queries'))
@@ -401,20 +448,23 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
     def update_config_info(self, extra=None):
         ibs = self.ibs
         from wbia.algo.Config import QueryConfig
+
         # use defaults instead of back's ibs.cfg
         query_cfg = QueryConfig()
-        self.qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
-                                                cfgdict=self.pcfg, query_cfg=query_cfg)
+        self.qreq_ = self.ibs.new_query_request(
+            self.qaids, self.daids, cfgdict=self.pcfg, query_cfg=query_cfg
+        )
         qreq_ = self.qreq_
-        stats_dict = ibs.get_annotconfig_stats(
-            qreq_.qaids, qreq_.daids, **self.info_cfg)
+        stats_dict = ibs.get_annotconfig_stats(qreq_.qaids, qreq_.daids, **self.info_cfg)
         cmdstr = self.make_commandline_str()
-        stat_parts = ut.filter_Nones([
-            cmdstr,
-            extra,
-            'pipe_cfgstr=%s' % (self.qreq_.get_cfgstr(with_data=False)),
-            ut.repr2(stats_dict, strvals=True)
-        ])
+        stat_parts = ut.filter_Nones(
+            [
+                cmdstr,
+                extra,
+                'pipe_cfgstr=%s' % (self.qreq_.get_cfgstr(with_data=False)),
+                ut.repr2(stats_dict, strvals=True),
+            ]
+        )
         stats_str = '\n'.join(stat_parts)
         print(stats_str)
         self.qstats.setPlainText(stats_str)
@@ -431,6 +481,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         prev_queries = ut.glob(expt_query_dir, 'long_*.json')
         data = ut.ddict(list)
         from os.path import basename
+
         for long_fpath in sorted(prev_queries):
             short_fpath = long_fpath.replace('long', 'short')
             data['long_path'].append(long_fpath)
@@ -509,35 +560,50 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
         if qreq_ is None and test:
             from wbia.algo.Config import QueryConfig
+
             query_cfg = QueryConfig()
-            qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
-                                               cfgdict=self.pcfg, query_cfg=query_cfg)
+            qreq_ = self.ibs.new_query_request(
+                self.qaids, self.daids, cfgdict=self.pcfg, query_cfg=query_cfg
+            )
 
         ts = ut.get_timestamp(isutc=True, timezone=True)
 
-        expt_long_fpath = ut.unixjoin(expt_query_dir, 'long_expt_%s_%s.json' %
-                                      (self.ibs.dbname, ts))
-        expt_short_fpath = ut.unixjoin(expt_query_dir, 'short_expt_%s_%s.json'
-                                       % (self.ibs.dbname, ts))
+        expt_long_fpath = ut.unixjoin(
+            expt_query_dir, 'long_expt_%s_%s.json' % (self.ibs.dbname, ts)
+        )
+        expt_short_fpath = ut.unixjoin(
+            expt_query_dir, 'short_expt_%s_%s.json' % (self.ibs.dbname, ts)
+        )
 
         bc_info = qreq_.get_bigcache_info()
 
-        query_info = ut.odict([
-            ('computer', ut.get_computer_name()),
-            ('timestamp', ts),
-            ('num_qaids', len(self.qaids)),
-            ('num_daids', len(self.daids)),
-            ('pcfg', self.pcfg.asdict()),
-            ('acfg', self.acfg),
-            ('review_cfg', self.review_cfg.asdict()),
-            ('expanded_aids', (self.qaids, self.daids)),
-            ('expanded_uuids', (ibs.get_annot_uuids(self.qaids), ibs.get_annot_uuids(self.daids))),
-            ('qreq_cfgstr', qreq_.get_cfgstr(with_input=True)),
-            ('qparams', qreq_.qparams),
-            ('qvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.qaids, prefix='Q')),
-            ('dvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.daids, prefix='D')),
-            ('bc_info', bc_info),
-        ])
+        query_info = ut.odict(
+            [
+                ('computer', ut.get_computer_name()),
+                ('timestamp', ts),
+                ('num_qaids', len(self.qaids)),
+                ('num_daids', len(self.daids)),
+                ('pcfg', self.pcfg.asdict()),
+                ('acfg', self.acfg),
+                ('review_cfg', self.review_cfg.asdict()),
+                ('expanded_aids', (self.qaids, self.daids)),
+                (
+                    'expanded_uuids',
+                    (ibs.get_annot_uuids(self.qaids), ibs.get_annot_uuids(self.daids)),
+                ),
+                ('qreq_cfgstr', qreq_.get_cfgstr(with_input=True)),
+                ('qparams', qreq_.qparams),
+                (
+                    'qvuuid_hash',
+                    qreq_.ibs.get_annot_hashid_visual_uuid(self.qaids, prefix='Q'),
+                ),
+                (
+                    'dvuuid_hash',
+                    qreq_.ibs.get_annot_hashid_visual_uuid(self.daids, prefix='D'),
+                ),
+                ('bc_info', bc_info),
+            ]
+        )
 
         if test:
             del query_info['expanded_aids']
@@ -557,7 +623,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
     @slot_()
     def execute_query(self):
         print('accept')
-        #assert not self.cfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
+        # assert not self.cfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
         if self.cfg_needs_update:
             options = ['Apply now and continue', 'Apply now and wait']
             reply = gt.user_option(
@@ -565,8 +631,9 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
                     '''
                     Information display is out of date. You should apply the
                     modified configuration before you continue.
-                    '''),
-                options=options
+                    '''
+                ),
+                options=options,
             )
 
             if reply == options[0]:
@@ -591,8 +658,9 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         with gt.GuiProgContext('Querying', self.prog_bar) as ctx:  # NOQA
             cm_list = qreq_.execute(prog_hook=ctx.prog_hook)
 
-        qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
-                                                  review_cfg=review_cfg)
+        qres_wgt = inspect_gui.QueryResultsWidget(
+            ibs, cm_list, qreq_=qreq_, review_cfg=review_cfg
+        )
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
@@ -602,20 +670,22 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
     def load_bc(self):
         from wbia.gui import inspect_gui
+
         review_cfg = self.review_cfg.asdict().copy()
         bc_dpath, bc_fname, bc_cfgstr = self.bc_info
         qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
         qreq_ = self.qreq_
         ibs = self.ibs
         cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
-        qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
-                                                  review_cfg=review_cfg)
+        qres_wgt = inspect_gui.QueryResultsWidget(
+            ibs, cm_list, qreq_=qreq_, review_cfg=review_cfg
+        )
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
 
     def on_table_doubleclick(self, index):
-        #print('index = %r' % (index,))
+        # print('index = %r' % (index,))
         row = index.row()
         self.load_previous_query(row)
 
@@ -638,6 +708,7 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
+
     def initialize(self, back=None, mode='new', on_chosen=None):
         # Save arguments
         if back is not None:
@@ -673,26 +744,34 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         self.dbname_row.edit.textChanged.connect(self.update_state)
         # ---
         self.workdir_row = self.addNewHWidget()
-        self.workdir_row.lbl  = self.workdir_row.addNewLabel('Current Workdir:')
-        self.workdir_row.edit = self.workdir_row.addNewLineEdit(self.workdir, align='right')
-        self.workdir_row.button = self.workdir_row.addNewButton('...',
-                                                                shrink_to_text=True,
-                                                                pressed=self.change_workdir)
-        self.workdir_row.viewbut = self.workdir_row.addNewButton('➤',
-                                                                 shrink_to_text=True,
-                                                                 pressed=self.view_workdir)
+        self.workdir_row.lbl = self.workdir_row.addNewLabel('Current Workdir:')
+        self.workdir_row.edit = self.workdir_row.addNewLineEdit(
+            self.workdir, align='right'
+        )
+        self.workdir_row.button = self.workdir_row.addNewButton(
+            '...', shrink_to_text=True, pressed=self.change_workdir
+        )
+        self.workdir_row.viewbut = self.workdir_row.addNewButton(
+            '➤', shrink_to_text=True, pressed=self.view_workdir
+        )
         self.workdir_row.edit.textChanged.connect(self.update_state)
         # ---
         self.current_row = self.addNewHWidget()
         self.create_but = self.newButton(
-            'Create in workdir', pressed=self.create_in_workdir)
-        self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
-        self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
+            'Create in workdir', pressed=self.create_in_workdir
+        )
+        self.current_row.lbl = self.current_row.addNewLabel(
+            'Current choice:', align='left'
+        )
+        self.current_row.edit = self.current_row.addNewLabel(
+            '{current_dbdir}', align='right'
+        )
 
         self.button_row = self.addNewHWidget()
         self.button_row.addNewButton('Cancel', pressed=self.cancel)
-        self.button_row.addNewButton('Create in a different directory',
-                                     pressed=self.create_in_customdir)
+        self.button_row.addNewButton(
+            'Create in a different directory', pressed=self.create_in_customdir
+        )
         self.button_row.addWidget(self.create_but)
 
         self.update_state()
@@ -725,13 +804,15 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         ut.colorprint('change workdir', 'yellow')
         new_workdir = gt.select_directory(
             'Select new work directory',
-            other_sidebar_dpaths=[self.workdir_row.edit.text()])
+            other_sidebar_dpaths=[self.workdir_row.edit.text()],
+        )
         if new_workdir is not None:
             print('new_workdir = %r' % (new_workdir,))
             self.workdir_row.edit.setText(new_workdir)
             self.update_state()
             if self.back is not None:
                 import wbia
+
                 wbia.sysres.set_workdir(work_dir=new_workdir, allow_gui=False)
 
     def create_in_workdir(self):
@@ -743,7 +824,8 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         print('Create in Custom')
         new_dbdir = gt.select_directory(
             'Select directory for %s' % (self.dbname),
-            other_sidebar_dpaths=[self.workdir_row.edit.text()])
+            other_sidebar_dpaths=[self.workdir_row.edit.text()],
+        )
         current_choice = normpath(join(new_dbdir, self.dbname))
         self.choose_new_dbdir(current_choice)
 
@@ -760,15 +842,15 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         self.close()
 
 
-#------------------------
+# ------------------------
 # Backend MainWindow Class
-#------------------------
-#QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(gt.QtCore.pyqtWrapperType)
+# ------------------------
+# QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(gt.QtCore.pyqtWrapperType)
 
 GUIBACK_BASE = QtCore.QObject
 
 
-#@six.add_metaclass(QtReloadingMetaClass)  # cant do this quit yet
+# @six.add_metaclass(QtReloadingMetaClass)  # cant do this quit yet
 class MainWindowBackend(GUIBACK_BASE):
     """
     Sends and recieves signals to and from the frontend
@@ -788,17 +870,18 @@ class MainWindowBackend(GUIBACK_BASE):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=back.front, freq=10)
     """
+
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
-    #changeSpeciesSignal = signal_(str)
-    #incQuerySignal = signal_(int)
+    # changeSpeciesSignal = signal_(str)
+    # incQuerySignal = signal_(int)
 
-    #------------------------
+    # ------------------------
     # Constructor
-    #------------------------
+    # ------------------------
     def __init__(back, ibs=None):
         """ Creates GUIBackend object """
-        #GUIBACK_BASE.__init__(back)
+        # GUIBACK_BASE.__init__(back)
         super(MainWindowBackend, back).__init__()
         if ut.VERBOSE:
             print('[back] MainWindowBackend.__init__(ibs=%r)' % (ibs,))
@@ -810,11 +893,11 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_nids = []
         back.sel_gids = []
         back.sel_cm = []
-        #if ut.is_developer():
+        # if ut.is_developer():
         back.daids_mode = None
-        #else:
+        # else:
         # back.daids_mode = const.VS_EXEMPLARS_KEY
-        #back.imageset_query_results = ut.ddict(dict)
+        # back.imageset_query_results = ut.ddict(dict)
         # used to store partials defined in the frontend
         back.special_query_funcs = {}
         # Create GUIFrontend object
@@ -827,11 +910,11 @@ class MainWindowBackend(GUIBACK_BASE):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the wbia controller
         back.register_self()
-        #back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
+        # back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
 
-        #back.incQuerySignal.connect(back.incremental_query_slot)
+        # back.incQuerySignal.connect(back.incremental_query_slot)
 
-    #def __del__(back):
+    # def __del__(back):
     #    back.cleanup()
 
     def set_daids_mode(back, new_mode):
@@ -843,10 +926,12 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             back.daids_mode = new_mode
         try:
-            back.mainwin.actionToggleQueryMode.setText('Toggle Query Mode currently: %s' % back.daids_mode)
+            back.mainwin.actionToggleQueryMode.setText(
+                'Toggle Query Mode currently: %s' % back.daids_mode
+            )
         except Exception as ex:
             ut.printex(ex)
-        #back.front.menuActions.
+        # back.front.menuActions.
 
     def cleanup(back):
         back.kill_web_server_parallel()
@@ -858,12 +943,12 @@ class MainWindowBackend(GUIBACK_BASE):
         except Exception as ex:
             ut.printex(ex, '[back] observer fail')
 
-    #@ut.indent_func
+    # @ut.indent_func
     def notify(back):
         """ Observer's notify function. """
         back.refresh_state()
 
-    #@ut.indent_func
+    # @ut.indent_func
     def notify_controller_killed(back):
         """ Observer's notify function that the wbia controller has been killed. """
         back.ibs = None
@@ -872,9 +957,9 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.ibs is not None:
             back.ibs.register_observer(back)
 
-    #------------------------
+    # ------------------------
     # Draw Functions
-    #------------------------
+    # ------------------------
 
     def show(back):
         back.mainwin.show()
@@ -884,64 +969,68 @@ class MainWindowBackend(GUIBACK_BASE):
         web_port = back.ibs.get_web_port_via_scan()
         if web_port is None:
             raise ValueError('IA web server is not running on any expected port')
-        web_domain = '%s:%s' % (web_url, web_port, )
+        web_domain = '%s:%s' % (web_url, web_port,)
         return web_domain
 
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
-        imgsetid_str = ','.join( map(str, imgsetid_list) )
+        imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/images/?imgsetid=%s' % (web_domain, imgsetid_str, )
+        url = 'http://%s/view/images/?imgsetid=%s' % (web_domain, imgsetid_str,)
         webbrowser.open(url)
 
     def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
-        imgsetid_str = ','.join( map(str, imgsetid_list) )
+        imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid_str, )
+        url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid_str,)
         webbrowser.open(url)
 
     def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
-        imgsetid_str = ','.join( map(str, imgsetid_list) )
+        imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid_str, )
+        url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid_str,)
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
         if web:
             back.show_images_in_web(gid)
         else:
-            kwargs.update({
-                'sel_aids': sel_aids,
-                'select_callback': back.select_gid,
-            })
+            kwargs.update(
+                {'sel_aids': sel_aids, 'select_callback': back.select_gid,}
+            )
             interact.ishow_image(back.ibs, gid, **kwargs)
 
     def show_images_in_web(back, gid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
         gid_list = ut.ensure_iterable(gid_list)
         gid_text = ','.join(map(str, gid_list))
         web_domain = back.get_background_web_domain()
         if len(gid_list) == 1:
-            url = 'http://%s/view/detection?gid=%s' % (web_domain, gid_text, )
+            url = 'http://%s/view/detection?gid=%s' % (web_domain, gid_text,)
         else:
-            url = 'http://%s/view/images?gid=%s' % (web_domain, gid_text, )
+            url = 'http://%s/view/images?gid=%s' % (web_domain, gid_text,)
         webbrowser.open(url)
 
     def show_annotation(back, aid, show_image=False, web=False, **kwargs):
         if web:
             import webbrowser
+
             back.start_web_server_parallel(browser=False)
             web_domain = back.get_background_web_domain()
-            url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid, )
+            url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid,)
             webbrowser.open(url)
         else:
             interact.ishow_chip(back.ibs, aid, **kwargs)
@@ -953,30 +1042,31 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def show_aid_list_in_web(back, aid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
 
         if not isinstance(aid_list, (tuple, list)):
             aid_list = [aid_list]
         if len(aid_list) > 0:
-            aid_list = ','.join( map(str, aid_list) )
+            aid_list = ','.join(map(str, aid_list))
         else:
             aid_list = ''
 
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid_list, )
+        url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid_list,)
         webbrowser.open(url)
 
     def show_name(back, nid, sel_aids=[], **kwargs):
-        kwargs.update({
-            'sel_aids': sel_aids,
-            'select_aid_callback': back.select_aid,
-        })
-        #nid = back.ibs.get_name_rowids_from_text(name)
+        kwargs.update(
+            {'sel_aids': sel_aids, 'select_aid_callback': back.select_aid,}
+        )
+        # nid = back.ibs.get_name_rowids_from_text(name)
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
     def show_nid_list_in_web(back, nid_list, **kwargs):
         import webbrowser
+
         back.start_web_server_parallel(browser=False)
 
         if not isinstance(nid_list, (tuple, list)):
@@ -989,12 +1079,12 @@ class MainWindowBackend(GUIBACK_BASE):
                 aid_list.append(aids[0])
 
         if len(aid_list) > 0:
-            aid_str = ','.join( map(str, aid_list) )
+            aid_str = ','.join(map(str, aid_list))
         else:
             aid_str = ''
 
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/names?aid=%s' % (web_domain, aid_str, )
+        url = 'http://%s/view/names?aid=%s' % (web_domain, aid_str,)
         webbrowser.open(url)
 
     def show_hough_image_(back, gid, **kwargs):
@@ -1027,6 +1117,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def review_queries(back, cm_list, qreq_=None, review_cfg={}, query_title=''):
         # Qt QueryResults Interaction
         from wbia.gui import inspect_gui
+
         ibs = back.ibs
 
         def finished_review_callback():
@@ -1052,17 +1143,20 @@ class MainWindowBackend(GUIBACK_BASE):
         print('filter_reviewed = %s' % (filter_reviewed,))
         review_cfg['filter_reviewed'] = filter_reviewed
         review_cfg['ranks_top'] = review_cfg.get('ranks_top', ibs.cfg.other_cfg.ranks_top)
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
-                                                       callback=finished_review_callback,
-                                                       qreq_=qreq_,
-                                                       query_title=query_title,
-                                                       review_cfg=review_cfg)
+        back.qres_wgt = inspect_gui.QueryResultsWidget(
+            ibs,
+            cm_list,
+            callback=finished_review_callback,
+            qreq_=qreq_,
+            query_title=query_title,
+            review_cfg=review_cfg,
+        )
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
-    #----------------------
+    # ----------------------
     # State Management Functions
-    #----------------------
+    # ----------------------
 
     def refresh_state(back):
         """ Blanket refresh function. Try not to call this """
@@ -1078,8 +1172,7 @@ class MainWindowBackend(GUIBACK_BASE):
         # register self with the wbia controller
         back.register_self()
         # deselect
-        back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
-                            sel_imgsetids=[None])
+        back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[], sel_imgsetids=[None])
         back.front.connect_wbia_control(ibs)
         exemplar_gsid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
         num_exemplars = len(ibsfuncs._get_gids_in_imgsetid(ibs, exemplar_gsid))
@@ -1120,7 +1213,7 @@ class MainWindowBackend(GUIBACK_BASE):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
             raise guiexcept.InvalidRequest('There are no selected ANNOTATIONs')
-        #aid = back.sel_aids[0]
+        # aid = back.sel_aids[0]
         return back.sel_aids
 
     @ut.indent_func
@@ -1131,9 +1224,9 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid = back.sel_imgsetids[0]
         return imgsetid
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Selection Functions
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def _set_selection2(back, tablename, id_list, mode='set'):
         # here tablename is a backend const tablename
@@ -1147,14 +1240,16 @@ class MainWindowBackend(GUIBACK_BASE):
         def diff_collections(old, aug):
             return list(set(old) - set(ut.ensure_iterable(aug)))
 
-        modify_collections = {'set': set_collections,
-                              'add': add_collections,
-                              'diff': diff_collections}[mode]
+        modify_collections = {
+            'set': set_collections,
+            'add': add_collections,
+            'diff': diff_collections,
+        }[mode]
 
         attr_map = {
-            const.ANNOTATION_TABLE : 'sel_aids',
-            const.IMAGE_TABLE      : 'sel_gids',
-            const.NAME_TABLE       : 'sel_nids',
+            const.ANNOTATION_TABLE: 'sel_aids',
+            const.IMAGE_TABLE: 'sel_gids',
+            const.NAME_TABLE: 'sel_nids',
         }
         attr = attr_map[tablename]
         new_id_list = modify_collections(getattr(back, attr), id_list)
@@ -1164,17 +1259,23 @@ class MainWindowBackend(GUIBACK_BASE):
         """
            text = '51e10019-968b-5f2e-2287-8432464d7547 '
         """
+
         def ensure_uuids_are_ids(id_list, uuid_to_id_fn):
             import uuid
+
             if len(id_list) > 0 and isinstance(id_list[0], uuid.UUID):
                 id_list = uuid_to_id_fn(id_list)
             return id_list
+
         def ensure_texts_are_ids(id_list, text_to_id_fn):
             if len(id_list) > 0 and isinstance(id_list[0], six.string_types):
                 id_list = text_to_id_fn(id_list)
             return id_list
+
         if tablename == const.ANNOTATION_TABLE:
-            id_list = ensure_uuids_are_ids(id_list, back.ibs.get_annot_aids_from_visual_uuid)
+            id_list = ensure_uuids_are_ids(
+                id_list, back.ibs.get_annot_aids_from_visual_uuid
+            )
             aid_list = ut.ensure_iterable(id_list)
             nid_list = back.ibs.get_annot_nids(aid_list)
             gid_list = back.ibs.get_annot_gids(aid_list)
@@ -1222,8 +1323,16 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibswgt.set_selection_status(gh.ANNOTATION_TABLE, back.sel_aids)
         back.ibswgt.set_selection_status(gh.NAMES_TREE, back.sel_nids)
 
-    def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
-                       sel_cm=None, sel_imgsetids=None, mode='set', **kwargs):
+    def _set_selection(
+        back,
+        sel_gids=None,
+        sel_aids=None,
+        sel_nids=None,
+        sel_cm=None,
+        sel_imgsetids=None,
+        mode='set',
+        **kwargs
+    ):
         def modify_collection_attr(self, attr, aug, mode):
             aug = ut.ensure_iterable(aug)
             old = getattr(self, attr)
@@ -1271,8 +1380,9 @@ class MainWindowBackend(GUIBACK_BASE):
         print(prefix + '[back] select imageset imgsetid=%r' % (imgsetid))
         back._set_selection(sel_imgsetids=imgsetid, **kwargs)
 
-    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None,
-                   fnum=None, web=False, **kwargs):
+    def select_gid(
+        back, gid, imgsetid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs
+    ):
         r"""
         Table Click -> Image Table
 
@@ -1305,10 +1415,13 @@ class MainWindowBackend(GUIBACK_BASE):
                 sel_aids = sel_aids[0:1]
             else:
                 sel_aids = []
-        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (
-            gid, imgsetid, sel_aids))
-        back._set_selection(sel_gids=gid, sel_aids=sel_aids,
-                            sel_imgsetids=imgsetid, **kwargs)
+        print(
+            '[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)'
+            % (gid, imgsetid, sel_aids)
+        )
+        back._set_selection(
+            sel_gids=gid, sel_aids=sel_aids, sel_imgsetids=imgsetid, **kwargs
+        )
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
@@ -1324,12 +1437,16 @@ class MainWindowBackend(GUIBACK_BASE):
         gid = back.ibs.get_annot_gids(aid)
         back.select_gid(gid, imgsetid=imgsetid, show=show, web=web, sel_aids=[aid])
 
-    def select_aid(back, aid, imgsetid=None, show=True, show_annotation=True, web=False, **kwargs):
+    def select_aid(
+        back, aid, imgsetid=None, show=True, show_annotation=True, web=False, **kwargs
+    ):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, imgsetid=%r' % (aid, imgsetid))
         gid = back.ibs.get_annot_gids(aid)
         nid = back.ibs.get_annot_name_rowids(aid)
-        back._set_selection(sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_imgsetids=imgsetid, **kwargs)
+        back._set_selection(
+            sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_imgsetids=imgsetid, **kwargs
+        )
         if show and show_annotation:
             back.show_annotation(aid, web=web, **kwargs)
 
@@ -1342,9 +1459,9 @@ class MainWindowBackend(GUIBACK_BASE):
         if show and show_name:
             back.show_name(nid, **kwargs)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Action menu slots
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     @blocking_slot()
     def add_annotation_from_image(back, gid_list, refresh=True):
@@ -1352,7 +1469,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] add_annotation_from_image')
         assert isinstance(gid_list, list), 'must pass in list here'
         size_list = back.ibs.get_image_sizes(gid_list)
-        bbox_list = [ (0, 0, w, h) for (w, h) in size_list ]
+        bbox_list = [(0, 0, w, h) for (w, h) in size_list]
         theta_list = [0.0] * len(gid_list)
         aid_list = back.ibs.add_annots(gid_list, bbox_list, theta_list)
         if refresh:
@@ -1396,29 +1513,29 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> ut.quit_if_noshow()
             >>> gt.qtapp_loop(back.mainwin, frequency=100)
         """
-        print('[back] delete_annot, aid_list = %r' % (aid_list, ))
+        print('[back] delete_annot, aid_list = %r' % (aid_list,))
         if aid_list is None:
             aid_list = back.get_selected_aids()
         if not back.are_you_sure(use_msg='Delete %d annotations?' % (len(aid_list))):
             return
         back._set_selection3(const.ANNOTATION_TABLE, aid_list, mode='diff')
         # get the image-id of the annotation we are deleting
-        #gid_list = back.ibs.get_annot_gids(aid_list)
+        # gid_list = back.ibs.get_annot_gids(aid_list)
         # delete the annotation
         back.ibs.delete_annots(aid_list)
         # Select only one image
-        #try:
+        # try:
         #    if len(gid_list) > 0:
         #        gid = gid_list[0]
-        #except AttributeError:
+        # except AttributeError:
         #    gid = gid_list
-        #back.select_gid(gid, show=False)
+        # back.select_gid(gid, show=False)
         # update display, to show image without the deleted annotation
         back.front.update_tables()
 
     @blocking_slot()
     def unset_names(back, aid_list):
-        msg = ('[back] unsetting %d names' % (len(aid_list)))
+        msg = '[back] unsetting %d names' % (len(aid_list))
         print(msg)
         if not back.are_you_sure(msg):
             return
@@ -1437,7 +1554,7 @@ class MainWindowBackend(GUIBACK_BASE):
             idx = col_name_list.index('thumb')
             view.col_hidden_list[idx] = not view.col_hidden_list[idx]
             view.hide_cols()
-            #view.resizeRowsToContents() Too slow to use
+            # view.resizeRowsToContents() Too slow to use
         back.front.update_tables()
 
     # @blocking_slot(int)
@@ -1446,7 +1563,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @QtCore.pyqtSlot(int)
     def delete_image(back, gid_list=None):
         """ Action -> Delete Images"""
-        print('[back] delete_image, gid_list = %r' % (gid_list, ))
+        print('[back] delete_image, gid_list = %r' % (gid_list,))
         if gid_list is None or gid_list is False:
             gid_list = [back.get_selected_gid()]
         gid_list = ut.ensure_iterable(gid_list)
@@ -1469,7 +1586,8 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def update_special_imagesets_(back):
         use_more_special_imagesets = back.ibs.cfg.other_cfg.ensure_attr(
-            'use_more_special_imagesets', False)
+            'use_more_special_imagesets', False
+        )
         back.ibs.update_special_imagesets(use_more_special_imagesets)
         back.front.update_tables([gh.IMAGESET_TABLE])
 
@@ -1516,10 +1634,10 @@ class MainWindowBackend(GUIBACK_BASE):
     def export_imagesets(back, imgsetid_list):
         print('\n\n[back] export imageset')
 
-        #new_dbname = back.user_input(
+        # new_dbname = back.user_input(
         #    msg='What do you want to name the new database?',
         #    title='Export to New Database')
-        #if new_dbname is None or len(new_dbname) == 0:
+        # if new_dbname is None or len(new_dbname) == 0:
         #    print('Abort export to new database. new_dbname=%r' % new_dbname)
         #    return
         back.ibs.export_imagesets(imgsetid_list, new_dbdir=None)
@@ -1527,6 +1645,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def train_rf_with_imageset(back, **kwargs):
         from wbia.algo.detect import randomforest
+
         imgsetid = back._eidfromkw(kwargs)
         if imgsetid < 0:
             gid_list = back.ibs.get_valid_gids()
@@ -1535,12 +1654,15 @@ class MainWindowBackend(GUIBACK_BASE):
         species = back.ibs.cfg.detect_cfg.species_text
         if species == 'none':
             species = None
-        print("[train_rf_with_imageset] Training Random Forest trees with imgsetid=%r and species=%r" % (imgsetid, species, ))
+        print(
+            '[train_rf_with_imageset] Training Random Forest trees with imgsetid=%r and species=%r'
+            % (imgsetid, species,)
+        )
         randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
 
     @blocking_slot(int)
     def merge_imagesets(back, imgsetid_list, destination_imgsetid):
-        assert len(imgsetid_list) > 1, "Cannot merge fewer than two imagesets"
+        assert len(imgsetid_list) > 1, 'Cannot merge fewer than two imagesets'
         print('[back] merge_imagesets: %r, %r' % (destination_imgsetid, imgsetid_list))
         if back.contains_special_imagesets(imgsetid_list):
             back.display_special_imagesets_error()
@@ -1550,12 +1672,17 @@ class MainWindowBackend(GUIBACK_BASE):
             destination_index = imgsetid_list.index(destination_imgsetid)
         except Exception:
             # Default to the first value selected if the imgsetid doesn't exist in imgsetid_list
-            print('[back] merge_imagesets cannot find index for %r' % (destination_imgsetid,))
+            print(
+                '[back] merge_imagesets cannot find index for %r'
+                % (destination_imgsetid,)
+            )
             destination_index = 0
             destination_imgsetid = imgsetid_list[destination_index]
         deprecated_imgsetids = list(imgsetid_list)
         deprecated_imgsetids.pop(destination_index)
-        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid in imgsetid_list] )
+        gid_list = ut.flatten(
+            [ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid in imgsetid_list]
+        )
         imgsetid_list = [destination_imgsetid] * len(gid_list)
         ibs.set_image_imgsetids(gid_list, imgsetid_list)
         ibs.delete_imagesets(deprecated_imgsetids)
@@ -1579,16 +1706,18 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid = back.get_selected_imgsetid()
         back.ibs.unrelate_images_and_imagesets(gid_list, [imgsetid] * len(gid_list))
         back.update_special_imagesets_()
-        back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
+        back.front.update_tables(
+            [gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True
+        )
 
     @blocking_slot(list)
     def send_to_new_imageset(back, gid_list, mode='move'):
-        assert len(gid_list) > 0, "Cannot create a new imageset with no images"
+        assert len(gid_list) > 0, 'Cannot create a new imageset with no images'
         print('\n\n[back] send_to_new_imageset')
         ibs = back.ibs
-        #imagesettext = const.NEW_IMAGESET_IMAGESETTEXT
-        #imagesettext_list = [imagesettext] * len(gid_list)
-        #ibs.set_image_imagesettext(gid_list, imagesettext_list)
+        # imagesettext = const.NEW_IMAGESET_IMAGESETTEXT
+        # imagesettext_list = [imagesettext] * len(gid_list)
+        # ibs.set_image_imagesettext(gid_list, imagesettext_list)
         new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA
         if mode == 'move':
             imgsetid = back.get_selected_imgsetid()
@@ -1599,11 +1728,13 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             raise AssertionError('invalid mode=%r' % (mode,))
         back.update_special_imagesets_()
-        back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
+        back.front.update_tables(
+            [gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True
+        )
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Batch menu slots
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     @blocking_slot()
     def imageset_set_species(back, refresh=True):
@@ -1664,23 +1795,23 @@ class MainWindowBackend(GUIBACK_BASE):
         if species_text is None or species_text == const.UNKNOWN:
             # hack to set species for user
             pass
-            #species_text = back.ibs.get_primary_database_species()
-            #print('\'species_text = %r' % (species_text,))
-            #sig = signal_(str)
-            #sig.connect(back.ibswgt.species_combo.setItemText)
-            #back.ibswgt.species_combo.setItemText(species_text)
-            #back.changeSpeciesSignal.emit(str(species_text))
-            #sig.emit(species_text)
-            #back.ibs.cfg.detect_cfg.species_text = species_text
+            # species_text = back.ibs.get_primary_database_species()
+            # print('\'species_text = %r' % (species_text,))
+            # sig = signal_(str)
+            # sig.connect(back.ibswgt.species_combo.setItemText)
+            # back.ibswgt.species_combo.setItemText(species_text)
+            # back.changeSpeciesSignal.emit(str(species_text))
+            # sig.emit(species_text)
+            # back.ibs.cfg.detect_cfg.species_text = species_text
         return species_text
 
     @blocking_slot()
     def change_daids_mode(back, index, value):
         print('[back] change_daids_mode(%r, %r)' % (index, value))
         back.daids_mode = value
-        #ibs = back.ibs
-        #ibs.cfg.detect_cfg.species_text = value
-        #ibs.cfg.save()
+        # ibs = back.ibs
+        # ibs.cfg.detect_cfg.species_text = value
+        # ibs.cfg.save()
 
     @blocking_slot()
     def do_group_occurrence_step(back, refresh=True):
@@ -1702,23 +1833,25 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         print('[back] do_group_occurrence_step')
         from wbia import dtool
-        #class TmpConfig(dtool.Config):
+
+        # class TmpConfig(dtool.Config):
         #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
         ibs = back.ibs
 
         ungrouped_gid_list = ibs.get_ungrouped_gids()
-        #ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
+        # ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
         # image_list['unixtime']
 
-        existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
-                                                          shipped=False,
-                                                          min_num_gids=1)
+        existing_imgset_id_list = ibs.get_valid_imgsetids(
+            is_occurrence=True, shipped=False, min_num_gids=1
+        )
 
         class TmpConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo('seconds_thresh', 1600, 'sec'),
                 ut.ParamInfo('use_gps', True, ''),
             ]
+
         config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
 
         options = [
@@ -1735,7 +1868,9 @@ class MainWindowBackend(GUIBACK_BASE):
                     (1) append new occurrences
                     (2) add to the %d existing occurrences
                     (3) redo everything
-                ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
+                '''
+            )
+            % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
             config=config,
             options=options,
             default=options[0],
@@ -1755,18 +1890,23 @@ class MainWindowBackend(GUIBACK_BASE):
             # Add to existing imaesets
             imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
             import numpy as np
+
             # Get unixtimes of the new images
             unixtime_list = ibs.get_image_unixtime(ungrouped_gid_list)
             # Get unixtimes of the occurrences
             imgset_gids_list = ibs.get_imageset_gids(existing_imgset_id_list)
-            imgset_unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime,
-                                                   imgset_gids_list)
-            #imageset_start_time_posix_list = np.array(ut.lmap(np.min, unixtimes_list))
-            imageset_mean_time_posix_list = np.array(ut.lmap(np.mean, imgset_unixtimes_list))
-            #imageset_end_time_posix_list = np.array(ut.lmap(np.max, unixtimes_list))
+            imgset_unixtimes_list = ibs.unflat_map(
+                ibs.get_image_unixtime, imgset_gids_list
+            )
+            # imageset_start_time_posix_list = np.array(ut.lmap(np.min, unixtimes_list))
+            imageset_mean_time_posix_list = np.array(
+                ut.lmap(np.mean, imgset_unixtimes_list)
+            )
+            # imageset_end_time_posix_list = np.array(ut.lmap(np.max, unixtimes_list))
 
-            assigned_idx = [np.abs(x - imageset_mean_time_posix_list).argmin()
-                            for x in unixtime_list]
+            assigned_idx = [
+                np.abs(x - imageset_mean_time_posix_list).argmin() for x in unixtime_list
+            ]
             assigned_imgset = ut.take(imagesettext_list, assigned_idx)
             ibs.set_image_imagesettext(ungrouped_gid_list, assigned_imgset)
             # HACK TO UPDATE IMAGESET POSIX TIMES
@@ -1835,14 +1975,26 @@ class MainWindowBackend(GUIBACK_BASE):
         if True:
             # TODO better confirm dialog
             from wbia import dtool
+
             species_text = ibs.get_all_species_texts()
             species_nice = ibs.get_all_species_nice()
+
             class TmpDetectConfig(dtool.Config):
                 _param_info_list = [
                     ut.ParamInfo('review_in_web', review_in_web),
-                    ut.ParamInfo('detector', ibs.cfg.detect_cfg.detector, valid_values=['cnn', 'rf']),
-                    ut.ParamInfo('species', ibs.cfg.detect_cfg.species_text, valid_values=species_nice, hideif=lambda cfg: cfg['detector'] != 'rf'),
+                    ut.ParamInfo(
+                        'detector',
+                        ibs.cfg.detect_cfg.detector,
+                        valid_values=['cnn', 'rf'],
+                    ),
+                    ut.ParamInfo(
+                        'species',
+                        ibs.cfg.detect_cfg.species_text,
+                        valid_values=species_nice,
+                        hideif=lambda cfg: cfg['detector'] != 'rf',
+                    ),
                 ]
+
             config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
             options = [
                 'Start Detection',
@@ -1852,7 +2004,9 @@ class MainWindowBackend(GUIBACK_BASE):
                 msg=ut.codeblock(
                     '''
                     Preparing to run detection on %d images in \'%s\'.
-                    ''') % (len(gid_list), imgset_text),
+                    '''
+                )
+                % (len(gid_list), imgset_text),
                 config=config,
                 options=options,
                 default=options[0],
@@ -1905,7 +2059,9 @@ class MainWindowBackend(GUIBACK_BASE):
             elif detector in ['random_forest', 'rf']:
                 species = ibs.cfg.detect_cfg.species_text
                 # Construct message
-                msg_fmtstr_list = ['You are about to run detection using Random Forests...']
+                msg_fmtstr_list = [
+                    'You are about to run detection using Random Forests...'
+                ]
                 fmtdict = dict()
                 # Append detection configuration information
                 msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
@@ -1920,7 +2076,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 msg_fmtstr = '\n'.join(msg_fmtstr_list)
                 msg_str = msg_fmtstr.format(**fmtdict)
                 if back.are_you_sure(use_msg=msg_str):
-                    print('[back] run_detection_step(species=%r, imgsetid=%r)' % (species, imgsetid))
+                    print(
+                        '[back] run_detection_step(species=%r, imgsetid=%r)'
+                        % (species, imgsetid)
+                    )
                     ibs.detect_random_forest(gid_list, species)
                     print('[back] about to finish detection')
                     if refresh:
@@ -1933,13 +2092,14 @@ class MainWindowBackend(GUIBACK_BASE):
             # back.user_info(msg='Detection has finished. Launching web review')
             web_domain = back.get_background_web_domain()
             if review_in_web_mode == 'annotations':
-                url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid, )
+                url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid,)
             elif review_in_web_mode == 'detections':
-                url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid, )
+                url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid,)
             else:
                 raise ValueError('invalid value for review_in_web_mode')
-            print('[guiback] Opening... %r' % (url, ))
+            print('[guiback] Opening... %r' % (url,))
             import webbrowser
+
             back.start_web_server_parallel(browser=False)
             webbrowser.open(url)
         else:
@@ -1965,8 +2125,8 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> import wbia.plottool as pt
             >>> gt.qtapp_loop(qwin=back)
         """
-        #from wbia.init import filter_annots
-        #filter_kw = filter_annots.get_default_annot_filter_form()
+        # from wbia.init import filter_annots
+        # filter_kw = filter_annots.get_default_annot_filter_form()
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
@@ -1975,42 +2135,59 @@ class MainWindowBackend(GUIBACK_BASE):
         app.processEvents()
         back.custom_query_widget.onstart()
         # back.custom_query_widget.apply_new_config()
-        #dlg = wgt.as_dialog(back)
-        #dlg.show()
-        #dlg.exec_()
-        #if not wgt.accept_flag:
+        # dlg = wgt.as_dialog(back)
+        # dlg.show()
+        # dlg.exec_()
+        # if not wgt.accept_flag:
         #    #reply not in options:
         #    raise guiexcept.UserCancel
-        #back.compute_queries(qaid_list=wgt.qaids, daid_list=back.daids)
+        # back.compute_queries(qaid_list=wgt.qaids, daid_list=back.daids)
 
-    def confirm_query_dialog2(back, species2_expanded_aids=None, cfgdict=None,
-                              query_msg=None, query_title=None, review_cfg={}):
+    def confirm_query_dialog2(
+        back,
+        species2_expanded_aids=None,
+        cfgdict=None,
+        query_msg=None,
+        query_title=None,
+        review_cfg={},
+    ):
         """
         Asks the user to confirm starting the identification query
         """
         msg_str, detailed_msg = back.make_confirm_query_msg2(
-            species2_expanded_aids, cfgdict=cfgdict, query_title=query_title)
+            species2_expanded_aids, cfgdict=cfgdict, query_title=query_title
+        )
         if query_title is None:
             query_title = 'custom'
-        confirm_kw = dict(use_msg=msg_str, title='Begin %s ID' % (query_title,),
-                          default='Yes', detailed_msg=detailed_msg)
+        confirm_kw = dict(
+            use_msg=msg_str,
+            title='Begin %s ID' % (query_title,),
+            default='Yes',
+            detailed_msg=detailed_msg,
+        )
 
         # TODO better confirm dialog
         if True:
             from wbia import dtool
-            ibs = back.ibs   # NOQA
-            #class TmpIDConfig(dtool.Config):
+
+            ibs = back.ibs  # NOQA
+            # class TmpIDConfig(dtool.Config):
             #    _param_info_list = [
             #        #ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
             #        #ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
             #        #ut.ParamInfo('chip_size', ibs.cfg.chip_cfg.dim_size),
             #    ]
-            #**back.ibs.cfg.to_dict())
-            #config = TmpIDConfig()
+            # **back.ibs.cfg.to_dict())
+            # config = TmpIDConfig()
 
             review_config = {
-                'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)),
-                'ranks_top': review_cfg.get('ranks_top', ibs.cfg.other_cfg.ensure_attr('ranks_top', 2)),
+                'filter_reviewed': review_cfg.get(
+                    'filter_reviewed',
+                    ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True),
+                ),
+                'ranks_top': review_cfg.get(
+                    'ranks_top', ibs.cfg.other_cfg.ensure_attr('ranks_top', 2)
+                ),
                 'filter_true_matches': review_cfg.get('filter_true_matches', False),
             }
 
@@ -2021,7 +2198,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
             config = dtool.Config.from_dict(tmpdict)
 
-            #print('config = %r' % (config,))
+            # print('config = %r' % (config,))
             options = [
                 'Start ID',
             ]
@@ -2051,15 +2228,21 @@ class MainWindowBackend(GUIBACK_BASE):
                 raise guiexcept.UserCancel
 
     @blocking_slot()
-    def compute_queries(back, refresh=True, daids_mode=None,
-                        query_is_known=None, qaid_list=None,
-                        use_prioritized_name_subset=False,
-                        use_visual_selection=False, cfgdict={},
-                        query_msg=None,
-                        custom_qaid_list_title=None,
-                        daid_list=None,
-                        partition_queries_by_species=False,
-                        **kwargs):
+    def compute_queries(
+        back,
+        refresh=True,
+        daids_mode=None,
+        query_is_known=None,
+        qaid_list=None,
+        use_prioritized_name_subset=False,
+        use_visual_selection=False,
+        cfgdict={},
+        query_msg=None,
+        custom_qaid_list_title=None,
+        daid_list=None,
+        partition_queries_by_species=False,
+        **kwargs
+    ):
         """
         MAIN QUERY FUNCTION
 
@@ -2099,7 +2282,9 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid = back._eidfromkw(kwargs)
         print('\n')
         print('------')
-        print('[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
+        print(
+            '[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode)
+        )
         print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
         print('[back] use_visual_selection        = %r' % (use_visual_selection,))
         print('[back] daids_mode                  = %r' % (daids_mode,))
@@ -2137,12 +2322,16 @@ class MainWindowBackend(GUIBACK_BASE):
             back.set_exemplars_from_quality_and_viewpoint_()
 
         species2_expanded_aids = back._get_expanded_aids_groups(
-            imgsetid, daids_mode=daids_mode,
+            imgsetid,
+            daids_mode=daids_mode,
             use_prioritized_name_subset=use_prioritized_name_subset,
-            use_visual_selection=use_visual_selection, qaid_list=qaid_list,
-            daid_list=daid_list, query_is_known=query_is_known,
+            use_visual_selection=use_visual_selection,
+            qaid_list=qaid_list,
+            daid_list=daid_list,
+            query_is_known=query_is_known,
             partition_queries_by_species=partition_queries_by_species,
-            remove_unknown_species=False)
+            remove_unknown_species=False,
+        )
 
         if not partition_queries_by_species:
             # hack: overwrite species2_expanded_aids to undo species partition
@@ -2158,10 +2347,11 @@ class MainWindowBackend(GUIBACK_BASE):
         if len(species2_expanded_aids) == 0:
             raise guiexcept.InvalidRequest(
                 'Is the database empty? Are species labels assigned correctly? '
-                'There are no pairs of query and database annotations with the same species')
+                'There are no pairs of query and database annotations with the same species'
+            )
 
         review_cfg = kwargs.copy()
-        review_cfg['filter_true_matches'] = (daids_mode == const.VS_EXEMPLARS_KEY)
+        review_cfg['filter_true_matches'] = daids_mode == const.VS_EXEMPLARS_KEY
 
         # Check if there is nothing to do
         flags = []
@@ -2172,32 +2362,34 @@ class MainWindowBackend(GUIBACK_BASE):
         if len(flags) > 0 and all(flags):
             raise AssertionError('No need to compute a query against itself')
 
-        cfgdict, review_cfg = back.confirm_query_dialog2(species2_expanded_aids,
-                                                         query_msg=query_msg,
-                                                         query_title=query_title,
-                                                         cfgdict=cfgdict,
-                                                         review_cfg=review_cfg)
+        cfgdict, review_cfg = back.confirm_query_dialog2(
+            species2_expanded_aids,
+            query_msg=query_msg,
+            query_title=query_title,
+            cfgdict=cfgdict,
+            review_cfg=review_cfg,
+        )
         print('cfgdict = %r' % (cfgdict,))
 
         prog_bar = back.front.prog_bar
         prog_bar.setVisible(True)
         prog_bar.setWindowTitle('Initialize query')
         prog_hook = prog_bar.utool_prog_hook
-        #prog_bar = guitool.newProgressBar(None)  # back.front)
+        # prog_bar = guitool.newProgressBar(None)  # back.front)
         # Doesn't seem to work correctly
-        #prog_hook.show_indefinite_progress()
+        # prog_hook.show_indefinite_progress()
         prog_hook.force_event_update()
-        #prog_hook.set_progress(0)
+        # prog_hook.set_progress(0)
         prog_bar.setWindowTitle('Start query')
-        #import utool
-        #utool.embed()
+        # import utool
+        # utool.embed()
 
         query_results = {}
-        for key, (qaids, daids) in ut.ProgressIter(species2_expanded_aids.items(),
-                                                   prog_hook=prog_hook):
+        for key, (qaids, daids) in ut.ProgressIter(
+            species2_expanded_aids.items(), prog_hook=prog_hook
+        ):
             prog_bar.setWindowTitle('Initialize %r query' % (key,))
-            qreq_ = back.ibs.new_query_request(qaids, daids,
-                                               cfgdict=cfgdict)
+            qreq_ = back.ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
             prog_hook.initialize_subhooks(1)
             subhook = prog_hook.next_subhook()
             cm_list = qreq_.execute(prog_hook=subhook)
@@ -2206,7 +2398,7 @@ class MainWindowBackend(GUIBACK_BASE):
             # HACK IN IMAGESET INFO
             if daids_mode == const.INTRA_OCCUR_KEY:
                 for cm in cm_list:
-                    #if cm is not None:
+                    # if cm is not None:
                     cm.imgsetid = imgsetid
         back.front.prog_bar.setVisible(False)
 
@@ -2216,24 +2408,22 @@ class MainWindowBackend(GUIBACK_BASE):
             # Filter duplicate names if running vsexemplar
             back.review_queries(
                 cm_list,
-                qreq_=qreq_, query_title=query_title + ' ' + str(key),
-                review_cfg=review_cfg)
+                qreq_=qreq_,
+                query_title=query_title + ' ' + str(key),
+                review_cfg=review_cfg,
+            )
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
 
-    def get_selected_daids(back, imgsetid=None, daids_mode=None,
-                           qaid_list=None, species=None):
+    def get_selected_daids(
+        back, imgsetid=None, daids_mode=None, qaid_list=None, species=None
+    ):
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daids_mode_valid_kw_dict = {
-            const.VS_EXEMPLARS_KEY: {
-                'is_exemplar': True,
-            },
-            const.INTRA_OCCUR_KEY: {
-                'imgsetid': imgsetid,
-            },
-            'all': {
-            }
+            const.VS_EXEMPLARS_KEY: {'is_exemplar': True,},
+            const.INTRA_OCCUR_KEY: {'imgsetid': imgsetid,},
+            'all': {},
         }
         if qaid_list is not None and species is None:
             ibs = back.ibs
@@ -2248,7 +2438,7 @@ class MainWindowBackend(GUIBACK_BASE):
             species = back.get_selected_species()
 
         valid_kw = {
-            'minqual':  'ok',
+            'minqual': 'ok',
         }
         if species != const.UNKNOWN:
             # Query everything if you don't know the species
@@ -2256,7 +2446,7 @@ class MainWindowBackend(GUIBACK_BASE):
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
             const.INTRA_OCCUR_KEY: 'intra_occurrence',
-            'all': 'all'
+            'all': 'all',
         }[daids_mode]
         valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
         print('[back] get_selected_daids: ' + mode_str)
@@ -2264,9 +2454,9 @@ class MainWindowBackend(GUIBACK_BASE):
         daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
 
-    def make_confirm_query_msg2(back, species2_expanded_aids,
-                                cfgdict=None, query_msg=None,
-                                query_title=None):
+    def make_confirm_query_msg2(
+        back, species2_expanded_aids, cfgdict=None, query_msg=None, query_title=None
+    ):
         r"""
         CommandLine:
             python -m wbia.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
@@ -2290,10 +2480,14 @@ class MainWindowBackend(GUIBACK_BASE):
         species_text = ibs.get_all_species_texts()
         species_nice = ibs.get_all_species_nice()
         species_dict = dict(zip(species_text, species_nice))
+
         def get_unique_species_phrase(aid_list):
             def boldspecies(species):
-                species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
+                species_bold_nice = '\'%s\'' % (
+                    species_dict.get(species, species).upper(),
+                )
                 return species_bold_nice
+
             species_list = list(set(ibs.get_annot_species_texts(aid_list)))
             species_nice_list = list(map(boldspecies, species_list))
             species_phrase = ut.conj_phrase(species_nice_list, 'and')
@@ -2311,13 +2505,19 @@ class MainWindowBackend(GUIBACK_BASE):
         ngroups = len(species2_expanded_aids)
         if ngroups > 1:
             msg_fmtstr_list += [
-                ('You are about to run {query_title} '
-                 'identification with {ngroups} groups...').format(
-                    query_title=query_title, ngroups=ngroups,)]
+                (
+                    'You are about to run {query_title} '
+                    'identification with {ngroups} groups...'
+                ).format(
+                    query_title=query_title, ngroups=ngroups,
+                )
+            ]
         else:
             msg_fmtstr_list += [
-                ('You are about to run {query_title} '
-                 'identification...').format(query_title=query_title,)]
+                ('You are about to run {query_title} ' 'identification...').format(
+                    query_title=query_title,
+                )
+            ]
 
         species_list = list(species2_expanded_aids.keys())
 
@@ -2329,11 +2529,15 @@ class MainWindowBackend(GUIBACK_BASE):
             # species_phrase = get_unique_species_phrase(qaids + daids)
             msg_fmtstr_list += ['']
             fmtdict = {}
-            qaid_stats = ibs.get_annot_stats_dict(qaids, prefix='q', per_name=True, old=False)
-            daid_stats = ibs.get_annot_stats_dict(daids, prefix='d', per_name=True, old=False)
+            qaid_stats = ibs.get_annot_stats_dict(
+                qaids, prefix='q', per_name=True, old=False
+            )
+            daid_stats = ibs.get_annot_stats_dict(
+                daids, prefix='d', per_name=True, old=False
+            )
             stats_ = ibs.get_annotconfig_stats(
-                qaids, daids, combined=False, species_hist=True,
-                **annotstats_kw)
+                qaids, daids, combined=False, species_hist=True, **annotstats_kw
+            )
             fmtdict.update(**qaid_stats)
             fmtdict.update(**daid_stats)
             fmtdict['qannots'] = ut.pluralize('annotation', len(qaids))
@@ -2345,12 +2549,15 @@ class MainWindowBackend(GUIBACK_BASE):
                 part1 = 'Group {count} '
             else:
                 part1 = 'This '
-            part2 = (part1 + 'will identify {num_qaids} query {qannots} against {num_daids} {species_nice} database {dannots}.').format(**fmtdict)
+            part2 = (
+                part1
+                + 'will identify {num_qaids} query {qannots} against {num_daids} {species_nice} database {dannots}.'
+            ).format(**fmtdict)
             msg_fmtstr_list += [part2]
             # Add detailed info
-            stats_str2 = ut.repr2(stats_, strvals=True,
-                                     newlines=2, explicit=False,
-                                     nobraces=False)
+            stats_str2 = ut.repr2(
+                stats_, strvals=True, newlines=2, explicit=False, nobraces=False
+            )
             detailed_msg_list.append('--- Group %d ---' % (count,))
             detailed_msg_list.append(stats_str2)
 
@@ -2361,7 +2568,9 @@ class MainWindowBackend(GUIBACK_BASE):
         msg_str = msg_fmtstr.format(**fmtdict)
 
         if cfgdict is not None and len(cfgdict) > 0:
-            detailed_msg_list = ['Special Settings: {}'.format(ut.repr2(cfgdict))] + detailed_msg_list
+            detailed_msg_list = [
+                'Special Settings: {}'.format(ut.repr2(cfgdict))
+            ] + detailed_msg_list
 
         detailed_msg = '\n'.join(detailed_msg_list)
 
@@ -2393,7 +2602,7 @@ class MainWindowBackend(GUIBACK_BASE):
             'K': 3,
             'Knorm': 3,
             'prescore_method': 'csum',
-            'score_method': 'csum'
+            'score_method': 'csum',
         }
         ranks_top = min(len(aid_list), 10)
         review_cfg = {
@@ -2403,22 +2612,23 @@ class MainWindowBackend(GUIBACK_BASE):
         }
         ibs = back.ibs
         cfgdict, review_cfg = back.confirm_query_dialog2(
-            {'split': (aid_list, aid_list)}, cfgdict=cfgdict,
+            {'split': (aid_list, aid_list)},
+            cfgdict=cfgdict,
             query_msg='Checking for SPLIT cases (matching each annotation within a name)',
             review_cfg=review_cfg,
         )
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute()
-        back.review_queries(cm_list, qreq_=qreq_,
-                            query_title='Annot Splits',
-                            review_cfg=review_cfg)
+        back.review_queries(
+            cm_list, qreq_=qreq_, query_title='Annot Splits', review_cfg=review_cfg
+        )
 
         if False:
             from wbia.viz import viz_graph2
             import imp
+
             imp.reload(viz_graph2)
-            win = viz_graph2.make_qt_graph_review(qreq_, cm_list,
-                                                  review_cfg=review_cfg)
+            win = viz_graph2.make_qt_graph_review(qreq_, cm_list, review_cfg=review_cfg)
             win.show()
 
     def run_merge_checks(back):
@@ -2447,9 +2657,13 @@ class MainWindowBackend(GUIBACK_BASE):
             #'score_method': 'csum'
         }
         query_msg = 'Checking for MERGE cases (this is an exemplars-vs-exemplars query)'
-        back.compute_queries(qaid_list=qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
-                             query_msg=query_msg, cfgdict=cfgdict,
-                             custom_qaid_list_title='Merge Candidates')
+        back.compute_queries(
+            qaid_list=qaid_list,
+            daids_mode=const.VS_EXEMPLARS_KEY,
+            query_msg=query_msg,
+            cfgdict=cfgdict,
+            custom_qaid_list_title='Merge Candidates',
+        )
 
     def run_merge_checks_multitons(back):
         r"""
@@ -2458,22 +2672,24 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         pass
         ibs = back.ibs
-        #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        # qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
         from wbia import dtool
-        config = dtool.Config.from_dict({
-            'K': 1,
-            'Knorm': 5,
-            'min_pername': 1,
-            'max_pername': 1,
-            'exemplars_per_name': 1,
-            'method': 'randomize',
-            'seed': 42,
-        })
-        #ibswgt = None
+
+        config = dtool.Config.from_dict(
+            {
+                'K': 1,
+                'Knorm': 5,
+                'min_pername': 1,
+                'max_pername': 1,
+                'exemplars_per_name': 1,
+                'method': 'randomize',
+                'seed': 42,
+            }
+        )
+        # ibswgt = None
         dlg = gt.ConfigConfirmWidget.as_dialog(
-            title='Confirm Merge Query',
-            msg='Confirm',
-            config=config)
+            title='Confirm Merge Query', msg='Confirm', config=config
+        )
         self = dlg.widget
         dlg.resize(700, 500)
         dlg.exec_()
@@ -2484,11 +2700,11 @@ class MainWindowBackend(GUIBACK_BASE):
         min_pername = updated_config['min_pername']
         max_pername = updated_config['max_pername']
         aid_list = ibs.filter_annots_general(
-            min_pername=min_pername,
-            max_pername=max_pername,
-            minqual='ok')
+            min_pername=min_pername, max_pername=max_pername, minqual='ok'
+        )
         if updated_config['method'] == 'randomize':
             import numpy as np
+
             rng = np.random.RandomState(int(updated_config['seed']))
             grouped_aids = ibs.group_annots_by_name(aid_list)[0]
             grouped_aids2 = [
@@ -2498,14 +2714,14 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list = ut.flatten(grouped_aids2)
         else:
             new_flag_list = ibs.get_annot_quality_viewpoint_subset(
-                aid_list, updated_config['exemplars_per_name'],
-                allow_unknown=True)
+                aid_list, updated_config['exemplars_per_name'], allow_unknown=True
+            )
             aid_list = ut.compress(aid_list, new_flag_list)
 
         ibs.print_annot_stats(aid_list)
 
         daid_list = qaid_list = aid_list
-        #len(aids)
+        # len(aids)
         cfgdict = {
             'can_match_samename': False,
             'K': updated_config['K'],
@@ -2514,16 +2730,26 @@ class MainWindowBackend(GUIBACK_BASE):
             #'score_method': 'csum'
         }
         query_msg = 'Checking for MERGE cases (this is an special query)'
-        back.compute_queries(qaid_list=qaid_list, daid_list=daid_list,
-                             query_msg=query_msg, cfgdict=cfgdict,
-                             custom_qaid_list_title='Merge2 Candidates')
+        back.compute_queries(
+            qaid_list=qaid_list,
+            daid_list=daid_list,
+            query_msg=query_msg,
+            cfgdict=cfgdict,
+            custom_qaid_list_title='Merge2 Candidates',
+        )
 
-    def _get_expanded_aids_groups(back, imgsetid, daids_mode=None,
-                                  use_prioritized_name_subset=False,
-                                  use_visual_selection=False, qaid_list=None,
-                                  daid_list=None, query_is_known=None,
-                                  partition_queries_by_species=True,
-                                  remove_unknown_species=None):
+    def _get_expanded_aids_groups(
+        back,
+        imgsetid,
+        daids_mode=None,
+        use_prioritized_name_subset=False,
+        use_visual_selection=False,
+        qaid_list=None,
+        daid_list=None,
+        query_is_known=None,
+        partition_queries_by_species=True,
+        remove_unknown_species=None,
+    ):
         """
         Get the query annotation ids to search and
         the database annotation ids to be searched
@@ -2542,16 +2768,18 @@ class MainWindowBackend(GUIBACK_BASE):
             raise Exception('[back] invalid imgsetid')
 
         if ibs.cfg.other_cfg.enable_custom_filter:
-            back.user_warning(msg=ut.codeblock(
-                '''
+            back.user_warning(
+                msg=ut.codeblock(
+                    '''
                 other_cfg.enable_custom_filter=True is not longer supported.
                 Please turn off in Preferences
                 '''
-            ))
+                )
+            )
 
         if remove_unknown_species is None:
             # Default behavior is don't remove unknown species if qaid_list is specified
-            remove_unknown_species = (qaid_list is not None or use_visual_selection)
+            remove_unknown_species = qaid_list is not None or use_visual_selection
 
         # Query aids are either: given, taken from gui selection, or by imageset
         if qaid_list is not None:
@@ -2559,17 +2787,25 @@ class MainWindowBackend(GUIBACK_BASE):
         elif use_visual_selection:
             qaid_list = back.get_selected_aids()
         else:
-            qaid_list = ibs.get_valid_aids(imgsetid=imgsetid, is_known=query_is_known, minqual='ok')
+            qaid_list = ibs.get_valid_aids(
+                imgsetid=imgsetid, is_known=query_is_known, minqual='ok'
+            )
 
         print('[back] Initially loaded len(qaid_list) = %r' % (len(qaid_list),))
         if use_prioritized_name_subset:
             # Pick only a few queries per name to execute
             annots_per_view = 2  # FIXME: use a configuration
             new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
-                aid_list=qaid_list, annots_per_view=annots_per_view, allow_unknown=True,
-                verbose=True)
+                aid_list=qaid_list,
+                annots_per_view=annots_per_view,
+                allow_unknown=True,
+                verbose=True,
+            )
             qaid_list = ut.compress(qaid_list, new_flag_list)
-            print('[back] Filtered query by quality and viewpoint: len(qaid_list) = %r' % (len(qaid_list),))
+            print(
+                '[back] Filtered query by quality and viewpoint: len(qaid_list) = %r'
+                % (len(qaid_list),)
+            )
 
         print('[back] Found len(qaid_list) = %r' % (len(qaid_list),))
         # Group annotations by species
@@ -2580,7 +2816,9 @@ class MainWindowBackend(GUIBACK_BASE):
         print('species2_qaids = %r' % (species2_qaids,))
 
         species2_expanded_aids = {}
-        species_list = ut.unique(list(ibs.get_all_species_texts()) + (list(species2_qaids.keys())))
+        species_list = ut.unique(
+            list(ibs.get_all_species_texts()) + (list(species2_qaids.keys()))
+        )
         for species in species_list:
             print('[back] Finding daids for species = %r' % (species,))
             qaids = species2_qaids[species]
@@ -2589,10 +2827,12 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 if not partition_queries_by_species:
                     species = const.UNKNOWN
-                daids = back.get_selected_daids(imgsetid=imgsetid,
-                                                daids_mode=daids_mode,
-                                                qaid_list=qaids,
-                                                species=species)
+                daids = back.get_selected_daids(
+                    imgsetid=imgsetid,
+                    daids_mode=daids_mode,
+                    qaid_list=qaids,
+                    species=species,
+                )
             print('[back] * Found len(daids) = %r' % (len(daids),))
             qaids_ = ut.unique(qaids + nospecies_qaids)
             if len(qaids_) > 0 and len(daids) > 0:
@@ -2619,10 +2859,11 @@ class MainWindowBackend(GUIBACK_BASE):
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
 
         imgset_name = ibs.get_imageset_text(imgsetid)
-        imgset_dest_name = '%s (FILTERED)' % (imgset_name, )
+        imgset_dest_name = '%s (FILTERED)' % (imgset_name,)
 
-        confirm_kw = dict(use_msg=ut.codeblock(
-            '''
+        confirm_kw = dict(
+            use_msg=ut.codeblock(
+                '''
             This action will process the current ImageSet and search for the images (%d total) which contain zebras.
 
             Note: this process is meant for images from sources like camera traps and aerial drones, where the vast majority of the images have no zebras in them.  If you expect the majority of your images to contain zebras, run the standard Detect for better detection accuracy (but will be slower).
@@ -2636,9 +2877,12 @@ class MainWindowBackend(GUIBACK_BASE):
             \t %r
 
             This new ImageSet will contain the images where zebras were detected.
-            ''') % (len(gid_list), len(aid_list), imgset_dest_name, )
-            , title='Process ImageSet?',
-            default='Yes')
+            '''
+            )
+            % (len(gid_list), len(aid_list), imgset_dest_name,),
+            title='Process ImageSet?',
+            default='Yes',
+        )
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
@@ -2658,8 +2902,8 @@ class MainWindowBackend(GUIBACK_BASE):
             score_ if class_ == 'positive' else 1.0 - score_
             for class_, score_ in zip(class_list, score_list)
         ]
-        flag_list = [ score_ >= score_thresh for score_ in score_list_ ]
-        print('%d / %d' % (flag_list.count(True), len(flag_list), ))
+        flag_list = [score_ >= score_thresh for score_ in score_list_]
+        print('%d / %d' % (flag_list.count(True), len(flag_list),))
 
         pos_gid_list = ut.compress(gid_list, flag_list)
         # neg_gid_list = ut.compress(gid_list, ut.not_list(flag_list))
@@ -2674,10 +2918,9 @@ class MainWindowBackend(GUIBACK_BASE):
         species_set_list = map(set, species_list_list)
         wanted_set = set(['zebra_grevys', 'zebra_plains'])
         flag_list = [
-            len(wanted_set & species_set) == 0
-            for species_set in species_set_list
+            len(wanted_set & species_set) == 0 for species_set in species_set_list
         ]
-        print('%d / %d' % (flag_list.count(True), len(flag_list), ))
+        print('%d / %d' % (flag_list.count(True), len(flag_list),))
         nothing_gid_list = ut.compress(pos_gid_list, flag_list)
         imgset_rowid_list_ = [imgset_rowid_list[0]] * len(nothing_gid_list)
         ibs.unrelate_images_and_imagesets(nothing_gid_list, imgset_rowid_list_)
@@ -2718,24 +2961,27 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         imgsetid = back.get_selected_imgsetid()
         if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
-            back.user_warning(msg=ut.codeblock(
-                '''
+            back.user_warning(
+                msg=ut.codeblock(
+                    '''
                 This operation is only allowed for OCCURRENCES.
                 Tried to send a special ImageSet to Wildbook as an occurrence.
                 Special ImageSets are living entities and are never truely complete.
                 '''
-            ))
+                )
+            )
         else:
             # Check to make sure imagesets are ok:
             # First, check if imageset can be pushed
             ibs = back.ibs
 
-            #imgsets = ibs.imagesets(imgsetid)
-            #aid_list = imgsets.aids[0]
+            # imgsets = ibs.imagesets(imgsetid)
+            # aid_list = imgsets.aids[0]
             aid_list = ibs.get_imageset_aids(imgsetid)
 
-            assert len(aid_list) > 0, (
-                'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,))
+            assert (
+                len(aid_list) > 0
+            ), 'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,)
 
             unknown_flags = ibs.is_aid_unknown(aid_list)
             nUnnamed = sum(unknown_flags)
@@ -2747,28 +2993,39 @@ class MainWindowBackend(GUIBACK_BASE):
             nSingleEncounters = sum([len(x) == 1 for x in nid2_aids.values()])
 
             unnamed_ok_aid_list = ibs.filter_annots_general(
-                unnamed_aid_list,
-                minqual='ok',
+                unnamed_aid_list, minqual='ok',
             )
             nUnnamedOk = sum(unnamed_ok_aid_list)
 
-            other_aids = ibs.get_annot_groundtruth(ut.take_column(nid2_aids.values(), 0), is_exemplar=True)
+            other_aids = ibs.get_annot_groundtruth(
+                ut.take_column(nid2_aids.values(), 0), is_exemplar=True
+            )
             other_aids = [set(aids) - set(aid_list) for aids in other_aids]
             nMatchedExemplars = sum([len(x) >= 1 for x in other_aids])
 
             msg_list = [
-                '%d Encounter%s matched an exemplar' % ((nMatchedExemplars), '' if nMatchedExemplars == 1 else 's'),
-                '%d Encounter%s only one annotation' % ((nSingleEncounters), ' has' if nSingleEncounters == 1 else 's have'),
-                '%d Encounter%s more than one annotation'  % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
-                '%d annotation%s have not had a name assigned%s' % (nUnnamed, '' if nUnnamed == 1 else 's', '!' if nUnnamed > 0 else '.'),
-                '%d annotation%s unnamed with an identifiable quality%s' % (nUnnamedOk, '' if nUnnamedOk == 1 else 's', '!' if nUnnamedOk > 0 else '.'),
+                '%d Encounter%s matched an exemplar'
+                % ((nMatchedExemplars), '' if nMatchedExemplars == 1 else 's'),
+                '%d Encounter%s only one annotation'
+                % ((nSingleEncounters), ' has' if nSingleEncounters == 1 else 's have'),
+                '%d Encounter%s more than one annotation'
+                % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
+                '%d annotation%s have not had a name assigned%s'
+                % (nUnnamed, '' if nUnnamed == 1 else 's', '!' if nUnnamed > 0 else '.'),
+                '%d annotation%s unnamed with an identifiable quality%s'
+                % (
+                    nUnnamedOk,
+                    '' if nUnnamedOk == 1 else 's',
+                    '!' if nUnnamedOk > 0 else '.',
+                ),
             ]
 
             # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
 
-            confirm_kw = dict(use_msg=ut.codeblock(
-                '''
+            confirm_kw = dict(
+                use_msg=ut.codeblock(
+                    '''
                 Have you finished reviewing ALL detections,
                 Intra-Occurence IDs, and Vs-Exemplar IDs?
 
@@ -2776,20 +3033,24 @@ class MainWindowBackend(GUIBACK_BASE):
 
                 Selecting YES will remove this occurrence, mark all images are
                 reviewed and processed, and then send it to wildbook.
-                ''')  % '\n'.join(msg_list)
-                , title='Complete Occurrence?',
-                default='Yes')
+                '''
+                )
+                % '\n'.join(msg_list),
+                title='Complete Occurrence?',
+                default='Yes',
+            )
             if not back.are_you_sure(**confirm_kw):
                 raise guiexcept.UserCancel
 
             assert nUnnamedOk == 0, (
-                ('ImageSet imgsetid=%r1 cannot be shipped becuase '
-                 'annotation(s) %r with an identifiable quality have '
-                 'not been named') % (imgsetid, unnamed_ok_aid_list, ))
+                'ImageSet imgsetid=%r1 cannot be shipped becuase '
+                'annotation(s) %r with an identifiable quality have '
+                'not been named'
+            ) % (imgsetid, unnamed_ok_aid_list,)
 
             if not dry:
                 # back.start_web_server_parallel(browser=False)
-                #gid_list = ibs.get_imageset_gids(imgsetid)
+                # gid_list = ibs.get_imageset_gids(imgsetid)
                 back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
                 # Set imageset to be processed
                 back.ibs.set_imageset_processed_flags([imgsetid], [1])
@@ -2805,9 +3066,9 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid_list = list(processed_set - shipped_set)
         back.ibs.wildbook_signal_imgsetid_list(imgsetid_list)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Option menu slots
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     @blocking_slot()
     def layout_figures(back):
@@ -2827,13 +3088,13 @@ class MainWindowBackend(GUIBACK_BASE):
         epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
         epw.show()
         back.edit_prefs_wgt = epw
-        #query_cfgstr = ''.join(back.ibs.cfg.query_cfg.get_cfgstr())
-        #print('[back] query_cfgstr = %s' % query_cfgstr)
-        #print('')
+        # query_cfgstr = ''.join(back.ibs.cfg.query_cfg.get_cfgstr())
+        # print('[back] query_cfgstr = %s' % query_cfgstr)
+        # print('')
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Help menu slots
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     @slot_()
     @backreport
@@ -2876,8 +3137,11 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] view_logs_global')
         log_fpath = ut.get_current_log_fpath()
         log_text = back.ibs.get_current_log_text()
-        gt.msgbox('Click show details to view logs from log_fpath=%r' % (log_fpath,), detailed_msg=log_text)
-        #ut.startfile(back.ibs.get_logdir_global())
+        gt.msgbox(
+            'Click show details to view logs from log_fpath=%r' % (log_fpath,),
+            detailed_msg=log_text,
+        )
+        # ut.startfile(back.ibs.get_logdir_global())
 
     @slot_()
     @backreport
@@ -2901,7 +3165,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def delete_thumbnails(back):
         """ Help -> Delete Thumbnails """
-        msg = ('[back] delete_thumbnails')
+        msg = '[back] delete_thumbnails'
         print(msg)
         if not back.are_you_sure(msg):
             return
@@ -2911,7 +3175,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_global_prefs(back):
-        msg = ('[back] delete_global_prefs')
+        msg = '[back] delete_global_prefs'
         if not back.are_you_sure(msg):
             return
         ut.delete(ut.get_app_resource_dir('wbia', 'global_cache'))
@@ -2919,10 +3183,11 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_queryresults_dir(back):
-        msg = ('[back] delete_queryresults_dir')
+        msg = '[back] delete_queryresults_dir'
         print(msg)
-        if not back.are_you_sure(use_msg=('Are you sure you want to delete the '
-                                          'cached query results?')):
+        if not back.are_you_sure(
+            use_msg=('Are you sure you want to delete the ' 'cached query results?')
+        ):
             return
         ut.delete(back.ibs.qresdir)
         ut.delete(back.ibs.bigcachedir)
@@ -2934,8 +3199,8 @@ class MainWindowBackend(GUIBACK_BASE):
         """ Help -> Developer Reload"""
         print('[back] dev_reload')
         back.ibs.rrr()
-        #back.rrr()
-        #reload_all()
+        # back.rrr()
+        # reload_all()
 
     @blocking_slot()
     def dev_mode(back):
@@ -2943,8 +3208,8 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] dev_mode')
         ibs = back.ibs  # NOQA
         front = back.front  # NOQA
-        #import IPython
-        #IPython.embed()
+        # import IPython
+        # IPython.embed()
         ut.embed()
 
     @blocking_slot()
@@ -2956,6 +3221,7 @@ class MainWindowBackend(GUIBACK_BASE):
             back.ibs.reset_table_cache()
         back.refresh_state()
         from wbia.plottool import draw_func2 as df2
+
         df2.update()
 
     @slot_()
@@ -2966,13 +3232,14 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def start_web_server_parallel(back, browser=True):
         import wbia
+
         ibs = back.ibs
         if back.web_ibs is None:
             print('[guiback] Starting web service')
             # back.web_ibs = wbia.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
-            back.web_ibs = wbia.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
-                                               browser=browser,
-                                               start_job_queue=False)
+            back.web_ibs = wbia.opendb_bg_web(
+                dbdir=ibs.get_dbdir(), web=True, browser=browser, start_job_queue=False
+            )
             print('[guiback] Web service started')
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
@@ -2997,9 +3264,9 @@ class MainWindowBackend(GUIBACK_BASE):
     def run_integrity_checks(back):
         back.ibs.run_integrity_checks()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # File Slots
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
@@ -3026,8 +3293,8 @@ class MainWindowBackend(GUIBACK_BASE):
             old = False
             if old:
                 new_dbname = back.user_input(
-                    msg='What do you want to name the new database?',
-                    title='New Database')
+                    msg='What do you want to name the new database?', title='New Database'
+                )
                 if new_dbname is None or len(new_dbname) == 0:
                     print('Abort new database. new_dbname=%r' % new_dbname)
                     return
@@ -3037,12 +3304,14 @@ class MainWindowBackend(GUIBACK_BASE):
                     title='Import Images',
                     options=new_dbdir_options,
                     default=new_dbdir_options[1],
-                    use_cache=False)
+                    use_cache=False,
+                )
                 if reply == 'Choose Directory':
                     print('[back] new_database(): SELECT A DIRECTORY')
                     putdir = gt.select_directory(
                         'Select new database directory',
-                        other_sidebar_dpaths=[back.get_work_directory()])
+                        other_sidebar_dpaths=[back.get_work_directory()],
+                    )
                 elif reply == 'My Work Dir':
                     putdir = back.get_work_directory()
                 else:
@@ -3061,9 +3330,10 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 from wbia.guitool.__PYQT__.QtCore import Qt  # NOQA
                 from wbia.guitool.__PYQT__ import QtGui  # NOQA
-                dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
-                                                  on_chosen=back.open_database,
-                                                  mode='new')
+
+                dlg = NewDatabaseWidget.as_dialog(
+                    back.front, back=back, on_chosen=back.open_database, mode='new'
+                )
                 dlg.exec_()
 
     @blocking_slot()
@@ -3095,8 +3365,11 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
-            #director
-            dbdir = gt.select_directory('Open a database directory', other_sidebar_dpaths=[back.get_work_directory()])
+            # director
+            dbdir = gt.select_directory(
+                'Open a database directory',
+                other_sidebar_dpaths=[back.get_work_directory()],
+            )
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
@@ -3104,7 +3377,7 @@ class MainWindowBackend(GUIBACK_BASE):
             try:
                 # should this use wbia.opendb? probably. at least it should be
                 # be request IBEISControl
-                #ibs = IBEISControl.IBEISController(dbdir=dbdir)
+                # ibs = IBEISControl.IBEISController(dbdir=dbdir)
                 ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
                 back.connect_wbia_control(ibs)
             except Exception as ex:
@@ -3132,16 +3405,19 @@ class MainWindowBackend(GUIBACK_BASE):
     def make_database_duplicate(back):
         """ File -> Copy Database"""
         print('[back] make_database_duplicate')
+
         def on_chosen(new_dbdir):
             back.ibs.copy_database(new_dbdir)
-        dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
-                                          on_chosen=on_chosen,
-                                          mode='copy')
+
+        dlg = NewDatabaseWidget.as_dialog(
+            back.front, back=back, on_chosen=on_chosen, mode='copy'
+        )
         dlg.exec_()
 
     @blocking_slot()
-    def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,
-                                clock_offset=False):
+    def import_images_from_file(
+        back, gpath_list=None, refresh=True, as_annots=False, clock_offset=False
+    ):
         r"""
         File -> Import Images From File
 
@@ -3178,22 +3454,30 @@ class MainWindowBackend(GUIBACK_BASE):
             gpath_list = gt.select_images('Select image files to import')
 
         ibs = back.ibs
-        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots, location_for_names=ibs.cfg.other_cfg.location_for_names)
+        gid_list = back.ibs.add_images(
+            gpath_list,
+            as_annots=as_annots,
+            location_for_names=ibs.cfg.other_cfg.location_for_names,
+        )
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         return gid_list
 
     @blocking_slot()
     def import_button_click(back):
         msg = 'How do you want to import images?'
-        ans = back.user_option(msg=msg, title='Import Images',
-                               options=[
-                                   'Directory',
-                                   'Files',
-                                   'Smart XML',
-                                   'Encounters (1)',
-                                   'Encounters (2)',
-                               ],
-                               use_cache=False, default='Directory')
+        ans = back.user_option(
+            msg=msg,
+            title='Import Images',
+            options=[
+                'Directory',
+                'Files',
+                'Smart XML',
+                'Encounters (1)',
+                'Encounters (2)',
+            ],
+            use_cache=False,
+            default='Directory',
+        )
         if ans == 'Directory':
             back.import_images_from_dir()
         elif ans == 'Files':
@@ -3210,19 +3494,30 @@ class MainWindowBackend(GUIBACK_BASE):
             raise Exception('Unknown anser=%r' % (ans,))
 
     @blocking_slot()
-    def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True,
-                               clock_offset=False, return_dir=False, defaultdir=None):
+    def import_images_from_dir(
+        back,
+        dir_=None,
+        size_filter=None,
+        refresh=True,
+        clock_offset=False,
+        return_dir=False,
+        defaultdir=None,
+    ):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
-            dir_ = gt.select_directory('Select directory with images in it', directory=defaultdir)
+            dir_ = gt.select_directory(
+                'Select directory with images in it', directory=defaultdir
+            )
         if dir_ is None:
             return
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
         ibs = back.ibs
-        gid_list = back.ibs.add_images(gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names)
+        gid_list = back.ibs.add_images(
+            gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names
+        )
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         if return_dir:
             return gid_list, dir_
@@ -3230,9 +3525,14 @@ class MainWindowBackend(GUIBACK_BASE):
             return gid_list
 
     @blocking_slot()
-    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None,
-                                          refresh=True, smart_xml_fpath=None,
-                                          defaultdir=None):
+    def import_images_from_dir_with_smart(
+        back,
+        dir_=None,
+        size_filter=None,
+        refresh=True,
+        smart_xml_fpath=None,
+        defaultdir=None,
+    ):
         """ File -> Import Images From Directory with smart
 
         Args:
@@ -3266,39 +3566,56 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         print('[back] import_images_from_dir_with_smart')
         gid_list, add_dir_ = back.import_images_from_dir(
-            dir_=dir_, size_filter=size_filter, refresh=False,
-            clock_offset=False, return_dir=True, defaultdir=defaultdir)
-        back._group_images_with_smartxml(gid_list, refresh=refresh,
-                                         smart_xml_fpath=smart_xml_fpath,
-                                         defaultdir=dirname(add_dir_))
+            dir_=dir_,
+            size_filter=size_filter,
+            refresh=False,
+            clock_offset=False,
+            return_dir=True,
+            defaultdir=defaultdir,
+        )
+        back._group_images_with_smartxml(
+            gid_list,
+            refresh=refresh,
+            smart_xml_fpath=smart_xml_fpath,
+            defaultdir=dirname(add_dir_),
+        )
 
-    def _group_images_with_smartxml(back, gid_list, refresh=True,
-                                    smart_xml_fpath=None, defaultdir=None):
+    def _group_images_with_smartxml(
+        back, gid_list, refresh=True, smart_xml_fpath=None, defaultdir=None
+    ):
         """
         Clusters the newly imported images with smart xml file
         """
         if gid_list is not None and len(gid_list) > 0:
             if smart_xml_fpath is None:
                 name_filter = 'XML Files (*.xml)'
-                xml_path_list = gt.select_files(caption='Select Patrol XML File:',
-                                                directory=defaultdir,
-                                                name_filter=name_filter,
-                                                single_file=True)
+                xml_path_list = gt.select_files(
+                    caption='Select Patrol XML File:',
+                    directory=defaultdir,
+                    name_filter=name_filter,
+                    single_file=True,
+                )
                 try:
-                    assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
+                    assert len(xml_path_list) == 1, 'Must specity one Patrol XML file'
                     smart_xml_fpath = xml_path_list[0]
-                    assert len(smart_xml_fpath) > 0, "Must specity a valid Patrol XML file"
+                    assert (
+                        len(smart_xml_fpath) > 0
+                    ), 'Must specity a valid Patrol XML file'
                 except AssertionError as e:
                     back.ibs.delete_images(gid_list)
-                    print(('[back] ERROR: Parsing Patrol XML file failed, '
-                           'rolling back by deleting %d images...') %
-                          (len(gid_list, )))
+                    print(
+                        (
+                            '[back] ERROR: Parsing Patrol XML file failed, '
+                            'rolling back by deleting %d images...'
+                        )
+                        % (len(gid_list,))
+                    )
                     raise e
 
             back.ibs.compute_occurrences_smart(gid_list, smart_xml_fpath)
         if refresh:
             back.update_special_imagesets_()
-            #back.front.update_tables([gh.IMAGESET_TABLE])
+            # back.front.update_tables([gh.IMAGESET_TABLE])
             back.front.update_tables()
 
     def _process_new_images(back, refresh, gid_list, clock_offset=False):
@@ -3311,9 +3628,18 @@ class MainWindowBackend(GUIBACK_BASE):
         return gid_list
 
     @blocking_slot()
-    def import_images_from_encounters(back, level=1, dir_list=None, size_filter=None, refresh=True,
-                                      clock_offset=False, return_dir=False, defaultdir=None):
+    def import_images_from_encounters(
+        back,
+        level=1,
+        dir_list=None,
+        size_filter=None,
+        refresh=True,
+        clock_offset=False,
+        return_dir=False,
+        defaultdir=None,
+    ):
         import os
+
         """ File -> Import Images From Encounters"""
         print('[back] import_images_from_encounters')
         assert level in [1, 2]
@@ -3376,14 +3702,18 @@ class MainWindowBackend(GUIBACK_BASE):
         invalid = len(invalid_list) > 0
         if invalid:
             if level == 1:
-                raise IOError('''
+                raise IOError(
+                    '''
                     [guiback] The following encounter folder structures (1 level) are not valid: %r
                     [guiback]     * The selected folders must contain images
                     [guiback]     * The selected folders must NOT contain any sub-folders
                     [guiback]     * The selected folders must NOT be empty
-                ''' % (invalid_list, ))
+                '''
+                    % (invalid_list,)
+                )
             if level == 2:
-                raise IOError('''
+                raise IOError(
+                    '''
                     [guiback] The following encounter folder structures (2 levels) are not valid: %r
                     [guiback]     * The selected folders must NOT contain images
                     [guiback]     * The selected folders must contain sub-folders
@@ -3391,14 +3721,19 @@ class MainWindowBackend(GUIBACK_BASE):
                     [guiback]     * The sub-folders in the selected folders must contain images
                     [guiback]     * The sub-folders in the selected folders must NOT contain any sub-folders
                     [guiback]     * The sub-folders in the selected folders must NOT be empty
-                ''' % (invalid_list, ))
+                '''
+                    % (invalid_list,)
+                )
         print('[guiback] Encounters are valid, continue with import')
 
         # print any warning files
         if len(warning_set) > 0:
             warning_list = list(sorted(warning_set))
-            args = (warning_list, )
-            print('[guiback] WARNING: Some files in the encounters will not be imported: %r' % args)
+            args = (warning_list,)
+            print(
+                '[guiback] WARNING: Some files in the encounters will not be imported: %r'
+                % args
+            )
 
         # Compile the list of images now that the encounter's structure have been verified
         gpath_list = []
@@ -3412,7 +3747,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
         # Add images to ibs
         ibs = back.ibs
-        gid_list = back.ibs.add_images(gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names)
+        gid_list = back.ibs.add_images(
+            gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names
+        )
 
         # Add imagesets for newly added images
         imageset_text_list = []
@@ -3423,7 +3760,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 imageset_text = level1
             if level == 2:
                 base, level2 = os.path.split(base)
-                imageset_text = '%s  (+)  %s' % (level2, level1, )
+                imageset_text = '%s  (+)  %s' % (level2, level1,)
             imageset_text_list.append(imageset_text)
         ibs.set_image_imagesettext(gid_list, imageset_text_list)
 
@@ -3435,8 +3772,9 @@ class MainWindowBackend(GUIBACK_BASE):
             return gid_list
 
     @blocking_slot()
-    def import_images_from_encounters_1(back, dir_list=None, size_filter=None,
-                                        refresh=True, defaultdir=None):
+    def import_images_from_encounters_1(
+        back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
+    ):
         """ File -> Import Images From Encounters (1 level)
 
         Args:
@@ -3449,12 +3787,19 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         print('[back] import_images_from_encounters_1')
         gid_list, add_dir_ = back.import_images_from_encounters(
-            level=1, dir_list=dir_list, size_filter=size_filter, refresh=False,
-            clock_offset=False, return_dir=True, defaultdir=defaultdir)
+            level=1,
+            dir_list=dir_list,
+            size_filter=size_filter,
+            refresh=False,
+            clock_offset=False,
+            return_dir=True,
+            defaultdir=defaultdir,
+        )
 
     @blocking_slot()
-    def import_images_from_encounters_2(back, dir_list=None, size_filter=None,
-                                        refresh=True, defaultdir=None):
+    def import_images_from_encounters_2(
+        back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
+    ):
         """ File -> Import Images From Encounters (2 levels)
 
         Args:
@@ -3467,8 +3812,14 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         print('[back] import_images_from_encounters_2')
         gid_list, add_dir_ = back.import_images_from_encounters(
-            level=2, dir_list=dir_list, size_filter=size_filter, refresh=False,
-            clock_offset=False, return_dir=True, defaultdir=defaultdir)
+            level=2,
+            dir_list=dir_list,
+            size_filter=size_filter,
+            refresh=False,
+            clock_offset=False,
+            return_dir=True,
+            defaultdir=defaultdir,
+        )
 
     @blocking_slot()
     def import_images_as_annots_from_file(back, gpath_list=None, refresh=True):
@@ -3485,12 +3836,12 @@ class MainWindowBackend(GUIBACK_BASE):
     def quit(back):
         """ File -> Quit"""
         print('[back] ')
-        #back.cleanup()
+        # back.cleanup()
         gt.exit_application()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Helper functions
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def user_info(back, **kwargs):
         return gt.user_info(parent=back.front, **kwargs)
@@ -3505,15 +3856,22 @@ class MainWindowBackend(GUIBACK_BASE):
         if kwargs.get('config', None) is not None:
             # options, config, msg, title
             dlg = gt.ConfigConfirmWidget.as_dialog(**kwargs)
-            #dlg.resize(700, 500)
+            # dlg.resize(700, 500)
             confirm_widget = dlg.widget
             dlg.exec_()
             return confirm_widget.confirm_option, confirm_widget.config
-            #return gt.user_option(parent=back.front, **kwargs)
+            # return gt.user_option(parent=back.front, **kwargs)
         else:
             return gt.user_option(parent=back.front, **kwargs)
 
-    def are_you_sure(back, use_msg=None, title='Confirmation', default=None, action=None, detailed_msg=None):
+    def are_you_sure(
+        back,
+        use_msg=None,
+        title='Confirmation',
+        default=None,
+        action=None,
+        detailed_msg=None,
+    ):
         """ Prompt user for conformation before changing something """
         if action is None:
             default_msg = 'Are you sure?'
@@ -3527,9 +3885,14 @@ class MainWindowBackend(GUIBACK_BASE):
         if ut.get_argflag('-y') or ut.get_argflag('--yes'):
             # DONT ASK WHEN SPECIFIED
             return True
-        ans = back.user_option(msg=msg, title=title, options=['Yes', 'No'],
-                               use_cache=False, default=default,
-                               detailed_msg=detailed_msg)
+        ans = back.user_option(
+            msg=msg,
+            title=title,
+            options=['Yes', 'No'],
+            use_cache=False,
+            default=default,
+            detailed_msg=detailed_msg,
+        )
         print('[back] User answered: %r' % (ans,))
         return ans == 'Yes'
 
@@ -3548,7 +3911,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return any(isspecial_list)
 
     def display_special_imagesets_error(back):
-        back.user_warning(msg="Contains special imagesets")
+        back.user_warning(msg='Contains special imagesets')
 
     @slot_()
     def override_all_annotation_species(back, aids=None, gids=None):
@@ -3562,55 +3925,69 @@ class MainWindowBackend(GUIBACK_BASE):
                 aid_list = back.ibs.get_valid_aids()
         else:
             aid_list = aids
-        resp = gt.user_input(title='edit species', msg='Override species for {} annots'.format(len(aid_list)), text='')
+        resp = gt.user_input(
+            title='edit species',
+            msg='Override species for {} annots'.format(len(aid_list)),
+            text='',
+        )
         if resp is not None:
             print('override_all_annotation_species. resp = %r' % (resp,))
             species_rowid = back.ibs.add_species(resp)
-            use_msg = ('Are you sure you want to change %d annotations species to %r?'
-                       % (len(aid_list), resp))
+            use_msg = 'Are you sure you want to change %d annotations species to %r?' % (
+                len(aid_list),
+                resp,
+            )
             if back.are_you_sure(use_msg=use_msg):
                 print('performing override')
-                back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
+                back.ibs.set_annot_species_rowids(
+                    aid_list, [species_rowid] * len(aid_list)
+                )
                 # FIXME: api-cache is broken here too
                 back.ibs.reset_table_cache()
 
     @blocking_slot()
     def update_species_nice_name(back):
         from wbia.control.manual_species_funcs import _convert_species_nice_to_code
+
         ibs = back.ibs
         species_text = back.get_selected_species()
         if species_text in [const.UNKNOWN, '']:
-            back.user_warning(msg="Cannot rename this species...")
+            back.user_warning(msg='Cannot rename this species...')
             raise guiexcept.UserCancel
         species_rowid = ibs.get_species_rowids_from_text(species_text)
         species_nice = ibs.get_species_nice(species_rowid)
         new_species_nice = back.user_input(
-            msg='Rename species\n    Name: %r \n    Tag:  %r' % (species_nice, species_text),
-            title='Rename Species')
+            msg='Rename species\n    Name: %r \n    Tag:  %r'
+            % (species_nice, species_text),
+            title='Rename Species',
+        )
         if new_species_nice is not None:
             species_rowid = [species_rowid]
             new_species_nice = [new_species_nice]
             species_code = _convert_species_nice_to_code(new_species_nice)
             ibs._set_species_nice(species_rowid, new_species_nice)
             ibs._set_species_code(species_rowid, species_code)
-            back.ibswgt.update_species_available(reselect=True, reselect_new_name=new_species_nice[0])
+            back.ibswgt.update_species_available(
+                reselect=True, reselect_new_name=new_species_nice[0]
+            )
 
     @blocking_slot()
     def delete_selected_species(back):
         ibs = back.ibs
         species_text = back.get_selected_species()
         if species_text in [const.UNKNOWN, '']:
-            back.user_warning(msg="Cannot delete this species...")
+            back.user_warning(msg='Cannot delete this species...')
             raise guiexcept.UserCancel
         species_rowid = ibs.get_species_rowids_from_text(species_text)
         species_nice = ibs.get_species_nice(species_rowid)
 
-        msg_str = 'You are about to delete species\n    Name: %r \n    ' + \
-                  'Tag:  %r\n\nDo you wish to continue?\nAll annotations ' + \
-                  'with this species will be set to unknown.'
-        msg_str = msg_str % (species_nice, species_text, )
-        confirm_kw = dict(use_msg=msg_str, title='Delete Selected Species?',
-                          default='No')
+        msg_str = (
+            'You are about to delete species\n    Name: %r \n    '
+            + 'Tag:  %r\n\nDo you wish to continue?\nAll annotations '
+            + 'with this species will be set to unknown.'
+        )
+        msg_str = msg_str % (species_nice, species_text,)
+        confirm_kw = dict(use_msg=msg_str, title='Delete Selected Species?', default='No')
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
         ibs.delete_species([species_rowid])
@@ -3624,39 +4001,45 @@ class MainWindowBackend(GUIBACK_BASE):
         HACK = back.ibs.cfg.other_cfg.enable_custom_filter
         assert not HACK, 'enable_custom_filter is no longer supported'
 
-        back.ibs.set_exemplars_from_quality_and_viewpoint(imgsetid=imgsetid,
-                                                          exemplars_per_view=exemplars_per_view)
+        back.ibs.set_exemplars_from_quality_and_viewpoint(
+            imgsetid=imgsetid, exemplars_per_view=exemplars_per_view
+        )
 
     @slot_()
     def batch_rename_consecutive_via_species_(back):
-        #imgsetid = back.get_selected_imgsetid()
-        #back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
+        # imgsetid = back.get_selected_imgsetid()
+        # back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
         imgsetid = None
         print('batch_rename_consecutive_via_species, imgsetid=%r' % (imgsetid,))
         location_text = back.ibs.cfg.other_cfg.location_for_names
-        back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid,
-                                                      location_text=location_text)
+        back.ibs.batch_rename_consecutive_via_species(
+            imgsetid=imgsetid, location_text=location_text
+        )
 
     @slot_()
     def run_tests(back):
         from wbia.tests import run_tests
+
         run_tests.run_tests()
 
     @slot_()
     def run_utool_tests(back):
         import utool.tests.run_tests
+
         utool.tests.run_tests.run_tests()
 
     @slot_()
     def run_vtool_tests(back):
         import vtool.tests.run_tests
+
         vtool.tests.run_tests.run_tests()
 
     @slot_()
     def assert_modules(back):
         from wbia.tests import assert_modules
+
         detailed_msg = assert_modules.assert_modules()
-        gt.msgbox(msg="Running checks", title="Module Checks", detailed_msg=detailed_msg)
+        gt.msgbox(msg='Running checks', title='Module Checks', detailed_msg=detailed_msg)
 
     @slot_()
     def display_dbinfo(back):
@@ -3673,13 +4056,17 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         dbinfo = back.ibs.get_dbinfo_str()
         print(dbinfo)
-        gt.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
+        gt.msgbox(msg=back.ibs.get_infostr(), title='DBInfo', detailed_msg=dbinfo)
 
     @slot_()
     def show_about_message(back):
         import wbia
+
         version = wbia.__version__
-        about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://wbia.org/' % (version,)
+        about_msg = (
+            'IBEIS version %s\nImage Based Ecological Information System\nhttp://wbia.org/'
+            % (version,)
+        )
         gt.msgbox(msg=about_msg, title='About')
 
     @slot_()
@@ -3687,7 +4074,8 @@ class MainWindowBackend(GUIBACK_BASE):
         """ dev command only """
         print('[back] TAKING SCREENSHOT')
         from wbia.guitool.__PYQT__.QtGui import QPixmap
-        #screengrab_fpath = ut.truepath('~/latex/wbia_userguide/figures/filemenu.jpg')
+
+        # screengrab_fpath = ut.truepath('~/latex/wbia_userguide/figures/filemenu.jpg')
 
         # Find the focused window
         app = gt.get_qtapp()
@@ -3723,6 +4111,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     def make_qt_graph_interface(back):
         from wbia.viz import viz_graph2
+
         imgsetid = back.get_selected_imgsetid()
         aids = back.ibs.get_valid_aids(imgsetid=imgsetid)
         if len(aids) == 0:
@@ -3741,17 +4130,20 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     def install_wildbook(back):
         import wbia.control.wildbook_manager as wb_man
+
         wb_man.install_wildbook()
 
     @slot_()
     def startup_wildbook(back):
         import wbia.control.wildbook_manager as wb_man
+
         back.wb_server_running = True
         wb_man.startup_wildbook_server()
 
     @slot_()
     def shutdown_wildbook(back):
         import wbia.control.wildbook_manager as wb_man
+
         wb_man.shutdown_wildbook_server()
         back.wb_server_running = False
 
@@ -3762,22 +4154,26 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     def set_workdir(back):
         import wbia
+
         wbia.sysres.set_workdir(work_dir=None, allow_gui=True)
 
     @slot_()
     def ensure_demodata(back):
         from wbia import demodata
+
         demodata.ensure_demodata()
 
     @slot_()
     def launch_ipy_notebook(back):
         from wbia.templates import generate_notebook
+
         generate_notebook.autogen_ipynb(back.ibs, launch=True)
 
     @slot_()
     def update_source_install(back):
         import wbia
         from os.path import dirname
+
         repo_path = dirname(ut.truepath(ut.get_modpath(wbia, prefer_pkg=True)))
         with ut.ChdirContext(repo_path):
             command = ut.python_executable() + ' super_setup.py pull'
@@ -3792,10 +4188,11 @@ class MainWindowBackend(GUIBACK_BASE):
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):
     import wbia
+
     print('testdata guiback')
     if defaultdb is None:
         back = wbia.main_module._init_gui()
-        #back = MainWindowBackend()
+        # back = MainWindowBackend()
     else:
         main_locals = wbia.main(defaultdb=defaultdb, **kwargs)
         back = main_locals['back']
@@ -3808,4 +4205,5 @@ if __name__ == '__main__':
         xdoctest -m wbia.gui.guiback
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

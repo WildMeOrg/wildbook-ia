@@ -15,68 +15,67 @@ from wbia.control import accessor_decors, controller_inject
 import utool as ut
 from wbia.other import ibsfuncs
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 # from collections import namedtuple
 from wbia.web import routes_ajax
 import requests
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 ANNOT_AGE_MONTHS_EST_MAX = 'annot_age_months_est_max'
 ANNOT_AGE_MONTHS_EST_MIN = 'annot_age_months_est_min'
-ANNOT_NOTE               = 'annot_note'
-ANNOT_NUM_VERTS          = 'annot_num_verts'
-ANNOT_PARENT_ROWID       = 'annot_parent_rowid'
-ANNOT_ROWID              = 'annot_rowid'
-ANNOT_TAG_TEXT           = 'annot_tag_text'
-ANNOT_SEMANTIC_UUID      = 'annot_semantic_uuid'
-ANNOT_THETA              = 'annot_theta'
-ANNOT_VERTS              = 'annot_verts'
-ANNOT_UUID               = 'annot_uuid'
-ANNOT_YAW                = 'annot_yaw'
-ANNOT_VIEWPOINT          = 'annot_viewpoint'
-ANNOT_VISUAL_UUID        = 'annot_visual_uuid'
-CONFIG_ROWID             = 'config_rowid'
-FEATWEIGHT_ROWID         = 'featweight_rowid'
-IMAGE_ROWID              = 'image_rowid'
-NAME_ROWID               = 'name_rowid'
-SPECIES_ROWID            = 'species_rowid'
-ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
-ANNOT_QUALITY            = 'annot_quality'
-ANNOT_ROWIDS             = 'annot_rowids'
-GAR_ROWID                = 'gar_rowid'
-PART_ROWID               = 'part_rowid'
-ANNOT_STAGED_FLAG        = 'annot_staged_flag'
-ANNOT_STAGED_USER_ID     = 'annot_staged_user_identity'
+ANNOT_NOTE = 'annot_note'
+ANNOT_NUM_VERTS = 'annot_num_verts'
+ANNOT_PARENT_ROWID = 'annot_parent_rowid'
+ANNOT_ROWID = 'annot_rowid'
+ANNOT_TAG_TEXT = 'annot_tag_text'
+ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
+ANNOT_THETA = 'annot_theta'
+ANNOT_VERTS = 'annot_verts'
+ANNOT_UUID = 'annot_uuid'
+ANNOT_YAW = 'annot_yaw'
+ANNOT_VIEWPOINT = 'annot_viewpoint'
+ANNOT_VISUAL_UUID = 'annot_visual_uuid'
+CONFIG_ROWID = 'config_rowid'
+FEATWEIGHT_ROWID = 'featweight_rowid'
+IMAGE_ROWID = 'image_rowid'
+NAME_ROWID = 'name_rowid'
+SPECIES_ROWID = 'species_rowid'
+ANNOT_EXEMPLAR_FLAG = 'annot_exemplar_flag'
+ANNOT_QUALITY = 'annot_quality'
+ANNOT_ROWIDS = 'annot_rowids'
+GAR_ROWID = 'gar_rowid'
+PART_ROWID = 'part_rowid'
+ANNOT_STAGED_FLAG = 'annot_staged_flag'
+ANNOT_STAGED_USER_ID = 'annot_staged_user_identity'
 
 
 # Define the properties that will make up the semantic / visual uuids
 VISUAL_TUP_PROPS = ['image_uuids', 'verts', 'thetas']
 # TODO: Remove viewpoint and species?
-SEMANTIC_TUP_PROPS = [
-    'viewpoint_code',
-    'names',
-    'species_texts'
-]
+SEMANTIC_TUP_PROPS = ['viewpoint_code', 'names', 'species_texts']
 
 
 @register_ibs_method
 @register_api('/api/annot/uuid/', methods=['POST'])
-def compute_annot_visual_semantic_uuids(ibs, gid_list, include_preprocess=False,
-                                        **kwargs):
+def compute_annot_visual_semantic_uuids(
+    ibs, gid_list, include_preprocess=False, **kwargs
+):
 
     preprocess_dict = ibs._add_annots_preprocess(gid_list, **kwargs)
 
-    theta_list         = preprocess_dict['theta_list']
-    vert_list          = preprocess_dict['vert_list']
+    theta_list = preprocess_dict['theta_list']
+    vert_list = preprocess_dict['vert_list']
     species_rowid_list = preprocess_dict['species_rowid_list']
-    viewpoint_ints     = preprocess_dict['viewpoint_ints']
-    nid_list           = preprocess_dict['nid_list']
+    viewpoint_ints = preprocess_dict['viewpoint_ints']
+    nid_list = preprocess_dict['nid_list']
 
     image_uuid_list = ibs.get_image_uuids(gid_list)
     species_list = ibs.get_species_texts(species_rowid_list)
@@ -98,7 +97,7 @@ def compute_annot_visual_semantic_uuids(ibs, gid_list, include_preprocess=False,
     annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
 
     value_dict = {
-        'visual_uuid_list'  : annot_visual_uuid_list,
+        'visual_uuid_list': annot_visual_uuid_list,
         'semantic_uuid_list': annot_semantic_uuid_list,
     }
 
@@ -111,15 +110,27 @@ def compute_annot_visual_semantic_uuids(ibs, gid_list, include_preprocess=False,
 
 
 @register_ibs_method
-def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_list=None,
-                           species_list=None, species_rowid_list=None, viewpoint_list=None,
-                           nid_list=None, name_list=None, skip_cleaning=False, **kwargs):
+def _add_annots_preprocess(
+    ibs,
+    gid_list,
+    bbox_list=None,
+    theta_list=None,
+    vert_list=None,
+    species_list=None,
+    species_rowid_list=None,
+    viewpoint_list=None,
+    nid_list=None,
+    name_list=None,
+    skip_cleaning=False,
+    **kwargs
+):
     from vtool import geometry
 
     # BBOXES / VERTS
     # For import only, we can specify both by setting import_override to True
-    assert bool(bbox_list is None) != bool(vert_list is None), (
-        'must specify exactly one of bbox_list or vert_list')
+    assert bool(bbox_list is None) != bool(
+        vert_list is None
+    ), 'must specify exactly one of bbox_list or vert_list'
 
     if vert_list is None:
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
@@ -129,17 +140,16 @@ def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_
     if theta_list is None:
         theta_list = [0.0 for _ in range(len(gid_list))]
 
-    len_gid   = len(gid_list)
-    len_bbox  = len(bbox_list)
-    len_vert  = len(vert_list)
+    len_gid = len(gid_list)
+    len_bbox = len(bbox_list)
+    len_vert = len(vert_list)
     len_theta = len(theta_list)
     try:
-        assert len_gid  == len_bbox, 'bbox and gid are not of same size'
-        assert len_gid  == len_theta, 'theta and gid are not of same size'
-        assert len_gid  == len_vert, 'vert and gid are not of same size'
+        assert len_gid == len_bbox, 'bbox and gid are not of same size'
+        assert len_gid == len_theta, 'theta and gid are not of same size'
+        assert len_gid == len_vert, 'vert and gid are not of same size'
     except AssertionError as ex:
-        ut.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox'
-                                    'len_theta'])
+        ut.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox' 'len_theta'])
         raise
 
     # SPECIES
@@ -147,9 +157,13 @@ def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_
         assert species_list is None, 'cannot mix species_rowid and species'
     else:
         if species_list is not None:
-            species_rowid_list = ibs.add_species(species_list, skip_cleaning=skip_cleaning)
+            species_rowid_list = ibs.add_species(
+                species_list, skip_cleaning=skip_cleaning
+            )
         else:
-            species_rowid_list = [const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+            species_rowid_list = [
+                const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))
+            ]
 
     # VIEWPOINTS
     if viewpoint_list is None:
@@ -167,13 +181,13 @@ def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_
             nid_list = [const.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
 
     preprocess_dict = {
-        'bbox_list'          : bbox_list,
-        'theta_list'         : theta_list,
-        'vert_list'          : vert_list,
-        'species_rowid_list' : species_rowid_list,
-        'viewpoint_list'     : viewpoint_list,
-        'viewpoint_ints'     : viewpoint_ints,
-        'nid_list'           : nid_list,
+        'bbox_list': bbox_list,
+        'theta_list': theta_list,
+        'vert_list': vert_list,
+        'species_rowid_list': species_rowid_list,
+        'viewpoint_list': viewpoint_list,
+        'viewpoint_ints': viewpoint_ints,
+        'nid_list': nid_list,
     }
     return preprocess_dict
 
@@ -185,21 +199,43 @@ def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_
 
 @register_ibs_method
 @accessor_decors.adder
-@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
+@accessor_decors.cache_invalidator(
+    const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None
+)
 @accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS])
-@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(
+    const.IMAGESET_TABLE, ['percent_names_with_exemplar_str']
+)
 @register_api('/api/annot/', methods=['POST'])
-def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
-                species_list=None, nid_list=None, name_list=None,
-                vert_list=None, annot_uuid_list=None,
-                yaw_list=None, viewpoint_list=None, quality_list=None,
-                multiple_list=None, interest_list=None, canonical_list=None,
-                detect_confidence_list=None, notes_list=None,
-                annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
-                species_rowid_list=None, staged_uuid_list=None,
-                staged_user_id_list=None, quiet_delete_thumbs=False,
-                prevent_visual_duplicates=True, skip_cleaning=False,
-                delete_thumb=True, **kwargs):
+def add_annots(
+    ibs,
+    gid_list,
+    bbox_list=None,
+    theta_list=None,
+    species_list=None,
+    nid_list=None,
+    name_list=None,
+    vert_list=None,
+    annot_uuid_list=None,
+    yaw_list=None,
+    viewpoint_list=None,
+    quality_list=None,
+    multiple_list=None,
+    interest_list=None,
+    canonical_list=None,
+    detect_confidence_list=None,
+    notes_list=None,
+    annot_visual_uuid_list=None,
+    annot_semantic_uuid_list=None,
+    species_rowid_list=None,
+    staged_uuid_list=None,
+    staged_user_id_list=None,
+    quiet_delete_thumbs=False,
+    prevent_visual_duplicates=True,
+    skip_cleaning=False,
+    delete_thumb=True,
+    **kwargs
+):
     r"""
     Adds an annotation to images
 
@@ -331,20 +367,26 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         return []
 
     preprocess_dict = ibs.compute_annot_visual_semantic_uuids(
-        gid_list, include_preprocess=True,
-        bbox_list=bbox_list, theta_list=theta_list, vert_list=vert_list,
-        species_list=species_list, species_rowid_list=species_rowid_list,
-        viewpoint_list=viewpoint_list, nid_list=nid_list, name_list=name_list,
-        skip_cleaning=skip_cleaning
+        gid_list,
+        include_preprocess=True,
+        bbox_list=bbox_list,
+        theta_list=theta_list,
+        vert_list=vert_list,
+        species_list=species_list,
+        species_rowid_list=species_rowid_list,
+        viewpoint_list=viewpoint_list,
+        nid_list=nid_list,
+        name_list=name_list,
+        skip_cleaning=skip_cleaning,
     )
 
-    bbox_list          = preprocess_dict['bbox_list']
-    theta_list         = preprocess_dict['theta_list']
-    vert_list          = preprocess_dict['vert_list']
+    bbox_list = preprocess_dict['bbox_list']
+    theta_list = preprocess_dict['theta_list']
+    vert_list = preprocess_dict['vert_list']
     species_rowid_list = preprocess_dict['species_rowid_list']
-    viewpoint_list     = preprocess_dict['viewpoint_list']
-    viewpoint_ints     = preprocess_dict['viewpoint_ints']
-    nid_list           = preprocess_dict['nid_list']
+    viewpoint_list = preprocess_dict['viewpoint_list']
+    viewpoint_ints = preprocess_dict['viewpoint_ints']
+    nid_list = preprocess_dict['nid_list']
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids
     if annot_uuid_list is None:
@@ -380,40 +422,39 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     if staged_uuid_list is None:
         staged_uuid_list = [None] * len(gid_list)
-    is_staged_list = [
-        staged_uuid is not None
-        for staged_uuid in staged_uuid_list
-    ]
+    is_staged_list = [staged_uuid is not None for staged_uuid in staged_uuid_list]
     if staged_user_id_list is None:
         staged_user_id_list = [None] * len(gid_list)
 
     # Define arguments to insert
-    props = ut.odict([
-        ('annot_uuid', annot_uuid_list),
-        ('image_rowid', gid_list),
-        ('annot_xtl', xtl_list),
-        ('annot_ytl', ytl_list),
-        ('annot_width', width_list),
-        ('annot_height', height_list),
-        ('annot_theta', theta_list),
-        ('annot_num_verts', nVert_list),
-        ('annot_verts', vertstr_list),
-        ('annot_viewpoint', viewpoint_list),
-        ('annot_quality', quality_list),
-        ('annot_toggle_multiple', multiple_list),
-        ('annot_toggle_interest', interest_list),
-        ('annot_toggle_canonical', canonical_list),
-        ('annot_detect_confidence', detect_confidence_list),
-        ('annot_note', notes_list),
-        ('name_rowid', nid_list),
-        ('species_rowid', species_rowid_list),
-        ('annot_viewpoint_int', viewpoint_ints),
-        ('annot_visual_uuid', annot_visual_uuid_list),
-        ('annot_semantic_uuid', annot_semantic_uuid_list),
-        ('annot_staged_flag', is_staged_list),
-        ('annot_staged_uuid', staged_uuid_list),
-        ('annot_staged_user_identity', staged_user_id_list),
-    ])
+    props = ut.odict(
+        [
+            ('annot_uuid', annot_uuid_list),
+            ('image_rowid', gid_list),
+            ('annot_xtl', xtl_list),
+            ('annot_ytl', ytl_list),
+            ('annot_width', width_list),
+            ('annot_height', height_list),
+            ('annot_theta', theta_list),
+            ('annot_num_verts', nVert_list),
+            ('annot_verts', vertstr_list),
+            ('annot_viewpoint', viewpoint_list),
+            ('annot_quality', quality_list),
+            ('annot_toggle_multiple', multiple_list),
+            ('annot_toggle_interest', interest_list),
+            ('annot_toggle_canonical', canonical_list),
+            ('annot_detect_confidence', detect_confidence_list),
+            ('annot_note', notes_list),
+            ('name_rowid', nid_list),
+            ('species_rowid', species_rowid_list),
+            ('annot_viewpoint_int', viewpoint_ints),
+            ('annot_visual_uuid', annot_visual_uuid_list),
+            ('annot_semantic_uuid', annot_semantic_uuid_list),
+            ('annot_staged_flag', is_staged_list),
+            ('annot_staged_uuid', staged_uuid_list),
+            ('annot_staged_user_identity', staged_user_id_list),
+        ]
+    )
 
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in annot_uuid_list]
     if any(check_uuid_flags):
@@ -432,8 +473,13 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         # superkey_paramx = (0,)
         superkey_paramx = (colnames.index('annot_uuid'),)
         get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
-    aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter,
-                                  get_rowid_from_superkey, superkey_paramx)
+    aid_list = ibs.db.add_cleanly(
+        const.ANNOTATION_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     # Updates both semantic and visual uuids
     # WE NEED TO DO THIS BEFOREHAND DUE TO VISUAL DUPLICATES
     # ibs.update_annot_visual_uuids(aid_list)
@@ -548,7 +594,9 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=0)
+@accessor_decors.cache_invalidator(
+    const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=0
+)
 # @register_api('/api/annot/uuid/semantic/', methods=['PUT'])
 def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
     r"""
@@ -557,12 +605,15 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
     semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
     assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
     annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+    ibs.db.set(
+        const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list
+    )
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE,
-                                   [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
+@accessor_decors.cache_invalidator(
+    const.ANNOTATION_TABLE, [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0
+)
 # @register_api('/api/annot/uuid/visual/', methods=['PUT'])
 def update_annot_visual_uuids(ibs, aid_list):
     r"""
@@ -594,7 +645,9 @@ def update_annot_visual_uuids(ibs, aid_list):
     print('visual_infotup = %r' % (visual_infotup,))
     assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
     annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+    ibs.db.set(
+        const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list
+    )
     # If visual uuids are changes semantic ones are also changed
     ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
@@ -628,17 +681,20 @@ def get_num_annotations(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/annot/', methods=['GET'])
-def get_valid_aids(ibs, imgsetid=None,
-                   include_only_gid_list=None,
-                   yaw='no-filter',
-                   is_exemplar=None,
-                   is_staged=False,
-                   species=None,
-                   is_known=None,
-                   hasgt=None,
-                   minqual=None,
-                   has_timestamp=None,
-                   min_timedelta=None):
+def get_valid_aids(
+    ibs,
+    imgsetid=None,
+    include_only_gid_list=None,
+    yaw='no-filter',
+    is_exemplar=None,
+    is_staged=False,
+    species=None,
+    is_known=None,
+    hasgt=None,
+    minqual=None,
+    has_timestamp=None,
+    min_timedelta=None,
+):
     r"""
     High level function for getting all annotation ids according a set of filters.
 
@@ -735,10 +791,18 @@ def get_valid_aids(ibs, imgsetid=None,
         aid_list = ibs.get_imageset_aids(imgsetid)
 
     aid_list = ibs.filter_annotation_set(
-        aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
-        is_exemplar=is_exemplar, is_staged=is_staged, species=species,
-        is_known=is_known, hasgt=hasgt, minqual=minqual,
-        has_timestamp=has_timestamp, min_timedelta=min_timedelta)
+        aid_list,
+        include_only_gid_list=include_only_gid_list,
+        yaw=yaw,
+        is_exemplar=is_exemplar,
+        is_staged=is_staged,
+        species=species,
+        is_known=is_known,
+        hasgt=hasgt,
+        minqual=minqual,
+        has_timestamp=has_timestamp,
+        min_timedelta=min_timedelta,
+    )
     return aid_list
 
 
@@ -756,46 +820,57 @@ def annotation_src_api(rowid=None):
 
 
 @register_ibs_method
-def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
-                          yaw='no-filter', is_exemplar=None, is_staged=False,
-                          species=None, is_known=None, hasgt=None, minqual=None,
-                          has_timestamp=None, sort=False, is_canonical=None,
-                          min_timedelta=None):
+def filter_annotation_set(
+    ibs,
+    aid_list,
+    include_only_gid_list=None,
+    yaw='no-filter',
+    is_exemplar=None,
+    is_staged=False,
+    species=None,
+    is_known=None,
+    hasgt=None,
+    minqual=None,
+    has_timestamp=None,
+    sort=False,
+    is_canonical=None,
+    min_timedelta=None,
+):
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
         # corresponding unoptimized hack for is_exemplar
         flag_list = ibs.get_annot_exemplar_flags(aid_list)
-        aid_list  = ut.compress(aid_list, flag_list)
+        aid_list = ut.compress(aid_list, flag_list)
     elif is_exemplar is False:
         flag_list = ibs.get_annot_exemplar_flags(aid_list)
-        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+        aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_staged
     if is_staged is True:
         # corresponding unoptimized hack for is_staged
         flag_list = ibs.get_annot_staged_flags(aid_list)
-        aid_list  = ut.compress(aid_list, flag_list)
+        aid_list = ut.compress(aid_list, flag_list)
     elif is_staged is False:
         flag_list = ibs.get_annot_staged_flags(aid_list)
-        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+        aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_canonical
     if is_canonical is True:
         flag_list = ibs.get_annot_canonical(aid_list)
-        aid_list  = ut.compress(aid_list, flag_list)
+        aid_list = ut.compress(aid_list, flag_list)
     elif is_canonical is False:
         flag_list = ibs.get_annot_canonical(aid_list)
-        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+        aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     if include_only_gid_list is not None:
-        gid_list     = ibs.get_annot_gids(aid_list)
+        gid_list = ibs.get_annot_gids(aid_list)
         is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
-        aid_list     = ut.compress(aid_list, is_valid_gid)
+        aid_list = ut.compress(aid_list, is_valid_gid)
     if yaw != 'no-filter':
-        yaw_list     = ibs.get_annot_yaws(aid_list)
+        yaw_list = ibs.get_annot_yaws(aid_list)
         is_valid_yaw = [yaw == flag for flag in yaw_list]
-        aid_list     = ut.compress(aid_list, is_valid_yaw)
+        aid_list = ut.compress(aid_list, is_valid_yaw)
     if species is not None:
         aid_list = ibs.filter_aids_to_species(aid_list, species)
     if is_known is not None:
@@ -830,8 +905,14 @@ def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
     """
     id_iter = aid_list
     colnames = (ANNOT_ROWID,)
-    aid_list = ibs.db.get(const.ANNOTATION_TABLE, colnames,
-                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    aid_list = ibs.db.get(
+        const.ANNOTATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return aid_list
 
 
@@ -841,13 +922,27 @@ def get_annot_rows(ibs, aid_list):
     r"""
     Auto-docstr for 'get_annot_rows'
     """
-    colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
-                'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                'annot_verts', ANNOT_YAW, 'annot_detect_confidence',
-                'annot_note', 'name_rowid', 'species_rowid',
-                'annot_visual_uuid', 'annot_semantic_uuid')
-    rows_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list,
-                           unpack_scalars=False)
+    colnames = (
+        'annot_uuid',
+        'image_rowid',
+        'annot_xtl',
+        'annot_ytl',
+        'annot_width',
+        'annot_height',
+        'annot_theta',
+        'annot_num_verts',
+        'annot_verts',
+        ANNOT_YAW,
+        'annot_detect_confidence',
+        'annot_note',
+        'name_rowid',
+        'species_rowid',
+        'annot_visual_uuid',
+        'annot_semantic_uuid',
+    )
+    rows_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, aid_list, unpack_scalars=False
+    )
     return rows_list
 
 
@@ -870,7 +965,7 @@ def delete_annot_nids(ibs, aid_list):
     """
     # FIXME: This should be implicit by setting the anotation name to the
     # unknown name
-    #ibs.delete_annot_relations_oftype(aid_list, const.INDIVIDUAL_KEY)
+    # ibs.delete_annot_relations_oftype(aid_list, const.INDIVIDUAL_KEY)
     ibs.set_annot_name_rowids(aid_list, [const.UNKNOWN_NAME_ROWID] * len(aid_list))
 
 
@@ -887,16 +982,20 @@ def delete_annot_speciesids(ibs, aid_list):
     """
     # FIXME: This should be implicit by setting the anotation name to the
     # unknown species
-    #ibs.delete_annot_relations_oftype(aid_list, const.SPECIES_KEY)
+    # ibs.delete_annot_relations_oftype(aid_list, const.SPECIES_KEY)
     ibs.set_annot_species_rowids(aid_list, [const.UNKNOWN_SPECIES_ROWID] * len(aid_list))
 
 
 @register_ibs_method
 @accessor_decors.deleter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, rowidx=0)
-@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
+@accessor_decors.cache_invalidator(
+    const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None
+)
 @accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
-@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(
+    const.IMAGESET_TABLE, ['percent_names_with_exemplar_str']
+)
 @register_api('/api/annot/', methods=['DELETE'])
 def delete_annots(ibs, aid_list):
     r"""
@@ -962,7 +1061,7 @@ def delete_annots(ibs, aid_list):
     # MEGA HACK FOR QT
     ibs.delete_annot_imgthumbs(aid_list)
     # Delete chips and features first
-    #ibs.delete_annot_relations(aid_list)
+    # ibs.delete_annot_relations(aid_list)
     ibs.delete_annot_chips(aid_list)
     ibs.depc_annot.delete_root(aid_list)
     # TODO:
@@ -1007,8 +1106,12 @@ def get_annot_aids_from_semantic_uuid(ibs, semantic_uuid_list):
     Returns:
         list: annot rowids
     """
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                           semantic_uuid_list, id_colname=ANNOT_SEMANTIC_UUID)
+    aids_list = ibs.db.get(
+        const.ANNOTATION_TABLE,
+        (ANNOT_ROWID,),
+        semantic_uuid_list,
+        id_colname=ANNOT_SEMANTIC_UUID,
+    )
     return aids_list
 
 
@@ -1025,8 +1128,9 @@ def get_annot_aids_from_uuid(ibs, uuid_list):
         URL:    /api/annot/rowid/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), uuid_list,
-                           id_colname=ANNOT_UUID)
+    aids_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_ROWID,), uuid_list, id_colname=ANNOT_UUID
+    )
     return aids_list
 
 
@@ -1040,7 +1144,7 @@ def get_annot_missing_uuid(ibs, uuid_list):
     """
     aid_list = ibs.get_annot_aids_from_uuid(uuid_list)
     zipped = zip(aid_list, uuid_list)
-    missing_uuid_list = [ uuid for aid, uuid in zipped if aid is None ]
+    missing_uuid_list = [uuid for aid, uuid in zipped if aid is None]
     return missing_uuid_list
 
 
@@ -1055,9 +1159,14 @@ def get_annot_aids_from_visual_uuid(ibs, visual_uuid_list):
     Returns:
         list: annot rowids
     """
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                           visual_uuid_list, id_colname=ANNOT_VISUAL_UUID)
+    aids_list = ibs.db.get(
+        const.ANNOTATION_TABLE,
+        (ANNOT_ROWID,),
+        visual_uuid_list,
+        id_colname=ANNOT_VISUAL_UUID,
+    )
     return aids_list
+
 
 get_annot_rowids_from_visual_uuid = get_annot_aids_from_visual_uuid
 
@@ -1075,7 +1184,12 @@ def get_annot_bboxes(ibs, aid_list):
         Method: GET
         URL:    /api/annot/bbox/
     """
-    colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
+    colnames = (
+        'annot_xtl',
+        'annot_ytl',
+        'annot_width',
+        'annot_height',
+    )
     bbox_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list)
     return bbox_list
 
@@ -1108,9 +1222,9 @@ def get_annot_detect_confidence(ibs, aid_list):
         Method: GET
         URL:    /api/annot/detect/confidence/
     """
-    annot_detect_confidence_list = ibs.db.get(const.ANNOTATION_TABLE,
-                                              ('annot_detect_confidence',),
-                                              aid_list)
+    annot_detect_confidence_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list
+    )
     return annot_detect_confidence_list
 
 
@@ -1145,15 +1259,16 @@ def get_annot_exemplar_flags(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE,
-                                          ('annot_exemplar_flag',), aid_list)
+    annot_exemplar_flag_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list
+    )
     return annot_exemplar_flag_list
 
 
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
+# @cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/image/rowid/', methods=['GET'])
 def get_annot_gids(ibs, aid_list, assume_unique=False):
     r"""
@@ -1178,7 +1293,9 @@ def get_annot_gids(ibs, aid_list, assume_unique=False):
         >>> result = get_annot_gids(ibs, aid_list)
         >>> print(result)
     """
-    gid_list = ibs.db.get(const.ANNOTATION_TABLE, ('image_rowid',), aid_list, assume_unique=assume_unique)
+    gid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('image_rowid',), aid_list, assume_unique=assume_unique
+    )
     return gid_list
 
 
@@ -1190,7 +1307,7 @@ def get_annot_image_rowids(ibs, aid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
+# @cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/imageset/rowid/', methods=['GET'])
 def get_annot_imgsetids(ibs, aid_list):
     r"""
@@ -1223,7 +1340,7 @@ def get_annot_imgsetids(ibs, aid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
+# @cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/imageset/uuid/', methods=['GET'])
 def get_annot_imgset_uuids(ibs, aid_list):
     r"""
@@ -1253,8 +1370,13 @@ def get_annot_gar_rowids(ibs, aid_list):
     Auto-docstr for 'get_annot_gar_rowids'
     """
     colnames = (GAR_ROWID,)
-    gar_rowid_list = ibs.db.get(const.GA_RELATION_TABLE, colnames, aid_list,
-                                id_colname=ANNOT_ROWID, unpack_scalars=False)
+    gar_rowid_list = ibs.db.get(
+        const.GA_RELATION_TABLE,
+        colnames,
+        aid_list,
+        id_colname=ANNOT_ROWID,
+        unpack_scalars=False,
+    )
     return gar_rowid_list
 
 
@@ -1270,22 +1392,22 @@ def get_annot_otherimage_aids(ibs, aid_list, daid_list=None, assume_unique=False
     if daid_list is None:
         image_aids_list = ibs.get_image_aids(gid_list)
         # Remove self from list
-        other_aids_list = [list(set(aids) - {aid})
-                           for aids, aid in zip(image_aids_list, aid_list)]
+        other_aids_list = [
+            list(set(aids) - {aid}) for aids, aid in zip(image_aids_list, aid_list)
+        ]
     else:
         daids = np.array(daid_list)
-        internal_data_gids  = ibs.get_annot_gids(daids, assume_unique=assume_unique)
-        other_aids_list = [
-            daids.compress(internal_data_gids == gid)
-            for gid in gid_list
-        ]
+        internal_data_gids = ibs.get_annot_gids(daids, assume_unique=assume_unique)
+        other_aids_list = [daids.compress(internal_data_gids == gid) for gid in gid_list]
     return other_aids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1toM
 # @register_api('/api/annot/aids/contact/', methods=['GET'])
-def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, assume_unique=False):
+def get_annot_contact_aids(
+    ibs, aid_list, daid_list=None, check_isect=False, assume_unique=False
+):
     r"""
     Returns the other aids that appear in the same image that this
     annotation is from.
@@ -1326,29 +1448,35 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """
-    other_aids_list = ibs.get_annot_otherimage_aids(aid_list,
-                                                    daid_list=daid_list,
-                                                    assume_unique=assume_unique)
+    other_aids_list = ibs.get_annot_otherimage_aids(
+        aid_list, daid_list=daid_list, assume_unique=assume_unique
+    )
     if check_isect:
         import shapely.geometry
+
         # TODO: might not be accounting for rotated verticies
         verts_list = ibs.get_annot_verts(aid_list)
         other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
         poly_list = [shapely.geometry.Polygon(verts) for verts in verts_list]
-        other_polys_list = [[shapely.geometry.Polygon(verts) for verts in _]
-                            for _ in other_verts_list]
-        flags_list = [[p1.intersects(p2) for p2 in p2_list]
-                      for p1, p2_list in zip(poly_list, other_polys_list)]
-        contact_aids = [ut.compress(other_aids, flags)
-                        for other_aids, flags in zip(other_aids_list, flags_list)]
+        other_polys_list = [
+            [shapely.geometry.Polygon(verts) for verts in _] for _ in other_verts_list
+        ]
+        flags_list = [
+            [p1.intersects(p2) for p2 in p2_list]
+            for p1, p2_list in zip(poly_list, other_polys_list)
+        ]
+        contact_aids = [
+            ut.compress(other_aids, flags)
+            for other_aids, flags in zip(other_aids_list, flags_list)
+        ]
     else:
         contact_aids = other_aids_list
     return contact_aids
 
 
-#@register_ibs_method
-#@accessor_decors.getter_1toM
-#def get_annot_intersecting_aids(ibs, aid_list):
+# @register_ibs_method
+# @accessor_decors.getter_1toM
+# def get_annot_intersecting_aids(ibs, aid_list):
 #    pass
 
 
@@ -1364,8 +1492,9 @@ def get_annot_num_contact_aids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-def get_annot_groundfalse(ibs, aid_list, valid_aids=None,
-                          filter_unknowns=True, daid_list=None):
+def get_annot_groundfalse(
+    ibs, aid_list, valid_aids=None, filter_unknowns=True, daid_list=None
+):
     r"""
     gets all annotations with different names
 
@@ -1411,8 +1540,7 @@ def get_annot_groundfalse(ibs, aid_list, valid_aids=None,
 @register_ibs_method
 @accessor_decors.getter_1toM
 # @register_api('/api/annot/groundtruth/', methods=['GET'])
-def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
-                          daid_list=None):
+def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_list=None):
     r"""
     gets all annotations with the same names
 
@@ -1472,39 +1600,48 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     """
     # TODO: Optimize
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    #if daid_list is not None:
+    # if daid_list is not None:
     #    # when given a valid pool try to skip the get_name_aids call
     #    aids_list_, nid_list_ = ibs.group_annots_by_name(daid_list, distinguish_unknowns=True)
     #    nid2_aids = dict(zip(nid_list_, aids_list_))
     #    aids_list = ut.dict_take(nid2_aids, nid_list, [])
-    #else:
+    # else:
     aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     if is_exemplar is None:
         groundtruth_list_ = aids_list
     else:
         # Filter out non-exemplars
         exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-        isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
-        groundtruth_list_ = [ut.compress(aids, isvalids)
-                             for aids, isvalids in zip(aids_list, isvalids_list)]
+        isvalids_list = [
+            [flag == is_exemplar for flag in flags] for flags in exemplar_flags_list
+        ]
+        groundtruth_list_ = [
+            ut.compress(aids, isvalids)
+            for aids, isvalids in zip(aids_list, isvalids_list)
+        ]
     if noself:
         # Remove yourself from the set
-        groundtruth_list = [list(set(aids) - {aid})
-                            for aids, aid in zip(groundtruth_list_, aid_list)]
+        groundtruth_list = [
+            list(set(aids) - {aid}) for aids, aid in zip(groundtruth_list_, aid_list)
+        ]
     else:
         groundtruth_list = groundtruth_list_
 
     if daid_list is not None:
         # filter out any groundtruth that isn't allowed
         daid_set = set(daid_list)
-        groundtruth_list = [list(daid_set.intersection(set(aids))) for aids in groundtruth_list]
+        groundtruth_list = [
+            list(daid_set.intersection(set(aids))) for aids in groundtruth_list
+        ]
     return groundtruth_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/annot/groundtruth/check/', methods=['GET'])
-def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_list=None):
+def get_annot_has_groundtruth(
+    ibs, aid_list, is_exemplar=None, noself=True, daid_list=None
+):
     r"""
     Args:
         aid_list    (list):
@@ -1532,15 +1669,15 @@ def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid
         >>> print(result)
     """
     # TODO: Optimize
-    numgts_list = ibs.get_annot_num_groundtruth(aid_list, is_exemplar=is_exemplar,
-                                                noself=noself,
-                                                daid_list=daid_list)
+    numgts_list = ibs.get_annot_num_groundtruth(
+        aid_list, is_exemplar=is_exemplar, noself=noself, daid_list=daid_list
+    )
     has_gt_list = [num_gts > 0 for num_gts in numgts_list]
     return has_gt_list
 
 
-#@register_ibs_method
-#def get_annot_hashid_rowid(ibs, aid_list, prefix=''):
+# @register_ibs_method
+# def get_annot_hashid_rowid(ibs, aid_list, prefix=''):
 #    raise AssertionError('You probably want to call a uuid hash id method')
 #    label = ''.join(('_', prefix, 'UUIDS'))
 #    aids_hashid = ut.hashstr_arr(aid_list, label)
@@ -1557,9 +1694,9 @@ def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
         Method: GET
         URL:    /api/annot/uuid/hashid/
     """
-    uuid_list    = ibs.get_annot_uuids(aid_list)
+    uuid_list = ibs.get_annot_uuids(aid_list)
     label = ''.join(('_', prefix, 'UUIDS'))
-    uuid_hashid  = ut.hashstr_arr(uuid_list, label)
+    uuid_hashid = ut.hashstr_arr(uuid_list, label)
     return uuid_hashid
 
 
@@ -1574,7 +1711,7 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', pathsafe=False):
     """
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     label = ''.join(('_', prefix, 'VUUIDS'))
-    visual_uuid_hashid  = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=pathsafe)
+    visual_uuid_hashid = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=pathsafe)
     # TODO: use this implementation instead
     # visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     # label = ''.join((prefix, 'VUUIDS'))
@@ -1715,7 +1852,8 @@ def get_annot_semantic_uuids(ibs, aid_list):
     id_iter = aid_list
     colnames = (ANNOT_SEMANTIC_UUID,)
     annot_semantic_uuid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return annot_semantic_uuid_list
 
 
@@ -1757,7 +1895,8 @@ def get_annot_visual_uuids(ibs, aid_list):
     id_iter = aid_list
     colnames = (ANNOT_VISUAL_UUID,)
     annot_visual_uuid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return annot_visual_uuid_list
 
 
@@ -1774,9 +1913,10 @@ def get_annot_verts(ibs, aid_list):
         URL:    /api/annot/vert/
     """
     from wbia.algo.preproc import preproc_annot
+
     vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
     vert_list = preproc_annot.postget_annot_verts(vertstr_list)
-    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
+    # vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
     return vert_list
 
 
@@ -1793,15 +1933,20 @@ def get_annot_rotated_verts(ibs, aid_list):
         URL:    /api/annot/vert/rotated/
     """
     import vtool as vt
+
     vert_list = ibs.get_annot_verts(aid_list)
     theta_list = ibs.get_annot_thetas(aid_list)
     # Convex bounding boxes for verticies
     bbox_list = vt.geometry.bboxes_from_vert_list(vert_list)
-    rot_list = [vt.rotation_around_bbox_mat3x3(theta, bbox)
-                for theta, bbox in zip(theta_list, bbox_list)]
-    rotated_vert_list = [vt.transform_points_with_homography(rot, np.array(verts).T).T.tolist()
-                         for rot, verts in zip(rot_list, vert_list)]
-    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
+    rot_list = [
+        vt.rotation_around_bbox_mat3x3(theta, bbox)
+        for theta, bbox in zip(theta_list, bbox_list)
+    ]
+    rotated_vert_list = [
+        vt.transform_points_with_homography(rot, np.array(verts).T).T.tolist()
+        for rot, verts in zip(rot_list, vert_list)
+    ]
+    # vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
     return rotated_vert_list
 
 
@@ -1809,7 +1954,7 @@ def get_annot_rotated_verts(ibs, aid_list):
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_YAW)
 @register_api('/api/annot/yaw/', methods=['GET'])
-#@profile
+# @profile
 def get_annot_yaws(ibs, aid_list, assume_unique=False):
     r"""
     A yaw is the yaw of the annotation in radians yaw is inverted. Will be fixed soon.
@@ -1847,9 +1992,10 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         >>> print(result)
         [3.141592653589793, 3.141592653589793, None, 3.141592653589793, None]
     """
-    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list,
-                          assume_unique=assume_unique)
-    #if False:
+    yaw_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list, assume_unique=assume_unique
+    )
+    # if False:
     #    yaw_list2 = [ibs.db.cur.execute('SELECT annot_yaw from annotations WHERE rowid=?', (aid,)).fetchone()[0] for aid in aid_list]
     #    # misses cases when aid_list is not unique?
     #    yaw_list3 = ut.take_column(ibs.db.cur.execute('SELECT annot_yaw from annotations WHERE rowid IN (%s) ORDER BY rowid ASC' % (','.join(map(str, aid_list)),)).fetchall(), 0)
@@ -1872,8 +2018,9 @@ def get_annot_viewpoints(ibs, aid_list, assume_unique=False):
         Method: GET
         URL:    /api/annot/viewpoint/
     """
-    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,),
-                                aid_list, assume_unique=assume_unique)
+    viewpoint_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list, assume_unique=assume_unique
+    )
     return viewpoint_list
 
 
@@ -1920,8 +2067,12 @@ def get_annot_viewpoint_int(ibs, aids, assume_unique=False):
     # return view_ints
     # ---------
     # Post 1.7.0
-    return ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), aids,
-                      assume_unique=assume_unique)
+    return ibs.db.get(
+        const.ANNOTATION_TABLE,
+        ('annot_viewpoint_int',),
+        aids,
+        assume_unique=assume_unique,
+    )
 
 
 @register_ibs_method
@@ -1955,8 +2106,9 @@ def get_annot_staged_flags(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_staged_flag_list = ibs.db.get(const.ANNOTATION_TABLE,
-                                          (ANNOT_STAGED_FLAG,), aid_list)
+    annot_staged_flag_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), aid_list
+    )
     return annot_staged_flag_list
 
 
@@ -2007,8 +2159,9 @@ def get_annot_staged_user_ids(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_staged_user_id_list = ibs.db.get(const.ANNOTATION_TABLE,
-                                           (ANNOT_STAGED_USER_ID,), aid_list)
+    annot_staged_user_id_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_STAGED_USER_ID,), aid_list
+    )
     return annot_staged_user_id_list
 
 
@@ -2024,7 +2177,9 @@ def get_annot_staged_metadata(ibs, aid_list, return_raw=False):
         Method: GET
         URL:    /api/annot/staged/metadata/
     """
-    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_staged_metadata_json',), aid_list)
+    metadata_str_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('annot_staged_metadata_json',), aid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -2038,8 +2193,7 @@ def get_annot_staged_metadata(ibs, aid_list, return_raw=False):
 @register_ibs_method
 def set_annot_viewpoint_int(ibs, aids, view_ints, _code_update=True):
     view_ints = list(view_ints)
-    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints,
-               id_iter=aids)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints, id_iter=aids)
     if _code_update:
         # oops didn't realize there was an old structure
         view_codes = ut.take(ibs.const.VIEW.INT_TO_CODE, view_ints)
@@ -2063,14 +2217,12 @@ def get_annot_viewpoint_code(ibs, aids):
 
 
 def _ensure_viewpoint_to_code(view_codes):
-    view_codes = [
-        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
+    view_codes = [const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
     return view_codes
 
 
 def _ensure_viewpoint_to_int(view_codes):
-    view_codes = [
-        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
+    view_codes = [const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
     view_ints = ut.dict_take(const.VIEW.CODE_TO_INT, view_codes)
     return view_ints
 
@@ -2112,11 +2264,11 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
         URL:    /api/annot/yaw/
     """
     id_iter = ((aid,) for aid in aid_list)
-    #yaw_list = [-1 if yaw is None else yaw for yaw in yaw_list]
+    # yaw_list = [-1 if yaw is None else yaw for yaw in yaw_list]
     if input_is_degrees:
         yaw_list = [-1 if yaw is None else ut.deg_to_rad(yaw) for yaw in yaw_list]
-    #assert all([0.0 <= yaw < 2 * np.pi or yaw == -1.0 for yaw in yaw_list])
-    val_iter = ((yaw, ) for yaw in yaw_list)
+    # assert all([0.0 <= yaw < 2 * np.pi or yaw == -1.0 for yaw in yaw_list])
+    val_iter = ((yaw,) for yaw in yaw_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
     ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'yaws')
@@ -2128,8 +2280,15 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/viewpoint/', methods=['PUT'])
-def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
-                         only_allow_known=True, _yaw_update=False, _code_update=True):
+def set_annot_viewpoints(
+    ibs,
+    aid_list,
+    viewpoint_list,
+    purge_cache=True,
+    only_allow_known=True,
+    _yaw_update=False,
+    _code_update=True,
+):
     r"""
     Sets the viewpoint of the annotation
 
@@ -2139,8 +2298,7 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
     """
     viewpoint_list = list(viewpoint_list)
     if only_allow_known:
-        isvalid = [v is None or v in const.VIEW.CODE_TO_INT
-                   for v in viewpoint_list]
+        isvalid = [v is None or v in const.VIEW.CODE_TO_INT for v in viewpoint_list]
         aid_list = ut.compress(aid_list, isvalid)
         viewpoint_list = ut.compress(viewpoint_list, isvalid)
 
@@ -2154,17 +2312,23 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
     if purge_cache:
         flag_list = [
             viewpoint != current_viewpoint
-            for viewpoint, current_viewpoint in zip(viewpoint_list, current_viewpoint_list)
+            for viewpoint, current_viewpoint in zip(
+                viewpoint_list, current_viewpoint_list
+            )
         ]
         update_aid_list = ut.compress(aid_list, flag_list)
         try:
-            ibs.wbia_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
+            ibs.wbia_plugin_curvrank_delete_cache_optimized(
+                update_aid_list, 'CurvRankDorsal'
+            )
         except Exception:
             message = 'Could not purge CurvRankDorsal cache for viewpoint'
             # raise RuntimeError(message)
             print(message)
         try:
-            ibs.wbia_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankFinfindrHybridDorsal')
+            ibs.wbia_plugin_curvrank_delete_cache_optimized(
+                update_aid_list, 'CurvRankFinfindrHybridDorsal'
+            )
         except Exception:
             message = 'Could not purge CurvRankFinfindrHybridDorsal cache for viewpoint'
             # raise RuntimeError(message)
@@ -2208,7 +2372,9 @@ def get_annot_metadata(ibs, aid_list, return_raw=False):
         Method: GET
         URL:    /api/annot/metadata/
     """
-    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_metadata_json',), aid_list)
+    metadata_str_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('annot_metadata_json',), aid_list
+    )
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -2221,8 +2387,9 @@ def get_annot_metadata(ibs, aid_list, return_raw=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
-                              daid_list=None):
+def get_annot_num_groundtruth(
+    ibs, aid_list, is_exemplar=None, noself=True, daid_list=None
+):
     r"""
     Returns:
         list_ (list): number of other chips with the same name
@@ -2255,10 +2422,9 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]
     """
     # TODO: Optimize
-    groundtruth_list = ibs.get_annot_groundtruth(aid_list,
-                                                 is_exemplar=is_exemplar,
-                                                 noself=noself,
-                                                 daid_list=daid_list)
+    groundtruth_list = ibs.get_annot_groundtruth(
+        aid_list, is_exemplar=is_exemplar, noself=noself, daid_list=daid_list
+    )
     nGt_list = list(map(len, groundtruth_list))
     return nGt_list
 
@@ -2287,7 +2453,9 @@ def get_annot_parent_aid(ibs, aid_list):
     Returns:
         list_ (list): a list of parent (in terms of parts) annotation rowids.
     """
-    annot_parent_rowid_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), aid_list)
+    annot_parent_rowid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), aid_list
+    )
     return annot_parent_rowid_list
 
 
@@ -2315,11 +2483,16 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
     ibs.db.connection.execute(
         '''
         CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
-        ''').fetchall()
+        '''
+    ).fetchall()
     # The index maxes the following query very efficient
-    part_rowids_list = ibs.db.get(ibs.const.PART_TABLE, (PART_ROWID,),
-                                  aid_list, id_colname=ANNOT_ROWID,
-                                  unpack_scalars=False)
+    part_rowids_list = ibs.db.get(
+        ibs.const.PART_TABLE,
+        (PART_ROWID,),
+        aid_list,
+        id_colname=ANNOT_ROWID,
+        unpack_scalars=False,
+    )
     part_rowids_list = [
         ibs.filter_part_set(part_rowid_list, is_staged=is_staged)
         for part_rowid_list in part_rowids_list
@@ -2330,7 +2503,9 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns'])
+@accessor_decors.cache_getter(
+    const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns']
+)
 # @register_api('/api/annot/name/rowid/', methods=['GET'])
 def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_unique=False):
     r"""
@@ -2356,13 +2531,24 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_uniqu
     """
     id_iter = aid_list
     colnames = (NAME_ROWID,)
-    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', assume_unique=assume_unique)
+    nid_list_ = ibs.db.get(
+        const.ANNOTATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        assume_unique=assume_unique,
+    )
     if distinguish_unknowns:
-        nid_list = [(None if aid is None else -aid)
-                    if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
-                    for nid, aid in zip(nid_list_, aid_list)]
+        nid_list = [
+            (None if aid is None else -aid)
+            if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None
+            else nid
+            for nid, aid in zip(nid_list_, aid_list)
+        ]
     else:
-        nid_list = [const.UNKNOWN_LBLANNOT_ROWID if nid is None else nid for nid in nid_list_]
+        nid_list = [
+            const.UNKNOWN_LBLANNOT_ROWID if nid is None else nid for nid in nid_list_
+        ]
     return nid_list
 
 
@@ -2401,8 +2587,7 @@ def get_annot_names(ibs, aid_list, distinguish_unknowns=False):
     r"""
     alias
     """
-    return ibs.get_annot_name_texts(aid_list,
-                                    distinguish_unknowns=distinguish_unknowns)
+    return ibs.get_annot_name_texts(aid_list, distinguish_unknowns=distinguish_unknowns)
 
 
 @register_ibs_method
@@ -2448,10 +2633,12 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
     nid_list = ibs.get_annot_name_rowids(aid_list)
     name_list = ibs.get_name_texts(nid_list)
     if distinguish_unknowns:
-        name_list = [name if nid >= 0 else name + '%d' % -nid
-                     for nid, name in zip(nid_list, name_list)]
-    #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list,
-    #const.INDIVIDUAL_KEY, ibs.get_name_texts)
+        name_list = [
+            name if nid >= 0 else name + '%d' % -nid
+            for nid, name in zip(nid_list, name_list)
+        ]
+    # name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list,
+    # const.INDIVIDUAL_KEY, ibs.get_name_texts)
     return name_list
 
 
@@ -2512,8 +2699,8 @@ def get_annot_species_texts(ibs, aid_list):
         URL:    /api/annot/species/text/
     """
     species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-    speceis_text_list  = ibs.get_species_texts(species_rowid_list)
-    #speceis_text_list = ibs.get_annot_lblannot_value_of_lbltype(
+    speceis_text_list = ibs.get_species_texts(species_rowid_list)
+    # speceis_text_list = ibs.get_annot_lblannot_value_of_lbltype(
     #    aid_list, const.SPECIES_KEY, ibs.get_species)
     return speceis_text_list
 
@@ -2542,7 +2729,8 @@ def get_annot_species_rowids(ibs, aid_list):
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     species_rowid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid'
+    )
     return species_rowid_list
 
 
@@ -2818,6 +3006,7 @@ def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True, **kwargs):
         URL:    /api/annot/bbox/
     """
     from vtool import geometry
+
     # changing the bboxes also changes the bounding polygon
     vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     # naively overwrite the bounding polygon with a rectangle - for now trust the user!
@@ -2842,8 +3031,12 @@ def set_annot_detect_confidence(ibs, aid_list, confidence_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_EXEMPLAR_FLAG], rowidx=0)
-@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(
+    const.ANNOTATION_TABLE, [ANNOT_EXEMPLAR_FLAG], rowidx=0
+)
+@accessor_decors.cache_invalidator(
+    const.IMAGESET_TABLE, ['percent_names_with_exemplar_str']
+)
 @register_api('/api/annot/exemplar/', methods=['PUT'])
 def set_annot_exemplar_flags(ibs, aid_list, flag_list):
     r"""
@@ -2861,10 +3054,13 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 @register_ibs_method
 @accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [NAME_ROWID], rowidx=0)
-@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(
+    const.IMAGESET_TABLE, ['percent_names_with_exemplar_str']
+)
 # @register_api('/api/annot/name/rowid/', methods=['PUT'])
-def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
-                          assert_wildbook=False):
+def set_annot_name_rowids(
+    ibs, aid_list, name_rowid_list, notify_wildbook=True, assert_wildbook=False
+):
     r"""
     name_rowid_list -> annot.name_rowid[aid_list]
 
@@ -2898,24 +3094,28 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
     """
     assert len(aid_list) == len(name_rowid_list), 'misaligned'
     import wbia
+
     if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
         try:
             ibs.wildbook_signal_annot_name_changes(aid_list)
         except requests.exceptions.ConnectionError:
             if assert_wildbook:
                 raise IOError('Cannot connect to WB for name updates')
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list,
-    #ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    # ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list,
+    # ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     id_iter = aid_list
     colnames = (NAME_ROWID,)
     # WE NEED TO PERFORM A SPECIAL CHECK. ANY ANIMAL WHICH IS GIVEN AN UNKONWN
     # NAME MUST HAVE ITS EXEMPLAR FLAG SET TO FALSE
-    will_be_unknown_flag_list = [nid == const.UNKNOWN_NAME_ROWID for nid in name_rowid_list]
+    will_be_unknown_flag_list = [
+        nid == const.UNKNOWN_NAME_ROWID for nid in name_rowid_list
+    ]
     if any(will_be_unknown_flag_list):
         # remove exemplar status from any annotations that will become unknown
         will_be_unknown_aids = ut.compress(aid_list, will_be_unknown_flag_list)
-        ibs.set_annot_exemplar_flags(will_be_unknown_aids, [False] *
-                                     len(will_be_unknown_aids))
+        ibs.set_annot_exemplar_flags(
+            will_be_unknown_aids, [False] * len(will_be_unknown_aids)
+        )
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
@@ -2956,12 +3156,13 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
         >>> assert name_list4 != name_list2
         >>> print(result)
     """
-    #ibs.get_nids_from_text
+    # ibs.get_nids_from_text
     assert len(aid_list) == len(name_list)
     assert not isinstance(name_list, six.string_types)
-    #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
-    assert not any([name == '' for name in name_list]), (
-        'cannot change name to empty string use ____ for unknown.')
+    # name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
+    assert not any(
+        [name == '' for name in name_list]
+    ), 'cannot change name to empty string use ____ for unknown.'
     name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list, **kwargs)
 
@@ -2991,7 +3192,7 @@ def set_annot_species(ibs, aid_list, species_text_list, **kwargs):
         Method: PUT
         URL:    /api/annot/species/
     """
-    #ibs.get_nids_from_text
+    # ibs.get_nids_from_text
     species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, **kwargs)
     ibs.set_annot_species_rowids(aid_list, species_rowid_list)
 
@@ -3112,8 +3313,14 @@ def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/theta/', methods=['PUT'])
-def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True,
-                     update_visual_uuids=True, notify_root=True):
+def set_annot_thetas(
+    ibs,
+    aid_list,
+    theta_list,
+    delete_thumbs=True,
+    update_visual_uuids=True,
+    notify_root=True,
+):
     r"""
     Sets thetas of a list of chips by aid
 
@@ -3156,17 +3363,11 @@ def update_annot_rotate_90(ibs, aid_list, direction):
         raise ValueError('Invalid direction supplied')
 
     theta_list = ibs.get_annot_thetas(aid_list)
-    theta_list = [
-        (theta + (val * PI / 2)) % TAU
-        for theta in theta_list
-    ]
+    theta_list = [(theta + (val * PI / 2)) % TAU for theta in theta_list]
     ibs.set_annot_thetas(aid_list, theta_list)
 
     bbox_list = ibs.get_annot_bboxes(aid_list)
-    bbox_list = [
-        _update_annot_rotate_fix_bbox(bbox)
-        for bbox in bbox_list
-    ]
+    bbox_list = [_update_annot_rotate_fix_bbox(bbox) for bbox in bbox_list]
     ibs.set_annot_bboxes(aid_list, bbox_list)
 
 
@@ -3185,10 +3386,17 @@ def update_annot_rotate_right_90(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/vert/', methods=['PUT'])
-def set_annot_verts(ibs, aid_list, verts_list,
-                    theta_list=None, interest_list=None, canonical_list=None,
-                    delete_thumbs=True, update_visual_uuids=True,
-                    notify_root=True):
+def set_annot_verts(
+    ibs,
+    aid_list,
+    verts_list,
+    theta_list=None,
+    interest_list=None,
+    canonical_list=None,
+    delete_thumbs=True,
+    update_visual_uuids=True,
+    notify_root=True,
+):
     r"""
     Sets the vertices [(x, y), ...] of a list of chips by aid
 
@@ -3200,6 +3408,7 @@ def set_annot_verts(ibs, aid_list, verts_list,
 
         with ut.Timer('set_annot_verts...config'):
             from vtool import geometry
+
             nInput = len(aid_list)
             # Compute data to set
             if isinstance(verts_list, np.ndarray):
@@ -3207,30 +3416,49 @@ def set_annot_verts(ibs, aid_list, verts_list,
             for index, vert_list in enumerate(verts_list):
                 if isinstance(vert_list, np.ndarray):
                     verts_list[index] = vert_list.tolist()
-            num_verts_list   = list(map(len, verts_list))
+            num_verts_list = list(map(len, verts_list))
             verts_as_strings = list(map(six.text_type, verts_list))
             id_iter1 = ((aid,) for aid in aid_list)
             # also need to set the internal number of vertices
-            val_iter1 = ((num_verts, verts) for (num_verts, verts)
-                         in zip(num_verts_list, verts_as_strings))
-            colnames = (ANNOT_NUM_VERTS, ANNOT_VERTS,)
+            val_iter1 = (
+                (num_verts, verts)
+                for (num_verts, verts) in zip(num_verts_list, verts_as_strings)
+            )
+            colnames = (
+                ANNOT_NUM_VERTS,
+                ANNOT_VERTS,
+            )
             # SET VERTS in ANNOTATION_TABLE
-            ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter1, id_iter1, nInput=nInput)
+            ibs.db.set(
+                const.ANNOTATION_TABLE, colnames, val_iter1, id_iter1, nInput=nInput
+            )
             # changing the vertices also changes the bounding boxes
-            bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
+            bbox_list = geometry.bboxes_from_vert_list(verts_list)  # new bboxes
             xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
 
         with ut.Timer('set_annot_verts...bbox'):
             val_iter2 = zip(xtl_list, ytl_list, width_list, height_list)
             id_iter2 = ((aid,) for aid in aid_list)
-            colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
+            colnames = (
+                'annot_xtl',
+                'annot_ytl',
+                'annot_width',
+                'annot_height',
+            )
             # SET BBOX in ANNOTATION_TABLE
-            ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
+            ibs.db.set(
+                const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput
+            )
 
         with ut.Timer('set_annot_verts...theta'):
             if theta_list:
-                ibs.set_annot_thetas(aid_list, theta_list, delete_thumbs=False,
-                                     update_visual_uuids=False, notify_root=False)
+                ibs.set_annot_thetas(
+                    aid_list,
+                    theta_list,
+                    delete_thumbs=False,
+                    update_visual_uuids=False,
+                    notify_root=False,
+                )
 
         with ut.Timer('set_annot_verts...interest'):
             if interest_list:
@@ -3257,10 +3485,13 @@ def set_annot_verts(ibs, aid_list, verts_list,
             if notify_root:
                 ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
                 if theta_list:
-                    ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
+                    ibs.depc_annot.notify_root_changed(
+                        aid_list, 'theta', force_delete=True
+                    )
 
 
 # PROBCHIP
+
 
 @register_ibs_method
 @accessor_decors.getter_1to1
@@ -3296,14 +3527,16 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
-    probchip_fpath_list = ibs.depc_annot.get('probchip', aid_list, 'img',
-                                             config=config2_, read_extern=False)
+    probchip_fpath_list = ibs.depc_annot.get(
+        'probchip', aid_list, 'img', config=config2_, read_extern=False
+    )
     return probchip_fpath_list
 
 
 # ---
 # NEW
 # ---
+
 
 @register_ibs_method
 @accessor_decors.getter_1to1
@@ -3346,7 +3579,8 @@ def get_annot_qualities(ibs, aid_list, eager=True):
     id_iter = aid_list
     colnames = (ANNOT_QUALITY,)
     annot_quality_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager
+    )
     return annot_quality_list
 
 
@@ -3406,7 +3640,7 @@ def get_annot_isjunk(ibs, aid_list):
     Auto-docstr for 'get_annot_isjunk'
     """
     qual_list = ibs.get_annot_qualities(aid_list)
-    #isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
+    # isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
     isjunk_list = [qual in const.QUALITY_TEXT_TO_INTS['junk'] for qual in qual_list]
     return isjunk_list
 
@@ -3490,7 +3724,7 @@ def set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None):
         URL:    /api/annot/sex/
     """
     nid_list = ibs.get_annot_nids(aid_list)
-    flag_list = [ nid is not None for nid in nid_list ]
+    flag_list = [nid is not None for nid in nid_list]
     nid_list = ut.compress(nid_list, flag_list)
     name_sex_list = ut.compress(name_sex_list, flag_list)
     ibs.set_name_sex(nid_list, name_sex_list)
@@ -3508,7 +3742,7 @@ def set_annot_sex_texts(ibs, aid_list, name_sex_text_list, eager=True, nInput=No
         URL:    /api/annot/sex/text/
     """
     nid_list = ibs.get_annot_nids(aid_list)
-    flag_list = [ nid is not None for nid in nid_list ]
+    flag_list = [nid is not None for nid in nid_list]
     nid_list = ut.compress(nid_list, flag_list)
     name_sex_text_list = ut.compress(name_sex_text_list, flag_list)
     ibs.set_name_sex_text(nid_list, name_sex_text_list)
@@ -3545,7 +3779,13 @@ def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
     id_iter = aid_list
     colnames = (ANNOT_AGE_MONTHS_EST_MIN,)
     annot_age_months_est_min_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annot_age_months_est_min_list
 
 
@@ -3580,7 +3820,13 @@ def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
     id_iter = aid_list
     colnames = (ANNOT_AGE_MONTHS_EST_MAX,)
     annot_age_months_est_max_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annot_age_months_est_max_list
 
 
@@ -3605,16 +3851,17 @@ def get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list)
     annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list)
-    annot_age_months_est_list = list(zip(
-        annot_age_months_est_min_list,
-        annot_age_months_est_max_list
-    ))
+    annot_age_months_est_list = list(
+        zip(annot_age_months_est_min_list, annot_age_months_est_max_list)
+    )
     return annot_age_months_est_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot/age/months/min/text/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/min/text/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
     r"""
     annot_age_months_est_min_texts_list <- annot.annot_age_months_est_min_texts[aid_list]
@@ -3633,7 +3880,7 @@ def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list)
     annot_age_months_est_min_text_list = [
-        'Unknown' if age_min in [None, -1] else '%d Months' % (age_min, )
+        'Unknown' if age_min in [None, -1] else '%d Months' % (age_min,)
         for age_min in annot_age_months_est_min_list
     ]
     return annot_age_months_est_min_text_list
@@ -3641,7 +3888,9 @@ def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot/age/months/max/text/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/api/annot/age/months/max/text/', methods=['GET'], __api_plural_check__=False
+)
 def get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None):
     r"""
     annot_age_months_est_max_texts_list <- annot.annot_age_months_est_max_texts[aid_list]
@@ -3660,7 +3909,7 @@ def get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list)
     annot_age_months_est_max_text_list = [
-        'Unknown' if age_max in [None, -1] else '%d Months' % (age_max, )
+        'Unknown' if age_max in [None, -1] else '%d Months' % (age_max,)
         for age_max in annot_age_months_est_max_list
     ]
     return annot_age_months_est_max_text_list
@@ -3688,14 +3937,15 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
     annot_age_months_est_min_text_list = ibs.get_annot_age_months_est_min_texts(aid_list)
     annot_age_months_est_max_text_list = ibs.get_annot_age_months_est_max_texts(aid_list)
     annot_age_months_est_text_list = [
-        '%s to %s' % (age_min_text, age_max_text, )
+        '%s to %s' % (age_min_text, age_max_text,)
         for age_min_text, age_max_text in zip(
-            annot_age_months_est_min_text_list,
-            annot_age_months_est_max_text_list
+            annot_age_months_est_min_text_list, annot_age_months_est_max_text_list
         )
     ]
     annot_age_months_est_text_list = [
-        'UNKNOWN AGE' if annot_age_months_est_text == 'Unknown to Unknown' else annot_age_months_est_text
+        'UNKNOWN AGE'
+        if annot_age_months_est_text == 'Unknown to Unknown'
+        else annot_age_months_est_text
         for annot_age_months_est_text in annot_age_months_est_text_list
     ]
 
@@ -3705,8 +3955,9 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/age/months/min/', methods=['PUT'], __api_plural_check__=False)
-def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list,
-                                 duplicate_behavior='error'):
+def set_annot_age_months_est_min(
+    ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error'
+):
     r"""
     annot_age_months_est_min_list -> annot.annot_age_months_est_min[aid_list]
 
@@ -3725,15 +3976,21 @@ def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list,
     """
     id_iter = aid_list
     colnames = (ANNOT_AGE_MONTHS_EST_MIN,)
-    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_age_months_est_min_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTATION_TABLE,
+        colnames,
+        annot_age_months_est_min_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/age/months/max/', methods=['PUT'], __api_plural_check__=False)
-def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list,
-                                 duplicate_behavior='error'):
+def set_annot_age_months_est_max(
+    ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error'
+):
     r"""
     annot_age_months_est_max_list -> annot.annot_age_months_est_max[aid_list]
 
@@ -3752,8 +4009,13 @@ def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list,
     """
     id_iter = aid_list
     colnames = (ANNOT_AGE_MONTHS_EST_MAX,)
-    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_age_months_est_max_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTATION_TABLE,
+        colnames,
+        annot_age_months_est_max_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
@@ -3781,22 +4043,13 @@ def get_annot_image_set_texts(ibs, aid_list):
     """
     gid_list = ibs.get_annot_gids(aid_list)
     imagesettext_list = ibs.get_image_imagesettext(gid_list)
-    filter_imageset_set = set([
-        '*Exemplars',
-        '*All Images',
-        '*Ungrouped Images',
-    ])
+    filter_imageset_set = set(['*Exemplars', '*All Images', '*Ungrouped Images',])
     filtered_imagesettext_list = [
-        [
-            imageset
-            for imageset in imagesettext
-            if imageset not in filter_imageset_set
-        ]
+        [imageset for imageset in imagesettext if imageset not in filter_imageset_set]
         for imagesettext in imagesettext_list
     ]
     imagesettext_list = [
-        ','.join(map(str, imagesettext))
-        for imagesettext in filtered_imagesettext_list
+        ','.join(map(str, imagesettext)) for imagesettext in filtered_imagesettext_list
     ]
     return imagesettext_list
 
@@ -3834,43 +4087,47 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
     vuuids = ibs.get_annot_visual_uuids(aid_list)
     vuuid_strs = [_.replace('-', '') for _ in map(str, vuuids)]
     aids_list = [
-        [aid for aid, vuuid in zip(aid_list, vuuid_strs) if vuuid.startswith(partial_vuuid)]
+        [
+            aid
+            for aid, vuuid in zip(aid_list, vuuid_strs)
+            if vuuid.startswith(partial_vuuid)
+        ]
         for partial_vuuid in partial_vuuid_strs
     ]
     return aids_list
 
-    #partial_vuuid = partial_vuuid_strs[0]
+    # partial_vuuid = partial_vuuid_strs[0]
 
-    #res = ibs.db.cur.execute(
+    # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (bytes(partial_vuuid),))
-    #print(res.fetchall())
+    # print(res.fetchall())
 
-    #res = ibs.db.cur.execute(
+    # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (partial_vuuid,))
-    #print(res.fetchall())
+    # print(res.fetchall())
 
-    #res = ibs.db.cur.execute(
+    # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (bytes(partial_vuuid),))
-    #print(res.fetchall())
+    # print(res.fetchall())
 
     # # || - is used to concat strings
 
-    #res = ibs.db.cur.execute(
+    # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_note LIKE ? || '%'
     #    ''', ('very',))
-    #print(res.fetchall())
-    #pass
+    # print(res.fetchall())
+    # pass
 
 
 @register_ibs_method
@@ -3898,7 +4155,13 @@ def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)
     annot_tags_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTATION_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annot_tags_list
 
 
@@ -3912,11 +4175,16 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
         annot_tags_list
 
     """
-    #print('[ibs] set_annot_tag_text of aids=%r to tags=%r' % (aid_list, annot_tags_list))
+    # print('[ibs] set_annot_tag_text of aids=%r to tags=%r' % (aid_list, annot_tags_list))
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)
-    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_tags_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTATION_TABLE,
+        colnames,
+        annot_tags_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
@@ -3932,7 +4200,9 @@ def get_annot_reviewed(ibs, aid_list):
         Method: GET
         URL:    /api/annot/reviewed/
     """
-    reviewed_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_reviewed',), aid_list)
+    reviewed_list = ibs.db.get(
+        const.ANNOTATION_TABLE, ('annot_toggle_reviewed',), aid_list
+    )
     return reviewed_list
 
 
@@ -4036,17 +4306,16 @@ def get_annot_canonical(ibs, aid_list):
         >>> print(result)
     """
     flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list)
-    flag_list = [
-        None if flag is None else bool(flag)
-        for flag in flag_list
-    ]
+    flag_list = [None if flag is None else bool(flag) for flag in flag_list]
     return flag_list
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/interest/', methods=['PUT'])
-def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True):
+def set_annot_interest(
+    ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True
+):
     r"""
     Sets the annot all instances found bit
 
@@ -4121,16 +4390,15 @@ def set_annot_staged_uuids(ibs, aid_list, annot_uuid_list):
     id_iter = ((aid,) for aid in aid_list)
     val_iter = ((annot_uuid,) for annot_uuid in annot_uuid_list)
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_staged_uuid',), val_iter, id_iter)
-    flag_list = [
-        annot_uuid is not None
-        for annot_uuid in annot_uuid_list
-    ]
+    flag_list = [annot_uuid is not None for annot_uuid in annot_uuid_list]
     ibs._set_annot_staged_flags(aid_list, flag_list)
 
 
 @register_ibs_method
 @accessor_decors.setter
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_STAGED_USER_ID], rowidx=0)
+@accessor_decors.cache_invalidator(
+    const.ANNOTATION_TABLE, [ANNOT_STAGED_USER_ID], rowidx=0
+)
 @register_api('/api/annot/staged/user/', methods=['PUT'])
 def set_annot_staged_user_ids(ibs, aid_list, user_id_list):
     r"""
@@ -4191,9 +4459,9 @@ def set_annot_staged_metadata(ibs, aid_list, metadata_dict_list):
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_staged_metadata_json',), val_list, id_iter)
 
 
-#==========
+# ==========
 # Testdata
-#==========
+# ==========
 
 
 def testdata_ibs():
@@ -4201,6 +4469,7 @@ def testdata_ibs():
     Auto-docstr for 'testdata_ibs'
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
@@ -4214,6 +4483,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_annot_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

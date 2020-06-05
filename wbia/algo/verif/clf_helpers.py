@@ -19,6 +19,7 @@ import sklearn.pipeline
 import sklearn.neural_network
 from wbia.algo.verif import sklearn_utils
 from six.moves import range
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -27,10 +28,14 @@ class XValConfig(dt.Config):
         # ut.ParamInfo('type', 'StratifiedKFold'),
         ut.ParamInfo('type', 'StratifiedGroupKFold'),
         ut.ParamInfo('n_splits', 3),
-        ut.ParamInfo('shuffle', True,
-                     hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold'),
-        ut.ParamInfo('random_state', 3953056901,
-                     hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold'),
+        ut.ParamInfo(
+            'shuffle', True, hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold'
+        ),
+        ut.ParamInfo(
+            'random_state',
+            3953056901,
+            hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold',
+        ),
     ]
 
 
@@ -65,8 +70,7 @@ class ClfProblem(ut.NiceRepr):
         pd.options.display.width = 160
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
-    def learn_evaluation_classifiers(pblm, task_keys=None, clf_keys=None,
-                                     data_keys=None):
+    def learn_evaluation_classifiers(pblm, task_keys=None, clf_keys=None, data_keys=None):
         """
         Evaluates by learning classifiers using cross validation.
         Do not use this to learn production classifiers.
@@ -126,8 +130,7 @@ class ClfProblem(ut.NiceRepr):
                 for clf_key in clf_prog:
                     pblm._ensure_evaluation_clf(task_key, data_key, clf_key)
 
-    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key,
-                               use_cache=True):
+    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key, use_cache=True):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
@@ -146,10 +149,17 @@ class ClfProblem(ut.NiceRepr):
             est_kw1, est_kw2 = pblm._estimator_params(clf_key)
             param_id = ut.get_dict_hashid(est_kw1)
             xval_id = pblm.xval_kw.get_cfgstr()
-            cfgstr = '_'.join([
-                sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
-                ut.hashid_arr(feat_dims, 'feats')
-            ])
+            cfgstr = '_'.join(
+                [
+                    sample_hashid,
+                    param_id,
+                    xval_id,
+                    task_key,
+                    data_key,
+                    clf_key,
+                    ut.hashid_arr(feat_dims, 'feats'),
+                ]
+            )
             fname = 'eval_clfres_' + ibs.dbname
         else:
             fname = 'foo'
@@ -158,10 +168,8 @@ class ClfProblem(ut.NiceRepr):
             use_cache = False
 
         # TODO: ABI class should not be caching
-        cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
-                         verbose=1)
-        cacher_clf = ub.Cacher(fname, cfgstr=cfgstr,
-                               meta=[feat_dims], **cacher_kw)
+        cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache, verbose=1)
+        cacher_clf = ub.Cacher(fname, cfgstr=cfgstr, meta=[feat_dims], **cacher_kw)
 
         data = cacher_clf.tryload()
         if not data:
@@ -174,8 +182,7 @@ class ClfProblem(ut.NiceRepr):
         pblm.eval_task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
-    def _train_evaluation_clf(pblm, task_key, data_key, clf_key,
-                              feat_dims=None):
+    def _train_evaluation_clf(pblm, task_key, data_key, clf_key, feat_dims=None):
         """
         Learns a cross-validated classifier on the dataset
 
@@ -204,8 +211,7 @@ class ClfProblem(ut.NiceRepr):
         skf_prog = ut.ProgIter(skf_list, label='skf-train-eval')
         for train_idx, test_idx in skf_prog:
             X_df_train = X_df.iloc[train_idx]
-            assert (X_df_train.index.tolist() ==
-                    ut.take(pblm.samples.index, train_idx))
+            assert X_df_train.index.tolist() == ut.take(pblm.samples.index, train_idx)
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
@@ -225,14 +231,16 @@ class ClfProblem(ut.NiceRepr):
             # other classifiers trained on the same labels.
 
             # Evaluate results
-            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
-                                        feat_dims=feat_dims)
+            res = ClfResult.make_single(
+                clf, X_df, test_idx, labels, data_key, feat_dims=feat_dims
+            )
             clf_list.append(clf)
             res_list.append(res)
         return clf_list, res_list
 
-    def _external_classifier_result(pblm, clf, task_key, data_key,
-                                    feat_dims=None, test_idx=None):
+    def _external_classifier_result(
+        pblm, clf, task_key, data_key, feat_dims=None, test_idx=None
+    ):
         """
         Given an external classifier (ensure its trained on disjoint data)
         evaluate all data on it.
@@ -246,13 +254,13 @@ class ClfProblem(ut.NiceRepr):
             test_idx = np.arange(len(X_df))
         labels = pblm.samples.subtasks[task_key]
 
-        res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
-                                    feat_dims=feat_dims)
+        res = ClfResult.make_single(
+            clf, X_df, test_idx, labels, data_key, feat_dims=feat_dims
+        )
 
         return res
 
-    def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None,
-                                 data_key=None):
+    def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None, data_key=None):
         """
         Learns on data without any train/validation split
         """
@@ -294,7 +302,9 @@ class ClfProblem(ut.NiceRepr):
                 'n_estimators': 256,
             }
             # Hack to only use missing values if we have the right sklearn
-            if 'missing_values' in ut.get_func_kwargs(sklearn.ensemble.RandomForestClassifier.__init__):
+            if 'missing_values' in ut.get_func_kwargs(
+                sklearn.ensemble.RandomForestClassifier.__init__
+            ):
                 est_kw1['missing_values'] = np.nan
             est_kw2 = {
                 'random_state': 3915904814,
@@ -309,14 +319,26 @@ class ClfProblem(ut.NiceRepr):
             est_kw2 = {}
         elif est_type in {'MLP'}:
             est_kw1 = dict(
-                activation='relu', alpha=1e-05, batch_size='auto',
-                beta_1=0.9, beta_2=0.999, early_stopping=False,
-                epsilon=1e-08, hidden_layer_sizes=(10, 10),
-                learning_rate='constant', learning_rate_init=0.001,
-                max_iter=200, momentum=0.9, nesterovs_momentum=True,
-                power_t=0.5, random_state=3915904814, shuffle=True,
-                solver='lbfgs', tol=0.0001, validation_fraction=0.1,
-                warm_start=False
+                activation='relu',
+                alpha=1e-05,
+                batch_size='auto',
+                beta_1=0.9,
+                beta_2=0.999,
+                early_stopping=False,
+                epsilon=1e-08,
+                hidden_layer_sizes=(10, 10),
+                learning_rate='constant',
+                learning_rate_init=0.001,
+                max_iter=200,
+                momentum=0.9,
+                nesterovs_momentum=True,
+                power_t=0.5,
+                random_state=3915904814,
+                shuffle=True,
+                solver='lbfgs',
+                tol=0.0001,
+                validation_fraction=0.1,
+                warm_start=False,
             )
             est_kw2 = dict(verbose=False)
         else:
@@ -350,23 +372,40 @@ class ClfProblem(ut.NiceRepr):
         # if wrap_type is not None:
         #     steps.append((wrap_type, multiclass_wrapper))
         if est_type == 'MLP':
+
             def clf_partial():
-                pipe = sklearn.pipeline.Pipeline([
-                    ('inputer', sklearn.preprocessing.Imputer(
-                        missing_values='NaN', strategy='mean', axis=0)),
-                    # ('scale', sklearn.preprocessing.StandardScaler),
-                    ('est', est_class(**est_params)),
-                ])
+                pipe = sklearn.pipeline.Pipeline(
+                    [
+                        (
+                            'inputer',
+                            sklearn.preprocessing.Imputer(
+                                missing_values='NaN', strategy='mean', axis=0
+                            ),
+                        ),
+                        # ('scale', sklearn.preprocessing.StandardScaler),
+                        ('est', est_class(**est_params)),
+                    ]
+                )
                 return multiclass_wrapper(pipe)
+
         elif est_type == 'Logit':
+
             def clf_partial():
-                pipe = sklearn.pipeline.Pipeline([
-                    ('inputer', sklearn.preprocessing.Imputer(
-                        missing_values='NaN', strategy='mean', axis=0)),
-                    ('est', est_class(**est_params)),
-                ])
+                pipe = sklearn.pipeline.Pipeline(
+                    [
+                        (
+                            'inputer',
+                            sklearn.preprocessing.Imputer(
+                                missing_values='NaN', strategy='mean', axis=0
+                            ),
+                        ),
+                        ('est', est_class(**est_params)),
+                    ]
+                )
                 return multiclass_wrapper(pipe)
+
         else:
+
             def clf_partial():
                 return multiclass_wrapper(est_class(**est_params))
 
@@ -377,8 +416,11 @@ class ClfProblem(ut.NiceRepr):
         labels = pblm.samples.subtasks[task_key]
         assert np.all(labels.encoded_df.index == X_df.index)
         clf_partial = pblm._get_estimator(clf_key)
-        print('Training deployment {} classifier on {} for {}'.format(
-            clf_key, data_key, task_key))
+        print(
+            'Training deployment {} classifier on {} for {}'.format(
+                clf_key, data_key, task_key
+            )
+        )
         clf = clf_partial()
         index = X_df.index
         X = X_df.loc[index].values
@@ -457,15 +499,17 @@ class ClfProblem(ut.NiceRepr):
         search.fit(X=X, y=y, groups=groups)
 
         res = search.cv_results_.copy()
-        alias = ut.odict([
-            ('rank_test_score',  'rank'),
-            ('mean_test_score',  'μ-test'),
-            ('std_test_score',   'σ-test'),
-            ('mean_train_score', 'μ-train'),
-            ('std_train_score',  'σ-train'),
-            ('mean_fit_time', 'fit_time'),
-            ('params',  'params')
-        ])
+        alias = ut.odict(
+            [
+                ('rank_test_score', 'rank'),
+                ('mean_test_score', 'μ-test'),
+                ('std_test_score', 'σ-test'),
+                ('mean_train_score', 'μ-train'),
+                ('std_train_score', 'σ-train'),
+                ('mean_fit_time', 'fit_time'),
+                ('params', 'params'),
+            ]
+        )
         res = ut.dict_subset(res, alias.keys())
         cvresult_df = pd.DataFrame(res).rename(columns=alias)
         cvresult_df = cvresult_df.sort_values('rank').reset_index(drop=True)
@@ -474,9 +518,9 @@ class ClfProblem(ut.NiceRepr):
         print(ut.repr4(ut.map_vals(set, params.to_dict('list'))))
         print('Ranked Params')
         print(params)
-        print("Ranked scores on development set:")
+        print('Ranked scores on development set:')
         print(cvresult_df)
-        print("Best parameters set found on hyperparam set:")
+        print('Best parameters set found on hyperparam set:')
         print('best_params_ = %s' % (ut.repr4(search.best_params_),))
 
         print('Fastest params')
@@ -530,23 +574,34 @@ class ClfProblem(ut.NiceRepr):
         print('cal_score = %r' % (cal_score,))
 
         import wbia.plottool as pt
+
         ut.qtensure()
         pt.figure()
         ax = pt.gca()
 
         y_test = y[test_idx] == 1
-        fraction_of_positives, mean_predicted_value = \
-                calibration_curve(y_test, uncal_probs, n_bins=10)
+        fraction_of_positives, mean_predicted_value = calibration_curve(
+            y_test, uncal_probs, n_bins=10
+        )
 
-        ax.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
+        ax.plot([0, 1], [0, 1], 'k:', label='Perfectly calibrated')
 
-        ax.plot(mean_predicted_value, fraction_of_positives, "s-",
-                 label="%s (%1.3f)" % ('uncal-RF', uncal_brier))
+        ax.plot(
+            mean_predicted_value,
+            fraction_of_positives,
+            's-',
+            label='%s (%1.3f)' % ('uncal-RF', uncal_brier),
+        )
 
-        fraction_of_positives, mean_predicted_value = \
-                calibration_curve(y_test, cal_probs, n_bins=10)
-        ax.plot(mean_predicted_value, fraction_of_positives, "s-",
-                 label="%s (%1.3f)" % ('cal-RF', cal_brier))
+        fraction_of_positives, mean_predicted_value = calibration_curve(
+            y_test, cal_probs, n_bins=10
+        )
+        ax.plot(
+            mean_predicted_value,
+            fraction_of_positives,
+            's-',
+            label='%s (%1.3f)' % ('cal-RF', cal_brier),
+        )
         pt.legend()
 
 
@@ -561,8 +616,7 @@ class ClfResult(ut.NiceRepr):
     _key_attrs = ['task_key', 'data_key', 'class_names']
 
     # Attributes about results and labels of individual samples
-    _datafame_attrs = ['probs_df', 'probhats_df', 'target_bin_df',
-                       'target_enc_df']
+    _datafame_attrs = ['probs_df', 'probhats_df', 'target_bin_df', 'target_enc_df']
 
     def __init__(res):
         pass
@@ -575,8 +629,7 @@ class ClfResult(ut.NiceRepr):
         return res.probs_df.index
 
     @classmethod
-    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key,
-                    feat_dims=None):
+    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key, feat_dims=None):
         """
         Make a result for a single cross validiation subset
         """
@@ -591,6 +644,7 @@ class ClfResult(ut.NiceRepr):
 
         def align_cols(arr, arr_cols, target_cols):
             import utool as ut
+
             alignx = ut.list_alignment(arr_cols, target_cols, missing=True)
             aligned_arrT = ut.none_take(arr.T, alignx)
             aligned_arrT = ut.replace_nones(aligned_arrT, np.zeros(len(arr)))
@@ -603,19 +657,20 @@ class ClfResult(ut.NiceRepr):
         res.class_names = ut.lmap(str, labels.class_names)
         res.feat_dims = feat_dims
 
-        res.probs_df = sklearn_utils.predict_proba_df(clf, X_df_test,
-                                                      res.class_names)
+        res.probs_df = sklearn_utils.predict_proba_df(clf, X_df_test, res.class_names)
         res.target_bin_df = labels.indicator_df.iloc[test_idx]
         res.target_enc_df = labels.encoded_df.iloc[test_idx]
 
         if hasattr(clf, 'estimators_') and labels.n_classes > 2:
             # The n-th estimator in the OVR classifier predicts the prob of the
             # n-th class (as label 1).
-            probs_hat = np.hstack([est.predict_proba(X_df_test)[:, 1:2]
-                                   for est in clf.estimators_])
+            probs_hat = np.hstack(
+                [est.predict_proba(X_df_test)[:, 1:2] for est in clf.estimators_]
+            )
             res.probhats_df = pd.DataFrame(
                 align_cols(probs_hat, clf.classes_, labels.classes_),
-                index=index, columns=res.class_names,
+                index=index,
+                columns=res.class_names,
             )
             # In the OVR-case, ideally things will sum to 1, but when they
             # don't normalization happens. An Z-value of more than 1 means
@@ -648,8 +703,9 @@ class ClfResult(ut.NiceRepr):
         """
         # Ensure that res_lists are not overlapping
         for r1, r2 in ut.combinations(res_list, 2):
-            assert len(r1.index.intersection(r2.index)) == 0, (
-                'ClfResult dataframes must be disjoint')
+            assert (
+                len(r1.index.intersection(r2.index)) == 0
+            ), 'ClfResult dataframes must be disjoint'
         # sanity check
         for r in res_list:
             assert np.all(r.index == r.probs_df.index)
@@ -663,8 +719,9 @@ class ClfResult(ut.NiceRepr):
         for attr in ClfResult._key_attrs:
             val = getattr(res0, attr)
             setattr(res, attr, val)
-            assert all([getattr(r, attr) == val for r in res_list]), (
-                'ClfResult with different key attributes are incompatible')
+            assert all(
+                [getattr(r, attr) == val for r in res_list]
+            ), 'ClfResult with different key attributes are incompatible'
         # Combine dataframe properties (which should all have disjoint indices)
         for attr in ClfResult._datafame_attrs:
             if getattr(res0, attr) is not None:
@@ -720,8 +777,7 @@ class ClfResult(ut.NiceRepr):
         # pred = sklearn_utils.predict_from_probs(res.probs_df, predict_method)
         if method == 'max-mcc':
             method = res.get_thresholds('mcc', 'maximize')
-        pred = sklearn_utils.predict_from_probs(res.probs_df, method,
-                                                force=True)
+        pred = sklearn_utils.predict_from_probs(res.probs_df, method, force=True)
 
         meta['easiness'] = np.array(easiness).ravel()
         meta['hardness'] = 1 - meta['easiness']
@@ -740,9 +796,11 @@ class ClfResult(ut.NiceRepr):
             ibs = infr.ibs
             edges = list(meta.index.tolist())
             conf_dict = infr.get_edge_attrs(
-                'confidence', edges,
+                'confidence',
+                edges,
                 on_missing='filter',
-                default=ibs.const.CONFIDENCE.CODE.UNKNOWN)
+                default=ibs.const.CONFIDENCE.CODE.UNKNOWN,
+            )
             conf_df = pd.DataFrame.from_dict(conf_dict, orient='index')
             conf_df = conf_df[0].map(ibs.const.CONFIDENCE.CODE_TO_INT)
             meta = meta.assign(real_conf=conf_df)
@@ -804,8 +862,12 @@ class ClfResult(ut.NiceRepr):
         sample_weight = res.sample_weight
         target_names = res.class_names
         report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names=target_names,
-            sample_weight=sample_weight, verbose=verbose)
+            y_true,
+            y_pred,
+            target_names=target_names,
+            sample_weight=sample_weight,
+            verbose=verbose,
+        )
         return report
 
     def print_report(res):
@@ -813,7 +875,8 @@ class ClfResult(ut.NiceRepr):
         pred_enc = res.clf_probs.argmax(axis=1)
         res.extended_clf_report()
         report = sklearn.metrics.classification_report(
-            y_true=res.y_test_enc, y_pred=pred_enc,
+            y_true=res.y_test_enc,
+            y_pred=pred_enc,
             target_names=res.class_names,
             sample_weight=res.sample_weight,
         )
@@ -844,8 +907,15 @@ class ClfResult(ut.NiceRepr):
         return threshes
 
     @profile
-    def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,
-                         warmup=200, priors=None, min_thresh=0.5):
+    def get_pos_threshes(
+        res,
+        metric='fpr',
+        value=1e-4,
+        maximize=False,
+        warmup=200,
+        priors=None,
+        min_thresh=0.5,
+    ):
         """
         Finds a threshold that achieves the desired `value` for the desired
         metric, while maximizing or minimizing the threshold.
@@ -878,7 +948,7 @@ class ClfResult(ut.NiceRepr):
                 # alpha varies from 0 to 1
                 alpha = min(nmax, n_support) / nmax
                 # transform alpha through nonlinear function (similar to ReLU)
-                p = .6  # transition point
+                p = 0.6  # transition point
                 alpha = max(0, (alpha - p) / (1 - p))
                 thresh = prior_thresh * (1 - alpha) + learned_thresh * (alpha)
             else:
@@ -899,16 +969,18 @@ class ClfResult(ut.NiceRepr):
         # thresh_df['foo'][res.class_names[k]] = 1
 
         # for k in [2, 0, 1]:
-        choice_mv = ut.odict([
-            ('@fpr=.01', ('fpr', .01)),
-            ('@fpr=.001', ('fpr', .001)),
-            ('@fpr=.0001', ('fpr', 1E-4)),
-            ('@fpr=.0000', ('fpr', 0)),
-            ('@max(mcc)', ('mcc', 'max')),
-            # (class_name + '@max(acc)', ('acc', 'max')),
-            # (class_name + '@max(mk)', ('mk', 'max')),
-            # (class_name + '@max(bm)', ('bm', 'max')),
-        ])
+        choice_mv = ut.odict(
+            [
+                ('@fpr=.01', ('fpr', 0.01)),
+                ('@fpr=.001', ('fpr', 0.001)),
+                ('@fpr=.0001', ('fpr', 1e-4)),
+                ('@fpr=.0000', ('fpr', 0)),
+                ('@max(mcc)', ('mcc', 'max')),
+                # (class_name + '@max(acc)', ('acc', 'max')),
+                # (class_name + '@max(mk)', ('mk', 'max')),
+                # (class_name + '@max(bm)', ('bm', 'max')),
+            ]
+        )
         for k in range(y_test_bin.shape[1]):
             thresh_dict = ut.odict()
             class_name = res.class_names[k]
@@ -927,9 +999,7 @@ class ClfResult(ut.NiceRepr):
             thresh_df = thresh_df.loc[list(thresh_dict.keys())]
             if cfms.n_pos > 0 and cfms.n_neg > 0:
                 print('Raw 1vR {} Thresholds'.format(class_name))
-                print(ut.indent(
-                    thresh_df.to_string(float_format='{:.4f}'.format)
-                ))
+                print(ut.indent(thresh_df.to_string(float_format='{:.4f}'.format)))
                 # chosen_type = class_name + '@fpr=0'
                 # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
@@ -942,16 +1012,23 @@ class ClfResult(ut.NiceRepr):
     def report_auto_thresholds(res, threshes, verbose=True):
         report_lines = []
         print_ = report_lines.append
-        print_('Chosen thresholds = %s' % (ut.repr2(
-            threshes, nl=1, precision=4, align=True),))
+        print_(
+            'Chosen thresholds = %s'
+            % (ut.repr2(threshes, nl=1, precision=4, align=True),)
+        )
 
         res.augment_if_needed()
         target_names = res.class_names
         sample_weight = res.sample_weight
         y_true = res.y_test_enc.ravel()
         y_pred, can_autodecide = sklearn_utils.predict_from_probs(
-            res.clf_probs, threshes, res.class_names,
-            force=False, multi=False, return_flags=True)
+            res.clf_probs,
+            threshes,
+            res.class_names,
+            force=False,
+            multi=False,
+            return_flags=True,
+        )
         can_autodecide[res.sample_weight == 0] = False
 
         auto_pred = y_pred[can_autodecide].astype(np.int)
@@ -959,15 +1036,13 @@ class ClfResult(ut.NiceRepr):
         auto_probs = res.clf_probs[can_autodecide]
 
         total_cases = int(sample_weight.sum())
-        print_('Will autodecide for %r/%r cases' % (can_autodecide.sum(),
-                                                     (total_cases)))
+        print_('Will autodecide for %r/%r cases' % (can_autodecide.sum(), (total_cases)))
 
         def frac_str(a, b):
             return '{:}/{:} = {:.2f}%'.format(int(a), int(b), a / b)
 
         y_test_bin = res.target_bin_df.values
-        supported_class_idxs = [
-            k for k, y in enumerate(y_test_bin.T) if y.sum() > 0]
+        supported_class_idxs = [k for k, y in enumerate(y_test_bin.T) if y.sum() > 0]
 
         print_(' * Auto-Decide Per-Class Summary')
         for k in supported_class_idxs:
@@ -976,8 +1051,8 @@ class ClfResult(ut.NiceRepr):
             # number of times this class appears overall
             n_total_k = (y_test_bin.T[k]).sum()
             # get the cases where this class was predicted
-            auto_true_k = (auto_true == k)
-            auto_pred_k = (auto_pred == k)
+            auto_true_k = auto_true == k
+            auto_pred_k = auto_pred == k
             # number of cases auto predicted
             n_pred_k = auto_pred_k.sum()
             # number of times auto was right
@@ -986,17 +1061,23 @@ class ClfResult(ut.NiceRepr):
             n_fp = (~auto_true_k & auto_pred_k).sum()
             fail_str = frac_str(n_fp, n_pred_k)
             pass_str = frac_str(n_tp, n_total_k)
-            fmtstr = '\n'.join([
-                '{name}:',
-                '    {n_total_k} samples existed, and did {n_pred_k} auto predictions',
-                '    got {pass_str} right',
-                '    made {fail_str} errors',
-            ])
+            fmtstr = '\n'.join(
+                [
+                    '{name}:',
+                    '    {n_total_k} samples existed, and did {n_pred_k} auto predictions',
+                    '    got {pass_str} right',
+                    '    made {fail_str} errors',
+                ]
+            )
             print_(ut.indent(fmtstr.format(**locals())))
 
         report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names=target_names,
-            sample_weight=can_autodecide.astype(np.float), verbose=False)
+            y_true,
+            y_pred,
+            target_names=target_names,
+            sample_weight=can_autodecide.astype(np.float),
+            verbose=False,
+        )
         print_(' * Auto-Decide Confusion')
         print_(ut.indent(str(report['confusion'])))
         print_(' * Auto-Decide Metrics')
@@ -1011,8 +1092,11 @@ class ClfResult(ut.NiceRepr):
                 auto_probs_k = auto_probs.T[k]
                 if auto_probs_k.sum():
                     auc = sklearn.metrics.roc_auc_score(auto_truth_k, auto_probs_k)
-                    print_(' * Auto AUC(Macro): {:.4f} for class={}'.format(
-                        auc, res.class_names[k]))
+                    print_(
+                        ' * Auto AUC(Macro): {:.4f} for class={}'.format(
+                            auc, res.class_names[k]
+                        )
+                    )
         except ValueError:
             pass
         report = '\n'.join(report_lines)
@@ -1022,6 +1106,7 @@ class ClfResult(ut.NiceRepr):
 
     def confusions(res, class_name):
         import vtool as vt
+
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
         k = res.class_names.index(class_name)
@@ -1032,6 +1117,7 @@ class ClfResult(ut.NiceRepr):
     def ishow_roc(res):
         import vtool as vt
         import wbia.plottool as pt
+
         ut.qtensure()
         y_test_bin = res.target_bin_df.values
         # The maximum allowed false positive rate
@@ -1045,8 +1131,9 @@ class ClfResult(ut.NiceRepr):
                 continue
             class_name = res.class_names[k]
             confusions = res.confusions(class_name)
-            ROCInteraction = vt.interact_roc_factory(confusions,
-                                                     show_operating_point=True)
+            ROCInteraction = vt.interact_roc_factory(
+                confusions, show_operating_point=True
+            )
             fnum = pt.ensure_fnum(k)
             # ROCInteraction.static_plot(fnum, None, name=class_name)
             inter = ROCInteraction(fnum=fnum, pnum=None, name=class_name)
@@ -1063,6 +1150,7 @@ class ClfResult(ut.NiceRepr):
 
     def show_roc(res, class_name, **kwargs):
         import vtool as vt
+
         labels = res.target_bin_df[class_name].values
         probs = res.probs_df[class_name].values
         confusions = vt.ConfusionMetrics().fit(probs, labels)
@@ -1087,6 +1175,7 @@ class ClfResult(ut.NiceRepr):
     def confusions_ovr(res):
         # one_vs_rest confusions
         import vtool as vt
+
         res.augment_if_needed()
         for k in range(res.y_test_bin.shape[1]):
             class_k_truth = res.y_test_bin.T[k]
@@ -1127,6 +1216,7 @@ class MultiTaskSamples(ut.NiceRepr):
         >>> ])
         >>> samples.apply_indicators(tasks_to_indicators)
     """
+
     def __init__(samples, index):
         samples.index = index
         samples.subtasks = ut.odict()
@@ -1170,7 +1260,8 @@ class MultiTaskSamples(ut.NiceRepr):
         samples.n_tasks = len(tasks_to_indicators)
         for task_name, indicator in tasks_to_indicators.items():
             labels = MultiClassLabels.from_indicators(
-                indicator, task_name=task_name, index=samples.index)
+                indicator, task_name=task_name, index=samples.index
+            )
             samples.subtasks[task_name] = labels
             if n_samples is None:
                 n_samples = labels.n_samples
@@ -1188,12 +1279,19 @@ class MultiTaskSamples(ut.NiceRepr):
             task_name (str): key for denoting this specific task
         """
         # convert to indicator structure and use that
-        tasks_to_indicators = ut.odict([
-            (task_name, ut.odict([
-                (name, np.array(y_enc) == i)
-                for i, name in enumerate(class_names)
-            ]))
-        ])
+        tasks_to_indicators = ut.odict(
+            [
+                (
+                    task_name,
+                    ut.odict(
+                        [
+                            (name, np.array(y_enc) == i)
+                            for i, name in enumerate(class_names)
+                        ]
+                    ),
+                )
+            ]
+        )
         samples.apply_indicators(tasks_to_indicators)
 
     # @ut.memoize
@@ -1203,16 +1301,22 @@ class MultiTaskSamples(ut.NiceRepr):
 
     def class_name_basis(samples):
         """ corresponds with indexes returned from encoded1d """
-        class_name_basis = [t[::-1] for t in ut.product(*[
-            v.class_names for k, v in samples.items()][::-1])]
+        class_name_basis = [
+            t[::-1]
+            for t in ut.product(*[v.class_names for k, v in samples.items()][::-1])
+        ]
         # class_name_basis = [(b, a) for a, b in ut.product(*[
         #     v.class_names for k, v in samples.items()][::-1])]
         return class_name_basis
 
     def class_idx_basis_2d(samples):
         """ 2d-index version of class_name_basis """
-        class_idx_basis_2d = [(b, a) for a, b in ut.product(*[
-            range(v.n_classes) for k, v in samples.items()][::-1])]
+        class_idx_basis_2d = [
+            (b, a)
+            for a, b in ut.product(
+                *[range(v.n_classes) for k, v in samples.items()][::-1]
+            )
+        ]
         return class_idx_basis_2d
 
     def class_idx_basis_1d(samples):
@@ -1261,9 +1365,9 @@ class MultiTaskSamples(ut.NiceRepr):
         # print('class_idx_basis_1d = %r' % (class_idx_basis_1d,))
         # print(samples.encoded_1d())
         multi_task_idx_hist = ut.dict_hist(
-            samples.encoded_1d().values, labels=class_idx_basis_1d)
-        multi_task_hist = ut.map_keys(
-            lambda k: class_name_basis[k], multi_task_idx_hist)
+            samples.encoded_1d().values, labels=class_idx_basis_1d
+        )
+        multi_task_hist = ut.map_keys(lambda k: class_name_basis[k], multi_task_idx_hist)
         return multi_task_hist
 
     def items(samples):
@@ -1323,8 +1427,10 @@ class MultiTaskSamples(ut.NiceRepr):
             rel_skf_list = list(splitter.split(X=X, y=y))
 
         # map back into original coords
-        skf_list = [(subset_idx[rel_idx1], subset_idx[rel_idx2])
-                    for rel_idx1, rel_idx2 in rel_skf_list]
+        skf_list = [
+            (subset_idx[rel_idx1], subset_idx[rel_idx2])
+            for rel_idx1, rel_idx2 in rel_skf_list
+        ]
 
         for idx1, idx2 in skf_list:
             assert len(np.intersect1d(subset_idx, idx1)) == len(idx1)
@@ -1345,6 +1451,7 @@ class MultiClassLabels(ut.NiceRepr):
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
     """
+
     def __init__(labels):
         # Helper Info
         labels.task_name = None
@@ -1366,19 +1473,19 @@ class MultiClassLabels(ut.NiceRepr):
     @classmethod
     def from_indicators(MultiClassLabels, indicator, index=None, task_name=None):
         import six
+
         labels = MultiClassLabels()
         n_samples = len(six.next(six.itervalues(indicator)))
         # if index is None:
         #     index = pd.Series(np.arange(n_samples), name='index')
         indicator_df = pd.DataFrame(indicator, index=index)
-        assert np.all(indicator_df.sum(axis=1).values), (
-            'states in the same task must be mutually exclusive')
+        assert np.all(
+            indicator_df.sum(axis=1).values
+        ), 'states in the same task must be mutually exclusive'
         labels.indicator_df = indicator_df
         labels.class_names = indicator_df.columns.values
         labels.encoded_df = pd.DataFrame(
-            indicator_df.values.argmax(axis=1),
-            columns=[task_name],
-            index=index,
+            indicator_df.values.argmax(axis=1), columns=[task_name], index=index,
         )
         labels.task_name = task_name
         labels.n_samples = n_samples
@@ -1394,8 +1501,10 @@ class MultiClassLabels(ut.NiceRepr):
         return sklearn.utils.multiclass.type_of_target(labels.y_enc)
 
     def one_vs_rest_task_names(labels):
-        return [labels.task_name + '(' + labels.class_names[k] + '-v-rest)'
-                for k in range(labels.n_classes)]
+        return [
+            labels.task_name + '(' + labels.class_names[k] + '-v-rest)'
+            for k in range(labels.n_classes)
+        ]
 
     def gen_one_vs_rest_labels(labels):
         """
@@ -1436,9 +1545,7 @@ class MultiClassLabels(ut.NiceRepr):
             #     )
             # else:
             sublabel.encoded_df = pd.DataFrame(
-                indicator_df.values.argmax(axis=1),
-                columns=[task_name],
-                index=index
+                indicator_df.values.argmax(axis=1), columns=[task_name], index=index
             )
             sublabel.task_name = task_name
             sublabel.n_samples = n_samples
@@ -1472,8 +1579,7 @@ class MultiClassLabels(ut.NiceRepr):
 
     def make_histogram(labels):
         class_idx_hist = ut.dict_hist(labels.y_enc)
-        class_hist = ut.map_keys(
-            lambda idx: labels.class_names[idx], class_idx_hist)
+        class_hist = ut.map_keys(lambda idx: labels.class_names[idx], class_idx_hist)
         return class_hist
 
     def print_info(labels):
@@ -1496,6 +1602,7 @@ class IrisProblem(ClfProblem):
 
     def setup(pblm):
         import sklearn.datasets
+
         iris = sklearn.datasets.load_iris()
 
         pblm.primary_task_key = 'iris'
@@ -1505,8 +1612,12 @@ class IrisProblem(ClfProblem):
         X_df = pd.DataFrame(iris.data, columns=iris.feature_names)
         samples = MultiTaskSamples(X_df.index)
         samples.apply_indicators(
-            {'iris': {name: iris.target == idx
-                      for idx, name in enumerate(iris.target_names)}})
+            {
+                'iris': {
+                    name: iris.target == idx for idx, name in enumerate(iris.target_names)
+                }
+            }
+        )
         samples.X_dict = {'learn(all)': X_df}
 
         pblm.samples = samples
@@ -1520,6 +1631,8 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.samples --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

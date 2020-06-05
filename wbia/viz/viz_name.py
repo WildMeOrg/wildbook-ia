@@ -18,6 +18,7 @@ def show_name_of(ibs, aid, **kwargs):
 
 def testdata_showname():
     import wbia
+
     ibs = wbia.opendb(defaultdb='testdb1')
     default = None
     if ibs.dbname == 'testdb1':
@@ -35,6 +36,7 @@ def testdata_showname():
 
 def testdata_multichips():
     import wbia
+
     ibs = wbia.opendb(defaultdb='testdb1')
     nid = ut.get_argval('--nid', type_=int, default=None)
     tags = ut.get_argval('--tags', type_=list, default=None)
@@ -45,17 +47,19 @@ def testdata_multichips():
         index = ut.get_argval('--index', default=0)
         aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
     else:
-        #aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+        # aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
         aid_list = wbia.testdata_aids(default_aids=[1, 2, 3], ibs=ibs)
 
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
 
-#9108 and 9180
+
+# 9108 and 9180
 
 
-def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
-                        subtitle='', annote=False, **kwargs):
+def show_multiple_chips(
+    ibs, aid_list, in_image=True, fnum=0, sel_aids=[], subtitle='', annote=False, **kwargs
+):
     """
     CommandLine:
         python -m wbia.viz.viz_name --test-show_multiple_chips --show --no-inimage
@@ -106,7 +110,9 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         df2.imshow_null(fnum=fnum, **kwargs)
         return fig
     # Trigger computation of all chips in parallel
-    ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+    ibsfuncs.ensure_annotation_data(
+        ibs, aid_list, chips=(not in_image or annote), feats=annote
+    )
 
     print('[viz_name] * annot_vuuid=%r' % ((ibs.get_annot_visual_uuids(aid_list),)))
     print('[viz_name] * aid_list=%r' % ((aid_list,)))
@@ -120,9 +126,11 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         nRows, nCols = rc
     notitle = ut.get_argflag('--notitle')
     draw_lbls = not ut.get_argflag('--no-draw_lbls')
-    show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
-    #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
-    #gs2 = gridspec.GridSpec(nRows, nCols)
+    show_chip_kw = dict(
+        annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls
+    )
+    # print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
+    # gs2 = gridspec.GridSpec(nRows, nCols)
     pnum_ = df2.get_pnum_func(nRows, nCols)
     fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
     fig.clf()
@@ -139,13 +147,13 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             ax.set_xlabel('(' + chr(ord('a') - 1 + px) + ')')
         elif ut.get_argflag('--numlbl') and not DOBOTH:
             ax.set_xlabel('(' + str(px + 1) + ')')
-        #plot_aid3(ibs, aid)
+        # plot_aid3(ibs, aid)
 
     # HACK to show in image and not in image
     if DOBOTH:
-        #ut.embed()
-        #ph.get_plotdat_dict(ax_list1[1])
-        #ph.get_plotdat_dict(ax_list2[1])
+        # ut.embed()
+        # ph.get_plotdat_dict(ax_list1[1])
+        # ph.get_plotdat_dict(ax_list2[1])
         ax_list2 = []
 
         show_chip_kw['in_image'] = not show_chip_kw['in_image']
@@ -172,36 +180,37 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
 
         if ut.get_argflag('--trydrawline'):
             # Unfinished
-            #ut.embed()
+            # ut.embed()
             # Draw lines between corresponding axes
             # References:
             # http://stackoverflow.com/questions/17543359/drawing-lines-between-two-plots-in-matplotlib
             import matplotlib as mpl
             import vtool as vt
-            # !!!
-            #http://matplotlib.org/users/transforms_tutorial.html
 
-            #invTransFigure_fn1 = fig.transFigure.inverted().transform
-            #invTransFigure_fn2 = fig.transFigure.inverted().transform
-            #print(ax_list1)
-            #print(ax_list2)
+            # !!!
+            # http://matplotlib.org/users/transforms_tutorial.html
+
+            # invTransFigure_fn1 = fig.transFigure.inverted().transform
+            # invTransFigure_fn2 = fig.transFigure.inverted().transform
+            # print(ax_list1)
+            # print(ax_list2)
             assert len(ax_list1) == len(ax_list2)
 
             for ax1, ax2 in zip(ax_list1, ax_list2):
-                #_ = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-                #bbox1 = (0, 0, _.width * fig.dpi, _.height * fig.dpi)
+                # _ = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+                # bbox1 = (0, 0, _.width * fig.dpi, _.height * fig.dpi)
 
                 # returns in figure coordinates
-                #bbox1 = df2.get_axis_bbox(ax=ax1)
-                #if bbox1[-1] < 0:
+                # bbox1 = df2.get_axis_bbox(ax=ax1)
+                # if bbox1[-1] < 0:
                 #    # Weird bug
                 #    bbox1 = bbox1[1]
                 print('--')
                 print('ax1 = %r' % (ax1,))
                 print('ax2 = %r' % (ax2,))
                 chipshape = ph.get_plotdat(ax1, 'chipshape')
-                #_bbox1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-                #bbox1 = (0, 0, _bbox1.width * fig.dpi, _bbox1.height * fig.dpi)
+                # _bbox1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+                # bbox1 = (0, 0, _bbox1.width * fig.dpi, _bbox1.height * fig.dpi)
                 bbox1 = (0, 0, chipshape[1], chipshape[0])
 
                 aid_ = ph.get_plotdat(ax2, 'aid')
@@ -218,7 +227,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
 
                 print('vert_list1 = %r' % (vert_list1,))
                 print('vert_list2 = %r' % (vert_list2,))
-                #for vx in [0, 1, 2, 3]:
+                # for vx in [0, 1, 2, 3]:
                 for vx in [0, 1]:
                     vert1 = vert_list1[vx].tolist()
                     vert2 = vert_list2[vx].tolist()
@@ -227,11 +236,11 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                     print('  * vert2 = %r' % (vert2,))
 
                     coordsA = coordsB = 'data'
-                    #coords = 'axes points'
+                    # coords = 'axes points'
                     #'axes fraction'
                     #'axes pixels'
-                    #coordsA = 'axes pixels'
-                    #coordsB = 'data'
+                    # coordsA = 'axes pixels'
+                    # coordsB = 'data'
                     #'figure fraction'
                     #'figure pixels'
                     #'figure pixels'
@@ -240,74 +249,89 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                     #'offset points'
 
                     con = mpl.patches.ConnectionPatch(
-                        xyA=vert1, xyB=vert2, coordsA=coordsA,
+                        xyA=vert1,
+                        xyB=vert2,
+                        coordsA=coordsA,
                         coordsB=coordsB,
-                        axesA=ax1, axesB=ax2,
-                        linewidth=1, color='k')
-                    #, arrowstyle="-")
+                        axesA=ax1,
+                        axesB=ax2,
+                        linewidth=1,
+                        color='k',
+                    )
+                    # , arrowstyle="-")
 
-                    #ut.embed()
-                    #con.set_zorder(None)
+                    # ut.embed()
+                    # con.set_zorder(None)
                     ax1.add_artist(con)
-                    #ax2.add_artist(con)
+                    # ax2.add_artist(con)
 
-                    #ut.embed()
+                    # ut.embed()
 
-                    #verts2.T[1] -= bbox2[-1]
-                    #bottom_left1, bottom_right1 = verts1[1:3].tolist()
-                    #bottom_left2, bottom_right2 = verts2[1:3].tolist()
+                    # verts2.T[1] -= bbox2[-1]
+                    # bottom_left1, bottom_right1 = verts1[1:3].tolist()
+                    # bottom_left2, bottom_right2 = verts2[1:3].tolist()
 
                 ##transAxes1 = ax1.transData.inverted()
-                #transAxes1_fn = ax1.transData.transform
-                #transAxes2_fn = ax2.transData.transform
+                # transAxes1_fn = ax1.transData.transform
+                # transAxes2_fn = ax2.transData.transform
 
-                #transAxes1_fn = ut.identity
-                #transAxes2_fn = ut.identity
+                # transAxes1_fn = ut.identity
+                # transAxes2_fn = ut.identity
 
-                #coord_bl1 = transFigure.transform(transAxes1.transform(bottom_left1))
-                #coord_br1 = transFigure.transform(transAxes1.transform(bottom_right1))
-                #coord_bl1 = invTransFigure_fn1(transAxes1_fn(bottom_left1))
-                #print('bottom_left2 = %r' % (bottom_left2,))
-                #coord_bl1 = (5, 5)
-                #coord_bl2 = invTransFigure_fn2(transAxes2_fn(bottom_left2))
-                #print('coord_bl2 = %r' % (coord_bl2,))
+                # coord_bl1 = transFigure.transform(transAxes1.transform(bottom_left1))
+                # coord_br1 = transFigure.transform(transAxes1.transform(bottom_right1))
+                # coord_bl1 = invTransFigure_fn1(transAxes1_fn(bottom_left1))
+                # print('bottom_left2 = %r' % (bottom_left2,))
+                # coord_bl1 = (5, 5)
+                # coord_bl2 = invTransFigure_fn2(transAxes2_fn(bottom_left2))
+                # print('coord_bl2 = %r' % (coord_bl2,))
 
-                #coord_br1 = invTransFigure_fn1(transAxes1_fn(bottom_right1))
-                #coord_br2 = invTransFigure_fn2(transAxes2_fn(bottom_right2))
+                # coord_br1 = invTransFigure_fn1(transAxes1_fn(bottom_right1))
+                # coord_br2 = invTransFigure_fn2(transAxes2_fn(bottom_right2))
                 ##print('coord_bl1 = %r' % (coord_bl1,))
 
-                #line_coords1 = np.vstack([coord_bl1, coord_bl2])
-                #line_coords2 = np.vstack([coord_br1, coord_br2])
-                #print('line_coords1 = %r' % (line_coords1,))
+                # line_coords1 = np.vstack([coord_bl1, coord_bl2])
+                # line_coords2 = np.vstack([coord_br1, coord_br2])
+                # print('line_coords1 = %r' % (line_coords1,))
 
-                #line1 = mpl.lines.Line2D((line_coords1[0]), (line_coords1[1]), transform=fig.transFigure)
-                #line2 = mpl.lines.Line2D((line_coords2[0]), (line_coords2[1]), transform=fig.transFigure)
+                # line1 = mpl.lines.Line2D((line_coords1[0]), (line_coords1[1]), transform=fig.transFigure)
+                # line2 = mpl.lines.Line2D((line_coords2[0]), (line_coords2[1]), transform=fig.transFigure)
 
-                #xs1, ys1 = line_coords1.T
-                #xs2, ys2 = line_coords2.T
+                # xs1, ys1 = line_coords1.T
+                # xs2, ys2 = line_coords2.T
 
-                #linekw = dict(transform=fig.transFigure)
-                #linekw = dict()
+                # linekw = dict(transform=fig.transFigure)
+                # linekw = dict()
 
-                #print('xs1 = %r' % (xs1,))
-                #print('ys1 = %r' % (ys1,))
+                # print('xs1 = %r' % (xs1,))
+                # print('ys1 = %r' % (ys1,))
 
-                #line1 = mpl.lines.Line2D(xs1, ys1, **linekw)
-                #line2 = mpl.lines.Line2D(xs2, ys2, **linekw)  # NOQA
-                #shrinkA=5, shrinkB=5, mutation_scale=20, fc="w")
+                # line1 = mpl.lines.Line2D(xs1, ys1, **linekw)
+                # line2 = mpl.lines.Line2D(xs2, ys2, **linekw)  # NOQA
+                # shrinkA=5, shrinkB=5, mutation_scale=20, fc="w")
 
-                #ax2.add_artist(con)
+                # ax2.add_artist(con)
 
-                #fig.lines.append(line1)
-                #fig.lines.append(line2)
+                # fig.lines.append(line1)
+                # fig.lines.append(line2)
 
         pass
     return fig
 
 
-#@ut.indent_func
-def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
-              annote=False, aid_list=None, index_list=None,  **kwargs):
+# @ut.indent_func
+def show_name(
+    ibs,
+    nid,
+    in_image=True,
+    fnum=0,
+    sel_aids=[],
+    subtitle='',
+    annote=False,
+    aid_list=None,
+    index_list=None,
+    **kwargs
+):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -338,7 +362,10 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
         >>> show_name(ibs, nid, in_image, fnum, sel_aids, subtitle, annote, index_list=index_list)
         >>> ut.show_if_requested()
     """
-    print('[viz_name] show_name nid=%r, index_list=%r, aid_list=%r' % (nid, index_list, aid_list))
+    print(
+        '[viz_name] show_name nid=%r, index_list=%r, aid_list=%r'
+        % (nid, index_list, aid_list)
+    )
     if aid_list is None:
         aid_list = ibs.get_name_aids(nid)
     else:
@@ -350,8 +377,15 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
     name = ibs.get_name_texts((nid,))
     print('[viz_name] * name=%r aid_list=%r' % (name, aid_list))
 
-    show_multiple_chips(ibs, aid_list, in_image=in_image, fnum=fnum,
-                        sel_aids=sel_aids, annote=annote, **kwargs)
+    show_multiple_chips(
+        ibs,
+        aid_list,
+        in_image=in_image,
+        fnum=fnum,
+        sel_aids=sel_aids,
+        annote=annote,
+        **kwargs
+    )
 
     if isinstance(nid, np.ndarray):
         nid = nid[0]
@@ -363,11 +397,11 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
     if use_figtitle:
         figtitle = 'Name View nid=%r name=%r' % (nid, name)
         df2.set_figtitle(figtitle)
-    #if not annote:
+    # if not annote:
     #    title += ' noannote'
-    #gs2.tight_layout(fig)
-    #gs2.update(top=df2.TOP_SUBPLOT_ADJUST)
-    #df2.set_figtitle(title, subtitle)
+    # gs2.tight_layout(fig)
+    # gs2.update(top=df2.TOP_SUBPLOT_ADJUST)
+    # df2.set_figtitle(title, subtitle)
 
 
 if __name__ == '__main__':
@@ -378,6 +412,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_name --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

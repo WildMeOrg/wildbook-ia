@@ -5,10 +5,12 @@ import utool as ut
 import numpy as np
 from six.moves import zip, map
 from wbia.algo.hots import pgm_viz
+
 try:
     import pgmpy
     import pgmpy.inference
     from pgmpy.extern import tabulate
+
     HAS_PGMPY = True
 except ImportError:
     HAS_PGMPY = False
@@ -21,10 +23,13 @@ def define_model(cpd_list):
     """
     Custom extensions of pgmpy modl
     """
-    input_graph = ut.flatten([
-        [(evar, cpd.variable) for evar in cpd.evidence]
-        for cpd in cpd_list if cpd.evidence is not None
-    ])
+    input_graph = ut.flatten(
+        [
+            [(evar, cpd.variable) for evar in cpd.evidence]
+            for cpd in cpd_list
+            if cpd.evidence is not None
+        ]
+    )
     model = pgmpy.models.BayesianModel(input_graph)
     model.add_cpds(*cpd_list)
     customize_model(model)
@@ -34,12 +39,14 @@ def define_model(cpd_list):
 def customize_model(model):
     model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
     model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
-    model._templates = list(set([cpd._template_
-                                 for cpd in model.var2_cpd.values()]))
+    model._templates = list(set([cpd._template_ for cpd in model.var2_cpd.values()]))
     model.ttype2_template = {t.ttype: t for t in model._templates}
+
     def pretty_evidence(model, evidence):
-        return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
-                for evar, val in evidence.items()]
+        return [
+            evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
+            for evar, val in evidence.items()
+        ]
 
     def print_templates(model, ignore_ttypes=[]):
         templates = model._templates
@@ -88,6 +95,7 @@ class ApproximateFactor(object):
         >>> result = str(self)
         >>> print(result)
     """
+
     @classmethod
     def from_sampled(cls, sampled, variables=None, statename_dict=None):
         """
@@ -95,8 +103,9 @@ class ApproximateFactor(object):
         """
         if variables is None:
             variables = sampled.columns[:-1]
-        state_idxs = np.array([[item.state for item in row] for row in
-                                     sampled[variables].values])
+        state_idxs = np.array(
+            [[item.state for item in row] for row in sampled[variables].values]
+        )
         weights = sampled['_weight']
         phi = cls(state_idxs, weights, variables, statename_dict)
         return phi
@@ -111,10 +120,12 @@ class ApproximateFactor(object):
         """
         Returns a copy of the factor.
         """
-        statename_dict = (self.statename_dict.copy()
-                          if self.statename_dict is not None else None)
-        other = ApproximateFactor(self.state_idxs, self.weights,
-                                  self.variables, statename_dict)
+        statename_dict = (
+            self.statename_dict.copy() if self.statename_dict is not None else None
+        )
+        other = ApproximateFactor(
+            self.state_idxs, self.weights, self.variables, statename_dict
+        )
         return other
 
     @property
@@ -123,8 +134,8 @@ class ApproximateFactor(object):
 
     def get_sparse_values(self):
         # http://stackoverflow.com/questions/20114194/sparse-array-in-python-cython
-        #from scipy.sparse import coo_matrix
-        #values = coo_matrix((self.weights, self.state_idxs.T), shape=self.cardinality)
+        # from scipy.sparse import coo_matrix
+        # values = coo_matrix((self.weights, self.state_idxs.T), shape=self.cardinality)
         raise NotImplementedError('scipy only supports sparse 2D-arrays')
 
     def scope(self):
@@ -169,13 +180,13 @@ class ApproximateFactor(object):
             +------+------+--------------------+
         """
         if isinstance(variables, six.string_types):
-            raise TypeError("variables: Expected type list or array-like, got type str")
+            raise TypeError('variables: Expected type list or array-like, got type str')
 
         phi = self if inplace else self.copy()
 
         for var in variables:
             if var not in phi.variables:
-                raise ValueError("{var} not in scope.".format(var=var))
+                raise ValueError('{var} not in scope.'.format(var=var))
 
         var_indexes = [phi.variables.index(var) for var in variables]
 
@@ -192,8 +203,11 @@ class ApproximateFactor(object):
 
     def _compute_unique_state_ids(self):
         import vtool as vt
-        #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
-        data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
+
+        # data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        data_ids = np.array(
+            vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs)))
+        )
         return data_ids
 
     def consolidate(self, inplace=False):
@@ -220,20 +234,20 @@ class ApproximateFactor(object):
         import vtool as vt
 
         phi = self.copy() if inplace else self
-        #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        # data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
         data_ids = self._compute_unique_state_ids()
         unique_ids, groupxs = vt.group_indices(data_ids)
-        #assert len(unique_ids) == len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs)))))
+        # assert len(unique_ids) == len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs)))))
         if len(data_ids) != len(unique_ids):
             # Sum the values in the cpd to marginalize the duplicate probs
             # Take only the unique rows under this induced labeling
             unique_tmp_groupxs = np.array([gxs[0] for gxs in groupxs])
             self.state_idxs = self.state_idxs.take(unique_tmp_groupxs, axis=0)
-            self.weights = np.array([
-                g.sum() for g in vt.apply_grouping(self.weights, groupxs)
-            ])
-            #print('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
-        #else:
+            self.weights = np.array(
+                [g.sum() for g in vt.apply_grouping(self.weights, groupxs)]
+            )
+            # print('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
+        # else:
         #    print('[pgm] Cannot consolidated %r unique states' % (len(data_ids),))
         if not inplace:
             return phi
@@ -318,9 +332,13 @@ class ApproximateFactor(object):
         if asindex:
             row_labels = self.state_idxs
         else:
-            row_labels = [['{var}_{i}'.format(var=var, i=i)
-                           for var, i in zip(self.variables, state)]
-                          for state in self.state_idxs]
+            row_labels = [
+                [
+                    '{var}_{i}'.format(var=var, i=i)
+                    for var, i in zip(self.variables, state)
+                ]
+                for state in self.state_idxs
+            ]
         return row_labels
 
     def _str(self, phi_or_p=None, tablefmt=None, sort=False, maxrows=None):
@@ -332,15 +350,17 @@ class ApproximateFactor(object):
         if tablefmt is None:
             tablefmt = 'psql'
         string_header = list(self.scope())
-        string_header.append('{phi_or_p}({variables})'.format(
-            phi_or_p=phi_or_p, variables=','.join(string_header)))
+        string_header.append(
+            '{phi_or_p}({variables})'.format(
+                phi_or_p=phi_or_p, variables=','.join(string_header)
+            )
+        )
 
         factor_table = []
 
         row_values = self.values.ravel()
         row_labels = self._row_labels(asindex=False)
-        factor_table = [list(lbls) + [val]
-                        for lbls, val in zip(row_labels, row_values)]
+        factor_table = [list(lbls) + [val] for lbls, val in zip(row_labels, row_values)]
 
         if sort:
             sortx = row_values.argsort()[::sort]
@@ -350,8 +370,9 @@ class ApproximateFactor(object):
             factor_table = factor_table[:maxrows]
             factor_table.append(['...'] * len(string_header))
 
-        return tabulate(factor_table, headers=string_header, tablefmt=tablefmt,
-                        floatfmt='.4f')
+        return tabulate(
+            factor_table, headers=string_header, tablefmt=tablefmt, floatfmt='.4f'
+        )
 
     def __str__(self):
         return self._str()
@@ -362,25 +383,27 @@ class ApproximateFactor(object):
         return cardinality
 
     def __repr__(self):
-        var_card = ', '.join([
-            '{var}:{card}'.format(var=var, card=card)
-            for var, card in zip(self.variables, self.cardinality)])
+        var_card = ', '.join(
+            [
+                '{var}:{card}'.format(var=var, card=card)
+                for var, card in zip(self.variables, self.cardinality)
+            ]
+        )
         return r'<ApproximateFactor representing phi({var_card}) at {address}>'.format(
-            address=hex(id(self)), var_card=var_card)
+            address=hex(id(self)), var_card=var_card
+        )
 
 
 def print_factors(model, factor_list):
     if hasattr(model, 'var2_cpd'):
-        semtypes = [model.var2_cpd[f.variables[0]].ttype
-                    for f in factor_list]
+        semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
     else:
         semtypes = [0] * len(factor_list)
     for type_, factors in ut.group_items(factor_list, semtypes).items():
         print('Result Factors (%r)' % (type_,))
         factors = ut.sortedby(factors, [f.variables[0] for f in factors])
         for fs_ in ut.ichunks(factors, 4):
-            ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
-                          'yellow')
+            ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
 
 
 class TemplateCPD(object):
@@ -405,8 +428,16 @@ class TemplateCPD(object):
         >>> cpd = self.new_cpd(0)
         >>> print(cpd)
     """
-    def __init__(self, ttype, basis, varpref=None, evidence_ttypes=None,
-                 pmf_func=None, special_basis_pool=None):
+
+    def __init__(
+        self,
+        ttype,
+        basis,
+        varpref=None,
+        evidence_ttypes=None,
+        pmf_func=None,
+        special_basis_pool=None,
+    ):
         if isinstance(basis, tuple):
             state_pref, state_card = basis
             stop = state_card
@@ -441,8 +472,7 @@ class TemplateCPD(object):
             kw['parents'] = ut.chr_range(id_, id_ + 1)[0]
         else:
             kw['parents'] = [
-                tcpd.example_cpd(i)
-                for i, tcpd in enumerate(self.evidence_ttypes)
+                tcpd.example_cpd(i) for i, tcpd in enumerate(self.evidence_ttypes)
             ]
         example_cpd = self.new_cpd(**kw)
         return example_cpd
@@ -477,8 +507,8 @@ class TemplateCPD(object):
         else:
             _id = ''.join(template_ids)
         variable = ''.join([self.varpref, _id])
-        #variable = '_'.join([self.varpref, '{' + _id + '}'])
-        #variable = '$%s$' % (variable,)
+        # variable = '_'.join([self.varpref, '{' + _id + '}'])
+        # variable = '$%s$' % (variable,)
 
         evidence_cpds = [cpd for cpd in parents if hasattr(cpd, 'ttype')]
         if len(evidence_cpds) == 0:
@@ -489,8 +519,9 @@ class TemplateCPD(object):
             variable: self.basis,
         }
         if self.evidence_ttypes is not None:
-            if any(cpd.ttype != tcpd.ttype
-                   for cpd, tcpd in zip(evidence_cpds, evidence_cpds)):
+            if any(
+                cpd.ttype != tcpd.ttype for cpd, tcpd in zip(evidence_cpds, evidence_cpds)
+            ):
                 raise ValueError('Evidence is not of appropriate type')
             evidence_bases = [cpd.variable_statenames for cpd in evidence_cpds]
             evidence_card = list(map(len, evidence_bases))
@@ -512,10 +543,12 @@ class TemplateCPD(object):
             if isinstance(pmf_func, list):
                 values = np.array(pmf_func)
             else:
-                values = np.array([
-                    [pmf_func(vstate, *estates) for estates in evidence_states]
-                    for vstate in self.basis
-                ])
+                values = np.array(
+                    [
+                        [pmf_func(vstate, *estates) for estates in evidence_states]
+                        for vstate in self.basis
+                    ]
+                )
             ensure_normalized = True
             if ensure_normalized:
                 values = values / values.sum(axis=0)
@@ -534,19 +567,22 @@ class TemplateCPD(object):
                 values=values,
                 evidence=evidence,
                 evidence_card=evidence_card,
-                #statename_dict=statename_dict,
+                # statename_dict=statename_dict,
                 state_names=statename_dict,
             )
         except Exception as ex:
-            ut.printex(ex, 'Failed to create TabularCPD',
-                       keys=[
-                           'variable',
-                           'variable_card',
-                           'statename_dict',
-                           'evidence_card',
-                           'evidence',
-                           'values.shape',
-                       ])
+            ut.printex(
+                ex,
+                'Failed to create TabularCPD',
+                keys=[
+                    'variable',
+                    'variable_card',
+                    'statename_dict',
+                    'evidence_card',
+                    'evidence',
+                    'values.shape',
+                ],
+            )
             ut.embed()
             raise
 
@@ -606,17 +642,22 @@ def mustbe_example():
         from wbia.algo.hots.pgm_ext import _debug_repr_model
         _debug_repr_model(model)
     """
+
     def isfred_pmf(isfred, name):
         return {
-            'fred' : {'true': 1, 'false': 0},
-            'sue'  : {'true': 0, 'false': 1},
-            'tom'  : {'true': 0, 'false': 1},
+            'fred': {'true': 1, 'false': 0},
+            'sue': {'true': 0, 'false': 1},
+            'tom': {'true': 0, 'false': 1},
         }[name][isfred]
-    name_cpd_t = TemplateCPD(
-        'name', ['fred', 'sue', 'tom'], varpref='N')
+
+    name_cpd_t = TemplateCPD('name', ['fred', 'sue', 'tom'], varpref='N')
     isfred_cpd_t = TemplateCPD(
-        'fred', ['true', 'false'], varpref='F',
-        evidence_ttypes=[name_cpd_t], pmf_func=isfred_pmf)
+        'fred',
+        ['true', 'false'],
+        varpref='F',
+        evidence_ttypes=[name_cpd_t],
+        pmf_func=isfred_pmf,
+    )
     name_cpd = name_cpd_t.new_cpd(0)
     isfred_cpd = isfred_cpd_t.new_cpd(parents=[name_cpd])
     model = define_model([name_cpd, isfred_cpd])
@@ -645,11 +686,14 @@ def map_example():
         _debug_repr_model(model)
     """
     # https://class.coursera.org/pgm-003/lecture/44
-    a_cpd_t = TemplateCPD(
-        'A', ['0', '1'], varpref='A', pmf_func=[[.4], [.6]])
+    a_cpd_t = TemplateCPD('A', ['0', '1'], varpref='A', pmf_func=[[0.4], [0.6]])
     b_cpd_t = TemplateCPD(
-        'B', ['0', '1'], varpref='B',
-        evidence_ttypes=[a_cpd_t], pmf_func=[[.1, .5], [.9, .5]])
+        'B',
+        ['0', '1'],
+        varpref='B',
+        evidence_ttypes=[a_cpd_t],
+        pmf_func=[[0.1, 0.5], [0.9, 0.5]],
+    )
     a_cpd = a_cpd_t.new_cpd(0)
     b_cpd = b_cpd_t.new_cpd(parents=[a_cpd])
     model = define_model([a_cpd, b_cpd])
@@ -724,18 +768,23 @@ def coin_example():
         >>> #netx.draw_graphviz(model, with_labels=True)
         >>> ut.show_if_requested()
     """
+
     def toss_pmf(side, coin):
         toss_lookup = {
-            'fair': {'heads': .5, 'tails': .5},
+            'fair': {'heads': 0.5, 'tails': 0.5},
             #'bias': {'heads': .6, 'tails': .4},
-            'bias': {'heads': .9, 'tails': .1},
+            'bias': {'heads': 0.9, 'tails': 0.1},
         }
         return toss_lookup[coin][side]
-    coin_cpd_t = TemplateCPD(
-        'coin', ['fair', 'bias'], varpref='C')
+
+    coin_cpd_t = TemplateCPD('coin', ['fair', 'bias'], varpref='C')
     toss_cpd_t = TemplateCPD(
-        'toss', ['heads', 'tails'], varpref='T',
-        evidence_ttypes=[coin_cpd_t], pmf_func=toss_pmf)
+        'toss',
+        ['heads', 'tails'],
+        varpref='T',
+        evidence_ttypes=[coin_cpd_t],
+        pmf_func=toss_pmf,
+    )
     coin_cpd = coin_cpd_t.new_cpd(0)
     toss1_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 1])
     toss2_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 2])
@@ -749,6 +798,7 @@ def markovmodel_test():
     """
     from pgmpy.models import MarkovModel
     from pgmpy.factors import Factor
+
     markovmodel = MarkovModel([('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')])
     factor_a_b = Factor(variables=['A', 'B'], cardinality=[2, 2], values=[100, 5, 5, 100])
     factor_b_c = Factor(variables=['B', 'C'], cardinality=[2, 2], values=[100, 3, 2, 4])
@@ -769,7 +819,9 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.pgm_ext --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     if HAS_PGMPY:
         ut.doctest_funcs()

@@ -1,10 +1,14 @@
-flask>=0.10.1
-Pillow>=7.1.0
-pygments>=2.1.3
 boto>=2.20.1
 cachetools>=1.1.6
 colorama>=0.3.2
 dateutils>=0.6.6
+
+delorean
+flask>=0.10.1
+
+
+futures>=3.2.0;python_version<="2.7"
+futures_actors
 ipython>=5.0.0
 lockfile>=0.10.2
 matplotlib>=1.5.1
@@ -13,8 +17,15 @@ numpy>=1.14.2
 opencv-python
 pandas>=0.19.2
 parse>=1.6.6
+pathlib;python_version<="2.7"
+Pillow>=7.1.0
 pyasn1>=0.1.7
+pygments>=2.1.3
+
+pynmea2>=1.5.3
 pyparsing>=2.1.5
+
+pyqt5>= 5.11.2;python_version>'2.7'
 pyzmq>=14.7.0
 requests>=2.5.0
 scikit-image>=0.12.3
@@ -24,19 +35,8 @@ setuptools>=34.1.0
 simplejson>=3.6.5
 six>=1.10.0
 statsmodels>=0.6.1
-
-
-futures>=3.2.0;python_version<="2.7"
-pathlib;python_version<="2.7"
-
-delorean
+tornado>=4.2.1
 ubelt >= 0.8.7
-futures_actors
 
 utool >= 2.1.2
 wbia-vtool >= 2.1.0
-
-pyqt5>= 5.11.2;python_version>'2.7'
-
-pynmea2>=1.5.3
-tornado>=4.2.1

@@ -21,8 +21,12 @@ if False:
     register_preproc = _depcdecors['preproc']
     register_subprop = _depcdecors['subprop']
 
-    @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME],
-                      colnames=['data'], coltypes=[str])
+    @register_preproc(
+        tablename='dummy',
+        parents=[DUMMY_ROOT_TABLENAME],
+        colnames=['data'],
+        coltypes=[str],
+    )
     def dummy_global_preproc_func(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -46,9 +50,9 @@ class DummyIndexerConfig(dtool.Config):
         ut.ParamInfo('algorithm', 'kdtree'),
     ]
     # FIXME: triggers duplicate error
-    #_sub_config_list = [
+    # _sub_config_list = [
     #    DummyKptsConfig
-    #]
+    # ]
 
 
 class DummyNNConfig(dtool.Config):
@@ -62,10 +66,7 @@ class DummyNNConfig(dtool.Config):
 
 
 class DummySVERConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('sver_on', True),
-        ut.ParamInfo('xy_thresh', .01)
-    ]
+    _param_info_list = [ut.ParamInfo('sver_on', True), ut.ParamInfo('xy_thresh', 0.01)]
 
 
 class DummyChipConfig(dtool.Config):
@@ -80,9 +81,11 @@ class DummyChipConfig(dtool.Config):
         >>> cfg.histeq = False
         >>> print(cfg)
     """
+
     _param_info_list = [
-        ut.ParamInfo('resize_dim', 'width',
-                     valid_values=['area', 'width', 'heigh', 'diag']),
+        ut.ParamInfo(
+            'resize_dim', 'width', valid_values=['area', 'width', 'heigh', 'diag']
+        ),
         ut.ParamInfo('dim_size', 500, 'sz'),
         ut.ParamInfo('preserve_aspect', True),
         ut.ParamInfo('histeq', False, hideif=False),
@@ -124,6 +127,7 @@ class ProbchipConfig(dtool.Config):
         >>> #depc.new_request('probchip', [1, 2, 3])
         >>> fg_rowids2 = depc.get_rowids('fgweight', root_rowids, config)
     """
+
     _param_info_list = [
         ut.ParamInfo('testerror', False, hideif=False),
         ut.ParamInfo('ext', '.png', hideif='.png'),
@@ -134,9 +138,9 @@ class DummyVsManyConfig(dtool.Config):
     # Different pipeline components can go here as well as dependencies
     # that were not explicitly enumerated in the tree structure
     _param_info_list = [
-        #ut.ParamInfo('score_method', 'csum'),
+        # ut.ParamInfo('score_method', 'csum'),
         # should this be the only thing here?
-        #ut.ParamInfo('daids', None),
+        # ut.ParamInfo('daids', None),
         ut.ParamInfo('distinctiveness_model', None),
         ut.ParamInfo('version', 2),
     ]
@@ -146,7 +150,7 @@ class DummyVsManyConfig(dtool.Config):
         DummyKptsConfig,
         DummyIndexerConfig,
         DummyNNConfig,
-        DummySVERConfig
+        DummySVERConfig,
     ]
 
 
@@ -161,7 +165,7 @@ class DummyVsOneConfig(dtool.Config):
             DummyKptsConfig,
             DummyIndexerConfig,
             DummyNNConfig,
-            DummySVERConfig
+            DummySVERConfig,
         ]
 
     def get_param_info_list(self):
@@ -183,6 +187,7 @@ class DummyVsManyRequest(dtool.VsManySimilarityRequest):
         >>> algo_config = DummyVsManyConfig()
         >>> print(algo_config)
     """
+
     pass
 
 
@@ -198,7 +203,7 @@ class DummyVsOneMatch(dtool.AlgoResult, ut.NiceRepr):
         self.fm = None
 
     def __nice__(self):
-        return ('(%d-vs-%d) %.2f' % (self.qaid, self.daid, self.score))
+        return '(%d-vs-%d) %.2f' % (self.qaid, self.daid, self.score)
 
 
 def testdata_depc(fname=None):
@@ -208,8 +213,8 @@ def testdata_depc(fname=None):
 
     from wbia import dtool
     import vtool as vt
-    gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
-                         verbose=False)
+
+    gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(), verbose=False)
 
     dummy_root = 'dummy_annot'
 
@@ -221,16 +226,21 @@ def testdata_depc(fname=None):
     cache_dpath = join(dtool_repo, 'DEPCACHE')
 
     depc = dtool.DependencyCache(
-        root_tablename=dummy_root, default_fname=fname,
+        root_tablename=dummy_root,
+        default_fname=fname,
         cache_dpath=cache_dpath,
         get_root_uuid=get_root_uuid,
-        #root_asobject=root_asobject,
-        use_globals=False)
+        # root_asobject=root_asobject,
+        use_globals=False,
+    )
 
-    @depc.register_preproc(tablename='chip', parents=[dummy_root],
-                           colnames=['size', 'chip'],
-                           coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
-                           configclass=DummyChipConfig)
+    @depc.register_preproc(
+        tablename='chip',
+        parents=[dummy_root],
+        colnames=['size', 'chip'],
+        coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
+        configclass=DummyChipConfig,
+    )
     def dummy_preproc_chip(depc, annot_rowid_list, config=None):
         """
         TODO: Infer properties from docstr?
@@ -247,25 +257,27 @@ def testdata_depc(fname=None):
             config = {}
         # Demonstates using asobject to get input to function as a dictionary
         # of properties
-        #for annot in annot_list:
-        #print('[preproc] Computing chips of aid=%r' % (aid,))
+        # for annot in annot_list:
+        # print('[preproc] Computing chips of aid=%r' % (aid,))
         print('[preproc] Computing chips')
         for aid in annot_rowid_list:
-            #aid = annot['aid']
-            #chip_fpath = annot['gpath']
+            # aid = annot['aid']
+            # chip_fpath = annot['gpath']
             chip_fpath = gpath_list[aid]
-            #w, h = vt.image.open_image_size(chip_fpath)
+            # w, h = vt.image.open_image_size(chip_fpath)
             chip = vt.imread(chip_fpath)
             size = vt.get_size(chip)
-            #size = (w, h)
+            # size = (w, h)
             print('Dummpy preproc chip yeilds')
             print('* chip_fpath = %r' % (chip_fpath,))
             print('* size = %r' % (size,))
-            #yield size, chip_fpath
+            # yield size, chip_fpath
             yield size, chip
 
     @depc.register_preproc(
-        'probchip', [dummy_root], ['size', 'probchip'],
+        'probchip',
+        [dummy_root],
+        ['size', 'probchip'],
         coltypes=[(int, int), ('extern', vt.imread, vt.imwrite, '.png')],
         configclass=ProbchipConfig,
     )
@@ -279,15 +291,19 @@ def testdata_depc(fname=None):
                     continue
             rng = np.random.RandomState(rowid)
             probchip = rng.randint(0, 255, size=(64, 64))
-            #probchip = np.zeros((64, 64))
+            # probchip = np.zeros((64, 64))
             size = (rowid, rowid)
             yield size, probchip
 
     @depc.register_preproc(
-        'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
-        #default_onthefly=True,
+        'keypoint',
+        ['chip'],
+        ['kpts', 'num'],
+        [np.ndarray, int],
+        # default_onthefly=True,
         configclass=DummyKptsConfig,
-        docstr='Used to store individual chip features (ellipses)',)
+        docstr='Used to store individual chip features (ellipses)',
+    )
     def dummy_preproc_kpts(depc, chip_rowids, config=None):
         if config is None:
             config = {}
@@ -298,8 +314,7 @@ def testdata_depc(fname=None):
         ut.assert_all_not_None(chip_rowids, 'chip_rowids')
         # This is in here to attempt to trigger a failure of the chips dont
         # exist and the feature cache is called.
-        chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip',
-                                          read_extern=False)
+        chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip', read_extern=False)
         print('computing featurse from chip_fpath_list = %r' % (chip_fpath_list,))
 
         for rowid in chip_rowids:
@@ -310,7 +325,9 @@ def testdata_depc(fname=None):
             num = len(kpts)
             yield kpts, num
 
-    @depc.register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray],)
+    @depc.register_preproc(
+        'descriptor', ['keypoint'], ['vecs'], [np.ndarray],
+    )
     def dummy_preproc_vecs(depc, kp_rowid, config=None):
         if config is None:
             config = {}
@@ -318,7 +335,9 @@ def testdata_depc(fname=None):
         for rowid in kp_rowid:
             yield np.ones((7 + rowid, 8), dtype=np.uint8) + rowid,
 
-    @depc.register_preproc('fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],)
+    @depc.register_preproc(
+        'fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],
+    )
     def dummy_preproc_fgweight(depc, kpts_rowid, probchip_rowid, config=None):
         if config is None:
             config = {}
@@ -327,8 +346,12 @@ def testdata_depc(fname=None):
             yield np.ones(7 + rowid1),
 
     @depc.register_preproc(
-        tablename='vsmany', colnames='annotmatch', coltypes=DummyAnnotMatch,
-        requestclass=DummyVsManyRequest, configclass=DummyVsManyConfig)
+        tablename='vsmany',
+        colnames='annotmatch',
+        coltypes=DummyAnnotMatch,
+        requestclass=DummyVsManyRequest,
+        configclass=DummyVsManyConfig,
+    )
     def vsmany_matching(depc, qaids, config=None):
         """
         CommandLine:
@@ -340,30 +363,34 @@ def testdata_depc(fname=None):
 
         sver_on = config.dummy_sver_cfg['sver_on']
         kpts_list = depc.get_property('keypoint', list(qaids))  # NOQA
-        #dummy_preproc_kpts
+        # dummy_preproc_kpts
         for qaid in qaids:
             dnid_list = [1, 1, 2, 2]
             unique_nids = [1, 2]
             if sver_on:
-                annot_score_list = [.2, .2, .4, .5]
-                name_score_list = [.2, .5]
+                annot_score_list = [0.2, 0.2, 0.4, 0.5]
+                name_score_list = [0.2, 0.5]
             else:
-                annot_score_list = [.3, .3, .6, .9]
-                name_score_list = [.1, .7]
-            annot_match = DummyAnnotMatch(qaid, daids, dnid_list,
-                                          annot_score_list, unique_nids,
-                                          name_score_list)
+                annot_score_list = [0.3, 0.3, 0.6, 0.9]
+                name_score_list = [0.1, 0.7]
+            annot_match = DummyAnnotMatch(
+                qaid, daids, dnid_list, annot_score_list, unique_nids, name_score_list
+            )
             yield annot_match
 
     SIMPLE = 0
     if not SIMPLE:
 
         @depc.register_preproc(
-            tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
-            coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
+            tablename='chipmask',
+            parents=[dummy_root],
+            colnames=['size', 'mask'],
+            coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
+        )
         def dummy_manual_chipmask(depc, parent_rowids, config=None):
             import vtool as vt
             from wbia.plottool import interact_impaint
+
             mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
             ut.ensuredir(mask_dpath)
             if config is None:
@@ -377,7 +404,9 @@ def testdata_depc(fname=None):
                 w, h = vt.get_size(mask)
                 yield (w, h), mask_fpath
 
-        @depc.register_preproc('notch', [dummy_root], ['notchdata'], [np.ndarray],)
+        @depc.register_preproc(
+            'notch', [dummy_root], ['notchdata'], [np.ndarray],
+        )
         def dummy_preproc_notch(depc, parent_rowids, config=None):
             if config is None:
                 config = {}
@@ -386,10 +415,12 @@ def testdata_depc(fname=None):
                 yield np.empty(5 + rowid),
 
         @depc.register_preproc(
-            'spam', ['fgweight', 'chip', 'keypoint'],
+            'spam',
+            ['fgweight', 'chip', 'keypoint'],
             ['spam', 'eggs', 'size', 'uuid', 'vector', 'textdata'],
             [str, int, (int, int), uuid.UUID, np.ndarray, ('extern', ut.readfrom)],
-            docstr='I dont like spam',)
+            docstr='I dont like spam',
+        )
         def dummy_preproc_spam(depc, *args, **kwargs):
             config = kwargs.get('config', None)
             if config is None:
@@ -403,70 +434,106 @@ def testdata_depc(fname=None):
                 yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
 
         @depc.register_preproc(
-            'nnindexer', ['keypoint*'], ['flann'], [str],  # [('extern', ut.load_data)],
+            'nnindexer',
+            ['keypoint*'],
+            ['flann'],
+            [str],  # [('extern', ut.load_data)],
             configclass=DummyIndexerConfig,
         )
         def dummy_preproc_indexer(depc, parent_rowids_list, config=None):
             print('COMPUTING DUMMY INDEXER')
-            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            # assert len(parent_rowids_list) == 1, 'handles only one indexer'
             for parent_rowids in parent_rowids_list:
-                yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
+                yield (
+                    'really cool flann object'
+                    + str(config.get_cfgstr())
+                    + ' '
+                    + str(parent_rowids),
+                )
 
         @depc.register_preproc(
-            'notchpair', ['notch', 'notch'], ['pairscore'], [int],  # [('extern', ut.load_data)],
-            #configclass=DummyIndexerConfig,
+            'notchpair',
+            ['notch', 'notch'],
+            ['pairscore'],
+            [int],  # [('extern', ut.load_data)],
+            # configclass=DummyIndexerConfig,
         )
         def dummy_notchpair(depc, n1, n2, config=None):
             print('COMPUTING MULTITEST 1 ')
-            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            # assert len(parent_rowids_list) == 1, 'handles only one indexer'
             for nn1, nn2 in zip(n1, n2):
                 yield (nn1 + nn2,)
 
         @depc.register_preproc(
-            'multitest', ['keypoint', 'notch', 'notch', 'fgweight*', 'notchpair*', 'notchpair*', 'notchpair', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
-            #configclass=DummyIndexerConfig,
+            'multitest',
+            [
+                'keypoint',
+                'notch',
+                'notch',
+                'fgweight*',
+                'notchpair*',
+                'notchpair*',
+                'notchpair',
+                'nnindexer',
+            ],
+            ['foo'],
+            [str],  # [('extern', ut.load_data)],
+            # configclass=DummyIndexerConfig,
         )
         def dummy_multitest(depc, *args, **kwargs):
             print('COMPUTING MULTITEST 1 ')
-            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            # assert len(parent_rowids_list) == 1, 'handles only one indexer'
             for x in zip(args):
                 yield ('cool multi object' + str(kwargs) + ' ' + str(x),)
 
         # TEST MULTISET DEPENDENCIES
         @depc.register_preproc(
-            'multitest_score', ['multitest'], ['score'], [int],  # [('extern', ut.load_data)],
-            #configclass=DummyIndexerConfig,
+            'multitest_score',
+            ['multitest'],
+            ['score'],
+            [int],  # [('extern', ut.load_data)],
+            # configclass=DummyIndexerConfig,
         )
         def dummy_multitest_score(depc, parent_rowids, config=None):
             print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
-            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            # assert len(parent_rowids_list) == 1, 'handles only one indexer'
             for parent_rowids in zip(parent_rowids):
                 yield (parent_rowids,)
 
         # TEST MULTISET DEPENDENCIES
         @depc.register_preproc(
-            'multitest_score_x', ['multitest_score', 'multitest_score'], ['score'], [int],  # [('extern', ut.load_data)],
-            #configclass=DummyIndexerConfig,
+            'multitest_score_x',
+            ['multitest_score', 'multitest_score'],
+            ['score'],
+            [int],  # [('extern', ut.load_data)],
+            # configclass=DummyIndexerConfig,
         )
         def multitest_score_x(depc, *args, **kwargs):
             raise NotImplementedError('hack')
+
         # REGISTER MATCHING ALGORITHMS
 
-        @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
-                               coltypes=[np.ndarray, np.ndarray],
-                               parents=['keypoint', 'fgweight', 'nnindexer', 'nnindexer'])
+        @depc.register_preproc(
+            tablename='neighbs',
+            colnames=['qx2_idx', 'qx2_dist'],
+            coltypes=[np.ndarray, np.ndarray],
+            parents=['keypoint', 'fgweight', 'nnindexer', 'nnindexer'],
+        )
         def neighbs(depc, *args, **kwargs):
             """
             CommandLine:
                 python -m dtool.base --exec-VsManySimilarityRequest
             """
-            #dummy_preproc_kpts
+            # dummy_preproc_kpts
             for qaid in zip(args):
                 yield np.array([qaid]), np.array([qaid])
 
-        @depc.register_preproc(tablename='neighbs_score', colnames=['qx2_dist'],
-                               coltypes=[np.ndarray],
-                               parents=['neighbs'])
+        @depc.register_preproc(
+            tablename='neighbs_score',
+            colnames=['qx2_dist'],
+            coltypes=[np.ndarray],
+            parents=['neighbs'],
+        )
         def neighbs_score(depc, *args, **kwargs):
             """
             CommandLine:
@@ -475,12 +542,13 @@ def testdata_depc(fname=None):
             raise NotImplementedError('hack')
 
         @depc.register_preproc(
-            'vsone', [dummy_root, dummy_root],
+            'vsone',
+            [dummy_root, dummy_root],
             ['score', 'match_obj', 'fm'],
             [float, DummyVsOneMatch, np.ndarray],
             requestclass=DummyVsOneRequest,
             configclass=DummyVsOneConfig,
-            chunksize=2
+            chunksize=2,
         )
         def compute_vsone_matching(depc, qaids, daids, config):
             """
@@ -509,6 +577,7 @@ def example_getter_methods(depc, tablename, root_rowids):
     example of different ways to get data
     """
     from wbia import dtool
+
     print('\n+---')
     print('Running getter example')
     print(' * tablename=%r' % (tablename))
@@ -521,7 +590,7 @@ def example_getter_methods(depc, tablename, root_rowids):
     tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)  # NOQA
     print('tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)')
     print('tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
-    #assert tbl_rowids[0] is None
+    # assert tbl_rowids[0] is None
 
     # The default is for the data to be computed though. Manaual interactions will
     # launch as necessary.
@@ -552,8 +621,12 @@ def example_getter_methods(depc, tablename, root_rowids):
         print('extern_data = table.get_row_data(tbl_rowids, (excol,))')
         print(ut.varinfo_str(extern_data, 'extern_data'))
         # you can lookup the hidden paths as follows
-        extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))  # NOQA
-        print('extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))')
+        extern_paths = table.get_row_data(
+            tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,)
+        )  # NOQA
+        print(
+            'extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))'
+        )
         print(ut.varinfo_str(extern_paths, 'extern_paths'))
 
     # But you can also just the root rowids directly. This is the simplest way
@@ -619,18 +692,18 @@ def dummy_example_depcacahe():
 
     table = depc[tablename]  # NOQA
 
-    #example_getter_methods(depc, 'vsmany', root_rowids)
+    # example_getter_methods(depc, 'vsmany', root_rowids)
     # example_getter_methods(depc, 'chipmask', root_rowids)
     # example_getter_methods(depc, 'keypoint', root_rowids)
     # example_getter_methods(depc, 'chip', root_rowids)
 
     test_getters(depc)
 
-    #import wbia.plottool as pt
+    # import wbia.plottool as pt
     # pt.ensureqt()
 
     graph = depc.make_graph()  # NOQA
-    #pt.show_nx(graph)
+    # pt.show_nx(graph)
 
     print('---------- 111 -----------')
 
@@ -656,19 +729,27 @@ def dummy_example_depcacahe():
     req = depc.new_request('vsmany', root_rowids, root_rowids, {})
     req.execute()
 
-    #ut.InstanceList(
+    # ut.InstanceList(
     db = list(depc.fname_to_db.values())[0]
-    #db_list = ut.InstanceList(depc.fname_to_db.values())
-    #db_list.print_table_csv('config', exclude_columns='config_strid')
+    # db_list = ut.InstanceList(depc.fname_to_db.values())
+    # db_list.print_table_csv('config', exclude_columns='config_strid')
 
     print('config table')
     tablename = 'config'
-    column_list, column_names = db.get_table_column_data(tablename,
-                                                         ['config_strid'])
-    print('\n'.join([ut.hz_str(*list(ut.interleave((r, [', '] * (len(r) - 1)))))
-                     for r in list(zip(*[[ut.repr3(r, nl=2) for r in col] for col in column_list]))]))
+    column_list, column_names = db.get_table_column_data(tablename, ['config_strid'])
+    print(
+        '\n'.join(
+            [
+                ut.hz_str(*list(ut.interleave((r, [', '] * (len(r) - 1)))))
+                for r in list(
+                    zip(*[[ut.repr3(r, nl=2) for r in col] for col in column_list])
+                )
+            ]
+        )
+    )
 
     return depc
+
 
 if __name__ == '__main__':
     r"""
@@ -677,6 +758,8 @@ if __name__ == '__main__':
         python -m dtool.example_depcache --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()
