@@ -1,111 +1,111 @@
-    def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
-                        config, verbose=True):
-        """ Does work of adding dirty rowids """
-        dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
-        try:
-            # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-            if table.isalgo:
-                # TODO: DEPRICATE OLD ALGO REQUST STRUCTURE
-                # HACK: config here is a request
-                request = config
-                #subreq = request.shallow_copy # TODO
-                # FIXME: Need to vsone querys and name-vs-name queries work
-                # here.
-                if table.productinput:
-                    # Roundabout way of forcing algo requests into the depcache
-                    # structure Very ugly
-                    subreq_list = list(request.shallowcopy_vsonehack(
-                        qmask=isdirty_list))
-                    proptup_gen_list = [table.preproc_func(table.depc, subreq)
-                                        for subreq in subreq_list]
-                    from itertools import chain
-                    proptup_gen = chain(*proptup_gen_list)
-                    dirty_params_iter = table._yeild_algo_result(
-                        dirty_parent_rowids, proptup_gen, config_rowid)
-                    #proptup_gen = list(proptup_gen)
-                else:
-                    subreq = request.shallowcopy(qmask=isdirty_list)
-                    # CALL REGISTRED ALGO WORKER FUNCTION
-                    proptup_gen = table.preproc_func(table.depc, subreq)
-                    dirty_params_iter = table._yeild_algo_result(
-                        dirty_parent_rowids, proptup_gen, config_rowid)
-            else:
-                args = zip(*dirty_parent_rowids)
-                if table._asobject:
-                    # Convinience
-                    args = [table.depc.get_obj(parent, rowids)
-                            for parent, rowids in zip(table.parents, args)]
-                # hack config out of request
-                config_ = config.config if hasattr(config, 'config') else config
-                # CALL REGISTRED TABLE WORKER FUNCTION
-                proptup_gen = table.preproc_func(table.depc, *args,
-                                                 config=config_)
-                if len(table._nested_idxs) > 0:
-                    assert not table.isalgo
-                    unnest_data = table._make_unnester()
-                    proptup_gen = (unnest_data(data) for data in proptup_gen)
-                dirty_params_iter = table._concat_rowids_data(
+def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
+                    config, verbose=True):
+    """ Does work of adding dirty rowids """
+    dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
+    try:
+        # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
+        if table.isalgo:
+            # TODO: DEPRICATE OLD ALGO REQUST STRUCTURE
+            # HACK: config here is a request
+            request = config
+            #subreq = request.shallow_copy # TODO
+            # FIXME: Need to vsone querys and name-vs-name queries work
+            # here.
+            if table.productinput:
+                # Roundabout way of forcing algo requests into the depcache
+                # structure Very ugly
+                subreq_list = list(request.shallowcopy_vsonehack(
+                    qmask=isdirty_list))
+                proptup_gen_list = [table.preproc_func(table.depc, subreq)
+                                    for subreq in subreq_list]
+                from itertools import chain
+                proptup_gen = chain(*proptup_gen_list)
+                dirty_params_iter = table._yeild_algo_result(
                     dirty_parent_rowids, proptup_gen, config_rowid)
+                #proptup_gen = list(proptup_gen)
+            else:
+                subreq = request.shallowcopy(qmask=isdirty_list)
+                # CALL REGISTRED ALGO WORKER FUNCTION
+                proptup_gen = table.preproc_func(table.depc, subreq)
+                dirty_params_iter = table._yeild_algo_result(
+                    dirty_parent_rowids, proptup_gen, config_rowid)
+        else:
+            args = zip(*dirty_parent_rowids)
+            if table._asobject:
+                # Convinience
+                args = [table.depc.get_obj(parent, rowids)
+                        for parent, rowids in zip(table.parents, args)]
+            # hack config out of request
+            config_ = config.config if hasattr(config, 'config') else config
+            # CALL REGISTRED TABLE WORKER FUNCTION
+            proptup_gen = table.preproc_func(table.depc, *args,
+                                             config=config_)
+            if len(table._nested_idxs) > 0:
+                assert not table.isalgo
+                unnest_data = table._make_unnester()
+                proptup_gen = (unnest_data(data) for data in proptup_gen)
+            dirty_params_iter = table._concat_rowids_data(
+                dirty_parent_rowids, proptup_gen, config_rowid)
 
-            chunksize = (len(dirty_parent_rowids)
-                         if table.chunksize is None else table.chunksize)
+        chunksize = (len(dirty_parent_rowids)
+                     if table.chunksize is None else table.chunksize)
 
-            # TODO: Separate this as a function which can be specified as a
-            # callback.
-            num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
-            chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
-            lbl = 'adding %s chunk' % (table.tablename)
-            prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
-            for dirty_params_chunk in prog_iter:
-                nInput = len(dirty_params_chunk)
-                if table.isalgo:
-                    # HACKS, really this should be for anything that has a
-                    # extern write function
-                    sql_chunks = table._save_algo_result(dirty_params_chunk)
-                    table.db._add(table.tablename, table._table_colnames,
-                                  sql_chunks, nInput=nInput)
-                else:
-                    table.db._add(table.tablename, table._table_colnames,
-                                  dirty_params_chunk, nInput=nInput)
+        # TODO: Separate this as a function which can be specified as a
+        # callback.
+        num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
+        chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
+        lbl = 'adding %s chunk' % (table.tablename)
+        prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
+        for dirty_params_chunk in prog_iter:
+            nInput = len(dirty_params_chunk)
+            if table.isalgo:
+                # HACKS, really this should be for anything that has a
+                # extern write function
+                sql_chunks = table._save_algo_result(dirty_params_chunk)
+                table.db._add(table.tablename, table._table_colnames,
+                              sql_chunks, nInput=nInput)
+            else:
+                table.db._add(table.tablename, table._table_colnames,
+                              dirty_params_chunk, nInput=nInput)
+    except Exception as ex:
+        ut.printex(ex, 'error in add_rowids', keys=[
+            'table', 'table.parents', 'parent_rowids', 'config', 'args',
+            'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
+        raise
+
+
+def _concat_rowids_data(table, dirty_parent_rowids, proptup_gen,
+                        config_rowid):
+    for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
+        try:
+            yield parent_rowids + (config_rowid,) + data_cols
         except Exception as ex:
-            ut.printex(ex, 'error in add_rowids', keys=[
-                'table', 'table.parents', 'parent_rowids', 'config', 'args',
-                'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
+            ut.printex(ex, 'cat error', keys=[
+                'config_rowid', 'data_cols', 'parent_rowids'])
             raise
 
+def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
+    # TODO: generalize to all external data that needs to be written
+    # explicitly
+    extern_fname_list = table._get_extern_fnames(dirty_parent_rowids,
+                                                 config_rowid)
+    extern_dpath = table._get_extern_dpath()
+    ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
+    fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
+    _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
+    for parent_rowids, algo_result, extern_fpath in _iter:
+        yield parent_rowids, config_rowid, algo_result, extern_fpath
 
-    def _concat_rowids_data(table, dirty_parent_rowids, proptup_gen,
-                            config_rowid):
-        for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
-            try:
-                yield parent_rowids + (config_rowid,) + data_cols
-            except Exception as ex:
-                ut.printex(ex, 'cat error', keys=[
-                    'config_rowid', 'data_cols', 'parent_rowids'])
-                raise
-
-    def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
-        # TODO: generalize to all external data that needs to be written
-        # explicitly
-        extern_fname_list = table._get_extern_fnames(dirty_parent_rowids,
-                                                     config_rowid)
-        extern_dpath = table._get_extern_dpath()
-        ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
-        fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
-        _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
-        for parent_rowids, algo_result, extern_fpath in _iter:
-            yield parent_rowids, config_rowid, algo_result, extern_fpath
-
-    def _save_algo_result(table, dirty_params_chunk):
-        for tup in dirty_params_chunk:
-            parent_rowids, config_rowid, algo_result, extern_fpath = tup
-            try:
-                algo_result.save_to_fpath(extern_fpath, True)
-                yield parent_rowids + (config_rowid,) + (extern_fpath,)
-            except Exception as ex:
-                ut.printex(ex, 'cat2 error', keys=[
-                    'config_rowid', 'data_cols', 'parent_rowids'])
-                raise
+def _save_algo_result(table, dirty_params_chunk):
+    for tup in dirty_params_chunk:
+        parent_rowids, config_rowid, algo_result, extern_fpath = tup
+        try:
+            algo_result.save_to_fpath(extern_fpath, True)
+            yield parent_rowids + (config_rowid,) + (extern_fpath,)
+        except Exception as ex:
+            ut.printex(ex, 'cat2 error', keys=[
+                'config_rowid', 'data_cols', 'parent_rowids'])
+            raise
 
 
 class AlgoRequest(BaseRequest, ut.NiceRepr):
@@ -539,6 +539,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         [[edge[3]['rinput_path_id'] for edge in path] for path in accum_path_edges]
         x = [[compress_rinput_pathid(edge[3]['rinput_path_id']) for edge in path] for path in accum_path_edges]
 
+"""
             >>> for type_, subgraph in expanded_input_graph.items():
             >>>     inter.append_plot(ut.partial(pt.show_nx, subgraph,
             >>>                                  title=type_))
@@ -546,7 +547,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             >>> inter.append_plot(ut.partial(pt.show_nx, composed_graph,
             >>>                              title='composed'))
         path_edges_nodata = ut.lmap(tuple, ut.lmap(ut.take_column, accum_path_edges, colx=slice(0, 3)))
-
+"""
 
 def get_all_ancestor_rowids(depc, tablename, native_rowids):
     r"""
