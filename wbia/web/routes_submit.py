@@ -218,8 +218,8 @@ def submit_detection(**kwargs):
                     except ValueError:
                         manifest_list = []
                     test_truth = len(manifest_list) > 0
-                    test_challenge_list = [{'gid': gid, 'manifest_list': manifest_list,}]
-                    test_response_list = [{'poor_boxes': poor_boxes,}]
+                    test_challenge_list = [{'gid': gid, 'manifest_list': manifest_list, }]
+                    test_response_list = [{'poor_boxes': poor_boxes, }]
                     test_result_list = [test_truth == poor_boxes]
                     test_user_id_list = [None]
                     ibs.add_test(
@@ -596,7 +596,7 @@ def submit_detection(**kwargs):
                         metadata_dict = ibs.get_image_metadata(gid)
                         if 'staged' not in metadata_dict:
                             metadata_dict['staged'] = {
-                                'sessions': {'uuids': [], 'user_ids': [],}
+                                'sessions': {'uuids': [], 'user_ids': [], }
                             }
                         metadata_dict['staged']['sessions']['uuids'].append(
                             str(staged_uuid)
