@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Check which subpackages I've updated but not released on pypi yet.
 
@@ -23,20 +24,22 @@ def pypi_info(package_name, version=None):
 
     """
     import requests
+
     if version is None:
-        url = "https://pypi.python.org/pypi/{}/json".format(package_name)
+        url = 'https://pypi.python.org/pypi/{}/json'.format(package_name)
     else:
-        url = "https://pypi.python.org/pypi/{}/{}/json".format(package_name, version)
+        url = 'https://pypi.python.org/pypi/{}/{}/json'.format(package_name, version)
 
     package = requests.get(url).json()
 
     package_info = package['info']
     requirements = package_info['requires_dist']
 
-    availble_versions = package["releases"].keys()
+    availble_versions = package['releases'].keys()
 
-    max_ver = max(package["releases"].keys())
+    max_ver = max(package['releases'].keys())
     latest_wheel_info_list = package['releases'][max_ver]
+
 
 def query_module_pypi_info(modname, verbose=0):
     """
@@ -82,7 +85,7 @@ def main():
         print(ub.repr2(info))
         if info['local_version'] > info['pypi_version']:
             print('--------')
-            print("NEED TO PUBLISH {}".format(modname))
+            print('NEED TO PUBLISH {}'.format(modname))
             print('https://travis-ci.org/Erotemic/{}'.format(modname))
             print('--------')
 

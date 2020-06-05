@@ -1,13 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
 import util_git
 import __REPOS__
 
 
-PULL    = '--pull' in sys.argv
+PULL = '--pull' in sys.argv
 DEVELOP = '--develop' in sys.argv
-CHECK   = '--nocheck' not in sys.argv
+CHECK = '--nocheck' not in sys.argv
 
 
 # Get IBEIS git repository URLS and their local path

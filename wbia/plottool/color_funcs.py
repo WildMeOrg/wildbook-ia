@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map  # NOQA
 from wbia.plottool import custom_constants  # NOQA
@@ -6,8 +7,9 @@ from matplotlib import colors as mcolors
 import colorsys
 import numpy as np  # NOQA
 import utool as ut
-#from wbia.plottool import colormaps as cmaps2
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
+
+# from wbia.plottool import colormaps as cmaps2
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
 ut.noinject(__name__)
 # '[colorfuncs]')
 
@@ -45,8 +47,8 @@ def is_base255(channels):
 def assert_base01(channels):
     try:
         tests01 = _test_base01(channels)
-        assert tests01['is_float'], ('channels must be floats')
-        assert tests01['is_01'], ('channels must be in 0-1')
+        assert tests01['is_float'], 'channels must be floats'
+        assert tests01['is_01'], 'channels must be in 0-1'
     except AssertionError as ex:
         ut.printex(ex, key_list=['channels', 'tests01'])
         raise
@@ -55,7 +57,7 @@ def assert_base01(channels):
 def assert_base255(channels):
     try:
         tests255 = _test_base255(channels)
-        assert tests255['is_255'], ('channels must be in 0-255')
+        assert tests255['is_255'], 'channels must be in 0-255'
     except AssertionError as ex:
         ut.printex(ex, key_list=['channels', 'tests255'])
         raise
@@ -146,7 +148,7 @@ def convert_hex_to_255(hex_color):
     """
     assert hex_color.startswith('#'), 'not a hex string %r' % (hex_color,)
     parts = hex_color[1:].strip()
-    color255 = tuple(int(parts[i: i + 2], 16) for i in range(0, len(parts), 2))
+    color255 = tuple(int(parts[i : i + 2], 16) for i in range(0, len(parts), 2))
     assert len(color255) in [3, 4], 'must be length 3 or 4'
     # # color = mcolors.hex2color(hex_color[0:7])
     # if len(hex_color) > 8:
@@ -222,10 +224,11 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
     """
     import wbia.plottool as pt
     import vtool as vt
+
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
-    #print(ut.repr2(block_list))
-    #print(ut.repr2(rgb_list))
+    # print(ut.repr2(block_list))
+    # print(ut.repr2(rgb_list))
     chunks = ut.ichunks(block_list, 10)
     stacked_chunk = []
     for chunk in chunks:
@@ -236,6 +239,7 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
     uint8_img = (255 * stacked_block).astype(np.uint8)
     if gray:
         import cv2
+
         uint8_img = cv2.cvtColor(uint8_img, cv2.COLOR_RGB2GRAY)
     pt.imshow(uint8_img)
     # pt.show_if_requested()
@@ -377,13 +381,13 @@ def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
         print(1 + np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]) % 1.0)
     """
     assert_base01(rgb)
-    #assert_base01([sat_adjust, val_adjust])
+    # assert_base01([sat_adjust, val_adjust])
     numpy_input = isinstance(rgb, np.ndarray)
     # For some reason numpy input does not work well
     if numpy_input:
         dtype = rgb.dtype
         rgb = rgb.tolist()
-    #print('rgb=%r' % (rgb,))
+    # print('rgb=%r' % (rgb,))
     alpha = None
     if len(rgb) == 4:
         (R, G, B, alpha) = rgb
@@ -391,19 +395,19 @@ def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
         (R, G, B) = rgb
     hsv = colorsys.rgb_to_hsv(R, G, B)
     (H, S, V) = hsv
-    H_new = (H + hue_adjust)
+    H_new = H + hue_adjust
     if H_new > 0 or H_new < 1:
         # is there a way to more ellegantly get this?
         H_new %= 1.0
     S_new = max(min(S + sat_adjust, 1.0), 0.0)
     V_new = max(min(V + val_adjust, 1.0), 0.0)
-    #print('hsv=%r' % (hsv,))
+    # print('hsv=%r' % (hsv,))
     hsv_new = (H_new, S_new, V_new)
-    #print('hsv_new=%r' % (hsv_new,))
+    # print('hsv_new=%r' % (hsv_new,))
     new_rgb = colorsys.hsv_to_rgb(*hsv_new)
     if alpha is not None:
         new_rgb = list(new_rgb) + [alpha]
-    #print('new_rgb=%r' % (new_rgb,))
+    # print('new_rgb=%r' % (new_rgb,))
     assert_base01(new_rgb)
     # Return numpy if given as numpy
     if numpy_input:
@@ -415,7 +419,9 @@ def brighten(*args, **kwargs):
     return brighten_rgb(*args, **kwargs)
 
 
-def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cmap_seed=None):
+def distinct_colors(
+    N, brightness=0.878, randomize=True, hue_range=(0.0, 1.0), cmap_seed=None
+):
     r"""
     Args:
         N (int):
@@ -463,23 +469,25 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         >>> pt.show_if_requested()
     """
     # TODO: Add sin wave modulation to the sat and value
-    #import wbia.plottool as pt
+    # import wbia.plottool as pt
     if True:
         import wbia.plottool as pt
+
         # HACK for white figures
         remove_yellow = not pt.is_default_dark_bg()
-        #if not pt.is_default_dark_bg():
+        # if not pt.is_default_dark_bg():
         #    brightness = .8
 
     use_jet = False
     if use_jet:
         import wbia.plottool as pt
+
         cmap = pt.plt.cm.jet
         RGB_tuples = list(map(tuple, cmap(np.linspace(0, 1, N))))
     elif cmap_seed is not None:
         # Randomized map based on a seed
-        #cmap_ = 'Set1'
-        #cmap_ = 'Dark2'
+        # cmap_ = 'Set1'
+        # cmap_ = 'Dark2'
         choices = [
             #'Set1', 'Dark2',
             'jet',
@@ -498,25 +506,27 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         seed = sum(list(map(ord, ut.hashstr27(cmap_seed))))
         rng = np.random.RandomState(seed + 48930)
         cmap_str = rng.choice(choices, 1)[0]
-        #print('cmap_str = %r' % (cmap_str,))
+        # print('cmap_str = %r' % (cmap_str,))
         cmap = pt.plt.cm.get_cmap(cmap_str)
-        #ut.hashstr27(cmap_seed)
-        #cmap_seed = 0
-        #pass
-        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * ((1 / (N ** 2)))
+        # ut.hashstr27(cmap_seed)
+        # cmap_seed = 0
+        # pass
+        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * (
+            (1 / (N ** 2))
+        )
         range_ = np.linspace(0, 1, N, endpoint=False)
-        #print('range_ = %r' % (range_,))
+        # print('range_ = %r' % (range_,))
         range_ = range_ + jitter
-        #print('range_ = %r' % (range_,))
+        # print('range_ = %r' % (range_,))
         while not (np.all(range_ >= 0) and np.all(range_ <= 1)):
-            range_[range_ < 0] = np.abs(range_[range_ < 0] )
+            range_[range_ < 0] = np.abs(range_[range_ < 0])
             range_[range_ > 1] = 2 - range_[range_ > 1]
-        #print('range_ = %r' % (range_,))
+        # print('range_ = %r' % (range_,))
         shift = rng.rand()
         range_ = (range_ + shift) % 1
-        #print('jitter = %r' % (jitter,))
-        #print('shift = %r' % (shift,))
-        #print('range_ = %r' % (range_,))
+        # print('jitter = %r' % (jitter,))
+        # print('shift = %r' % (shift,))
+        # print('range_ = %r' % (range_,))
         if ncolor_hack is not None:
             range_ = range_[0:N_]
         RGB_tuples = list(map(tuple, cmap(range_)))
@@ -525,7 +535,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         val = brightness
         hmin, hmax = hue_range
         if remove_yellow:
-            hue_skips = [(.13, .24)]
+            hue_skips = [(0.13, 0.24)]
         else:
             hue_skips = []
         hue_skip_ranges = [_[1] - _[0] for _ in hue_skips]
@@ -546,28 +556,95 @@ def add_alpha(colors):
     return [list(color) + [1] for color in colors]
 
 
-CMAP_DICT = dict([
-    ('Perceptually Uniform Sequential',
-     ['viridis', 'inferno', 'plasma', 'magma']),
-    ('Sequential',     ['Blues', 'BuGn', 'BuPu',
-                        'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
-                        'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
-                        'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd']),
-    ('Sequential (2)', ['afmhot', 'autumn', 'bone', 'cool',
-                        'copper', 'gist_heat', 'gray', 'hot',
-                        'pink', 'spring', 'summer', 'winter']),
-    ('Diverging',      ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
-                        'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
-                        'seismic']),
-    ('Qualitative',    ['Accent', 'Dark2', 'Paired', 'Pastel1',
-                        'Pastel2', 'Set1', 'Set2', 'Set3']),
-    ('Miscellaneous',  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
-                        'brg', 'CMRmap', 'cubehelix',
-                        'gnuplot', 'gnuplot2', 'gist_ncar',
-                        'nipy_spectral', 'jet', 'rainbow',
-                        'gist_rainbow', 'hsv', 'flag', 'prism']),
-    #('New', ['magma', 'inferno', 'plasma', 'viridis']),
-])
+CMAP_DICT = dict(
+    [
+        ('Perceptually Uniform Sequential', ['viridis', 'inferno', 'plasma', 'magma']),
+        (
+            'Sequential',
+            [
+                'Blues',
+                'BuGn',
+                'BuPu',
+                'GnBu',
+                'Greens',
+                'Greys',
+                'Oranges',
+                'OrRd',
+                'PuBu',
+                'PuBuGn',
+                'PuRd',
+                'Purples',
+                'RdPu',
+                'Reds',
+                'YlGn',
+                'YlGnBu',
+                'YlOrBr',
+                'YlOrRd',
+            ],
+        ),
+        (
+            'Sequential (2)',
+            [
+                'afmhot',
+                'autumn',
+                'bone',
+                'cool',
+                'copper',
+                'gist_heat',
+                'gray',
+                'hot',
+                'pink',
+                'spring',
+                'summer',
+                'winter',
+            ],
+        ),
+        (
+            'Diverging',
+            [
+                'BrBG',
+                'bwr',
+                'coolwarm',
+                'PiYG',
+                'PRGn',
+                'PuOr',
+                'RdBu',
+                'RdGy',
+                'RdYlBu',
+                'RdYlGn',
+                'Spectral',
+                'seismic',
+            ],
+        ),
+        (
+            'Qualitative',
+            ['Accent', 'Dark2', 'Paired', 'Pastel1', 'Pastel2', 'Set1', 'Set2', 'Set3'],
+        ),
+        (
+            'Miscellaneous',
+            [
+                'gist_earth',
+                'terrain',
+                'ocean',
+                'gist_stern',
+                'brg',
+                'CMRmap',
+                'cubehelix',
+                'gnuplot',
+                'gnuplot2',
+                'gist_ncar',
+                'nipy_spectral',
+                'jet',
+                'rainbow',
+                'gist_rainbow',
+                'hsv',
+                'flag',
+                'prism',
+            ],
+        ),
+        # ('New', ['magma', 'inferno', 'plasma', 'viridis']),
+    ]
+)
 
 
 def show_all_colormaps():
@@ -630,10 +707,10 @@ def show_all_colormaps():
     else:
         pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
 
-    type_ =  ut.get_argval('--type', str, default=None)
+    type_ = ut.get_argval('--type', str, default=None)
     if type_ is None:
-        maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
-        #maps += cmaps2.__all__
+        maps = [m for m in pylab.cm.datad if not m.endswith('_r')]
+        # maps += cmaps2.__all__
         maps.sort()
     else:
         maps = CMAP_DICT[type_]
@@ -650,22 +727,27 @@ def show_all_colormaps():
         else:
             pylab.subplot(1, l, i + 1)
 
-        #pylab.axis("off")
+        # pylab.axis("off")
         ax = plt.gca()
         ax.set_xticks([])
         ax.set_yticks([])
-        #try:
+        # try:
         cmap = pylab.get_cmap(m)
-        #except Exception:
+        # except Exception:
         #    cmap = getattr(cmaps2, m)
 
         pylab.imshow(a, aspect='auto', cmap=cmap)  # , origin="lower")
         if TRANSPOSE:
-            ax.set_ylabel(m, rotation=0, fontsize=10,
-                          horizontalalignment='right', verticalalignment='center')
+            ax.set_ylabel(
+                m,
+                rotation=0,
+                fontsize=10,
+                horizontalalignment='right',
+                verticalalignment='center',
+            )
         else:
             pylab.title(m, rotation=90, fontsize=10)
-    #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
+    # pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
 
 
 if __name__ == '__main__':
@@ -676,6 +758,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.color_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

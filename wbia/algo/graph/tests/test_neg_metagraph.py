@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: These tests are good and important to run.
 Ensure they are run via run_tests even though they are not doctests.
@@ -7,6 +8,7 @@ accept the syntax of IBEIS doctests)
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -16,11 +18,12 @@ def test_neg_metagraph_simple_add_remove():
     between PCCs through non-label-changing operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
     # Create a graph with 5-sized CCs, with 3-pos-redun, and no negative edges
-    infr = demo.demodata_infr(num_pccs=2, pcc_size=5, pos_redun=3,
-                              ignore_pair=True, infer=True)
+    infr = demo.demodata_infr(
+        num_pccs=2, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
+    )
     cc_a, cc_b, cc_c, cc_d = infr.positive_components()
     a1, a2, a3, a4, a5 = cc_a
     b1, b2, b3, b4, b5 = cc_b
@@ -75,10 +78,12 @@ def test_neg_metagraph_merge():
     between PCCs through label-changing merge operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
-    infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
-                              ignore_pair=True, infer=True)
+    infr = demo.demodata_infr(
+        num_pccs=4, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
+    )
     cc_a, cc_b, cc_c, cc_d = infr.positive_components()
     a1, a2, a3, a4, a5 = cc_a
     b1, b2, b3, b4, b5 = cc_b
@@ -163,10 +168,12 @@ def test_neg_metagraph_split_neg():
     between PCCs through label-changing split operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
-    infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
-                              ignore_pair=True, infer=True)
+    infr = demo.demodata_infr(
+        num_pccs=4, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
+    )
     nmg = infr.neg_metagraph
     assert nmg.number_of_nodes() != infr.neg_graph.number_of_nodes()
     assert nmg.number_of_edges() == 0
@@ -182,9 +189,11 @@ def test_neg_metagraph_split_neg():
 
 def test_neg_metagraph_split_incomp():
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
-    infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
-                              ignore_pair=True, infer=True)
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
+    infr = demo.demodata_infr(
+        num_pccs=4, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
+    )
     nmg = infr.neg_metagraph
     assert nmg.number_of_nodes() < infr.neg_graph.number_of_nodes()
     assert nmg.number_of_edges() == 0
@@ -203,10 +212,12 @@ def test_neg_metagraph_split_and_merge():
     between PCCs through label-changing split and merge operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
+    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
-    infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
-                              ignore_pair=True, infer=True)
+    infr = demo.demodata_infr(
+        num_pccs=4, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
+    )
     cc_a, cc_b, cc_c, cc_d = infr.positive_components()
     a1, a2, a3, a4, a5 = cc_a
     b1, b2, b3, b4, b5 = cc_b

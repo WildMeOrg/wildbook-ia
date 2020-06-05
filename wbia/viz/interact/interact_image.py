@@ -6,14 +6,13 @@ from wbia.viz import viz_helpers as vh
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool import interact_helpers as ih
 
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
-                                                       '[interact_img]',
-                                                       DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(
+    __name__, '[interact_img]', DEBUG=False
+)
 
 
-#@ut.indent_func
-def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
-                **kwargs):
+# @ut.indent_func
+def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None, **kwargs):
     if ut.VERBOSE:
         print(ut.get_caller_name(range(9)))
         print('[interact_image] gid=%r fnum=%r' % (gid, fnum,))
@@ -24,7 +23,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
     self.fnum = fnum
 
     fig = ih.begin_interaction('image', fnum)
-    #printDBG(utool.func_str(interact_image, [], locals()))
+    # printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
     def _image_view(sel_aids=sel_aids, **_kwargs):
@@ -43,8 +42,8 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             kwargs['draw_lbls'] = not kwargs.get('draw_lbls', True)
             _image_view(**kwargs)
         else:
-            ax          = event.inaxes
-            viztype     = vh.get_ibsdat(ax, 'viztype')
+            ax = event.inaxes
+            viztype = vh.get_ibsdat(ax, 'viztype')
             annotation_centers = vh.get_ibsdat(ax, 'annotation_centers', default=[])
             print(' annotation_centers=%r' % annotation_centers)
             print(' viztype=%r' % viztype)
@@ -55,6 +54,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             # Find ANNOTATION center nearest to the clicked point
             aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
             import vtool as vt
+
             centx, _dist = vt.nearest_point(x, y, annotation_centers)
             aid = aid_list[centx]
             print(' ...clicked aid=%r' % aid)

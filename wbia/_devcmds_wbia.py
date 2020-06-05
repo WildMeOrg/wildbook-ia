@@ -32,17 +32,31 @@ def openworkdirs_test():
     python dev.py --convert --dbdir /raid/work/PZ_SweatwaterSmall --force-delete
     """
     canskip = [
-        '/raid/work/NAUT_test2', '/raid/work/WD_Siva',
-        '/raid/work/PZ_FlankHack', '/raid/work/PZ_Mothers',
-        '/raid/work/GZ_Foals', '/raid/work/PZ_MTEST', '/raid/work/GIR_Tanya',
-        '/raid/work/GZ_Siva', '/raid/work/Wildebeest', '/raid/work/sonograms',
-        '/raid/work/MISC_Jan12', '/raid/work/GZ_Master0',
-        '/raid/work/LF_OPTIMIZADAS_NI_V_E', '/raid/work/LF_Bajo_bonito',
-        '/raid/work/Frogs', '/raid/work/GZ_ALL', '/raid/work/JAG_Kelly',
-        '/raid/work/NAUT_test (copy)', '/raid/work/WS_hard',
-        '/raid/work/WY_Toads', '/raid/work/NAUT_Dan',
-        '/raid/work/LF_WEST_POINT_OPTIMIZADAS', '/raid/work/Seals',
-        '/raid/work/Rhinos_Stewart', '/raid/work/Elephants_Stewart',
+        '/raid/work/NAUT_test2',
+        '/raid/work/WD_Siva',
+        '/raid/work/PZ_FlankHack',
+        '/raid/work/PZ_Mothers',
+        '/raid/work/GZ_Foals',
+        '/raid/work/PZ_MTEST',
+        '/raid/work/GIR_Tanya',
+        '/raid/work/GZ_Siva',
+        '/raid/work/Wildebeest',
+        '/raid/work/sonograms',
+        '/raid/work/MISC_Jan12',
+        '/raid/work/GZ_Master0',
+        '/raid/work/LF_OPTIMIZADAS_NI_V_E',
+        '/raid/work/LF_Bajo_bonito',
+        '/raid/work/Frogs',
+        '/raid/work/GZ_ALL',
+        '/raid/work/JAG_Kelly',
+        '/raid/work/NAUT_test (copy)',
+        '/raid/work/WS_hard',
+        '/raid/work/WY_Toads',
+        '/raid/work/NAUT_Dan',
+        '/raid/work/LF_WEST_POINT_OPTIMIZADAS',
+        '/raid/work/Seals',
+        '/raid/work/Rhinos_Stewart',
+        '/raid/work/Elephants_Stewart',
         '/raid/work/NAUT_test',
     ]
     import wbia
@@ -52,13 +66,14 @@ def openworkdirs_test():
     from os.path import join
     from wbia.dbio import ingest_hsdb
     import wbia.other.dbinfo
+
     wbia.other.dbinfo.rrr()
     workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = [join(workdir, name) for name in dbname_list]
-    is_hsdb_list    = list(map(ingest_hsdb.is_hsdb, dbpath_list))
+    is_hsdb_list = list(map(ingest_hsdb.is_hsdb, dbpath_list))
     hsdb_list = ut.compress(dbpath_list, is_hsdb_list)
-    #is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
+    # is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
     regen_cmds = []
     for hsdb_dpath in hsdb_list:
         if hsdb_dpath in canskip:
@@ -82,6 +97,7 @@ def vdd(ibs=None, qaid_list=None):
 @devcmd('show')
 def show_aids(ibs, qaid_list):
     from wbia.viz import interact
+
     for aid in qaid_list:
         interact.ishow_chip(ibs, aid, fnum=df2.next_fnum())
 
@@ -89,18 +105,18 @@ def show_aids(ibs, qaid_list):
 @devcmd()
 def change_names(ibs, qaid_list):
     """ Test to changes names """
-    #next_name = utool.get_argval('--name', str, default='<name>_the_<species>')
+    # next_name = utool.get_argval('--name', str, default='<name>_the_<species>')
     next_name = utool.get_argval('--name', str, default='glob')
     for aid in qaid_list:
         ibs.print_name_table()
-        #(nid,) = ibs.add_names((next_name,))
+        # (nid,) = ibs.add_names((next_name,))
         ibs.set_annot_names(aid, next_name)
         ibs.print_name_table()
         ibs.print_annotation_table()
     # FIXME:
-    #new_nid = ibs.get_name_rowids_from_text(next_name, ensure=False)
-    #if back is not None:
-        #back.select_nid(new_nid)
+    # new_nid = ibs.get_name_rowids_from_text(next_name, ensure=False)
+    # if back is not None:
+    # back.select_nid(new_nid)
 
 
 @devcmd('query')
@@ -111,6 +127,7 @@ def query_aids(ibs, qaid_list, daid_list=None):
 
     """
     import wbia
+
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     cm_list = ibs.query_chips(qaid_list, daid_list)
@@ -128,6 +145,7 @@ def sver_aids(ibs, qaid_list, daid_list=None):
 
     """
     from wbia.viz import interact
+
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     cm_list = ibs.query_chips(qaid_list, daid_list)
@@ -177,6 +195,7 @@ def ensure_mtest():
         python dev.py -t mtest
     """
     import wbia
+
     wbia.ensure_pz_mtest()
 
 
@@ -187,6 +206,7 @@ def ensure_nauts():
         python dev.py -t nauts
     """
     import wbia
+
     wbia.ensure_nauts()
 
 
@@ -197,13 +217,14 @@ def ensure_wilddogs():
         python dev.py -t wds
     """
     import wbia
+
     wbia.ensure_wilddogs()
 
 
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [
     [117, 115],
-    [72,   70],
-    [45,   43],
+    [72, 70],
+    [45, 43],
 ]
 
 GZ_VIEWPOINT_EXPORT_PAIRS = [
@@ -225,17 +246,17 @@ def export(ibs, aid_pairs=None):
             aid_pair_list = GZ_VIEWPOINT_EXPORT_PAIRS
     ibs.update_query_cfg(ratio_thresh=1.6)
     export_path = expanduser('~/Dropbox/Assignments/dataset')
-    #utool.view_directory(export_path)
+    # utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
         cm_list, qreq_ = ibs.query_chips(aid_pair, aid_pair)
-        #wbia.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
+        # wbia.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
         for cm in cm_list:
             qaid = cm.qaid
             print('Getting kpts from %r' % qaid)
-            #cm.show_top(ibs)
+            # cm.show_top(ibs)
             posrid_list = utool.ensure_iterable(cm.get_classified_pos())
             mrids_list.extend([(qaid, posrid) for posrid in posrid_list])
             mkpts_list.extend(cm.get_matching_keypoints(ibs, posrid_list))
@@ -273,22 +294,28 @@ def export(ibs, aid_pairs=None):
                         tuple(kp1[ktool.LOC_DIMS].tolist()),
                         tuple(kp2[ktool.LOC_DIMS].tolist()),
                     )
-                ) + ', '
-                for kp1, kp2 in zip(kpts1_m, kpts2_m)]
+                )
+                + ', '
+                for kp1, kp2 in zip(kpts1_m, kpts2_m)
+            ]
 
             mcpaths_list = ibs.get_annot_chip_fpath(mkeys)
             fnames_list = list(map(lambda x: split(x)[1], mcpaths_list))
             for path in mcpaths_list:
                 utool.copy(path, export_path)
 
-            header_lines = ['# Exported keypoint matches (might be duplicates matches)',
-                            '# matching_aids = %r' % (mkey,)]
-            header_lines += ['# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)]
+            header_lines = [
+                '# Exported keypoint matches (might be duplicates matches)',
+                '# matching_aids = %r' % (mkey,),
+            ]
+            header_lines += [
+                '# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)
+            ]
             header_lines += ['# LINE FORMAT: match_pts = [(img1_xy, img2_xy) ... ]']
             header_text = '\n'.join(header_lines)
-            match_text  = '\n'.join(['match_pts = ['] + match_lines + [']'])
+            match_text = '\n'.join(['match_pts = ['] + match_lines + [']'])
             matchfile_text = '\n'.join([header_text, match_text])
-            matchfile_name = ('match_aids(%d,%d).txt' % mkey)
+            matchfile_name = 'match_aids(%d,%d).txt' % mkey
             matchfile_path = join(export_path, matchfile_name)
             utool.write_to(matchfile_path, matchfile_text)
             print(header_text)

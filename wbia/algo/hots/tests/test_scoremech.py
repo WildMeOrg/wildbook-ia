@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -7,6 +9,7 @@ def test_scoremech():
     import utool as ut
     import wbia
     from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+
     base = {'query_rotation_heuristic': False, 'sv_on': False}
     base = {'query_rotation_heuristic': True, 'sv_on': False, 'K': 1}
     base = {'query_rotation_heuristic': True, 'sv_on': False, 'K': 1}
@@ -14,8 +17,40 @@ def test_scoremech():
     cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
 
     qaids = [13]
-    daids = [1, 5, 11, 19, 22, 27, 31, 36, 39, 42, 43, 46, 50, 53, 55, 58, 64,
-             68, 73, 79, 81, 84, 85, 89, 95, 98, 99, 105, 108, 111, 114, 119]
+    daids = [
+        1,
+        5,
+        11,
+        19,
+        22,
+        27,
+        31,
+        36,
+        39,
+        42,
+        43,
+        46,
+        50,
+        53,
+        55,
+        58,
+        64,
+        68,
+        73,
+        79,
+        81,
+        84,
+        85,
+        89,
+        95,
+        98,
+        99,
+        105,
+        108,
+        111,
+        114,
+        119,
+    ]
 
     ibs = wbia.opendb('PZ_MTEST')
     qreq1_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict1)
@@ -40,6 +75,7 @@ def test_scoremech():
     cm1 == cm2
 
     from wbia.algo.hots.chip_match import check_arrs_eq
+
     cm1.score_list == cm2.score_list
     cm1.name_score_list == cm2.name_score_list
     cm2.annot_score_list == cm2.annot_score_list
@@ -58,12 +94,11 @@ def test_scoremech():
     amech = cm.algo_name_scores['maxcsum']
     if qreq_.qparams.K == 1 and qreq_.qparams.query_rotation_heuristic is False:
         import numpy as np
-        assert np.all(
-            cm.algo_name_scores['nsum'] ==
-            cm.algo_name_scores['maxcsum']
-        )
+
+        assert np.all(cm.algo_name_scores['nsum'] == cm.algo_name_scores['maxcsum'])
 
     from wbia.algo.hots import name_scoring
+
     # name_scoring.compute_fmech_score(cm, qreq_=qreq_, hack_single_ori=False)
     name_scoring.compute_fmech_score(cm, qreq_=qreq_)
 

@@ -8,6 +8,7 @@ import utool as ut
 import numpy as np
 from wbia.control.controller_inject import register_preprocs, register_subprops
 from wbia import core_annots
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -15,12 +16,13 @@ derived_attribute = register_preprocs['part']
 register_subprop = register_subprops['part']
 
 
-PartChipConfig  = core_annots.ChipConfig
+PartChipConfig = core_annots.ChipConfig
 PartChipImgType = core_annots.ChipImgType
 
 
 @derived_attribute(
-    tablename='pchips', parents=['parts'],
+    tablename='pchips',
+    parents=['parts'],
     colnames=['img', 'width', 'height', 'M'],
     coltypes=[PartChipImgType, int, int, np.ndarray],
     configclass=PartChipConfig,
@@ -74,8 +76,9 @@ def compute_part_chip(depc, part_rowid_list, config=None):
     bbox_list = ibs.get_part_bboxes(part_rowid_list)
     theta_list = ibs.get_part_thetas(part_rowid_list)
 
-    result_list = core_annots.gen_chip_configure_and_compute(ibs, gid_list, part_rowid_list,
-                                                             bbox_list, theta_list, config)
+    result_list = core_annots.gen_chip_configure_and_compute(
+        ibs, gid_list, part_rowid_list, bbox_list, theta_list, config
+    )
     for result in result_list:
         yield result
     print('Done Preprocessing Part Chips')
@@ -89,6 +92,8 @@ if __name__ == '__main__':
         utprof.py -m wbia.core_parts --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -56,5 +56,5 @@ failed_doctests.txt
 # Documentation
 _doc/_build/
 
-# Miscelaneous 
+# Miscelaneous
 branch.sync.sh

@@ -18,6 +18,7 @@ import matplotlib as mpl
 import random
 import sys
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -34,6 +35,7 @@ class Chap5(DBInputs):
 
 
     """
+
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures5')
 
     def measure_all(self):
@@ -79,34 +81,33 @@ class Chap5(DBInputs):
         if ibs.dbname == 'PZ_MTEST':
             params['sample_method'] = 'random'
 
-        self.pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, train_aids, **params)
+        self.pblm = vsone.OneVsOneProblem.from_aids(ibs, train_aids, **params)
 
         # ut.get_nonconflicting_path(dpath, suffix='_old')
         self.const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
             # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.99, .99),
-            'k_redun'         : 2,
-            'max_outer_loops' : np.inf,
+            'oracle_accuracy': (0.99, 0.99),
+            'k_redun': 2,
+            'max_outer_loops': np.inf,
             # 'max_outer_loops' : 1,
         }
 
         if ibs.dbname == 'GZ_Master1':
             self.thresh_targets = {
-                'graph': ('fpr', .0014),
-                'rankclf': ('fpr', .001),
+                'graph': ('fpr', 0.0014),
+                'rankclf': ('fpr', 0.001),
             }
         elif ibs.dbname == 'PZ_Master1':
             self.thresh_targets = {
                 # 'graph': ('fpr', .03),
                 # 'rankclf': ('fpr', .01),
-                'graph': ('fpr', .0014),
-                'rankclf': ('fpr', .001),
+                'graph': ('fpr', 0.0014),
+                'rankclf': ('fpr', 0.001),
             }
         else:
             self.thresh_targets = {
-                'graph': ('fpr', .002),
+                'graph': ('fpr', 0.002),
                 'rankclf': ('fpr', 0),
             }
 
@@ -151,6 +152,7 @@ class Chap5(DBInputs):
             # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
             pb_task = pblm.samples.subtasks['photobomb_state']
             import utool
+
             with utool.embed_on_exception_context:
                 flags = pb_task.indicator_df.loc[res.index]['notpb'].values
                 notpb_res = res.compress(flags)
@@ -166,18 +168,22 @@ class Chap5(DBInputs):
         print('\n --- Ranking thresholds ---')
         rankclf_report = res.report_auto_thresholds(rankclf_thresh, verbose=0)
 
-        ut.writeto(join(self.dpath, 'thresh_reports.txt'),
-                   '\n'.join([
-                       '============',
-                       'Graph report',
-                       '------------',
-                       graph_report,
-                       '',
-                       '============',
-                       'Rank CLF report',
-                       '------------',
-                       rankclf_report,
-                   ]))
+        ut.writeto(
+            join(self.dpath, 'thresh_reports.txt'),
+            '\n'.join(
+                [
+                    '============',
+                    'Graph report',
+                    '------------',
+                    graph_report,
+                    '',
+                    '============',
+                    'Rank CLF report',
+                    '------------',
+                    rankclf_report,
+                ]
+            ),
+        )
 
         # Load or create the deploy classifiers
         clf_dpath = ut.ensuredir((self.dpath, 'clf'))
@@ -204,6 +210,7 @@ class Chap5(DBInputs):
             >>> self = Chap5('GZ_Master1')
         """
         import wbia
+
         self.ensure_setup()
 
         task_key = 'match_state'
@@ -218,6 +225,7 @@ class Chap5(DBInputs):
             # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
             pb_task = pblm.samples.subtasks['photobomb_state']
             import utool
+
             with utool.embed_on_exception_context:
                 flags = pb_task.indicator_df.loc[res.index]['notpb'].values
                 notpb_res = res.compress(flags)
@@ -248,20 +256,24 @@ class Chap5(DBInputs):
 
         # ----------
         # Graph test
-        dials1 = ut.dict_union(const_dials, {
-            'name'               : 'graph',
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-        })
+        dials1 = ut.dict_union(
+            const_dials,
+            {
+                'name': 'graph',
+                'enable_inference': True,
+                'match_state_thresh': graph_thresh,
+            },
+        )
 
-        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                     verbose=verbose)
+        infr1 = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
 
         estimate = []
         thresh = []
         confusions = []
 
-        target_values = [0, .001, .0012, .0014, .0016, .002]
+        target_values = [0, 0.001, 0.0012, 0.0014, 0.0016, 0.002]
         for value in target_values:
             match_thresh = res.get_pos_threshes('fpr', value=value)
             estimate.append(value)
@@ -328,6 +340,7 @@ class Chap5(DBInputs):
             >>> self = Chap5('GZ_Master1')
         """
         import wbia
+
         self.ensure_setup()
 
         ibs = self.ibs
@@ -345,13 +358,17 @@ class Chap5(DBInputs):
 
         # ----------
         # Graph test
-        dials1 = ut.dict_union(const_dials, {
-            'name'               : 'graph',
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-        })
-        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                     verbose=verbose)
+        dials1 = ut.dict_union(
+            const_dials,
+            {
+                'name': 'graph',
+                'enable_inference': True,
+                'match_state_thresh': graph_thresh,
+            },
+        )
+        infr1 = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
         infr1.enable_auto_prioritize_nonpos = True
         infr1._refresh_params['window'] = 20
         infr1._refresh_params['thresh'] = np.exp(-2)
@@ -367,13 +384,17 @@ class Chap5(DBInputs):
 
         # --------
         # Rank+CLF
-        dials2 = ut.dict_union(const_dials, {
-            'name'               : 'rank+clf',
-            'enable_inference'   : False,
-            'match_state_thresh' : rankclf_thresh,
-        })
-        infr2 = wbia.AnnotInference(ibs=ibs, aids=test_aids,
-                                     autoinit=True, verbose=verbose)
+        dials2 = ut.dict_union(
+            const_dials,
+            {
+                'name': 'rank+clf',
+                'enable_inference': False,
+                'match_state_thresh': rankclf_thresh,
+            },
+        )
+        infr2 = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
         infr2.init_simulation(classifiers=classifiers, **dials2)
         infr2.init_test_mode()
         infr2.enable_redundancy = False
@@ -386,13 +407,13 @@ class Chap5(DBInputs):
 
         # ------------
         # Ranking test
-        dials3 = ut.dict_union(const_dials, {
-            'name'               : 'ranking',
-            'enable_inference'   : False,
-            'match_state_thresh' : None,
-        })
-        infr3 = wbia.AnnotInference(ibs=ibs, aids=test_aids,
-                                     autoinit=True, verbose=verbose)
+        dials3 = ut.dict_union(
+            const_dials,
+            {'name': 'ranking', 'enable_inference': False, 'match_state_thresh': None,},
+        )
+        infr3 = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
         infr3.init_simulation(classifiers=None, **dials3)
         infr3.init_test_mode()
         infr3.enable_redundancy = False
@@ -463,6 +484,7 @@ class Chap5(DBInputs):
                 'annot_size_mean': np.mean(nper_annot),
                 'annot_size_std': np.std(nper_annot),
             }
+
         train_aids = self.sim_params['train_aids']
         test_aids = self.sim_params['test_aids']
         dbstats = {
@@ -487,7 +509,8 @@ class Chap5(DBInputs):
                 (wbia) info, that means the staging database is ahead of
                 annotmatch. Report the wbia one for clarity. Num annots should
                 always be the same though.
-                ''')
+                '''
+            ),
         }
 
         expt_name = 'dbstats'
@@ -521,7 +544,7 @@ class Chap5(DBInputs):
             r['Names'] = v['n_names']
             r['Annots'] = v['n_annots']
             r['Annots size'] = size_str
-            r['Training edges'] =  v.get('n_training_pairs', '-')
+            r['Training edges'] = v.get('n_training_pairs', '-')
         df = pd.DataFrame.from_dict(d, orient='index').loc[list(d.keys())]
         tabular = Tabular(df)
         tabular.colfmt = 'numeric'
@@ -530,8 +553,7 @@ class Chap5(DBInputs):
         print(tabular.as_tabular())
 
         ut.writeto(join(self.dpath, 'dbstats.tex'), tabular.as_tabular())
-        fpath = ut.render_latex(tabular.as_table(), dpath=self.dpath,
-                                fname='dbstats')
+        fpath = ut.render_latex(tabular.as_table(), dpath=self.dpath, fname='dbstats')
         return fpath
 
     def print_error_analysis(self):
@@ -552,11 +574,17 @@ class Chap5(DBInputs):
         merges = delta['merges']
 
         graph = sim_results[key]['graph']
-        ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
-                  'review_id']
+        ignore = [
+            'timestamp',
+            'num_reviews',
+            'confidence',
+            'default_priority',
+            'review_id',
+        ]
 
         print('\nsplits = ' + ut.repr4(splits))
         print('\nmerges = ' + ut.repr4(merges))
+
         def print_edge_df(df, parts):
             if len(df):
                 order = ['truth', 'decision', 'tags', 'prob_match']
@@ -566,12 +594,17 @@ class Chap5(DBInputs):
 
                 df_str = df.to_string()
                 cols = ['blue', 'red', 'green', 'teal']
-                df_str = ut.highlight_multi_regex(df_str, {
-                    ut.regex_or(ut.regex_word(str(a)) for a in part): col
-                    for part, col in zip(parts, cols)})
+                df_str = ut.highlight_multi_regex(
+                    df_str,
+                    {
+                        ut.regex_or(ut.regex_word(str(a)) for a in part): col
+                        for part, col in zip(parts, cols)
+                    },
+                )
                 print(df_str)
             else:
                 print(df)
+
         for parts in merges:
             print('\n\n')
             print('Merge Row: ' + ut.repr2(parts))
@@ -598,11 +631,17 @@ class Chap5(DBInputs):
         """
         import wbia
         import wbia.plottool as pt
+
         sim_results = self.ensure_results('simulation')
         key = 'graph'
 
-        ignore = ['timestamp', 'num_reviews', 'default_priority', 'confidence',
-                  'review_id']
+        ignore = [
+            'timestamp',
+            'num_reviews',
+            'default_priority',
+            'confidence',
+            'review_id',
+        ]
 
         task_keys = [
             'match_state',
@@ -610,10 +649,7 @@ class Chap5(DBInputs):
         ]
         task_nice_lookup = {
             'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-            'photobomb_state': {
-                'pb': 'Photobomb',
-                'notpb': 'Not Photobomb',
-            }
+            'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
         }
 
         mpl.rcParams.update(TMP_RC)
@@ -633,20 +669,24 @@ class Chap5(DBInputs):
         infr.relabel_using_reviews(rectify=False)
 
         # For each node, mark its real and predicted ids
-        infr.set_node_attrs('real_id', {
-            aid: nid for nid, cc in enumerate(real_ccs) for aid in cc})
-        infr.set_node_attrs('pred_id', {
-            aid: nid for nid, cc in enumerate(pred_ccs) for aid in cc})
+        infr.set_node_attrs(
+            'real_id', {aid: nid for nid, cc in enumerate(real_ccs) for aid in cc}
+        )
+        infr.set_node_attrs(
+            'pred_id', {aid: nid for nid, cc in enumerate(pred_ccs) for aid in cc}
+        )
 
         # from networkx.utils import arbitrary_element as arbitrary
 
         # Gather a sample of error groups
         n = 20
         delta = ut.grouping_delta(pred_ccs, real_ccs, pure=False)
-        sampled_errors = ut.odict([
-            ('merge', ut.strided_sample(delta['merges'], n)),
-            ('split', ut.strided_sample(delta['splits'], n))
-        ])
+        sampled_errors = ut.odict(
+            [
+                ('merge', ut.strided_sample(delta['merges'], n)),
+                ('split', ut.strided_sample(delta['splits'], n)),
+            ]
+        )
 
         for k, v in sampled_errors.items():
             print('Sampled {} {} cases'.format(len(v), k))
@@ -666,8 +706,9 @@ class Chap5(DBInputs):
                 for edge in error_edges:
                     edge = infr.e_(*edge)
                     err_items.append((case_type, case, error_edges, edge))
-        err_items_df = pd.DataFrame(err_items, columns=['case_type', 'case',
-                                                        'error_edges', 'edge'])
+        err_items_df = pd.DataFrame(
+            err_items, columns=['case_type', 'case', 'error_edges', 'edge']
+        )
 
         edges = err_items_df['edge'].tolist()
         err_df = infr.get_edge_dataframe(edges)
@@ -682,7 +723,8 @@ class Chap5(DBInputs):
         fig = pt.figure(fnum=fnum, pnum=(2, 1, 2))
         ax = pt.gca()
         pt.adjust_subplots(
-            top=1, right=1, left=0, bottom=.15, hspace=.01, wspace=0, fig=fig)
+            top=1, right=1, left=0, bottom=0.15, hspace=0.01, wspace=0, fig=fig
+        )
 
         subitems = err_items_df
         # subitems = err_items_df[err_items_df.case_type == 'merge'].iloc[-2:]
@@ -725,9 +767,9 @@ class Chap5(DBInputs):
                 tprobs = task_probs[task_key]
                 _probs = tprobs.loc[edge].to_dict()
                 code_to_nice = task_nice_lookup[task_key]
-                probs = ut.odict((v, _probs[k])
-                                 for k, v in code_to_nice.items()
-                                 if k in _probs)
+                probs = ut.odict(
+                    (v, _probs[k]) for k, v in code_to_nice.items() if k in _probs
+                )
                 probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
                 xlabel += '\n' + probstr
             xlabel = xlabel.lstrip('\n')
@@ -778,9 +820,9 @@ class Chap5(DBInputs):
             for t in types:
                 caseinfo = info[t]
                 casetable = ut.odict()
-                casetable['pred PCCs']    = caseinfo['n_pred_pccs']
+                casetable['pred PCCs'] = caseinfo['n_pred_pccs']
                 casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real PCCs']    = caseinfo['n_real_pccs']
+                casetable['real PCCs'] = caseinfo['n_real_pccs']
                 casetable['real PCC size'] = caseinfo['size_real_pccs']
                 if with_aves:
                     casetable['small size'] = caseinfo.get('ave_small', '-')
@@ -818,13 +860,15 @@ class Chap5(DBInputs):
 
         fname = 'error_size_details'
         ut.write_to(join(self.dpath, fname + '.tex'), error_size_text)
-        ut.render_latex(error_size_text, self.dpath, fname,
-                        preamb_extra=['\\usepackage{makecell}'])
+        ut.render_latex(
+            error_size_text, self.dpath, fname, preamb_extra=['\\usepackage{makecell}']
+        )
 
         fname = 'error_group_details'
         ut.write_to(join(self.dpath, fname + '.tex'), error_group_text)
-        ut.render_latex(error_group_text, self.dpath, fname,
-                        preamb_extra=['\\usepackage{makecell}'])
+        ut.render_latex(
+            error_group_text, self.dpath, fname, preamb_extra=['\\usepackage{makecell}']
+        )
 
     def _get_error_sizes(self, expt_data, allow_hist=False):
         real_ccs = expt_data['real_ccs']
@@ -857,12 +901,14 @@ class Chap5(DBInputs):
 
         def unchanged_measures(unchanged):
             pred = true = unchanged
-            unchanged_info = ut.odict([
-                ('n_pred_pccs', len(pred)),
-                ('size_pred_pccs', ave_size(pred)),
-                ('n_real_pccs', len(true)),
-                ('size_real_pccs', ave_size(true)),
-            ])
+            unchanged_info = ut.odict(
+                [
+                    ('n_pred_pccs', len(pred)),
+                    ('size_pred_pccs', ave_size(pred)),
+                    ('n_real_pccs', len(true)),
+                    ('size_real_pccs', ave_size(true)),
+                ]
+            )
             return unchanged_info
 
         def get_bad_edges(ccs, bad_decision, ret_ccs=False):
@@ -895,16 +941,18 @@ class Chap5(DBInputs):
                 b = list(get_bad_edges(split, POSTV))
                 baddies.append(b)
 
-            split_info = ut.odict([
-                ('n_pred_pccs', len(pred)),
-                ('size_pred_pccs', ave_size(pred)),
-                ('n_real_pccs', len(true)),
-                ('size_real_pccs', ave_size(true)),
-                ('n_errgroups', len(splits)),
-                ('errgroup_size', ave_size(splits)),
-                ('ave_small', ave_size(smalls)),
-                ('ave_large', ave_size(larges)),
-            ])
+            split_info = ut.odict(
+                [
+                    ('n_pred_pccs', len(pred)),
+                    ('size_pred_pccs', ave_size(pred)),
+                    ('n_real_pccs', len(true)),
+                    ('size_real_pccs', ave_size(true)),
+                    ('n_errgroups', len(splits)),
+                    ('errgroup_size', ave_size(splits)),
+                    ('ave_small', ave_size(smalls)),
+                    ('ave_large', ave_size(larges)),
+                ]
+            )
             return split_info
 
         def merge_measures(merges):
@@ -930,25 +978,26 @@ class Chap5(DBInputs):
                 baddies.append(b)
                 bad_neg_redun = max(map(len, b))
                 n_bad_pairs += sum(map(any, b))
-                n_bad_pccs += len(
-                    set(ut.flatten(ut.take_column(ut.flatten(b2), [0, 1]))))
+                n_bad_pccs += len(set(ut.flatten(ut.take_column(ut.flatten(b2), [0, 1]))))
                 if bad_neg_redun >= 2:
                     n_neg_redun += 1
 
-            merge_info = ut.odict([
-                ('n_pred_pccs', len(pred)),
-                ('size_pred_pccs', ave_size(pred)),
-                ('n_real_pccs', len(true)),
-                ('size_real_pccs', ave_size(true)),
-                ('n_errgroups', len(merges)),
-                ('errgroup_size', ave_size(merges)),
-                ('ave_incon_edges', ave_size(ut.lmap(ut.flatten, baddies))),
-                ('n_bad_pairs', n_bad_pairs),
-                ('n_bad_pccs', n_bad_pccs),
-                ('n_neg_redun', n_neg_redun),
-                ('ave_small', ave_size(smalls)),
-                ('ave_large', ave_size(larges)),
-            ])
+            merge_info = ut.odict(
+                [
+                    ('n_pred_pccs', len(pred)),
+                    ('size_pred_pccs', ave_size(pred)),
+                    ('n_real_pccs', len(true)),
+                    ('size_real_pccs', ave_size(true)),
+                    ('n_errgroups', len(merges)),
+                    ('errgroup_size', ave_size(merges)),
+                    ('ave_incon_edges', ave_size(ut.lmap(ut.flatten, baddies))),
+                    ('n_bad_pairs', n_bad_pairs),
+                    ('n_bad_pccs', n_bad_pccs),
+                    ('n_neg_redun', n_neg_redun),
+                    ('ave_small', ave_size(smalls)),
+                    ('ave_large', ave_size(larges)),
+                ]
+            )
             return merge_info
 
         # def hybrid_measures(hybrid):
@@ -984,9 +1033,9 @@ class Chap5(DBInputs):
 
         keys = ['ranking', 'rank+clf', 'graph']
         colors = ut.dzip(keys, ['red', 'orange', 'b'])
+
         def _metrics(col):
-            return {k: ut.take_column(v['metrics'], col)
-                    for k, v in sim_results.items()}
+            return {k: ut.take_column(v['metrics'], col) for k, v in sim_results.items()}
 
         fnum = 1
 
@@ -1021,8 +1070,8 @@ class Chap5(DBInputs):
         ax.legend()
 
         fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .75])
-        pt.adjust_subplots(wspace=.25, fig=fig)
+        fig.set_size_inches([W, H * 0.75])
+        pt.adjust_subplots(wspace=0.25, fig=fig)
 
         fpath = join(self.dpath, 'simulation.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -1039,9 +1088,9 @@ class Chap5(DBInputs):
 
         keys = ['ranking', 'rank+clf', 'graph']
         colors = ut.dzip(keys, ['red', 'orange', 'b'])
+
         def _metrics(col):
-            return {k: ut.take_column(v['metrics'], col)
-                    for k, v in sim_results.items()}
+            return {k: ut.take_column(v['metrics'], col) for k, v in sim_results.items()}
 
         fnum = 1
         xdatas = _metrics('n_manual')
@@ -1063,7 +1112,7 @@ class Chap5(DBInputs):
 
         fpath = join(self.dpath, 'refresh.png')
         fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .5])
+        fig.set_size_inches([W, H * 0.5])
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
@@ -1115,13 +1164,13 @@ class Chap5(DBInputs):
             for a, b in bounds:
                 x1, x2 = xdata_[a], xdata_[b]
                 # if x1 == x2:
-                x1 -= .5
-                x2 += .5
+                x1 -= 0.5
+                x2 += 0.5
                 xs.extend([x1, x1, x2, x2])
                 ys.extend([low, high, high, low])
             xs.append(xdata_[-1])
             ys.append(low)
-            ax.fill_between(xs, ys, low, alpha=.6, color=color)
+            ax.fill_between(xs, ys, low, alpha=0.6, color=color)
 
         def overlay_actions(ymax=1):
             """
@@ -1129,17 +1178,14 @@ class Chap5(DBInputs):
             timestamps.
             """
 
-            phase = metrics_df['phase'].map(
-                lambda x: x.split('_')[0])
-            is_correct = metrics_df['test_action'].map(
-                lambda x: x.startswith('correct')).values
+            phase = metrics_df['phase'].map(lambda x: x.split('_')[0])
+            is_correct = (
+                metrics_df['test_action'].map(lambda x: x.startswith('correct')).values
+            )
             recovering = metrics_df['recovering'].values
-            is_auto = metrics_df['user_id'].map(
-                lambda x: x.startswith('algo:')).values
-            ppos = metrics_df['pred_decision'].map(
-                lambda x: x == POSTV).values
-            rpos = metrics_df['true_decision'].map(
-                lambda x: x == POSTV).values
+            is_auto = metrics_df['user_id'].map(lambda x: x.startswith('algo:')).values
+            ppos = metrics_df['pred_decision'].map(lambda x: x == POSTV).values
+            rpos = metrics_df['true_decision'].map(lambda x: x == POSTV).values
             # ymax = max(metrics_df['n_errors'])
 
             num = sum(overshow.values())
@@ -1151,136 +1197,181 @@ class Chap5(DBInputs):
 
             if overshow['auto']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()),
-                                 'is_auto(auto=gold,manual=blue)')
+                pt.absolute_text(
+                    (0.2, steps[i : i + 2].mean()), 'is_auto(auto=gold,manual=blue)'
+                )
                 stacked_interval(is_auto, 'gold', i)
                 stacked_interval(~is_auto, 'blue', i)
 
             if overshow['pred']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'pred_pos')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'pred_pos')
                 stacked_interval(ppos, 'aqua', low=steps[i], high=steps[i + 1])
                 # stacked_interval(~ppos, 'salmon', i)
 
             if overshow['real']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_pos')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'real_pos')
                 stacked_interval(rpos, 'lime', i)
                 # stacked_interval(~ppos, 'salmon', i)
 
             if overshow['error']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'is_error')
                 # stacked_interval(is_correct, 'blue', low=steps[i], high=steps[i + 1])
                 stacked_interval(~is_correct, 'red', i)
 
             if overshow['recover']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'is_recovering')
                 stacked_interval(recovering, 'orange', i)
 
             if overshow['phase']:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'phase')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'phase')
                 stacked_interval(phase == 'ranking', 'red', i)
                 stacked_interval(phase == 'posredun', 'green', i)
                 stacked_interval(phase == 'negredun', 'blue', i)
 
         pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=8)
 
-        ydatas = ut.odict([
-            ('Graph',  metrics_df['merge_remain']),
-        ])
+        ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
         pt.multi_plot(
-            xdata, ydatas, marker='', markersize=1,
-            xlabel=xlabel, ylabel='fraction of merge remaining',
-            ymin=0, rcParams=TMP_RC,
-            use_legend=True, fnum=1, pnum=pnum_(),
+            xdata,
+            ydatas,
+            marker='',
+            markersize=1,
+            xlabel=xlabel,
+            ylabel='fraction of merge remaining',
+            ymin=0,
+            rcParams=TMP_RC,
+            use_legend=True,
+            fnum=1,
+            pnum=pnum_(),
         )
         # overlay_actions(1)
 
         ykeys = ['n_errors']
         pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='', markersize=1, ymin=0, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
+            xdata,
+            metrics_df[ykeys].values.T,
+            xlabel=xlabel,
+            ylabel='# of errors',
+            marker='',
+            markersize=1,
+            ymin=0,
+            rcParams=TMP_RC,
+            fnum=1,
+            pnum=pnum_(),
             use_legend=False,
         )
         overlay_actions(max(metrics_df['n_errors']))
 
         pt.multi_plot(
-            xdata, [metrics_df['pprob_any']],
+            xdata,
+            [metrics_df['pprob_any']],
             label_list=['P(C=1)'],
-            xlabel=xlabel, ylabel='refresh criteria',
-            marker='', ymin=0, ymax=1, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
+            xlabel=xlabel,
+            ylabel='refresh criteria',
+            marker='',
+            ymin=0,
+            ymax=1,
+            rcParams=TMP_RC,
+            fnum=1,
+            pnum=pnum_(),
             use_legend=False,
         )
         ax = pt.gca()
         thresh = expt_data['refresh_thresh']
-        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
-                label='refresh thresh')
+        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g', label='refresh thresh')
         ax.legend()
         # overlay_actions(1)
 
         ykeys = ['n_fn', 'n_fp']
         pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
+            xdata,
+            metrics_df[ykeys].values.T,
             label_list=ykeys,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+            xlabel=xlabel,
+            ylabel='# of errors',
+            marker='x',
+            markersize=1,
+            ymin=0,
+            rcParams=TMP_RC,
             ymax=max(metrics_df['n_errors']),
-            fnum=1, pnum=pnum_(),
+            fnum=1,
+            pnum=pnum_(),
             use_legend=True,
         )
 
         xdata = metrics_df['n_manual']
         xlabel = '# manual reviews'
-        ydatas = ut.odict([
-            ('Graph',  metrics_df['merge_remain']),
-        ])
+        ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
         pt.multi_plot(
-            xdata, ydatas, marker='', markersize=1,
-            xlabel=xlabel, ylabel='fraction of merge remaining',
-            ymin=0, rcParams=TMP_RC,
-            use_legend=True, fnum=1, pnum=pnum_(),
+            xdata,
+            ydatas,
+            marker='',
+            markersize=1,
+            xlabel=xlabel,
+            ylabel='fraction of merge remaining',
+            ymin=0,
+            rcParams=TMP_RC,
+            use_legend=True,
+            fnum=1,
+            pnum=pnum_(),
         )
         # overlay_actions(1)
 
         ykeys = ['n_errors']
         pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='', markersize=1, ymin=0, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
+            xdata,
+            metrics_df[ykeys].values.T,
+            xlabel=xlabel,
+            ylabel='# of errors',
+            marker='',
+            markersize=1,
+            ymin=0,
+            rcParams=TMP_RC,
+            fnum=1,
+            pnum=pnum_(),
             use_legend=False,
         )
         overlay_actions(max(metrics_df['n_errors']))
 
         pt.multi_plot(
-            xdata, [metrics_df['pprob_any']],
+            xdata,
+            [metrics_df['pprob_any']],
             label_list=['P(C=1)'],
-            xlabel=xlabel, ylabel='refresh criteria',
-            marker='', ymin=0, ymax=1, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
+            xlabel=xlabel,
+            ylabel='refresh criteria',
+            marker='',
+            ymin=0,
+            ymax=1,
+            rcParams=TMP_RC,
+            fnum=1,
+            pnum=pnum_(),
             use_legend=False,
         )
         ax = pt.gca()
         thresh = expt_data['refresh_thresh']
-        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
-                label='refresh thresh')
+        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g', label='refresh thresh')
         ax.legend()
         # overlay_actions(1)
 
         ykeys = ['n_fn', 'n_fp']
         pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
+            xdata,
+            metrics_df[ykeys].values.T,
             label_list=ykeys,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+            xlabel=xlabel,
+            ylabel='# of errors',
+            marker='x',
+            markersize=1,
+            ymin=0,
+            rcParams=TMP_RC,
             ymax=max(metrics_df['n_errors']),
-            fnum=1, pnum=pnum_(),
+            fnum=1,
+            pnum=pnum_(),
             use_legend=True,
         )
 
@@ -1310,14 +1401,12 @@ class Chap4(DBInputs):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures4')
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-        'photobomb_state': {
-            'pb': 'Photobomb',
-            'notpb': 'Not Photobomb',
-        }
+        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
     }
 
     def _setup(self):
@@ -1348,6 +1437,7 @@ class Chap4(DBInputs):
             self.ibs.print_annot_stats(aids, prefix='P')
         """
         import wbia
+
         self._precollect()
         ibs = self.ibs
 
@@ -1410,6 +1500,7 @@ class Chap4(DBInputs):
         # RESET DPATH BASED ON SAMPLE?
         # MAYBE SYMLINK TO NEW DPATH?
         from os.path import expanduser
+
         dpath = expanduser(self.base_dpath + '/' + self.dbcode)
         link = expanduser(self.base_dpath + '/' + self.dbname)
         ut.ensuredir(dpath)
@@ -1555,6 +1646,7 @@ class Chap4(DBInputs):
         """
         # from sklearn.feature_selection import SelectFromModel
         from wbia.scripts import clf_helpers
+
         if getattr(self, 'pblm', None) is None:
             self._setup()
 
@@ -1583,15 +1675,15 @@ class Chap4(DBInputs):
         prog = ub.ProgIter(range(n_steps_needed), label='prune')
         for _ in prog:
             prog.ensure_newline()
-            clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
-                                                            clf_key, feat_dims)
+            clf_list, res_list = pblm._train_evaluation_clf(
+                task_key, data_key, clf_key, feat_dims
+            )
             combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
             rs = [res.extended_clf_report(verbose=0) for res in res_list]
             report = combo_res.extended_clf_report(verbose=0)
 
             # Measure mean decrease in impurity
-            clf_mdi = np.array(
-                [clf_.feature_importances_ for clf_ in clf_list])
+            clf_mdi = np.array([clf_.feature_importances_ for clf_ in clf_list])
             mean_mdi = ut.dzip(feat_dims, np.mean(clf_mdi, axis=0))
 
             # Record state
@@ -1603,7 +1695,7 @@ class Chap4(DBInputs):
             # remove the worst features
             sorted_featdims = ub.argsort(mean_mdi)
             n_have = len(sorted_featdims)
-            n_remove = (n_have - max(n_have - prune_rate, min_feats))
+            n_remove = n_have - max(n_have - prune_rate, min_feats)
             worst_features = sorted_featdims[0:n_remove]
             for f in worst_features:
                 feat_dims.remove(f)
@@ -1689,11 +1781,11 @@ class Chap4(DBInputs):
 
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
-        lnbnn_cdf = (np.cumsum(hist) / sum(hist))
+        lnbnn_cdf = np.cumsum(hist) / sum(hist)
 
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(clf_name_ranks, bins=bins)[0]
-        clf_cdf = (np.cumsum(hist) / sum(hist))
+        clf_cdf = np.cumsum(hist) / sum(hist)
 
         results = [
             (lnbnn_cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})),
@@ -1760,9 +1852,13 @@ class Chap4(DBInputs):
             print('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
         print('There are {} failure cases'.format(len(failure_cases)))
-        print('With average hardness {}'.format(
-            ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True,
-                     precision=2)))
+        print(
+            'With average hardness {}'.format(
+                ut.repr2(
+                    ut.stats_dict(failure_cases['hardness']), strkeys=True, precision=2
+                )
+            )
+        )
 
         cases = []
         for (pred, real), group in failure_cases.groupby(('pred', 'real')):
@@ -1771,9 +1867,11 @@ class Chap4(DBInputs):
             flags = ut.flag_percentile_parts(group['easiness'], front, mid, back)
             subgroup = group[flags]
 
-            print('Selected {} r({})-p({}) cases'.format(
-                len(subgroup), res.class_names[real], res.class_names[pred]
-            ))
+            print(
+                'Selected {} r({})-p({}) cases'.format(
+                    len(subgroup), res.class_names[real], res.class_names[pred]
+                )
+            )
             # ut.take_percentile_parts(group['easiness'], front, mid, back)
 
             # Prefer examples we have manually reviewed before
@@ -1782,16 +1880,18 @@ class Chap4(DBInputs):
 
             for idx, case in subgroup.iterrows():
                 edge = tuple(ut.take(case, ['aid1', 'aid2']))
-                cases.append({
-                    'edge': edge,
-                    'real': res.class_names[case['real']],
-                    'pred': res.class_names[case['pred']],
-                    'failed': case['failed'],
-                    'easiness': case['easiness'],
-                    'real_conf': case['real_conf'],
-                    'probs': res.probs_df.loc[edge].to_dict(),
-                    'edge_data': pblm.infr.get_edge_data(edge),
-                })
+                cases.append(
+                    {
+                        'edge': edge,
+                        'real': res.class_names[case['real']],
+                        'pred': res.class_names[case['pred']],
+                        'failed': case['failed'],
+                        'easiness': case['easiness'],
+                        'real_conf': case['real_conf'],
+                        'probs': res.probs_df.loc[edge].to_dict(),
+                        'edge_data': pblm.infr.get_edge_data(edge),
+                    }
+                )
 
         print('Selected %d cases in total' % (len(cases)))
 
@@ -1913,24 +2013,12 @@ class Chap4(DBInputs):
 
         pz_gt_errors = {  # NOQA
             # The true state of these pairs are:
-            NEGTV: [
-                (239, 3745),
-                (484, 519),
-                (802, 803),
-            ],
-            INCMP: [
-                (4652, 5245),
-                (4405, 5245),
-                (4109, 5245),
-                (16192, 16292),
-            ],
-            POSTV: [
-                (6919, 7192),
-            ]
+            NEGTV: [(239, 3745), (484, 519), (802, 803),],
+            INCMP: [(4652, 5245), (4405, 5245), (4109, 5245), (16192, 16292),],
+            POSTV: [(6919, 7192),],
         }
 
-        prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
-                           bs=False)
+        prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key), bs=False)
         for case in prog:
             aid1, aid2 = case['edge']
             match = case['match']
@@ -1939,21 +2027,26 @@ class Chap4(DBInputs):
             fname = 'fail_{}_{}_{}_{}'.format(real_name, pred_name, aid1, aid2)
             # Build x-label
             _probs = case['probs']
-            probs = ut.odict((v, _probs[k])
-                             for k, v in code_to_nice.items()
-                             if k in _probs)
+            probs = ut.odict(
+                (v, _probs[k]) for k, v in code_to_nice.items() if k in _probs
+            )
             probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
-            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                    probstr)
+            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
             fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
             # Draw with feature overlay
-            match.show(ax, vert=False, heatmask=True,
-                       show_lines=False,
-                       # show_lines=True, line_lw=1, line_alpha=.1,
-                       # ell_alpha=.3,
-                       show_ell=False, show_ori=False, show_eig=False,
-                       modifysize=True)
+            match.show(
+                ax,
+                vert=False,
+                heatmask=True,
+                show_lines=False,
+                # show_lines=True, line_lw=1, line_alpha=.1,
+                # ell_alpha=.3,
+                show_ell=False,
+                show_ori=False,
+                show_eig=False,
+                modifysize=True,
+            )
             ax.set_xlabel(xlabel)
             # ax.get_xaxis().get_label().set_fontsize(24)
             ax.get_xaxis().get_label().set_fontsize(24)
@@ -1978,9 +2071,9 @@ class Chap4(DBInputs):
         res = task_combo_res[task_key][clf_key][data_key]
 
         from wbia.scripts import sklearn_utils
+
         threshes = res.get_thresholds('mcc', 'max')
-        y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
-                                                  force=True)
+        y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes, force=True)
         y_true = res.target_enc_df
 
         # pred_enc = res.clf_probs.argmax(axis=1)
@@ -1990,7 +2083,8 @@ class Chap4(DBInputs):
         target_names = res.class_names
 
         report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
+            y_true, y_pred, target_names, sample_weight, verbose=False
+        )
         metric_df = report['metrics']
         confusion_df = report['confusion']
 
@@ -2027,6 +2121,7 @@ class Chap4(DBInputs):
         df.columns = ut.emap(upper_one, df.columns)
 
         import re
+
         tabular = Tabular(df, colfmt='numeric')
         top, header, mid, bot = tabular.as_parts()
         lines = mid[0].split('\n')
@@ -2044,8 +2139,7 @@ class Chap4(DBInputs):
         ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
         ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
 
-        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
-                                 fname=confusion_fname)
+        fpath1 = ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
         fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
         return fpath1, fpath2
 
@@ -2076,8 +2170,10 @@ class Chap4(DBInputs):
         target_names = res.class_names
 
         from wbia.scripts import sklearn_utils
+
         report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
+            y_true, y_pred, target_names, sample_weight, verbose=False
+        )
         metric_df = report['metrics']
         confusion_df = report['confusion']
 
@@ -2114,6 +2210,7 @@ class Chap4(DBInputs):
         df.columns = ut.emap(upper_one, df.columns)
 
         import re
+
         tabular = Tabular(df, colfmt='numeric')
         top, header, mid, bot = tabular.as_parts()
         lines = mid[0].split('\n')
@@ -2131,8 +2228,7 @@ class Chap4(DBInputs):
         ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
         ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
 
-        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
-                                 fname=confusion_fname)
+        fpath1 = ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
         fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
         return fpath1, fpath2
 
@@ -2146,15 +2242,16 @@ class Chap4(DBInputs):
         # results['encoded_labels2d']
         # results['multihist']
         import wbia
+
         infr = wbia.AnnotInference.from_netx(results['graph'])
         info = ut.odict()
-        info['n_names'] = infr.pos_graph.number_of_components(),
-        info['n_aids'] = len(results['pblm_aids']),
+        info['n_names'] = (infr.pos_graph.number_of_components(),)
+        info['n_aids'] = (len(results['pblm_aids']),)
         info['known_n_incomparable'] = infr.incomp_graph.number_of_edges()
         subtasks = results['subtasks']
 
         task = subtasks['match_state']
-        flags = (task.encoded_df == task.class_names.tolist().index(INCMP))
+        flags = task.encoded_df == task.class_names.tolist().index(INCMP)
         incomp_edges = task.encoded_df[flags.values].index.tolist()
         nid_edges = [infr.pos_graph.node_labels(*e) for e in incomp_edges]
         nid_edges = vt.ensure_shape(np.array(nid_edges), (None, 2))
@@ -2250,22 +2347,30 @@ class Chap4(DBInputs):
         # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
         # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs]
         # for rs in sub_reports])
-        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
-                             for rs in sub_reports])
+        ave_mccs = np.array(
+            [[r['metrics']['mcc']['ave/sum'] for r in rs] for rs in sub_reports]
+        )
 
         import wbia.plottool as pt
 
         mpl.rcParams.update(TMP_RC)
         fig = pt.figure(fnum=1, doclf=True)
-        pt.multi_plot(n_dims, {'mean': ave_mccs.mean(axis=1)},
-                      rcParams=TMP_RC,
-                      marker='',
-                      force_xticks=[min(n_dims)],
-                      # num_xticks=5,
-                      ylabel='MCC',
-                      xlabel='# feature dimensions',
-                      ymin=.5,
-                      ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
+        pt.multi_plot(
+            n_dims,
+            {'mean': ave_mccs.mean(axis=1)},
+            rcParams=TMP_RC,
+            marker='',
+            force_xticks=[min(n_dims)],
+            # num_xticks=5,
+            ylabel='MCC',
+            xlabel='# feature dimensions',
+            ymin=0.5,
+            ymax=1,
+            xmin=1,
+            xmax=n_dims[0],
+            fnum=1,
+            use_legend=False,
+        )
         ax = pt.gca()
         ax.invert_xaxis()
         fig.set_size_inches([W / 2, H])
@@ -2317,8 +2422,13 @@ class Chap4(DBInputs):
                 \end{{tabular}}
             \end{{table}}
             '''
-        ).format(num_top, len(pruned_importance), task_key.replace('_', '-'),
-                 increase, latex_str)
+        ).format(
+            num_top,
+            len(pruned_importance),
+            task_key.replace('_', '-'),
+            increase,
+            latex_str,
+        )
         # topinfo = vt.AnnotPairFeatInfo(list(pruned_importance.keys()))
 
         fname = 'pruned_feat_importance_{}'.format(task_key)
@@ -2363,15 +2473,25 @@ class Chap4(DBInputs):
         width = np.diff(bins)[0]
         xlim = (bins[0] - (width / 2), bins[-1] + (width / 2))
         fig = pt.multi_plot(
-            bins, (freq0, freq1), label_list=('negative', 'positive'),
+            bins,
+            (freq0, freq1),
+            label_list=('negative', 'positive'),
             color_list=(pt.FALSE_RED, pt.TRUE_BLUE),
-            kind='bar', width=width, alpha=.7, edgecolor='none',
-            xlabel=xlabel, ylabel='frequency', fnum=fnum, pnum=(1, 1, 1),
-            rcParams=TMP_RC, stacked=True,
-            ytickformat='%.2f', xlim=xlim,
+            kind='bar',
+            width=width,
+            alpha=0.7,
+            edgecolor='none',
+            xlabel=xlabel,
+            ylabel='frequency',
+            fnum=fnum,
+            pnum=(1, 1, 1),
+            rcParams=TMP_RC,
+            stacked=True,
+            ytickformat='%.2f',
+            xlim=xlim,
             # title='LNBNN positive separation'
         )
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
         return fig
 
@@ -2386,7 +2506,7 @@ class Chap4(DBInputs):
         clf_cdf = cdfs[1]
         fig = pt.figure(fnum=1)
         plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
-        fig.set_size_inches([W, H * .6])
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -2418,33 +2538,29 @@ class Chap4(DBInputs):
         pos_freq = pos_freq / pos_freq.sum()
         neg_freq = neg_freq / neg_freq.sum()
 
-        score_hist_pos = {
-            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+        score_hist_pos = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
         lnbnn_xy = results['lnbnn_xy']
         scores = lnbnn_xy['score_lnbnn_1vM'].values
         y = lnbnn_xy[POSTV].values
 
         # Get 95% of the data at least
-        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
+        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * 0.05))]
         bins = np.linspace(0, max(maxbin, 10), 100)
         pos_freq = np.histogram(scores[y], bins)[0]
         neg_freq = np.histogram(scores[~y], bins)[0]
         pos_freq = pos_freq / pos_freq.sum()
         neg_freq = neg_freq / neg_freq.sum()
-        score_hist_lnbnn = {
-            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+        score_hist_lnbnn = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
         fig1 = self._draw_score_hist(score_hist_pos, 'positive probability', 1)
         fig2 = self._draw_score_hist(score_hist_lnbnn, 'LNBNN score', 2)
 
         fname = 'score_hist_pos_{}.png'.format(data_key)
-        vt.imwrite(join(str(self.dpath), fname),
-                   pt.render_figure_to_image(fig1, dpi=DPI))
+        vt.imwrite(join(str(self.dpath), fname), pt.render_figure_to_image(fig1, dpi=DPI))
 
         fname = 'score_hist_lnbnn.png'
-        vt.imwrite(join(str(self.dpath), fname),
-                   pt.render_figure_to_image(fig2, dpi=DPI))
+        vt.imwrite(join(str(self.dpath), fname), pt.render_figure_to_image(fig2, dpi=DPI))
 
     def draw_mcc_thresh(self, task_key):
         """
@@ -2483,8 +2599,11 @@ class Chap4(DBInputs):
             t = c1.thresholds[idx]
             mcc = c1.mcc[idx]
             roc_curves += [
-                {'label': class_nice + ', t={:.2f}, mcc={:.2f}'.format(t, mcc),
-                 'thresh': c1.thresholds, 'mcc': c1.mcc},
+                {
+                    'label': class_nice + ', t={:.2f}, mcc={:.2f}'.format(t, mcc),
+                    'thresh': c1.thresholds,
+                    'mcc': c1.mcc,
+                },
             ]
 
         fig = pt.figure(fnum=1)  # NOQA
@@ -2495,7 +2614,7 @@ class Chap4(DBInputs):
         ax.set_ylabel('MCC')
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
 
         fname = 'mcc_thresh_{}.png'.format(task_key)
@@ -2532,7 +2651,7 @@ class Chap4(DBInputs):
             ]
 
             at_metric = 'tpr'
-            for at_value in [.25, .5, .75]:
+            for at_value in [0.25, 0.5, 0.75]:
                 info = ut.odict()
                 for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
                     key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
@@ -2549,13 +2668,16 @@ class Chap4(DBInputs):
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
         for data in roc_curves:
-            ax.plot(data['fpr'], data['tpr'],
-                    label='%s AUC=%.2f' % (data['label'], data['auc']))
+            ax.plot(
+                data['fpr'],
+                data['tpr'],
+                label='%s AUC=%.2f' % (data['label'], data['auc']),
+            )
         ax.set_xlabel('false positive rate')
         ax.set_ylabel('true positive rate')
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
 
         fname = 'roc_{}.png'.format(task_key)
@@ -2564,6 +2686,7 @@ class Chap4(DBInputs):
 
     def draw_wordcloud(self, task_key):
         import wbia.plottool as pt
+
         results = self.ensure_results('all')
         importances = ut.map_keys(feat_alias, results['importance'][task_key])
 
@@ -2577,6 +2700,7 @@ class Chap4(DBInputs):
     @classmethod
     def draw_tagged_pair(Chap4):
         import wbia
+
         # ibs = wbia.opendb(defaultdb='GZ_Master1')
         ibs = wbia.opendb(defaultdb='PZ_Master1')
 
@@ -2603,8 +2727,12 @@ class Chap4(DBInputs):
         if False:
             # Fix the example tags
             infr.add_feedback(
-                edge, 'match', tags=['facematch', 'leftrightface'],
-                user_id='qt-hack', confidence='pretty_sure')
+                edge,
+                'match',
+                tags=['facematch', 'leftrightface'],
+                user_id='qt-hack',
+                confidence='pretty_sure',
+            )
             infr.write_wbia_staging_feedback()
             infr.write_wbia_annotmatch_feedback()
             pass
@@ -2625,14 +2753,17 @@ class Chap4(DBInputs):
         ax = pt.gca()
 
         mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
+        match.show(
+            ax,
+            vert=False,
+            heatmask=True,
+            show_lines=False,
+            show_ell=False,
+            show_ori=False,
+            show_eig=False,
+            # ell_alpha=.3,
+            modifysize=True,
+        )
         # ax.set_xlabel(xlabel)
 
         self = Chap4()
@@ -2661,15 +2792,17 @@ class Chap4(DBInputs):
                 break
 
         import wbia
+
         ibs = wbia.opendb(self.dbname)
 
         from wbia import core_annots
+
         config = {
             'augment_orientation': True,
-            'ratio_thresh': .8,
+            'ratio_thresh': 0.8,
         }
         config['checks'] = 80
-        config['sver_xy_thresh'] = .02
+        config['sver_xy_thresh'] = 0.02
         config['sver_ori_thresh'] = 3
         config['Knorm'] = 3
         config['symmetric'] = True
@@ -2680,24 +2813,23 @@ class Chap4(DBInputs):
         pred_name = case['pred']
         match = case['match']
         code_to_nice = self.task_nice_lookup[task_key]
-        real_nice, pred_nice = ut.take(code_to_nice,
-                                       [real_name, pred_name])
+        real_nice, pred_nice = ut.take(code_to_nice, [real_name, pred_name])
         fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
         # Draw case
         probs = case['probs'].to_dict()
         order = list(code_to_nice.values())
         order = ut.setintersect(order, probs.keys())
         probs = ut.map_dict_keys(code_to_nice, probs)
-        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
-                           key_order=order)
-        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                probstr)
+        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True, key_order=order)
+        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
 
-        match_list = ibs.depc.get('pairwise_match', ([aid1], [aid2]),
-                                       'match', config=config)
+        match_list = ibs.depc.get(
+            'pairwise_match', ([aid1], [aid2]), 'match', config=config
+        )
         match = match_list[0]
         configured_lazy_annots = core_annots.make_configured_annots(
-            ibs, [aid1], [aid2], config, config, preload=True)
+            ibs, [aid1], [aid2], config, config, preload=True
+        )
         match.annot1 = configured_lazy_annots[config][aid1]
         match.annot2 = configured_lazy_annots[config][aid2]
         match.config = config
@@ -2706,14 +2838,17 @@ class Chap4(DBInputs):
         ax = pt.gca()
 
         mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
+        match.show(
+            ax,
+            vert=False,
+            heatmask=True,
+            show_lines=False,
+            show_ell=False,
+            show_ori=False,
+            show_eig=False,
+            # ell_alpha=.3,
+            modifysize=True,
+        )
         ax.set_xlabel(xlabel)
 
         subdir = 'cases_{}'.format(task_key)
@@ -2732,8 +2867,8 @@ class Chap3Measures(object):
         """
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1], extra_dbsize_fracs=[1])
+            self.ibs, self.aids_pool, denc_per_name=[1], extra_dbsize_fracs=[1]
+        )
         cfgdict = {}
         daids = daids_list[0]
         info = info_list[0]
@@ -2754,9 +2889,7 @@ class Chap3Measures(object):
             qaids = sample.qaids
             daids = sample.daids
             info = {'qsize': len(qaids), 'dsize': len(daids)}
-            grid = ut.all_dict_combinations(
-                {'featweight_enabled': [False, True]}
-            )
+            grid = ut.all_dict_combinations({'featweight_enabled': [False, True]})
             for cfgdict in grid:
                 hist = _ranking_hist(ibs, qaids, daids, cfgdict)
                 info = ut.update_dict(info.copy(), {'pcfg': cfgdict})
@@ -2789,14 +2922,14 @@ class Chap3Measures(object):
             labels.append('fg=T' if fg else 'fg=F')
             hists = vt.pad_vstack(group['hists'], fill_value=0)
             hist = hists.sum(axis=0)
-            cdf = (np.cumsum(hist) / sum(hist))
+            cdf = np.cumsum(hist) / sum(hist)
             cdfs.append(cdf)
             qsize = str(group['qsize'].sum())
             u, s = group['dsize'].mean(), group['dsize'].std()
             dsize = ave_str(u, s, precision=1)
 
-        fig = plot_cmcs(cdfs, labels, ymin=.5)
-        fig.set_size_inches([W, H * .6])
+        fig = plot_cmcs(cdfs, labels, ymin=0.5)
+        fig.set_size_inches([W, H * 0.6])
         nonvaried_text = 'qsize={:s}, dsize={:s}'.format(qsize, dsize)
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
         fpath = join(self.dpath, expt_name + '.png')
@@ -2806,8 +2939,10 @@ class Chap3Measures(object):
     def measure_foregroundness(self):
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1], extra_dbsize_fracs=[1],
+            self.ibs,
+            self.aids_pool,
+            denc_per_name=[1],
+            extra_dbsize_fracs=[1],
             method='same_occur'
             # method='same_enc'
         )
@@ -2830,18 +2965,34 @@ class Chap3Measures(object):
     def measure_invar(self):
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1], extra_dbsize_fracs=[1])
+            self.ibs, self.aids_pool, denc_per_name=[1], extra_dbsize_fracs=[1]
+        )
         daids = daids_list[0]
         info = info_list[0]
 
         cfgdict_list = [
-            {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic': False},
+            {
+                'affine_invariance': True,
+                'rotation_invariance': False,
+                'query_rotation_heuristic': False,
+            },
             # {'affine_invariance':  True, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
             # {'affine_invariance': False, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
-            {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic': False},
-            {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
-            {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
+            {
+                'affine_invariance': False,
+                'rotation_invariance': False,
+                'query_rotation_heuristic': False,
+            },
+            {
+                'affine_invariance': True,
+                'rotation_invariance': False,
+                'query_rotation_heuristic': True,
+            },
+            {
+                'affine_invariance': False,
+                'rotation_invariance': False,
+                'query_rotation_heuristic': True,
+            },
         ]
         results = []
         for cfgdict in cfgdict_list:
@@ -2858,11 +3009,12 @@ class Chap3Measures(object):
         python -m wbia Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
         """
         from wbia.algo.smk.smk_pipeline import SMKRequest
+
         # ibs = wbia.opendb('PZ_MTEST')
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1], extra_dbsize_fracs=[1])
+            self.ibs, self.aids_pool, denc_per_name=[1], extra_dbsize_fracs=[1]
+        )
         daids = daids_list[0]
         info = info_list[0]
         results = []
@@ -2876,7 +3028,7 @@ class Chap3Measures(object):
         name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
-        cdf = (np.cumsum(hist) / sum(hist))
+        cdf = np.cumsum(hist) / sum(hist)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': config})))
 
         # LNBNN pipeline
@@ -2901,12 +3053,16 @@ class Chap3Measures(object):
         """
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
+            self.ibs, self.aids_pool, denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1]
+        )
 
         base = {'query_rotation_heuristic': True}
-        cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
-        cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
+        cfgdict1 = ut.dict_union(
+            base, {'score_method': 'nsum', 'prescore_method': 'nsum'}
+        )
+        cfgdict2 = ut.dict_union(
+            base, {'score_method': 'csum', 'prescore_method': 'csum'}
+        )
         results = []
         for count, (daids, info) in enumerate(zip(daids_list, info_list), start=1):
             cdf1 = _ranking_cdf(ibs, qaids, daids, cfgdict1)
@@ -2918,12 +3074,16 @@ class Chap3Measures(object):
             self._precollect()
             ibs = self.ibs
             qaids, daids_list, info_list = Sampler._varied_inputs(
-                self.ibs, self.aids_pool,
-                denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
+                self.ibs, self.aids_pool, denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1]
+            )
             # Check dpername issue
             base = {'query_rotation_heuristic': False, 'K': 1, 'sv_on': True}
-            cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
-            cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
+            cfgdict1 = ut.dict_union(
+                base, {'score_method': 'nsum', 'prescore_method': 'nsum'}
+            )
+            cfgdict2 = ut.dict_union(
+                base, {'score_method': 'csum', 'prescore_method': 'csum'}
+            )
 
             qaids = [2491]
 
@@ -2939,7 +3099,7 @@ class Chap3Measures(object):
                 cm_list2 = qreq2_.execute(use_cache=False)
                 cm1 = cm_list1[0]
                 cm2 = cm_list2[0]
-                assert (cm1 == cm2)
+                assert cm1 == cm2
 
             # cm_list1 = [cm.extend_results(qreq1_) for cm in cm_list1]
             # cm_list2 = [cm.extend_results(qreq2_) for cm in cm_list2]
@@ -2965,8 +3125,8 @@ class Chap3Measures(object):
     def measure_dbsize(self):
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
+            self.ibs, self.aids_pool, denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0]
+        )
         cfgdict = {
             'query_rotation_heuristic': True,
         }
@@ -2984,8 +3144,8 @@ class Chap3Measures(object):
     def measure_kexpt(self):
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
-            self.ibs, self.aids_pool,
-            denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
+            self.ibs, self.aids_pool, denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0]
+        )
         cfg_grid = {
             'query_rotation_heuristic': True,
             'K': [1, 2, 4, 6],
@@ -3022,8 +3182,7 @@ class Chap3Measures(object):
             delta = times.max() - times.min()
             enc_deltas.append(delta)
         max_enc_timedelta = max(enc_deltas)
-        print('max enc timedelta = %r' % (
-            ut.get_unix_timedelta_str(max_enc_timedelta)))
+        print('max enc timedelta = %r' % (ut.get_unix_timedelta_str(max_enc_timedelta)))
 
         multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
         multi_stats['enc_per_name']
@@ -3033,12 +3192,11 @@ class Chap3Measures(object):
         enc_info['n_singleton_names'] = len(single_encs)
         enc_info['n_resighted_names'] = len(multi_encs)
         enc_info['n_encounter_per_resighted_name'] = ave_str(
-            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']),
-            precision=1)
+            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']), precision=1
+        )
         n_annots_per_enc = ut.lmap(len, encounters)
         enc_info['n_annots_per_encounter'] = ave_str(
-            np.mean(n_annots_per_enc), np.std(n_annots_per_enc),
-            precision=1,
+            np.mean(n_annots_per_enc), np.std(n_annots_per_enc), precision=1,
         )
         enc_info['n_annots'] = sum(n_annots_per_enc)
 
@@ -3075,7 +3233,7 @@ class Chap3Draw(object):
         cdfs, infos = list(zip(*results))
         baseline_cdf = cdfs[0]
         fig = plot_cmcs([baseline_cdf], ['baseline'], fnum=1)
-        fig.set_size_inches([W, H * .6])
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -3095,8 +3253,8 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         labels = ['smk', 'baseline']
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H * .6])
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -3116,8 +3274,8 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         labels = ['fg=F', 'fg=T']
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H * .6])
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -3135,12 +3293,16 @@ class Chap3Draw(object):
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
-        ALIAS_KEYS = ut.invert_dict({
-            'RI': 'rotation_invariance',
-            'AI': 'affine_invariance',
-            'QRH': 'query_rotation_heuristic', })
-        results = [(c, i) for c, i in results
-                   if not i['pcfg'].get('rotation_invariance', False)]
+        ALIAS_KEYS = ut.invert_dict(
+            {
+                'RI': 'rotation_invariance',
+                'AI': 'affine_invariance',
+                'QRH': 'query_rotation_heuristic',
+            }
+        )
+        results = [
+            (c, i) for c, i in results if not i['pcfg'].get('rotation_invariance', False)
+        ]
         cdfs, infos = list(zip(*results))
         pcfgs = ut.take_column(infos, 'pcfg')
 
@@ -3149,8 +3311,8 @@ class Chap3Draw(object):
 
         labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
         labels = ut.lmap(label_alias, labels)
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H * .6])
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -3175,14 +3337,17 @@ class Chap3Draw(object):
             'nsum': 'fmech',
             'csum': 'amech',
         }
-        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
+        labels = [
+            alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername'])
+            for x in infos
+        ]
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
         nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
-        fig.set_size_inches([W, H * .6])
+        fig.set_size_inches([W, H * 0.6])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
@@ -3196,7 +3361,7 @@ class Chap3Draw(object):
             >>> from wbia.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
         """
-        raise Exception("hacked")
+        raise Exception('hacked')
         mpl.rcParams.update(TMP_RC)
         # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         fpath = '/home/joncrall/latex/crall-thesis-2017/figures3/PZ_Master1/nsum.pkl'
@@ -3208,18 +3373,21 @@ class Chap3Draw(object):
             'nsum': 'fmech',
             'csum': 'amech',
         }
-        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        labels = [
+            alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername'])
+            for x in infos
+        ]
         # hack
         cdfs = cdfs[::2]
         labels = labels[::2]
         infos = infos[::2]
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
         nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
-        fig.set_size_inches([W, H * .6])
+        fig.set_size_inches([W, H * 0.6])
         ut.ensuredir(self.dpath)
         fpath = join(self.dpath, 'nsum_simple.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -3240,6 +3408,7 @@ class Chap3Draw(object):
         df['cdfs'] = cdfs
         df['K'] = ut.take_column(pcfgs, 'K')
         import wbia.plottool as pt
+
         # groups = list(df.groupby(('dsize', 't_denc_pername')))
         df = df[df['K'] != 10]
 
@@ -3251,18 +3420,22 @@ class Chap3Draw(object):
             # print(df_group)
             relevant_df = df_group[['K', 'qsize', 'dsize', 't_dpername']]
             relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
-            relevant_cfgs = [ut.order_dict_by(d, relevant_df.columns.tolist())
-                             for d in relevant_df.to_dict('records')]
+            relevant_cfgs = [
+                ut.order_dict_by(d, relevant_df.columns.tolist())
+                for d in relevant_df.to_dict('records')
+            ]
             nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
             labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
             cdfs_ = df_group['cdfs'].values
-            plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
+            plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=0.5)
             ax = pt.gca()
             nonvaried_text = ut.get_cfg_lbl(nonvaried_kw)[1:]
             # ax.set_title(nonvaried_text)
             pt.relative_text('lowerleft', nonvaried_text, ax=ax)
 
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.3, wspace=.2)
+        pt.adjust_subplots(
+            top=0.9, bottom=0.1, left=0.12, right=0.9, hspace=0.3, wspace=0.2
+        )
         fig.set_size_inches([W, H * 1.9])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -3288,7 +3461,7 @@ class Chap3Draw(object):
         # if 'baseline' in self.expt_results:
         #     self.draw_baseline()
 
-        if ('PZ' in self.dbname or 'GZ' in self.dbname):
+        if 'PZ' in self.dbname or 'GZ' in self.dbname:
             expts = ['foregroundness', 'invar', 'smk', 'nsum', 'kexpt']
             for expt_name in expts:
                 if expt_name in self.expt_results:
@@ -3326,6 +3499,7 @@ class Chap3Draw(object):
             >>>     self.draw_time_distri()
         """
         import matplotlib as mpl
+
         mpl.rcParams.update(TMP_RC)
         if self.ibs is None:
             self._precollect()
@@ -3342,9 +3516,11 @@ class Chap3Draw(object):
         unixtime_domain = np.linspace(mintime, maxtime, 1000)
 
         import matplotlib as mpl
+
         mpl.rcParams.update(TMP_RC)
 
         from sklearn.neighbors.kde import KernelDensity
+
         bw = ut.get_argval('--bw', default=None)
         day = 60 * 60 * 24
         if bw is not None:
@@ -3359,12 +3535,14 @@ class Chap3Draw(object):
             bw = day * 30
         else:
             from sklearn.model_selection import RandomizedSearchCV
+
             space = np.linspace(day, day * 14, 14).tolist()
             grid_params = {'bandwidth': space}
             searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
             print('Searching for best bandwidth')
-            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
-                            cv=2, verbose=0)
+            grid = searcher(
+                KernelDensity(kernel='gaussian'), grid_params, cv=2, verbose=0
+            )
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
             print('bw = %r' % (bw,))
@@ -3381,11 +3559,21 @@ class Chap3Draw(object):
         xdata = unixtime_domain
         xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
 
-        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
-                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
-                      marker='', xlabel='Date', ylabel='# images',
-                      num_xticks=5,
-                      use_legend=False)
+        pt.multi_plot(
+            xdata_ts,
+            [ydata],
+            label_list=['time'],
+            alpha=0.7,
+            fnum=1,
+            pnum=(1, 1, 1),
+            ymin=0,
+            fill=True,
+            marker='',
+            xlabel='Date',
+            ylabel='# images',
+            num_xticks=5,
+            use_legend=False,
+        )
         infos = []
         if num_nan > 0:
             infos.append('#nan={}'.format(num_nan))
@@ -3393,17 +3581,22 @@ class Chap3Draw(object):
         else:
             infos.append('#total={}'.format(num_total))
         text = '\n'.join(infos)
-        pt.relative_text((.02, .02), text, halign='left', valign='top')
+        pt.relative_text((0.02, 0.02), text, halign='left', valign='top')
 
         ax = pt.gca()
         fig = pt.gcf()
         ax.set_yticks([])
         if False:
             icon = ibs.get_database_icon()
-            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
-                            as_artist=1, max_asize=(100, 200))
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
-        fig.set_size_inches([W, H * .4])
+            pt.overlay_icon(
+                icon,
+                coords=(0, 1),
+                bbox_alignment=(0, 1),
+                as_artist=1,
+                max_asize=(100, 200),
+            )
+        pt.adjust_subplots(top=0.9, bottom=0.1, left=0.12, right=0.9)
+        fig.set_size_inches([W, H * 0.4])
         fpath = join(self.dpath, 'timedist.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
@@ -3412,6 +3605,7 @@ class Chap3Draw(object):
 @ut.reloadable_class
 class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures3')
+
     def _setup(self):
         self._precollect()
 
@@ -3421,8 +3615,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         CommandLine:
             python -m wbia Chap3.run_all
         """
-        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
-                       'humpbacks_fb']
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         agg_dbnames = agg_dbnames[::-1]
 
         for dbname in agg_dbnames:
@@ -3499,8 +3692,12 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
 
         df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})
-        df = df.reindex(ut.partial_order(
-            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
+        df = df.reindex(
+            ut.partial_order(
+                df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']
+            ),
+            axis=1,
+        )
         df = df.set_index('Database')
         df.index.name = None
         df.index = ut.emap(upper_one, df.index)
@@ -3512,15 +3709,22 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         print(qual_text)
 
         df = pd.DataFrame(infos['view'])
-        df = df.rename(columns={
-            'species_nice': 'Database',
-            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
-            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
-            'frontleft': 'FL',
-        })
+        df = df.rename(
+            columns={
+                'species_nice': 'Database',
+                'back': 'B',
+                'left': 'L',
+                'right': 'R',
+                'front': 'F',
+                'backleft': 'BL',
+                'backright': 'BR',
+                'frontright': 'FR',
+                'frontleft': 'FL',
+            }
+        )
         order = ut.partial_order(
-            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
-                         'B', 'None'])
+            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', 'None']
+        )
         df = df.reindex(order, axis=1)
         df = df.set_index('Database')
         df.index.name = None
@@ -3531,14 +3735,26 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         view_text = tabular.as_tabular()
         print(view_text)
 
-        ut.render_latex(enc_text, dpath=self.base_dpath, fname='agg-enc',
-                        preamb_extra=['\\usepackage{makecell}'])
+        ut.render_latex(
+            enc_text,
+            dpath=self.base_dpath,
+            fname='agg-enc',
+            preamb_extra=['\\usepackage{makecell}'],
+        )
 
-        ut.render_latex(view_text, dpath=self.base_dpath, fname='agg-view',
-                        preamb_extra=['\\usepackage{makecell}'])
+        ut.render_latex(
+            view_text,
+            dpath=self.base_dpath,
+            fname='agg-view',
+            preamb_extra=['\\usepackage{makecell}'],
+        )
 
-        ut.render_latex(qual_text, dpath=self.base_dpath, fname='agg-qual',
-                        preamb_extra=['\\usepackage{makecell}'])
+        ut.render_latex(
+            qual_text,
+            dpath=self.base_dpath,
+            fname='agg-qual',
+            preamb_extra=['\\usepackage{makecell}'],
+        )
 
         ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
@@ -3566,12 +3782,11 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
             qsize = config['t_n_names']
             baseline_cdf = results[0][0]
             cdfs.append(baseline_cdf)
-            labels.append('{},qsize={},dsize={}'.format(
-                self.species_nice, qsize, dsize))
+            labels.append('{},qsize={},dsize={}'.format(self.species_nice, qsize, dsize))
             # labels.append(self.species_nice.capitalize())
 
         mpl.rcParams.update(TMP_RC)
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
         fig.set_size_inches([W, H * 1.5])
         fpath = join(Chap3.base_dpath, 'agg-baseline.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -3594,8 +3809,12 @@ class Sampler(object):
         nid_to_splits = ut.ddict(list)
         # Find the biggest occurrences and pick an annotation from that
         # occurrence to be sampled
-        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
-        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        occur_to_encs = ut.group_items(
+            encounters, ut.take_column(encounters.occurrence_text, 0)
+        )
+        occur_encs = ut.sortedby(
+            list(occur_to_encs.values()), list(map(len, occur_to_encs.values()))
+        )[::-1]
         for encs in occur_encs:
             for enc in encs:
                 sortx = ut.argsort(enc.qualities)[::-1]
@@ -3633,21 +3852,25 @@ class Sampler(object):
 
         # Find the biggest occurrences and pick an annotation from that
         # occurrence to be sampled
-        occurrences = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occurrences = ut.group_items(
+            encounters, ut.take_column(encounters.occurrence_text, 0)
+        )
         occurrences = ut.map_vals(ibs._annot_groups, occurrences)
 
-        occur_nids = {o: set(ut.flatten(encs.nids))
-                      for o, encs in occurrences.items()}
+        occur_nids = {o: set(ut.flatten(encs.nids)) for o, encs in occurrences.items()}
 
         # Need to find multiple disjoint exact covers of the nids
         # Greedy solution because this is NP-hard
         from wbia.algo.graph import nx_dynamic_graph
+
         G = nx_dynamic_graph.DynConnGraph()
         G.add_nodes_from(occur_nids.keys())
-        occur_ids = ut.sortedby(
-            occur_nids.keys(), ut.lmap(len, occur_nids.values()))[::-1]
-        current_combos = {frozenset(G.connected_to(o1)): occur_nids[o1]
-                          for o1 in occur_ids}
+        occur_ids = ut.sortedby(occur_nids.keys(), ut.lmap(len, occur_nids.values()))[
+            ::-1
+        ]
+        current_combos = {
+            frozenset(G.connected_to(o1)): occur_nids[o1] for o1 in occur_ids
+        }
         for o1, o2 in ut.combinations(occur_ids, 2):
             if G.node_label(o1) == G.node_label(o2):
                 continue
@@ -3700,8 +3923,12 @@ class Sampler(object):
         nid_to_splits = ut.ddict(list)
         # Find the biggest occurrences and pick an annotation from that
         # occurrence to be sampled
-        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
-        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        occur_to_encs = ut.group_items(
+            encounters, ut.take_column(encounters.occurrence_text, 0)
+        )
+        occur_encs = ut.sortedby(
+            list(occur_to_encs.values()), list(map(len, occur_to_encs.values()))
+        )[::-1]
         for encs in occur_encs:
             for enc in encs:
                 nid = enc.nids[0]
@@ -3726,9 +3953,17 @@ class Sampler(object):
         """ This can be used for cross validation """
         # Find a split of query/database encounters and confusors
         from wbia.init.filter_annots import encounter_crossval
+
         enc_splits, nid_to_confusors = encounter_crossval(
-            ibs, aids, qenc_per_name=1, annots_per_enc=1,
-            denc_per_name=denc_per_name_, rebalance=True, rng=0, early=True)
+            ibs,
+            aids,
+            qenc_per_name=1,
+            annots_per_enc=1,
+            denc_per_name=denc_per_name_,
+            rebalance=True,
+            rng=0,
+            early=True,
+        )
 
         qname_encs, dname_encs = enc_splits[0]
         qaids = sorted(ut.flatten(ut.flatten(qname_encs)))
@@ -3737,8 +3972,9 @@ class Sampler(object):
         return qaids, dname_encs, confusor_pool
 
     @staticmethod
-    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc,
-                    viewpoint_aware=False):
+    def _alt_splits(
+        ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc, viewpoint_aware=False
+    ):
         """
         This cannot be used for cross validation
 
@@ -3800,6 +4036,7 @@ class Sampler(object):
 
         def _only_comparable(qsubenc, avail_dencs):
             from vtool import _rhomb_dist
+
             qviews = set(ut.flatten(qsubenc.viewpoint_code))
             comparable_encs = []
             for denc in avail_dencs:
@@ -3823,7 +4060,8 @@ class Sampler(object):
                     qencxs = pyrng.sample(avail_qxs, qenc_per_name)
                     qencs = ut.take(encs, qencxs)
                     qsubenc = ibs._annot_groups(
-                        [choose_best(enc, annots_per_enc) for enc in qencs])
+                        [choose_best(enc, annots_per_enc) for enc in qencs]
+                    )
 
                     # Ensure the db annots are comparable to at least one query
                     avail_dencs = ut.take(encs, ut.setdiff(avail_qxs, qencxs))
@@ -3833,7 +4071,8 @@ class Sampler(object):
                         # If we still have enough, sample daids
                         dencs = pyrng.sample(comparable_encs, denc_per_name_)
                         dsubenc = ibs._annot_groups(
-                            [choose_best(enc, annots_per_enc) for enc in dencs])
+                            [choose_best(enc, annots_per_enc) for enc in dencs]
+                        )
                         sample_splits[nid] = (qsubenc.aids, dsubenc.aids)
                     else:
                         # If we don't add to confusors
@@ -3842,8 +4081,9 @@ class Sampler(object):
                     # For each name choose a query / database encounter.
                     chosen_encs = pyrng.sample(encs, n_need)
                     # Choose high quality annotations from each encounter
-                    best_subencs = [choose_best(enc, annots_per_enc) for
-                                    enc in chosen_encs]
+                    best_subencs = [
+                        choose_best(enc, annots_per_enc) for enc in chosen_encs
+                    ]
                     # ibs._annot_groups(best_subencs).aids
                     qsubenc = ibs._annot_groups(best_subencs[0:qenc_per_name])
                     dsubenc = ibs._annot_groups(best_subencs[qenc_per_name:])
@@ -3866,17 +4106,21 @@ class Sampler(object):
             # confname_encs.append(rand_subencs)
 
             # old
-            confusor_pool.extend(
-                ut.flatten([enc[0:annots_per_enc].aids for enc in encs])
-            )
+            confusor_pool.extend(ut.flatten([enc[0:annots_per_enc].aids for enc in encs]))
 
         qaids = ut.total_flatten(ut.take_column(sample_splits.values(), 0))
         dname_encs = ut.take_column(sample_splits.values(), 1)
         return qaids, dname_encs, confname_encs, confusor_pool
 
     @staticmethod
-    def _varied_inputs(ibs, aids, denc_per_name=[1], extra_dbsize_fracs=None,
-                        method='alt', viewpoint_aware=None):
+    def _varied_inputs(
+        ibs,
+        aids,
+        denc_per_name=[1],
+        extra_dbsize_fracs=None,
+        method='alt',
+        viewpoint_aware=None,
+    ):
         """
         Vary num per name and total number of annots
 
@@ -3924,8 +4168,13 @@ class Sampler(object):
             if viewpoint_aware is None:
                 viewpoint_aware = False
             qaids, dname_encs, confname_encs, confusor_pool = Sampler._alt_splits(
-                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc,
-                viewpoint_aware=viewpoint_aware)
+                ibs,
+                aids,
+                qenc_per_name,
+                denc_per_name_,
+                annots_per_enc,
+                viewpoint_aware=viewpoint_aware,
+            )
         elif method == 'same_occur':
             assert viewpoint_aware is None, 'cannot specify viewpoint_aware here'
             assert denc_per_name_ == 1
@@ -3947,15 +4196,18 @@ class Sampler(object):
             daids_ = ut.flatten(dnames_)
             target_daids_list.append(daids_)
             name_lens = ut.lmap(len, dnames_)
-            dpername = (name_lens[0] if ut.allsame(name_lens) else
-                        np.mean(name_lens))
-            target_info_list_.append(ut.odict([
-                ('qsize', len(qaids)),
-                ('t_n_names', len(dname_encs_)),
-                ('t_dpername', dpername),
-                ('t_denc_pername', num),
-                ('t_dsize', len(daids_)),
-            ]))
+            dpername = name_lens[0] if ut.allsame(name_lens) else np.mean(name_lens)
+            target_info_list_.append(
+                ut.odict(
+                    [
+                        ('qsize', len(qaids)),
+                        ('t_n_names', len(dname_encs_)),
+                        ('t_dpername', dpername),
+                        ('t_denc_pername', num),
+                        ('t_dsize', len(daids_)),
+                    ]
+                )
+            )
 
         # confusor_names_matter = True
         # if confusor_names_matter:
@@ -3987,8 +4239,9 @@ class Sampler(object):
         # assert len(confusor_pool) > n_need, 'not enough confusors'
         padded_daids_list = []
         padded_info_list_ = []
-        for num, daids_, info_ in zip(denc_per_name, target_daids_list,
-                                      target_info_list_):
+        for num, daids_, info_ in zip(
+            denc_per_name, target_daids_list, target_info_list_
+        ):
             num_take = max_dsize - len(daids_)
 
             assert num_take < len(confusor_pool), 'not enough confusors'
@@ -4003,14 +4256,14 @@ class Sampler(object):
 
         # Vary the dbsize by appending extra confusors
         if extra_dbsize_fracs is None:
-            extra_dbsize_fracs = [1.]
+            extra_dbsize_fracs = [1.0]
         extra_fracs = np.array(extra_dbsize_fracs)
         n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
         daids_list = []
         info_list = []
         for n in n_extra_list:
             for daids_, info_ in zip(padded_daids_list, padded_info_list_):
-                extra_aids = confusor_pool[len(confusor_pool) - n:]
+                extra_aids = confusor_pool[len(confusor_pool) - n :]
                 daids = sorted(daids_ + extra_aids)
                 daids_list.append(daids)
                 info = info_.copy()
@@ -4019,6 +4272,7 @@ class Sampler(object):
                 info_list.append(info)
 
         import pandas as pd
+
         verbose = 0
         if verbose:
             print(pd.DataFrame.from_records(info_list))
@@ -4029,6 +4283,7 @@ class Sampler(object):
                 for daids in daids_list:
                     ibs.print_annotconfig_stats(qaids, daids)
         return qaids, daids_list, info_list
+
     pass
 
 
@@ -4038,9 +4293,7 @@ class SplitSample(ut.NiceRepr):
         sample.daids = daids
 
     def __nice__(sample):
-        return 'nQaids={}, nDaids={}'.format(
-            len(sample.qaids), len(sample.daids)
-        )
+        return 'nQaids={}, nDaids={}'.format(len(sample.qaids), len(sample.daids))
 
 
 def _ranking_hist(ibs, qaids, daids, cfgdict):
@@ -4059,7 +4312,7 @@ def _ranking_hist(ibs, qaids, daids, cfgdict):
 
 def _ranking_cdf(ibs, qaids, daids, cfgdict):
     hist = _ranking_hist(ibs, qaids, daids, cfgdict)
-    cdf = (np.cumsum(hist) / sum(hist))
+    cdf = np.cumsum(hist) / sum(hist)
     return cdf
 
 
@@ -4086,25 +4339,36 @@ def prepare_cdfs(cdfs, labels):
     return cdfs, labels
 
 
-def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
+def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=0.4):
     cdfs, labels = prepare_cdfs(cdfs, labels)
     # Truncte to 20 ranks
     num_ranks = min(cdfs.shape[-1], 20)
     xdata = np.arange(1, num_ranks + 1)
     cdfs_trunc = cdfs[:, 0:num_ranks]
-    label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
-                  for cdf, lbl in zip(cdfs_trunc, labels)]
+    label_list = [
+        '%6.2f%% - %s' % (cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
+    ]
 
     # ymin = .4
     num_yticks = (10 - int(ymin * 10)) + 1
 
     pt.multi_plot(
-        xdata, cdfs_trunc, label_list=label_list,
-        xlabel='rank', ylabel='match probability',
-        use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
-        ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
-        xmax=num_ranks + 1 - .5,
-        pnum=pnum, fnum=fnum,
+        xdata,
+        cdfs_trunc,
+        label_list=label_list,
+        xlabel='rank',
+        ylabel='match probability',
+        use_legend=True,
+        legend_loc='lower right',
+        num_yticks=num_yticks,
+        ymax=1,
+        ymin=ymin,
+        ypad=0.005,
+        xmin=0.9,
+        num_xticks=5,
+        xmax=num_ranks + 1 - 0.5,
+        pnum=pnum,
+        fnum=fnum,
         rcParams=TMP_RC,
     )
     return pt.gcf()
@@ -4113,7 +4377,7 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
 def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     fig = pt.figure(fnum=fnum)
     plot_cmcs(cdfs, labels, fnum=fnum, **kwargs)
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
     fig.set_size_inches([W, H])
     return fig
 
@@ -4125,6 +4389,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.thesis --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-#from wbia.guitool.__PYQT__.QtCore import Qt
+
+# from wbia.guitool.__PYQT__.QtCore import Qt
 import six
 from wbia.guitool.__PYQT__.QtCore import QLocale
 import utool as ut
@@ -7,10 +9,11 @@ import uuid
 import numpy as np
 from wbia.guitool.__PYQT__ import QtGui
 from wbia.guitool.guitool_decorators import checks_qt_error
-#if six.PY2:
+
+# if six.PY2:
 #    from wbia.guitool.__PYQT__.QtCore import QString
 #    from wbia.guitool.__PYQT__.QtCore import QVariant
-#elif six.PY3:
+# elif six.PY3:
 QVariant = None
 
 __STR__ = unicode if six.PY2 else str
@@ -24,38 +27,40 @@ SIMPLE_CASTING = True
 
 
 ItemDataRoles = {
-    0  : 'DisplayRole',       # key data to be rendered in the form of text. (QString)
-    1  : 'DecorationRole',     # data to be rendered as an icon. (QColor, QIcon or QPixmap)
-    2  : 'EditRole',           # data in a form suitable for editing in an editor. (QString)
-    3  : 'ToolTipRole',        # data displayed in the item's tooltip. (QString)
-    4  : 'StatusTipRole',      # data displayed in the status bar. (QString)
-    5  : 'WhatsThisRole',      # data displayed in "What's This?" mode. (QString)
-    13 : 'SizeHintRole',       # size hint for item that will be supplied to views. (QSize)
-    6  : 'FontRole',           # font used for items rendered with default delegate. (QFont)
-    7  : 'TextAlignmentRole',  # text alignment of items with default delegate. (Qt::AlignmentFlag)
-    8  : 'BackgroundRole',     # background brush for items with default delegate. (QBrush)
-    9  : 'ForegroundRole',     # foreground brush for items rendered with default delegate. (QBrush)
-    10 : 'CheckStateRole',     # checked state of an item. (Qt::CheckState)
-    14 : 'InitialSortOrderRole',  # initial sort order of a header view (Qt::SortOrder).
-    11 : 'AccessibleTextRole',    # text used by accessibility extensions and plugins (QString)
-    12 : 'AccessibleDescriptionRole',  # accessibe description of the item for (QString)
-    32 : 'UserRole',             # first role that can be used for application-specific purposes.
-    8  : 'BackgroundColorRole',  # Obsolete. Use BackgroundRole instead.
-    9  : 'TextColorRole',        # Obsolete. Use ForegroundRole instead.
+    0: 'DisplayRole',  # key data to be rendered in the form of text. (QString)
+    1: 'DecorationRole',  # data to be rendered as an icon. (QColor, QIcon or QPixmap)
+    2: 'EditRole',  # data in a form suitable for editing in an editor. (QString)
+    3: 'ToolTipRole',  # data displayed in the item's tooltip. (QString)
+    4: 'StatusTipRole',  # data displayed in the status bar. (QString)
+    5: 'WhatsThisRole',  # data displayed in "What's This?" mode. (QString)
+    13: 'SizeHintRole',  # size hint for item that will be supplied to views. (QSize)
+    6: 'FontRole',  # font used for items rendered with default delegate. (QFont)
+    7: 'TextAlignmentRole',  # text alignment of items with default delegate. (Qt::AlignmentFlag)
+    8: 'BackgroundRole',  # background brush for items with default delegate. (QBrush)
+    9: 'ForegroundRole',  # foreground brush for items rendered with default delegate. (QBrush)
+    10: 'CheckStateRole',  # checked state of an item. (Qt::CheckState)
+    14: 'InitialSortOrderRole',  # initial sort order of a header view (Qt::SortOrder).
+    11: 'AccessibleTextRole',  # text used by accessibility extensions and plugins (QString)
+    12: 'AccessibleDescriptionRole',  # accessibe description of the item for (QString)
+    32: 'UserRole',  # first role that can be used for application-specific purposes.
+    8: 'BackgroundColorRole',  # Obsolete. Use BackgroundRole instead.
+    9: 'TextColorRole',  # Obsolete. Use ForegroundRole instead.
 }
 
 LOCALE = QLocale()
 
 # Custom types of data that can be displayed (usually be a delegate)
 QT_PIXMAP_TYPES = set((QtGui.QPixmap, 'PIXMAP'))
-QT_ICON_TYPES   = set((QtGui.QIcon, 'ICON'))
+QT_ICON_TYPES = set((QtGui.QIcon, 'ICON'))
 QT_BUTTON_TYPES = set(('BUTTON',))
 QT_COMBO_TYPES = set(('COMBO',))
 
 
-QT_IMAGE_TYPES  = set(list(QT_PIXMAP_TYPES) + list(QT_ICON_TYPES))
+QT_IMAGE_TYPES = set(list(QT_PIXMAP_TYPES) + list(QT_ICON_TYPES))
 # A set of all delegate types
-QT_DELEGATE_TYPES = set(list(QT_IMAGE_TYPES) + list(QT_BUTTON_TYPES) + list(QT_COMBO_TYPES))
+QT_DELEGATE_TYPES = set(
+    list(QT_IMAGE_TYPES) + list(QT_BUTTON_TYPES) + list(QT_COMBO_TYPES)
+)
 
 
 def qindexinfo(index):
@@ -64,11 +69,12 @@ def qindexinfo(index):
         item = __STR__(variant)
     else:
         item = __STR__(variant.toString())
-    row  = index.row()
-    col  = index.column()
+    row = index.row()
+    col = index.column()
     return (item, row, col)
 
-#def format_float(data):
+
+# def format_float(data):
 #    #argument_format = {
 #    #    'e':    format as [-]9.9e[+|-]999
 #    #    'E':    format as [-]9.9E[+|-]999
@@ -88,7 +94,7 @@ def numpy_to_qpixmap(npimg):
     data = npimg.astype(np.uint8)
     (height, width) = npimg.shape[0:2]
     format_ = QtGui.QImage.Format_RGB888
-    qimg    = QtGui.QImage(data, width, height, format_)
+    qimg = QtGui.QImage(data, width, height, format_)
     qpixmap = QtGui.QPixmap.fromImage(qimg)
     return qpixmap
 
@@ -107,7 +113,7 @@ def locale_float(float_, precision=4):
     return LOCALE.toString(float(float_), format='g', precision=precision)
 
 
-#@profile
+# @profile
 def cast_into_qt(data):
     """
     Casts python data into a representation suitable for QT (usually a string)
@@ -116,11 +122,11 @@ def cast_into_qt(data):
         if ut.is_str(data):
             return __STR__(data)
         elif ut.is_float(data):
-            #qnumber = QString.number(float(data), format='g', precision=8)
+            # qnumber = QString.number(float(data), format='g', precision=8)
             return locale_float(data)
         elif ut.is_bool(data):
             return bool(data)
-        elif  ut.is_int(data):
+        elif ut.is_int(data):
             return int(data)
         elif isinstance(data, uuid.UUID):
             return __STR__(data)
@@ -131,11 +137,11 @@ def cast_into_qt(data):
     if ut.is_str(data):
         return __STR__(data)
     elif ut.is_float(data):
-        #qnumber = QString.number(float(data), format='g', precision=8)
+        # qnumber = QString.number(float(data), format='g', precision=8)
         return locale_float(data)
     elif ut.is_bool(data):
         return bool(data)
-    elif  ut.is_int(data):
+    elif ut.is_int(data):
         return int(data)
     elif isinstance(data, uuid.UUID):
         return __STR__(data)

@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import map
 from os.path import join, relpath
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -41,8 +42,7 @@ def get_hsdb_image_gpaths(ibs, gid_list):
     """
     imgdir = join(ibs.get_dbdir(), 'images')
     gpath_list_ = ibs.get_image_paths(gid_list)
-    gpath_list  = [ut.ensure_unixslash(relpath(gpath, imgdir))
-                   for gpath in gpath_list_]
+    gpath_list = [ut.ensure_unixslash(relpath(gpath, imgdir)) for gpath in gpath_list_]
     return gpath_list
 
 
@@ -111,41 +111,45 @@ def get_hots_table_strings(ibs):
              13,   13,    7,  [0  0  1114  545],   0.00,                                             #
     """
     print('export to hsdb')
-    #ibs.inject_func(get_hsdb_image_gpaths)
+    # ibs.inject_func(get_hsdb_image_gpaths)
 
     # Build Image Table
-    gid_list        = ibs.get_valid_gids()
-    gpath_list      = get_hsdb_image_gpaths(ibs, gid_list)
-    reviewed_list   = ibs.get_image_reviewed(gid_list)
+    gid_list = ibs.get_valid_gids()
+    gpath_list = get_hsdb_image_gpaths(ibs, gid_list)
+    reviewed_list = ibs.get_image_reviewed(gid_list)
     # aif in hotspotter is equivilant to reviewed in IBEIS
     image_table_csv = ut.make_csv_table(
-        [gid_list, gpath_list, reviewed_list],
-        ['gid', 'gname', 'aif'],
-        '# image table')
+        [gid_list, gpath_list, reviewed_list], ['gid', 'gname', 'aif'], '# image table'
+    )
 
     # Build Name Table
-    nid_list       =  ibs.get_valid_nids()
-    name_list      = ibs.get_name_texts(nid_list)
+    nid_list = ibs.get_valid_nids()
+    name_list = ibs.get_name_texts(nid_list)
     name_table_csv = ut.make_csv_table(
-        [nid_list, name_list],
-        ['nid', 'name'],
-        '# name table')
+        [nid_list, name_list], ['nid', 'name'], '# name table'
+    )
 
     # Build Chip Table
-    aid_list        = ibs.get_valid_aids()
-    annotationgid_list     = ibs.get_annot_gids(aid_list)
-    annotationnid_list     = ibs.get_annot_name_rowids(aid_list)
-    bbox_list       = list(map(list, ibs.get_annot_bboxes(aid_list)))
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    notes_list      = ibs.get_annot_notes(aid_list)
+    aid_list = ibs.get_valid_aids()
+    annotationgid_list = ibs.get_annot_gids(aid_list)
+    annotationnid_list = ibs.get_annot_name_rowids(aid_list)
+    bbox_list = list(map(list, ibs.get_annot_bboxes(aid_list)))
+    theta_list = ibs.get_annot_thetas(aid_list)
+    notes_list = ibs.get_annot_notes(aid_list)
 
-    chip_column_list = [aid_list, annotationgid_list, annotationnid_list, bbox_list, theta_list, notes_list]
+    chip_column_list = [
+        aid_list,
+        annotationgid_list,
+        annotationnid_list,
+        bbox_list,
+        theta_list,
+        notes_list,
+    ]
     chip_column_lbls = ['cid', 'gid', 'nid', '[tlx tly w h]', 'theta', 'notes']
     chip_column_types = [int, int, int, list, float, str]
     chip_table_csv = ut.make_csv_table(
-        chip_column_list,
-        chip_column_lbls,
-        '# chip table', chip_column_types)
+        chip_column_list, chip_column_lbls, '# chip table', chip_column_types
+    )
 
     if ut.VERBOSE:
         if len(aid_list) < 87:
@@ -182,10 +186,10 @@ def dump_hots_tables(ibs):
         gtbl_str = ibs.db.get_table_csv('images', exclude_columns=[])
         file_.write(gtbl_str)
     with open(ntbl_name, 'w') as file_:
-        ntbl_str = ibs.db.get_table_csv('names',  exclude_columns=[])
+        ntbl_str = ibs.db.get_table_csv('names', exclude_columns=[])
         file_.write(ntbl_str)
     with open(rtbl_name, 'w') as file_:
-        rtbl_str = ibs.db.get_table_csv('annotations',   exclude_columns=[])
+        rtbl_str = ibs.db.get_table_csv('annotations', exclude_columns=[])
         file_.write(rtbl_str)
 
 
@@ -212,29 +216,30 @@ def get_hots_flat_table(ibs):
     """
     aid_list = ibs.get_valid_aids()
     column_tups = [
-        (int,   'aids',   aid_list,),
-        (str,   'names',  ibs.get_annot_names(aid_list),),
-        (list,  'bbox',   list(map(list, ibs.get_annot_bboxes(aid_list),))),
-        (float, 'theta',  ibs.get_annot_thetas(aid_list),),
-        (str,   'gpaths', ibs.get_annot_image_paths(aid_list),),
-        (str,   'notes',  ibs.get_annot_notes(aid_list),),
-        (str,   'uuids',  ibs.get_annot_uuids(aid_list),),
+        (int, 'aids', aid_list,),
+        (str, 'names', ibs.get_annot_names(aid_list),),
+        (list, 'bbox', list(map(list, ibs.get_annot_bboxes(aid_list),))),
+        (float, 'theta', ibs.get_annot_thetas(aid_list),),
+        (str, 'gpaths', ibs.get_annot_image_paths(aid_list),),
+        (str, 'notes', ibs.get_annot_notes(aid_list),),
+        (str, 'uuids', ibs.get_annot_uuids(aid_list),),
     ]
     column_type = [tup[0] for tup in column_tups]
     column_lbls = [tup[1] for tup in column_tups]
     column_list = [tup[2] for tup in column_tups]
-    header = '\n'.join([
-        '# Roi Flat Table',
-        '# aid   - internal annotation index (not gaurenteed unique)',
-        '# name  - animal identity',
-        '# bbox  - bounding box [tlx tly w h] in image',
-        '# theta - bounding box orientation',
-        '# gpath - image filepath',
-        '# notes - user defined notes',
-        '# uuids - unique universal ids (gaurenteed unique)',
-    ])
-    flat_table_str = ut.make_csv_table(column_list, column_lbls, header,
-                                          column_type)
+    header = '\n'.join(
+        [
+            '# Roi Flat Table',
+            '# aid   - internal annotation index (not gaurenteed unique)',
+            '# name  - animal identity',
+            '# bbox  - bounding box [tlx tly w h] in image',
+            '# theta - bounding box orientation',
+            '# gpath - image filepath',
+            '# notes - user defined notes',
+            '# uuids - unique universal ids (gaurenteed unique)',
+        ]
+    )
+    flat_table_str = ut.make_csv_table(column_list, column_lbls, header, column_type)
     return flat_table_str
 
 
@@ -257,6 +262,8 @@ if __name__ == '__main__':
         python -m wbia.dbio.export_hsdb --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

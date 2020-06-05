@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
 import os
@@ -8,23 +9,23 @@ import __REPOS__
 import meta_util_git as mu  # NOQA
 from meta_util_git import get_repo_dirs, get_repo_dname  # NOQA
 
-PROJECT_REPOS    = __REPOS__.PROJECT_REPOS
+PROJECT_REPOS = __REPOS__.PROJECT_REPOS
 IBEIS_REPOS_URLS = __REPOS__.IBEIS_REPOS_URLS
-CODE_DIR         = __REPOS__.CODE_DIR
-VIM_REPO_URLS    = __REPOS__.VIM_REPO_URLS
-BUNDLE_DPATH     = __REPOS__.BUNDLE_DPATH
+CODE_DIR = __REPOS__.CODE_DIR
+VIM_REPO_URLS = __REPOS__.VIM_REPO_URLS
+BUNDLE_DPATH = __REPOS__.BUNDLE_DPATH
 VIM_REPOS_WITH_SUBMODULES = __REPOS__.VIM_REPOS_WITH_SUBMODULES
 
 
 def gitcmd(repo, command):
     print()
-    print("************")
+    print('************')
     print(repo)
     os.chdir(repo)
     if command.find('git') != 0:
         command = 'git ' + command
     os.system(command)
-    print("************")
+    print('************')
 
 
 def gg_command(command):
@@ -63,8 +64,7 @@ def pull_repos(repo_dirs, repos_with_submodules=[]):
         assert exists('.git'), 'cannot pull a nongit repo'
         mu.cmd('git pull')
         reponame = split(repodir)[1]
-        if reponame in repos_with_submodules or\
-           repodir in repos_with_submodules:
+        if reponame in repos_with_submodules or repodir in repos_with_submodules:
             repos_with_submodules
             mu.cmd('git submodule init')
             mu.cmd('git submodule update')

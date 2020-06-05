@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 from wbia.plottool import mpl_sift
 import numpy as np
 import matplotlib as mpl
 import utool as ut
+
 ut.noinject(__name__, '[pt.mpl_keypoint]')
 
 
@@ -17,21 +19,34 @@ def pass_props(dict1, dict2, *args):
 
 def _draw_patches(ax, patch_list, color, alpha, lw, fcolor='none'):
     # creates a collection from a patch list and sets properties
-    #print('new collecitn')
-    #print(alpha)
+    # print('new collecitn')
+    # print(alpha)
     coll = mpl.collections.PatchCollection(patch_list)
     coll.set_facecolor(fcolor)
     coll.set_alpha(alpha)
     coll.set_linewidth(lw)
     coll.set_edgecolor(color)
-    #coll.set_transform(ax.transData)
+    # coll.set_transform(ax.transData)
     ax.add_collection(coll)
 
 
-#----------------------------
-def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
-                   ell=True, pts=False, rect=False, eig=False, ori=False,
-                   sifts=None, siftkw={}, H=None, **kwargs):
+# ----------------------------
+def draw_keypoints(
+    ax,
+    kpts_,
+    scale_factor=1.0,
+    offset=(0.0, 0.0),
+    rotation=0.0,
+    ell=True,
+    pts=False,
+    rect=False,
+    eig=False,
+    ori=False,
+    sifts=None,
+    siftkw={},
+    H=None,
+    **kwargs
+):
     """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
 
@@ -94,6 +109,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> pt.show_if_requested()
     """
     import vtool.keypoint as ktool
+
     if kpts_.shape[1] == 2:
         # pad out structure if only xy given
         kpts = np.zeros((len(kpts_), 6))
@@ -104,24 +120,24 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
     if scale_factor is None:
         scale_factor = 1.0
-    #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.repr2(kwargs))
+    # print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.repr2(kwargs))
     # ellipse and point properties
-    pts_size       = kwargs.get('pts_size', 2)
-    pts_alpha      = kwargs.get('pts_alpha', 1.0)
-    ell_alpha      = kwargs.get('ell_alpha', 1.0)
-    ell_linewidth  = kwargs.get('ell_linewidth', 2)
-    ell_color      = kwargs.get('ell_color', None)
+    pts_size = kwargs.get('pts_size', 2)
+    pts_alpha = kwargs.get('pts_alpha', 1.0)
+    ell_alpha = kwargs.get('ell_alpha', 1.0)
+    ell_linewidth = kwargs.get('ell_linewidth', 2)
+    ell_color = kwargs.get('ell_color', None)
     if ell_color is None:
         ell_color = [1, 0, 0]
     # colors
-    pts_color      = kwargs.get('pts_color',  ell_color)
-    rect_color     = kwargs.get('rect_color', ell_color)
-    eig_color      = kwargs.get('eig_color',  ell_color)
-    ori_color      = kwargs.get('ori_color',  ell_color)
+    pts_color = kwargs.get('pts_color', ell_color)
+    rect_color = kwargs.get('rect_color', ell_color)
+    eig_color = kwargs.get('eig_color', ell_color)
+    ori_color = kwargs.get('ori_color', ell_color)
     # linewidths
-    eig_linewidth  = kwargs.get('eig_linewidth',  ell_linewidth)
+    eig_linewidth = kwargs.get('eig_linewidth', ell_linewidth)
     rect_linewidth = kwargs.get('rect_linewidth', ell_linewidth)
-    ori_linewidth  = kwargs.get('ori_linewidth',  ell_linewidth)
+    ori_linewidth = kwargs.get('ori_linewidth', ell_linewidth)
     # Offset keypoints
     assert len(kpts_) > 0, 'cannot draw no keypoints1'
     kpts = ktool.offset_kpts(kpts_, offset, scale_factor)
@@ -131,9 +147,19 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     try:
         if sifts is not None:
             # SIFT descriptors
-            pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
-                       'arm1_lw', 'arm2_lw', 'stroke', 'arm_alpha',
-                       'arm_alpha', 'multicolored_arms')
+            pass_props(
+                kwargs,
+                siftkw,
+                'bin_color',
+                'arm1_color',
+                'arm2_color',
+                'arm1_lw',
+                'arm2_lw',
+                'stroke',
+                'arm_alpha',
+                'arm_alpha',
+                'multicolored_arms',
+            )
             mpl_sift.draw_sifts(ax, sifts, invVR_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles
@@ -157,6 +183,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
             if H is not None:
                 # adjust for homogrpahy
                 import vtool as vt
+
                 _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
 
             pts_patches = _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha)
@@ -164,28 +191,31 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
                 _draw_patches(ax, pts_patches, 'none', pts_alpha, pts_size, pts_color)
     except ValueError as ex:
         ut.printex(ex, '\n[mplkp] !!! ERROR')
-        #print('_oris.shape = %r' % (_oris.shape,))
-        #print('_xs.shape = %r' % (_xs.shape,))
-        #print('_iv11s.shape = %r' % (_iv11s.shape,))
+        # print('_oris.shape = %r' % (_oris.shape,))
+        # print('_xs.shape = %r' % (_xs.shape,))
+        # print('_iv11s.shape = %r' % (_iv11s.shape,))
         raise
 
-#----------------------------
+
+# ----------------------------
 
 
 def _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha=None):
     ptskw = dict(c=pts_color, s=(2 * pts_size), marker='o', edgecolor='none')
     OLD_WAY = False
-    #if pts_alpha is not None:
+    # if pts_alpha is not None:
     #    ptskw['alpha'] = pts_alpha
     if OLD_WAY:
-        #print(ut.repr2(ptskw))
+        # print(ut.repr2(ptskw))
         ax.scatter(_xs, _ys, **ptskw)
         # FIXME: THIS MIGHT CAUSE ISSUES: UNEXPECTED CALL
-        #ax.autoscale(enable=False)
+        # ax.autoscale(enable=False)
     else:
-        pts_patches = [mpl.patches.Circle((x, y), radius=(pts_size / 2), fill=True)
-                       for x, y in zip(_xs, _ys)]
-        #print(pts_color)
+        pts_patches = [
+            mpl.patches.Circle((x, y), radius=(pts_size / 2), fill=True)
+            for x, y in zip(_xs, _ys)
+        ]
+        # print(pts_color)
         return pts_patches
 
 
@@ -195,6 +225,7 @@ class HomographyTransform(mpl.transforms.Transform):
         http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches?noredirect=1#comment45156353_28401788
         http://matplotlib.org/users/transforms_tutorial.html
     """
+
     input_dims = 2
     output_dims = 2
     is_separable = False
@@ -210,11 +241,13 @@ class HomographyTransform(mpl.transforms.Transform):
         The input and output are Nx2 numpy arrays.
         """
         import vtool as vt
+
         _xys = input_xy.T
         xy_t = vt.transform_points_with_homography(self.H, _xys)
         output_xy = xy_t.T
         return output_xy
-    #transform_non_affine.__doc__ = mpl.transforms.Transform.transform_non_affine.__doc__
+
+    # transform_non_affine.__doc__ = mpl.transforms.Transform.transform_non_affine.__doc__
 
     def transform_path_non_affine(self, path):
         vertices = path.vertices
@@ -222,7 +255,8 @@ class HomographyTransform(mpl.transforms.Transform):
             return mpl.path.Path(self.transform(vertices), path.codes)
         ipath = path.interpolated(path._interpolation_steps)
         return mpl.path.Path(self.transform(ipath.vertices), ipath.codes)
-    #transform_path_non_affine.__doc__ = mpl.transforms.Transform.transform_path_non_affine.__doc__
+
+    # transform_path_non_affine.__doc__ = mpl.transforms.Transform.transform_path_non_affine.__doc__
 
 
 def get_invVR_aff2Ds(kpts, H=None):
@@ -265,49 +299,51 @@ def get_invVR_aff2Ds(kpts, H=None):
         >>> pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)
     """
     import vtool.keypoint as ktool
-    #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
+
+    # invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
     if H is None:
-        invVR_aff2Ds = [mpl.transforms.Affine2D(invVR)
-                        for invVR in invVR_mats]
+        invVR_aff2Ds = [mpl.transforms.Affine2D(invVR) for invVR in invVR_mats]
     else:
-        invVR_aff2Ds = [HomographyTransform(H.dot(invVR))
-                        for invVR in invVR_mats]
+        invVR_aff2Ds = [HomographyTransform(H.dot(invVR)) for invVR in invVR_mats]
     return invVR_aff2Ds
 
 
 def ellipse_actors(invVR_aff2Ds):
     # warp unit circles to keypoint shapes
-    ell_actors = [mpl.patches.Circle((0, 0), 1, transform=invVR)
-                  for invVR in invVR_aff2Ds]
+    ell_actors = [
+        mpl.patches.Circle((0, 0), 1, transform=invVR) for invVR in invVR_aff2Ds
+    ]
     return ell_actors
 
 
 def rectangle_actors(invVR_aff2Ds):
     Rect = mpl.patches.Rectangle
     Arrow = mpl.patches.FancyArrow
-    rect_xywh  = (-1, -1), 2, 2
-    arw_xydxdy = (-1, -1,  2, 0)
-    arw_kw = dict(head_width=.1, length_includes_head=True)
+    rect_xywh = (-1, -1), 2, 2
+    arw_xydxdy = (-1, -1, 2, 0)
+    arw_kw = dict(head_width=0.1, length_includes_head=True)
     # warp unit rectangles to keypoint shapes
-    rect_actors = [Rect(*rect_xywh, transform=invVR)
-                   for invVR in invVR_aff2Ds]
+    rect_actors = [Rect(*rect_xywh, transform=invVR) for invVR in invVR_aff2Ds]
     # an overhead arrow indicates the top of the rectangle
-    arw_actors = [Arrow(*arw_xydxdy, transform=invVR, **arw_kw)
-                  for invVR in invVR_aff2Ds]
+    arw_actors = [Arrow(*arw_xydxdy, transform=invVR, **arw_kw) for invVR in invVR_aff2Ds]
     return rect_actors + arw_actors
 
 
 def eigenvector_actors(invVR_aff2Ds):
     # warps arrows into eigenvector directions
     kwargs = {
-        'head_width': .01,
+        'head_width': 0.01,
         'length_includes_head': False,
     }
-    eig1 = [mpl.patches.FancyArrow(0, 0, 0, 1, transform=invV, **kwargs)
-            for invV in invVR_aff2Ds]
-    eig2 = [mpl.patches.FancyArrow(0, 0, 1, 0, transform=invV, **kwargs)
-            for invV in invVR_aff2Ds]
+    eig1 = [
+        mpl.patches.FancyArrow(0, 0, 0, 1, transform=invV, **kwargs)
+        for invV in invVR_aff2Ds
+    ]
+    eig2 = [
+        mpl.patches.FancyArrow(0, 0, 1, 0, transform=invV, **kwargs)
+        for invV in invVR_aff2Ds
+    ]
     eig_actors = eig1 + eig2
     return eig_actors
 
@@ -315,6 +351,7 @@ def eigenvector_actors(invVR_aff2Ds):
 def orientation_actors(kpts, H=None):
     """ creates orientation actors w.r.t. the gravity vector """
     import vtool.keypoint as ktool
+
     try:
         # Get xy diretion of the keypoint orientations
         _xs, _ys = ktool.get_xys(kpts)
@@ -327,16 +364,16 @@ def orientation_actors(kpts, H=None):
         # The following is essentially
         # invV.dot(R)
         _dxs = _coss * _iv11s
-        _dys = _coss * _iv21s +  _sins * _iv22s
-        #ut.embed()
+        _dys = _coss * _iv21s + _sins * _iv22s
+        # ut.embed()
 
-        #if H is not None:
+        # if H is not None:
         #    # adjust for homogrpahy
         #    import vtool as vt
         #    _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
         #    _dxs, _dys = vt.transform_points_with_homography(H, np.vstack((_dxs, _dys)))
 
-        #head_width_list = np.log(_iv11s * _iv22s) / 5
+        # head_width_list = np.log(_iv11s * _iv22s) / 5
         head_width_list = np.ones(len(_iv11s)) / 10
         kwargs = {
             'length_includes_head': True,
@@ -347,9 +384,10 @@ def orientation_actors(kpts, H=None):
         if H is not None:
             kwargs['transform'] = HomographyTransform(H)
 
-        ori_actors = [mpl.patches.FancyArrow(x, y, dx, dy, head_width=hw, **kwargs)
-                      for (x, y, dx, dy, hw) in
-                      zip(_xs, _ys, _dxs, _dys, head_width_list)]
+        ori_actors = [
+            mpl.patches.FancyArrow(x, y, dx, dy, head_width=hw, **kwargs)
+            for (x, y, dx, dy, hw) in zip(_xs, _ys, _dxs, _dys, head_width_list)
+        ]
     except ValueError as ex:
         print('\n[mplkp.2] !!! ERROR %s: ' % str(ex))
         print('_oris.shape = %r' % (_oris.shape,))
@@ -371,6 +409,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.mpl_keypoint --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

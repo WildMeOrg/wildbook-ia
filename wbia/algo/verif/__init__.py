@@ -9,6 +9,7 @@ from wbia.algo.verif import pairfeat
 from wbia.algo.verif import verifier
 from wbia.algo.verif import vsone
 import utool
+
 print, rrr, profile = utool.inject2(__name__, '[wbia.algo.verif]')
 
 
@@ -18,10 +19,12 @@ def reassign_submodule_attributes(verbose=1):
     in the submodules.
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.algo.verif
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -46,19 +49,24 @@ def reload_subs(verbose=1):
     if verbose:
         print('Reloading wbia.algo.verif submodules')
     rrr(verbose > 1)
+
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
             """ fallback reload """
             if verbose > 0:
                 print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
+
         return fbrrr
+
     def get_rrr(mod):
         if hasattr(mod, 'rrr'):
             return mod.rrr
         else:
             return wrap_fbrrr(mod)
+
     def get_reload_subs(mod):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+
     get_rrr(clf_helpers)(verbose > 1)
     get_rrr(sklearn_utils)(verbose > 1)
     get_rrr(vsone)(verbose > 1)
@@ -68,6 +76,8 @@ def reload_subs(verbose=1):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

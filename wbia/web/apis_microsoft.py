@@ -13,16 +13,17 @@ import uuid
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
-PREFIX         = controller_inject.MICROSOFT_API_PREFIX
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+PREFIX = controller_inject.MICROSOFT_API_PREFIX
+register_api = controller_inject.get_wbia_flask_api(__name__)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 def _prefix(route=''):
-    rule = '/%s/%s/' % (PREFIX, route, )
+    rule = '/%s/%s/' % (PREFIX, route,)
     while '//' in rule:
         rule = rule.replace('//', '/')
     return rule
@@ -66,18 +67,18 @@ def _name(ibs, nid):
 def _detection(ibs, gid, result):
     bbox, theta, conf, label = result
     detection = {
-        'image'      : _image(ibs, gid),
-        'bbox'        : bbox,
-        'xtl'         : bbox[0],
-        'ytl'         : bbox[1],
-        'xbr'         : bbox[0] + bbox[2],
-        'ybr'         : bbox[1] + bbox[3],
-        'width'       : bbox[2],
-        'height'      : bbox[3],
-        'theta'       : theta,
-        'species'     : label,
-        'viewpoint'   : None,
-        'score'       : conf,
+        'image': _image(ibs, gid),
+        'bbox': bbox,
+        'xtl': bbox[0],
+        'ytl': bbox[1],
+        'xbr': bbox[0] + bbox[2],
+        'ybr': bbox[1] + bbox[3],
+        'width': bbox[2],
+        'height': bbox[3],
+        'theta': theta,
+        'species': label,
+        'viewpoint': None,
+        'score': conf,
     }
     return detection
 
@@ -104,15 +105,17 @@ def _ensure_general(ibs, models, tag, rowid_from_uuid_func, unpack=True, *args, 
             if single:
                 parameter = 'models'
             else:
-                parameter = 'models:%d' % (index, )
+                parameter = 'models:%d' % (index,)
 
-            assert 'uuid' in model, '%s Model provided is invalid, missing UUID key' % (tag, )
+            assert 'uuid' in model, '%s Model provided is invalid, missing UUID key' % (
+                tag,
+            )
 
             uuid_ = uuid.UUID(model['uuid'])
-            assert uuid_ is not None, '%s Model\'s UUID is invalid' % (tag, )
+            assert uuid_ is not None, "%s Model's UUID is invalid" % (tag,)
 
             rowid = rowid_from_uuid_func(uuid_)
-            assert rowid is not None, '%s Model is unrecognized, please upload' % (tag, )
+            assert rowid is not None, '%s Model is unrecognized, please upload' % (tag,)
         except AssertionError as ex:
             raise controller_inject.WebInvalidInput(str(ex), parameter)
         rowid_list.append(rowid)
@@ -124,15 +127,21 @@ def _ensure_general(ibs, models, tag, rowid_from_uuid_func, unpack=True, *args, 
 
 
 def _ensure_images(ibs, images, *args, **kwargs):
-    return _ensure_general(ibs, images, 'Image', ibs.get_image_gids_from_uuid, *args, **kwargs)
+    return _ensure_general(
+        ibs, images, 'Image', ibs.get_image_gids_from_uuid, *args, **kwargs
+    )
 
 
 def _ensure_annotations(ibs, annotations, *args, **kwargs):
-    return _ensure_general(ibs, annotations, 'Annotation', ibs.get_annot_aids_from_uuid, *args, **kwargs)
+    return _ensure_general(
+        ibs, annotations, 'Annotation', ibs.get_annot_aids_from_uuid, *args, **kwargs
+    )
 
 
 def _ensure_names(ibs, names, *args, **kwargs):
-    return _ensure_general(ibs, names, 'Name', ibs.get_name_rowids_from_uuid, *args, **kwargs)
+    return _ensure_general(
+        ibs, names, 'Name', ibs.get_name_rowids_from_uuid, *args, **kwargs
+    )
 
 
 @register_route(_prefix('swagger'), methods=['GET'])
@@ -282,16 +291,18 @@ def microsoft_core_specification_swagger(*args, **kwargs):
         # ut.embed()
 
     swag['info']['title'] = 'Wild Me - IA (Image Analysis)'
-    swag['info']['description'] = 'Documentation for all classification, detection, and identification calls provided by Wild Me for the AI for Earth (AI4E) collaboration'
+    swag['info'][
+        'description'
+    ] = 'Documentation for all classification, detection, and identification calls provided by Wild Me for the AI for Earth (AI4E) collaboration'
     swag['info']['version'] = 'v0.1'
     swag['info']['contact'] = {
-        'name':  'Wild Me Developers (AI4E)',
-        'url':   'http://wildme.org',
+        'name': 'Wild Me Developers (AI4E)',
+        'url': 'http://wildme.org',
         'email': 'dev@wildme.org',
     }
     swag['info']['license'] = {
         'name': 'Apache 2.0',
-        'url':  'http://www.apache.org/licenses/LICENSE-2.0.html'
+        'url': 'http://www.apache.org/licenses/LICENSE-2.0.html',
     }
     swag['host'] = 'demo.wildbook.org:5010'
     swag['schemes'] = [
@@ -382,19 +393,33 @@ def microsoft_image_upload(ibs, *args, **kwargs):
         description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.
     """
     from wbia.web.apis import image_upload
+
     try:
         gid = image_upload(cleanup=True, **kwargs)
         assert gid is not None
     except controller_inject.WebException:
         raise
     except Exception:
-        raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
+        raise controller_inject.WebInvalidInput(
+            'Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)',
+            'image',
+            image=True,
+        )
     return _image(ibs, gid)
 
 
 @register_api(_prefix('annotation'), methods=['POST'])
-def microsoft_annotation_add(ibs, image, bbox, theta=None, species=None,
-                             viewpoint=None, name=None, *args, **kwargs):
+def microsoft_annotation_add(
+    ibs,
+    image,
+    bbox,
+    theta=None,
+    species=None,
+    viewpoint=None,
+    name=None,
+    *args,
+    **kwargs,
+):
     r"""
     Add an Annotation to the system and return the UUID
     ---
@@ -453,7 +478,9 @@ def microsoft_annotation_add(ibs, image, bbox, theta=None, species=None,
         assert isinstance(bbox[0], int), 'Bounding box xtl (index 0) must be an integer'
         assert isinstance(bbox[1], int), 'Bounding box ytl (index 1) must be an integer'
         assert isinstance(bbox[2], int), 'Bounding box width (index 2) must be an integer'
-        assert isinstance(bbox[3], int), 'Bounding box height (index 3) must be an integer'
+        assert isinstance(
+            bbox[3], int
+        ), 'Bounding box height (index 3) must be an integer'
 
         if theta is not None:
             assert isinstance(theta, float), 'Theta must be a float'
@@ -465,7 +492,10 @@ def microsoft_annotation_add(ibs, image, bbox, theta=None, species=None,
         if viewpoint is not None:
             assert isinstance(viewpoint, str), 'Viewpoint must be a string'
             assert len(viewpoint) > 0, 'Viewpoint cannot be empty'
-            assert viewpoint in const.YAWALIAS, 'Invalid viewpoint provided.  Must be one of: %s' % (list(const.YAWALIAS.keys()), )
+            assert viewpoint in const.YAWALIAS, (
+                'Invalid viewpoint provided.  Must be one of: %s'
+                % (list(const.YAWALIAS.keys()),)
+            )
 
         if name is not None:
             nid = _ensure_names(ibs, name)
@@ -476,12 +506,12 @@ def microsoft_annotation_add(ibs, image, bbox, theta=None, species=None,
 
     gid = _ensure_images(ibs, image)
 
-    gid_list       = [gid]
-    bbox_list      = [bbox]
-    theta_list     = None if theta is None else [theta]
-    species_list   = None if species is None else [species]
+    gid_list = [gid]
+    bbox_list = [bbox]
+    theta_list = None if theta is None else [theta]
+    species_list = None if species is None else [species]
     viewpoint_list = None if viewpoint is None else [viewpoint]
-    nid_list       = None if nid   is None else [nid]
+    nid_list = None if nid is None else [nid]
 
     aid_list = ibs.add_annots(
         gid_list,
@@ -560,10 +590,7 @@ def microsoft_image_annotations(ibs, image, *args, **kwargs):
     gid = _ensure_images(ibs, image)
     aid_list = ibs.get_image_aids(gid)
 
-    annotation_list = [
-        _annotation(ibs, aid)
-        for aid in aid_list
-    ]
+    annotation_list = [_annotation(ibs, aid) for aid in aid_list]
     response = {
         'annotations': annotation_list,
     }
@@ -597,10 +624,7 @@ def microsoft_name_annotations(ibs, name, *args, **kwargs):
     nid = _ensure_names(ibs, name)
     aid_list = ibs.get_name_aids(nid)
 
-    annotation_list = [
-        _annotation(ibs, aid)
-        for aid in aid_list
-    ]
+    annotation_list = [_annotation(ibs, aid) for aid in aid_list]
     response = {
         'annotations': annotation_list,
     }
@@ -641,12 +665,12 @@ def microsoft_annotation_metadata(ibs, annotation, *args, **kwargs):
         name = _name(ibs, nid)
 
     metadata = {
-        'image'     : image,
-        'name'      : name,
-        'bbox'      : ibs.get_annot_bboxes(aid),
-        'theta'     : ibs.get_annot_thetas(aid),
-        'species'   : ibs.get_annot_species_texts(aid),
-        'viewpoint' : ibs.get_annot_viewpoints(aid)
+        'image': image,
+        'name': name,
+        'bbox': ibs.get_annot_bboxes(aid),
+        'theta': ibs.get_annot_thetas(aid),
+        'species': ibs.get_annot_species_texts(aid),
+        'viewpoint': ibs.get_annot_viewpoints(aid),
     }
     return metadata
 
@@ -685,39 +709,53 @@ def microsoft_detect_model(ibs, *args, **kwargs):
 
 def microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold):
     from wbia.algo.detect.lightnet import CONFIG_URL_DICT
+
     try:
         parameter = 'model'
         assert model in CONFIG_URL_DICT, 'Specified model is not supported'
 
         parameter = 'score_threshold'
         assert isinstance(score_threshold, float), 'Score threshold must be a float'
-        assert 0.0 <= score_threshold and score_threshold <= 1.0, 'Score threshold is invalid, must be in range [0.0, 1.0]'
+        assert (
+            0.0 <= score_threshold and score_threshold <= 1.0
+        ), 'Score threshold is invalid, must be in range [0.0, 1.0]'
 
         parameter = 'use_nms'
         assert isinstance(use_nms, bool), 'NMS flag must be a boolean'
 
         parameter = 'nms_threshold'
         assert isinstance(nms_threshold, float), 'NMS threshold must be a float'
-        assert 0.0 <= nms_threshold and nms_threshold <= 1.0, 'NMS threshold is invalid, must be in range [0.0, 1.0]'
+        assert (
+            0.0 <= nms_threshold and nms_threshold <= 1.0
+        ), 'NMS threshold is invalid, must be in range [0.0, 1.0]'
     except AssertionError as ex:
         raise controller_inject.WebInvalidInput(str(ex), parameter)
 
 
 @register_ibs_method
-def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
-                     nms_threshold=0.4, __jobid__=None, *args, **kwargs):
+def microsoft_detect(
+    ibs,
+    images,
+    model,
+    score_threshold=0.0,
+    use_nms=True,
+    nms_threshold=0.4,
+    __jobid__=None,
+    *args,
+    **kwargs,
+):
     depc = ibs.depc_image
 
     gid_list = _ensure_images(ibs, images, unpack=False)
 
     try:
         config = {
-            'algo'            : 'lightnet',
-            'config_filepath' : model,
-            'weight_filepath' : model,
-            'sensitivity'     : score_threshold,
-            'nms'             : use_nms,
-            'nms_thresh'      : nms_threshold,
+            'algo': 'lightnet',
+            'config_filepath': model,
+            'weight_filepath': model,
+            'sensitivity': score_threshold,
+            'nms': use_nms,
+            'nms_thresh': nms_threshold,
         }
         results_list = depc.get_property('localizations', gid_list, None, config=config)
 
@@ -726,7 +764,9 @@ def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
         #     aids_list = ibs.commit_localization_results(gid_list, results_list)
     except Exception:
         print(str(traceback.format_exc()))
-        raise controller_inject.WebException('Detection process failed for an unknown reason')
+        raise controller_inject.WebException(
+            'Detection process failed for an unknown reason'
+        )
 
     # DEPRICATE
     #     # Do not commit detections
@@ -746,9 +786,8 @@ def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
     detections_list = {
         'detections_list': [
             {
-                'detections' : [
-                    _detection(ibs, gid, result)
-                    for result in zip(*result_list[1:])
+                'detections': [
+                    _detection(ibs, gid, result) for result in zip(*result_list[1:])
                 ],
             }
             for gid, result_list in zipped
@@ -759,8 +798,9 @@ def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
 
 
 @register_api(_prefix('detect'), methods=['POST'])
-def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
-                            nms_threshold=0.4, *args, **kwargs):
+def microsoft_detect_upload(
+    ibs, model, score_threshold=0.0, use_nms=True, nms_threshold=0.4, *args, **kwargs
+):
     r"""
     Returns the detection results for an uploaded image and a provided model configuration.
 
@@ -820,10 +860,14 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
 
     try:
         images = [image]
-        detections_list = microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold)
+        detections_list = microsoft_detect(
+            ibs, images, model, score_threshold, use_nms, nms_threshold
+        )
     except Exception:
         print(str(traceback.format_exc()))
-        raise controller_inject.WebException('Detection process failed for an unknown reason')
+        raise controller_inject.WebException(
+            'Detection process failed for an unknown reason'
+        )
 
     detections_list = detections_list.get('detections_list')
     assert len(detections_list) == 1
@@ -834,10 +878,19 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
 
 
 @register_api(_prefix('detect/batch'), methods=['POST'])
-def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True,
-                           nms_threshold=0.4, async_=True,
-                           callback_url=None, callback_method=None,
-                           *args, **kwargs):
+def microsoft_detect_batch(
+    ibs,
+    images,
+    model,
+    score_threshold=0.0,
+    use_nms=True,
+    nms_threshold=0.4,
+    async_=True,
+    callback_url=None,
+    callback_method=None,
+    *args,
+    **kwargs,
+):
     r"""
     The asynchronous variant of POST 'detect' that takes in a list of Image models and returns a task ID.
 
@@ -911,7 +964,7 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
     # Input argument validation
     for index, image in enumerate(images):
         try:
-            parameter = 'images:%d' % (index, )
+            parameter = 'images:%d' % (index,)
             assert 'uuid' in image, 'Image Model provided is invalid, missing UUID key'
         except AssertionError as ex:
             raise controller_inject.WebInvalidInput(str(ex), parameter)
@@ -923,29 +976,43 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
         assert isinstance(async_, bool), 'Asynchronous flag must be a boolean'
 
         parameter = 'callback_url'
-        assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
+        assert callback_url is None or isinstance(
+            callback_url, str
+        ), 'Callback URL must be a string'
         if callback_url is not None:
-            assert callback_url.startswith('http://') or callback_url.startswith('https://'), 'Callback URL must start with http:// or https://'
+            assert callback_url.startswith('http://') or callback_url.startswith(
+                'https://'
+            ), 'Callback URL must start with http:// or https://'
 
         parameter = 'callback_method'
-        assert callback_method is None or isinstance(callback_method, str), 'Callback URL must be a string'
+        assert callback_method is None or isinstance(
+            callback_method, str
+        ), 'Callback URL must be a string'
         if callback_method is not None:
             callback_method = callback_method.lower()
-            assert callback_method in ['get', 'post', 'put', 'delete'], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
+            assert callback_method in [
+                'get',
+                'post',
+                'put',
+                'delete',
+            ], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
     except AssertionError as ex:
         raise controller_inject.WebInvalidInput(str(ex), parameter)
 
-    args = (images, model, )
+    args = (
+        images,
+        model,
+    )
     kwargs = {
         'score_threshold': score_threshold,
-        'use_nms'        : use_nms,
-        'nms_threshold'  : nms_threshold,
+        'use_nms': use_nms,
+        'nms_threshold': nms_threshold,
     }
 
     if async_:
-        taskid = ibs.job_manager.jobiface.queue_job('microsoft_detect',
-                                                    callback_url, callback_method,
-                                                    *args, **kwargs)
+        taskid = ibs.job_manager.jobiface.queue_job(
+            'microsoft_detect', callback_url, callback_method, *args, **kwargs
+        )
         response = _task(ibs, taskid)
     else:
         response = ibs.microsoft_detect(*args, **kwargs)
@@ -954,9 +1021,16 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
 
 
 @register_api(_prefix('identify'), methods=['POST'])
-def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
-                       callback_url=None, callback_method=None,
-                       *args, **kwargs):
+def microsoft_identify(
+    ibs,
+    query_annotation,
+    database_annotations,
+    algorithm,
+    callback_url=None,
+    callback_method=None,
+    *args,
+    **kwargs,
+):
     r"""
     The asynchronous call to identify a list of pre-uploaded query annotations against a database of annotations.  Returns a task ID.
 
@@ -1018,23 +1092,43 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
 
     try:
         parameter = 'database_annotations'
-        assert len(daid_list) > 0, 'Cannot specify an empty list of database Annotations to compare against'
+        assert (
+            len(daid_list) > 0
+        ), 'Cannot specify an empty list of database Annotations to compare against'
 
         parameter = 'algorithm'
         assert isinstance(algorithm, str), 'Must specify the algorithm as a string'
         algorithm = algorithm.lower()
-        assert algorithm in ['hotspotter', 'curvrank', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven'], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, Finfindr, Kaggle7'
+        assert algorithm in [
+            'hotspotter',
+            'curvrank',
+            'deepsense',
+            'finfindr',
+            'kaggle7',
+            'kaggleseven',
+        ], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, Finfindr, Kaggle7'
 
         parameter = 'callback_url'
-        assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
+        assert callback_url is None or isinstance(
+            callback_url, str
+        ), 'Callback URL must be a string'
         if callback_url is not None:
-            assert callback_url.startswith('http://') or callback_url.startswith('https://'), 'Callback URL must start with http:// or https://'
+            assert callback_url.startswith('http://') or callback_url.startswith(
+                'https://'
+            ), 'Callback URL must start with http:// or https://'
 
         parameter = 'callback_method'
-        assert callback_method is None or isinstance(callback_method, str), 'Callback URL must be a string'
+        assert callback_method is None or isinstance(
+            callback_method, str
+        ), 'Callback URL must be a string'
         if callback_method is not None:
             callback_method = callback_method.lower()
-            assert callback_method in ['get', 'post', 'put', 'delete'], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
+            assert callback_method in [
+                'get',
+                'post',
+                'put',
+                'delete',
+            ], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
     except AssertionError as ex:
         raise controller_inject.WebInvalidInput(str(ex), parameter)
 
@@ -1042,27 +1136,27 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
         query_config_dict = {}
     elif algorithm in ['curvrank']:
         query_config_dict = {
-            'pipeline_root' : 'CurvRankFluke',
+            'pipeline_root': 'CurvRankFluke',
         }
     elif algorithm in ['deepsense']:
         query_config_dict = {
-            'pipeline_root' : 'Deepsense',
+            'pipeline_root': 'Deepsense',
         }
     elif algorithm in ['finfindr']:
         query_config_dict = {
-            'pipeline_root' : 'Finfindr',
+            'pipeline_root': 'Finfindr',
         }
     elif algorithm in ['kaggle7', 'kaggleseven']:
         query_config_dict = {
-            'pipeline_root' : 'KaggleSeven',
+            'pipeline_root': 'KaggleSeven',
         }
 
     user_feedback = {
-        'aid1'      : [],
-        'aid2'      : [],
-        'p_match'   : [],
-        'p_nomatch' : [],
-        'p_notcomp' : [],
+        'aid1': [],
+        'aid2': [],
+        'p_match': [],
+        'p_nomatch': [],
+        'p_notcomp': [],
     }
     echo_query_params = False
     args = (
@@ -1076,9 +1170,9 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
         'endpoint': url_for('microsoft_identify_visualize'),
         'n': 5,
     }
-    taskid = ibs.job_manager.jobiface.queue_job('query_chips_graph_microsoft',
-                                                callback_url, callback_method,
-                                                *args, **kwargs)
+    taskid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph_microsoft', callback_url, callback_method, *args, **kwargs
+    )
 
     return _task(ibs, taskid)
 
@@ -1098,11 +1192,13 @@ def query_chips_graph_microsoft(ibs, *args, **kwargs):
     reference = cm['dannot_extern_reference']
 
     response = {
-        'annotations' : [],
-        'names'       : [],
+        'annotations': [],
+        'names': [],
     }
 
-    zipped = list(zip(cm['annot_score_list'], cm['dannot_uuid_list'], cm['dannot_extern_list']))
+    zipped = list(
+        zip(cm['annot_score_list'], cm['dannot_uuid_list'], cm['dannot_extern_list'])
+    )
     zipped = sorted(zipped, reverse=True)
     for dannot_score, dannot_uuid, dannot_extern in zipped:
         daid = ibs.get_annot_aids_from_uuid(dannot_uuid)
@@ -1111,13 +1207,22 @@ def query_chips_graph_microsoft(ibs, *args, **kwargs):
         if dannot_extern:
             query_annotation_ = ut.to_json(_annotation(ibs, qaid)).replace(' ', '')
             database_annotation_ = ut.to_json(_annotation(ibs, daid)).replace(' ', '')
-            args = (endpoint, reference, query_annotation_, database_annotation_, )
-            extern_url_postfix = '%s?reference=%s&query_annotation=%s&database_annotation=%s' % args
-        response['annotations'].append({
-            'score'      : dannot_score,
-            'annotation' : annotation,
-            'visualize'  : extern_url_postfix,
-        })
+            args = (
+                endpoint,
+                reference,
+                query_annotation_,
+                database_annotation_,
+            )
+            extern_url_postfix = (
+                '%s?reference=%s&query_annotation=%s&database_annotation=%s' % args
+            )
+        response['annotations'].append(
+            {
+                'score': dannot_score,
+                'annotation': annotation,
+                'visualize': extern_url_postfix,
+            }
+        )
 
     zipped = list(zip(cm['name_score_list'], cm['unique_name_list']))
     zipped = sorted(zipped, reverse=True)
@@ -1125,16 +1230,17 @@ def query_chips_graph_microsoft(ibs, *args, **kwargs):
         if name_text == const.UNKNOWN:
             continue
         nid = ibs.get_name_rowids_from_text(name_text)
-        response['names'].append({
-            'score' : name_score,
-            'name'  : _name(ibs, nid),
-        })
+        response['names'].append(
+            {'score': name_score, 'name': _name(ibs, nid),}
+        )
 
     return response
 
 
 @register_route(_prefix('visualize'), methods=['GET'])
-def microsoft_identify_visualize(reference, query_annotation, database_annotation, version='heatmask'):
+def microsoft_identify_visualize(
+    reference, query_annotation, database_annotation, version='heatmask'
+):
     r"""
     Visualize the results of matching, precomputed and rendered to disk for easy look-up.
 
@@ -1175,6 +1281,7 @@ def microsoft_identify_visualize(reference, query_annotation, database_annotatio
     ibs = current_app.ibs
 
     from wbia.web.apis_query import query_chips_graph_match_thumb
+
     qaid = _ensure_annotations(ibs, query_annotation)
     daid = _ensure_annotations(ibs, database_annotation)
     quuid, duuid = ibs.get_annot_uuids([qaid, daid])
@@ -1421,6 +1528,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

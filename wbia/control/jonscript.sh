@@ -41,7 +41,7 @@ xdotool key KP_Enter
 # http://localhost:8080/wbia/occurrence.jsp?number=76817f74-894c-43a4-9a12-47cbc0dc2fc2
 
 
-#sudo apt-get install mysql-server-5.6 
+#sudo apt-get install mysql-server-5.6
 #sudo apt-get install mysql-common-5.6
 #sudo apt-get install mysql-client-5.6
 

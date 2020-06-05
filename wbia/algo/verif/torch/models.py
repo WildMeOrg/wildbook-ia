@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import torch
 import torchvision
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -40,8 +42,14 @@ def visualize():
     def make_nx(var, params):
         param_map = {id(v): k for k, v in params.items()}
         print(param_map)
-        node_attr = dict(style='filled', shape='box', align='left',
-                         fontsize='12', ranksep='0.1', height='0.2')
+        node_attr = dict(
+            style='filled',
+            shape='box',
+            align='left',
+            fontsize='12',
+            ranksep='0.1',
+            height='0.2',
+        )
         seen = set()
         G = nx.DiGraph()
 
@@ -51,17 +59,20 @@ def visualize():
         def build_graph(var):
             if var not in seen:
                 if torch.is_tensor(var):
-                    G.add_node(id(var), label=size_to_str(var.size()),
-                               fillcolor='orange', **node_attr)
+                    G.add_node(
+                        id(var),
+                        label=size_to_str(var.size()),
+                        fillcolor='orange',
+                        **node_attr,
+                    )
                 elif hasattr(var, 'variable'):
                     u = var.variable
-                    node_name = '%s\n %s' % (param_map.get(id(u)),
-                                             size_to_str(u.size()))
-                    G.add_node(id(var), label=node_name,
-                               fillcolor='lightblue', **node_attr)
+                    node_name = '%s\n %s' % (param_map.get(id(u)), size_to_str(u.size()),)
+                    G.add_node(
+                        id(var), label=node_name, fillcolor='lightblue', **node_attr
+                    )
                 else:
-                    G.add_node(id(var), label=str(type(var).__name__),
-                               **node_attr)
+                    G.add_node(id(var), label=str(type(var).__name__), **node_attr)
                 seen.add(var)
                 if hasattr(var, 'next_functions'):
                     for u in var.next_functions:
@@ -72,6 +83,7 @@ def visualize():
                     for t in var.saved_tensors:
                         G.add_edge(id(t), id(var))
                         build_graph(t)
+
         build_graph(var.grad_fn)
         return G
 
@@ -92,8 +104,9 @@ def visualize():
     G = make_nx(y, params)
 
     import wbia.plottool as pt
+
     pt.dump_nx_ondisk(G, './pytorch_network.png')
-    ut.startfile( './pytorch_network.png')
+    ut.startfile('./pytorch_network.png')
     # pt.show_nx(G, arrow_width=1)
     # pt.zoom_factory()
     # pt.pan_factory()

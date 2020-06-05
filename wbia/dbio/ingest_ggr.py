@@ -14,14 +14,17 @@ def _fix_ggr2018_directory_structure(ggr_path):
 
     # Manual fixes for bad directories
 
-    src_uri = join(ggr_path, 'Clarine\ Plane\ Kurungu/')
+    src_uri = join(ggr_path, 'Clarine\\ Plane\\ Kurungu/')
     dst_uri = join(ggr_path, '231/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '231B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Alex\ Peltier\ -\ Plane\ -\ Ngurnit/giraffe\ grevy\ count\ feb\ 18/')
+    src_uri = join(
+        ggr_path,
+        'Alex\\ Peltier\\ -\\ Plane\\ -\\ Ngurnit/giraffe\\ grevy\\ count\\ feb\\ 18/',
+    )
     dst_uri = join(ggr_path, '232/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '232B/')
@@ -30,49 +33,51 @@ def _fix_ggr2018_directory_structure(ggr_path):
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark', 'PANORAMA/')
+    src_uri = join(
+        ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1\\ spark', 'PANORAMA/'
+    )
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1/')
     dst_uri = join(ggr_path, '233/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1\\ spark/')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day2\ /')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day2\\ /')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 2\ spark/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 2\\ spark/')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, '103\ \(1\)/')
+    src_uri = join(ggr_path, '103\\ \\(1\\)/')
     dst_uri = join(ggr_path, '103/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '103\ \(ccef473b\)/')
+    src_uri = join(ggr_path, '103\\ \\(ccef473b\\)/')
     dst_uri = join(ggr_path, '103/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '108\ \(1\)/')
+    src_uri = join(ggr_path, '108\\ \\(1\\)/')
     dst_uri = join(ggr_path, '108/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '226A\ \(Shaba\ Funan\ Camp\)/')
+    src_uri = join(ggr_path, '226A\\ \\(Shaba\\ Funan\\ Camp\\)/')
     dst_uri = join(ggr_path, '226/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '226A/')
@@ -85,12 +90,12 @@ def _fix_ggr2018_directory_structure(ggr_path):
     for src_filepath in ut.glob(src_uri.replace('\\', '')):
         ut.delete(src_filepath)
 
-    src_uri = join(ggr_path, '54', '54A\(16\)/')
+    src_uri = join(ggr_path, '54', '54A\\(16\\)/')
     dst_uri = join(ggr_path, '54', '54A/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '54', '54B\(16\)/')
+    src_uri = join(ggr_path, '54', '54B\\(16\\)/')
     dst_uri = join(ggr_path, '54', '54B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -125,17 +130,17 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ A/')
+    src_uri = join(ggr_path, '200', '200\\ A/')
     dst_uri = join(ggr_path, '200', '200A/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ B/')
+    src_uri = join(ggr_path, '200', '200\\ B/')
     dst_uri = join(ggr_path, '200', '200B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ F/')
+    src_uri = join(ggr_path, '200', '200\\ F/')
     dst_uri = join(ggr_path, '200', '200F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -147,12 +152,12 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     # ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '201\ E/')
+    src_uri = join(ggr_path, '200', '201\\ E/')
     dst_uri = join(ggr_path, '201', '201E/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '201\ F/')
+    src_uri = join(ggr_path, '200', '201\\ F/')
     dst_uri = join(ggr_path, '201', '201F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -164,24 +169,24 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     # ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '202\ B/')
+    src_uri = join(ggr_path, '200', '202\\ B/')
     dst_uri = join(ggr_path, '202', '202B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '202\ F/')
+    src_uri = join(ggr_path, '200', '202\\ F/')
     dst_uri = join(ggr_path, '202', '202F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '230', '230A', 'El\ Karama/*.*')
+    src_uri = join(ggr_path, '230', '230A', 'El\\ Karama/*.*')
     dst_uri = join(ggr_path, '230', '230A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
     src_uri = '/'.join(src_uri.split('/')[:-1])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, '136', '136B', '136B\ Grevys\ Rally/*.*')
+    src_uri = join(ggr_path, '136', '136B', '136B\\ Grevys\\ Rally/*.*')
     dst_uri = join(ggr_path, '136', '136B/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
@@ -298,8 +303,9 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri)
 
 
-def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
-                             apply_updates=True, **kwargs):
+def convert_ggr2018_to_wbia(
+    ggr_path, dbdir=None, purge=True, dry_run=False, apply_updates=True, **kwargs
+):
     r"""Convert the raw GGR2 (2018) data to an wbia database.
 
     Args
@@ -329,12 +335,14 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     ################################################################################
 
-    blacklist_filepath_set = set([
-        join(ggr_path, 'Cameras info.numbers'),
-        join(ggr_path, 'Cameras info.xlsx'),
-        join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
-        join(ggr_path, 'Cameras info-2.numbers'),
-    ])
+    blacklist_filepath_set = set(
+        [
+            join(ggr_path, 'Cameras info.numbers'),
+            join(ggr_path, 'Cameras info.xlsx'),
+            join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
+            join(ggr_path, 'Cameras info-2.numbers'),
+        ]
+    )
 
     # Check root files
     direct = Directory(ggr_path)
@@ -343,7 +351,7 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
             assert filepath in blacklist_filepath_set
             ut.delete(filepath)
         except AssertionError:
-            print('Unresolved root file found in %r' % (filepath, ))
+            print('Unresolved root file found in %r' % (filepath,))
             continue
 
     ################################################################################
@@ -361,19 +369,19 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
     direct1_list.sort(key=lambda x: int(x.base()), reverse=False)
     for direct1 in direct1_list:
         if not dry_run:
-            print('Processing directory: %r' % (direct1, ))
+            print('Processing directory: %r' % (direct1,))
         base1 = direct1.base()
 
         try:
             int(base1)
         except ValueError:
-            print('Error found in %r' % (direct1, ))
+            print('Error found in %r' % (direct1,))
             continue
 
         try:
             assert len(direct1.files(recursive=False)) == 0
         except AssertionError:
-            print('Files found in %r' % (direct1, ))
+            print('Files found in %r' % (direct1,))
             continue
 
         seen_letter_list = []
@@ -386,7 +394,7 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
             try:
                 assert base2.startswith(base1)
             except AssertionError:
-                print('Folder name heredity conflict %r with %r' % (direct2, direct1, ))
+                print('Folder name heredity conflict %r with %r' % (direct2, direct1,))
                 continue
 
             try:
@@ -400,17 +408,19 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
                 assert letter in ALLOWED_LETTERS
                 seen_letter_list.append(letter)
             except ValueError:
-                print('Error found in %r' % (direct2, ))
+                print('Error found in %r' % (direct2,))
                 continue
             except AssertionError:
-                print('Folder name format error found in %r' % (direct2, ))
+                print('Folder name format error found in %r' % (direct2,))
                 continue
 
-            direct2_ = Directory(direct2.absolute_directory_path, recursive=True, images=True)
+            direct2_ = Directory(
+                direct2.absolute_directory_path, recursive=True, images=True
+            )
             try:
                 assert len(direct2_.directories()) == 0
             except AssertionError:
-                print('Folders exist in file only level %r' % (direct2, ))
+                print('Folders exist in file only level %r' % (direct2,))
                 continue
 
             filepath_list = sorted(direct2_.files())
@@ -421,7 +431,7 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
                     gid_list = ut.filter_Nones(gid_list)
                     gid_list = sorted(list(set(gid_list)))
 
-                    imageset_text = 'GGR2,%d,%s' % (number, letter, )
+                    imageset_text = 'GGR2,%d,%s' % (number, letter,)
                     note_list = [
                         '%s,%05d' % (imageset_text, index + 1)
                         for index, gid in enumerate(gid_list)
@@ -435,13 +445,15 @@ def convert_ggr2018_to_wbia(ggr_path, dbdir=None, purge=True, dry_run=False,
         try:
             assert len(seen_letter_set) == len(seen_letter_list)
         except AssertionError:
-            print('Duplicate letters in %r with letters %r' % (direct1, seen_letter_list, ))
+            print(
+                'Duplicate letters in %r with letters %r' % (direct1, seen_letter_list,)
+            )
             continue
 
         try:
             assert 'A' in seen_letter_set
         except AssertionError:
-            print('WARNING: A camera not found in %r' % (direct1, ))
+            print('WARNING: A camera not found in %r' % (direct1,))
             continue
 
     return ibs

@@ -34,7 +34,7 @@ from scipy.spatial import distance
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-KM_PER_SEC = .002
+KM_PER_SEC = 0.002
 
 
 def haversine(latlon1, latlon2):
@@ -222,7 +222,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         r""" ut.static_func_source(vt.atleast_nd) """
         arr_ = np.asanyarray(arr)
         ndims = len(arr_.shape)
-        if n is not None and ndims <  n:
+        if n is not None and ndims < n:
             # append the required number of dimensions to the end
             if tofront:
                 expander = (None,) * (n - ndims) + (Ellipsis,)
@@ -262,8 +262,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         # We have timesamps but no gps
         X_data = np.array(latlons)
         if thresh_units == 'seconds':
-            dist_func = functools.partial(space_distance_sec,
-                                          km_per_sec=km_per_sec)
+            dist_func = functools.partial(space_distance_sec, km_per_sec=km_per_sec)
         elif thresh_units == 'km':
             dist_func = space_distance_km
         columns = ('lat', 'lon')
@@ -271,14 +270,12 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         # We have some combination of gps and timestamps
         posixtimes = atleast_nd(posixtimes, 2)
         latlons = ensure_column_shape(latlons, 2)
-        #latlons = np.array(latlons, ndmin=2)
+        # latlons = np.array(latlons, ndmin=2)
         X_data = np.hstack([posixtimes, latlons])
         if thresh_units == 'seconds':
-            dist_func = functools.partial(timespace_distance_sec,
-                                          km_per_sec=km_per_sec)
+            dist_func = functools.partial(timespace_distance_sec, km_per_sec=km_per_sec)
         elif thresh_units == 'km':
-            dist_func = functools.partial(timespace_distance_km,
-                                          km_per_sec=km_per_sec)
+            dist_func = functools.partial(timespace_distance_km, km_per_sec=km_per_sec)
         columns = ('time', 'lat', 'lon')
     else:
         raise AssertionError('impossible state')
@@ -339,11 +336,11 @@ def cluster_timespace_km(posixtimes, latlons, thresh_km, km_per_sec=KM_PER_SEC):
     dist_func = functools.partial(dist_func, km_per_sec=km_per_sec)
     condenced_dist_mat = distance.pdist(X_data, dist_func)
     # Compute heirarchical linkages
-    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat,
-                                                  method='single')
+    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
     # Cluster linkages
-    X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh_km,
-                                                criterion='distance')
+    X_labels = scipy.cluster.hierarchy.fcluster(
+        linkage_mat, thresh_km, criterion='distance'
+    )
     return X_labels
 
 
@@ -399,8 +396,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> print(result)
         X_labels = np.array([3, 4, 1, 2, 4, 5])
     """
-    X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
-                                              'seconds')
+    X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec, 'seconds')
     if X_data is None:
         return None
 
@@ -408,12 +404,12 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
     X_bools = ~np.isnan(X_data)
     group_id = (X_bools * np.power(2, [2, 1, 0])).sum(axis=1)
     import vtool as vt
+
     unique_ids, groupxs = vt.group_indices(group_id)
     grouped_labels = []
     for xs in groupxs:
         X_part = X_data.take(xs, axis=0)
-        labels = _cluster_part(X_part, dist_func, columns, thresh_sec,
-                               km_per_sec)
+        labels = _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec)
         grouped_labels.append((labels, xs))
     # Undo grouping and rectify overlaps
     X_labels = _recombine_labels(grouped_labels)
@@ -428,6 +424,7 @@ def _recombine_labels(chunk_labels):
     chunk_labels = grouped_labels
     """
     import utool as ut
+
     labels = ut.take_column(chunk_labels, 0)
     idxs = ut.take_column(chunk_labels, 1)
     # nunique_list = [len(np.unique(a)) for a in labels]
@@ -476,11 +473,11 @@ def _cluster_chunk(X_data, dist_func, thresh_sec):
         # Compute pairwise distances between all inputs
         condenced_dist_mat = distance.pdist(X_data, dist_func)
         # Compute heirarchical linkages
-        linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat,
-                                                      method='single')
+        linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
         # Cluster linkages
-        X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh_sec,
-                                                    criterion='distance')
+        X_labels = scipy.cluster.hierarchy.fcluster(
+            linkage_mat, thresh_sec, criterion='distance'
+        )
     return X_labels
 
 
@@ -577,12 +574,23 @@ def main():
         X_labels = [2, 1, 1, 1]
     """
     import argparse
+
     parser = argparse.ArgumentParser(description='Compute agglomerative cluster')
     parser.add_argument('--lat', type=float, nargs='*', help='list of latitude coords')
     parser.add_argument('--lon', type=float, nargs='*', help='list of longitude coords')
-    parser.add_argument('--sec', type=float, nargs='*', help='list of POSIX_TIMEs in seconds')
-    parser.add_argument('--thresh', type=float, nargs=1, default=1., help='threshold in kilometers')
-    parser.add_argument('--km_per_sec', type=float, nargs=1, default=KM_PER_SEC, help='reasonable animal speed in km/s')
+    parser.add_argument(
+        '--sec', type=float, nargs='*', help='list of POSIX_TIMEs in seconds'
+    )
+    parser.add_argument(
+        '--thresh', type=float, nargs=1, default=1.0, help='threshold in kilometers'
+    )
+    parser.add_argument(
+        '--km_per_sec',
+        type=float,
+        nargs=1,
+        default=KM_PER_SEC,
+        help='reasonable animal speed in km/s',
+    )
     args = parser.parse_args()
     sec = [0] * len(args.lat) if args.sec is None else args.sec
     latlons = np.vstack([args.lat, args.lon]).T
@@ -597,7 +605,9 @@ if __name__ == '__main__':
         python -m wbia.algo.preproc.occurrence_blackbox --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     if not ut.doctest_funcs():
         main()

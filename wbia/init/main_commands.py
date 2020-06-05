@@ -12,6 +12,7 @@ from wbia import params
 from wbia.other import ibsfuncs
 from wbia.init import sysres
 from os.path import join
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -23,7 +24,7 @@ def vdq(dbdir):
 
 
 def vdd(ibs):
-    " view data dir "
+    ' view data dir '
     ut.util_cplat.view_directory(ibs.dbdir)
 
 
@@ -40,7 +41,7 @@ def vwd():
 
 def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
-    #print('[main_cmd] preload_commands')
+    # print('[main_cmd] preload_commands')
     if params.args.dump_argv:
         print(ut.repr2(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
@@ -110,13 +111,15 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--ipynb'):
         back.launch_ipy_notebook()
 
-    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid', '--occur', '--gsid'), None)
+    select_imgsetid = ut.get_argval(
+        ('--select-imgsetid', '--imgsetid', '--occur', '--gsid'), None
+    )
     if select_imgsetid is not None:
         print('\n+ --- CMD SELECT IMGSETID=%r ---' % (select_imgsetid,))
         # Whoa: this doesnt work. weird.
-        #back.select_imgsetid(select_imgsetid)
+        # back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
-        #back.front._change_imageset(select_imgsetid)
+        # back.front._change_imageset(select_imgsetid)
         back.front.select_imageset_tab(select_imgsetid)
         print('L ___ CMD SELECT IMGSETID=%r ___\n' % (select_imgsetid,))
     # Send commands to GUIBack
@@ -136,8 +139,10 @@ def postload_commands(ibs, back):
     select_name = ut.get_argval('--select-name')
     if select_name is not None:
         import wbia.gui.guiheaders as gh
-        back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name,
-                                                    allow_table_change=True)
+
+        back.ibswgt.select_table_indicies_from_text(
+            gh.NAMES_TREE, select_name, allow_table_change=True
+        )
 
     if ut.get_argflag(('--intra-occur-query', '--query-intra-occur', '--query-intra')):
         back.special_query_funcs['intra_occurrence'](cfgdict={'use_k_padding': False})
@@ -145,11 +150,13 @@ def postload_commands(ibs, back):
     qaid_list = ut.get_argval(('--query-aid', '--query'), type_=list, default=None)
 
     if qaid_list is not None:
-        #qaid_list = params.args.query_aid
+        # qaid_list = params.args.query_aid
         # fix stride case
         if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
             qaid_list = list(qaid_list[0])
-        daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
+        daids_mode = ut.get_argval(
+            '--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY
+        )
         back.compute_queries(qaid_list=qaid_list, daids_mode=daids_mode, ranks_top=10)
 
     if ut.get_argflag('--inc-query'):
@@ -162,22 +169,23 @@ def postload_commands(ibs, back):
     aidcmd = ut.get_argval('--aidcmd', default=None)
     aid = ut.get_argval('--aid', type_=int, default=1)
     if aidcmd:
-        #aidcmd = 'Interact image'
+        # aidcmd = 'Interact image'
         metadata = ibs.get_annot_lazy_dict(aid)
         annot_context_options = metadata['annot_context_options']
         aidcmd_dict = dict(annot_context_options)
         print('aidcmd_dict = %s' % (ut.repr3(aidcmd_dict),))
         command = aidcmd_dict[aidcmd]
         command()
-        #import utool
-        #utool.embed()
-        #back.start_web_server_parallel()
+        # import utool
+        # utool.embed()
+        # back.start_web_server_parallel()
 
     if ut.get_argflag('--start-web'):
         back.start_web_server_parallel()
 
     if ut.get_argflag('--name-tab'):
         from wbia.gui.guiheaders import NAMES_TREE
+
         back.front.set_table_tab(NAMES_TREE)
         view = back.front.views[NAMES_TREE]
         model = view.model()
@@ -191,19 +199,21 @@ def postload_commands(ibs, back):
         from wbia.guitool.__PYQT__.QtGui import QPixmap
         from PyQt4.QtTest import QTest
         from PyQt4.QtCore import Qt
+
         fpath = ut.truepath(screengrab_fpath)
         import wbia.guitool
-        #ut.embed()
+
+        # ut.embed()
         timer2 = guitool.__PYQT__.QtCore.QTimer()
         done = [1000]
 
         def delayed_screenshot_func():
             if done[0] == 500:
-                #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
+                # back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
                 print('Mouseclick')
                 QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)
                 # This works
-                #QTest.mouseClick(back.front.import_button, Qt.LeftButton)
+                # QTest.mouseClick(back.front.import_button, Qt.LeftButton)
             if done[0] == 1:
                 timer2.stop()
                 print('screengrab to %r' % (fpath,))
@@ -213,19 +223,20 @@ def postload_commands(ibs, back):
                 print('lub dub2')
             done[0] -= 1
             return None
+
         CLICK_FILE_MENU = True
         if CLICK_FILE_MENU:
-            #ut.embed()
-            #QTest::keyClick(menu, Qt::Key_Down)
+            # ut.embed()
+            # QTest::keyClick(menu, Qt::Key_Down)
             pass
         timer2.delayed_screenshot_func = delayed_screenshot_func
         timer2.timeout.connect(timer2.delayed_screenshot_func)
         timer2.start(1)
         back.mainwin.timer2 = timer2
         guitool.activate_qwindow(back.mainwin)
-        #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
-        #ut.startfile(fpath)
-        #ut.embed()
+        # QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
+        # ut.startfile(fpath)
+        # ut.embed()
         pass
 
     if params.args.postload_exit:

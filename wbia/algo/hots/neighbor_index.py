@@ -12,12 +12,14 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from vtool._pyflann_backend import pyflann as pyflann
+
 # import itertools as it
-#import lockfile
+# import lockfile
 from os.path import basename
 from six.moves import range, zip, map  # NOQA
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
@@ -61,8 +63,8 @@ def get_support_data(qreq_, daid_list):
     # Create corresponding feature indicies
     fxs_list = [np.arange(len(vecs)) for vecs in vecs_list]
     # <HACK:featweight>
-    #hack to get  feature weights. returns None if feature weights are turned
-    #off in config settings
+    # hack to get  feature weights. returns None if feature weights are turned
+    # off in config settings
 
     if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
         min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
@@ -71,7 +73,9 @@ def get_support_data(qreq_, daid_list):
         # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
         scales_list = [vt.get_scales(kpts) for kpts in kpts_list]
         # Remove data under the threshold
-        flags_list = [np.logical_and(scales >= min_, scales <= max_) for scales in scales_list]
+        flags_list = [
+            np.logical_and(scales >= min_, scales <= max_) for scales in scales_list
+        ]
         vecs_list = vt.zipcompress(vecs_list, flags_list, axis=0)
         fxs_list = vt.zipcompress(fxs_list, flags_list, axis=0)
 
@@ -79,7 +83,8 @@ def get_support_data(qreq_, daid_list):
         # I've found that the call to get_annot_fgweights is different on
         # different machines.  Something must be configured differently.
         fgws_list = qreq_.ibs.get_annot_fgweights(
-            daid_list, config2_=config2_, ensure=True)
+            daid_list, config2_=config2_, ensure=True
+        )
         fgws_list = vt.ziptake(fgws_list, fxs_list, axis=0)
         # assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
         if config2_.fgw_thresh is not None and config2_.fgw_thresh > 0:
@@ -169,7 +174,9 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         else:
             idx2_fgw = np.hstack(fgws_list)
             try:
-                assert len(idx2_fgw) == len(idx2_vec), 'error. weights and vecs do not correspond'
+                assert len(idx2_fgw) == len(
+                    idx2_vec
+                ), 'error. weights and vecs do not correspond'
             except Exception as ex:
                 ut.printex(ex, keys=[(len, 'idx2_fgw'), (len, 'idx2_vec')])
                 raise
@@ -179,11 +186,16 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         ut.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
     if ut.VERYVERBOSE or verbose:
-        print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
-            nVecs=len(idx2_vec), nAnnots=len(ax_list)))
-        print('[nnindex] idx2_vecs dtype={}, memory={}'.format(
-            idx2_vec.dtype,
-            ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
+        print(
+            '[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
+                nVecs=len(idx2_vec), nAnnots=len(ax_list)
+            )
+        )
+        print(
+            '[nnindex] idx2_vecs dtype={}, memory={}'.format(
+                idx2_vec.dtype, ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)
+            )
+        )
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 
 
@@ -198,20 +210,20 @@ class NeighborIndex(object):
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
-    ext     = '.flann'
+    ext = '.flann'
     prefix1 = 'flann'
 
     def __init__(nnindexer, flann_params, cfgstr):
         r"""
         initialize an empty neighbor indexer
         """
-        nnindexer.flann    = None  # Approximate search structure
-        nnindexer.ax2_aid  = None  # (A x 1) Mapping to original annot ids
+        nnindexer.flann = None  # Approximate search structure
+        nnindexer.ax2_aid = None  # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = None  # (M x D) Descriptors to index
         nnindexer.idx2_fgw = None  # (M x 1) Descriptor forground weight
-        nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
-        nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
-        nnindexer.cfgstr   = cfgstr  # configuration id
+        nnindexer.idx2_ax = None  # (M x 1) Index into the aid_list
+        nnindexer.idx2_fx = None  # (M x 1) Index into the annot's features
+        nnindexer.cfgstr = cfgstr  # configuration id
         if flann_params is None:
             flann_params = {'algorithm': 'kdtree'}
         if 'random_seed' not in flann_params:
@@ -222,7 +234,7 @@ class NeighborIndex(object):
         nprocs = ut.util_parallel.__NUM_PROCS__
         if nprocs is None:
             nprocs = 0
-        nnindexer.cores  = flann_params.get('cores', nprocs)
+        nnindexer.cores = flann_params.get('cores', nprocs)
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
         nnindexer.flann_fpath = None
@@ -240,54 +252,59 @@ class NeighborIndex(object):
         print('[nnindex] Preparing data for indexing / loading index')
         # Check input
         assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
-        assert len(aid_list) > 0, ('len(aid_list) == 0.'
-                                        'Cannot invert index without features!')
+        assert len(aid_list) > 0, (
+            'len(aid_list) == 0.' 'Cannot invert index without features!'
+        )
         # Create indexes into the input aids
         ax_list = np.arange(len(aid_list))
 
         # Invert indicies
-        tup = invert_index(vecs_list, fgws_list, ax_list, fxs_list,
-                           verbose=verbose)
+        tup = invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=verbose)
         idx2_vec, idx2_fgw, idx2_ax, idx2_fx = tup
 
         ax2_aid = np.array(aid_list)
 
-        indexer.flann    = pyflann.FLANN()  # Approximate search structure
-        indexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
+        indexer.flann = pyflann.FLANN()  # Approximate search structure
+        indexer.ax2_aid = ax2_aid  # (A x 1) Mapping to original annot ids
         indexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
         indexer.idx2_fgw = idx2_fgw  # (M x 1) Descriptor forground weight
-        indexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
-        indexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
-        indexer.aid2_ax  = ut.make_index_lookup(indexer.ax2_aid)
+        indexer.idx2_ax = idx2_ax  # (M x 1) Index into the aid_list
+        indexer.idx2_fx = idx2_fx  # (M x 1) Index into the annot's features
+        indexer.aid2_ax = ut.make_index_lookup(indexer.ax2_aid)
         indexer.num_indexed = indexer.idx2_vec.shape[0]
         if indexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             # these are sift descriptors
             indexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE_SQRD
         else:
             # FIXME: hacky way to support siam128 descriptors.
-            #raise AssertionError(
+            # raise AssertionError(
             #'NNindexer should get uint8s right now unless the algorithm has
             # changed')
             indexer.max_distance_sqrd = None
 
-    def add_wbia_support(nnindexer, qreq_, new_daid_list,
-                          verbose=ut.NOT_QUIET):
+    def add_wbia_support(nnindexer, qreq_, new_daid_list, verbose=ut.NOT_QUIET):
         r"""
         # TODO: ensure that the memcache changes appropriately
         """
         from wbia.algo.hots.neighbor_index import clear_memcache
+
         clear_memcache()
         if verbose:
-            print('[nnindex] request add %d annots to single-indexer' % (
-                len(new_daid_list)))
+            print(
+                '[nnindex] request add %d annots to single-indexer' % (len(new_daid_list))
+            )
         indexed_aids = nnindexer.get_indexed_aids()
         duplicate_aids = set(new_daid_list).intersection(indexed_aids)
         if len(duplicate_aids) > 0:
             if verbose:
-                print(('[nnindex] request has %d annots that are already '
-                       'indexed. ignore those') % (len(duplicate_aids),))
-            new_daid_list_ = np.array(sorted(list(set(new_daid_list) -
-                                                  duplicate_aids)))
+                print(
+                    (
+                        '[nnindex] request has %d annots that are already '
+                        'indexed. ignore those'
+                    )
+                    % (len(duplicate_aids),)
+                )
+            new_daid_list_ = np.array(sorted(list(set(new_daid_list) - duplicate_aids)))
         else:
             new_daid_list_ = new_daid_list
         if len(new_daid_list_) == 0:
@@ -296,18 +313,21 @@ class NeighborIndex(object):
         else:
             tup = get_support_data(qreq_, new_daid_list_)
             new_vecs_list, new_fgws_list, new_fxs_list = tup
-            nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list,
-                                  verbose=verbose)
+            nnindexer.add_support(
+                new_daid_list_, new_vecs_list, new_fgws_list, verbose=verbose
+            )
 
-    def remove_wbia_support(nnindexer, qreq_, remove_daid_list,
-                             verbose=ut.NOT_QUIET):
+    def remove_wbia_support(nnindexer, qreq_, remove_daid_list, verbose=ut.NOT_QUIET):
         r"""
         # TODO: ensure that the memcache changes appropriately
         """
         if verbose:
-            print('[nnindex] request remove %d annots from single-indexer' %
-                  (len(remove_daid_list)))
+            print(
+                '[nnindex] request remove %d annots from single-indexer'
+                % (len(remove_daid_list))
+            )
         from wbia.algo.hots.neighbor_index import clear_memcache
+
         clear_memcache()
         nnindexer.remove_support(remove_daid_list, verbose=verbose)
 
@@ -346,8 +366,10 @@ class NeighborIndex(object):
         idx2_remove_flag = np.in1d(nnindexer.idx2_ax, remove_ax_list)
         remove_idx_list = np.nonzero(idx2_remove_flag)[0]
         if verbose:
-            print('[nnindex] Found %d / %d annots that need removing' %
-                  (len(remove_ax_list), len(remove_daid_list)))
+            print(
+                '[nnindex] Found %d / %d annots that need removing'
+                % (len(remove_ax_list), len(remove_daid_list))
+            )
             print('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
         # FIXME: indicies may need adjustment after remove points
         # Currently this is not being done and the data is just being left alone
@@ -356,7 +378,7 @@ class NeighborIndex(object):
         nnindexer.flann.remove_points(remove_idx_list)
 
         # FIXME:
-        #nnindexer.ax2_aid
+        # nnindexer.ax2_aid
         if True:
             nnindexer.ax2_aid[remove_ax_list] = -1
             nnindexer.idx2_fx[remove_idx_list] = -1
@@ -371,8 +393,14 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE REMOVE POINTS')
 
-    def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list, new_fxs_list,
-                    verbose=ut.NOT_QUIET):
+    def add_support(
+        nnindexer,
+        new_daid_list,
+        new_vecs_list,
+        new_fgws_list,
+        new_fxs_list,
+        verbose=ut.NOT_QUIET,
+    ):
         r"""
         adds support data (aka data to be indexed)
 
@@ -406,21 +434,26 @@ class NeighborIndex(object):
         nVecs = nnindexer.num_indexed_vecs()
         nNewAnnots = len(new_daid_list)
         new_ax_list = np.arange(nAnnots, nAnnots + nNewAnnots)
-        tup = invert_index(new_vecs_list, new_fgws_list, new_ax_list, new_fxs_list,
-                           verbose=verbose)
+        tup = invert_index(
+            new_vecs_list, new_fgws_list, new_ax_list, new_fxs_list, verbose=verbose
+        )
         new_idx2_vec, new_idx2_fgw, new_idx2_ax, new_idx2_fx = tup
         nNewVecs = len(new_idx2_vec)
         if verbose or ut.VERYVERBOSE:
-            print(('[nnindex] Adding %d vecs from %d annots to nnindex '
-                   'with %d vecs and %d annots') %
-                  (nNewVecs, nNewAnnots, nVecs, nAnnots))
+            print(
+                (
+                    '[nnindex] Adding %d vecs from %d annots to nnindex '
+                    'with %d vecs and %d annots'
+                )
+                % (nNewVecs, nNewAnnots, nVecs, nAnnots)
+            )
         if ut.DEBUG2:
             print('STACKING')
         # Stack inverted information
         old_idx2_vec = nnindexer.idx2_vec
         if nnindexer.idx2_fgw is not None:
             new_idx2_fgw = np.hstack(new_fgws_list)
-            #nnindexer.old_vecs.append(new_idx2_fgw)
+            # nnindexer.old_vecs.append(new_idx2_fgw)
         ##---
         _ax2_aid = np.hstack((nnindexer.ax2_aid, new_daid_list))
         _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
@@ -430,15 +463,15 @@ class NeighborIndex(object):
             _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
         if ut.DEBUG2:
             print('REPLACING')
-        nnindexer.ax2_aid  = _ax2_aid
-        nnindexer.idx2_ax  = _idx2_ax
+        nnindexer.ax2_aid = _ax2_aid
+        nnindexer.idx2_ax = _idx2_ax
         nnindexer.idx2_vec = _idx2_vec
-        nnindexer.idx2_fx  = _idx2_fx
+        nnindexer.idx2_fx = _idx2_fx
         nnindexer.aid2_ax = ut.make_index_lookup(nnindexer.ax2_aid)
         if nnindexer.idx2_fgw is not None:
             nnindexer.idx2_fgw = _idx2_fgw
-        #nnindexer.idx2_kpts   = None
-        #nnindexer.idx2_oris   = None
+        # nnindexer.idx2_kpts   = None
+        # nnindexer.idx2_oris   = None
         # Add new points to flann structure
         if ut.DEBUG2:
             print('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
@@ -448,8 +481,14 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE ADD POINTS')
 
-    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
-                       memtrack=None, prog_hook=None):
+    def ensure_indexer(
+        nnindexer,
+        cachedir,
+        verbose=True,
+        force_rebuild=False,
+        memtrack=None,
+        prog_hook=None,
+    ):
         r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
@@ -461,20 +500,22 @@ class NeighborIndex(object):
             load_success = nnindexer.load(cachedir, verbose=verbose)
         if load_success:
             if not ut.QUIET:
-                nVecs   = nnindexer.num_indexed_vecs()
+                nVecs = nnindexer.num_indexed_vecs()
                 nAnnots = nnindexer.num_indexed_annots()
-                print('...nnindex flann cache hit: %d vectors, %d annots' %
-                      (nVecs, nAnnots))
+                print(
+                    '...nnindex flann cache hit: %d vectors, %d annots' % (nVecs, nAnnots)
+                )
         else:
             if not ut.QUIET:
-                nVecs   = nnindexer.num_indexed_vecs()
+                nVecs = nnindexer.num_indexed_vecs()
                 nAnnots = nnindexer.num_indexed_annots()
-                print('...nnindex flann cache miss: %d vectors, %d annots' %
-                      (nVecs, nAnnots))
+                print(
+                    '...nnindex flann cache miss: %d vectors, %d annots'
+                    % (nVecs, nAnnots)
+                )
             if prog_hook is not None:
                 prog_hook.set_progress(1, 2, 'Building new indexer (may take some time)')
-            nnindexer.build_and_save(cachedir, verbose=verbose,
-                                     memtrack=memtrack)
+            nnindexer.build_and_save(cachedir, verbose=verbose, memtrack=memtrack)
         if prog_hook is not None:
             prog_hook.set_progress(2, 2, 'Finished loading indexer')
 
@@ -485,16 +526,20 @@ class NeighborIndex(object):
     def reindex(nnindexer, verbose=True, memtrack=None):
         r""" indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
-        notify_num = 1E6
-        verbose_ = ut.VERYVERBOSE or verbose or (
-            not ut.QUIET and num_vecs > notify_num)
+        notify_num = 1e6
+        verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
         if verbose_:
-            print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
+            print(
+                '[nnindex] ...building kdtree over %d points (this may take a sec).'
+                % num_vecs
+            )
             tt = ut.tic(msg='Building index')
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
         if num_vecs == 0:
-            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+            print(
+                'WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE'
+            )
         else:
             if memtrack is not None:
                 memtrack.report('BEFORE BUILD FLANN INDEX')
@@ -520,8 +565,7 @@ class NeighborIndex(object):
             flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
-            print('[nnindex] flann.save_index(%r)' %
-                  ut.path_ndir_split(flann_fpath, n=5))
+            print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir=None, fpath=None, verbose=True):
@@ -582,19 +626,24 @@ class NeighborIndex(object):
         use_data_hash = True
         if use_params_hash:
             flann_defaults = vt.get_flann_params(nnindexer.flann_params['algorithm'])
-            #flann_params_clean = flann_defaults.copy()
+            # flann_params_clean = flann_defaults.copy()
             flann_params_clean = ut.sort_dict(flann_defaults)
             ut.update_existing(flann_params_clean, nnindexer.flann_params)
             if noquery:
                 ut.delete_dict_keys(flann_params_clean, ['checks'])
-            shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
-            short_params = ut.odict([(shortnames.get(key, key), str(val)[0:7])
-                                     for key, val in six.iteritems(flann_params_clean)])
-            flann_valsig_ = ut.repr2(
-                short_params, nl=False, explicit=True, strvals=True)
+            shortnames = dict(
+                algorithm='algo', checks='chks', random_seed='seed', trees='t'
+            )
+            short_params = ut.odict(
+                [
+                    (shortnames.get(key, key), str(val)[0:7])
+                    for key, val in six.iteritems(flann_params_clean)
+                ]
+            )
+            flann_valsig_ = ut.repr2(short_params, nl=False, explicit=True, strvals=True)
             flann_valsig_ = flann_valsig_.lstrip('dict').replace(' ', '')
-            #flann_valsig_ = str(list(flann_params.values()))
-            #flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
+            # flann_valsig_ = str(list(flann_params.values()))
+            # flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
             flann_cfgstr_list.append('_FLANN(' + flann_valsig_ + ')')
         if use_data_hash:
             vecs_hashstr = ut.hashstr_arr(nnindexer.idx2_vec, '_VECS')
@@ -609,8 +658,8 @@ class NeighborIndex(object):
         _args2_fpath = ut.util_cache._args2_fpath
         prefix = nnindexer.get_prefix()
         cfgstr = nnindexer.get_cfgstr(noquery=True)
-        ext    = nnindexer.ext
-        fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext)
+        ext = nnindexer.ext
+        fpath = _args2_fpath(cachedir, prefix, cfgstr, ext)
         return fpath
 
     # ---- </cachable_interface> ---
@@ -694,16 +743,19 @@ class NeighborIndex(object):
             try:
                 # perform nearest neighbors
                 (qfx2_idx, qfx2_raw_dist) = indexer.flann.nn_index(
-                    qfx2_vec, K, checks=indexer.checks, cores=indexer.cores)
+                    qfx2_vec, K, checks=indexer.checks, cores=indexer.cores
+                )
                 # TODO: catch case where K < dbsize
             except pyflann.FLANNException as ex:
-                ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
-                           (indexer.flann_fpath,))
-                #ut.embed()
+                ut.printex(
+                    ex,
+                    'probably misread the cached flann_fpath=%r' % (indexer.flann_fpath,),
+                )
+                # ut.embed()
                 # Uncomment and use if the flan index needs to be deleted
-                #ibs = ut.search_stack_for_localvar('ibs')
-                #cachedir = ibs.get_flann_cachedir()
-                #flann_fpath = indexer.get_fpath(cachedir)
+                # ibs = ut.search_stack_for_localvar('ibs')
+                # cachedir = ibs.get_flann_cachedir()
+                # flann_fpath = indexer.get_fpath(cachedir)
                 raise
             # Ensure that distance returned are between 0 and 1
             if indexer.max_distance_sqrd is not None:
@@ -714,11 +766,13 @@ class NeighborIndex(object):
                 # Ensure distance calculations are correct
                 qfx2_dvec = indexer.idx2_vec[qfx2_idx.T]
                 targetdist = vt.L2_sift(qfx2_vec, qfx2_dvec).T ** 2
-                rawdist    = vt.L2_sqrd(qfx2_vec, qfx2_dvec).T
-                assert np.all(qfx2_raw_dist == rawdist), (
-                    'inconsistant distance calculations')
-                assert np.allclose(targetdist, qfx2_dist), (
-                    'inconsistant distance calculations')
+                rawdist = vt.L2_sqrd(qfx2_vec, qfx2_dvec).T
+                assert np.all(
+                    qfx2_raw_dist == rawdist
+                ), 'inconsistant distance calculations'
+                assert np.allclose(
+                    targetdist, qfx2_dist
+                ), 'inconsistant distance calculations'
         return (qfx2_idx, qfx2_dist)
 
     @profile
@@ -751,6 +805,7 @@ class NeighborIndex(object):
 
         """
         from wbia.algo.hots import requery_knn
+
         if K == 0:
             (qfx2_idx, qfx2_dist) = indexer.empty_neighbors(len(qfx2_vec), 0)
         elif K > indexer.num_indexed:
@@ -763,17 +818,27 @@ class NeighborIndex(object):
             invalid_axs = np.array(ut.take(indexer.aid2_ax, impossible_aids))
             # pad += (len(invalid_axs) * 2)
             def get_neighbors(vecs, temp_K):
-                return indexer.flann.nn_index(vecs, temp_K,
-                                              checks=indexer.checks,
-                                              cores=indexer.cores)
+                return indexer.flann.nn_index(
+                    vecs, temp_K, checks=indexer.checks, cores=indexer.cores
+                )
+
             get_axs = indexer.get_nn_axs
             try:
                 (qfx2_idx, qfx2_raw_dist) = requery_knn.requery_knn(
-                    get_neighbors, get_axs, qfx2_vec, num_neighbs=K, pad=pad,
-                    invalid_axs=invalid_axs, limit=3, recover=recover)
+                    get_neighbors,
+                    get_axs,
+                    qfx2_vec,
+                    num_neighbs=K,
+                    pad=pad,
+                    invalid_axs=invalid_axs,
+                    limit=3,
+                    recover=recover,
+                )
             except pyflann.FLANNException as ex:
-                ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
-                           (indexer.flann_fpath,))
+                ut.printex(
+                    ex,
+                    'probably misread the cached flann_fpath=%r' % (indexer.flann_fpath,),
+                )
                 raise
             if indexer.max_distance_sqrd is not None:
                 qfx2_dist = np.divide(qfx2_raw_dist, indexer.max_distance_sqrd)
@@ -814,7 +879,7 @@ class NeighborIndex(object):
             assert data_agrees, 'indexed data does not agree'
 
     def empty_neighbors(nnindexer, nQfx, K):
-        qfx2_idx  = np.empty((0, K), dtype=np.int32)
+        qfx2_idx = np.empty((0, K), dtype=np.int32)
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)
 
@@ -822,14 +887,14 @@ class NeighborIndex(object):
         return nnindexer.idx2_vec.shape[0]
 
     def num_indexed_annots(nnindexer):
-        #invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
+        # invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
         return (nnindexer.ax2_aid != -1).sum()
 
     def get_indexed_aids(nnindexer):
         return nnindexer.ax2_aid[nnindexer.ax2_aid != -1]
 
     def get_indexed_vecs(nnindexer):
-        valid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] != -1)
+        valid_idxs = nnindexer.ax2_aid[nnindexer.idx2_ax] != -1
         valid_idx2_vec = nnindexer.idx2_vec.compress(valid_idxs, axis=0)
         return valid_idx2_vec
 
@@ -885,7 +950,10 @@ class NeighborIndex(object):
             qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
             qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
         except Exception as ex:
-            ut.printex(ex, 'Error occurred in aid lookup. Dumping debug info. Are the neighbors idxs correct?')
+            ut.printex(
+                ex,
+                'Error occurred in aid lookup. Dumping debug info. Are the neighbors idxs correct?',
+            )
             print('qfx2_nnidx.shape = %r' % (qfx2_nnidx.shape,))
             print('qfx2_nnidx.max() = %r' % (qfx2_nnidx.max(),))
             print('qfx2_nnidx.min() = %r' % (qfx2_nnidx.min(),))
@@ -947,11 +1015,10 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
     def __init__(nnindexer, flann_params=None, cfgstr=None):
         super(NeighborIndex2, nnindexer).__init__(flann_params, cfgstr)
         nnindexer.config = None
-        #nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
+        # nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
     def __nice__(self):
-        return ' nA=%r nV=%r' % (ut.safelen(self.ax2_aid),
-                                 ut.safelen(self.idx2_vec))
+        return ' nA=%r nV=%r' % (ut.safelen(self.ax2_aid), ut.safelen(self.idx2_vec))
 
     @staticmethod
     def get_support(depc, aid_list, config):
@@ -963,17 +1030,17 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         return vecs_list, fgws_list
 
     def on_load(nnindexer, depc):
-        #print('NNINDEX ON LOAD')
+        # print('NNINDEX ON LOAD')
         aid_list = nnindexer.ax2_aid
         config = nnindexer.config
         support = nnindexer.get_support(depc, aid_list, config.feat_cfg)
         nnindexer.init_support(aid_list, *support)
         nnindexer.load(fpath=nnindexer.flann_fpath)
-        #nnindexer.ax2_aid
+        # nnindexer.ax2_aid
         pass
 
     def on_save(nnindexer, depc, fpath):
-        #print('NNINDEX ON SAVE')
+        # print('NNINDEX ON SAVE')
         # Save FLANN as well
         flann_fpath = ut.augpath(fpath, '_flann', newext='.flann')
         nnindexer.save(fpath=flann_fpath)
@@ -987,22 +1054,22 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         del state['idx2_vec']
         del state['idx2_ax']
         del state['idx2_fx']
-        #del state['flann_params']
-        #del state['checks']
-        #nnindexer.num_indexed = None
-        #nnindexer.flann_fpath = None
-        #if flann_params is None:
-        #nnindexer.flann_params = flann_params
-        #nnindexer.cores  = flann_params.get('cores', 0)
-        #nnindexer.checks = flann_params.get('checks', 1028)
-        #nnindexer.num_indexed = None
-        #nnindexer.flann_fpath = None
-        #nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
+        # del state['flann_params']
+        # del state['checks']
+        # nnindexer.num_indexed = None
+        # nnindexer.flann_fpath = None
+        # if flann_params is None:
+        # nnindexer.flann_params = flann_params
+        # nnindexer.cores  = flann_params.get('cores', 0)
+        # nnindexer.checks = flann_params.get('checks', 1028)
+        # nnindexer.num_indexed = None
+        # nnindexer.flann_fpath = None
+        # nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
         return state
 
     def __setstate__(self, state_dict):
         self.__dict__.update(state_dict)
-        #return {}
+        # return {}
 
     # def conditional_knn(nnindexer, qfx2_vec, num_neighbors, invalid_axs):
     #     """
@@ -1023,6 +1090,7 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
 
 def testdata_nnindexer(*args, **kwargs):
     from wbia.algo.hots.neighbor_index_cache import testdata_nnindexer
+
     return testdata_nnindexer(*args, **kwargs)
 
 
@@ -1034,5 +1102,6 @@ if __name__ == '__main__':
         utprof.sh wbia/algo/hots/neighbor_index.py --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

@@ -1,4 +1,4 @@
-# DISABLE THESE ERRORS 
+# DISABLE THESE ERRORS
 #'E127', # continuation line over-indented for visual indent
 #'E201', # whitespace after '('
 #'E202', # whitespace before ']'
@@ -7,7 +7,7 @@
 #'E222', # multiple spaces after operator
 #'E241', # multiple spaces after ,
 #'E265', # block comment should start with "# "
-#'E271', # multiple spaces after keyword 
+#'E271', # multiple spaces after keyword
 #'E272', # multiple spaces before keyword
 #'E301', # expected 1 blank line, found 0
 #'E501', # > 79

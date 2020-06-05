@@ -11,7 +11,7 @@
 		<height>900</height>
 		<depth>3</depth>
 	</size>
-	<segmented>0</segmented>	
+	<segmented>0</segmented>
 	<object>
 		<name>giraffe</name>
 		<pose>Unspecified</pose>

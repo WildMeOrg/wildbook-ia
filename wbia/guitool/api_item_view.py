@@ -17,6 +17,7 @@ from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
 import operator
+
 # Valid API Models
 from wbia.guitool.stripe_proxy_model import StripeProxyModel
 from wbia.guitool.filter_proxy_model import FilterProxyModel
@@ -30,9 +31,13 @@ VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtWidgets.QAbstractItemView
 ABSTRACT_VIEW_INJECT_KEY = ('QtWidgets.QAbstractItemView', 'guitool')
-register_view_method = utool.make_class_method_decorator(ABSTRACT_VIEW_INJECT_KEY, __name__)
+register_view_method = utool.make_class_method_decorator(
+    ABSTRACT_VIEW_INJECT_KEY, __name__
+)
 
-injectviewinstance = functools.partial(utool.inject_instance, classkey=ABSTRACT_VIEW_INJECT_KEY)
+injectviewinstance = functools.partial(
+    utool.inject_instance, classkey=ABSTRACT_VIEW_INJECT_KEY
+)
 
 
 VALID_API_MODELS = (FilterProxyModel, StripeProxyModel, APIItemModel)
@@ -58,9 +63,10 @@ def _init_api_item_view(view):
     view.registered_single_keys = []
     view.registered_keypress_funcs = []
 
-#---------------
+
+# ---------------
 # Data Manipulation
-#---------------
+# ---------------
 
 
 @register_view_method
@@ -85,8 +91,8 @@ def _init_itemview_behavior(view):
     view.setWordWrap(True)
 
     # Selection behavior
-    #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-    #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectColumns)
+    # view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+    # view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectColumns)
     view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
 
     # Selection behavior
@@ -104,19 +110,19 @@ def _init_itemview_behavior(view):
     view.setSortingEnabled(True)
 
     # Edit Triggers
-    #view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)  # No Editing
-    #view.setEditTriggers(QtWidgets.QAbstractItemView.SelectedClicked)
-    #QtWidgets.QAbstractItemView.NoEditTriggers  |  # 0
-    #QtWidgets.QAbstractItemView.CurrentChanged  |  # 1
-    #QtWidgets.QAbstractItemView.DoubleClicked   |  # 2
-    #QtWidgets.QAbstractItemView.SelectedClicked |  # 4
-    #QtWidgets.QAbstractItemView.EditKeyPressed  |  # 8
-    #QtWidgets.QAbstractItemView.AnyKeyPressed      # 16
-    #view._defaultEditTriggers = QtWidgets.QAbstractItemView.AllEditTriggers
+    # view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)  # No Editing
+    # view.setEditTriggers(QtWidgets.QAbstractItemView.SelectedClicked)
+    # QtWidgets.QAbstractItemView.NoEditTriggers  |  # 0
+    # QtWidgets.QAbstractItemView.CurrentChanged  |  # 1
+    # QtWidgets.QAbstractItemView.DoubleClicked   |  # 2
+    # QtWidgets.QAbstractItemView.SelectedClicked |  # 4
+    # QtWidgets.QAbstractItemView.EditKeyPressed  |  # 8
+    # QtWidgets.QAbstractItemView.AnyKeyPressed      # 16
+    # view._defaultEditTriggers = QtWidgets.QAbstractItemView.AllEditTriggers
 
     bitwise_or = operator.__or__
     chosen_triggers = [
-        #QtWidgets.QAbstractItemView.NoEditTriggers,
+        # QtWidgets.QAbstractItemView.NoEditTriggers,
         QtWidgets.QAbstractItemView.CurrentChanged,
         QtWidgets.QAbstractItemView.DoubleClicked,
         QtWidgets.QAbstractItemView.SelectedClicked,
@@ -124,31 +130,31 @@ def _init_itemview_behavior(view):
         QtWidgets.QAbstractItemView.AnyKeyPressed,
     ]
     view._defaultEditTriggers = reduce(bitwise_or, chosen_triggers)
-    #view._defaultEditTriggers = QtWidgets.QAbstractItemView.NoEditTriggers
+    # view._defaultEditTriggers = QtWidgets.QAbstractItemView.NoEditTriggers
     view.setEditTriggers(view._defaultEditTriggers)
     # TODO: Figure out how to not edit when you are selecting
-    #view.setEditTriggers(QtWidgets.QAbstractItemView.AllEditTriggers)
+    # view.setEditTriggers(QtWidgets.QAbstractItemView.AllEditTriggers)
 
 
 @register_view_method
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
     get_thumb_size = headers.get('get_thumb_size', None)
-    col_type_list  = headers.get('col_type_list', [])
+    col_type_list = headers.get('col_type_list', [])
     num_cols = view.model().columnCount()
     num_duplicates = int(num_cols / len(col_type_list))
     col_type_list = col_type_list * num_duplicates
     view.has_thumbs = False
     for colx, coltype in enumerate(col_type_list):
-        if coltype in  qtype.QT_PIXMAP_TYPES:
+        if coltype in qtype.QT_PIXMAP_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
             thumb_delegate = api_thumb_delegate.APIThumbDelegate(view, get_thumb_size)
             view.setItemDelegateForColumn(colx, thumb_delegate)
             view.has_thumbs = True
             # HACK
-            #verticalHeader = view.verticalHeader()
-            #verticalHeader.setDefaultSectionSize(256)
+            # verticalHeader = view.verticalHeader()
+            # verticalHeader.setDefaultSectionSize(256)
         elif coltype in qtype.QT_BUTTON_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
@@ -172,7 +178,7 @@ def set_column_persistant_editor(view, column):
     num_rows = view.model.rowCount()
     print('view.set_persistant: %r rows' % num_rows)
     for row in range(num_rows):
-        index  = view.model.index(row, column)
+        index = view.model.index(row, column)
         view.view.openPersistentEditor(index)
 
 
@@ -181,10 +187,10 @@ def _update_headers(view, **headers):
     """ Mirrors _update_headers in api_item_model """
     # Use headers from model #model = view.model #headers = model.headers
     # Get header info
-    col_sort_index       = headers.get('col_sort_index', None)
-    col_sort_reverse     = headers.get('col_sort_reverse', False)
+    col_sort_index = headers.get('col_sort_index', None)
+    col_sort_reverse = headers.get('col_sort_reverse', False)
     view.col_hidden_list = headers.get('col_hidden_list', [])
-    view.col_name_list   = headers.get('col_name_list', [])
+    view.col_name_list = headers.get('col_name_list', [])
     # Call updates
     # FIXME: is this the right thing to do here?
     view._set_sort(col_sort_index, col_sort_reverse)
@@ -202,10 +208,10 @@ def _update_headers(view, **headers):
             if hasattr(width, '__call__'):
                 width = width()
             horizontal_header.resizeSection(index, width)
-        #except AttributeError as ex:
+        # except AttributeError as ex:
         #    ut.embed()
         #    ut.printex(ex, 'tree view?')
-        #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
+        # view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
 
 
 @register_view_method
@@ -225,8 +231,8 @@ def hide_cols(view):
         view.setColumnHidden(col, hidden)
 
 
-#@register_view_method
-#def clear_selection(view):
+# @register_view_method
+# def clear_selection(view):
 #    #print('[api_item_view] clear_selection()')
 #    selection_model = view.selectionModel()
 #    selection_model.clearSelection()
@@ -246,8 +252,10 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
         _id is from the iders function (i.e. an wbia rowid)
         selects the row in that view if it exists
     """
-    with ut.Timer('[api_item_view] select_row_from_id(id=%r, scroll=%r, collapse=%r)' %
-                  (_id, scroll, collapse)):
+    with ut.Timer(
+        '[api_item_view] select_row_from_id(id=%r, scroll=%r, collapse=%r)'
+        % (_id, scroll, collapse)
+    ):
         qtindex, row = view.get_row_and_qtindex_from_id(_id)
         if row is not None:
             if isinstance(view, QtWidgets.QTreeView):
@@ -255,8 +263,8 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                     view.collapseAll()
                 select_model = view.selectionModel()
                 select_flag = QtCore.QItemSelectionModel.ClearAndSelect
-                #select_flag = QtCore.QItemSelectionModel.Select
-                #select_flag = QtCore.QItemSelectionModel.NoUpdate
+                # select_flag = QtCore.QItemSelectionModel.Select
+                # select_flag = QtCore.QItemSelectionModel.NoUpdate
                 with ut.Timer('[api_item_view] selecting name. qtindex=%r' % (qtindex,)):
                     select_model.select(qtindex, select_flag)
                 with ut.Timer('[api_item_view] expanding'):
@@ -301,9 +309,9 @@ def selectedRows(view):
     return selected_qtindex_list2
 
 
-#---------------
+# ---------------
 # Qt Overrides
-#---------------
+# ---------------
 
 
 def keyPressEvent(view, event):
@@ -368,14 +376,14 @@ def keyPressEvent(view, event):
     # TODO: can this be in api_item_view?
     assert isinstance(event, QtGui.QKeyEvent)
     if event.matches(QtGui.QKeySequence.Copy):
-        #print('Received Ctrl+C in View')
+        # print('Received Ctrl+C in View')
         view.copy_selection_to_clipboard()
-    #print ('[view] keyPressEvent: %s' % event.key())
+    # print ('[view] keyPressEvent: %s' % event.key())
     flag = False
     for func in view.registered_keypress_funcs:
         flag |= bool(func(view, event))
     for key, func in view.registered_single_keys:
-        #print(key)
+        # print(key)
         if event.key() == key:
             flag = True
             func(view, event)
@@ -383,7 +391,7 @@ def keyPressEvent(view, event):
         view.API_VIEW_BASE.keyPressEvent(view, event)
 
 
-#@register_view_method
+# @register_view_method
 def itemDelegate(view, qindex):
     """ QtOverride: Returns item delegate for this index """
     # Does this even work? TODO: testme
@@ -392,21 +400,22 @@ def itemDelegate(view, qindex):
 
 def setModel(view, model):
     """ QtOverride: Returns item delegate for this index """
-    assert isinstance(model, VALID_API_MODELS),\
-            ('APIItemViews only accepts APIItemModels (or one of its proxys),'
-             'received a %r' % type(model))
+    assert isinstance(model, VALID_API_MODELS), (
+        'APIItemViews only accepts APIItemModels (or one of its proxys),'
+        'received a %r' % type(model)
+    )
     # Learn some things about the model before you fully connect it.
     if VERBOSE:
         print('[view] setting model')
     model._rows_updated.connect(view.on_rows_updated)
-    #view.infer_delegates_from_model(model=model)
+    # view.infer_delegates_from_model(model=model)
     # TODO: Update headers
     return view.API_VIEW_BASE.setModel(view, model)
 
 
-#---------------
+# ---------------
 # Slots
-#---------------
+# ---------------
 
 
 @register_view_method
@@ -415,7 +424,7 @@ def copy_selection_to_clipboard(view):
     if VERBOSE:
         print('[guitool] Copying selection to clipboard')
     copy_str = guitool_misc.get_view_selection_as_str(view)
-    #copy_qstr = QtCore.Q__String(copy_str)
+    # copy_qstr = QtCore.Q__String(copy_str)
     copy_qstr = str(copy_str)
     clipboard = guitool_main.get_qtapp().clipboard()
     if VERBOSE:
@@ -432,6 +441,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.api_item_view --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

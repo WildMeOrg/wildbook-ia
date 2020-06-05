@@ -2,12 +2,14 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
-#import itertools
+
+# import itertools
 from . import draw_func2 as df2
 from wbia.plottool import plot_helpers as ph
 from wbia.plottool import custom_constants
 from wbia.plottool import custom_figure
-#(print, print_, printDBG, rrr, profile) = ut.inject(
+
+# (print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
 ut.noinject(__name__, '[viz_featrow]')
 
@@ -20,18 +22,39 @@ def formatdist(val):
     pr = 3
     if val > 1000:
         return precisionstr('E', pr) % val
-    elif val > .01 or val == 0:
+    elif val > 0.01 or val == 0:
         return precisionstr('f', pr) % val
     else:
         return precisionstr('e', pr) % val
 
 
-#@ut.indent_func
-def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift=None,
-                  origsift=None, aid=None, info='', type_=None,
-                  shape_labels=False, vecfield=False, multicolored_arms=False,
-                  draw_chip=False, draw_warped=True, draw_unwarped=True, draw_desc=True,
-                  rect=True, ori=True, pts=False, **kwargs):
+# @ut.indent_func
+def draw_feat_row(
+    chip,
+    fx,
+    kp,
+    sift,
+    fnum,
+    nRows,
+    nCols=None,
+    px=None,
+    prevsift=None,
+    origsift=None,
+    aid=None,
+    info='',
+    type_=None,
+    shape_labels=False,
+    vecfield=False,
+    multicolored_arms=False,
+    draw_chip=False,
+    draw_warped=True,
+    draw_unwarped=True,
+    draw_desc=True,
+    rect=True,
+    ori=True,
+    pts=False,
+    **kwargs
+):
     """
     draw_feat_row
 
@@ -85,26 +108,34 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     """
     import numpy as np
     import vtool as vt
+
     # should not need ncols here
 
     if nCols is not None:
         if ut.VERBOSE:
             print('Warning nCols is no longer needed')
-    #assert nCols_ == nCols
-    nCols = (draw_chip + draw_unwarped + draw_warped + draw_desc)
+    # assert nCols_ == nCols
+    nCols = draw_chip + draw_unwarped + draw_warped + draw_desc
 
     pnum_ = df2.make_pnum_nextgen(nRows, nCols, start=px)
 
-    #pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
-    #countgen = itertools.count(1)
+    # pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
+    # countgen = itertools.count(1)
 
-    #pnumgen_ = df2.make_pnum_nextgen(nRows, nCols, base=1)
+    # pnumgen_ = df2.make_pnum_nextgen(nRows, nCols, base=1)
 
     def _draw_patch(**kwargs):
-        return df2.draw_keypoint_patch(chip, kp, sift, rect=rect, ori=ori, pts=pts,
-                                       ori_color=custom_constants.DEEP_PINK,
-                                       multicolored_arms=multicolored_arms,
-                                       **kwargs)
+        return df2.draw_keypoint_patch(
+            chip,
+            kp,
+            sift,
+            rect=rect,
+            ori=ori,
+            pts=pts,
+            ori_color=custom_constants.DEEP_PINK,
+            multicolored_arms=multicolored_arms,
+            **kwargs
+        )
 
     # Feature strings
     xy_str, shape_str, scale, ori_str = ph.kp_info(kp)
@@ -118,8 +149,8 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 
     if draw_unwarped:
         # Draw the unwarped selected feature
-        #ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)))
-        #pnum = pnum_(px + six.next(countgen)
+        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)))
+        # pnum = pnum_(px + six.next(countgen)
         pnum = pnum_()
         ax = _draw_patch(fnum=fnum, pnum=pnum)
         ph.set_plotdat(ax, 'viztype', 'unwarped')
@@ -131,31 +162,35 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 
     if draw_warped:
         # Draw the warped selected feature
-        #ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
+        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
         pnum = pnum_()
         ax = _draw_patch(fnum=fnum, pnum=pnum, warped=True, **kwargs)
         ph.set_plotdat(ax, 'viztype', 'warped')
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
         if shape_labels:
-            warped_lbl = ('warped feature\n'
-                          + 'fx=%r scale=%.1f\n'
-                          + '%s') % (fx, scale, xy_str)
+            warped_lbl = ('warped feature\n' + 'fx=%r scale=%.1f\n' + '%s') % (
+                fx,
+                scale,
+                xy_str,
+            )
         else:
             warped_lbl = ''
         warped_lbl += info
         custom_figure.set_xlabel(warped_lbl, ax)
 
     if draw_desc:
-        border_color = {'None': None,
-                        'query': None,
-                        'match': custom_constants.BLUE,
-                        'norm': custom_constants.ORANGE}.get(str(type_).lower(), None)
+        border_color = {
+            'None': None,
+            'query': None,
+            'match': custom_constants.BLUE,
+            'norm': custom_constants.ORANGE,
+        }.get(str(type_).lower(), None)
         if border_color is not None:
             df2.draw_border(ax, color=border_color)
 
         # Draw the SIFT representation
-        #pnum = pnum_(px + six.next(countgen))
+        # pnum = pnum_(px + six.next(countgen))
         pnum = pnum_()
         sift_as_vecfield = ph.SIFT_OR_VECFIELD or vecfield
         if sift_as_vecfield:
@@ -170,24 +205,34 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
                 # sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
                 ax = df2.plot_descriptor_signature(sift, fnum=fnum, pnum=pnum)
             ax._hs_viztype = 'histogram'
-        #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
-        #dist_list = ['L2', 'hist_isect']
-        #dist_list = ['L2']
-        #dist_list = ['bar_L2_sift', 'cos_sift']
-        #dist_list = ['L2_sift', 'bar_cos_sift']
+        # dist_list = ['L1', 'L2', 'hist_isect', 'emd']
+        # dist_list = ['L2', 'hist_isect']
+        # dist_list = ['L2']
+        # dist_list = ['bar_L2_sift', 'cos_sift']
+        # dist_list = ['L2_sift', 'bar_cos_sift']
         dist_list = ['L2_sift']
         dist_str_list = []
         if origsift is not None:
             distmap_orig = vt.compute_distances(sift, origsift, dist_list)
             dist_str_list.append(
-                'query_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
-                                            for key, val in six.iteritems(distmap_orig)])
+                'query_dist: '
+                + ', '.join(
+                    [
+                        '(%s, %s)' % (key, formatdist(val))
+                        for key, val in six.iteritems(distmap_orig)
+                    ]
+                )
             )
         if prevsift is not None:
             distmap_prev = vt.compute_distances(sift, prevsift, dist_list)
             dist_str_list.append(
-                'prev_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
-                                           for key, val in six.iteritems(distmap_prev)])
+                'prev_dist: '
+                + ', '.join(
+                    [
+                        '(%s, %s)' % (key, formatdist(val))
+                        for key, val in six.iteritems(distmap_prev)
+                    ]
+                )
             )
         dist_str = '\n'.join(dist_str_list)
         custom_figure.set_xlabel(dist_str)
@@ -202,6 +247,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.viz_featrow --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

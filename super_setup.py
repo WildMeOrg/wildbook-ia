@@ -36,15 +36,18 @@ def parse_version(package):
     """
     from os.path import dirname, join
     import ast
+
     init_fpath = join(dirname(__file__), package, '__init__.py')
     with open(init_fpath) as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
+
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
                 if target.id == '__version__':
                     self.version = node.value.s
+
     visitor = VersionVisitor()
     visitor.visit(pt)
     return visitor.version
@@ -79,15 +82,17 @@ class GitURL(object):
 
     SYNTAX_PATTERNS = {
         # git allows for a url style syntax
-        'url': re.compile(r'(?P<transport>\w+://)'
-                          r'((?P<user>\w+[^@]*@))?'
-                          r'(?P<host>[a-z0-9_.-]+)'
-                          r'((?P<port>:[0-9]+))?'
-                          r'/(?P<path>.*\.git)'),
+        'url': re.compile(
+            r'(?P<transport>\w+://)'
+            r'((?P<user>\w+[^@]*@))?'
+            r'(?P<host>[a-z0-9_.-]+)'
+            r'((?P<port>:[0-9]+))?'
+            r'/(?P<path>.*\.git)'
+        ),
         # git allows for ssh style syntax
-        'ssh': re.compile(r'(?P<user>\w+[^@]*@)'
-                          r'(?P<host>[a-z0-9_.-]+)'
-                          r':(?P<path>.*\.git)'),
+        'ssh': re.compile(
+            r'(?P<user>\w+[^@]*@)' r'(?P<host>[a-z0-9_.-]+)' r':(?P<path>.*\.git)'
+        ),
     }
 
     r"""
@@ -160,17 +165,21 @@ class GitURL(object):
         parts = self.parts()
         if protocol == 'ssh':
             parts['user'] = 'git@'
-            url = ''.join([
-                parts['user'], parts['host'], ':', parts['path']
-            ])
+            url = ''.join([parts['user'], parts['host'], ':', parts['path']])
         else:
             parts['transport'] = protocol + '://'
             parts['port'] = ''
             parts['user'] = ''
-            url = ''.join([
-                parts['transport'], parts['user'], parts['host'],
-                parts['port'], '/', parts['path']
-            ])
+            url = ''.join(
+                [
+                    parts['transport'],
+                    parts['user'],
+                    parts['host'],
+                    parts['port'],
+                    '/',
+                    parts['path'],
+                ]
+            )
         return url
 
 
@@ -249,9 +258,7 @@ class Repo(ub.NiceRepr):
         else:
             if repo.remotes is None:
                 _default_remote = 'origin'
-                repo.remotes = {
-                    _default_remote: repo.remote
-                }
+                repo.remotes = {_default_remote: repo.remote}
                 repo.remote = _default_remote
 
         repo.url = repo.remotes[repo.remote]
@@ -329,6 +336,7 @@ class Repo(ub.NiceRepr):
     def pygit(repo):
         """ pip install gitpython """
         import git as gitpython
+
         if repo._pygit is None:
             repo._pygit = gitpython.Repo(repo.dpath)
         return repo._pygit
@@ -336,13 +344,17 @@ class Repo(ub.NiceRepr):
     def develop(repo):
         devsetup_script_fpath = join(repo.dpath, 'run_developer_setup.sh')
         if not exists(devsetup_script_fpath):
-            raise AssertionError('Assume we always have run_developer_setup.sh: repo={!r}'.format(repo))
+            raise AssertionError(
+                'Assume we always have run_developer_setup.sh: repo={!r}'.format(repo)
+            )
         repo._cmd(devsetup_script_fpath, cwd=repo.dpath)
 
     def doctest(repo):
         devsetup_script_fpath = join(repo.dpath, 'run_doctests.sh')
         if not exists(devsetup_script_fpath):
-            raise AssertionError('Assume we always have run_doctests.sh: repo={!r}'.format(repo))
+            raise AssertionError(
+                'Assume we always have run_doctests.sh: repo={!r}'.format(repo)
+            )
         repo._cmd(devsetup_script_fpath, cwd=repo.dpath)
 
     def clone(repo):
@@ -351,7 +363,9 @@ class Repo(ub.NiceRepr):
         args = '--recursive'
         if repo.branch is not None:
             args += ' -b {}'.format(repo.branch)
-        command = 'git clone {args} {url} {dpath}'.format(args=args, url=repo.url, dpath=repo.dpath)
+        command = 'git clone {args} {url} {dpath}'.format(
+            args=args, url=repo.url, dpath=repo.dpath
+        )
         repo._cmd(command, cwd=repo.code_dpath)
 
     def _assert_clean(repo):
@@ -369,13 +383,18 @@ class Repo(ub.NiceRepr):
         fmtkw['pkg'] = parse_version(repo.pkg_dpath) + ','
         fmtkw['sha1'] = repo._cmd('git rev-parse HEAD', verbose=0)['out'].strip()
         try:
-            fmtkw['tag'] = repo._cmd('git describe --tags', verbose=0)['out'].strip() + ','
+            fmtkw['tag'] = (
+                repo._cmd('git describe --tags', verbose=0)['out'].strip() + ','
+            )
         except ShellException:
             fmtkw['tag'] = '<None>,'
         fmtkw['branch'] = repo.pygit.active_branch.name + ','
         fmtkw['repo'] = repo.name + ','
-        repo.info('repo={repo:<14} pkg={pkg:<12} tag={tag:<18} branch={branch:<10} sha1={sha1}'.format(
-            **fmtkw))
+        repo.info(
+            'repo={repo:<14} pkg={pkg:<12} tag={tag:<18} branch={branch:<10} sha1={sha1}'.format(
+                **fmtkw
+            )
+        )
 
     def ensure_clone(repo):
         if exists(repo.dpath):
@@ -411,12 +430,17 @@ class Repo(ub.NiceRepr):
                 remote = repo.pygit.remotes[remote_name]
                 have_urls = list(remote.urls)
                 if remote_url not in have_urls:
-                    print('WARNING: REMOTE NAME EXIST BUT URL IS NOT {}. '
-                          'INSTEAD GOT: {}'.format(remote_url, have_urls))
+                    print(
+                        'WARNING: REMOTE NAME EXIST BUT URL IS NOT {}. '
+                        'INSTEAD GOT: {}'.format(remote_url, have_urls)
+                    )
             except (IndexError):
                 try:
-                    print('NEED TO ADD REMOTE {}->{} FOR {}'.format(
-                        remote_name, remote_url, repo))
+                    print(
+                        'NEED TO ADD REMOTE {}->{} FOR {}'.format(
+                            remote_name, remote_url, repo
+                        )
+                    )
                     if not dry:
                         repo._cmd('git remote add {} {}'.format(remote_name, remote_url))
                 except ShellException:
@@ -446,7 +470,9 @@ class Repo(ub.NiceRepr):
                     repo.debug('Requested remote does exists')
                     remote_branchnames = [ref.remote_head for ref in remote.refs]
                     if repo.branch not in remote_branchnames:
-                        repo.info('Branch name not found in local remote. Attempting to fetch')
+                        repo.info(
+                            'Branch name not found in local remote. Attempting to fetch'
+                        )
                         if dry:
                             repo.info('dry run, not fetching')
                         else:
@@ -457,7 +483,11 @@ class Repo(ub.NiceRepr):
 
             # Ensure the remote points to the right place
             if repo.url not in list(remote.urls):
-                repo.debug('WARNING: The requested url={} disagrees with remote urls={}'.format(repo.url, list(remote.urls)))
+                repo.debug(
+                    'WARNING: The requested url={} disagrees with remote urls={}'.format(
+                        repo.url, list(remote.urls)
+                    )
+                )
 
                 if dry:
                     repo.info('Dry run, not updating remote url')
@@ -471,9 +501,15 @@ class Repo(ub.NiceRepr):
                 try:
                     repo._cmd('git checkout {}'.format(repo.branch))
                 except ShellException:
-                    repo.debug('Checkout failed. Branch name might be ambiguous. Trying again')
+                    repo.debug(
+                        'Checkout failed. Branch name might be ambiguous. Trying again'
+                    )
                     try:
-                        repo._cmd('git checkout -b {} {}/{}'.format(repo.branch, repo.remote, repo.branch))
+                        repo._cmd(
+                            'git checkout -b {} {}/{}'.format(
+                                repo.branch, repo.remote, repo.branch
+                            )
+                        )
                     except ShellException:
                         raise Exception('does the branch exist on the remote?')
 
@@ -492,27 +528,36 @@ class Repo(ub.NiceRepr):
                         remote_branchnames = [ref.remote_head for ref in remote.refs]
                         if repo.branch not in remote_branchnames:
                             if dry:
-                                repo.info('Branch name not found in local remote. Dry run, use ensure to attempt to fetch')
+                                repo.info(
+                                    'Branch name not found in local remote. Dry run, use ensure to attempt to fetch'
+                                )
                             else:
-                                repo.info('Branch name not found in local remote. Attempting to fetch')
+                                repo.info(
+                                    'Branch name not found in local remote. Attempting to fetch'
+                                )
                                 repo._cmd('git fetch {}'.format(repo.remote))
 
-                                remote_branchnames = [ref.remote_head for ref in remote.refs]
+                                remote_branchnames = [
+                                    ref.remote_head for ref in remote.refs
+                                ]
                                 if repo.branch not in remote_branchnames:
                                     raise Exception('Branch name still does not exist')
 
                         if not dry:
-                            repo._cmd('git branch --set-upstream-to={remote}/{branch} {branch}'.format(
-                                remote=repo.remote, branch=repo.branch
-                            ))
+                            repo._cmd(
+                                'git branch --set-upstream-to={remote}/{branch} {branch}'.format(
+                                    remote=repo.remote, branch=repo.branch
+                                )
+                            )
                         else:
                             repo.info('Would attempt to set upstream')
 
         # Print some status
-        repo.debug(' * branch = {} -> {}'.format(
-            repo.pygit.active_branch.name,
-            repo.pygit.active_branch.tracking_branch(),
-        ))
+        repo.debug(
+            ' * branch = {} -> {}'.format(
+                repo.pygit.active_branch.name, repo.pygit.active_branch.tracking_branch(),
+            )
+        )
 
     def pull(repo):
         repo._assert_clean()
@@ -551,6 +596,7 @@ class RepoRegistry(ub.NiceRepr):
                 processed_repos.append(repo)
         else:
             from concurrent import futures
+
             # with futures.ThreadPoolExecutor(max_workers=num_workers) as pool:
             with futures.ProcessPoolExecutor(max_workers=num_workers) as pool:
                 tasks = []
@@ -579,6 +625,7 @@ class RepoRegistry(ub.NiceRepr):
 
             print('LOGGED COMMANDS')
             import os
+
             ORIG_CWD = MY_CWD = os.getcwd()
             for repo in processed_repos:
                 print('# --- For repo = {!r} --- '.format(repo))
@@ -609,6 +656,7 @@ def determine_code_dpath():
         * the user's ~/code directory.
     """
     import os
+
     candidates = [
         ub.argval('--codedir', default=''),
         ub.argval('--codedpath', default=''),
@@ -635,11 +683,16 @@ def determine_code_dpath():
     #     warnings.warn('environment variable CODE_DIR={!r} was defined, but does not exist'.format(CODE_DIR))
 
     if not exists(code_dpath):
-        raise Exception(ub.codeblock(
-            '''
+        raise Exception(
+            ub.codeblock(
+                """
             Please specify a correct code_dir using the CLI or ENV.
             code_dpath={!r} does not exist.
-            '''.format(code_dpath)))
+            """.format(
+                    code_dpath
+                )
+            )
+        )
     return code_dpath
 
 
@@ -649,97 +702,115 @@ def make_netharn_registry(remote):
     repos = [
         # The util libs
         CommonRepo(
-            name='utool', branch='master', remote=remote,
+            name='utool',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/utool.git',
                 'Wildbook': 'git@github.com:WildbookOrg/utool.git',
             },
         ),
         CommonRepo(
-            name='ubelt', branch='master', remote=remote,
+            name='ubelt',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/ubelt.git',
                 'Wildbook': 'git@github.com:WildbookOrg/ubelt.git',
             },
         ),
         CommonRepo(
-            name='vtool_ibeis', branch='master', remote=remote,
+            name='vtool_ibeis',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/vtool_ibeis.git',
                 'Wildbook': 'git@github.com:WildbookOrg/wbia-vtool.git',
             },
         ),
         CommonRepo(
-            name='pyflann_ibeis', branch='master', remote=remote,
+            name='pyflann_ibeis',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/pyflann_ibeis.git',
                 'Wildbook': 'git@github.com:WildbookOrg/pyflann_ibeis.git',
             },
         ),
         CommonRepo(
-            name='pyhesaff', branch='master', remote=remote,
+            name='pyhesaff',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/pyhesaff.git',
                 'Wildbook': 'git@github.com:WildbookOrg/pyhesaff.git',
             },
         ),
         CommonRepo(
-            name='pydarknet', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/pydarknet.git',
-            },
+            name='pydarknet',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/pydarknet.git',},
         ),
         CommonRepo(
-            name='pyrf', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/pyrf.git',
-            },
+            name='pyrf',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/pyrf.git',},
         ),
         CommonRepo(
-            name='wbia', branch='master', remote=remote,
+            name='wbia',
+            branch='master',
+            remote=remote,
             remotes={
                 'Erotemic': 'git@github.com:Erotemic/wbia.git',
                 'Wildbook': 'git@github.com:WildbookOrg/wbia.git',
             },
         ),
         CommonRepo(
-            name='ibeis_cnn', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis_cnn.git',
-            },
+            name='ibeis_cnn',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis_cnn.git',},
         ),
         CommonRepo(
-            name='ibeis_curvrank', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',
-            },
+            name='ibeis_curvrank',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',},
         ),
         CommonRepo(
-            name='wbia_deepsense', branch='master', remote=remote,
+            name='wbia_deepsense',
+            branch='master',
+            remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/ibeis-deepsense-module.git',
             },
         ),
         CommonRepo(
-            name='wbia_finfindr', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',
-            },
+            name='wbia_finfindr',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',},
         ),
         CommonRepo(
-            name='ibeis_flukematch', branch='master', remote=remote,
+            name='ibeis_flukematch',
+            branch='master',
+            remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/ibeis-flukematch-module.git',
             },
         ),
         CommonRepo(
-            name='wbia_kaggle7', branch='master', remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',
-            },
+            name='wbia_kaggle7',
+            branch='master',
+            remote=remote,
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',},
         ),
         CommonRepo(
-            name='wbia_2d_orientation', branch='master', remote=remote,
+            name='wbia_2d_orientation',
+            branch='master',
+            remote=remote,
             remotes={
                 'Wildbook': 'git@github.com:WildbookOrg/wbia-2d-orientation-module.git',
             },
@@ -754,6 +825,7 @@ def main():
     REMOTE = 'Wildbook'
 
     import click
+
     registery = make_netharn_registry(remote=REMOTE)
 
     only = ub.argval('--only', default=None)
@@ -780,7 +852,8 @@ def main():
     default_context_settings = {
         'help_option_names': ['-h', '--help'],
         'allow_extra_args': True,
-        'ignore_unknown_options': True}
+        'ignore_unknown_options': True,
+    }
 
     @click.group(context_settings=default_context_settings)
     def cli_group():

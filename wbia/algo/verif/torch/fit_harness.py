@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import torch
 from collections import defaultdict
@@ -5,16 +6,26 @@ from os.path import join
 from torch.autograd import Variable
 from wbia.algo.verif.torch import netmath
 import tensorboard_logger
+
 # from wbia.algo.verif.torch import gpu_util
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 class FitHarness(object):
-    def __init__(harn, model, train_loader, vali_loader=None, test_loader=None,
-                 criterion='cross_entropy', lr_scheduler='exp',
-                 optimizer_cls='Adam', class_weights=None, gpu_num=None,
-                 workdir=None):
+    def __init__(
+        harn,
+        model,
+        train_loader,
+        vali_loader=None,
+        test_loader=None,
+        criterion='cross_entropy',
+        lr_scheduler='exp',
+        optimizer_cls='Adam',
+        class_weights=None,
+        gpu_num=None,
+        workdir=None,
+    ):
 
         harn.workdir = workdir
 
@@ -25,8 +36,8 @@ class FitHarness(object):
         harn.model = model
 
         harn.optimizer_cls = optimizer_cls
-        harn.criterion     = criterion
-        harn.lr_scheduler  = lr_scheduler
+        harn.criterion = criterion
+        harn.lr_scheduler = lr_scheduler
         # netmath.Optimizers.lookup(optimizer_cls)
         # netmath.Criterions.lookup(criterion)
         # netmath.LRSchedules.lookup(lr_scheduler)
@@ -77,7 +88,7 @@ class FitHarness(object):
 
         if tensorboard_logger:
             harn.log('Initializing tensorboard')
-            tensorboard_logger.configure("runs/wbia", flush_secs=2)
+            tensorboard_logger.configure('runs/wbia', flush_secs=2)
 
         if harn.use_cuda:
             harn.log('Fitting model on GPU({})'.format(harn.gpu_num))
@@ -86,7 +97,7 @@ class FitHarness(object):
             harn.log('Fitting model on the CPU')
 
         if harn.class_weights is not None:
-            harn.class_weights, = harn._to_xpu(harn.class_weights)
+            (harn.class_weights,) = harn._to_xpu(harn.class_weights)
 
         lr = harn.lr_scheduler(harn.epoch)
         harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=lr)
@@ -132,10 +143,18 @@ class FitHarness(object):
                     ave_metrics[k] /= harn.config['displayInterval']
 
                 n_train = len(harn.train_loader)
-                harn.log('Epoch {0}: {1} / {2} | lr:{3} - tloss:{4:.5f} acc:{5:.2f} | sdis:{6:.3f} ddis:{7:.3f}'.format(
-                    harn.epoch, batch_idx, n_train, lr,
-                    ave_metrics['loss'], ave_metrics['accuracy'],
-                    ave_metrics['pos_dist'], ave_metrics['neg_dist']))
+                harn.log(
+                    'Epoch {0}: {1} / {2} | lr:{3} - tloss:{4:.5f} acc:{5:.2f} | sdis:{6:.3f} ddis:{7:.3f}'.format(
+                        harn.epoch,
+                        batch_idx,
+                        n_train,
+                        lr,
+                        ave_metrics['loss'],
+                        ave_metrics['accuracy'],
+                        ave_metrics['pos_dist'],
+                        ave_metrics['neg_dist'],
+                    )
+                )
 
                 iter_idx = harn.epoch * n_train + batch_idx
                 for key, value in ave_metrics.items():
@@ -164,19 +183,32 @@ class FitHarness(object):
                 for k in ave_metrics.keys():
                     ave_metrics[k] /= harn.config['displayInterval']
 
-                harn.log('Epoch {0}: {1} / {2} | vloss:{3:.5f} acc:{4:.2f} | sdis:{5:.3f} ddis:{6:.3f}'.format(
-                    harn.epoch, vali_idx, len(harn.vali_loader),
-                    ave_metrics['loss'], ave_metrics['accuracy'],
-                    ave_metrics['pos_dist'], ave_metrics['neg_dist']))
+                harn.log(
+                    'Epoch {0}: {1} / {2} | vloss:{3:.5f} acc:{4:.2f} | sdis:{5:.3f} ddis:{6:.3f}'.format(
+                        harn.epoch,
+                        vali_idx,
+                        len(harn.vali_loader),
+                        ave_metrics['loss'],
+                        ave_metrics['accuracy'],
+                        ave_metrics['pos_dist'],
+                        ave_metrics['neg_dist'],
+                    )
+                )
 
                 for k in ave_metrics.keys():
                     ave_metrics[k] = 0
 
         for k in final_metrics.keys():
             final_metrics[k] /= len(harn.vali_loader)
-        harn.log('Epoch {0}: final vloss:{1:.5f} acc:{2:.2f} | sdis:{3:.3f} ddis:{4:.3f}'.format(
-            harn.epoch, final_metrics['loss'], final_metrics['accuracy'],
-            final_metrics['pos_dist'], final_metrics['neg_dist']))
+        harn.log(
+            'Epoch {0}: final vloss:{1:.5f} acc:{2:.2f} | sdis:{3:.3f} ddis:{4:.3f}'.format(
+                harn.epoch,
+                final_metrics['loss'],
+                final_metrics['accuracy'],
+                final_metrics['pos_dist'],
+                final_metrics['neg_dist'],
+            )
+        )
 
         iter_idx = harn.epoch * len(harn.vali_loader) + vali_idx
         for key, value in final_metrics.items():
@@ -193,7 +225,9 @@ class FitHarness(object):
 
     def save_snapshot(harn):
         # save snapshot
-        save_path = join(harn.config['model_dir'], 'snapshot_epoch_{}.pt'.format(harn.epoch))
+        save_path = join(
+            harn.config['model_dir'], 'snapshot_epoch_{}.pt'.format(harn.epoch)
+        )
         snapshot = {
             'epoch': harn.epoch,
             'model_state_dict': harn.model.state_dict(),
@@ -238,14 +272,16 @@ class FitHarness(object):
         return v_metrics
 
     def _measure_metrics(harn, output, label, loss):
-        metrics = netmath.Metrics._siamese_metrics(output, label, margin=harn.criterion.margin)
+        metrics = netmath.Metrics._siamese_metrics(
+            output, label, margin=harn.criterion.margin
+        )
 
         assert 'loss' not in metrics, 'cannot compute loss as an extra metric'
 
         loss_sum = loss.data.sum()
-        inf = float("inf")
+        inf = float('inf')
         if loss_sum == inf or loss_sum == -inf:
-            harn.log("WARNING: received an inf loss, setting loss value to 0")
+            harn.log('WARNING: received an inf loss, setting loss value to 0')
             loss_value = 0
         else:
             loss_value = loss.data[0]

@@ -9,6 +9,7 @@ from six.moves import zip
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import sys
+
 (print, rrr, profile) = ut.inject2(__name__, '[ssd]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
@@ -27,17 +28,16 @@ if not ut.get_argflag('--no-ssd'):
         add_path(pycaffe_path)
 
         import caffe
+
         reload(caffe)
         from google.protobuf import text_format
         from caffe.proto import caffe_pb2
     except AssertionError as ex:
-        print('WARNING Failed to find ssd. '
-              'SSD is unavailable')
+        print('WARNING Failed to find ssd. ' 'SSD is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError as ex:
-        print('WARNING Failed to import caffe. '
-              'SSD is unavailable')
+        print('WARNING Failed to import caffe. ' 'SSD is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
 
@@ -46,20 +46,16 @@ VERBOSE_SS = ut.get_argflag('--verbssd') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'pretrained-300-pascal'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.prototxt',
-    'pretrained-512-pascal'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.prototxt',
-
-    'pretrained-300-pascal-plus' : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.plus.prototxt',
-    'pretrained-512-pascal-plus' : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
-
-    'pretrained-300-coco'        : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.coco.prototxt',
-    'pretrained-512-coco'        : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.coco.prototxt',
-
-    'pretrained-300-ilsvrc'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.ilsvrc.prototxt',
-    'pretrained-500-ilsvrc'      : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.500.ilsvrc.prototxt',
-
-    'default'                    : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
-    None                         : 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'pretrained-300-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.prototxt',
+    'pretrained-512-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.prototxt',
+    'pretrained-300-pascal-plus': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.pascal.plus.prototxt',
+    'pretrained-512-pascal-plus': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'pretrained-300-coco': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.coco.prototxt',
+    'pretrained-512-coco': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.coco.prototxt',
+    'pretrained-300-ilsvrc': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.300.ilsvrc.prototxt',
+    'pretrained-500-ilsvrc': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.500.ilsvrc.prototxt',
+    'default': 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
+    None: 'https://wildbookiarepository.azureedge.net/models/pretrained.ssd.512.pascal.plus.prototxt',
 }
 
 
@@ -157,16 +153,29 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
-            bbox_list = [ bbox ]
+            bbox = (
+                result['xtl'],
+                result['ytl'],
+                result['width'],
+                result['height'],
+            )
+            bbox_list = [bbox]
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0,
-           **kwargs):
+def detect(
+    gpath_list,
+    config_filepath,
+    weight_filepath,
+    class_filepath,
+    sensitivity,
+    verbose=VERBOSE_SS,
+    use_gpu=True,
+    use_gpu_id=0,
+    **kwargs,
+):
     """
     Args:
         gpath_list (list of str): the list of image paths that need proposal candidates
@@ -176,6 +185,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     Returns:
         iter
     """
+
     def _get_label_name(class_labelmap, label_list):
         if not isinstance(label_list, list):
             label_list = [label_list]
@@ -195,8 +205,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
         config_url = CONFIG_URL_DICT[config_filepath]
-        config_filepath = ut.grab_file_url(config_url, appname='wbia',
-                                           check_hash=True)
+        config_filepath = ut.grab_file_url(config_url, appname='wbia', check_hash=True)
 
     # Get correct weights if specified with shorthand
     if weight_filepath in CONFIG_URL_DICT:
@@ -205,13 +214,13 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         else:
             config_url_ = CONFIG_URL_DICT[weight_filepath]
         weight_url = _parse_weight_from_cfg(config_url_)
-        weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
-                                            check_hash=True)
+        weight_filepath = ut.grab_file_url(weight_url, appname='wbia', check_hash=True)
 
     if class_filepath is None:
         class_url = _parse_classes_from_cfg(config_url)
-        class_filepath = ut.grab_file_url(class_url, appname='wbia',
-                                          check_hash=True, verbose=verbose)
+        class_filepath = ut.grab_file_url(
+            class_url, appname='wbia', check_hash=True, verbose=verbose
+        )
 
     # load class labels
     with open(class_filepath, 'r') as class_file:
@@ -246,12 +255,12 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         line = line_list[-1]
         line_ = line.strip().split(' ')
         # Filter empty spaces
-        line_ = [ _ for _ in line_ if len(_) > 0]
+        line_ = [_ for _ in line_ if len(_) > 0]
         # Get last value on line, which should be the image size
         image_resize = int(line_[-1])
         # Check to make sure
         assert image_resize in [300, 500, 512]
-        print('FOUND image_resize = %r' % (image_resize, ))
+        print('FOUND image_resize = %r' % (image_resize,))
 
     # Input preprocessing: 'data' is the name of the input blob == net.inputs[0]
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
@@ -275,19 +284,15 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         detections = net.forward()['detection_out']
 
         # Parse the outputs.
-        det_label = detections[0, 0, : , 1]
-        det_conf  = detections[0, 0, : , 2]
-        det_xmin  = detections[0, 0, : , 3]
-        det_ymin  = detections[0, 0, : , 4]
-        det_xmax  = detections[0, 0, : , 5]
-        det_ymax  = detections[0, 0, : , 6]
+        det_label = detections[0, 0, :, 1]
+        det_conf = detections[0, 0, :, 2]
+        det_xmin = detections[0, 0, :, 3]
+        det_ymin = detections[0, 0, :, 4]
+        det_xmax = detections[0, 0, :, 5]
+        det_ymax = detections[0, 0, :, 6]
 
         # Get detections with confidence higher than 0.6.
-        top_indices = [
-            i for
-            i, conf in enumerate(det_conf)
-            if conf >= sensitivity
-        ]
+        top_indices = [i for i, conf in enumerate(det_conf) if conf >= sensitivity]
         top_conf = det_conf[top_indices]
         top_label_indices = det_label[top_indices].tolist()
         top_labels = _get_label_name(class_labelmap, top_label_indices)
@@ -307,12 +312,12 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             ybr = int(np.around(ymax * height))
             confidence = float(conf)
             result_dict = {
-                'xtl'        : xtl,
-                'ytl'        : ytl,
-                'width'      : xbr - xtl,
-                'height'     : ybr - ytl,
-                'class'      : label,
-                'confidence' : confidence,
+                'xtl': xtl,
+                'ytl': ytl,
+                'width': xbr - xtl,
+                'height': ybr - ytl,
+                'class': label,
+                'confidence': confidence,
             }
             result_list_.append(result_dict)
         results_list_.append(result_list_)

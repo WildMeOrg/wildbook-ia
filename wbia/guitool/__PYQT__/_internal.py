@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flake8:noqa
 # Wrapper around PyQt4/5
 """
@@ -15,12 +16,14 @@ Ignore:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+
 ut.noinject(__name__, '[__PYQT__._internal]')
 
 
 # SIP must be imported before any PyQt
 try:
     import sip
+
     # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
     sip.setapi('QVariant', 2)
     sip.setapi('QString', 2)
@@ -38,9 +41,11 @@ except ValueError as ex:
 
 try:
     import PyQt5
+
     GUITOOL_PYQT_VERSION = 5
 except ImportError:
     import PyQt4
+
     GUITOOL_PYQT_VERSION = 4
 
 """

@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import matplotlib.pyplot as plt
 import numpy as np
+
 try:
     import vtool as vt
 except ImportError:
@@ -20,6 +21,7 @@ except ImportError:
 from wbia.plottool import abstract_interaction
 import math
 from six.moves import range, zip, input  # NOQA
+
 ut.noinject('impaint')
 
 
@@ -34,6 +36,7 @@ class PaintInteraction(PAINTER_BASE):
     CommandLine:
         python -m wbia.plottool.interact_impaint --exec-draw_demo --show
     """
+
     def __init__(self, img, **kwargs):
         super(PaintInteraction, self).__init__(**kwargs)
         init_mask = kwargs.get('init_mask', None)
@@ -45,14 +48,15 @@ class PaintInteraction(PAINTER_BASE):
         self.img = img
         self.brush_size = 75
         import wbia.plottool as pt
-        self.valid_colors1 = ut.odict([
-            #('background', (255 * pt.BLACK).tolist()),
-            ('scenery', (255 * pt.BLACK).tolist()),
-            ('photobomb', (255 * pt.RED).tolist()),
-        ])
-        self.valid_colors2 = ut.odict([
-            ('foreground', (255 * pt.WHITE).tolist()),
-        ])
+
+        self.valid_colors1 = ut.odict(
+            [
+                # ('background', (255 * pt.BLACK).tolist()),
+                ('scenery', (255 * pt.BLACK).tolist()),
+                ('photobomb', (255 * pt.RED).tolist()),
+            ]
+        )
+        self.valid_colors2 = ut.odict([('foreground', (255 * pt.WHITE).tolist()),])
         self.color1_idx = 0
         self.color1 = self.valid_colors1['scenery']
         self.color2 = self.valid_colors2['foreground']
@@ -63,16 +67,20 @@ class PaintInteraction(PAINTER_BASE):
 
     def update_title(self):
         import wbia.plottool as pt
+
         key = (self.valid_colors1.keys())[self.color1_idx]
-        pt.plt.title('Click on the image to draw. exit to finish.\n'
-                     'Right click erases, scroll wheel resizes.'
-                     't changes current_color=%r' % (key,))
+        pt.plt.title(
+            'Click on the image to draw. exit to finish.\n'
+            'Right click erases, scroll wheel resizes.'
+            't changes current_color=%r' % (key,)
+        )
 
     def static_plot(self, fnum=None, pnum=(1, 1, 1)):
         import wbia.plottool as pt
+
         self.ax = pt.gca()
-        #self.ax.imshow(img, interpolation='nearest', alpha=1)
-        #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
+        # self.ax.imshow(img, interpolation='nearest', alpha=1)
+        # self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
         pt.imshow(self.img, ax=self.ax, interpolation='nearest', alpha=1)
         pt.imshow(self.mask, ax=self.ax, interpolation='nearest', alpha=0.6)
         self.update_title()
@@ -80,17 +88,18 @@ class PaintInteraction(PAINTER_BASE):
 
     def update_image(self):
         import wbia.plottool as pt
-        #print('update_image')
+
+        # print('update_image')
         self.ax.images.pop()
-        #self.ax.imshow(self.mask, interpolation='nearest', alpha=0.6)
+        # self.ax.imshow(self.mask, interpolation='nearest', alpha=0.6)
         pt.imshow(self.mask, ax=self.ax, interpolation='nearest', alpha=0.6)
         self.draw()
-        #self.do_blit()
-        #self.update()
-        #self.ax.imshow(vt.blend_images_multiply(self.img, self.mask))
-        #self.ax.grid(False)
-        #self.ax.set_xticks([])
-        #self.ax.set_yticks([])
+        # self.do_blit()
+        # self.update()
+        # self.ax.imshow(vt.blend_images_multiply(self.img, self.mask))
+        # self.ax.grid(False)
+        # self.ax.set_xticks([])
+        # self.ax.set_yticks([])
 
     def on_close(self, event=None):
         if self.finished_callback is not None:
@@ -100,7 +109,7 @@ class PaintInteraction(PAINTER_BASE):
     def do_blit(self):
         if self.debug > 3:
             print('[pt.impaint] do_blit')
-        if self.background is  None:
+        if self.background is None:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
         else:
             self.fig.canvas.restore_region(self.background)
@@ -108,11 +117,12 @@ class PaintInteraction(PAINTER_BASE):
         self.fig.canvas.blit(self.ax.bbox)
 
     def on_draw(self, event):
-        #print('on draw')
+        # print('on draw')
         self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
     def apply_stroke(self, x, y, color):
         import cv2
+
         if self.debug > 3:
             print('[pt.impaint] apply stroke')
         center = (x, y)
@@ -130,13 +140,13 @@ class PaintInteraction(PAINTER_BASE):
     def on_click_inside(self, event, ax):
         x = int(math.floor(event.xdata))
         y = int(math.floor(event.ydata))
-        if(event.button == self.LEFT_BUTTON):
+        if event.button == self.LEFT_BUTTON:
             self.apply_stroke(x, y, self.color1)
-        if(event.button == self.RIGHT_BUTTON):
+        if event.button == self.RIGHT_BUTTON:
             self.apply_stroke(x, y, self.color2)
         self.update_image()
-        #self.draw()
-        #self.print_status()
+        # self.draw()
+        # self.print_status()
 
     def on_scroll(self, event):
         self.brush_size = max(self.brush_size + event.step, 1)
@@ -157,16 +167,16 @@ class PaintInteraction(PAINTER_BASE):
         self.last_stroke = None
 
     def on_drag_inside(self, event):
-        #self.print_status()
+        # self.print_status()
         x = int(math.floor(event.xdata))
         y = int(math.floor(event.ydata))
-        if(event.button == self.LEFT_BUTTON):
+        if event.button == self.LEFT_BUTTON:
             self.apply_stroke(x, y, self.color1)
-        elif(event.button == self.RIGHT_BUTTON):
+        elif event.button == self.RIGHT_BUTTON:
             self.apply_stroke(x, y, self.color2)
         self.update_image()
-        #self.do_blit()
-        #self.draw()
+        # self.do_blit()
+        # self.draw()
 
 
 def impaint_mask2(img, init_mask=None):
@@ -175,38 +185,38 @@ def impaint_mask2(img, init_mask=None):
     """
     if False:
         QT = False  # NOQA
-        #if QT:
+        # if QT:
         #    from wbia.guitool import mpl_embed
         #    import wbia.guitool
         #    guitool.ensure_qapp()  # must be ensured before any embeding
         #    wgt = mpl_embed.QtAbstractMplInteraction()
         #    fig = wgt.fig
         #    ax = wgt.axes
-        #else:
+        # else:
         #    fig = plt.figure(1)
         #    ax = plt.subplot(111)
-        #if init_mask is None:
+        # if init_mask is None:
         #    mask = np.zeros(img.shape, np.uint8) + 255
-        #else:
+        # else:
         #    mask = init_mask
-        #ax.imshow(img, interpolation='nearest', alpha=1)
-        #ax.imshow(mask, interpolation='nearest', alpha=0.6)
-        #ax.grid(False)
-        #ax.set_xticks([])
-        #ax.set_yticks([])
+        # ax.imshow(img, interpolation='nearest', alpha=1)
+        # ax.imshow(mask, interpolation='nearest', alpha=0.6)
+        # ax.grid(False)
+        # ax.set_xticks([])
+        # ax.set_yticks([])
 
-        #pstartntr = _OldPainter(fig, ax, mask)
-        #ax.set_title('Click on the image to draw. exit to finish')
-        #print('Starting interaction')
-        #if not QT:
+        # pstartntr = _OldPainter(fig, ax, mask)
+        # ax.set_title('Click on the image to draw. exit to finish')
+        # print('Starting interaction')
+        # if not QT:
         #    plt.show(block=True)
-        #else:
+        # else:
         #    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
         #    wgt.show()
         ##input('hack to block... press enter when done')
     else:
         pntr = PaintInteraction(img, init_mask=init_mask)
-        #pntr.show_page()
+        # pntr.show_page()
         # print('Starting interaction')
         pntr.start()
         pntr.show()
@@ -215,10 +225,11 @@ def impaint_mask2(img, init_mask=None):
         # pntr.show()
         import time
         from wbia.guitool.__PYQT__ import QtGui
+
         while pntr.is_running:
             QtWidgets.qApp.processEvents()
             time.sleep(0.05)
-        #plt.show()
+        # plt.show()
     print('Finished interaction')
     return pntr.mask
 
@@ -257,6 +268,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.interact_impaint --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

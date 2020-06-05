@@ -6,6 +6,7 @@ import uuid
 import six
 from os.path import exists, join
 import lockfile
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -34,6 +35,7 @@ class Win32CompatTempFile(object):
         >>> ut.assert_raises(ValueError, temp.close)
         >>> assert not ut.checkpath(temp.fpath, verbose=verbose)
     """
+
     def __init__(temp, delete=True, verbose=False):
         temp.delete = delete
         appname = 'wbia'
@@ -155,6 +157,8 @@ if __name__ == '__main__':
         python -m wbia.algo.smk.pickle_flann --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

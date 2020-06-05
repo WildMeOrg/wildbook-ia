@@ -7,6 +7,7 @@ import utool as ut
 import numpy as np
 import copy
 import six
+
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
@@ -23,14 +24,17 @@ class StackedConfig(ut.DictLike, ut.HashComparable):
             for cfg in self._orig_config_list
         ]
         # Parse out items
-        self._items = ut.flatten([
-            list(cfg.parse_items()) if hasattr(cfg, 'parse_items') else
-            list(cfg.items())
-            for cfg in self._orig_config_list
-        ])
+        self._items = ut.flatten(
+            [
+                list(cfg.parse_items())
+                if hasattr(cfg, 'parse_items')
+                else list(cfg.items())
+                for cfg in self._orig_config_list
+            ]
+        )
         for key, val in self._items:
             setattr(self, key, val)
-        #self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)
+        # self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)
 
     def get_cfgstr(self):
         cfgstr_list = [cfg.get_cfgstr() for cfg in self._new_config_list]
@@ -71,6 +75,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         >>> cfg1 > cfg2
 
     """
+
     def __init__(cfg, **kwargs):
         cfg._parent = None
         cfg.initialize_params(**kwargs)
@@ -108,8 +113,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return config_name
 
     def get_varnames(cfg):
-        return ([pi.varname for pi in cfg.get_param_info_list()] +
-                cfg._subconfig_attrs)
+        return [pi.varname for pi in cfg.get_param_info_list()] + cfg._subconfig_attrs
 
     def update(cfg, **kwargs):
         """
@@ -133,8 +137,8 @@ class Config(ut.NiceRepr, ut.DictLike):
         """
         # FIXME: currently can't update subconfigs based on namespaces
         # and non-namespaced vars are in the context of the root level.
-        #self_keys = set(cfg.__dict__.keys())
-        #self_keys.append(cfg.get_varnames())
+        # self_keys = set(cfg.__dict__.keys())
+        # self_keys.append(cfg.get_varnames())
         _aliases = cfg._make_key_alias_checker()
         self_keys = set(cfg.keys())
         for key, val in six.iteritems(kwargs):
@@ -170,13 +174,15 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def _make_key_alias_checker(cfg):
         prefixes = (cfg.get_config_name(), cfg.__class__.__name__)
+
         def _aliases(key):
             yield key
             for part in prefixes:
                 prefix = part + '_'
                 if key.startswith(prefix):
-                    key_alias = key[len(prefix):]
+                    key_alias = key[len(prefix) :]
                     yield key_alias
+
         return _aliases
 
     def update2(cfg, *args, **kwargs):
@@ -258,7 +264,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
-        #print("INIT PARAMS")
+        # print("INIT PARAMS")
         for pi in cfg.get_param_info_list():
             setattr(cfg, pi.varname, pi.default)
 
@@ -270,7 +276,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         _sub_config_list = cfg.get_sub_config_list()
         if _sub_config_list:
             for subclass in _sub_config_list:
-                #subclass.static_config_name()
+                # subclass.static_config_name()
                 subcfg = subclass()
                 subcfg_name = subcfg.get_config_name()
                 subcfg_attr = ut.to_underscore_case(subcfg_name) + '_cfg'
@@ -304,8 +310,7 @@ class Config(ut.NiceRepr, ut.DictLike):
                 name = val.get_config_name()
                 for key, val in val.parse_items():
                     if key in seen:
-                        print('[Config] WARNING: key=%r appears more than once' %
-                              (key,))
+                        print('[Config] WARNING: key=%r appears more than once' % (key,))
                     seen.add(key)
                     # Incorporate namespace
                     param_list.append((name, key, val))
@@ -313,8 +318,7 @@ class Config(ut.NiceRepr, ut.DictLike):
                 pass
             else:
                 if key in seen:
-                    print('[Config] WARNING: key=%r appears more than once' %
-                          (key,))
+                    print('[Config] WARNING: key=%r appears more than once' % (key,))
                 seen.add(key)
                 # Incorporate namespace
                 name = cfg.get_config_name()
@@ -348,21 +352,23 @@ class Config(ut.NiceRepr, ut.DictLike):
             param_list[idx][0] = name + '_' + param_list[idx][0]
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
         # hack to let version through
-        #import utool
-        #with utool.embed_on_exception_context:
+        # import utool
+        # with utool.embed_on_exception_context:
         assert len(duplicate_keys) == 0, (
-            'Configs have duplicate names: %r' % duplicate_keys)
+            'Configs have duplicate names: %r' % duplicate_keys
+        )
         return param_list
 
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
         """ default get_cfgstr_list, can be overrided by a config object """
         if ignore_keys is not None:
-            itemstr_list = [pi.get_itemstr(cfg)
-                            for pi in cfg.get_param_info_list()
-                            if pi.varname not in ignore_keys]
+            itemstr_list = [
+                pi.get_itemstr(cfg)
+                for pi in cfg.get_param_info_list()
+                if pi.varname not in ignore_keys
+            ]
         else:
-            itemstr_list = [pi.get_itemstr(cfg)
-                            for pi in cfg.get_param_info_list()]
+            itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list()]
         filtered_itemstr_list = list(filter(len, itemstr_list))
         if with_name:
             config_name = cfg.get_config_name()
@@ -374,8 +380,10 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def get_cfgstr(cfg, **kwargs):
         str_ = ''.join(cfg.get_cfgstr_list(**kwargs))
-        return '_'.join([str_] + [cfg[subcfg_attr].get_cfgstr()
-                                  for subcfg_attr in cfg._subconfig_attrs])
+        return '_'.join(
+            [str_]
+            + [cfg[subcfg_attr].get_cfgstr() for subcfg_attr in cfg._subconfig_attrs]
+        )
 
     def get_param_info_dict(cfg):
         param_info_list = cfg.get_param_info_list()
@@ -431,7 +439,8 @@ class Config(ut.NiceRepr, ut.DictLike):
             return cfg._param_info_list
         except AttributeError:
             raise NotImplementedError(
-                'Need to define _param_info_list or get_param_info_list')
+                'Need to define _param_info_list or get_param_info_list'
+            )
 
     @classmethod
     def from_argv_dict(cls, **kwargs):
@@ -451,11 +460,11 @@ class Config(ut.NiceRepr, ut.DictLike):
         """
         cfg = cls()
         name = cfg.get_config_name()
-        #name = cls.static_config_name()
+        # name = cls.static_config_name()
         argname = '--' + name
         if hasattr(cfg, '_alias'):
             argname = (argname, '--' + cfg._alias)
-        #if hasattr(cls, '_alias'):
+        # if hasattr(cls, '_alias'):
         #    argname = (argname, '--' + cls._alias)
         new_vals_list = ut.parse_argv_cfg(argname)
         self_list = [cls(**new_vals) for new_vals in new_vals_list]
@@ -508,15 +517,16 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
         import wbia.guitool as gt
+
         gt.ensure_qapp()  # must be ensured before any embeding
-        dlg = gt.ConfigConfirmWidget.as_dialog(
-            title=title, msg=msg, config=cfg)
+        dlg = gt.ConfigConfirmWidget.as_dialog(title=title, msg=msg, config=cfg)
         dlg.resize(700, 500)
         dlg.show()
         return dlg
 
     def getstate_todict_recursive(cfg):
         from wbia import dtool
+
         _dict = cfg.asdict()
         _dict2 = {}
         for key, val in _dict.items():
@@ -559,23 +569,23 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> assert cfg == unserialized
             >>> assert cfg is not unserialized
         """
-        #from wbia import dtool
-        #_dict = cfg.asdict()
-        #_dict2 = {}
-        #for key, val in _dict.items():
+        # from wbia import dtool
+        # _dict = cfg.asdict()
+        # _dict2 = {}
+        # for key, val in _dict.items():
         #    if isinstance(val, dtool.Config):
         #        val = val.asdict()
         #    _dict2[key] = val
-        #return {'dtool.Config': _dict2}
+        # return {'dtool.Config': _dict2}
         return cfg.__dict__
 
     def __setstate__(cfg, state):
         cfg.__dict__.update(**state)
-        #cfg.initialize_params()
-        #cfg.update(**state)
+        # cfg.initialize_params()
+        # cfg.update(**state)
 
-    #@classmethod
-    #def static_config_name(cls):
+    # @classmethod
+    # def static_config_name(cls):
     #    class_str = str(cls)
     #    full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
     #    config_name = splitext(full_class_str)[1][1:].replace('Config', '')
@@ -584,6 +594,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
 def make_configclass(dict_, tablename):
     """ Creates a custom config class from a dict """
+
     def rectify_item(key, val):
         if val is None:
             return ut.ParamInfo(key, val)
@@ -594,8 +605,10 @@ def make_configclass(dict_, tablename):
                 pi.varname = key
             else:
                 pi = val
-                assert pi.varname == key, (
-                    'Given varname=%r does not match key=%r' % (pi.varname, key))
+                assert pi.varname == key, 'Given varname=%r does not match key=%r' % (
+                    pi.varname,
+                    key,
+                )
             return pi
         else:
             if isinstance(val, Config):
@@ -610,8 +623,10 @@ def make_configclass(dict_, tablename):
 
 def from_param_info_list(param_info_list, tablename='Unnamed'):
     from wbia import dtool
+
     class UnnamedConfig(dtool.Config):
         _param_info_list = param_info_list
+
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
 
@@ -639,7 +654,7 @@ class IBEISRequestHacks(object):
         # the nids as a state, but whatever...
         # devleopment time constraints and whatnot
         return self.ibs.get_annot_nids(aids)
-        #return self.ibs.annots(self.daids, self.params)
+        # return self.ibs.annots(self.daids, self.params)
 
     @property
     def extern_query_config2(request):
@@ -648,15 +663,16 @@ class IBEISRequestHacks(object):
     @property
     def extern_data_config2(request):
         return request.params
+
     #
 
-    #def get_external_data_config2(request):
+    # def get_external_data_config2(request):
     #    # HACK
     #    #return None
     #    #print('[d] request.params = %r' % (request.params,))
     #    return request.params
 
-    #def get_external_query_config2(request):
+    # def get_external_query_config2(request):
     #    # HACK
     #    #return None
     #    #print('[q] request.params = %r' % (request.params,))
@@ -668,8 +684,9 @@ def config_graph_subattrs(cfg, depc):
     # full config belonging to both chip + feat
     # cfg = request.config.feat_cfg
     import networkx as netx
+
     tablename = ut.invert_dict(depc.configclass_dict)[cfg.__class__]
-    #tablename = cfg.get_config_name()
+    # tablename = cfg.get_config_name()
     ancestors = netx.dag.ancestors(depc.graph, tablename)
     subconfigs_ = ut.dict_take(depc.configclass_dict, ancestors, None)
     subconfigs = ut.filter_Nones(subconfigs_)  # NOQA
@@ -680,6 +697,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
     r"""
     Class that maintains both an algorithm, inputs, and a config.
     """
+
     @staticmethod
     def static_new(cls, depc, parent_rowids, cfgdict=None, tablename=None):
         """ hack for autoreload """
@@ -705,14 +723,14 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         request.params = dict(config.parse_items())
         # HACK-ier FOR BACKWARDS COMPATABILITY
         if True:
-            #params.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
+            # params.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
             # TODO: if this hack is fully completed need a way of getting the
             # full config belonging to both chip + feat
             try:
-                request.params['chip_cfgstr']       = config.chip_cfg.get_cfgstr()
-                request.params['chip_cfg_dict']     = config.chip_cfg.asdict()
-                request.params['feat_cfgstr']       = config.feat_cfg.get_cfgstr()
-                request.params['hesaff_params']     = config.feat_cfg.get_hesaff_params()
+                request.params['chip_cfgstr'] = config.chip_cfg.get_cfgstr()
+                request.params['chip_cfg_dict'] = config.chip_cfg.asdict()
+                request.params['feat_cfgstr'] = config.feat_cfg.get_cfgstr()
+                request.params['hesaff_params'] = config.feat_cfg.get_hesaff_params()
                 request.params['featweight_cfgstr'] = config.feat_weight_cfg.get_cfgstr()
             except AttributeError:
                 pass
@@ -731,7 +749,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         label = ''.join((prefix, uuid_type, 'UUIDS'))
         # Hack: allow general specification of uuid types
         uuid_list = request.depc.get_root_uuid(root_rowids)
-        #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
+        # uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
         uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
         # TODO: uuid_hashid = ut.hashid_arr(uuid_list, label=label)
         return uuid_hashid
@@ -771,30 +789,36 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
             >>> request.ensure_dependencies()
         """
         import networkx as nx
+
         depc = request.depc
         if False:
             dependencies = nx.ancestors(depc.graph, request.tablename)
             subgraph = depc.graph.subgraph(set.union(dependencies, {request.tablename}))
             dependency_order = nx.topological_sort(subgraph)
             root = dependency_order[0]
-            [nx.algorithms.dijkstra_path(subgraph, root, start)[:-1] +
-             nx.algorithms.dijkstra_path(subgraph, start, request.tablename)
-             for start in dependency_order]
+            [
+                nx.algorithms.dijkstra_path(subgraph, root, start)[:-1]
+                + nx.algorithms.dijkstra_path(subgraph, start, request.tablename)
+                for start in dependency_order
+            ]
         graph = depc.graph
         root = list(nx.topological_sort(graph))[0]
         edges = graph.edges()
-        #parent_to_children = ut.edges_to_adjacency_list(edges)
+        # parent_to_children = ut.edges_to_adjacency_list(edges)
         child_to_parents = ut.edges_to_adjacency_list([t[::-1] for t in edges])
-        to_root = {request.tablename:
-                   ut.paths_to_root(request.tablename, root, child_to_parents)}
+        to_root = {
+            request.tablename: ut.paths_to_root(request.tablename, root, child_to_parents)
+        }
         from_root = ut.reverse_path(to_root, root, child_to_parents)
         dependency_levels_ = ut.get_levels(from_root)
         dependency_levels = ut.longest_levels(dependency_levels_)
 
         true_order = ut.flatten(dependency_levels)[1:-1]
-        #print('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
+        # print('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
         ut.colorprint(
-            '[req] Ensuring request %s dependencies: %r' % (request, true_order,), 'yellow')
+            '[req] Ensuring request %s dependencies: %r' % (request, true_order,),
+            'yellow',
+        )
         for tablename in true_order:
             table = depc[tablename]
             if table.ismulti:
@@ -806,14 +830,14 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
                 pass
             pass
 
-        #zip(depc.get_implicit_edges())
-        #zip(depc.get_implicit_edges())
+        # zip(depc.get_implicit_edges())
+        # zip(depc.get_implicit_edges())
 
-        #raise NotImplementedError('todo')
-        #depc = request.depc
-        #parent_rowids = request.parent_rowids
-        #config = request.config
-        #rowid_dict = depc.get_all_descendant_rowids(
+        # raise NotImplementedError('todo')
+        # depc = request.depc
+        # parent_rowids = request.parent_rowids
+        # config = request.config
+        # rowid_dict = depc.get_all_descendant_rowids(
         #    request.tablename, root_rowids, config=config)
         pass
 
@@ -825,8 +849,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         if parent_rowids is None:
             parent_rowids = request.parent_rowids
         # Compute and cache any uncomputed results
-        rowids = table.get_rowid(parent_rowids, config=request,
-                                 recompute=not use_cache)
+        rowids = table.get_rowid(parent_rowids, config=request, recompute=not use_cache)
         # Load all results
         result_list = table.get_row_data(rowids)
         if postprocess and hasattr(request, 'postprocess_execute'):
@@ -845,11 +868,12 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
 
     def __setstate__(request, state_dict):
         import wbia
+
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
         params = state_dict['params']
         depc = wbia.opendb(dbdir=dbdir, web=False).depc
-        configclass = depc.configclass_dict[state_dict['tablename'] ]
+        configclass = depc.configclass_dict[state_dict['tablename']]
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
@@ -857,7 +881,6 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
 
 
 class AnnotSimiliarity(object):
-
     def get_query_hashid(request):
         return request._get_rootset_hashid(request.qaids, 'Q')
 
@@ -923,24 +946,26 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             parent_rowids = request.parent_rowids
         else:
             # previously defined in execute subset
-            #subparent_rowids = request.make_parent_rowids(
-            #qaids, request.daids)
+            # subparent_rowids = request.make_parent_rowids(
+            # qaids, request.daids)
             print('given %d specific parent_rowids' % (len(parent_rowids),))
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
             import vtool as vt
+
             directed_edges = np.array(parent_rowids)
             undirected_edges = vt.to_undirected_edges(directed_edges)
             edge_ids = vt.compute_unique_data_ids(undirected_edges)
-            unique_rows, unique_rowx, inverse_idx = np.unique(edge_ids, return_index=True, return_inverse=True)
+            unique_rows, unique_rowx, inverse_idx = np.unique(
+                edge_ids, return_index=True, return_inverse=True
+            )
             parent_rowids_ = ut.take(parent_rowids, unique_rowx)
         else:
             parent_rowids_ = parent_rowids
 
         # Compute and cache any uncomputed results
-        rowids = table.get_rowid(parent_rowids_, config=request,
-                                 recompute=not use_cache)
+        rowids = table.get_rowid(parent_rowids_, config=request, recompute=not use_cache)
         # Load all results
         result_list = table.get_row_data(rowids)
 
@@ -957,12 +982,17 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
 
     def __nice__(request):
-        dbname = (None if request.depc is None or request.depc.controller is None
-                  else request.depc.controller.get_dbname())
-        infostr_ = 'nQ=%s, nD=%s, nP=%d %s' % (len(request.qaids),
-                                               len(request.daids),
-                                               len(request.parent_rowids),
-                                               request.get_pipe_hashid())
+        dbname = (
+            None
+            if request.depc is None or request.depc.controller is None
+            else request.depc.controller.get_dbname()
+        )
+        infostr_ = 'nQ=%s, nD=%s, nP=%d %s' % (
+            len(request.qaids),
+            len(request.daids),
+            len(request.parent_rowids),
+            request.get_pipe_hashid(),
+        )
         return '(%s) %s' % (dbname, infostr_)
 
 
@@ -1004,11 +1034,12 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
         return request
 
     def get_input_hashid(request):
-        #return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
+        # return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
         return '_'.join([request.get_query_hashid()])
 
-    def get_cfgstr(request, with_input=False, with_data=True, with_pipe=True,
-                   hash_pipe=False):
+    def get_cfgstr(
+        request, with_input=False, with_data=True, with_pipe=True, hash_pipe=False
+    ):
         r"""
         Override default get_cfgstr to show reliance on data
         """
@@ -1026,10 +1057,16 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
         return cfgstr
 
     def __nice__(request):
-        dbname = (None if request.depc is None or request.depc.controller is None
-                  else request.depc.controller.get_dbname())
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(request.qaids), len(request.daids),
-                                        request.get_pipe_hashid())
+        dbname = (
+            None
+            if request.depc is None or request.depc.controller is None
+            else request.depc.controller.get_dbname()
+        )
+        infostr_ = 'nQ=%s, nD=%s %s' % (
+            len(request.qaids),
+            len(request.daids),
+            request.get_pipe_hashid(),
+        )
         return '(%s) %s' % (dbname, infostr_)
 
 
@@ -1070,9 +1107,16 @@ def safeop(op_, xs, *args, **kwargs):
 
 
 class MatchResult(AlgoResult, ut.NiceRepr):
-    def __init__(self, qaid=None, daids=None, qnid=None, dnid_list=None,
-                 annot_score_list=None, unique_nids=None,
-                 name_score_list=None):
+    def __init__(
+        self,
+        qaid=None,
+        daids=None,
+        qnid=None,
+        dnid_list=None,
+        annot_score_list=None,
+        unique_nids=None,
+        name_score_list=None,
+    ):
         self.qaid = qaid
         self.daid_list = safeop(np.array, daids)
         self.dnid_list = safeop(np.array, dnid_list)
@@ -1102,6 +1146,8 @@ if __name__ == '__main__':
         python -m dtool.base --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

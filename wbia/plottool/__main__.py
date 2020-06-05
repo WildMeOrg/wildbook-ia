@@ -7,12 +7,14 @@ def plottool_main():
     ignore_prefix = []
     ignore_suffix = []
     import utool as ut
+
     try:
         import wbia.plottool as pt  # NOQA
     except ImportError:
         raise
     # allows for --tf
     ut.main_function_tester('plottool', ignore_prefix, ignore_suffix)
+
 
 if __name__ == '__main__':
     """

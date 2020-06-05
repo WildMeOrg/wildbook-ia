@@ -36,8 +36,8 @@ import utool as ut
 TEST_GEN_FUNCS = []
 
 
-#def pick_sample_size(popsize, confidence=.99, expected_std=.5,
-#margin_of_error=.05, is_finite=True):
+# def pick_sample_size(popsize, confidence=.99, expected_std=.5,
+# margin_of_error=.05, is_finite=True):
 #    """
 #    Determine a statistically significant sample size
 
@@ -77,13 +77,20 @@ def generate_all():
         >>> from wbia.scripts.gen_cand_expts import *  # NOQA
         >>> generate_all()
     """
-    #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
-    script_lines = ut.flatten([
-        ['\n\n### ' + ut.get_funcname(func),
-         '# python -m wbia.scripts.gen_cand_expts --exec-' +
-         ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
-        for func in TEST_GEN_FUNCS])
-    fname, script, line_list = write_script_lines(script_lines, 'experiments_overnight.sh')
+    # script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
+    script_lines = ut.flatten(
+        [
+            [
+                '\n\n### ' + ut.get_funcname(func),
+                '# python -m wbia.scripts.gen_cand_expts --exec-' + ut.get_funcname(func),
+            ]
+            + make_standard_test_scripts(func())[2]
+            for func in TEST_GEN_FUNCS
+        ]
+    )
+    fname, script, line_list = write_script_lines(
+        script_lines, 'experiments_overnight.sh'
+    )
     if ut.get_argflag('--vim'):
         ut.editfile(fname)
     return fname, script, line_list
@@ -134,7 +141,7 @@ def parse_latex_comments_for_commmands():
     """
     fname = ut.get_argval('--fname', type_=str, default='figdefexpt.tex')
     text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/' + fname))
-    #text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
+    # text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
     lines = text.split('\n')
     cmd_list = ['']
     in_comment = True
@@ -143,7 +150,7 @@ def parse_latex_comments_for_commmands():
             # Keep separators
             toadd = line.replace('%', '#')
             if not (len(cmd_list) > 1 and cmd_list[-1].startswith('# ---')):
-                cmd_list[-1] += (toadd)
+                cmd_list[-1] += toadd
             else:
                 cmd_list.append(toadd)
             cmd_list.append('')
@@ -159,31 +166,31 @@ def parse_latex_comments_for_commmands():
                 cmd_list[-1] = cmd_list[-1] + line
                 if not line.strip().endswith('\\'):
                     cmd_list[-1] = cmd_list[-1] + ' $@'
-                    #cmd_list.append('')
-                    #cmd_list.append('#--')
+                    # cmd_list.append('')
+                    # cmd_list.append('#--')
                     cmd_list.append('')
                     in_comment = False
                 else:
                     cmd_list[-1] = cmd_list[-1] + '\n'
 
-    cmd_list = [cmd.replace('--render', '').replace('--diskshow', '')
-                for cmd in cmd_list]
+    cmd_list = [cmd.replace('--render', '').replace('--diskshow', '') for cmd in cmd_list]
 
     # formatting
     cmd_list2 = []
     for cmd in cmd_list:
-        #cmd = cmd.replace(' -t ', ' \\\n    -t ')
-        #cmd = cmd.replace('--db', '\\\n    --db')
-        #cmd = cmd.replace('python -m wbia.dev', './dev.py')
+        # cmd = cmd.replace(' -t ', ' \\\n    -t ')
+        # cmd = cmd.replace('--db', '\\\n    --db')
+        # cmd = cmd.replace('python -m wbia.dev', './dev.py')
         cmd = cmd.replace('python -m wbia.dev -e', 'wbia -e')
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
     print('cmd_list = %s' % (ut.repr2(cmd_list),))
     from os.path import splitext
-    script_fname =  'regen_' + splitext(fname)[0] + '.sh'
+
+    script_fname = 'regen_' + splitext(fname)[0] + '.sh'
     fname, script, line_list = write_script_lines(cmd_list, script_fname)
-    #ut.chmod_add_executable(fname)
+    # ut.chmod_add_executable(fname)
 
 
 def inspect_annotation_configs():
@@ -200,16 +207,18 @@ def inspect_annotation_configs():
     testdef_list = [func() for func in TEST_GEN_FUNCS]
     acfg_name_list = ut.flatten([tup[0]['acfg_name'] for tup in testdef_list])
     acfg_name_list = list(set(acfg_name_list))
-    varydict = ut.odict([
-        #('acfg_name', ['controlled']),
-        #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', [' '.join(acfg_name_list)]),
-        ('dbname', get_dbnames()),
-    ])
+    varydict = ut.odict(
+        [
+            # ('acfg_name', ['controlled']),
+            # ('acfg_name', ['controlled', 'controlled2']),
+            ('acfg_name', [' '.join(acfg_name_list)]),
+            ('dbname', get_dbnames()),
+        ]
+    )
     return varydict, 'inspect_acfg', 'inspect_acfg'
 
 
-#@register_testgen
+# @register_testgen
 def precompute_data():
     """
     Ensure features and such are computed
@@ -221,20 +230,28 @@ def precompute_data():
         >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(precompute_data())
     """
-    #basecmd = 'python -m wbia.expt.experiment_printres
-    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
-    varydict = ut.odict([
-        ('preload_flags', [
-            #'--preload-chip',
-            #'--preload-feat',
-            #'--preload-feeatweight',
-            '--preload',
-            '--preindex',
-        ]),
-        ('dbname', get_dbnames()),
-        ('acfg_name', ['default:qaids=allgt,species=primary,view=primary,is_known=True']),
-        ('cfg_name', ['default', 'candidacy_baseline', 'candidacy_invariance']),
-    ])
+    # basecmd = 'python -m wbia.expt.experiment_printres
+    # --exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    varydict = ut.odict(
+        [
+            (
+                'preload_flags',
+                [
+                    #'--preload-chip',
+                    #'--preload-feat',
+                    #'--preload-feeatweight',
+                    '--preload',
+                    '--preindex',
+                ],
+            ),
+            ('dbname', get_dbnames()),
+            (
+                'acfg_name',
+                ['default:qaids=allgt,species=primary,view=primary,is_known=True'],
+            ),
+            ('cfg_name', ['default', 'candidacy_baseline', 'candidacy_invariance']),
+        ]
+    )
     return (varydict, 'preload', 'preload')
 
 
@@ -256,13 +273,15 @@ def experiments_baseline():
         >>> make_standard_test_scripts(experiments_baseline())
     """
     # Invariance Experiments
-    varydict = ut.odict([
-        #('acfg_name', ['controlled']),
-        #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_OPTION_CONTROLLED),
-        ('cfg_name', ['candidacy_baseline']),
-        ('dbname', get_dbnames()),
-    ])
+    varydict = ut.odict(
+        [
+            # ('acfg_name', ['controlled']),
+            # ('acfg_name', ['controlled', 'controlled2']),
+            ('acfg_name', ACFG_OPTION_CONTROLLED),
+            ('cfg_name', ['candidacy_baseline']),
+            ('dbname', get_dbnames()),
+        ]
+    )
     return (varydict, 'baseline', 'cumhist')
 
 
@@ -281,14 +300,16 @@ def experiments_invariance():
         >>> make_standard_test_scripts(experiments_invariance())
     """
     # Invariance Experiments
-    #static_flags += ' --dpi=512 --figsize=11,4 --clipwhite'
-    varydict = ut.odict([
-        #('acfg_name', ['controlled']),
-        #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_OPTION_CONTROLLED),
-        ('cfg_name', ['candidacy_invariance']),
-        ('dbname', get_dbnames()),
-    ])
+    # static_flags += ' --dpi=512 --figsize=11,4 --clipwhite'
+    varydict = ut.odict(
+        [
+            # ('acfg_name', ['controlled']),
+            # ('acfg_name', ['controlled', 'controlled2']),
+            ('acfg_name', ACFG_OPTION_CONTROLLED),
+            ('cfg_name', ['candidacy_invariance']),
+            ('dbname', get_dbnames()),
+        ]
+    )
     return (varydict, 'invar', 'cumhist')
 
 
@@ -309,12 +330,14 @@ def experiments_namescore():
         >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_namescore())
     """
-    varydict = ut.odict([
-        #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_OPTION_CONTROLLED + ACFG_OPTION_VARYPERNAME),
-        ('cfg_name', ['candidacy_namescore', 'candidacy_namescore:K=1']),
-        ('dbname', get_dbnames()),
-    ])
+    varydict = ut.odict(
+        [
+            # ('acfg_name', ['controlled', 'controlled2']),
+            ('acfg_name', ACFG_OPTION_CONTROLLED + ACFG_OPTION_VARYPERNAME),
+            ('cfg_name', ['candidacy_namescore', 'candidacy_namescore:K=1']),
+            ('dbname', get_dbnames()),
+        ]
+    )
     return (varydict, 'namescore', 'cumhist')
 
 
@@ -331,12 +354,14 @@ def experiments_k():
         >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_k())
     """
-    varydict = ut.odict([
-        ('acfg_name', ACFG_OPTION_VARYSIZE),
-        ('cfg_name', ['candidacy_k']),
-        ('dbname', get_dbnames(exclude_list=['PZ_FlankHack', 'PZ_MTEST'])),
-    ])
-    #return (varydict, 'k', ['surface3d', 'surface2d'])
+    varydict = ut.odict(
+        [
+            ('acfg_name', ACFG_OPTION_VARYSIZE),
+            ('cfg_name', ['candidacy_k']),
+            ('dbname', get_dbnames(exclude_list=['PZ_FlankHack', 'PZ_MTEST'])),
+        ]
+    )
+    # return (varydict, 'k', ['surface3d', 'surface2d'])
     return (varydict, 'k', ['surface2d'])
 
 
@@ -354,14 +379,16 @@ def experiments_viewpoint():
         >>> from wbia.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_viewpoint())
     """
-    #basecmd = 'python -m wbia.expt.experiment_printres
-    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
-    varydict = ut.odict([
-        ('acfg_name', ['viewpoint_compare']),
-        ('cfg_name', ['default']),
-        #('dbname', ['NNP_Master3', 'PZ_Master0']),
-        ('dbname', ['PZ_Master1']),
-    ])
+    # basecmd = 'python -m wbia.expt.experiment_printres
+    # --exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    varydict = ut.odict(
+        [
+            ('acfg_name', ['viewpoint_compare']),
+            ('cfg_name', ['default']),
+            # ('dbname', ['NNP_Master3', 'PZ_Master0']),
+            ('dbname', ['PZ_Master1']),
+        ]
+    )
     return (varydict, 'view', 'cumhist')
 
 
@@ -377,7 +404,7 @@ def get_results_command(expt_name, media_name):
     plot_fname = 'figures/' + expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
     output_flags = ''
     static_flags = ''
-    #static_flags = ' --diskshow'
+    # static_flags = ' --diskshow'
     dynamic_flags_ = ''
     dpath = '~/latex/crall-candidacy-2015/'
     if media_name == 'table':
@@ -385,7 +412,7 @@ def get_results_command(expt_name, media_name):
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
         margs = 'wbia.dev -e draw_rank_cmc'
-        output_flags +=  ' --save ' + plot_fname + '.png'
+        output_flags += ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=' + dpath
         static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
@@ -417,14 +444,15 @@ def get_results_command(expt_name, media_name):
     basecmd = 'python -m ' + margs
     cmd_flaglist = [basecmd, dynamic_flags, output_flags, static_flags]
     return cmd_flaglist
-    #shortname = 'Expt' + media_name[0].upper() + media_name[1:]
-    #shortscript = shortname + '.sh'
-    #ut.write_modscript_alias(shortscript, margs)
-    #return 'sh ' + shortscript
+    # shortname = 'Expt' + media_name[0].upper() + media_name[1:]
+    # shortscript = shortname + '.sh'
+    # ut.write_modscript_alias(shortscript, margs)
+    # return 'sh ' + shortscript
 
 
 def get_dbnames(exclude_list=[]):
     from wbia.expt import experiment_configs
+
     dbnames = experiment_configs.get_candidacy_dbnames()
     dbnames = ut.setdiff_ordered(dbnames, exclude_list)
     dbnames = ['PZ_Master1']
@@ -468,7 +496,7 @@ def write_script_lines(line_list, fname):
     regen_cmd = (exename + ' ' + ' '.join(sys.argv)).replace(expanduser('~'), '~')
     script_lines = []
     script_lines.append('#!/bin/sh')
-    script_lines.append('echo << \'EOF\' > /dev/null')
+    script_lines.append("echo << 'EOF' > /dev/null")
     script_lines.append('RegenCommand:')
     script_lines.append('   ' + regen_cmd)
     script_lines.append('CommandLine:')
@@ -480,6 +508,7 @@ def write_script_lines(line_list, fname):
     print(script)
     import wbia
     from os.path import dirname, join
+
     dpath = dirname(ut.get_module_dir(wbia))
     fpath = join(dpath, fname)
     if not ut.get_argflag('--dryrun'):
@@ -500,16 +529,17 @@ def gen_dbranks_tables():
         >>> print(result)
     """
     tex_file = ut.codeblock(  # NOQA
-        r'''
+        r"""
         \begin{comment}
         python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'wbia.expt.experiment_printres --exec-print_latexsum')"
         python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m wbia.expt.experiment_drawing --exec-draw_rank_cmc')"
         \end{comment}
-        ''')
+        """
+    )
 
-    #gen_table_line =
-    #sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db
-    #GZ_ALL --rank-lt-list=1,5,10,100
+    # gen_table_line =
+    # sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db
+    # GZ_ALL --rank-lt-list=1,5,10,100
     pass
 
 
@@ -521,6 +551,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.gen_cand_expts --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

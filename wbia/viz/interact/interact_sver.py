@@ -4,10 +4,13 @@ import utool as ut
 from wbia import viz
 from wbia.viz import viz_helpers as vh
 from wbia.plottool import interact_helpers as ih
+
 (print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 
 
-def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None, **kwargs):
+def ishow_sver(
+    ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None, **kwargs
+):
     fig = ih.begin_interaction('sver', fnum)
     mode_ptr = [2]
     if chipmatch_FILT is None or aid2_svtup is None:
@@ -22,7 +25,7 @@ def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None,
         if ih.clicked_outside_axis(event):
             print('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
-            kwargs['show_kpts']  = mode_ptr[0] == 2
+            kwargs['show_kpts'] = mode_ptr[0] == 2
             kwargs['show_lines'] = mode_ptr[0] >= 1
             _sv_view(**kwargs)
         else:

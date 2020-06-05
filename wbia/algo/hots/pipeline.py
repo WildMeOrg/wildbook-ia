@@ -52,40 +52,45 @@ from wbia.algo.hots import scoring
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-#=================
+# =================
 # Globals
-#=================
+# =================
 
 TAU = 2 * np.pi  # References: tauday.com
 NOT_QUIET = ut.NOT_QUIET and not ut.get_argflag('--quiet-query')
 DEBUG_PIPELINE = ut.get_argflag(('--debug-pipeline', '--debug-pipe'))
-VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipeline', '--verb-pipe')))
+VERB_PIPELINE = NOT_QUIET and (
+    ut.VERBOSE or ut.get_argflag(('--verbose-pipeline', '--verb-pipe'))
+)
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs') and ut.USE_CACHE
 USE_NN_MID_CACHE = (
-    (True and ut.is_developer()) and
-    not ut.get_argflag('--nocache-nnmid') and
-    USE_HOTSPOTTER_CACHE
+    (True and ut.is_developer())
+    and not ut.get_argflag('--nocache-nnmid')
+    and USE_HOTSPOTTER_CACHE
 )
 USE_NN_MID_CACHE = False
 
 
-NN_LBL      = 'Assign NN:       '
-FILT_LBL    = 'Filter NN:       '
-WEIGHT_LBL  = 'Weight NN:       '
+NN_LBL = 'Assign NN:       '
+FILT_LBL = 'Filter NN:       '
+WEIGHT_LBL = 'Weight NN:       '
 BUILDCM_LBL = 'Build Chipmatch: '
-SVER_LVL    = 'SVER:            '
+SVER_LVL = 'SVER:            '
 
 PROGKW = dict(freq=1, time_thresh=30.0, adjust=True)
 
 
 # Internal tuples denoting return types
-WeightRet_ = namedtuple('weight_ret', ('filtkey_list', 'filtweights_list',
-                                       'filtvalids_list', 'filtnormks_list'))
+WeightRet_ = namedtuple(
+    'weight_ret',
+    ('filtkey_list', 'filtweights_list', 'filtvalids_list', 'filtnormks_list'),
+)
 
 
 class Neighbors(ut.NiceRepr):
@@ -113,7 +118,10 @@ class Neighbors(ut.NiceRepr):
 
     def __nice__(self):
         return '(qaid=%r,nQfxs=%r,nNbs=%r)' % (
-            self.qaid, self.num_query_feats, self.neighb_idxs.shape[1])
+            self.qaid,
+            self.num_query_feats,
+            self.neighb_idxs.shape[1],
+        )
 
     def __getstate__(self):
         return self.__dict__
@@ -122,7 +130,7 @@ class Neighbors(ut.NiceRepr):
         return self.__dict__.update(**state)
 
 
-#@profile
+# @profile
 def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     r""" Driver logic of query pipeline
 
@@ -178,6 +186,7 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     if qreq_.qparams.pipeline_root == 'smk':
         from wbia.algo.hots.smk import smk_match
+
         # Alternative to naive bayes matching:
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
@@ -186,7 +195,7 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         if qreq_.prog_hook is not None:
             qreq_.prog_hook.initialize_subhooks(5)
 
-        #qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
+        # qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
         qreq_.lazy_preload(verbose=(verbose and ut.NOT_QUIET))
         impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
 
@@ -194,37 +203,43 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
-        nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
-                                     verbose=verbose)
+        nns_list = nearest_neighbors(
+            qreq_, Kpad_list, impossible_daids_list, verbose=verbose
+        )
 
         # Remove Impossible Votes
         # a nnfilt object is an ndarray qfx2_valid
         # * marks matches to the same image as invalid
-        nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
-                                                 impossible_daids_list,
-                                                 verbose=verbose)
+        nnvalid0_list = baseline_neighbor_filter(
+            qreq_, nns_list, impossible_daids_list, verbose=verbose
+        )
 
         # Nearest neighbors weighting / scoring (filtweights_list)
         # filtweights_list maps qaid to filtweights which is a dict
         # that maps a filter name to that query's weights for that filter
-        weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list,
-                                      verbose=verbose)
+        weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=verbose)
         filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
 
         # Nearest neighbors to chip matches (cm_list)
         # * Initial scoring occurs
         # * vsone un-swapping occurs here
-        cm_list_FILT = build_chipmatches(qreq_, nns_list, nnvalid0_list,
-                                         filtkey_list, filtweights_list, filtvalids_list,
-                                         filtnormks_list, verbose=verbose)
+        cm_list_FILT = build_chipmatches(
+            qreq_,
+            nns_list,
+            nnvalid0_list,
+            filtkey_list,
+            filtweights_list,
+            filtvalids_list,
+            filtnormks_list,
+            verbose=verbose,
+        )
     else:
         print('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
 
     # Spatial verification (cm_list) (TODO: cython)
     # * prunes chip results and feature matches
     # TODO: allow for reweighting of feature matches to happen.
-    cm_list_SVER = spatial_verification(qreq_, cm_list_FILT,
-                                        verbose=verbose)
+    cm_list_SVER = spatial_verification(qreq_, cm_list_FILT, verbose=verbose)
     if cm_list_FILT[0].filtnorm_aids is not None:
         pass
         # assert cm_list_SVER[0].filtnorm_aids is not None
@@ -239,9 +254,10 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     return cm_list
 
-#============================
+
+# ============================
 # 0) Nearest Neighbors
-#============================
+# ============================
 
 
 def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
@@ -273,13 +289,13 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 0) Build impossible matches')
 
-    can_match_sameimg  = qreq_.qparams.can_match_sameimg
+    can_match_sameimg = qreq_.qparams.can_match_sameimg
     can_match_samename = qreq_.qparams.can_match_samename
-    use_k_padding      = qreq_.qparams.use_k_padding
-    can_match_self     = False
+    use_k_padding = qreq_.qparams.use_k_padding
+    can_match_self = False
     internal_qaids = qreq_.get_internal_qaids()
     internal_daids = qreq_.get_internal_daids()
-    internal_data_nids  = qreq_.get_qreq_annot_nids(internal_daids)
+    internal_data_nids = qreq_.get_qreq_annot_nids(internal_daids)
 
     _impossible_daid_lists = []
     if not can_match_self:
@@ -289,8 +305,9 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
     if not can_match_sameimg:
         # slow way of getting contact_aids (now incorporates faster way)
-        contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids,
-                                                             daid_list=internal_daids)
+        contact_aids_list = qreq_.ibs.get_annot_contact_aids(
+            internal_qaids, daid_list=internal_daids
+        )
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # TODO: flag overlapping keypoints with another annot as likely to
@@ -301,18 +318,19 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             # testdb1 might cut it if we spruced it up
             nonself_contact_aids = [
                 np.setdiff1d(aids, qaid)
-                for aids, qaid in zip(contact_aids_list, internal_qaids)]
+                for aids, qaid in zip(contact_aids_list, internal_qaids)
+            ]
             nonself_contact_nids = qreq_.ibs.unflat_map(
-                qreq_.get_qreq_annot_nids, nonself_contact_aids)
+                qreq_.get_qreq_annot_nids, nonself_contact_aids
+            )
             contact_aids_gt_list = [
-                internal_daids.compress(
-                    vt.get_covered_mask(internal_data_nids, nids))
+                internal_daids.compress(vt.get_covered_mask(internal_data_nids, nids))
                 for nids in nonself_contact_nids
             ]
             _impossible_daid_lists.append(contact_aids_gt_list)
 
     if not can_match_samename:
-        internal_data_nids  = qreq_.get_qreq_annot_nids(internal_daids)
+        internal_data_nids = qreq_.get_qreq_annot_nids(internal_daids)
         internal_query_nids = qreq_.get_qreq_annot_nids(internal_qaids)
         gt_aids = [
             internal_daids.compress(internal_data_nids == nid)
@@ -322,21 +340,21 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     # TODO: add explicit not a match case in here
     _impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
     impossible_daids_list = [
-        np.unique(impossible_daids)
-        for impossible_daids in _impossible_daids_list]
+        np.unique(impossible_daids) for impossible_daids in _impossible_daids_list
+    ]
 
     # TODO: we need to pad K for each bad annotation
     if use_k_padding:
         Kpad_list = list(map(len, impossible_daids_list))
     else:
         # always at least pad K for self queries
-        Kpad_list =  [
-            1 if qaid in internal_daids else 0 for qaid in internal_qaids]
+        Kpad_list = [1 if qaid in internal_daids else 0 for qaid in internal_qaids]
     return impossible_daids_list, Kpad_list
 
-#============================
+
+# ============================
 # 1) Nearest Neighbors
-#============================
+# ============================
 
 
 @profile
@@ -394,10 +412,11 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         ]
     """
     from wbia.algo import Config
-    chip_cfgstr    = qreq_.qparams.chip_cfgstr
-    feat_cfgstr    = qreq_.qparams.feat_cfgstr
-    flann_cfgstr   = qreq_.qparams.flann_cfgstr
-    requery   = qreq_.qparams.requery
+
+    chip_cfgstr = qreq_.qparams.chip_cfgstr
+    feat_cfgstr = qreq_.qparams.feat_cfgstr
+    flann_cfgstr = qreq_.qparams.flann_cfgstr
+    requery = qreq_.qparams.requery
     # assert requery is False, 'can not be on yet'
 
     internal_daids = qreq_.get_internal_daids()
@@ -406,8 +425,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         assert qreq_.qparams.vsmany
         data_hashid = qreq_.get_data_hashid()
     else:
-        data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
-            internal_daids, prefix='D')
+        data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
     if requery:
         query_hashid_list = qreq_.get_qreq_pcc_uuids(internal_qaids)
     else:
@@ -419,25 +437,28 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         # hack config so we consolidate different k values
         # (ie, K=2,Knorm=1 == K=1,Knorm=2)
         nn_cfgstr = Config.NNConfig(**qreq_.qparams).get_cfgstr(
-            ignore_keys={'K', 'Knorm', 'use_k_padding'})
+            ignore_keys={'K', 'Knorm', 'use_k_padding'}
+        )
     else:
-        nn_cfgstr      = qreq_.qparams.nn_cfgstr
+        nn_cfgstr = qreq_.qparams.nn_cfgstr
 
-    aug_cfgstr = ('aug_quryside' if qreq_.qparams.query_rotation_heuristic
-                  else '')
-    nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
-                              flann_cfgstr, aug_cfgstr])
+    aug_cfgstr = 'aug_quryside' if qreq_.qparams.query_rotation_heuristic else ''
+    nn_mid_cacheid = ''.join(
+        [data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr, flann_cfgstr, aug_cfgstr]
+    )
     print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
 
     if HACK_KCFG:
         kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
         nn_mid_cacheid_list = [
             'nnobj_' + str(query_hashid) + nn_mid_cacheid + '_truek' + str(kbase + Kpad)
-            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)
+        ]
     else:
         nn_mid_cacheid_list = [
             'nnobj_' + str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
-            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)
+        ]
 
     nn_cachedir = qreq_.ibs.get_neighbor_cachedir()
     # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
@@ -449,9 +470,9 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 
 @profile
-def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
-                            impossible_daids_list, K, Knorm, requery,
-                            verbose):
+def cachemiss_nn_compute_fn(
+    flags_list, qreq_, Kpad_list, impossible_daids_list, K, Knorm, requery, verbose
+):
     """
     Logic for computing neighbors if there is a cache miss
 
@@ -460,10 +481,10 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     """
     # Cant do this here because of get_nn_aids. bleh
     # Could make this slightly more efficient
-    #qreq_.load_indexer(verbose=verbose)
+    # qreq_.load_indexer(verbose=verbose)
 
-    #internal_qaids = qreq_.get_internal_qaids()
-    #internal_qaids = internal_qaids.compress(flags_list)
+    # internal_qaids = qreq_.get_internal_qaids()
+    # internal_qaids = internal_qaids.compress(flags_list)
 
     # Get only the data that needs to be computed
     internal_qannots = qreq_.internal_qannots
@@ -484,19 +505,20 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
         min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
         max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
-        #qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
+        # qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
         qkpts_list = internal_qannots.kpts
         qkpts_list = vt.ziptake(qkpts_list, qfxs_list, axis=0)
         # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
         scales_list = [vt.get_scales(kpts) for kpts in qkpts_list]
         # Remove data under the threshold
-        flags_list1 = [np.logical_and(scales >= min_, scales <= max_)
-                       for scales in scales_list]
+        flags_list1 = [
+            np.logical_and(scales >= min_, scales <= max_) for scales in scales_list
+        ]
         qvecs_list = vt.zipcompress(qvecs_list, flags_list1, axis=0)
         qfxs_list = vt.zipcompress(qfxs_list, flags_list1, axis=0)
 
     if config2_.fgw_thresh is not None:
-        #qfgw_list = qreq_.ibs.get_annot_fgweights(
+        # qfgw_list = qreq_.ibs.get_annot_fgweights(
         #    internal_qaids, config2_=config2_)
         qfgw_list = internal_qannots.fgweights
         qfgw_list = vt.ziptake(qfgw_list, qfxs_list, axis=0)
@@ -507,17 +529,14 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
 
     if verbose:
         if len(qvecs_list) == 1:
-            print('[hs] depth(qvecs_list) = %r' %
-                  (ut.depth_profile(qvecs_list),))
+            print('[hs] depth(qvecs_list) = %r' % (ut.depth_profile(qvecs_list),))
     # Mark progress ane execute nearest indexer nearest neighbor code
-    prog_hook = (None if qreq_.prog_hook is None else
-                 qreq_.prog_hook.next_subhook())
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     if requery:
         # assert False, (
         #     'need to implement part where matches with the same name are not considered'
         # )
-        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
-                                    prog_hook=prog_hook, **PROGKW)
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
 
         """
         # Maybe some query vector stacking would help here
@@ -537,26 +556,30 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         idx_dist_list = [
             qreq_.indexer.requery_knn(qfx2_vec, K, pad, impossible_daids)
             for qfx2_vec, K, pad, impossible_daids in zip(
-                qvec_iter, num_neighbors_list, Kpad_list,
-                impossible_daids_list)
+                qvec_iter, num_neighbors_list, Kpad_list, impossible_daids_list
+            )
         ]
     else:
-        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
-                                    prog_hook=prog_hook, **PROGKW)
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
         idx_dist_list = [
             qreq_.indexer.knn(qfx2_vec, num_neighbors)
-            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)
+        ]
 
     # Move into new object structure
-    nns_list = [Neighbors(qaid, idxs, dists, qfxs)
-                for qaid, qfxs, (idxs, dists) in
-                zip(internal_qannots.aid, qfxs_list, idx_dist_list)]
+    nns_list = [
+        Neighbors(qaid, idxs, dists, qfxs)
+        for qaid, qfxs, (idxs, dists) in zip(
+            internal_qannots.aid, qfxs_list, idx_dist_list
+        )
+    ]
     return nns_list
 
 
 @profile
-def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
-                      verbose=VERB_PIPELINE):
+def nearest_neighbors(
+    qreq_, Kpad_list, impossible_daids_list=None, verbose=VERB_PIPELINE
+):
     """
     Plain Nearest Neighbors
     Tries to load nearest neighbors from a cache instead of recomputing them.
@@ -659,45 +682,54 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>>                                           impossible_daids_list)
         >>> assert np.all(nnvalid0_list1[0]), 'should always be valid'
     """
-    K           = qreq_.qparams.K
-    Knorm       = qreq_.qparams.Knorm
-    requery     = qreq_.qparams.requery
-    #checks = qreq_.qparams.checks
+    K = qreq_.qparams.K
+    Knorm = qreq_.qparams.Knorm
+    requery = qreq_.qparams.requery
+    # checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
-        print('[hs] Step 1) Assign nearest neighbors: %s' %
-              (qreq_.qparams.nn_cfgstr,))
+        print('[hs] Step 1) Assign nearest neighbors: %s' % (qreq_.qparams.nn_cfgstr,))
 
-    prog_hook = (None if qreq_.prog_hook is None else
-                 qreq_.prog_hook.next_subhook())
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     qreq_.load_indexer(verbose=verbose, prog_hook=prog_hook)
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
-    #USE_NN_MID_CACHE = ut.is_developer()
+    # USE_NN_MID_CACHE = ut.is_developer()
 
     use_cache = USE_NN_MID_CACHE
     if use_cache:
-        nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
-            qreq_, Kpad_list)
+        nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(qreq_, Kpad_list)
     else:
         # hacks
         nn_mid_cacheid_list = [None] * len(qreq_.get_internal_qaids())
         nn_cachedir = None
 
     nns_list = ut.tryload_cache_list_with_compute(
-        use_cache, nn_cachedir, 'neighbs4', nn_mid_cacheid_list,
-        cachemiss_nn_compute_fn, qreq_, Kpad_list, impossible_daids_list, K,
-        Knorm, requery, verbose)
+        use_cache,
+        nn_cachedir,
+        'neighbs4',
+        nn_mid_cacheid_list,
+        cachemiss_nn_compute_fn,
+        qreq_,
+        Kpad_list,
+        impossible_daids_list,
+        K,
+        Knorm,
+        requery,
+        verbose,
+    )
     return nns_list
 
 
-#============================
+# ============================
 # 2) Remove Impossible Weights
-#============================
+# ============================
 
 
 @profile
-def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VERB_PIPELINE):
+def baseline_neighbor_filter(
+    qreq_, nns_list, impossible_daids_list, verbose=VERB_PIPELINE
+):
     """
     Removes matches to self, the same image, or the same name.
 
@@ -728,23 +760,30 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     Knorm = qreq_.qparams.Knorm
     # Find which annotations each query matched against
     neighb_aids_iter = (
-        qreq_.indexer.get_nn_aids(
-            nn.neighb_idxs.T[0:nn.neighb_idxs.shape[1] - Knorm].T)
-        for nn in nns_list)
+        qreq_.indexer.get_nn_aids(nn.neighb_idxs.T[0 : nn.neighb_idxs.shape[1] - Knorm].T)
+        for nn in nns_list
+    )
     filter_iter_ = zip(neighb_aids_iter, impossible_daids_list)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    filter_iter = ut.ProgressIter(filter_iter_, length=len(nns_list),
-                                  enabled=False, lbl=FILT_LBL,
-                                  prog_hook=prog_hook, **PROGKW)
+    filter_iter = ut.ProgressIter(
+        filter_iter_,
+        length=len(nns_list),
+        enabled=False,
+        lbl=FILT_LBL,
+        prog_hook=prog_hook,
+        **PROGKW,
+    )
     # Check to be sure that none of the matched annotations are in the impossible set
-    nnvalid0_list = [vt.get_uncovered_mask(neighb_aids, impossible_daids)
-                     for neighb_aids, impossible_daids in filter_iter]
+    nnvalid0_list = [
+        vt.get_uncovered_mask(neighb_aids, impossible_daids)
+        for neighb_aids, impossible_daids in filter_iter
+    ]
     return nnvalid0_list
 
 
-#============================
+# ============================
 # 3) Nearest Neighbor weights
-#============================
+# ============================
 
 
 @profile
@@ -820,15 +859,15 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         if len(nns_list) == 1:
             print('[hs] depth(nns_list) ' + str(ut.depth_profile(nns_list)))
 
-    #print(WEIGHT_LBL)
-    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
+    # print(WEIGHT_LBL)
+    # intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
     #                                   **PROGKW)
 
     # Build weights for each active filter
-    filtkey_list     = []
+    filtkey_list = []
     _filtweight_list = []
-    _filtvalid_list  = []
-    _filtnormk_list  = []
+    _filtvalid_list = []
+    _filtnormk_list = []
 
     config2_ = qreq_.extern_data_config2
 
@@ -843,7 +882,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.lnbnn_on:
         filtname = 'lnbnn'
         lnbnn_weight_list, normk_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
+            nns_list, nnvalid0_list, qreq_
+        )
 
         if config2_.lnbnn_normer is not None:
             print('[hs] normalizing feat scores')
@@ -881,7 +921,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.normonly_on:
         filtname = 'normonly'
         normonly_weight_list, normk_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
+            nns_list, nnvalid0_list, qreq_
+        )
         _filtweight_list.append(normonly_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         _filtnormk_list.append(normk_list)
@@ -889,7 +930,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.bar_l2_on:
         filtname = 'bar_l2'
         bar_l2_weight_list, normk_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
+            nns_list, nnvalid0_list, qreq_
+        )
         _filtweight_list.append(bar_l2_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         _filtnormk_list.append(None)
@@ -897,12 +939,16 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.ratio_thresh:
         filtname = 'ratio'
         ratio_weight_list, normk_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
-        ratio_isvalid   = [neighb_ratio <= qreq_.qparams.ratio_thresh for
-                           neighb_ratio in ratio_weight_list]
+            nns_list, nnvalid0_list, qreq_
+        )
+        ratio_isvalid = [
+            neighb_ratio <= qreq_.qparams.ratio_thresh
+            for neighb_ratio in ratio_weight_list
+        ]
         # HACK TO GET 1 - RATIO AS SCORE
-        ratioscore_list = [np.subtract(1, neighb_ratio)
-                           for neighb_ratio in ratio_weight_list]
+        ratioscore_list = [
+            np.subtract(1, neighb_ratio) for neighb_ratio in ratio_weight_list
+        ]
         _filtweight_list.append(ratioscore_list)
         _filtvalid_list.append(ratio_isvalid)
         _filtnormk_list.append(normk_list)
@@ -911,7 +957,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.const_on:
         filtname = 'const'
         constvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
+            nns_list, nnvalid0_list, qreq_
+        )
         _filtweight_list.append(constvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         _filtnormk_list.append(None)
@@ -919,7 +966,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     if config2_.fg_on:
         filtname = 'fg'
         fgvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
+            nns_list, nnvalid0_list, qreq_
+        )
         _filtweight_list.append(fgvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         _filtnormk_list.append(None)
@@ -927,35 +975,43 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
     # Switch nested list structure from [filt, qaid] to [qaid, filt]
     nInternAids = len(nns_list)
-    filtweights_list = [ut.get_list_column(_filtweight_list, index)
-                        for index in range(nInternAids)]
-    filtvalids_list = [[
-        None if filtvalid is None else filtvalid[index]
-        for filtvalid in _filtvalid_list
-    ] for index in range(nInternAids) ]
+    filtweights_list = [
+        ut.get_list_column(_filtweight_list, index) for index in range(nInternAids)
+    ]
+    filtvalids_list = [
+        [None if filtvalid is None else filtvalid[index] for filtvalid in _filtvalid_list]
+        for index in range(nInternAids)
+    ]
 
-    filtnormks_list = [[
-        None if normk is None else normk[index]
-        for normk in _filtnormk_list
-    ] for index in range(nInternAids)]
+    filtnormks_list = [
+        [None if normk is None else normk[index] for normk in _filtnormk_list]
+        for index in range(nInternAids)
+    ]
 
-    assert len(filtkey_list) > 0, (
-        'no feature correspondece filter keys were specified')
+    assert len(filtkey_list) > 0, 'no feature correspondece filter keys were specified'
 
-    weight_ret = WeightRet_(filtkey_list, filtweights_list, filtvalids_list,
-                            filtnormks_list)
+    weight_ret = WeightRet_(
+        filtkey_list, filtweights_list, filtvalids_list, filtnormks_list
+    )
     return weight_ret
 
 
-#============================
+# ============================
 # 4) Conversion from featurematches to chipmatches neighb -> aid2
-#============================
+# ============================
 
 
-#@profile
-def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
-                      filtweights_list, filtvalids_list, filtnormks_list,
-                      verbose=VERB_PIPELINE):
+# @profile
+def build_chipmatches(
+    qreq_,
+    nns_list,
+    nnvalid0_list,
+    filtkey_list,
+    filtweights_list,
+    filtvalids_list,
+    filtnormks_list,
+    verbose=VERB_PIPELINE,
+):
     """
     pipeline step 4 - builds sparse chipmatches
 
@@ -1038,24 +1094,39 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
 
     # Iterate over INTERNAL query annotation ids
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    nns_iter = ut.ProgressIter(nns_list, lbl=BUILDCM_LBL, enabled=False,
-                               prog_hook=prog_hook, **PROGKW)
+    nns_iter = ut.ProgressIter(
+        nns_list, lbl=BUILDCM_LBL, enabled=False, prog_hook=prog_hook, **PROGKW
+    )
 
     cm_list = [
         get_sparse_matchinfo_nonagg(
-            qreq_, nns, neighb_valid0, neighb_score_list,
-            neighb_valid_list, neighb_normk_list, Knorm,
-            fsv_col_lbls=filtkey_list)
-        for nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list in
-        zip(nns_iter, nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list)
+            qreq_,
+            nns,
+            neighb_valid0,
+            neighb_score_list,
+            neighb_valid_list,
+            neighb_normk_list,
+            Knorm,
+            fsv_col_lbls=filtkey_list,
+        )
+        for nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list in zip(
+            nns_iter, nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list
+        )
     ]
     return cm_list
 
 
-#@profile
-def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
-                                neighb_score_list, neighb_valid_list,
-                                neighb_normk_list, Knorm, fsv_col_lbls):
+# @profile
+def get_sparse_matchinfo_nonagg(
+    qreq_,
+    nns,
+    neighb_valid0,
+    neighb_score_list,
+    neighb_valid_list,
+    neighb_normk_list,
+    Knorm,
+    fsv_col_lbls,
+):
     """
     builds sparse iterator that generates feature match pairs, scores, and ranks
 
@@ -1101,17 +1172,18 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
     # We fill filter each relavant matrix by aggregate validity
     flat_validx = np.flatnonzero(neighb_valid_agg)
     # Infer the valid internal query feature indexes and ranks
-    valid_x     = np.floor_divide(flat_validx, K, dtype=hstypes.INDEX_TYPE)
-    valid_qfx   = qfx_list.take(valid_x)
-    valid_rank  = np.mod(flat_validx, K, dtype=hstypes.FK_DTYPE)
+    valid_x = np.floor_divide(flat_validx, K, dtype=hstypes.INDEX_TYPE)
+    valid_qfx = qfx_list.take(valid_x)
+    valid_rank = np.mod(flat_validx, K, dtype=hstypes.FK_DTYPE)
     # TODO: valid_qfx, valid_rank = np.unravel_index(flat_validx, (neighb_nnidx.shape[0], K))?
     # Then take the valid indices from internal database
     # annot_rowids, feature indexes, and all scores
-    valid_daid  = neighb_daid.take(flat_validx, axis=None)
-    valid_dfx   = neighb_dfx.take(flat_validx, axis=None)
+    valid_daid = neighb_daid.take(flat_validx, axis=None)
+    valid_dfx = neighb_dfx.take(flat_validx, axis=None)
     valid_scorevec = np.concatenate(
-        [neighb_score.take(flat_validx)[:, None]
-         for neighb_score in neighb_score_list], axis=1)
+        [neighb_score.take(flat_validx)[:, None] for neighb_score in neighb_score_list],
+        axis=1,
+    )
 
     # Incorporate Normalizers
     # Normalizers for each weight filter that used a normalizer
@@ -1127,11 +1199,11 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
         _offset = np.arange(0, neighb_idx.size, neighb_idx.shape[1])
         flat_normxs = [_offset + neighb_normk for neighb_normk in _normks]
         flat_normidxs = [neighb_idx.take(ks) for ks in flat_normxs]
-        flat_norm_aids = [indexer.get_nn_aids(idx)   for idx in flat_normidxs]
-        flat_norm_fxs  = [indexer.get_nn_featxs(idx) for idx in flat_normidxs]
+        flat_norm_aids = [indexer.get_nn_aids(idx) for idx in flat_normidxs]
+        flat_norm_fxs = [indexer.get_nn_featxs(idx) for idx in flat_normidxs]
         # Take the valid indicies
         _valid_norm_aids = [aids.take(valid_x) for aids in flat_norm_aids]
-        _valid_norm_fxs  = [fxs.take(valid_x)  for fxs in flat_norm_fxs]
+        _valid_norm_fxs = [fxs.take(valid_x) for fxs in flat_norm_fxs]
     else:
         _valid_norm_aids = []
         _valid_norm_fxs = []
@@ -1143,39 +1215,48 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
     # vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,
     #                      valid_rank, valid_norm_aids, valid_norm_fxs)
     # NOTE: CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
-    valid_fm = np.concatenate((valid_qfx[:, None],
-                               valid_dfx[:, None]), axis=1)
+    valid_fm = np.concatenate((valid_qfx[:, None], valid_dfx[:, None]), axis=1)
     assert valid_fm.flags.c_contiguous, 'non-contiguous'
     # valid_fm = np.ascontiguousarray(valid_fm)
     daid_list, daid_groupxs = vt.group_indices(valid_daid)
 
-    fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
+    fm_list = vt.apply_grouping(valid_fm, daid_groupxs)
     fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
-    fk_list  = vt.apply_grouping(valid_rank, daid_groupxs)
+    fk_list = vt.apply_grouping(valid_rank, daid_groupxs)
 
     filtnorm_aids = [
         None  # [None] * len(daid_groupxs)
-        if aids is None else vt.apply_grouping(aids, daid_groupxs)
-        for aids in valid_norm_aids]
+        if aids is None
+        else vt.apply_grouping(aids, daid_groupxs)
+        for aids in valid_norm_aids
+    ]
 
     filtnorm_fxs = [
         None  # [None] * len(daid_groupxs)
-        if fxs is None else vt.apply_grouping(fxs, daid_groupxs)
-        for fxs in valid_norm_fxs]
+        if fxs is None
+        else vt.apply_grouping(fxs, daid_groupxs)
+        for fxs in valid_norm_fxs
+    ]
 
     assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer'
     assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer'
 
-    cm = chip_match.ChipMatch(nns.qaid, daid_list, fm_list, fsv_list, fk_list,
-                              fsv_col_lbls=fsv_col_lbls,
-                              filtnorm_aids=filtnorm_aids,
-                              filtnorm_fxs=filtnorm_fxs)
+    cm = chip_match.ChipMatch(
+        nns.qaid,
+        daid_list,
+        fm_list,
+        fsv_list,
+        fk_list,
+        fsv_col_lbls=fsv_col_lbls,
+        filtnorm_aids=filtnorm_aids,
+        filtnorm_fxs=filtnorm_fxs,
+    )
     return cm
 
 
-#============================
+# ============================
 # 5) Spatial Verification
-#============================
+# ============================
 
 
 def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
@@ -1229,7 +1310,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         return cm_list_SVER
 
 
-#@profile
+# @profile
 def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     """
     make only spatially valid features survive
@@ -1240,25 +1321,29 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     # dbg info (can remove if there is a speed issue)
     score_method = qreq_.qparams.score_method
-    prescore_method  = qreq_.qparams.prescore_method
-    nNameShortList  = qreq_.qparams.nNameShortlistSVER
-    nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
+    prescore_method = qreq_.qparams.prescore_method
+    nNameShortList = qreq_.qparams.nNameShortlistSVER
+    nAnnotPerName = qreq_.qparams.nAnnotPerNameSVER
 
     scoring.score_chipmatch_list(qreq_, cm_list, prescore_method)
-    cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list,
-                                                     nNameShortList,
-                                                     nAnnotPerName,
-                                                     score_method)
+    cm_shortlist = scoring.make_chipmatch_shortlists(
+        qreq_, cm_list, nNameShortList, nAnnotPerName, score_method
+    )
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    cm_progiter = ut.ProgressIter(cm_shortlist, length=len(cm_shortlist),
-                                  prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
+    cm_progiter = ut.ProgressIter(
+        cm_shortlist,
+        length=len(cm_shortlist),
+        prog_hook=prog_hook,
+        lbl=SVER_LVL,
+        **PROGKW,
+    )
 
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
     # rescore after verification?
     return cm_list_SVER
 
 
-#@profile
+# @profile
 def sver_single_chipmatch(qreq_, cm, verbose=False):
     r"""
     Spatially verifies a shortlist of a single chipmatch
@@ -1364,13 +1449,13 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> ut.show_if_requested()
     """
     qaid = cm.qaid
-    use_chip_extent       = qreq_.qparams.use_chip_extent
-    xy_thresh             = qreq_.qparams.xy_thresh
-    scale_thresh          = qreq_.qparams.scale_thresh
-    ori_thresh            = qreq_.qparams.ori_thresh
-    min_nInliers          = qreq_.qparams.min_nInliers
-    full_homog_checks     = qreq_.qparams.full_homog_checks
-    refine_method         = qreq_.qparams.refine_method
+    use_chip_extent = qreq_.qparams.use_chip_extent
+    xy_thresh = qreq_.qparams.xy_thresh
+    scale_thresh = qreq_.qparams.scale_thresh
+    ori_thresh = qreq_.qparams.ori_thresh
+    min_nInliers = qreq_.qparams.min_nInliers
+    full_homog_checks = qreq_.qparams.full_homog_checks
+    refine_method = qreq_.qparams.refine_method
     sver_output_weighting = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
     kpts1 = qreq_.get_qreq_qannot_kpts(qaid).astype(np.float64)
@@ -1378,7 +1463,8 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
 
     if use_chip_extent:
         top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
-            cm.daid_list, config2_=qreq_.extern_data_config2)
+            cm.daid_list, config2_=qreq_.extern_data_config2
+        )
     else:
         top_dlen_sqrd_list = compute_matching_dlen_extent(qreq_, cm.fm_list, kpts2_list)
     config2_ = qreq_.extern_query_config2
@@ -1386,7 +1472,8 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         # Weights for inlier scoring
         if config2_.get('fg_on'):
             qweights = qreq_.ibs.get_annot_fgweights(
-                [qaid], ensure=True, config2_=config2_)[0].astype(np.float64)
+                [qaid], ensure=True, config2_=config2_
+            )[0].astype(np.float64)
         else:
             num = qreq_.ibs.get_annot_num_feats([qaid], config2_=config2_)[0]
             qweights = np.ones(num, np.float64)
@@ -1395,10 +1482,18 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
 
     # Make an svtup for every daid in the shortlist
-    _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, kpts2_list,
-                 top_dlen_sqrd_list, match_weight_list)
+    _iter1 = zip(
+        cm.daid_list,
+        cm.fm_list,
+        cm.fsv_list,
+        kpts2_list,
+        top_dlen_sqrd_list,
+        match_weight_list,
+    )
     if verbose:
-        _iter1 = ut.ProgIter(_iter1, length=len(cm.daid_list), lbl='sver shortlist', freq=1)
+        _iter1 = ut.ProgIter(
+            _iter1, length=len(cm.daid_list), lbl='sver shortlist', freq=1
+        )
     svtup_list = []
     for daid, fm, fsv, kpts2, dlen_sqrd2, match_weights in _iter1:
         if len(fm) == 0:
@@ -1427,14 +1522,33 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
                 # maps image1 space into image2 space image1 is a query chip
                 # and image2 is a database chip
                 sv_tup = vt.spatially_verify_kpts(
-                    kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-                    dlen_sqrd2, min_nInliers, match_weights=match_weights,
-                    full_homog_checks=full_homog_checks, refine_method=refine_method,
-                    returnAff=True)
+                    kpts1,
+                    kpts2,
+                    fm,
+                    xy_thresh,
+                    scale_thresh,
+                    ori_thresh,
+                    dlen_sqrd2,
+                    min_nInliers,
+                    match_weights=match_weights,
+                    full_homog_checks=full_homog_checks,
+                    refine_method=refine_method,
+                    returnAff=True,
+                )
             except Exception as ex:
-                ut.printex(ex, 'Unknown error in spatial verification.',
-                           keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                                 'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
+                ut.printex(
+                    ex,
+                    'Unknown error in spatial verification.',
+                    keys=[
+                        'kpts1',
+                        'kpts2',
+                        'fm',
+                        'xy_thresh',
+                        'scale_thresh',
+                        'dlen_sqrd2',
+                        'min_nInliers',
+                    ],
+                )
                 sv_tup = None
         svtup_list.append(sv_tup)
 
@@ -1465,7 +1579,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         for sv_tup in svtup_list_:
             (homog_inliers, homog_errors) = sv_tup[0:2]
             homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
-            homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
+            homog_err_weight = 1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd)
             homog_err_weight_list.append(homog_err_weight)
         # Rescore based on homography errors
         filtkey = hstypes.FiltKeys.HOMOGERR
@@ -1500,9 +1614,8 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     # first get matching keypoints
     fx2_list = [fm.T[1] for fm in fm_list]
     kpts2_m_list = vt.ziptake(kpts_list, fx2_list, axis=0)
-    #[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
-    dlen_sqrd_list = [vt.get_kpts_dlen_sqrd(kpts2_m)
-                      for kpts2_m in kpts2_m_list]
+    # [kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
+    dlen_sqrd_list = [vt.get_kpts_dlen_sqrd(kpts2_m) for kpts2_m in kpts2_m_list]
     return dlen_sqrd_list
 
 
@@ -1518,6 +1631,7 @@ if __name__ == '__main__':
     python -m wbia.algo.hots.pipeline --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     ut.doctest_funcs()
     # if ut.get_argflag('--show'):

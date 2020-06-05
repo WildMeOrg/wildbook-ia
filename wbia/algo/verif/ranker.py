@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: rewrite the hotspotter lnbnn algo to be a generator
 
@@ -6,11 +7,11 @@ Wrapper around LNBNN hotspotter algorithm
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 class Ranker(object):
-
     def __init__(ranker, ibs=None, config={}):
         ranker.ibs = ibs
         ranker.config = config
@@ -30,9 +31,13 @@ class Ranker(object):
 
         cfgdict = ranker.config
         ibs = ranker.ibs
-        qreq_ = ibs.new_query_request(qaids, ranker._daids, cfgdict=cfgdict,
-                                      custom_nid_lookup=custom_nid_lookup,
-                                      verbose=ranker.verbose)
+        qreq_ = ibs.new_query_request(
+            qaids,
+            ranker._daids,
+            cfgdict=cfgdict,
+            custom_nid_lookup=custom_nid_lookup,
+            verbose=ranker.verbose,
+        )
         cm_list = qreq_.execute(prog_hook=prog_hook)
         return cm_list
 

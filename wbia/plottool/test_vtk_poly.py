@@ -4,11 +4,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 def rhombicuboctahedron():
     import vtk
+
     # First, you need to store the vertex locations.
 
     import numpy as np
+
     fu = 1  # full unit
-    hu = .5  # half unit
+    hu = 0.5  # half unit
     d = np.sqrt((fu ** 2) / 2)  # diag
     hh = hu + d  # half height
 
@@ -17,21 +19,17 @@ def rhombicuboctahedron():
     import utool as ut
     import six
     import itertools
+
     counter = ut.partial(six.next, itertools.count(0))
 
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(24)
 
-    p1, p2, p3 = np.array([
-        (-hu, -hu, hh),
-        ( hu, -hu, hh),
-        ( hu,  hu, hh),
-        (-hu,  hu, hh),
-    ]).T
+    p1, p2, p3 = np.array([(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh),]).T
     plist = [p1, p2, p3]
 
     # three of the six main faces
-    #perms = list(itertools.permutations((0, 1, 2), 3))
+    # perms = list(itertools.permutations((0, 1, 2), 3))
     perms = [(0, 1, 2), (0, 2, 1), (2, 0, 1)]
 
     vertex_array = []
@@ -80,30 +78,30 @@ def rhombicuboctahedron():
         'F': [vpdict['F'][0], vpdict['F'][1], vpdict['F'][2], vpdict['F'][3]],
         'R': [vpdict['R'][0], vpdict['R'][1], vpdict['R'][2], vpdict['R'][3]],
         'B': [vpdict['B'][0], vpdict['B'][1], vpdict['B'][2], vpdict['B'][3]],
-        'FL': [ vpdict['L'][0], vpdict['L'][3], vpdict['F'][2], vpdict['F'][3], ],
-        'BL': [ vpdict['L'][1], vpdict['L'][2], vpdict['B'][2], vpdict['B'][3], ],
-        'UL': [ vpdict['L'][2], vpdict['L'][3], vpdict['U'][3], vpdict['U'][2], ],
-        'DL': [ vpdict['L'][0], vpdict['L'][1], vpdict['D'][2], vpdict['D'][3], ],
-        'UFL': [ vpdict['L'][3], vpdict['F'][2], vpdict['U'][3], ],
-        'DFL': [ vpdict['L'][0], vpdict['F'][3], vpdict['D'][3], ],
-        'UBL': [ vpdict['L'][2], vpdict['B'][2], vpdict['U'][2], ],
-        'DBL': [ vpdict['L'][1], vpdict['B'][3], vpdict['D'][2], ],
-        'UFR': [ vpdict['R'][3], vpdict['F'][1], vpdict['U'][0], ],
-        'DFR': [ vpdict['R'][0], vpdict['F'][0], vpdict['D'][0], ],
-        'UBR': [ vpdict['R'][2], vpdict['B'][1], vpdict['U'][1], ],
-        'DBR': [ vpdict['R'][1], vpdict['B'][0], vpdict['D'][1], ],
-        'FR': [ vpdict['R'][3], vpdict['R'][0], vpdict['F'][0], vpdict['F'][1], ],
-        'BR': [ vpdict['R'][2], vpdict['R'][1], vpdict['B'][0], vpdict['B'][1], ],
-        'UR': [ vpdict['R'][3], vpdict['R'][2], vpdict['U'][1], vpdict['U'][0], ],
-        'DR': [ vpdict['R'][1], vpdict['R'][0], vpdict['D'][0], vpdict['D'][1], ],
-        'DF': [ vpdict['F'][0], vpdict['F'][3], vpdict['D'][3], vpdict['D'][0], ],
-        'DB': [ vpdict['B'][3], vpdict['B'][0], vpdict['D'][1], vpdict['D'][2], ],
-        'UF': [ vpdict['F'][1], vpdict['F'][2], vpdict['U'][3], vpdict['U'][0], ],
-        'UB': [ vpdict['B'][2], vpdict['B'][1], vpdict['U'][1], vpdict['U'][2], ],
+        'FL': [vpdict['L'][0], vpdict['L'][3], vpdict['F'][2], vpdict['F'][3],],
+        'BL': [vpdict['L'][1], vpdict['L'][2], vpdict['B'][2], vpdict['B'][3],],
+        'UL': [vpdict['L'][2], vpdict['L'][3], vpdict['U'][3], vpdict['U'][2],],
+        'DL': [vpdict['L'][0], vpdict['L'][1], vpdict['D'][2], vpdict['D'][3],],
+        'UFL': [vpdict['L'][3], vpdict['F'][2], vpdict['U'][3],],
+        'DFL': [vpdict['L'][0], vpdict['F'][3], vpdict['D'][3],],
+        'UBL': [vpdict['L'][2], vpdict['B'][2], vpdict['U'][2],],
+        'DBL': [vpdict['L'][1], vpdict['B'][3], vpdict['D'][2],],
+        'UFR': [vpdict['R'][3], vpdict['F'][1], vpdict['U'][0],],
+        'DFR': [vpdict['R'][0], vpdict['F'][0], vpdict['D'][0],],
+        'UBR': [vpdict['R'][2], vpdict['B'][1], vpdict['U'][1],],
+        'DBR': [vpdict['R'][1], vpdict['B'][0], vpdict['D'][1],],
+        'FR': [vpdict['R'][3], vpdict['R'][0], vpdict['F'][0], vpdict['F'][1],],
+        'BR': [vpdict['R'][2], vpdict['R'][1], vpdict['B'][0], vpdict['B'][1],],
+        'UR': [vpdict['R'][3], vpdict['R'][2], vpdict['U'][1], vpdict['U'][0],],
+        'DR': [vpdict['R'][1], vpdict['R'][0], vpdict['D'][0], vpdict['D'][1],],
+        'DF': [vpdict['F'][0], vpdict['F'][3], vpdict['D'][3], vpdict['D'][0],],
+        'DB': [vpdict['B'][3], vpdict['B'][0], vpdict['D'][1], vpdict['D'][2],],
+        'UF': [vpdict['F'][1], vpdict['F'][2], vpdict['U'][3], vpdict['U'][0],],
+        'UB': [vpdict['B'][2], vpdict['B'][1], vpdict['U'][1], vpdict['U'][2],],
     }
 
     for key, vert_ids in face_dict.items():
-        #if key != 'L':
+        # if key != 'L':
         #    continue
         if len(vert_ids) == 4:
             q = vtk.vtkQuad()
@@ -114,7 +112,7 @@ def rhombicuboctahedron():
         polygon_faces.InsertNextCell(q)
 
     # Next you create a vtkPolyData to store your face and vertex information
-    #that
+    # that
     # represents your polyhedron.
     pd = vtk.vtkPolyData()
     pd.SetPoints(vertex_locations)
@@ -135,11 +133,11 @@ def rhombicuboctahedron():
     ug.SetPoints(vertex_locations)
     ug.InsertNextCell(vtk.VTK_POLYHEDRON, face_stream)
 
-    #writer = vtk.vtkUnstructuredGridWriter()
-    #writer.SetFileName("rhombicuboctahedron.vtk")
+    # writer = vtk.vtkUnstructuredGridWriter()
+    # writer.SetFileName("rhombicuboctahedron.vtk")
     ##writer.SetInputData(ug)
-    #writer.SetInput(ug)
-    #writer.Write()
+    # writer.SetInput(ug)
+    # writer.Write()
 
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInput(ug)
@@ -153,8 +151,8 @@ def rhombicuboctahedron():
 
         textureCoords = vtk.vtkFloatArray()
         textureCoords.SetNumberOfComponents(3)
-        #coords = ut.take(vertex_array, face_dict['L'])
-        #for coord in coords:
+        # coords = ut.take(vertex_array, face_dict['L'])
+        # for coord in coords:
         #    textureCoords.InsertNextTuple(tuple(coord))
         textureCoords.InsertNextTuple((0, 0, 0))
         textureCoords.InsertNextTuple((1, 0, 0))
@@ -193,85 +191,86 @@ def rhombicuboctahedron():
 def rhombic_dodecahedron():
     # http://www.vtk.org/pipermail/vtkusers/2014-September/085077.html
     import vtk
+
     # This is a Rhombic Dodecahedron.
 
     # First, you need to store the vertex locations.
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(14)
-    vertex_locations.SetPoint( 0, (-0.816497, -0.816497,  0.00000))
-    vertex_locations.SetPoint( 1, (-0.816497,  0.000000, -0.57735))
-    vertex_locations.SetPoint( 2, (-0.816497,  0.000000,  0.57735))
-    vertex_locations.SetPoint( 3, (-0.816497,  0.816497,  0.00000))
-    vertex_locations.SetPoint( 4, ( 0.000000, -0.816497, -0.57735))
-    vertex_locations.SetPoint( 5, ( 0.000000, -0.816497,  0.57735))
-    vertex_locations.SetPoint( 6, ( 0.000000,  0.000000, -1.15470))
-    vertex_locations.SetPoint( 7, ( 0.000000,  0.000000,  1.15470))
-    vertex_locations.SetPoint( 8, ( 0.000000,  0.816497, -0.57735))
-    vertex_locations.SetPoint( 9, ( 0.000000,  0.816497,  0.57735))
-    vertex_locations.SetPoint(10, ( 0.816497, -0.816497,  0.00000))
-    vertex_locations.SetPoint(11, ( 0.816497,  0.000000, -0.57735))
-    vertex_locations.SetPoint(12, ( 0.816497,  0.000000,  0.57735))
-    vertex_locations.SetPoint(13, ( 0.816497,  0.816497,  0.00000))
+    vertex_locations.SetPoint(0, (-0.816497, -0.816497, 0.00000))
+    vertex_locations.SetPoint(1, (-0.816497, 0.000000, -0.57735))
+    vertex_locations.SetPoint(2, (-0.816497, 0.000000, 0.57735))
+    vertex_locations.SetPoint(3, (-0.816497, 0.816497, 0.00000))
+    vertex_locations.SetPoint(4, (0.000000, -0.816497, -0.57735))
+    vertex_locations.SetPoint(5, (0.000000, -0.816497, 0.57735))
+    vertex_locations.SetPoint(6, (0.000000, 0.000000, -1.15470))
+    vertex_locations.SetPoint(7, (0.000000, 0.000000, 1.15470))
+    vertex_locations.SetPoint(8, (0.000000, 0.816497, -0.57735))
+    vertex_locations.SetPoint(9, (0.000000, 0.816497, 0.57735))
+    vertex_locations.SetPoint(10, (0.816497, -0.816497, 0.00000))
+    vertex_locations.SetPoint(11, (0.816497, 0.000000, -0.57735))
+    vertex_locations.SetPoint(12, (0.816497, 0.000000, 0.57735))
+    vertex_locations.SetPoint(13, (0.816497, 0.816497, 0.00000))
 
     # Next, you describe the polygons that represent the faces using the vertex
     # indices in the vtkPoints that stores the vertex locations. There are a
-    #number
+    # number
     # of ways to do this that you can find in examples on the Wiki.
 
     polygon_faces = vtk.vtkCellArray()
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  7)
+    q.GetPointIds().SetId(0, 7)
     q.GetPointIds().SetId(1, 12)
     q.GetPointIds().SetId(2, 10)
-    q.GetPointIds().SetId(3,  5)
+    q.GetPointIds().SetId(3, 5)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  7)
+    q.GetPointIds().SetId(0, 7)
     q.GetPointIds().SetId(1, 12)
     q.GetPointIds().SetId(2, 13)
-    q.GetPointIds().SetId(3,  9)
+    q.GetPointIds().SetId(3, 9)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  7)
-    q.GetPointIds().SetId(1,  9)
-    q.GetPointIds().SetId(2,  3)
-    q.GetPointIds().SetId(3,  2)
+    q.GetPointIds().SetId(0, 7)
+    q.GetPointIds().SetId(1, 9)
+    q.GetPointIds().SetId(2, 3)
+    q.GetPointIds().SetId(3, 2)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  7)
-    q.GetPointIds().SetId(1,  2)
-    q.GetPointIds().SetId(2,  0)
-    q.GetPointIds().SetId(3,  5)
+    q.GetPointIds().SetId(0, 7)
+    q.GetPointIds().SetId(1, 2)
+    q.GetPointIds().SetId(2, 0)
+    q.GetPointIds().SetId(3, 5)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  6)
+    q.GetPointIds().SetId(0, 6)
     q.GetPointIds().SetId(1, 11)
     q.GetPointIds().SetId(2, 10)
-    q.GetPointIds().SetId(3,  4)
+    q.GetPointIds().SetId(3, 4)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  6)
-    q.GetPointIds().SetId(1,  4)
-    q.GetPointIds().SetId(2,  0)
-    q.GetPointIds().SetId(3,  1)
+    q.GetPointIds().SetId(0, 6)
+    q.GetPointIds().SetId(1, 4)
+    q.GetPointIds().SetId(2, 0)
+    q.GetPointIds().SetId(3, 1)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  6)
-    q.GetPointIds().SetId(1,  1)
-    q.GetPointIds().SetId(2,  3)
-    q.GetPointIds().SetId(3,  8)
+    q.GetPointIds().SetId(0, 6)
+    q.GetPointIds().SetId(1, 1)
+    q.GetPointIds().SetId(2, 3)
+    q.GetPointIds().SetId(3, 8)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  6)
-    q.GetPointIds().SetId(1,  8)
+    q.GetPointIds().SetId(0, 6)
+    q.GetPointIds().SetId(1, 8)
     q.GetPointIds().SetId(2, 13)
     q.GetPointIds().SetId(3, 11)
     polygon_faces.InsertNextCell(q)
@@ -285,27 +284,27 @@ def rhombic_dodecahedron():
 
     q = vtk.vtkQuad()
     q.GetPointIds().SetId(0, 13)
-    q.GetPointIds().SetId(1,  8)
-    q.GetPointIds().SetId(2,  3)
-    q.GetPointIds().SetId(3,  9)
+    q.GetPointIds().SetId(1, 8)
+    q.GetPointIds().SetId(2, 3)
+    q.GetPointIds().SetId(3, 9)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  3)
-    q.GetPointIds().SetId(1,  1)
-    q.GetPointIds().SetId(2,  0)
-    q.GetPointIds().SetId(3,  2)
+    q.GetPointIds().SetId(0, 3)
+    q.GetPointIds().SetId(1, 1)
+    q.GetPointIds().SetId(2, 0)
+    q.GetPointIds().SetId(3, 2)
     polygon_faces.InsertNextCell(q)
 
     q = vtk.vtkQuad()
-    q.GetPointIds().SetId(0,  0)
-    q.GetPointIds().SetId(1,  4)
+    q.GetPointIds().SetId(0, 0)
+    q.GetPointIds().SetId(1, 4)
     q.GetPointIds().SetId(2, 10)
-    q.GetPointIds().SetId(3,  5)
+    q.GetPointIds().SetId(3, 5)
     polygon_faces.InsertNextCell(q)
 
     # Next you create a vtkPolyData to store your face and vertex information
-    #that
+    # that
     # represents your polyhedron.
     pd = vtk.vtkPolyData()
     pd.SetPoints(vertex_locations)
@@ -313,9 +312,9 @@ def rhombic_dodecahedron():
 
     # If you wanted to be able to load in the saved file and select the entire
     # polyhedron, you would need to save it as a vtkUnstructuredGrid, and you
-    #would
+    # would
     # need to put the data into a vtkPolyhedron. This is a bit more involved
-    #than
+    # than
     # the vtkPolyData that I used above. For a more in-depth discussion, see:
     # http://www.vtk.org/Wiki/VTK/Polyhedron_Support
 
@@ -335,19 +334,19 @@ def rhombic_dodecahedron():
     ug.SetPoints(vertex_locations)
     ug.InsertNextCell(vtk.VTK_POLYHEDRON, face_stream)
 
-    #--------------#
+    # --------------#
     # output stuff #
-    #--------------#
+    # --------------#
 
     writer = vtk.vtkUnstructuredGridWriter()
-    writer.SetFileName("rhombic_dodecahedron.vtk")
-    #writer.SetInputData(ug)
+    writer.SetFileName('rhombic_dodecahedron.vtk')
+    # writer.SetInputData(ug)
     writer.SetInput(ug)
     writer.Write()
 
-    #---------------------#
+    # ---------------------#
     # visualization stuff #
-    #---------------------#
+    # ---------------------#
     # mapper = vtk.vtkPolyDataMapper()
     # mapper.SetInputData(pd)
     mapper = vtk.vtkDataSetMapper()
@@ -368,6 +367,7 @@ def rhombic_dodecahedron():
     ren.ResetCamera()
     renw.Render()
     iren.Start()
+
 
 if __name__ == '__main__':
     r"""

@@ -12,6 +12,7 @@ import shlex
 import os
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
+
 (print, rrr, profile) = ut.inject2(__name__, '[darknet]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
@@ -21,8 +22,7 @@ if not ut.get_argflag('--no-darknet'):
     try:
         assert exists(SCRIPT_PATH)
     except AssertionError as ex:
-        print('WARNING Failed to find darknet. '
-              'Darknet is unavailable')
+        print('WARNING Failed to find darknet. ' 'Darknet is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
 
@@ -32,15 +32,13 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 CONFIG_URL_DICT = {
     # 'pretrained-v1-pascal'       : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v1.pascal.cfg',
-    'pretrained-v2-pascal'       : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.pascal.cfg',
-    'pretrained-v2-large-pascal' : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.pascal.cfg',
-    'pretrained-tiny-pascal'     : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.pascal.cfg',
-
-    'pretrained-v2-large-coco'   : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
-    'pretrained-tiny-coco'       : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.coco.cfg',
-
-    'default'                    : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
-    None                         : 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
+    'pretrained-v2-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.pascal.cfg',
+    'pretrained-v2-large-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.pascal.cfg',
+    'pretrained-tiny-pascal': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.pascal.cfg',
+    'pretrained-v2-large-coco': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
+    'pretrained-tiny-coco': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.coco.cfg',
+    'default': 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
+    None: 'https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg',
 }
 
 
@@ -142,15 +140,29 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
-            bbox_list = [ bbox ]
+            bbox = (
+                result['xtl'],
+                result['ytl'],
+                result['width'],
+                result['height'],
+            )
+            bbox_list = [bbox]
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, **kwargs):
+def detect(
+    gpath_list,
+    config_filepath,
+    weight_filepath,
+    class_filepath,
+    sensitivity,
+    verbose=VERBOSE_SS,
+    use_gpu=True,
+    use_gpu_id=0,
+    **kwargs,
+):
     """
     Args:
         gpath_list (list of str): the list of image paths that need proposal candidates
@@ -164,8 +176,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
         config_url = CONFIG_URL_DICT[config_filepath]
-        config_filepath = ut.grab_file_url(config_url, appname='wbia',
-                                           check_hash=True)
+        config_filepath = ut.grab_file_url(config_url, appname='wbia', check_hash=True)
 
     # Get correct weights if specified with shorthand
     if weight_filepath in CONFIG_URL_DICT:
@@ -174,19 +185,20 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         else:
             config_url_ = CONFIG_URL_DICT[weight_filepath]
         weight_url = _parse_weight_from_cfg(config_url_)
-        weight_filepath = ut.grab_file_url(weight_url, appname='wbia',
-                                            check_hash=True)
+        weight_filepath = ut.grab_file_url(weight_url, appname='wbia', check_hash=True)
 
     data_url = _parse_data_from_cfg(config_url)
-    data_filepath = ut.grab_file_url(data_url, appname='wbia',
-                                      check_hash=True, verbose=verbose)
+    data_filepath = ut.grab_file_url(
+        data_url, appname='wbia', check_hash=True, verbose=verbose
+    )
     with open(data_filepath, 'r') as data_file:
         data_str = data_file.read()
     names_tag = '_^_NAMES_^_'
     if names_tag in data_str:
         class_url = _parse_classes_from_cfg(config_url)
-        class_filepath = ut.grab_file_url(class_url, appname='wbia',
-                                          check_hash=True, verbose=verbose)
+        class_filepath = ut.grab_file_url(
+            class_url, appname='wbia', check_hash=True, verbose=verbose
+        )
         data_str = data_str.replace(names_tag, class_filepath)
         with open(data_filepath, 'w') as data_file:
             data_file.write(data_str)
@@ -203,10 +215,17 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         #     pass
 
         # Run darknet on image
-        bash_args = (data_filepath, config_filepath, weight_filepath, gpath, temp_filepath, sensitivity, )
+        bash_args = (
+            data_filepath,
+            config_filepath,
+            weight_filepath,
+            gpath,
+            temp_filepath,
+            sensitivity,
+        )
         bash_str = './darknet detector test %s %s %s %s %s -thresh %0.5f' % bash_args
         if verbose:
-            print('Calling: %s' % (bash_str, ))
+            print('Calling: %s' % (bash_str,))
         bash_list = shlex.split(bash_str)
         with open('/dev/null', 'w') as null:
             process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
@@ -235,12 +254,12 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             class_ = result[5]
             conf = float(result[6])
             result_dict = {
-                'xtl'        : xtl,
-                'ytl'        : ytl,
-                'width'      : xbr - xtl,
-                'height'     : ybr - ytl,
-                'class'      : class_,
-                'confidence' : conf,
+                'xtl': xtl,
+                'ytl': ytl,
+                'width': xbr - xtl,
+                'height': ybr - ytl,
+                'class': class_,
+                'confidence': conf,
             }
             result_list_.append(result_dict)
         results_list_.append(result_list_)

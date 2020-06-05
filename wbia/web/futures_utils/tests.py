@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.web import futures_utils
 from concurrent import futures
@@ -36,11 +37,13 @@ class TestActorMixin(object):
             return actor
         elif action == 'wait':
             import time
+
             num = message.get('time', 0)
             time.sleep(num)
             return num
         elif action == 'prime':
             import ubelt as ub
+
             a = actor.state['a']
             n = message['n']
             return n, a, ub.find_nth_prime(n + a)
@@ -215,6 +218,7 @@ def main():
         test_simple(ActorClass)
         test_callbacks(ActorClass)
         test_cancel(ActorClass)
+
 
 if __name__ == '__main__':
     r"""

@@ -7,7 +7,8 @@ from vtool._pyflann_backend import pyflann as pyflann
 from os.path import basename, exists  # NOQA
 from six.moves import range
 from wbia.algo.hots import neighbor_index_cache
-#import mem_top
+
+# import mem_top
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -51,8 +52,9 @@ def augment_nnindexer_experiment():
 
     """
     import wbia
+
     # build test data
-    #ibs = wbia.opendb('PZ_MTEST')
+    # ibs = wbia.opendb('PZ_MTEST')
     ibs = wbia.opendb(defaultdb='PZ_Master0')
     if ibs.get_dbname() == 'PZ_MTEST':
         initial = 1
@@ -60,13 +62,13 @@ def augment_nnindexer_experiment():
         max_ceiling = 100
     elif ibs.get_dbname() == 'PZ_Master0':
         initial = 128
-        #addition_stride = 64
-        #addition_stride = 128
+        # addition_stride = 64
+        # addition_stride = 128
         addition_stride = 256
         max_ceiling = 10000
-        #max_ceiling = 4000
-        #max_ceiling = 2000
-        #max_ceiling = 600
+        # max_ceiling = 4000
+        # max_ceiling = 2000
+        # max_ceiling = 600
     else:
         assert False
     all_daids = ibs.get_valid_aids(species='zebra_plains')
@@ -85,14 +87,15 @@ def augment_nnindexer_experiment():
     nnindexer_list = []
     addition_lbl = 'Addition'
     _addition_iter = list(range(initial + 1, max_num, addition_stride))
-    addition_iter = iter(ut.ProgressIter(_addition_iter, lbl=addition_lbl,
-                                         freq=1, autoadjust=False))
+    addition_iter = iter(
+        ut.ProgressIter(_addition_iter, lbl=addition_lbl, freq=1, autoadjust=False)
+    )
     time_list_addition = []
-    #time_list_reindex = []
+    # time_list_reindex = []
     addition_count_list = []
     tmp_cfgstr_list = []
 
-    #for _ in range(80):
+    # for _ in range(80):
     #    next(addition_iter)
     try:
         memtrack = ut.MemoryTracker(disable=False)
@@ -101,7 +104,9 @@ def augment_nnindexer_experiment():
             # Request an indexer which could be an augmented version of an existing indexer.
             with ut.Timer(verbose=False) as t:
                 memtrack.report('BEFORE AUGMENT')
-                nnindexer_ = neighbor_index_cache.request_augmented_wbia_nnindexer(qreq_, aid_list_)
+                nnindexer_ = neighbor_index_cache.request_augmented_wbia_nnindexer(
+                    qreq_, aid_list_
+                )
                 memtrack.report('AFTER AUGMENT')
             nnindexer_list.append(nnindexer_)
             addition_count_list.append(count)
@@ -122,29 +127,36 @@ def augment_nnindexer_experiment():
         _reindex_iter = list(range(initial + 1, max_num, addition_stride))[::-1]
         reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
         time_list_reindex = []
-        #time_list_reindex = []
+        # time_list_reindex = []
         reindex_count_list = []
 
         for count in reindex_iter:
             print('\n+===PREDONE====================\n')
             # check only a single size for memory leaks
-            #count = max_num // 16 + ((x % 6) * 1)
-            #x += 1
+            # count = max_num // 16 + ((x % 6) * 1)
+            # x += 1
 
             aid_list_ = all_randomize_daids_[0:count]
             # Call the same code, but force rebuilds
             memtrack.report('BEFORE REINDEX')
             with ut.Timer(verbose=False) as t:
                 nnindexer_ = neighbor_index_cache.request_augmented_wbia_nnindexer(
-                    qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
+                    qreq_, aid_list_, force_rebuild=True, memtrack=memtrack
+                )
             memtrack.report('AFTER REINDEX')
             ibs.print_cachestats_str()
-            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (
-                ut.get_object_size_str(neighbor_index_cache.NEIGHBOR_CACHE.items()),))
-            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (
-                len(neighbor_index_cache.NEIGHBOR_CACHE.items()),))
-            print('[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s' % (
-                ut.get_object_size_str(neighbor_index_cache.UUID_MAP_CACHE),))
+            print(
+                '[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s'
+                % (ut.get_object_size_str(neighbor_index_cache.NEIGHBOR_CACHE.items()),)
+            )
+            print(
+                '[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s'
+                % (len(neighbor_index_cache.NEIGHBOR_CACHE.items()),)
+            )
+            print(
+                '[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s'
+                % (ut.get_object_size_str(neighbor_index_cache.UUID_MAP_CACHE),)
+            )
             print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
             memtrack.report_type(neighbor_index_cache.NeighborIndex)
             ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
@@ -152,9 +164,9 @@ def augment_nnindexer_experiment():
                 nnindexer_list.append(nnindexer_)
             reindex_count_list.append(count)
             time_list_reindex.append(t.ellapsed)
-            #import cv2
-            #import matplotlib as mpl
-            #print(mem_top.mem_top(limit=30, width=120,
+            # import cv2
+            # import matplotlib as mpl
+            # print(mem_top.mem_top(limit=30, width=120,
             #                      #exclude_refs=[cv2.__dict__, mpl.__dict__]
             #     ))
             print('L___________________\n\n\n')
@@ -163,33 +175,46 @@ def augment_nnindexer_experiment():
             print(ut.repr2(list(map(id, nnindexer_list))))
             print(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
     except KeyboardInterrupt:
-            print('\n[train] Caught CRTL+C')
-            resolution = ''
-            from six.moves import input
-            while not (resolution.isdigit()):
-                print('\n[train] What do you want to do?')
-                print('[train]     0 - Continue')
-                print('[train]     1 - Embed')
-                print('[train]  ELSE - Stop network training')
-                resolution = input('[train] Resolution: ')
-            resolution = int(resolution)
-            # We have a resolution
-            if resolution == 0:
-                print('resuming training...')
-            elif resolution == 1:
-                ut.embed()
+        print('\n[train] Caught CRTL+C')
+        resolution = ''
+        from six.moves import input
+
+        while not (resolution.isdigit()):
+            print('\n[train] What do you want to do?')
+            print('[train]     0 - Continue')
+            print('[train]     1 - Embed')
+            print('[train]  ELSE - Stop network training')
+            resolution = input('[train] Resolution: ')
+        resolution = int(resolution)
+        # We have a resolution
+        if resolution == 0:
+            print('resuming training...')
+        elif resolution == 1:
+            ut.embed()
 
     import wbia.plottool as pt
 
     next_fnum = iter(range(0, 1)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
     if len(addition_count_list) > 0:
-        pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
-                 x_label='num_annotations', label=addition_lbl + ' Time')
+        pt.plot2(
+            addition_count_list,
+            time_list_addition,
+            marker='-o',
+            equal_aspect=False,
+            x_label='num_annotations',
+            label=addition_lbl + ' Time',
+        )
 
     if len(reindex_count_list) > 0:
-        pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
-                 x_label='num_annotations', label=reindex_label + ' Time')
+        pt.plot2(
+            reindex_count_list,
+            time_list_reindex,
+            marker='-o',
+            equal_aspect=False,
+            x_label='num_annotations',
+            label=reindex_label + ' Time',
+        )
 
     pt.set_figtitle('Augmented indexer experiment')
 
@@ -240,30 +265,30 @@ def flann_add_time_experiment():
         addition_stride = 4
         max_ceiling = 120
     elif ibs.get_dbname() == 'PZ_Master0':
-        #ibs = wbia.opendb(db='GZ_ALL')
+        # ibs = wbia.opendb(db='GZ_ALL')
         initial = 32
         reindex_stride = 32
         addition_stride = 16
         max_ceiling = 300001
     else:
         assert False
-    #max_ceiling = 32
+    # max_ceiling = 32
     all_daids = ibs.get_valid_aids()
     max_num = min(max_ceiling, len(all_daids))
     flann_params = vt.get_flann_params()
 
     # Output
-    count_list,  time_list_reindex  = [], []
+    count_list, time_list_reindex = [], []
     count_list2, time_list_addition = [], []
 
     # Setup
-    #all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
+    # all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
     all_randomize_daids_ = all_daids
     # ensure all features are computed
     ibs.get_annot_vecs(all_randomize_daids_)
 
     def reindex_step(count, count_list, time_list_reindex):
-        daids    = all_randomize_daids_[0:count]
+        daids = all_randomize_daids_[0:count]
         vecs = np.vstack(ibs.get_annot_vecs(daids))
         with ut.Timer(verbose=False) as t:
             flann = make_flann_index(vecs, flann_params)  # NOQA
@@ -271,7 +296,7 @@ def flann_add_time_experiment():
         time_list_reindex.append(t.ellapsed)
 
     def addition_step(count, flann, count_list2, time_list_addition):
-        daids = all_randomize_daids_[count:count + 1]
+        daids = all_randomize_daids_[count : count + 1]
         vecs = np.vstack(ibs.get_annot_vecs(daids))
         with ut.Timer(verbose=False) as t:
             flann.add_points(vecs)
@@ -279,7 +304,7 @@ def flann_add_time_experiment():
         time_list_addition.append(t.ellapsed)
 
     def make_initial_index(initial):
-        daids = all_randomize_daids_[0:initial + 1]
+        daids = all_randomize_daids_[0 : initial + 1]
         vecs = np.vstack(ibs.get_annot_vecs(daids))
         flann = make_flann_index(vecs, flann_params)
         return flann
@@ -311,17 +336,30 @@ def flann_add_time_experiment():
 
     print('Plotting')
 
-    #with pt.FigureContext:
+    # with pt.FigureContext:
 
     next_fnum = iter(range(0, 2)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
     if WITH_REINDEX:
-        pt.plot2(count_list, time_list_reindex, marker='-o', equal_aspect=False,
-                 x_label='num_annotations', label=reindex_lbl + ' Time', dark=False)
+        pt.plot2(
+            count_list,
+            time_list_reindex,
+            marker='-o',
+            equal_aspect=False,
+            x_label='num_annotations',
+            label=reindex_lbl + ' Time',
+            dark=False,
+        )
 
-    #pt.figure(fnum=next_fnum())
-    pt.plot2(count_list2, time_list_addition, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=addition_lbl + ' Time')
+    # pt.figure(fnum=next_fnum())
+    pt.plot2(
+        count_list2,
+        time_list_addition,
+        marker='-o',
+        equal_aspect=False,
+        x_label='num_annotations',
+        label=addition_lbl + ' Time',
+    )
 
     pt
     pt.legend()
@@ -337,6 +375,7 @@ def subindexer_time_experiment():
     import utool as ut
     from vtool._pyflann_backend import pyflann as pyflann
     import wbia.plottool as pt
+
     ibs = wbia.opendb(db='PZ_Master0')
     daid_list = ibs.get_valid_aids()
     count_list = []
@@ -354,9 +393,15 @@ def subindexer_time_experiment():
         time_list.append(t.ellapsed)
     count_arr = np.array(count_list)
     time_arr = np.array(time_list)
-    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
-             x_label='num_annotations', y_label='FLANN build time')
-    #pt.update()
+    pt.plot2(
+        count_arr,
+        time_arr,
+        marker='-',
+        equal_aspect=False,
+        x_label='num_annotations',
+        y_label='FLANN build time',
+    )
+    # pt.update()
 
 
 def trytest_incremental_add(ibs):
@@ -376,14 +421,19 @@ def trytest_incremental_add(ibs):
         >>> print(result)
     """
     import wbia
+
     sample_aids = wbia.testdata_aids(a='default:pername=1,mingt=2')
     aids1 = sample_aids[::2]
     aids2 = sample_aids[0:5]
     aids3 = sample_aids[:-1]  # NOQA
     daid_list = aids1  # NOQA
     qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
-    nnindexer2 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
+    nnindexer1 = neighbor_index_cache.request_wbia_nnindexer(
+        ibs.new_query_request(aids1, aids1)
+    )  # NOQA
+    nnindexer2 = neighbor_index_cache.request_wbia_nnindexer(
+        ibs.new_query_request(aids2, aids2)
+    )  # NOQA
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(aids3)
@@ -397,12 +447,14 @@ def trytest_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    nnindexer3 = neighbor_index_cache.request_wbia_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
+    nnindexer3 = neighbor_index_cache.request_wbia_nnindexer(
+        ibs.new_query_request(uncovered_aids, uncovered_aids)
+    )  # NOQA
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(sample_aids)
     uuid_map_fpath = neighbor_index_cache.get_nnindexer_uuid_map_fpath(qreq_)
-    #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
+    # contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
     candidate_uuids = neighbor_index_cache.read_uuid_map(uuid_map_fpath, 0)
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
@@ -412,15 +464,15 @@ def trytest_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))  # NOQA
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    #uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
-    #uuid_map = shelve.open(uuid_map_fpath)
-    #uuid_map[daids_hashid] = visual_uuid_list
-    #visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-    #visual_uuid_list
+    # uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
+    # uuid_map = shelve.open(uuid_map_fpath)
+    # uuid_map[daids_hashid] = visual_uuid_list
+    # visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
+    # visual_uuid_list
     #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=False)
     #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=True)
 
-    #for uuids in uuid_set
+    # for uuids in uuid_set
     #    if
 
 
@@ -436,6 +488,7 @@ def trytest_multiple_add_removes():
         >>> print(result)
     """
     from wbia.algo.hots.neighbor_index_cache import test_nnindexer
+
     K = 4
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
 
@@ -447,7 +500,10 @@ def trytest_multiple_add_removes():
     def print_nnindexer(nnindexer):
         print('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
         print('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
-        print('nnindexer.get_removed_idxs().shape = %r' % (nnindexer.get_removed_idxs().shape,))
+        print(
+            'nnindexer.get_removed_idxs().shape = %r'
+            % (nnindexer.get_removed_idxs().shape,)
+        )
 
     print('INITIALIZE TEST')
     print_nnindexer(nnindexer)
@@ -508,9 +564,13 @@ def trytest_multiple_add_removes():
     if len(found_removed_idxs) != 0:
         print('found_removed_idxs.max() = %r' % (found_removed_idxs.max(),))
         print('found_removed_idxs.min() = %r' % (found_removed_idxs.min(),))
-        raise AssertionError('found_removed_idxs.shape = %r' % (found_removed_idxs.shape,))
+        raise AssertionError(
+            'found_removed_idxs.shape = %r' % (found_removed_idxs.shape,)
+        )
     aids3 = set(qfx2_aid3.ravel())
-    assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(remove_daid_list)
+    assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(
+        remove_daid_list
+    )
 
     print('TESTING DUPLICATE ADD')
     new_daid_list = [8, 10]
@@ -536,10 +596,12 @@ def trytest_multiple_add_removes():
     nnindexer.remove_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
     (qfx2_idx5_, qfx2_dist5_) = nnindexer.knn(qfx2_vec, K)
-    issame = (qfx2_idx5_ == qfx2_idx3_)
+    issame = qfx2_idx5_ == qfx2_idx3_
     percentsame = issame.sum() / issame.size
     print('percentsame = %r' % (percentsame,))
-    assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+    assert (
+        percentsame > 0.85
+    ), 'a large majority of the feature idxs should remain the same'
 
     print_nnindexer(nnindexer)
 
@@ -549,10 +611,12 @@ def trytest_multiple_add_removes():
         nnindexer.add_wbia_support(qreq_, add_daid_list1, verbose=False)
         nnindexer.remove_wbia_support(qreq_, add_daid_list1, verbose=False)
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
-        issame = (qfx2_idxX_ == qfx2_idx3_)
+        issame = qfx2_idxX_ == qfx2_idx3_
         percentsame = issame.sum() / issame.size
         print('percentsame = %r' % (percentsame,))
-        assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+        assert (
+            percentsame > 0.85
+        ), 'a large majority of the feature idxs should remain the same'
 
     # Test again with more data
     print('testing remove query points with more data')
@@ -574,11 +638,13 @@ def trytest_multiple_add_removes():
         nnindexer.remove_wbia_support(qreq_, add_daid_list1, verbose=True)
         # weird that all seem to work here
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
-        issame = (qfx2_idxX_ == qfx2_idx7_)
+        issame = qfx2_idxX_ == qfx2_idx7_
         percentsame = issame.sum() / issame.size
         print('percentsame = %r' % (percentsame,))
         print_nnindexer(nnindexer)
-        assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+        assert (
+            percentsame > 0.85
+        ), 'a large majority of the feature idxs should remain the same'
 
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
     big_set = ibs.get_valid_aids()[5:]
@@ -615,17 +681,19 @@ def trytest_multiple_add_removes():
     idx2_vec_compressed = nnindexer.get_indexed_vecs()
 
     from vtool._pyflann_backend import pyflann as pyflann
+
     flann1 = pyflann.FLANN()
     flann1.load_index('test.flann', idx2_vec_masked)
 
     from vtool._pyflann_backend import pyflann as pyflann
+
     flann2 = pyflann.FLANN()
     flann2.load_index('test.flann', idx2_vec_compressed)
 
     # NOW WE NEED TO TEST THAT WE CAN SAVE AND LOAD THIS DATA
 
     #
-    #ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
+    # ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
     pass
 
 
@@ -641,6 +709,7 @@ def pyflann_test_remove_add():
     """
     from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+
     rng = np.random.RandomState(0)
 
     print('Test initial save load')
@@ -649,7 +718,7 @@ def pyflann_test_remove_add():
         #'log_level': 'debug', 'info',
     }
 
-    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+    # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
     print('Test remove and then add disjoint points')
     flann = pyflann.FLANN()
@@ -686,6 +755,7 @@ def pyflann_test_remove_add2():
     """
     from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
 
@@ -695,7 +765,7 @@ def pyflann_test_remove_add2():
         'log_level': 'debug',
     }
 
-    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+    # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
     print('Test remove and then add THE SAME points')
     flann = pyflann.FLANN()
@@ -714,7 +784,9 @@ def pyflann_test_remove_add2():
     nonself_idxs = np.nonzero(np.arange(len(idx_all)) != idx_all.T[0])[0]
     assert np.all(nonself_idxs == removed_idxs)
     print('removed indexexes were only ones whos nearest neighbor was not self')
-    assert np.all(idx_all.T[0][-len(vecs2):] == np.arange(len(vecs), len(vecs) + len(vecs2)))
+    assert np.all(
+        idx_all.T[0][-len(vecs2) :] == np.arange(len(vecs), len(vecs) + len(vecs2))
+    )
     print('added vecs correctly got their padded index')
     assert idx_all.T[0].max() == 499
 
@@ -759,6 +831,7 @@ def pyflann_remove_and_save():
     """
     from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
     vecs2 = (rng.rand(100, 128) * 255).astype(np.uint8)
@@ -778,7 +851,7 @@ def pyflann_remove_and_save():
         'log_level': 'debug',
     }
 
-    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+    # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
     flann1 = pyflann.FLANN(**flann_params)
     params1 = flann1.build_index(vecs, **flann_params)  # NOQA
@@ -820,7 +893,9 @@ def pyflann_remove_and_save():
     flann3 = flann1
     print('\n * CHECK NN')
     idx3, dist = flann3.nn_index(qvecs, 3)
-    assert len(np.intersect1d(idx3.ravel(), remove_idx_list)) == 0, 'points were not removed'
+    assert (
+        len(np.intersect1d(idx3.ravel(), remove_idx_list)) == 0
+    ), 'points were not removed'
     print('\n * SAVE')
     flann3.save_index('test3.flann')
 
@@ -849,7 +924,7 @@ def pyflann_remove_and_save():
         print('\n * CALL LOAD')
         flann4.load_index('test3.flann', clean_vecs)
 
-    #assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'
+    # assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'
 
 
 if __name__ == '__main__':
@@ -860,8 +935,10 @@ if __name__ == '__main__':
         python -m wbia.algo.hots._neighbor_experiment --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     if ut.get_argflag('--test-augment_nnindexer_experiment'):
         # See if exec has something to do with memory leaks
         augment_nnindexer_experiment()

@@ -10,22 +10,23 @@ import vtool as vt
 from six.moves import zip, map
 import cv2
 import random
+
 (print, rrr, profile) = ut.inject2(__name__, '[randomforest]')
 
 if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
     except ImportError as ex:
-        print('WARNING Failed to import pyrf. '
-              'Randomforest detection is unavailable')
+        print('WARNING Failed to import pyrf. ' 'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
             raise
 
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
 
 
-def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
-                   teardown=False, **kwargs):
+def train_gid_list(
+    ibs, gid_list, trees_path=None, species=None, setup=True, teardown=False, **kwargs
+):
     """
     Args:
         gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -40,8 +41,10 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
     Returns:
         None
     """
-    print("[randomforest.train()] training with %d gids and species=%r" % (
-        len(gid_list), species, ))
+    print(
+        '[randomforest.train()] training with %d gids and species=%r'
+        % (len(gid_list), species,)
+    )
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_cachedir(), 'trees', species)
 
@@ -79,7 +82,10 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
             ut.remove_dirs(negatives_cache)
         ut.ensuredir(negatives_cache)
         # Get negative chip paths
-        print("[randomforest.train()] Mining %d negative patches" % (len(train_pos_cpath_list), ))
+        print(
+            '[randomforest.train()] Mining %d negative patches'
+            % (len(train_pos_cpath_list),)
+        )
         train_neg_cpath_list = []
         while len(train_neg_cpath_list) < len(train_pos_cpath_list):
             sample = random.randint(0, len(gid_list) - 1)
@@ -99,29 +105,48 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
             ymax = ymin + square
             if _valid_candidate((xmin, xmax, ymin, ymax), annot_bbox_list):
                 if VERBOSE_RF:
-                    print("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (
-                        len(train_neg_cpath_list), len(train_pos_cpath_list), xmin, xmax, ymin, ymax, gid, ))
+                    print(
+                        '[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d'
+                        % (
+                            len(train_neg_cpath_list),
+                            len(train_pos_cpath_list),
+                            xmin,
+                            xmax,
+                            ymin,
+                            ymax,
+                            gid,
+                        )
+                    )
                 img = ibs.get_images(gid)
-                img_path = join(negatives_cache, "neg_%07d.JPEG" % (len(train_neg_cpath_list), ))
+                img_path = join(
+                    negatives_cache, 'neg_%07d.JPEG' % (len(train_neg_cpath_list),)
+                )
                 img = img[ymin:ymax, xmin:xmax]
                 cv2.imwrite(img_path, img)
                 train_neg_cpath_list.append(img_path)
     else:
         train_neg_cpath_list = ut.ls(negatives_cache, '*.JPEG')
-        #direct = Directory(negatives_cache, include_extensions=['JPEG'])
-        #train_neg_cpath_list = direct.files()
+        # direct = Directory(negatives_cache, include_extensions=['JPEG'])
+        # train_neg_cpath_list = direct.files()
 
     # Train trees
-    train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
-                     trees_path=trees_path, species=species, **kwargs)
+    train_gpath_list(
+        ibs,
+        train_pos_cpath_list,
+        train_neg_cpath_list,
+        trees_path=trees_path,
+        species=species,
+        **kwargs,
+    )
 
     # Remove cached negatives directory
     if teardown:
         ut.remove_dirs(negatives_cache)
 
 
-def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
-                     trees_path=None, **kwargs):
+def train_gpath_list(
+    ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path=None, **kwargs
+):
     """
     Args:
         train_pos_cpath_list (list of str): the list of positive image paths
@@ -143,8 +168,7 @@ def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
         trees_path = join(ibs.get_treesdir(), 'generic')
     # Train trees
     detector = pyrf.Random_Forest_Detector()
-    detector.train(train_pos_cpath_list, train_neg_cpath_list, trees_path,
-                   **kwargs)
+    detector.train(train_pos_cpath_list, train_neg_cpath_list, trees_path, **kwargs)
 
 
 def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
@@ -169,8 +193,7 @@ def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
     return results_iter
 
 
-def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
-                                 **kwargs):
+def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwargs):
     """
     Args:
         gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -207,9 +230,9 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
         >>> print(result)
     """
     tree_path_list = _get_models(ibs, species)
-    results_iter = detect_gid_list(ibs, gid_list, tree_path_list,
-                                   downsample=downsample, verbose=False,
-                                   **kwargs)
+    results_iter = detect_gid_list(
+        ibs, gid_list, tree_path_list, downsample=downsample, verbose=False, **kwargs
+    )
     return results_iter
 
 
@@ -241,7 +264,9 @@ def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
     # Run detection
     results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
     # Upscale the results
-    for gid, downsample, (gpath, result_list) in zip(gid_list, downsample_list, results_iter):
+    for gid, downsample, (gpath, result_list) in zip(
+        gid_list, downsample_list, results_iter
+    ):
         # Upscale the results back up to the original image size
         if downsample is not None and downsample != 1.0:
             for result in result_list:
@@ -264,12 +289,14 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     # Get scales from detect config, if not specified
     if 'scale_list' not in kwargs.keys():
         kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
-        assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
+        assert all([isinstance(scale, float) for scale in kwargs['scale_list']])
 
     verbose = kwargs.get('verbose', ut.VERBOSE)
     if verbose:
-        print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (
-            len(tree_path_list), kwargs['scale_list'], ))
+        print(
+            '[randomforest.detect()] Detecting with %d trees with scale_list=%r'
+            % (len(tree_path_list), kwargs['scale_list'],)
+        )
 
     # Run detection
     detector = pyrf.Random_Forest_Detector(verbose=verbose)
@@ -336,32 +363,37 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         >>> result = ('fpath_list = %s' % (str(fpath_list),))
         >>> print(result)
     """
-    #with ut.embed_on_exception_context:
+    # with ut.embed_on_exception_context:
     if cfg_override and len(ibs.cfg.detect_cfg.trees_path) > 0:
         trees_path = ibs.cfg.detect_cfg.trees_path
     else:
         # Ensure all models downloaded and accounted for
-        assert species is not None, '[_get_models] Cannot detect without specifying a species'
+        assert (
+            species is not None
+        ), '[_get_models] Cannot detect without specifying a species'
         grabmodels.ensure_models(modeldir=modeldir, verbose=verbose)
         trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
     # Load tree paths
     if ut.checkpath(trees_path, verbose=verbose):
         fpath_list = ut.ls(trees_path, '*.txt')
-        #direct = Directory(trees_path, include_extensions=['txt'])
-        #files = direct.files()
+        # direct = Directory(trees_path, include_extensions=['txt'])
+        # files = direct.files()
     else:
         # If the models do not exist, return None
         fpath_list = None
     if fpath_list is None or len(fpath_list) == 0:
-        msg = ut.codeblock(
-            '''
+        msg = (
+            ut.codeblock(
+                """
             [_get_models] Error loading trees, either directory or fpath_list not found
               * trees_path = %r
               * fpath_list = %r
               * species = %r
               * model_dir = %r
               * cfg_override = %r
-            '''
-        ) % (trees_path, fpath_list, species, modeldir, cfg_override)
+            """
+            )
+            % (trees_path, fpath_list, species, modeldir, cfg_override)
+        )
         raise AssertionError(msg)
     return fpath_list

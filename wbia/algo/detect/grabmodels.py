@@ -3,16 +3,17 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 from os.path import exists, join, realpath
+
 (print, rrr, profile) = ut.inject2(__name__, '[grabmodels]')
 
 
-#DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
+# DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
 DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('wbia', 'detectmodels')
 
 DETECTOR_KEY_RF = 'rf'
 
 MODEL_ALGO_SUBDIRS = {
-    DETECTOR_KEY_RF:  'rf',
+    DETECTOR_KEY_RF: 'rf',
 }
 
 MODEL_URLS = {
@@ -55,7 +56,7 @@ def get_species_trees_paths(species, modeldir='default'):
     modeldir = _expand_modeldir(modeldir)
     algosubdir = MODEL_ALGO_SUBDIRS[DETECTOR_KEY_RF]
     rf_model_dir = join(modeldir, algosubdir)
-    trees_path   = join(rf_model_dir, species)
+    trees_path = join(rf_model_dir, species)
     return trees_path
 
 
@@ -70,7 +71,7 @@ def iter_algo_modeldirs(modeldir='default', ensurebase=False):
 def assert_models(modeldir='default', verbose=True):
     for algo, algo_modeldir in iter_algo_modeldirs(modeldir):
         ut.assertpath(algo_modeldir, verbose=verbose)
-        #assert ut.checkpath(algo_modeldir, verbose=True), ('algo_modeldir=%r does not exist' % algo_modeldir)
+        # assert ut.checkpath(algo_modeldir, verbose=True), ('algo_modeldir=%r does not exist' % algo_modeldir)
 
 
 def ensure_models(modeldir='default', verbose=True):
@@ -142,6 +143,8 @@ if __name__ == '__main__':
         python -m wbia.algo.detect.grabmodels --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

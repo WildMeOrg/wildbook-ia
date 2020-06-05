@@ -26,6 +26,7 @@ from wbia.algo.smk import inverted_index
 from wbia.algo.smk import smk_funcs
 from wbia import core_annots
 from wbia.algo import Config as old_config
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -39,14 +40,17 @@ class MatchHeuristicsConfig(dtool.Config):
 
 class SMKRequestConfig(dtool.Config):
     """ Figure out how to do this """
+
     _param_info_list = [
         ut.ParamInfo('proot', 'smk'),
         ut.ParamInfo('smk_alpha', 3.0),
         ut.ParamInfo('smk_thresh', 0.0),
-        #ut.ParamInfo('smk_thresh', -1.0),
+        # ut.ParamInfo('smk_thresh', -1.0),
         ut.ParamInfo('agg', True),
         ut.ParamInfo('data_ma', False),  # hack for query only multiple assignment
-        ut.ParamInfo('word_weight_method', 'idf', shortprefix='wwm'),  # hack for query only multiple assignment
+        ut.ParamInfo(
+            'word_weight_method', 'idf', shortprefix='wwm'
+        ),  # hack for query only multiple assignment
         ut.ParamInfo('smk_version', 3),
     ]
     _sub_config_list = [
@@ -112,6 +116,7 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> ut.show_if_requested()
 
     """
+
     def __init__(qreq_, ibs=None, qaids=None, daids=None, config=None):
         super(SMKRequest, qreq_).__init__()
         if config is None:
@@ -123,8 +128,8 @@ class SMKRequest(mc5.EstimatorRequest):
 
         qreq_.config = config
 
-        #qreq_.vocab = None
-        #qreq_.dinva = None
+        # qreq_.vocab = None
+        # qreq_.dinva = None
 
         qreq_.qinva = None
         qreq_.dinva = None
@@ -133,9 +138,7 @@ class SMKRequest(mc5.EstimatorRequest):
         # Hack to work with existing hs code
         qreq_.stack_config = SMKRequestConfig(**config)
         # Flat config
-        qreq_.qparams = dtool.base.StackedConfig([
-            dict(qreq_.stack_config.parse_items())
-        ])
+        qreq_.qparams = dtool.base.StackedConfig([dict(qreq_.stack_config.parse_items())])
         #    # TODO: add vocab, inva, features
         qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
@@ -173,6 +176,7 @@ class SMKRequest(mc5.EstimatorRequest):
         fname = 'vlad_%d_d%d_%s' % (n_annots, n_words * n_dims, qreq_.ibs.get_dbname())
         fpath = ut.truepath('~/' + fname + '.mat')
         import scipy.io
+
         mdict = {
             'vlads': vlads,
             'nids': qreq_.dnids,
@@ -188,7 +192,7 @@ class SMKRequest(mc5.EstimatorRequest):
         """
         print('Ensure data for %s' % (qreq_,))
 
-        #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
+        # qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
         def make_cacher(name, cfgstr=None):
@@ -198,16 +202,19 @@ class SMKRequest(mc5.EstimatorRequest):
                 return ut.Cacher(
                     fname=name + '_' + qreq_.ibs.get_dbname(),
                     cfgstr=cfgstr,
-                    cache_dir=ut.ensuredir(ut.truepath('~/Desktop/smkcache'))
+                    cache_dir=ut.ensuredir(ut.truepath('~/Desktop/smkcache')),
                 )
             else:
                 wrp = ut.DynStruct()
+
                 def ensure(func):
                     return func()
+
                 wrp.ensure = ensure
                 return wrp
 
         import copy
+
         dconfig = copy.deepcopy(qreq_.qparams)
         qconfig = qreq_.qparams
         if qreq_.qparams['data_ma']:
@@ -221,18 +228,27 @@ class SMKRequest(mc5.EstimatorRequest):
         cheat = False
         if cheat:
             import wbia
+
             ut.cprint('CHEATING', 'red')
             vocab_aids = wbia.init.filter_annots.sample_annots_wrt_ref(
-                qreq_.ibs, qreq_.daids, {'exclude_ref_contact': True},
-                qreq_.qaids, verbose=1)
-            vocab_rowid = depc.get_rowids('vocab', (vocab_aids,), config=dconfig, ensure=False)[0]
+                qreq_.ibs,
+                qreq_.daids,
+                {'exclude_ref_contact': True},
+                qreq_.qaids,
+                verbose=1,
+            )
+            vocab_rowid = depc.get_rowids(
+                'vocab', (vocab_aids,), config=dconfig, ensure=False
+            )[0]
             assert vocab_rowid is not None
 
         depc = qreq_.ibs.depc
         dinva_pcfgstr = depc.stacked_config(
-            None, 'inverted_agg_assign', config=dconfig).get_cfgstr()
+            None, 'inverted_agg_assign', config=dconfig
+        ).get_cfgstr()
         qinva_pcfgstr = depc.stacked_config(
-            None, 'inverted_agg_assign', config=qconfig).get_cfgstr()
+            None, 'inverted_agg_assign', config=qconfig
+        ).get_cfgstr()
         dannot_vuuid = qreq_.ibs.get_annot_hashid_visual_uuid(qreq_.daids).strip('_')
         qannot_vuuid = qreq_.ibs.get_annot_hashid_visual_uuid(qreq_.qaids).strip('_')
         tannot_vuuid = dannot_vuuid
@@ -244,10 +260,10 @@ class SMKRequest(mc5.EstimatorRequest):
         dinva_cfgstr = '_'.join([dannot_vuuid, dinva_phashid])
         qinva_cfgstr = '_'.join([qannot_vuuid, qinva_phashid])
 
-        #vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)
+        # vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)
         dinva_cacher = make_cacher('inva', dinva_cfgstr)
         qinva_cacher = make_cacher('inva', qinva_cfgstr)
-        dwwm_cacher  = make_cacher('word_weight', wwm + dinva_cfgstr)
+        dwwm_cacher = make_cacher('word_weight', wwm + dinva_cfgstr)
 
         gamma_phashid = ut.hashstr27(qreq_.get_pipe_cfgstr() + tannot_vuuid)
         dgamma_cfgstr = '_'.join([dannot_suuid, gamma_phashid])
@@ -257,16 +273,19 @@ class SMKRequest(mc5.EstimatorRequest):
 
         dinva = dinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
-                depc, qreq_.daids, vocab_aids, dconfig))
+                depc, qreq_.daids, vocab_aids, dconfig
+            )
+        )
 
         qinva = qinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
-                depc, qreq_.qaids, vocab_aids, qconfig))
+                depc, qreq_.qaids, vocab_aids, qconfig
+            )
+        )
 
         dinva.wx_to_aids = dinva.compute_inverted_list()
 
-        wx_to_weight = dwwm_cacher.ensure(
-            lambda: dinva.compute_word_weights(wwm))
+        wx_to_weight = dwwm_cacher.ensure(lambda: dinva.compute_word_weights(wwm))
         dinva.wx_to_weight = wx_to_weight
         qinva.wx_to_weight = wx_to_weight
 
@@ -274,10 +293,12 @@ class SMKRequest(mc5.EstimatorRequest):
         alpha = qreq_.qparams['smk_alpha']
 
         dinva.gamma_list = dgamma_cacher.ensure(
-            lambda: dinva.compute_gammas(alpha, thresh))
+            lambda: dinva.compute_gammas(alpha, thresh)
+        )
 
         qinva.gamma_list = qgamma_cacher.ensure(
-            lambda: qinva.compute_gammas(alpha, thresh))
+            lambda: qinva.compute_gammas(alpha, thresh)
+        )
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
@@ -285,7 +306,8 @@ class SMKRequest(mc5.EstimatorRequest):
         print('loading keypoints')
         if qreq_.qparams.sv_on:
             qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
-                qreq_.daids, config2_=qreq_.extern_data_config2)
+                qreq_.daids, config2_=qreq_.extern_data_config2
+            )
 
         print('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
@@ -301,13 +323,12 @@ class SMKRequest(mc5.EstimatorRequest):
         return cm_list
 
     def get_qreq_qannot_kpts(qreq_, qaids):
-        return qreq_.ibs.get_annot_kpts(
-            qaids, config2_=qreq_.extern_query_config2)
+        return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.extern_query_config2)
 
     def get_qreq_dannot_kpts(qreq_, daids):
         didx_list = ut.take(qreq_.daid_to_didx, daids)
         return ut.take(qreq_.data_kpts, didx_list)
-        #return qreq_.ibs.get_annot_kpts(
+        # return qreq_.ibs.get_annot_kpts(
         #    daids, config2_=qreq_.extern_data_config2)
 
 
@@ -326,14 +347,16 @@ class SMK(ut.NiceRepr):
         >>> verbose = True
         """
         print('Predicting matches')
-        #assert qreq_.qinva.vocab is qreq_.dinva.vocab
-        #X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
-        #Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
-        #verbose = 2
+        # assert qreq_.qinva.vocab is qreq_.dinva.vocab
+        # X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
+        # Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
+        # verbose = 2
         _prog = ut.ProgPartial(lbl='smk query', bs=verbose <= 1, enabled=verbose)
         daids = np.array(qreq_.daids)
-        cm_list = [smk.match_single(qaid, daids, qreq_, verbose=verbose > 1)
-                   for qaid in _prog(qreq_.qaids)]
+        cm_list = [
+            smk.match_single(qaid, daids, qreq_, verbose=verbose > 1)
+            for qaid in _prog(qreq_.qaids)
+        ]
         return cm_list
 
     @profile
@@ -371,14 +394,14 @@ class SMK(ut.NiceRepr):
         from wbia.algo.hots import chip_match
         from wbia.algo.hots import pipeline
 
-        alpha  = qreq_.qparams['smk_alpha']
+        alpha = qreq_.qparams['smk_alpha']
         thresh = qreq_.qparams['smk_thresh']
-        agg    = qreq_.qparams['agg']
-        #nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
+        agg = qreq_.qparams['agg']
+        # nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
-        sv_on   = qreq_.qparams.sv_on
+        sv_on = qreq_.qparams.sv_on
         if sv_on:
-            nNameShortList  = qreq_.qparams.nNameShortlistSVER
+            nNameShortList = qreq_.qparams.nNameShortlistSVER
             shortsize = nNameShortList
         else:
             shortsize = None
@@ -386,19 +409,20 @@ class SMK(ut.NiceRepr):
         X = qreq_.qinva.get_annot(qaid)
 
         # Determine which database annotations need to be checked
-        #with ut.Timer('searching qaid=%r' % (qaid,), verbose=verbose):
+        # with ut.Timer('searching qaid=%r' % (qaid,), verbose=verbose):
         hit_inva_wxs = ut.take(qreq_.dinva.wx_to_aids, X.wx_list)
         hit_daids = np.array(list(set(ut.iflatten(hit_inva_wxs))))
 
         # Mark impossible daids
-        #with ut.Timer('checking impossible daids=%r' % (qaid,), verbose=verbose):
+        # with ut.Timer('checking impossible daids=%r' % (qaid,), verbose=verbose):
         valid_flags = check_can_match(qaid, hit_daids, qreq_)
         valid_daids = hit_daids.compress(valid_flags)
 
         shortlist = ut.Shortlist(shortsize)
-        #gammaX = smk.gamma(X, wx_to_weight, agg, alpha, thresh)
-        _prog = ut.ProgPartial(lbl='smk scoring qaid=%r' % (qaid,),
-                               enabled=verbose, bs=True, adjust=True)
+        # gammaX = smk.gamma(X, wx_to_weight, agg, alpha, thresh)
+        _prog = ut.ProgPartial(
+            lbl='smk scoring qaid=%r' % (qaid,), enabled=verbose, bs=True, adjust=True
+        )
 
         wx_to_weight = qreq_.dinva.wx_to_weight
 
@@ -423,13 +447,14 @@ class SMK(ut.NiceRepr):
 
         # Build chipmatches for the shortlist results
 
-        #with ut.Timer('build cms', verbose=verbose):
+        # with ut.Timer('build cms', verbose=verbose):
         cm = chip_match.ChipMatch(qaid=qaid, fsv_col_lbls=['smk'])
         cm.daid_list = []
         cm.fm_list = []
         cm.fsv_list = []
-        _prog = ut.ProgPartial(lbl='smk build cm qaid=%r' % (qaid,),
-                               enabled=verbose, bs=True, adjust=True)
+        _prog = ut.ProgPartial(
+            lbl='smk build cm qaid=%r' % (qaid,), enabled=verbose, bs=True, adjust=True
+        )
         for item in _prog(shortlist):
             (score, score_list, Y, X_idx, Y_idx) = item
             X_fxs = ut.take(X.fxs_list, X_idx)
@@ -438,12 +463,13 @@ class SMK(ut.NiceRepr):
             if agg:
                 X_maws = ut.take(X.maws_list, X_idx)
                 Y_maws = ut.take(Y.maws_list, Y_idx)
-                fm, fs = smk_funcs.build_matches_agg(X_fxs, Y_fxs, X_maws,
-                                                     Y_maws, score_list)
+                fm, fs = smk_funcs.build_matches_agg(
+                    X_fxs, Y_fxs, X_maws, Y_maws, score_list
+                )
             else:
                 fm, fs = smk_funcs.build_matches_sep(X_fxs, Y_fxs, score_list)
             if len(fm) > 0:
-                #assert not np.any(np.isnan(fs))
+                # assert not np.any(np.isnan(fs))
                 daid = Y.aid
                 fsv = fs[:, None]
                 cm.daid_list.append(daid)
@@ -453,7 +479,7 @@ class SMK(ut.NiceRepr):
         cm.arraycast_self()
         cm.score_name_maxcsum(qreq_)
 
-        #if False:
+        # if False:
         #    cm.assert_self(qreq_=qreq_, verbose=True)
 
         if sv_on:
@@ -473,6 +499,7 @@ def word_isect(X, Y, wx_to_weight):
 
 def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
     import utool
+
     with utool.embed_on_exception_context:
         gammaXY = X.gamma * Y.gamma
         # Words in common define matches
@@ -481,9 +508,10 @@ def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
         PhisX, flagsX = X.Phis_flags(X_idx)
         PhisY, flagsY = Y.Phis_flags(Y_idx)
         score_list = smk_funcs.match_scores_agg(
-            PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+            PhisX, PhisY, flagsX, flagsY, alpha, thresh
+        )
 
-        norm_weights = (weights * gammaXY)
+        norm_weights = weights * gammaXY
         score_list *= norm_weights
         score = score_list.sum()
         item = (score, score_list, Y, X_idx, Y_idx)
@@ -498,10 +526,10 @@ def match_kernel_sep(X, Y, wx_to_weight, alpha, thresh):
     phisX_list, flagsY_list = X.phis_flags_list(X_idx)
     phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
     scores_list = smk_funcs.match_scores_sep(
-        phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
-        thresh)
+        phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, thresh
+    )
 
-    norm_weights = (weights * gammaXY)
+    norm_weights = weights * gammaXY
     for scores, w in zip(scores_list, norm_weights):
         scores *= w
 
@@ -537,6 +565,7 @@ def testdata_smk(*args, **kwargs):
     import wbia
     import sklearn
     import sklearn.cross_validation
+
     # import sklearn.model_selection
     ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
@@ -554,8 +583,8 @@ def testdata_smk(*args, **kwargs):
     config.update(**kwargs)
     qreq_ = SMKRequest(ibs, qaids, daids, config)
     smk = qreq_.smk
-    #qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'pipeline_root': 'smk', 'proot': 'smk'})
-    #qreq_ = ibs.new_query_request(qaids, daids, cfgdict={})
+    # qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'pipeline_root': 'smk', 'proot': 'smk'})
+    # qreq_ = ibs.new_query_request(qaids, daids, cfgdict={})
     return ibs, smk, qreq_
 
 
@@ -567,6 +596,8 @@ if __name__ == '__main__':
         python ~/code/wbia/wbia/algo/smk/smk_pipeline.py --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

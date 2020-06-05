@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import wbia.plottool as pt
-(print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
+
+(print, rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def chip_montage(ibs, qaids, config=None):
@@ -26,6 +27,7 @@ def chip_montage(ibs, qaids, config=None):
         >>> ut.show_if_requested()
     """
     import vtool as vt
+
     chip_list = ibs.get_annot_chips(qaids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)
@@ -55,10 +57,11 @@ def image_montage(ibs, gids, config=None):
         >>> ut.show_if_requested()
     """
     import vtool as vt
+
     img_list = ibs.get_images(gids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)
-    dst = vt.montage(img_list , dsize)
+    dst = vt.montage(img_list, dsize)
     pt.imshow(dst)
 
 
@@ -69,6 +72,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_other --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

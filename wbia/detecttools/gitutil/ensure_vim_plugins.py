@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
 import os
@@ -20,7 +21,7 @@ cd(BUNDLE_DPATH)
 util_git.checkout_repos(VIM_REPO_URLS, VIM_REPO_DIRS)
 
 __NOT_GIT_REPOS__ = []
-__BUNDLE_REPOS__  = []
+__BUNDLE_REPOS__ = []
 
 
 for repodir in BUNDLE_DIRS:
@@ -40,7 +41,7 @@ if len(__NOT_GIT_REPOS__) > 0:
     print('\n'.join(__NOT_GIT_REPOS__))
     print('maybe like this: ')
     clutterdir = util_git.unixpath('~/local/vim/vimfiles/clutter')
-    suggested_cmds = (
-        ['mkdir ' + clutterdir] +
-        ['mv ' + util_git.unixpath(dir_) + ' ' + clutterdir for dir_ in __NOT_GIT_REPOS__])
+    suggested_cmds = ['mkdir ' + clutterdir] + [
+        'mv ' + util_git.unixpath(dir_) + ' ' + clutterdir for dir_ in __NOT_GIT_REPOS__
+    ]
     print('\n'.join(suggested_cmds))

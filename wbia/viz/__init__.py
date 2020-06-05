@@ -5,6 +5,7 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
+
 ut.noinject(__name__, '[wbia.viz.__init__]', DEBUG=False)
 
 from wbia.viz import viz_chip
@@ -31,14 +32,17 @@ from wbia.viz.viz_hough import show_hough_image, show_probability_chip
 from wbia.viz.viz_other import chip_montage
 
 import utool
+
 print, rrr, profile = utool.inject2(__name__)
 
 
 __LOADED__ = False
 
+
 def import_subs():
     global __LOADED__
     from wbia.viz import interact
+
     __LOADED__ = True
 
 
@@ -47,10 +51,12 @@ def reassign_submodule_attributes(verbose=True):
     why reloading all the modules doesnt do this I don't know
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.viz
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -71,9 +77,11 @@ def reassign_submodule_attributes(verbose=True):
 def reload_subs(verbose=True):
     """ Reloads wbia.viz and submodules """
     rrr(verbose=verbose)
+
     def fbrrr(*args, **kwargs):
         """ fallback reload """
         pass
+
     getattr(viz_chip, 'rrr', fbrrr)(verbose=verbose)
     getattr(viz_helpers, 'rrr', fbrrr)(verbose=verbose)
     getattr(viz_hough, 'rrr', fbrrr)(verbose=verbose)
@@ -89,6 +97,8 @@ def reload_subs(verbose=True):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

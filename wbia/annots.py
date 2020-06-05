@@ -5,6 +5,7 @@ import six
 import itertools as it
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -60,56 +61,100 @@ ANNOT_BASE_ATTRS = [
     'aid',
     'parent_aid',
     'multiple',
-    'age_months_est_max', 'age_months_est_min', 'sex',
+    'age_months_est_max',
+    'age_months_est_min',
+    'sex',
     'sex_texts',
-
-    'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
-    'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
-    'bboxes', 'bbox_area',
-    'species_uuids', 'species', 'species_rowids', 'species_texts',
-    'viewpoint_int', 'viewpoint_code',
-    'qualities', 'quality_texts', 'exemplar_flags',
+    'uuids',
+    'hashid_uuid',
+    'visual_uuids',
+    'hashid_visual_uuid',
+    'semantic_uuids',
+    'hashid_semantic_uuid',
+    'verts',
+    'thetas',
+    'bboxes',
+    'bbox_area',
+    'species_uuids',
+    'species',
+    'species_rowids',
+    'species_texts',
+    'viewpoint_int',
+    'viewpoint_code',
+    'qualities',
+    'quality_texts',
+    'exemplar_flags',
     # DEPRICATE YAW
-    'yaw_texts', 'yaws', 'yaws_asfloat',
+    'yaw_texts',
+    'yaws',
+    'yaws_asfloat',
     # Images
     # 'image_rowids',
-    'gids', 'image_uuids',
-    'image_gps', 'image_gps2',
+    'gids',
+    'image_uuids',
+    'image_gps',
+    'image_gps2',
     'image_unixtimes_asfloat',
-    'image_datetime_str', 'image_contributor_tag',
+    'image_datetime_str',
+    'image_contributor_tag',
     # Names
-    'nids', 'names', 'name_uuids',
+    'nids',
+    'names',
+    'name_uuids',
     # Inferred from context attrs
-    'contact_aids', 'num_contact_aids', 'groundfalse', 'groundtruth',
-    'num_groundtruth', 'has_groundtruth', 'otherimage_aids',
+    'contact_aids',
+    'num_contact_aids',
+    'groundfalse',
+    'groundtruth',
+    'num_groundtruth',
+    'has_groundtruth',
+    'otherimage_aids',
     # Image Set
-    'imgset_uuids', 'imgsetids', 'image_set_texts',
+    'imgset_uuids',
+    'imgsetids',
+    'image_set_texts',
     # Occurrence / Encounter
     'static_encounter',
-    'encounter_text', 'occurrence_text', 'primary_imageset',
+    'encounter_text',
+    'occurrence_text',
+    'primary_imageset',
     # Tags
     'all_tags',
     'case_tags',
-    'annotmatch_tags', 'notes',
+    'annotmatch_tags',
+    'notes',
     # Processing State
-    'reviewed', 'reviewed_matching_aids', 'has_reviewed_matching_aids',
-    'num_reviewed_matching_aids', 'detect_confidence',
+    'reviewed',
+    'reviewed_matching_aids',
+    'has_reviewed_matching_aids',
+    'num_reviewed_matching_aids',
+    'detect_confidence',
 ]
 
 ANNOT_SETTABLE_ATTRS = [
-    'age_months_est_max', 'age_months_est_min',
-    'bboxes', 'thetas', 'verts',
-    'qualities', 'quality_texts',
-    'viewpoint_int', 'viewpoint_code',
+    'age_months_est_max',
+    'age_months_est_min',
+    'bboxes',
+    'thetas',
+    'verts',
+    'qualities',
+    'quality_texts',
+    'viewpoint_int',
+    'viewpoint_code',
     # DEPRICATE YAW
-    'yaw_texts', 'yaws',
-    'sex', 'sex_texts', 'species',
+    'yaw_texts',
+    'yaws',
+    'sex',
+    'sex_texts',
+    'species',
     'exemplar_flags',
     'static_encounter',
     'multiple',
     'case_tags',
-    'detect_confidence', 'reviewed',
-    'name_texts', 'names',
+    'detect_confidence',
+    'reviewed',
+    'name_texts',
+    'names',
     'notes',
     'parent_rowid',
 ]
@@ -125,6 +170,7 @@ class _AnnotPropInjector(BASE_TYPE):
         >>> blacklist = ['annot_pair']
         >>> _wbia_object._find_wbia_attrs(ibs, objname, blacklist)
     """
+
     def __init__(metaself, name, bases, dct):
         super(_AnnotPropInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
@@ -135,20 +181,31 @@ class _AnnotPropInjector(BASE_TYPE):
 
         configurable_attrs = [
             # Chip
-            'chip_dlensqrd', 'chip_fpath', 'chip_sizes', 'chip_thumbpath',
-            'chip_thumbtup', 'chips',
+            'chip_dlensqrd',
+            'chip_fpath',
+            'chip_sizes',
+            'chip_thumbpath',
+            'chip_thumbtup',
+            'chips',
             # Feat / FeatWeight / Kpts / Desc
-            'feat_rowids', 'num_feats', 'featweight_rowids', 'fgweights',
-            'fgweights_subset', 'kpts', 'kpts_distinctiveness', 'vecs',
-            'vecs_cache', 'vecs_subset',
+            'feat_rowids',
+            'num_feats',
+            'featweight_rowids',
+            'fgweights',
+            'fgweights_subset',
+            'kpts',
+            'kpts_distinctiveness',
+            'vecs',
+            'vecs_cache',
+            'vecs_subset',
         ]
-        #misc = [
+        # misc = [
         #    'gar_rowids', 'alrids', 'alrids_oftype', 'lblannot_rowids',
         #    'lblannot_rowids_oftype', 'lblannot_value_of_lbltype', 'rows',
         #    'instancelist', 'lazy_dict', 'lazy_dict2', 'missing_uuid',
         #    'been_adjusted', 'class_labels',
-        #]
-        #extra_attrs = [
+        # ]
+        # extra_attrs = [
         #    # Age / Sex
         #    'age_months_est', 'age_months_est_max', 'age_months_est_max_texts',
         #    'age_months_est_min', 'age_months_est_min_texts',
@@ -157,14 +214,14 @@ class _AnnotPropInjector(BASE_TYPE):
         #    # Stats
         #    'stats_dict', 'per_name_stats', 'qual_stats', 'info', 'yaw_stats',
         #    'intermediate_viewpoint_stats',
-        #]
-        #inverse_attrs = [
+        # ]
+        # inverse_attrs = [
         #    # External lookups via superkeys
         #    'aids_from_semantic_uuid',
         #    'aids_from_uuid',
         #    'aids_from_visual_uuid',
         #    'rowids_from_partial_vuuids',
-        #]
+        # ]
 
         depcache_attrs = [
             ('hog', 'hog'),
@@ -186,21 +243,28 @@ class _AnnotPropInjector(BASE_TYPE):
         }
 
         objname = 'annot'
-        _wbia_object._inject_getter_attrs(metaself, objname, attrs,
-                                           configurable_attrs, 'depc_annot',
-                                           depcache_attrs, settable_attrs,
-                                           aliased_attrs)
+        _wbia_object._inject_getter_attrs(
+            metaself,
+            objname,
+            attrs,
+            configurable_attrs,
+            'depc_annot',
+            depcache_attrs,
+            settable_attrs,
+            aliased_attrs,
+        )
 
         # TODO: incorporate dynamic setters
-        #def set_case_tags(self, tags):
+        # def set_case_tags(self, tags):
         #    self._ibs.append_annot_case_tags(self._rowids, tags)
-        #fget = metaself.case_tags.fget
-        #fset = set_case_tags
-        #setattr(metaself, 'case_tags', property(fget, fset))
+        # fget = metaself.case_tags.fget
+        # fset = set_case_tags
+        # setattr(metaself, 'case_tags', property(fget, fset))
 
 
 try:
     from wbia import _autogen_annot_base
+
     BASE = _autogen_annot_base._annot_base_class
 except ImportError:
     BASE = _wbia_object.ObjectList1D
@@ -243,7 +307,8 @@ class Annots(BASE):
         >>> a._ibs = ibs
         >>> assert len(a._get_num_feats()) > 0
     """
-    #def __init__(self, aids, ibs, config=None, caching=False):
+
+    # def __init__(self, aids, ibs, config=None, caching=False):
     #    super(Annots, self).__init__(aids, ibs, config, caching)
 
     @property
@@ -256,13 +321,13 @@ class Annots(BASE):
     def print_stats(self, **kwargs):
         self._ibs.print_annot_stats(self.aids, **kwargs)
 
-    #@property
+    # @property
     def get_speeds(self):
-        #import vtool as vt
+        # import vtool as vt
         edges = self.get_aidpairs()
         speeds = self._ibs.get_annotpair_speeds(edges)
-        #edges = vt.pdist_indicies(len(annots))
-        #speeds = self._ibs.get_unflat_annots_speeds_list([self.aids])[0]
+        # edges = vt.pdist_indicies(len(annots))
+        # speeds = self._ibs.get_unflat_annots_speeds_list([self.aids])[0]
         edge_to_speed = dict(zip(edges, speeds))
         return edge_to_speed
 
@@ -333,6 +398,7 @@ class Annots(BASE):
     @property
     def hog_img(self):
         from wbia import core_annots
+
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
     def append_tags(self, tags):
@@ -364,6 +430,7 @@ class Annots(BASE):
         if len(self) != 1:
             raise ValueError('Can only show one, got {}'.format(len(self)))
         from wbia.viz import viz_chip
+
         for aid in self:
             return viz_chip.show_chip(self._ibs, aid, *args, **kwargs)
 
@@ -376,11 +443,13 @@ class _AnnotGroupPropInjector(BASE_TYPE):
         # TODO: move to wbia object as a group call
         def _make_unflat_getter(objname, attrname):
             ibs_funcname = 'get_%s_%s' % (objname, attrname)
+
             def ibs_unflat_getter(self, *args, **kwargs):
                 ibs_callable = getattr(self._ibs, ibs_funcname)
                 rowids = self._rowids_list
                 ibs = self._ibs
                 return ibs.unflat_map(ibs_callable, rowids, *args, **kwargs)
+
             ut.set_funcname(ibs_unflat_getter, 'unflat_' + ibs_funcname)
             return ibs_unflat_getter
 
@@ -397,6 +466,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 @six.add_metaclass(_AnnotGroupPropInjector)
 class AnnotGroups(ut.NiceRepr):
     """ Effciently handle operations on multiple groups of annotations """
+
     def __init__(self, annots_list, ibs):
         self._ibs = ibs
         self.annots_list = annots_list
@@ -407,6 +477,7 @@ class AnnotGroups(ut.NiceRepr):
 
     def __nice__(self):
         import numpy as np
+
         len_list = ut.lmap(len, self.annots_list)
         num = len(self.annots_list)
         mean = np.mean(len_list)
@@ -453,18 +524,31 @@ class _AnnotMatchPropInjector(BASE_TYPE):
         >>> print('attrs = ' + ut.repr4(attrs))
         >>> print('settable_attrs = ' + ut.repr4(settable_attrs))
     """
+
     def __init__(metaself, name, bases, dct):
         super(_AnnotMatchPropInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
 
         attrs = [
-            'aid1', 'aid2', 'confidence', 'count', 'evidence_decision',
-            'meta_decision', 'posixtime_modified', 'reviewer', 'tag_text',
+            'aid1',
+            'aid2',
+            'confidence',
+            'count',
+            'evidence_decision',
+            'meta_decision',
+            'posixtime_modified',
+            'reviewer',
+            'tag_text',
             'case_tags',
         ]
         settable_attrs = [
-            'confidence', 'count', 'evidence_decision', 'meta_decision',
-            'posixtime_modified', 'reviewer', 'tag_text',
+            'confidence',
+            'count',
+            'evidence_decision',
+            'meta_decision',
+            'posixtime_modified',
+            'reviewer',
+            'tag_text',
         ]
 
         configurable_attrs = []
@@ -472,10 +556,16 @@ class _AnnotMatchPropInjector(BASE_TYPE):
         aliased_attrs = {}
 
         objname = 'annotmatch'
-        _wbia_object._inject_getter_attrs(metaself, objname, attrs,
-                                           configurable_attrs, None,
-                                           depcache_attrs, settable_attrs,
-                                           aliased_attrs)
+        _wbia_object._inject_getter_attrs(
+            metaself,
+            objname,
+            attrs,
+            configurable_attrs,
+            None,
+            depcache_attrs,
+            settable_attrs,
+            aliased_attrs,
+        )
 
 
 @six.add_metaclass(_AnnotMatchPropInjector)
@@ -529,6 +619,8 @@ if __name__ == '__main__':
         python -m wbia.annot --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

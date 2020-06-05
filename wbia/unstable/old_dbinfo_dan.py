@@ -13,8 +13,9 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
     https://en.wikipedia.org/wiki/Talk:Mark_and_recapture#Statistical_treatment
     http://stackoverflow.com/questions/31439875/infinite-summation-in-python/31442749
     """
-    k, K, n  = resight, nvisit1, nvisit2
+    k, K, n = resight, nvisit1, nvisit2
     from scipy.misc import comb
+
     N_range = np.array(N_range)
 
     def integers(start, blk_size=10000, pos=True, neg=False):
@@ -29,22 +30,22 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
     def converge_inf_sum(func, x_strm, eps=1e-5, axis=0):
         # Can still be very slow
         total = np.sum(func(x_strm.next()), axis=axis)
-        #for x_blk in ut.ProgIter(x_strm, lbl='converging'):
+        # for x_blk in ut.ProgIter(x_strm, lbl='converging'):
         for x_blk in x_strm:
             diff = np.sum(func(x_blk), axis=axis)
             total += diff
-            #error = abs(np.linalg.norm(diff))
-            #print('error = %r' % (error,))
+            # error = abs(np.linalg.norm(diff))
+            # print('error = %r' % (error,))
             if np.sqrt(diff.ravel().dot(diff.ravel())) <= eps:
                 # Converged
                 break
         return total
 
-    numers = (comb(N_range - K, n - k) / comb(N_range, n))
+    numers = comb(N_range - K, n - k) / comb(N_range, n)
 
     @ut.memoize
     def func(N_):
-        return (comb(N_ - K, n - k) / comb(N_, n))
+        return comb(N_ - K, n - k) / comb(N_, n)
 
     denoms = []
     for N in ut.ProgIter(N_range, lbl='denoms'):
@@ -52,7 +53,7 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
         denom = converge_inf_sum(func, x_strm, eps=1e-3)
         denoms.append(denom)
 
-    #denom = sum([func(N_) for N_ in range(N_start, N_start * 2)])
+    # denom = sum([func(N_) for N_ in range(N_start, N_start * 2)])
     probs = numers / np.array(denoms)
     return probs
 
@@ -138,11 +139,12 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> ut.show_if_requested()
     """
     import math
+
     try:
         nvisit1 = float(nvisit1)
         nvisit2 = float(nvisit2)
         resight = float(resight)
-        pl_index = int(math.ceil( (nvisit1 * nvisit2) / resight ))
+        pl_index = int(math.ceil((nvisit1 * nvisit2) / resight))
         pl_error_num = float((nvisit1 ** 2) * nvisit2 * (nvisit2 - resight))
         pl_error_dom = float(resight ** 3)
         pl_error = int(math.ceil(1.96 * math.sqrt(pl_error_num / pl_error_dom)))
@@ -171,26 +173,147 @@ def dans_splits(ibs):
         >>> import wbia.plottool as pt
         >>> gt.qtapp_loop(qwin=win)
     """
-    #pair = 9262, 932
+    # pair = 9262, 932
 
-    dans_aids = [26548, 2190, 9418, 29965, 14738, 26600, 3039, 2742, 8249,
-                 20154, 8572, 4504, 34941, 4040, 7436, 31866, 28291,
-                 16009, 7378, 14453, 2590, 2738, 22442, 26483, 21640, 19003,
-                 13630, 25395, 20015, 14948, 21429, 19740, 7908, 23583, 14301,
-                 26912, 30613, 19719, 21887, 8838, 16184, 9181, 8649, 8276,
-                 14678, 21950, 4925, 13766, 12673, 8417, 2018, 22434, 21149,
-                 14884, 5596, 8276, 14650, 1355, 21725, 21889, 26376, 2867,
-                 6906, 4890, 21524, 6690, 14738, 1823, 35525, 9045, 31723,
-                 2406, 5298, 15627, 31933, 19535, 9137, 21002, 2448,
-                 32454, 12615, 31755, 20015, 24573, 32001, 23637, 3192, 3197,
-                 8702, 1240, 5596, 33473, 23874, 9558, 9245, 23570, 33075,
-                 23721,  24012, 33405, 23791, 19498, 33149, 9558, 4971,
-                 34183, 24853, 9321, 23691, 9723, 9236, 9723,  21078,
-                 32300, 8700, 15334, 6050, 23277, 31164, 14103,
-                 21231, 8007, 10388, 33387, 4319, 26880, 8007, 31164,
-                 32300, 32140]
+    dans_aids = [
+        26548,
+        2190,
+        9418,
+        29965,
+        14738,
+        26600,
+        3039,
+        2742,
+        8249,
+        20154,
+        8572,
+        4504,
+        34941,
+        4040,
+        7436,
+        31866,
+        28291,
+        16009,
+        7378,
+        14453,
+        2590,
+        2738,
+        22442,
+        26483,
+        21640,
+        19003,
+        13630,
+        25395,
+        20015,
+        14948,
+        21429,
+        19740,
+        7908,
+        23583,
+        14301,
+        26912,
+        30613,
+        19719,
+        21887,
+        8838,
+        16184,
+        9181,
+        8649,
+        8276,
+        14678,
+        21950,
+        4925,
+        13766,
+        12673,
+        8417,
+        2018,
+        22434,
+        21149,
+        14884,
+        5596,
+        8276,
+        14650,
+        1355,
+        21725,
+        21889,
+        26376,
+        2867,
+        6906,
+        4890,
+        21524,
+        6690,
+        14738,
+        1823,
+        35525,
+        9045,
+        31723,
+        2406,
+        5298,
+        15627,
+        31933,
+        19535,
+        9137,
+        21002,
+        2448,
+        32454,
+        12615,
+        31755,
+        20015,
+        24573,
+        32001,
+        23637,
+        3192,
+        3197,
+        8702,
+        1240,
+        5596,
+        33473,
+        23874,
+        9558,
+        9245,
+        23570,
+        33075,
+        23721,
+        24012,
+        33405,
+        23791,
+        19498,
+        33149,
+        9558,
+        4971,
+        34183,
+        24853,
+        9321,
+        23691,
+        9723,
+        9236,
+        9723,
+        21078,
+        32300,
+        8700,
+        15334,
+        6050,
+        23277,
+        31164,
+        14103,
+        21231,
+        8007,
+        10388,
+        33387,
+        4319,
+        26880,
+        8007,
+        31164,
+        32300,
+        32140,
+    ]
 
-    is_hyrbid = [7123, 7166, 7157, 7158, ]  # NOQA
+    is_hyrbid = [
+        7123,
+        7166,
+        7157,
+        7158,
+    ]  # NOQA
     needs_mask = [26836, 29742]  # NOQA
     justfine = [19862]  # NOQA
 
@@ -200,21 +323,25 @@ def dans_splits(ibs):
     annot_groups = ibs._annot_groups(grouped_aids)
 
     split_props = {'splitcase', 'photobomb'}
-    needs_tag = [len(split_props.intersection(ut.flatten(tags))) == 0 for tags in annot_groups.match_tags]
+    needs_tag = [
+        len(split_props.intersection(ut.flatten(tags))) == 0
+        for tags in annot_groups.match_tags
+    ]
     num_needs_tag = sum(needs_tag)
     num_had_split = len(needs_tag) - num_needs_tag
     print('num_had_split = %r' % (num_had_split,))
     print('num_needs_tag = %r' % (num_needs_tag,))
 
-    #all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
-    #all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
-    #num_nondan = sum(all_has_split) - num_had_split
-    #print('num_nondan = %r' % (num_nondan,))
+    # all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
+    # all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
+    # num_nondan = sum(all_has_split) - num_had_split
+    # print('num_nondan = %r' % (num_nondan,))
 
     from wbia.algo.graph import graph_iden
     from wbia.viz import viz_graph2
     import wbia.guitool as gt
     import wbia.plottool as pt
+
     pt.qt4ensure()
     gt.ensure_qtapp()
 
@@ -225,8 +352,9 @@ def dans_splits(ibs):
     for aids in aids_list:
         infr = graph_iden.AnnotInference(ibs, aids)
         infr.initialize_graph()
-        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
-                                          init_mode='rereview')
+        win = viz_graph2.AnnotGraphWidget(
+            infr=infr, use_image=False, init_mode='rereview'
+        )
         win.populate_edge_model()
         win.show()
         return win
@@ -252,11 +380,18 @@ def fix_splits_interaction(ibs):
         >>> gt.qtapp_loop(qwin=win)
     """
     split_props = {'splitcase', 'photobomb'}
-    all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
-    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
+    all_annot_groups = ibs._annot_groups(
+        ibs.group_annots_by_name(ibs.get_valid_aids())[0]
+    )
+    all_has_split = [
+        len(split_props.intersection(ut.flatten(tags))) > 0
+        for tags in all_annot_groups.match_tags
+    ]
     tosplit_annots = ut.compress(all_annot_groups.annots_list, all_has_split)
 
-    tosplit_annots = ut.take(tosplit_annots, ut.argsort(ut.lmap(len, tosplit_annots)))[::-1]
+    tosplit_annots = ut.take(tosplit_annots, ut.argsort(ut.lmap(len, tosplit_annots)))[
+        ::-1
+    ]
     if ut.get_argflag('--reverse'):
         tosplit_annots = tosplit_annots[::-1]
     print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
@@ -266,18 +401,20 @@ def fix_splits_interaction(ibs):
     from wbia.viz import viz_graph2
     import wbia.guitool as gt
     import wbia.plottool as pt
+
     pt.qt4ensure()
     gt.ensure_qtapp()
 
     for aids in ut.InteractiveIter(aids_list):
         infr = graph_iden.AnnotInference(ibs, aids)
         infr.initialize_graph()
-        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
-                                          init_mode='rereview')
+        win = viz_graph2.AnnotGraphWidget(
+            infr=infr, use_image=False, init_mode='rereview'
+        )
         win.populate_edge_model()
         win.show()
     return win
-    #assert False
+    # assert False
 
 
 def split_analysis(ibs):
@@ -309,8 +446,9 @@ def split_analysis(ibs):
         >>> gt.qtapp_loop(qwin=win)
         >>> #ut.show_if_requested()
     """
-    #nid_list = ibs.get_valid_nids(filter_empty=True)
+    # nid_list = ibs.get_valid_nids(filter_empty=True)
     import datetime
+
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
@@ -321,31 +459,37 @@ def split_analysis(ibs):
         'is_known': True,
         'min_pername': 1,
     }
-    aids1 = ibs.filter_annots_general(filter_kw=ut.dict_union(
-        filter_kw, {
-            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
-            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 1.0)),
-        })
+    aids1 = ibs.filter_annots_general(
+        filter_kw=ut.dict_union(
+            filter_kw,
+            {
+                'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+                'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 1.0)),
+            },
+        )
     )
-    aids2 = ibs.filter_annots_general(filter_kw=ut.dict_union(
-        filter_kw, {
-            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 0.0)),
-            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
-        })
+    aids2 = ibs.filter_annots_general(
+        filter_kw=ut.dict_union(
+            filter_kw,
+            {
+                'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 0.0)),
+                'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+            },
+        )
     )
     all_aids = aids1 + aids2
     all_annots = ibs.annots(all_aids)
-    print('%d annots on day 1' % (len(aids1)) )
-    print('%d annots on day 2' % (len(aids2)) )
-    print('%d annots overall' % (len(all_annots)) )
-    print('%d names overall' % (len(ut.unique(all_annots.nids))) )
+    print('%d annots on day 1' % (len(aids1)))
+    print('%d annots on day 2' % (len(aids2)))
+    print('%d annots overall' % (len(all_annots)))
+    print('%d names overall' % (len(ut.unique(all_annots.nids))))
 
     nid_list, annots_list = all_annots.group(all_annots.nids)
 
     REVIEWED_EDGES = True
     if REVIEWED_EDGES:
         aids_list = [annots.aids for annots in annots_list]
-        #aid_pairs = [annots.get_am_aidpairs() for annots in annots_list]  # Slower
+        # aid_pairs = [annots.get_am_aidpairs() for annots in annots_list]  # Slower
         aid_pairs = ibs.get_unflat_am_aidpairs(aids_list)  # Faster
     else:
         # ALL EDGES
@@ -353,6 +497,7 @@ def split_analysis(ibs):
 
     speeds_list = ibs.unflat_map(ibs.get_annotpair_speeds, aid_pairs)
     import vtool as vt
+
     max_speeds = np.array([vt.safe_max(s, nans=False) for s in speeds_list])
 
     nan_idx = np.where(np.isnan(max_speeds))[0]
@@ -375,19 +520,19 @@ def split_analysis(ibs):
 
     sorted_speeds = np.clip(sorted_speeds, 0, 100)
 
-    #idx = vt.find_elbow_point(sorted_speeds)
-    #EXCESSIVE_SPEED = sorted_speeds[idx]
+    # idx = vt.find_elbow_point(sorted_speeds)
+    # EXCESSIVE_SPEED = sorted_speeds[idx]
     # http://www.infoplease.com/ipa/A0004737.html
     # http://www.speedofanimals.com/animals/zebra
-    #ZEBRA_SPEED_MAX  = 64  # km/h
-    #ZEBRA_SPEED_RUN  = 50  # km/h
-    ZEBRA_SPEED_SLOW_RUN  = 20  # km/h
-    #ZEBRA_SPEED_FAST_WALK = 10  # km/h
-    #ZEBRA_SPEED_WALK = 7  # km/h
+    # ZEBRA_SPEED_MAX  = 64  # km/h
+    # ZEBRA_SPEED_RUN  = 50  # km/h
+    ZEBRA_SPEED_SLOW_RUN = 20  # km/h
+    # ZEBRA_SPEED_FAST_WALK = 10  # km/h
+    # ZEBRA_SPEED_WALK = 7  # km/h
 
     MAX_SPEED = ZEBRA_SPEED_SLOW_RUN
-    #MAX_SPEED = ZEBRA_SPEED_WALK
-    #MAX_SPEED = EXCESSIVE_SPEED
+    # MAX_SPEED = ZEBRA_SPEED_WALK
+    # MAX_SPEED = EXCESSIVE_SPEED
 
     flags = sorted_speeds > MAX_SPEED
     flagged_ok_annots = ut.compress(sorted_annots, flags)
@@ -401,6 +546,7 @@ def split_analysis(ibs):
 
     from wbia.algo.graph import graph_iden
     import networkx as nx
+
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
 
     bad_edges_list = []
@@ -408,7 +554,9 @@ def split_analysis(ibs):
     for annots in ut.ProgIter(flagged_annots, lbl='flag speeding names', **progkw):
         edge_to_speeds = annots.get_speeds()
         bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
-        good_edges = [edge for edge, speed in edge_to_speeds.items() if speed <= MAX_SPEED]
+        good_edges = [
+            edge for edge, speed in edge_to_speeds.items() if speed <= MAX_SPEED
+        ]
         bad_edges_list.append(bad_edges)
         good_edges_list.append(good_edges)
     all_bad_edges = ut.flatten(bad_edges_list)
@@ -419,6 +567,7 @@ def split_analysis(ibs):
     if 1:
         from wbia.viz import viz_graph2
         import wbia.guitool as gt
+
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):
@@ -442,30 +591,49 @@ def split_analysis(ibs):
             sorted_pairs = ut.sortedby(aid_pairs, scores)[::-1][0:edge_sample_size]
             sorted_nids = ibs.get_annot_nids(ut.take_column(sorted_pairs, 0))
             sample_size = len(ut.unique(sorted_nids))
-            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*sorted_pairs))
+            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
+                *zip(*sorted_pairs)
+            )
             flags = ut.not_list(ut.flag_None_items(am_rowids))
-            #am_rowids = ut.compress(am_rowids, flags)
+            # am_rowids = ut.compress(am_rowids, flags)
             positive_tags = ['SplitCase', 'Photobomb']
-            flags_list = [ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
-                          for tag in positive_tags]
-            print('edge_case_hist: ' + ut.repr3(
-                ['%s %s' % (txt, sum(flags_)) for flags_, txt in zip(flags_list, positive_tags)]))
+            flags_list = [
+                ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
+                for tag in positive_tags
+            ]
+            print(
+                'edge_case_hist: '
+                + ut.repr3(
+                    [
+                        '%s %s' % (txt, sum(flags_))
+                        for flags_, txt in zip(flags_list, positive_tags)
+                    ]
+                )
+            )
             is_positive = ut.or_lists(*flags_list)
-            num_positive = sum(ut.lmap(any, ut.group_items(is_positive, sorted_nids).values()))
+            num_positive = sum(
+                ut.lmap(any, ut.group_items(is_positive, sorted_nids).values())
+            )
             pop = len(pop_nids)
-            print('A positive is any edge flagged as a %s' % (ut.conj_phrase(positive_tags, 'or'),))
+            print(
+                'A positive is any edge flagged as a %s'
+                % (ut.conj_phrase(positive_tags, 'or'),)
+            )
             print('--- Sampling wrt edges ---')
             print('edge_sample_size  = %r' % (edge_sample_size,))
             print('edge_population_size = %r' % (len(aid_pairs),))
             print('num_positive_edges = %r' % (sum(is_positive)))
             print('--- Sampling wrt names ---')
             print('name_population_size = %r' % (pop,))
-            vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+            vt.calc_error_bars_from_sample(
+                sample_size, num_positive, pop, conf_level=0.95
+            )
 
-        nx.set_edge_attributes(infr.graph, name='score', values=dict(zip(aid_pairs, scores)))
+        nx.set_edge_attributes(
+            infr.graph, name='score', values=dict(zip(aid_pairs, scores))
+        )
 
-        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
-                                          init_mode=None)
+        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
         win.populate_edge_model()
         win.show()
         return win
@@ -482,13 +650,13 @@ def split_analysis(ibs):
         infr_list.append(infr)
 
     # Check which ones are user defined as incorrect
-    #num_positive = 0
-    #for infr in infr_list:
+    # num_positive = 0
+    # for infr in infr_list:
     #    flag = np.any(infr.get_feedback_probs()[0] == 0)
     #    num_positive += flag
-    #print('num_positive = %r' % (num_positive,))
-    #pop = len(infr_list)
-    #print('pop = %r' % (pop,))
+    # print('num_positive = %r' % (num_positive,))
+    # pop = len(infr_list)
+    # print('pop = %r' % (pop,))
 
     iter_ = list(zip(infr_list, bad_edges_list))
     for infr, bad_edges in ut.ProgIter(iter_, lbl='adding speed edges', **progkw):
@@ -498,10 +666,16 @@ def split_analysis(ibs):
                 flipped_edges.append((aid1, aid2))
             infr.add_feedback((aid1, aid2), NEGTV)
         nx.set_edge_attributes(infr.graph, name='_speed_split', values='orig')
-        nx.set_edge_attributes(infr.graph, name='_speed_split', values={edge: 'new' for edge in bad_edges})
-        nx.set_edge_attributes(infr.graph, name='_speed_split', values={edge: 'flip' for edge in flipped_edges})
+        nx.set_edge_attributes(
+            infr.graph, name='_speed_split', values={edge: 'new' for edge in bad_edges}
+        )
+        nx.set_edge_attributes(
+            infr.graph,
+            name='_speed_split',
+            values={edge: 'flip' for edge in flipped_edges},
+        )
 
-    #for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
+    # for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
     #    annots = ibs.annots(infr.aids)
     #    edge_to_speeds = annots.get_speeds()
     #    bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
@@ -510,26 +684,35 @@ def split_analysis(ibs):
         relabel_stats = []
         for infr in infr_list_:
             num_ccs, num_inconsistent = infr.relabel_using_reviews()
-            state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'decision').values())
+            state_hist = ut.dict_hist(
+                nx.get_edge_attributes(infr.graph, 'decision').values()
+            )
             if POSTV not in state_hist:
                 state_hist[POSTV] = 0
-            hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
+            hist = ut.dict_hist(
+                nx.get_edge_attributes(infr.graph, '_speed_split').values()
+            )
 
             subgraphs = infr.positive_connected_compoments()
             subgraph_sizes = [len(g) for g in subgraphs]
 
-            info = ut.odict([
-                ('num_nonmatch_edges', state_hist[NEGTV]),
-                ('num_match_edges', state_hist[POSTV]),
-                ('frac_nonmatch_edges',  state_hist[NEGTV] / (state_hist[POSTV] + state_hist[NEGTV])),
-                ('num_inconsistent', num_inconsistent),
-                ('num_ccs', num_ccs),
-                ('edges_flipped', hist.get('flip', 0)),
-                ('edges_unchanged', hist.get('orig', 0)),
-                ('bad_unreviewed_edges', hist.get('new', 0)),
-                ('orig_size', len(infr.graph)),
-                ('new_sizes', subgraph_sizes),
-            ])
+            info = ut.odict(
+                [
+                    ('num_nonmatch_edges', state_hist[NEGTV]),
+                    ('num_match_edges', state_hist[POSTV]),
+                    (
+                        'frac_nonmatch_edges',
+                        state_hist[NEGTV] / (state_hist[POSTV] + state_hist[NEGTV]),
+                    ),
+                    ('num_inconsistent', num_inconsistent),
+                    ('num_ccs', num_ccs),
+                    ('edges_flipped', hist.get('flip', 0)),
+                    ('edges_unchanged', hist.get('orig', 0)),
+                    ('bad_unreviewed_edges', hist.get('new', 0)),
+                    ('orig_size', len(infr.graph)),
+                    ('new_sizes', subgraph_sizes),
+                ]
+            )
             relabel_stats.append(info)
         return relabel_stats
 
@@ -541,7 +724,10 @@ def split_analysis(ibs):
         data = ut.take_column(relabel_stats, key)
         if key == 'new_sizes':
             data = ut.flatten(data)
-        lines.append('stats(%s) = %s' % (key, ut.repr2(ut.get_stats(data, use_median=True), precision=2)))
+        lines.append(
+            'stats(%s) = %s'
+            % (key, ut.repr2(ut.get_stats(data, use_median=True), precision=2))
+        )
     print('\n'.join(ut.align_lines(lines, '=')))
 
     num_incon_list = np.array(ut.take_column(relabel_stats, 'num_inconsistent'))
@@ -560,8 +746,10 @@ def split_analysis(ibs):
         data = ut.take_column(relabel_stats, key)
         if key == 'new_sizes':
             data = ut.flatten(data)
-        lines.append('stats(%s) = %s' % (
-            key, ut.repr2(ut.get_stats(data, use_median=True), precision=2)))
+        lines.append(
+            'stats(%s) = %s'
+            % (key, ut.repr2(ut.get_stats(data, use_median=True), precision=2))
+        )
     print('\n'.join(ut.align_lines(lines, '=')))
 
     num_match_edges = np.array(ut.take_column(relabel_stats, 'num_match_edges'))
@@ -570,8 +758,10 @@ def split_analysis(ibs):
     reasonable_infr = ut.compress(splittable_infrs, flags1)
 
     new_sizes_list = ut.take_column(relabel_stats, 'new_sizes')
-    flags2 = [len(sizes) == 2 and sum(sizes) > 4 and (min(sizes) / max(sizes)) > .3
-              for sizes in new_sizes_list]
+    flags2 = [
+        len(sizes) == 2 and sum(sizes) > 4 and (min(sizes) / max(sizes)) > 0.3
+        for sizes in new_sizes_list
+    ]
     reasonable_infr = ut.compress(splittable_infrs, flags2)
     print('#reasonable_infr = %r' % (len(reasonable_infr),))
 
@@ -594,23 +784,23 @@ def split_analysis(ibs):
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
-    #import scipy.stats as st
-    #conf_interval = .95
-    #st.norm.cdf(conf_interval)
+    # import scipy.stats as st
+    # conf_interval = .95
+    # st.norm.cdf(conf_interval)
     # view-source:http://www.surveysystem.com/sscalc.htm
-    #zval = 1.96  # 95 percent confidence
-    #zValC = 3.8416  #
-    #zValC = 6.6564
+    # zval = 1.96  # 95 percent confidence
+    # zValC = 3.8416  #
+    # zValC = 6.6564
 
-    #import statsmodels.stats.api as sms
-    #es = sms.proportion_effectsize(0.5, 0.75)
-    #sms.NormalIndPower().solve_power(es, power=0.9, alpha=0.05, ratio=1)
+    # import statsmodels.stats.api as sms
+    # es = sms.proportion_effectsize(0.5, 0.75)
+    # sms.NormalIndPower().solve_power(es, power=0.9, alpha=0.05, ratio=1)
 
     pop = 279
     num_positive = 3
     sample_size = 15
-    conf_level = .95
-    #conf_level = .99
+    conf_level = 0.95
+    # conf_level = .99
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level)
     print('---')
     vt.calc_error_bars_from_sample(sample_size + 38, num_positive, pop, conf_level)
@@ -618,35 +808,35 @@ def split_analysis(ibs):
     vt.calc_error_bars_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
     print('---')
 
-    vt.calc_error_bars_from_sample(15 + 38, num_positive=3, pop=675, conf_level=.95)
-    vt.calc_error_bars_from_sample(15, num_positive=3, pop=675, conf_level=.95)
+    vt.calc_error_bars_from_sample(15 + 38, num_positive=3, pop=675, conf_level=0.95)
+    vt.calc_error_bars_from_sample(15, num_positive=3, pop=675, conf_level=0.95)
 
     pop = 279
-    #err_frac = .05  # 5%
-    err_frac = .10  # 10%
-    conf_level = .95
+    # err_frac = .05  # 5%
+    err_frac = 0.10  # 10%
+    conf_level = 0.95
     vt.calc_sample_from_error_bars(err_frac, pop, conf_level)
 
     pop = 675
     vt.calc_sample_from_error_bars(err_frac, pop, conf_level)
-    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.1)
-    vt.calc_sample_from_error_bars(.05, pop, conf_level=.68, prior=.2)
-    vt.calc_sample_from_error_bars(.10, pop, conf_level=.68)
+    vt.calc_sample_from_error_bars(0.05, pop, conf_level=0.95, prior=0.1)
+    vt.calc_sample_from_error_bars(0.05, pop, conf_level=0.68, prior=0.2)
+    vt.calc_sample_from_error_bars(0.10, pop, conf_level=0.68)
 
-    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=.95)
-    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=.68)
+    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=0.95)
+    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=0.68)
 
-    #flagged_nids = [a.nids[0] for a in flagged_annots]
-    #all_nids = ibs.get_valid_nids()
-    #remain_nids = ut.setdiff(all_nids, flagged_nids)
-    #nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(all_nids)))
-    #nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(remain_nids)))
+    # flagged_nids = [a.nids[0] for a in flagged_annots]
+    # all_nids = ibs.get_valid_nids()
+    # remain_nids = ut.setdiff(all_nids, flagged_nids)
+    # nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(all_nids)))
+    # nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(remain_nids)))
 
     ##graph = infr.graph
 
-    #g2 = infr.graph.copy()
-    #[ut.nx_delete_edge_attr(g2, a) for a in infr.visual_edge_attrs]
-    #g2.edge
+    # g2 = infr.graph.copy()
+    # [ut.nx_delete_edge_attr(g2, a) for a in infr.visual_edge_attrs]
+    # g2.edge
 
 
 def estimate_ggr_count(ibs):
@@ -659,6 +849,7 @@ def estimate_ggr_count(ibs):
         >>> ibs = wbia.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
     """
     import datetime
+
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
@@ -683,13 +874,13 @@ def estimate_ggr_count(ibs):
 
 
 def estimate_twoday_count(ibs, day1, day2, filter_kw):
-    #gid_list = ibs.get_valid_gids()
+    # gid_list = ibs.get_valid_gids()
     all_images = ibs.images()
     dates = [dt.date() for dt in all_images.datetime]
     date_to_images = all_images.group_items(dates)
     date_to_images = ut.sort_dict(date_to_images)
-    #date_hist = ut.map_dict_vals(len, date2_gids)
-    #print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
+    # date_hist = ut.map_dict_vals(len, date2_gids)
+    # print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
     verbose = 0
 
     visit_dates = [day1, day2]
@@ -697,8 +888,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     for day in visit_dates:
         images = date_to_images[day]
         aids = ut.flatten(images.aids)
-        aids = ibs.filter_annots_general(aids, filter_kw=filter_kw,
-                                         verbose=verbose)
+        aids = ibs.filter_annots_general(aids, filter_kw=filter_kw, verbose=verbose)
         nids = ibs.get_annot_name_rowids(aids)
         grouped_aids = ut.group_items(aids, nids)
         unique_nids = ut.unique(list(grouped_aids.keys()))
@@ -728,6 +918,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
 
     # Estimate statistics
     from wbia.other import dbinfo
+
     aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'unique_aids')
     nids_day1, nids_day2 = ut.take_column(visit_info_list_, 'unique_nids')
     resight_nids = ut.isect(nids_day1, nids_day2)
@@ -738,6 +929,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
 
     if False:
         from wbia.other import dbinfo
+
         print('DAY 1 STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1)  # NOQA
         print('DAY 2 STATS:')
@@ -745,8 +937,8 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
         print('COMBINED STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1 + aids_day2)  # NOQA
 
-    print('%d annots on day 1' % (len(aids_day1)) )
-    print('%d annots on day 2' % (len(aids_day2)) )
+    print('%d annots on day 1' % (len(aids_day1)))
+    print('%d annots on day 2' % (len(aids_day2)))
     print('%d names on day 1' % (nsight1,))
     print('%d names on day 2' % (nsight2,))
     print('resight = %r' % (resight,))
@@ -756,6 +948,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
 
 def draw_twoday_count(ibs, visit_info_list_):
     import copy
+
     visit_info_list = copy.deepcopy(visit_info_list_)
 
     aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'aids')
@@ -784,7 +977,9 @@ def draw_twoday_count(ibs, visit_info_list_):
             ams_list = ibs.get_annotmatch_rowids_in_cliques(aids_list)
             aids1_list = ibs.unflat_map(ibs.get_annotmatch_aid1, ams_list)
             aids2_list = ibs.unflat_map(ibs.get_annotmatch_aid2, ams_list)
-            for ams, aids, aids1, aids2 in zip(ams_list, aids_list, aids1_list, aids2_list):
+            for ams, aids, aids1, aids2 in zip(
+                ams_list, aids_list, aids1_list, aids2_list
+            ):
                 edge_nodes = set(aids1 + aids2)
                 ##if len(edge_nodes) != len(set(aids)):
                 #    #print('--')
@@ -796,9 +991,17 @@ def draw_twoday_count(ibs, visit_info_list_):
                 unlinked_aids = set(aids) - edge_nodes
                 mst_links = list(ut.itertwo(list(unlinked_aids) + list(edge_nodes)[:1]))
                 bad_aids.add(None)
-                user_links = [(u, v) for (u, v) in zip(aids1, aids2) if u not in bad_aids and v not in bad_aids]
+                user_links = [
+                    (u, v)
+                    for (u, v) in zip(aids1, aids2)
+                    if u not in bad_aids and v not in bad_aids
+                ]
                 new_edges = mst_links + user_links
-                new_edges = [(int(u), int(v)) for u, v in new_edges if u not in bad_aids and v not in bad_aids]
+                new_edges = [
+                    (int(u), int(v))
+                    for u, v in new_edges
+                    if u not in bad_aids and v not in bad_aids
+                ]
                 edges += new_edges
             info['edges'] = edges
 
@@ -809,20 +1012,25 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         resight_aids1 = ut.take(grouped_aids1, resight_nids)
         resight_aids2 = ut.take(grouped_aids2, resight_nids)
-        #resight_aids3 = [list(aids1) + list(aids2) for aids1, aids2 in zip(resight_aids1, resight_aids2)]
+        # resight_aids3 = [list(aids1) + list(aids2) for aids1, aids2 in zip(resight_aids1, resight_aids2)]
 
         ams_list = ibs.get_annotmatch_rowids_between_groups(resight_aids1, resight_aids2)
         aids1_list = ibs.unflat_map(ibs.get_annotmatch_aid1, ams_list)
         aids2_list = ibs.unflat_map(ibs.get_annotmatch_aid2, ams_list)
 
         between_edges = []
-        for ams, aids1, aids2, rawaids1, rawaids2 in zip(ams_list, aids1_list, aids2_list, resight_aids1, resight_aids2):
+        for ams, aids1, aids2, rawaids1, rawaids2 in zip(
+            ams_list, aids1_list, aids2_list, resight_aids1, resight_aids2
+        ):
             link_aids = aids1 + aids2
             rawaids3 = rawaids1 + rawaids2
             badaids = ut.setdiff(link_aids, rawaids3)
             assert not badaids
-            user_links = [(int(u), int(v)) for (u, v) in zip(aids1, aids2)
-                          if u is not None and v is not None]
+            user_links = [
+                (int(u), int(v))
+                for (u, v) in zip(aids1, aids2)
+                if u is not None and v is not None
+            ]
             # HACK THIS OFF
             user_links = []
             if len(user_links) == 0:
@@ -831,22 +1039,29 @@ def draw_twoday_count(ibs, visit_info_list_):
             else:
                 between_edges += user_links
 
-        assert np.all(0 == np.diff(np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1))
+        assert np.all(
+            0
+            == np.diff(
+                np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1
+            )
+        )
 
         import wbia.plottool as pt
         import networkx as nx
-        #pt.qt4ensure()
-        #len(list(nx.connected_components(graph1)))
-        #print(ut.graph_info(graph1))
+
+        # pt.qt4ensure()
+        # len(list(nx.connected_components(graph1)))
+        # print(ut.graph_info(graph1))
 
         # Layout graph
         layoutkw = dict(
             prog='neato',
-            draw_implicit=False, splines='line',
-            #splines='curved',
-            #splines='spline',
-            #sep=10 / 72,
-            #prog='dot', rankdir='TB',
+            draw_implicit=False,
+            splines='line',
+            # splines='curved',
+            # splines='spline',
+            # sep=10 / 72,
+            # prog='dot', rankdir='TB',
         )
 
         def translate_graph_to_origin(graph):
@@ -881,14 +1096,17 @@ def draw_twoday_count(ibs, visit_info_list_):
                 nx.set_node_attributes(g, name='pin', values='true')
 
             new_graph = nx.compose_all(graph_list_)
-            #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            # pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
             return new_graph
 
         # Construct graph
         for count, info in enumerate(visit_info_list):
             graph = nx.Graph()
-            edges = [(int(u), int(v)) for u, v in info['edges']
-                     if u is not None and v is not None]
+            edges = [
+                (int(u), int(v))
+                for u, v in info['edges']
+                if u is not None and v is not None
+            ]
             graph.add_edges_from(edges, attr_dict={'zorder': 10})
             nx.set_node_attributes(graph, name='zorder', values=20)
 
@@ -929,13 +1147,17 @@ def draw_twoday_count(ibs, visit_info_list_):
             else:
                 new_graph = stack_graphs(r_graphs[::-1] + n_graphs, vert=True)
 
-            #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            # pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
             info['graph'] = new_graph
 
         graph1_, graph2_ = ut.take_column(visit_info_list, 'graph')
         if False:
-            _ = pt.show_nx(graph1_, layout='custom', node_labels=False, as_directed=False)  # NOQA
-            _ = pt.show_nx(graph2_, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            _ = pt.show_nx(
+                graph1_, layout='custom', node_labels=False, as_directed=False
+            )  # NOQA
+            _ = pt.show_nx(
+                graph2_, layout='custom', node_labels=False, as_directed=False
+            )  # NOQA
 
         graph_list = [graph1_, graph2_]
         twoday_graph = stack_graphs(graph_list, vert=True, pad=None)
@@ -947,15 +1169,22 @@ def draw_twoday_count(ibs, visit_info_list_):
             print('twoday_graph(pre) info' + ut.repr3(ut.graph_info(twoday_graph), nl=2))
 
         # Hack, no idea why there are nodes that dont exist here
-        between_edges_ = [edge for edge in between_edges
-                          if twoday_graph.has_node(edge[0]) and twoday_graph.has_node(edge[1])]
+        between_edges_ = [
+            edge
+            for edge in between_edges
+            if twoday_graph.has_node(edge[0]) and twoday_graph.has_node(edge[1])
+        ]
 
-        twoday_graph.add_edges_from(between_edges_, attr_dict={'alpha': .2, 'zorder': 0})
+        twoday_graph.add_edges_from(between_edges_, attr_dict={'alpha': 0.2, 'zorder': 0})
         ut.nx_ensure_agraph_color(twoday_graph)
 
         layoutkw['splines'] = 'line'
         layoutkw['prog'] = 'neato'
-        agraph = pt.nx_agraph_layout(twoday_graph, inplace=True, return_agraph=True, **layoutkw)[-1]  # NOQA
+        agraph = pt.nx_agraph_layout(
+            twoday_graph, inplace=True, return_agraph=True, **layoutkw
+        )[
+            -1
+        ]  # NOQA
         if False:
             fpath = ut.truepath('~/ggr_graph.png')
             agraph.draw(fpath)
@@ -964,7 +1193,9 @@ def draw_twoday_count(ibs, visit_info_list_):
         if debug:
             print('twoday_graph(post) info' + ut.repr3(ut.graph_info(twoday_graph)))
 
-        _ = pt.show_nx(twoday_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+        _ = pt.show_nx(
+            twoday_graph, layout='custom', node_labels=False, as_directed=False
+        )  # NOQA
 
 
 def cheetah_stats(ibs):
@@ -977,6 +1208,7 @@ def cheetah_stats(ibs):
         unique_nids, grouped_annots = annots.group(annots.nids)
         annots_per_name = ut.lmap(len, grouped_annots)
         annots_per_name_freq = ut.dict_hist(annots_per_name)
+
         def bin_mapper(num):
             if num < 5:
                 return (num, num + 1)
@@ -990,6 +1222,7 @@ def cheetah_stats(ibs):
                     return (bin, None)
                 else:
                     assert False, str(num)
+
         hist = ut.ddict(lambda: 0)
         for num in annots_per_name:
             hist[bin_mapper(num)] += 1
@@ -1029,7 +1262,8 @@ def print_feature_info(testres):
         >>> ut.show_if_requested()
     """
     import vtool as vt
-    #ibs = testres.ibs
+
+    # ibs = testres.ibs
     def print_feat_stats(kpts, vecs):
         assert len(vecs) == len(kpts), 'disagreement'
         print('keypoints and vecs agree')
@@ -1038,8 +1272,18 @@ def print_feature_info(testres):
         kpt_scale = vt.get_scales(flat_kpts)
         num_kpts_stats = ut.get_stats(num_kpts)
         scale_kpts_stats = ut.get_stats(kpt_scale)
-        print('Number of ' + prefix + ' keypoints: ' + ut.repr3(num_kpts_stats, nl=0, precision=2))
-        print('Scale of ' + prefix + ' keypoints: ' + ut.repr3(scale_kpts_stats, nl=0, precision=2))
+        print(
+            'Number of '
+            + prefix
+            + ' keypoints: '
+            + ut.repr3(num_kpts_stats, nl=0, precision=2)
+        )
+        print(
+            'Scale of '
+            + prefix
+            + ' keypoints: '
+            + ut.repr3(scale_kpts_stats, nl=0, precision=2)
+        )
 
     for cfgx in range(testres.nConfig):
         print('------------------')
@@ -1059,20 +1303,20 @@ def print_feature_info(testres):
             # Check various stats of these pairs
             print_feat_stats(kpts, vecs)
 
-    #kpts = np.vstack(cx2_kpts)
-    #print('[dbinfo] --- LaTeX --- ')
+    # kpts = np.vstack(cx2_kpts)
+    # print('[dbinfo] --- LaTeX --- ')
     ##_printopts = np.get_printoptions()
     ##np.set_printoptions(precision=3)
-    #scales = np.array(sorted(scales))
-    #tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
-    #tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
-    #tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
-    #print(tex_nKpts)
-    #print(tex_kpts_stats)
-    #print(tex_scale_stats)
+    # scales = np.array(sorted(scales))
+    # tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
+    # tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
+    # tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
+    # print(tex_nKpts)
+    # print(tex_kpts_stats)
+    # print(tex_scale_stats)
     ##np.set_printoptions(**_printopts)
-    #print('[dbinfo] ---/LaTeX --- ')
-    #return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
+    # print('[dbinfo] ---/LaTeX --- ')
+    # return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
 
 
 def tst_name_consistency(ibs):
@@ -1085,8 +1329,9 @@ def tst_name_consistency(ibs):
     """
     from wbia.other import ibsfuncs
     import utool as ut
+
     max_ = -1
-    #max_ = 10
+    # max_ = 10
     valid_aids = ibs.get_valid_aids()[0:max_]
     valid_nids = ibs.get_valid_nids()[0:max_]
     ax2_nid = ibs.get_annot_name_rowids(valid_aids)

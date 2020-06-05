@@ -64,4 +64,3 @@ ColumnListTableView
             else:
                 print(' * ignoring setData')
                 return False
-

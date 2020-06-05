@@ -9,6 +9,7 @@ import warnings
 import functools
 from wbia.plottool import custom_constants
 import matplotlib.gridspec as gridspec  # NOQA
+
 ut.noinject(__name__, '[customfig]')
 
 
@@ -35,12 +36,14 @@ ut.noinject(__name__, '[customfig]')
 
 
 def customize_figure(fig, docla):
-    #if 'user_stat_list' not in fig.__dict__.keys() or docla:
+    # if 'user_stat_list' not in fig.__dict__.keys() or docla:
     #    fig.user_stat_list = []
     #    fig.user_notes = []
     fig.df2_closed = False
     fig.pt_save = functools.partial(save_figure, fig=fig)
-    fig.pt_save_and_view = lambda *args, **kwargs: ut.startfile(fig.pt_save(*args, **kwargs))
+    fig.pt_save_and_view = lambda *args, **kwargs: ut.startfile(
+        fig.pt_save(*args, **kwargs)
+    )
 
 
 def gcf():
@@ -125,8 +128,16 @@ def _pnum_to_subspec(pnum):
     #     return (nrow, ncols, plotnum)
 
 
-def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
-           doclf=False, projection=None, **kwargs):
+def figure(
+    fnum=None,
+    pnum=(1, 1, 1),
+    docla=False,
+    title=None,
+    figtitle=None,
+    doclf=False,
+    projection=None,
+    **kwargs,
+):
     """
     http://matplotlib.org/users/gridspec.html
 
@@ -170,7 +181,7 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    #mpl.pyplot.xkcd()
+    # mpl.pyplot.xkcd()
     fig = ensure_fig(fnum)
     axes_list = fig.get_axes()
     # Ensure my customized settings
@@ -259,8 +270,7 @@ def sanitize_img_ext(ext, defaultext=None):
     return ext
 
 
-def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose,
-                         dpath=None):
+def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath=None):
     if fpath is None or usetitle:
         if fig._suptitle is not None:
             # safer than using the canvas window title
@@ -283,10 +293,14 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose,
         fname += ext
         ext = ''
     # Add in DPI information
-    #size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
+    # size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
     add_render_suffix = False
     if add_render_suffix:
-        size_suffix = 'DPI=%r_WH=%d,%d' % (fig.dpi, int(fig.get_figwidth()), int(fig.get_figheight()))
+        size_suffix = 'DPI=%r_WH=%d,%d' % (
+            fig.dpi,
+            int(fig.get_figwidth()),
+            int(fig.get_figheight()),
+        )
     else:
         size_suffix = ''
     # Sanatize
@@ -297,7 +311,9 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose,
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
     if verbose > 1:
         print('[custom_figure] Formating long name')
-    fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['size_suffix', 'fname'], max_len=155, hashlen=8)
+    fname_clean = ut.long_fname_format(
+        fname_fmt, fmt_dict, ['size_suffix', 'fname'], max_len=155, hashlen=8
+    )
     # Normalize extension
     fpath_clean = join(dpath, fname_clean)
     return fpath_clean
@@ -312,6 +328,7 @@ def get_image_from_figure(fig):
     """
     import numpy as np
     import cv2
+
     fig.canvas.draw()
     shape = fig.canvas.get_width_height()[::-1] + (3,)
     imgRGB = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
@@ -320,9 +337,20 @@ def get_image_from_figure(fig):
     return imgBGR
 
 
-def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
-                overwrite=True, defaultext=None, verbose=1, dpi=None,
-                figsize=None, saveax=None, fig=None, dpath=None):
+def save_figure(
+    fnum=None,
+    fpath=None,
+    fpath_strict=None,
+    usetitle=False,
+    overwrite=True,
+    defaultext=None,
+    verbose=1,
+    dpi=None,
+    figsize=None,
+    saveax=None,
+    fig=None,
+    dpath=None,
+):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
@@ -356,31 +384,35 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
-    #print('figsize = %r' % (figsize,))
+    # print('figsize = %r' % (figsize,))
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
-        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath)
+        fpath_clean = prepare_figure_fpath(
+            fig, fpath, fnum, usetitle, defaultext, verbose, dpath
+        )
     else:
         fpath_clean = fpath_strict
     savekw = {'dpi': dpi}
     if verbose > 1:
-        #print('verbose = %r' % (verbose,))
+        # print('verbose = %r' % (verbose,))
         print('[pt.save_figure] saveax = %r' % (saveax,))
 
     if False:
         import wbia.plottool as pt
+
         extent = pt.extract_axes_extents(fig)
         savekw['bbox_inches'] = extent
 
     if saveax is not None and saveax is not False:
         if verbose > 0:
-            print("\n[pt.save_figure] SAVING ONLY EXTENT saveax=%r\n" % (saveax,))
+            print('\n[pt.save_figure] SAVING ONLY EXTENT saveax=%r\n' % (saveax,))
         if saveax is True:
             saveax = plt.gca()
-        #ut.embed()
-        #saveax.set_aspect('auto')
+        # ut.embed()
+        # saveax.set_aspect('auto')
         import wbia.plottool as pt
         import numpy as np
+
         xy, w, h = pt.get_axis_xy_width_height(saveax)
         ar = np.abs(w / h)
         if verbose == 2:
@@ -390,15 +422,18 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
         # extent is bbox in the form [[x0, y0], [x1, y1]]
         extent = saveax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
         if verbose == 2:
-            print('[pt.save_figure] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
-        #extent = saveax.get_window_extent().transformed(fig.transFigure.inverted())
-        #print('[df2] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
+            print(
+                '[pt.save_figure] bbox ar = %.2f'
+                % np.abs((extent.width / extent.height,))
+            )
+        # extent = saveax.get_window_extent().transformed(fig.transFigure.inverted())
+        # print('[df2] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
         savekw['bbox_inches'] = extent.expanded(1.0, 1.0)
         if verbose == 2:
             print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
-        #ut.embed()
+        # ut.embed()
 
-    #fname_clean = split(fpath_clean)[1]
+    # fname_clean = split(fpath_clean)[1]
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):
@@ -407,16 +442,16 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             elif verbose == 1:
                 fpathndir = ut.path_ndir_split(fpath_clean, 5)
                 print('[pt.save_figure] save_figure() ndir=%r' % (fpathndir))
-            #fig.savefig(fpath_clean)
+            # fig.savefig(fpath_clean)
             if verbose > 1 or ut.VERBOSE:
-                print(']pt.save_figure] fpath_clean = %s' % (fpath_clean, ))
+                print(']pt.save_figure] fpath_clean = %s' % (fpath_clean,))
                 print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
             # savekw['bbox_inches'] = 'tight'
-            #print('savekw = %r' % (savekw,))
+            # print('savekw = %r' % (savekw,))
             if fpath_clean.endswith('.png'):
                 savekw['transparent'] = True
                 savekw['edgecolor'] = 'none'
-                #savekw['axes.edgecolor'] = 'none'
+                # savekw['axes.edgecolor'] = 'none'
             fig.savefig(fpath_clean, **savekw)
         else:
             if verbose > 0:
@@ -461,11 +496,12 @@ def set_title(title='', ax=None, **fontkw):
         titlesize = fontkw.get('titlesize', fontsize)
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
-                weight=fontkw.get('weight', 'light'), size=titlesize)
+                weight=fontkw.get('weight', 'light'), size=titlesize
+            )
         }
     else:
         titlekw = {}
-    #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
+    # font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
 
 
@@ -529,9 +565,17 @@ def set_ylabel(lbl, ax=None, **kwargs):
     ax.set_ylabel(lbl, **labelkw)
 
 
-def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 size=None, fontfamily=None, fontweight=None,
-                 fig=None, font=None):
+def set_figtitle(
+    figtitle,
+    subtitle='',
+    forcefignum=True,
+    incanvas=True,
+    size=None,
+    fontfamily=None,
+    fontweight=None,
+    fig=None,
+    font=None,
+):
     r"""
     Args:
         figtitle (?):
@@ -598,6 +642,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.custom_figure --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

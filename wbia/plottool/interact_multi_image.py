@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import range
-#import matplotlib.image as mpimg
+
+# import matplotlib.image as mpimg
 from wbia.plottool import viz_image2
 from wbia.plottool import interact_annotations
 from . import draw_func2 as df2
@@ -12,17 +14,19 @@ from matplotlib.widgets import Button  # NOQA
 import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
 import six
+
 try:
     import vtool as vt
 except ImportError:
     pass
-#import utool
+# import utool
 import utool as ut
+
 ut.noinject(__name__, '[pt.interact_multiimage]')
 
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
-#BASE_CLASS = object
+# BASE_CLASS = object
 
 
 @ut.reloadable_class
@@ -49,14 +53,25 @@ class MultiImageInteraction(BASE_CLASS):
         >>> pt.show_if_requested()
     """
 
-    def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
-                 thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
-                 fnum=None, context_option_funcs=None, xlabel_list=None,
-                 vizkw=None, **kwargs):
+    def __init__(
+        self,
+        gpath_list,
+        nPerPage=4,
+        bboxes_list=None,
+        thetas_list=None,
+        verts_list=None,
+        gid_list=None,
+        nImgs=None,
+        fnum=None,
+        context_option_funcs=None,
+        xlabel_list=None,
+        vizkw=None,
+        **kwargs,
+    ):
         # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
-        #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
-        #bboxes_list=None, nPerPage=10,fnum=None):
+        # def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
+        # bboxes_list=None, nPerPage=10,fnum=None):
         print('[pt] maX ', nPerPage)
         self.context_option_funcs = context_option_funcs
         if nImgs is None:
@@ -88,13 +103,14 @@ class MultiImageInteraction(BASE_CLASS):
         self.current_pagenum = 0
         self.nPages = vt.iceil(self.nImgs / nPerPage)
 
-        #self.show_page()
+        # self.show_page()
         super(MultiImageInteraction, self).__init__(fnum=fnum, **kwargs)
-        #self.start()
+        # self.start()
 
     def dump_to_disk(self, dpath, num=None, prefix='temp_img'):
         import numpy as np
         import wbia.plottool as pt
+
         dpath = ut.ensurepath(dpath)
         num_zeros = np.ceil(np.log10(len(self.gpath_list)))
         total = len(self.gpath_list)
@@ -117,9 +133,9 @@ class MultiImageInteraction(BASE_CLASS):
     def make_hud(self):
         """ Creates heads up display """
         # Button positioning
-        hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.08, h=.04,
-                                                     xpad=.05, startx=0,
-                                                     stopx=1)
+        hl_slot, hr_slot = df2.make_bbox_positioners(
+            y=0.02, w=0.08, h=0.04, xpad=0.05, startx=0, stopx=1
+        )
         prev_rect = hl_slot(0)
         next_rect = hr_slot(0)
 
@@ -152,14 +168,13 @@ class MultiImageInteraction(BASE_CLASS):
         # For some reason clf isn't working correctly in figure
         self.fig.clf()
         ih.disconnect_callback(self.fig, 'button_press_event')
-        ih.connect_callback(self.fig, 'button_press_event',
-                            self.on_click)
+        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
 
     def show_page(self, pagenum=None):
         """ Displays a page of matches """
         if pagenum is None:
             pagenum = self.current_pagenum
-        #print('[iqr2] show page: %r' % pagenum)
+        # print('[iqr2] show page: %r' % pagenum)
         self.current_pagenum = pagenum
         self.prepare_page(pagenum)
         # Begin showing matches
@@ -172,13 +187,14 @@ class MultiImageInteraction(BASE_CLASS):
         self.draw()
 
     def _plot_index(self, index, _vizkw):
-        gpath      = self.gpath_list[index]
+        gpath = self.gpath_list[index]
         if ut.is_funclike(gpath):
             showfunc = gpath
             # HACK
             # override of plot image function
             showfunc(**_vizkw)
             import wbia.plottool as pt
+
             ax = pt.gca()
         else:
             if isinstance(gpath, six.string_types):
@@ -186,28 +202,31 @@ class MultiImageInteraction(BASE_CLASS):
             else:
                 img = gpath
 
-            bbox_list  = self.bboxes_list[index]
-            #print('bbox_list %r in display for px: %r ' % (bbox_list, px))
+            bbox_list = self.bboxes_list[index]
+            # print('bbox_list %r in display for px: %r ' % (bbox_list, px))
             theta_list = self.thetas_list[index]
 
             label_list = [ix + 1 for ix in range(len(bbox_list))]
-            #Add true values for every bbox to display
+            # Add true values for every bbox to display
             sel_list = [True for ix in range(len(bbox_list))]
-            _vizkw.update({
-                #title should always be the image number
-                'title': str(index),
-                'bbox_list'  : bbox_list,
-                'theta_list' : theta_list,
-                'sel_list'   : sel_list,
-                'label_list' : label_list,
-            })
-            #print(utool.repr2(_vizkw))
-            #print('vizkw = ' + utool.repr2(_vizkw))
+            _vizkw.update(
+                {
+                    # title should always be the image number
+                    'title': str(index),
+                    'bbox_list': bbox_list,
+                    'theta_list': theta_list,
+                    'sel_list': sel_list,
+                    'label_list': label_list,
+                }
+            )
+            # print(utool.repr2(_vizkw))
+            # print('vizkw = ' + utool.repr2(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
             if self.xlabel_list is not None:
                 import wbia.plottool as pt
+
                 pt.set_xlabel(self.xlabel_list[index])
-            #print(index)
+            # print(index)
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
             ph.set_plotdat(ax, 'gpath', gpath)
         return ax
@@ -220,25 +239,30 @@ class MultiImageInteraction(BASE_CLASS):
         else:
             _vizkw = self.vizkw.copy()
 
-        _vizkw.update({
-            'fnum': self.fnum,
-            'pnum': self.pnum_(px),
-        })
+        _vizkw.update(
+            {'fnum': self.fnum, 'pnum': self.pnum_(px),}
+        )
         ax = self._plot_index(index, _vizkw)
 
         ph.set_plotdat(ax, 'px', str(px))
         ph.set_plotdat(ax, 'index', index)
 
-    def update_images(self, img_ind, updated_bbox_list, updated_theta_list,
-                      changed_annottups, new_annottups):
+    def update_images(
+        self,
+        img_ind,
+        updated_bbox_list,
+        updated_theta_list,
+        changed_annottups,
+        new_annottups,
+    ):
         """Insert code for viz_image2 redrawing here"""
-        #print('update called')
+        # print('update called')
         index = int(img_ind)
-        #print('index: %r' % index)
-        #print('Images bbox before: %r' % (self.bboxes_list[index],))
+        # print('index: %r' % index)
+        # print('Images bbox before: %r' % (self.bboxes_list[index],))
         self.bboxes_list[index] = updated_bbox_list
         self.thetas_list[index] = updated_theta_list
-        #print('Images bbox after: %r' % (self.bboxes_list[index],))
+        # print('Images bbox after: %r' % (self.bboxes_list[index],))
         self.plot_image(index)
         self.draw()
 
@@ -248,16 +272,17 @@ class MultiImageInteraction(BASE_CLASS):
         if index is not None:
             if self.MOUSE_BUTTONS[event.button] == 'right':
                 if self.context_option_funcs is not None:
-                    #if event.button == 3:
+                    # if event.button == 3:
                     options = self.context_option_funcs[index]()
                     self.show_popup_menu(options, event)
             elif self.MOUSE_BUTTONS[event.button] == 'left':
-                #bbox_list  = ph.get_plotdat(ax, 'bbox_list')
+                # bbox_list  = ph.get_plotdat(ax, 'bbox_list')
                 gpath = self.gpath_list[index]
                 if ut.is_funclike(gpath):
                     print('gpath_isfunklike')
                     print('gpath = %r' % (gpath,))
                     import wbia.plottool as pt
+
                     fnum = pt.next_fnum()
                     gpath(fnum=fnum)
                     df2.update()
@@ -266,15 +291,20 @@ class MultiImageInteraction(BASE_CLASS):
                     print('Bbox of figure: %r' % (bbox_list,))
                     theta_list = self.thetas_list[index]
                     print('theta_list = %r' % (theta_list,))
-                    #img = mpimg.imread(gpath)
+                    # img = mpimg.imread(gpath)
                     if isinstance(gpath, six.string_types):
                         img = vt.imread(gpath)
                     else:
                         img = gpath
                     fnum = df2.next_fnum()
                     mc = interact_annotations.AnnotationInteraction(
-                        img, index, self.update_images, bbox_list=bbox_list,
-                        theta_list=theta_list, fnum=fnum)
+                        img,
+                        index,
+                        self.update_images,
+                        bbox_list=bbox_list,
+                        theta_list=theta_list,
+                        fnum=fnum,
+                    )
                     mc.start()
                     self.mc = mc
                     # """wait for accept
@@ -291,7 +321,7 @@ class MultiImageInteraction(BASE_CLASS):
         if event.key == 'p':
             self.display_prev_page()
 
-    #def clean_scope(self):
+    # def clean_scope(self):
     #    """ Removes any widgets saved in the interaction scope """
     #    #for (but, ax) in self.scope:
     #    #    but.disconnect_events()
@@ -299,10 +329,10 @@ class MultiImageInteraction(BASE_CLASS):
     #    #    assert len(ax.callbacks.callbacks) == 0
     #    self.scope = []
 
-    #def draw(self):
+    # def draw(self):
     #    self.fig.canvas.draw()
 
-    #def append_button(self, text, divider=None, rect=None, callback=None,
+    # def append_button(self, text, divider=None, rect=None, callback=None,
     #                  **kwargs):
     #    """ Adds a button to the current page """
     #    if divider is not None:
@@ -319,7 +349,7 @@ class MultiImageInteraction(BASE_CLASS):
     #    # Keep buttons from losing scrop
     #    self.scope.append((new_but, new_ax))
 
-    #def display_buttons(self):
+    # def display_buttons(self):
     #    # Create the button for scrolling forwards
     #    self.next_ax = plt.axes([0.75, 0.025, 0.15, 0.075])
     #    self.next_but = Button(self.next_ax, 'next')
@@ -340,6 +370,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.interact_multi_image --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

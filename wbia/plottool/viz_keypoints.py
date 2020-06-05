@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool
 from . import draw_func2 as df2
 import numpy as np
 from wbia.plottool import plot_helpers as ph
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
+
+# (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
 utool.noinject(__name__, '[viz_keypoints]')
 
 
@@ -11,6 +13,7 @@ def testdata_kpts():
     import utool as ut
     import vtool as vt
     import pyhesaff
+
     img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='star.png'))
     kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
     (kpts, vecs) = pyhesaff.detect_feats(img_fpath, **kwargs)
@@ -43,7 +46,7 @@ def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
         >>> result = show_keypoints(chip, kpts, fnum, pnum)
         >>> print(result)
     """
-    #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
+    # printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
     fig, ax = df2.imshow(chip, fnum=fnum, pnum=pnum, **kwargs)
     _annotate_kpts(kpts, **kwargs)
     ph.set_plotdat(ax, 'viztype', 'keypoints')
@@ -52,7 +55,7 @@ def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
         ph.draw()
 
 
-#@utool.indent_func
+# @utool.indent_func
 def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
     r"""
     Args:
@@ -76,7 +79,7 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
     if len(kpts_) == 0:
         print('len(kpts_) == 0...')
         return
-    #color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
+    # color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
     color = kwargs.get('color', 'scale' if sel_fx is None else df2.ORANGE)
     if color == 'distinct':
         # hack for distinct colors
@@ -84,14 +87,17 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
     elif color == 'scale':
         # hack for distinct colors
         import vtool as vt
-        #color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='inferno', score_range=(0, 50))
-        color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='viridis', score_range=(5, 30), cmap_range=None)
-        #df2.distinct_colors(len(kpts_))  # , randomize=True)
+
+        # color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='inferno', score_range=(0, 50))
+        color = df2.scores_to_color(
+            vt.get_scales(kpts_), cmap_='viridis', score_range=(5, 30), cmap_range=None
+        )
+        # df2.distinct_colors(len(kpts_))  # , randomize=True)
     # Keypoint drawing kwargs
     drawkpts_kw = {
         'ell': True,
         'pts': False,
-        'ell_alpha': .4,
+        'ell_alpha': 0.4,
         'ell_linewidth': 2,
         'ell_color': color,
     }
@@ -102,20 +108,18 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         df2.draw_kpts2(kpts_, **drawkpts_kw)
     else:
         # dont draw the selected keypoint in this batch
-        nonsel_kpts_ = np.vstack((kpts_[0:sel_fx], kpts_[sel_fx + 1:]))
+        nonsel_kpts_ = np.vstack((kpts_[0:sel_fx], kpts_[sel_fx + 1 :]))
         # Draw selected keypoint
-        sel_kpts = kpts_[sel_fx:sel_fx + 1]
+        sel_kpts = kpts_[sel_fx : sel_fx + 1]
         import utool as ut
+
         if ut.isiterable(color) and ut.isiterable(color[0]):
             # hack for distinct colors
-            drawkpts_kw['ell_color'] = color[0:sel_fx] + color[sel_fx + 1:]
+            drawkpts_kw['ell_color'] = color[0:sel_fx] + color[sel_fx + 1 :]
         drawkpts_kw
         drawkpts_kw2 = drawkpts_kw.copy()
-        drawkpts_kw2.update({
-            'ell_color': df2.BLUE,
-            'eig':  True,
-            'rect': True,
-            'ori':  True,
-        })
+        drawkpts_kw2.update(
+            {'ell_color': df2.BLUE, 'eig': True, 'rect': True, 'ori': True,}
+        )
         df2.draw_kpts2(nonsel_kpts_, **drawkpts_kw)
         df2.draw_kpts2(sel_kpts, **drawkpts_kw2)

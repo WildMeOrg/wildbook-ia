@@ -5,6 +5,7 @@ import pandas as pd
 import utool as ut
 import pathlib
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -15,11 +16,11 @@ def qt_review():
     """
     import wbia.guitool as gt
     import wbia
+
     app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
     ibs = wbia.opendb(defaultdb=defaultdb)
-    infr = wbia.AnnotInference(ibs=ibs, aids='all',
-                                autoinit=True, verbose=True)
+    infr = wbia.AnnotInference(ibs=ibs, aids='all', autoinit=True, verbose=True)
     infr.params['redun.pos'] = 2
     infr.params['redun.neg'] = 2
 
@@ -114,8 +115,9 @@ def gt_review():
     data = cacher.tryload()
     if data is None:
         ibs = wbia.opendb(defaultdb=defaultdb)
-        infr = wbia.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
-                                    autoinit=True, verbose=True)
+        infr = wbia.AnnotInference(
+            ibs=ibs, aids=ibs.get_valid_aids(), autoinit=True, verbose=True
+        )
         # TODO: ensure that staging has all data from annotmatch in it
         infr.reset_feedback('staging', apply=True)
         # infr.reset_staging_with_ensure()
@@ -126,8 +128,7 @@ def gt_review():
 
         want_edges = list(infr.edges())
         pblm = infr.verifiers
-        task_probs = pblm.predict_proba_evaluation(
-            infr, want_edges, ['match_state'])
+        task_probs = pblm.predict_proba_evaluation(infr, want_edges, ['match_state'])
         match_probs = task_probs[pblm.primary_task_key]
         len(match_probs)
         len(want_edges)
@@ -139,7 +140,7 @@ def gt_review():
 
         real = real_probs.idxmax(axis=1)
         pred = pred_probs.idxmax(axis=1)
-        failed = (real != pred)
+        failed = real != pred
         pred_probs['failed'] = failed
         pred_probs['pred'] = pred
         pred_probs['truth'] = real
@@ -162,6 +163,7 @@ def gt_review():
     print('[graph_widget] show_selected')
     import wbia.guitool as gt
     from wbia.viz import viz_graph2
+
     app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
 
@@ -177,7 +179,8 @@ def gt_review():
     # Move absolutely sure edges down so they arn't re-reviewed
     edge_to_conf = infr.get_edge_attrs('confidence', pred_probs.index)
     pred_probs = pred_probs.assign(
-        conf=pd.DataFrame.from_dict(edge_to_conf, orient='index'))
+        conf=pd.DataFrame.from_dict(edge_to_conf, orient='index')
+    )
 
     easiness = 1 - pred_probs['hardness']
     sureness = np.nan_to_num(pred_probs['conf'].map(ibs.const.CONFIDENCE.CODE_TO_INT))
@@ -202,7 +205,8 @@ def gt_review():
         return edge, info_text
 
     self = viz_graph2.AnnotPairDialog(
-        infr=infr, get_index_data=get_index_data, total=len(pred_probs))
+        infr=infr, get_index_data=get_index_data, total=len(pred_probs)
+    )
     self.seek(0)
     self.show()
     self.activateWindow()
@@ -264,16 +268,22 @@ def gt_review():
 
 def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
     import warnings
+
     warnings.simplefilter('ignore', RuntimeWarning)
     # print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
-    cfgargs = dict(per_vp=False, per_multiple=False, combo_dists=False,
-                   per_name=True, per_enc=True, use_hist=False,
-                   combo_enc_info=False)
+    cfgargs = dict(
+        per_vp=False,
+        per_multiple=False,
+        combo_dists=False,
+        per_name=True,
+        per_enc=True,
+        use_hist=False,
+        combo_enc_info=False,
+    )
 
     for qaids, daids in expanded_aids_list:
         stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
-        hashids = (stats['qaid_stats']['qhashid'],
-                   stats['daid_stats']['dhashid'])
+        hashids = (stats['qaid_stats']['qhashid'], stats['daid_stats']['dhashid'])
         print('hashids = %r' % (hashids,))
         if verbose > 1:
             print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
@@ -281,20 +291,22 @@ def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
 
 def encounter_stuff(ibs, aids):
     from wbia.init import main_helpers
+
     main_helpers.monkeypatch_encounters(ibs, aids, days=50)
     annots = ibs.annots(aids)
 
     from wbia.init.filter_annots import encounter_crossval
-    expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1,
-                                       denc_per_name=2)
+
+    expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1, denc_per_name=2)
     import warnings
+
     warnings.simplefilter('ignore', RuntimeWarning)
     # with warnings.catch_warnings():
     for qaids, daids in expanded_aids:
-        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-                                          combo_enc_info=False)
-        hashids = (stats['qaid_stats']['qhashid'],
-                   stats['daid_stats']['dhashid'])
+        stats = ibs.get_annotconfig_stats(
+            qaids, daids, use_hist=False, combo_enc_info=False
+        )
+        hashids = (stats['qaid_stats']['qhashid'], stats['daid_stats']['dhashid'])
         print('hashids = %r' % (hashids,))
         # print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
@@ -302,6 +314,7 @@ def encounter_stuff(ibs, aids):
 def iccv_data(defaultdb=None):
     import wbia
     from wbia.init import main_helpers
+
     if defaultdb is None:
         defaultdb = 'PZ_MTEST'
     # defaultdb = 'PZ_Master1'
@@ -310,8 +323,9 @@ def iccv_data(defaultdb=None):
     ibs = wbia.opendb(defaultdb=defaultdb)
     # Specialized database params
     enc_kw = dict(minutes=30)
-    filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True,
-                   minqual='good')
+    filt_kw = dict(
+        require_timestamp=True, require_gps=True, is_known=True, minqual='good'
+    )
     if ibs.dbname == 'PZ_MTEST':
         enc_kw = dict(days=50)
         filt_kw = dict(require_timestamp=True, is_known=True)
@@ -324,9 +338,11 @@ def iccv_data(defaultdb=None):
 
     if ibs.dbname == 'PZ_Master1':
         mtest_aids = wbia.dbio.export_subset.find_overlap_annots(
-            ibs, wbia.opendb('PZ_MTEST'), method='images')
+            ibs, wbia.opendb('PZ_MTEST'), method='images'
+        )
         pbtest_aids = wbia.dbio.export_subset.find_overlap_annots(
-            ibs, wbia.opendb('PZ_PB_RF_TRAIN'), method='annots')
+            ibs, wbia.opendb('PZ_PB_RF_TRAIN'), method='annots'
+        )
         expt_aids.extend(mtest_aids)
         expt_aids.extend(pbtest_aids)
         expt_aids = sorted(set(expt_aids))
@@ -390,9 +406,10 @@ def iccv_cmc(defaultdb=None):
     suffix = 'k=%d,nAids=%r,nNids=%r' % (
         max_per_query,
         len(expt_annots),
-        len(set(expt_annots.nids))
+        len(set(expt_annots.nids)),
     )
     import pathlib
+
     dbname = ibs.dbname
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     timestamp = ut.timestamp()
@@ -425,6 +442,7 @@ def draw_cmcs(dbname):
     import vtool as vt
     import wbia.plottool as pt
     import pathlib
+
     if dbname is None:
         dbname = 'PZ_Master1'
 
@@ -448,6 +466,7 @@ def draw_cmcs(dbname):
         'ytick.labelsize': 12,
     }
     import matplotlib as mpl
+
     mpl.rcParams.update(tmprc)
     fnum = 12
     fnum = pt.ensure_fnum(fnum)
@@ -456,19 +475,17 @@ def draw_cmcs(dbname):
     ranks = 20
     xdata = np.arange(1, ranks + 1)
     for k, phi in sorted(phis.items()):
-        ax.plot(xdata, np.cumsum(phi[:ranks]),
-                label='annots per query: %s' % (k,))
+        ax.plot(xdata, np.cumsum(phi[:ranks]), label='annots per query: %s' % (k,))
     ax.set_xlabel('Rank')
     ax.set_ylabel('Cumulative Probability')
     ax.set_title('Rank CMC for %s' % (species,))
     ax.set_ylim(ax.get_ylim()[0], 1)
-    ax.set_ylim(.7, 1)
-    ax.set_xlim(.9, ranks)
+    ax.set_ylim(0.7, 1)
+    ax.set_xlim(0.9, ranks)
     ax.set_xticks(xdata)
     ax.legend()
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                       hspace=.2)
-    fig.set_size_inches([7.4375,  3.125])
+    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9, wspace=0.2, hspace=0.2)
+    fig.set_size_inches([7.4375, 3.125])
     fig.savefig(str(fig_fpath))
     vt.clipwhite_ondisk(str(fig_fpath))
 
@@ -494,6 +511,7 @@ def iccv_roc(dbname):
     import wbia.plottool as pt
     import vtool as vt
     from wbia.scripts.script_vsone import OneVsOneProblem
+
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     pt.qtensure()
     clf_key = 'RF'
@@ -509,11 +527,10 @@ def iccv_roc(dbname):
 
     pblm.evaluate_simple_scores(task_keys)
     feat_cfgstr = ut.hashstr_arr27(
-        pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
-    cfg_prefix = (pblm.samples.make_sample_hashid() +
-                  pblm.qreq_.get_cfgstr() + feat_cfgstr)
-    pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
-                                      cfg_prefix)
+        pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat'
+    )
+    cfg_prefix = pblm.samples.make_sample_hashid() + pblm.qreq_.get_cfgstr() + feat_cfgstr
+    pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key], cfg_prefix)
 
     res = pblm.task_combo_res[task_key][clf_key][data_key]
 
@@ -572,10 +589,14 @@ def iccv_roc(dbname):
         # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
         'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
     }
-    info['pblm_hyperparams']['pairwise_feats']['summary_ops'] = list(info['pblm_hyperparams']['pairwise_feats']['summary_ops'])
-    suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (len(expt_annots),
-                                              len(set(expt_annots.nids)),
-                                              len(pblm.samples))
+    info['pblm_hyperparams']['pairwise_feats']['summary_ops'] = list(
+        info['pblm_hyperparams']['pairwise_feats']['summary_ops']
+    )
+    suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (
+        len(expt_annots),
+        len(set(expt_annots.nids)),
+        len(pblm.samples),
+    )
     hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
 
     dbname = ibs.dbname
@@ -619,6 +640,7 @@ def draw_saved_roc(dbname):
     import sklearn.metrics
     import vtool as vt
     import matplotlib as mpl
+
     pt.qtensure()
 
     if dbname is None:
@@ -664,9 +686,8 @@ def draw_saved_roc(dbname):
         species = 'G' + species[1:]
     ax.set_title('Positive match ROC for %s' % (species,))
     ax.legend()
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                       hspace=.2)
-    fig.set_size_inches([7.4375,  3.125])
+    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9, wspace=0.2, hspace=0.2)
+    fig.set_size_inches([7.4375, 3.125])
     fig.savefig(str(fig_fpath))
     clip_fpath = vt.clipwhite_ondisk(str(fig_fpath))
     print('clip_fpath = %r' % (clip_fpath,))
@@ -684,17 +705,25 @@ def draw_saved_roc(dbname):
     false_color = pt.FALSE_RED
     score_colors = (false_color, true_color)
     lnbnn_fig = pt.multi_plot(
-        clf_bins, (clf_neg_freq, clf_pos_freq),
+        clf_bins,
+        (clf_neg_freq, clf_pos_freq),
         label_list=('negative', 'positive'),
-        fnum=fnum, color_list=score_colors, pnum=pnum, kind='bar',
-        width=np.diff(clf_bins)[0], alpha=.7, stacked=True, edgecolor='none',
+        fnum=fnum,
+        color_list=score_colors,
+        pnum=pnum,
+        kind='bar',
+        width=np.diff(clf_bins)[0],
+        alpha=0.7,
+        stacked=True,
+        edgecolor='none',
         rcParams=tmprc,
-        xlabel='positive probability', ylabel='frequency',
-        title='pairwise probability separation')
+        xlabel='positive probability',
+        ylabel='frequency',
+        title='pairwise probability separation',
+    )
     lnbnn_fig_fpath = ut.augpath(str(fig_fpath), prefix='clf_scoresep_')
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                       hspace=.2)
-    lnbnn_fig.set_size_inches([7.4375,  3.125])
+    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9, wspace=0.2, hspace=0.2)
+    lnbnn_fig.set_size_inches([7.4375, 3.125])
     lnbnn_fig.savefig(str(lnbnn_fig_fpath), dpi=256)
     vt.clipwhite_ondisk(str(lnbnn_fig_fpath))
 
@@ -704,14 +733,21 @@ def draw_saved_roc(dbname):
         lnbnn_bins,
         (lnbnn_neg_freq, lnbnn_pos_freq),
         label_list=('negative', 'positive'),
-        fnum=fnum, color_list=score_colors, pnum=pnum, kind='bar',
-        width=np.diff(lnbnn_bins)[0], alpha=.7, stacked=True, edgecolor='none',
+        fnum=fnum,
+        color_list=score_colors,
+        pnum=pnum,
+        kind='bar',
+        width=np.diff(lnbnn_bins)[0],
+        alpha=0.7,
+        stacked=True,
+        edgecolor='none',
         rcParams=tmprc,
-        xlabel='LNBNN score', ylabel='frequency',
-        title='LNBNN score separation')
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                       hspace=.2)
-    clf_fig.set_size_inches([7.4375,  3.125])
+        xlabel='LNBNN score',
+        ylabel='frequency',
+        title='LNBNN score separation',
+    )
+    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9, wspace=0.2, hspace=0.2)
+    clf_fig.set_size_inches([7.4375, 3.125])
     clf_fig_fpath = ut.augpath(str(fig_fpath), prefix='lnbnn_scoresep_')
     clf_fig.savefig(str(clf_fig_fpath), dpi=256)
     vt.clipwhite_ondisk(str(clf_fig_fpath))
@@ -756,42 +792,43 @@ def end_to_end():
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     # Figure out what the thresholds should be
-    thresh_cacher = ut.Cacher('clf_thresh',
-                              cfgstr=train_cfgstr + data_key + 'v3',
-                              appname=pblm.appname,
-                              enabled=True)
+    thresh_cacher = ut.Cacher(
+        'clf_thresh',
+        cfgstr=train_cfgstr + data_key + 'v3',
+        appname=pblm.appname,
+        enabled=True,
+    )
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
         feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
-        cfg_prefix = (pblm.samples.make_sample_hashid() +
-                      pblm.qreq_.get_cfgstr() + feat_cfgstr)
-        pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
-                                          cfg_prefix)
+            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat'
+        )
+        cfg_prefix = (
+            pblm.samples.make_sample_hashid() + pblm.qreq_.get_cfgstr() + feat_cfgstr
+        )
+        pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key], cfg_prefix)
         task_key = 'match_state'
         clf_key = 'RF'
         res = pblm.task_combo_res[task_key][clf_key][data_key]
         res.extended_clf_report()
         fpr_thresholds = {
-            fpr: res.get_pos_threshes('fpr', value=fpr)
-            for fpr in [0, .001, .005, .01]
+            fpr: res.get_pos_threshes('fpr', value=fpr) for fpr in [0, 0.001, 0.005, 0.01]
         }
         for fpr, thresh_df in fpr_thresholds.items():
             # disable notcomp thresholds due to training issues
             thresh_df[INCMP] = max(1.0, thresh_df[INCMP])
             # ensure thresholds are over .5
-            thresh_df[POSTV] = max(.51, thresh_df[POSTV])
-            thresh_df[NEGTV] = max(.51, thresh_df[NEGTV])
+            thresh_df[POSTV] = max(0.51, thresh_df[POSTV])
+            thresh_df[NEGTV] = max(0.51, thresh_df[NEGTV])
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
-    clf_cacher = ut.Cacher('deploy_clf_v2_',
-                           appname=pblm.appname,
-                           cfgstr=train_cfgstr + data_key)
+    clf_cacher = ut.Cacher(
+        'deploy_clf_v2_', appname=pblm.appname, cfgstr=train_cfgstr + data_key
+    )
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
-        pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
-                                      clf_key=clf_key)
+        pblm.learn_deploy_classifiers(task_keys, data_key=data_key, clf_key=clf_key)
         clf_cacher.save(pblm.deploy_task_clfs)
 
     if False:
@@ -806,9 +843,9 @@ def end_to_end():
 
     # aids = train_aids
     maxphi = 3
-    phi_cacher = ut.Cacher('term_phis',
-                           appname=pblm.appname,
-                           cfgstr=train_cfgstr + str(maxphi))
+    phi_cacher = ut.Cacher(
+        'term_phis', appname=pblm.appname, cfgstr=train_cfgstr + str(maxphi)
+    )
     phis = phi_cacher.tryload()
     if phis is None:
         phis = learn_termination(ibs, train_aids, maxphi)
@@ -817,7 +854,7 @@ def end_to_end():
 
     # ------------
     # TESTING
-    complete_thresh = .95
+    complete_thresh = 0.95
     # graph_loops = np.inf
     ranking_loops = 2
     graph_loops = 2
@@ -853,11 +890,11 @@ def end_to_end():
             'priority_metric': 'priority',
             'oracle_accuracy': 1.0,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.001],
+            'match_state_thresh': fpr_thresholds[0.001],
             'max_loops': graph_loops,
         },
     ]
-    oracle_accuracy = .98
+    oracle_accuracy = 0.98
     expt_dials += [
         {
             'name': 'Ranking+Error',
@@ -889,7 +926,7 @@ def end_to_end():
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.001],
+            'match_state_thresh': fpr_thresholds[0.001],
             'max_loops': graph_loops,
         },
     ]
@@ -913,8 +950,9 @@ def end_to_end():
 
     for idx in idx_list:
         dials = expt_dials[idx]
-        infr = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                    verbose=verbose)
+        infr = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
         new_dials = dict(
             phis=phis,
             oracle_accuracy=dials['oracle_accuracy'],
@@ -943,6 +981,7 @@ def end_to_end():
 
     expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
     import pathlib
+
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
     expt_dname = '_'.join(['ete_expt', ibs.dbname, ut.timestamp()])
@@ -1001,9 +1040,11 @@ def draw_ete(dbname):
     ut.cprint('Draw ETE', 'green')
     # DRAW RESULTS
     import wbia.plottool as pt
+
     pt.qtensure()
 
     import pathlib
+
     # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     possible_expts = sorted(fig_dpath.glob('ete_expt_' + dbname + '*'))[::-1]
@@ -1027,8 +1068,7 @@ def draw_ete(dbname):
         if False:
             infr.show(groupby='orig_name_label')
         if 0:
-            from wbia.algo.graph.nx_utils import (
-                edges_inside, edges_cross)
+            from wbia.algo.graph.nx_utils import edges_inside, edges_cross
 
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
@@ -1053,8 +1093,9 @@ def draw_ete(dbname):
                     nid1 = infr.graph.nodes[aid1]['orig_name_label']
                     nid2 = infr.graph.nodes[aid2]['orig_name_label']
 
-    infos = {info['dials']['name']: info
-             for info in infos_ if 'Error' in info['dials']['name']}
+    infos = {
+        info['dials']['name']: info for info in infos_ if 'Error' in info['dials']['name']
+    }
 
     # xmax = 2000
     alias = {
@@ -1064,6 +1105,7 @@ def draw_ete(dbname):
     }
 
     import matplotlib as mpl
+
     tmprc = {
         'legend.fontsize': 18,
         'axes.titlesize': 18,
@@ -1090,7 +1132,8 @@ def draw_ete(dbname):
         # metrics.keys()
         pt.plt.plot(
             metrics['n_manual'],
-            metrics['n_merge_remain'], '-',
+            metrics['n_merge_remain'],
+            '-',
             label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
@@ -1116,7 +1159,8 @@ def draw_ete(dbname):
         # metrics.keys()
         pt.plt.plot(
             metrics['n_manual'],
-            metrics['n_errors'], '-',
+            metrics['n_errors'],
+            '-',
             label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
@@ -1125,18 +1169,23 @@ def draw_ete(dbname):
     ax.set_xlabel('# manual reviews')
     ax.set_ylabel('# of errors')
     # ax.legend()
-    pt.set_figtitle('End-to-end accuracy and error for %s' % (species,),
-                    fontweight='normal', fontfamily='DejaVu Sans')
+    pt.set_figtitle(
+        'End-to-end accuracy and error for %s' % (species,),
+        fontweight='normal',
+        fontfamily='DejaVu Sans',
+    )
 
-    pt.adjust_subplots(top=.85, bottom=.2, left=.1, right=.98, wspace=.2,
-                       hspace=.35)
-    fig.set_size_inches([1.3 * 7.4375,  3.125])
+    pt.adjust_subplots(
+        top=0.85, bottom=0.2, left=0.1, right=0.98, wspace=0.2, hspace=0.35
+    )
+    fig.set_size_inches([1.3 * 7.4375, 3.125])
     # fig_fpath = splitext(info_fpath)[0] + '.png'
     plot_fpath = pathlib.Path(str(expt_dpath) + '.png')
     plot_fpath = plot_fpath.parent.joinpath('fig_' + plot_fpath.stem + plot_fpath.suffix)
     # .joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
     import vtool as vt
+
     clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
     print('plot_fpath = %r' % (plot_fpath,))
     print('clip_fpath = %r' % (clip_fpath,))
@@ -1147,6 +1196,7 @@ def draw_ete(dbname):
 
 def show_phis(phis):
     import wbia.plottool as pt
+
     pt.qtensure()
     ranks = 20
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
@@ -1161,15 +1211,23 @@ def show_phis(phis):
 
 def collect_termination_data(ibs, aids, max_per_query=3):
     from wbia.init.filter_annots import encounter_crossval
+
     n_splits = 3
     crossval_splits = []
     avail_confusors = []
     import random
+
     rng = random.Random(0)
     for n_query_per_name in range(1, max_per_query + 1):
         reshaped_splits, nid_to_confusors = encounter_crossval(
-            ibs, aids, qenc_per_name=n_query_per_name, denc_per_name=1,
-            rng=rng, n_splits=n_splits, early=True)
+            ibs,
+            aids,
+            qenc_per_name=n_query_per_name,
+            denc_per_name=1,
+            rng=rng,
+            n_splits=n_splits,
+            early=True,
+        )
 
         avail_confusors.append(nid_to_confusors)
 
@@ -1183,17 +1241,15 @@ def collect_termination_data(ibs, aids, max_per_query=3):
 
         crossval_splits.append((n_query_per_name, expanded_aids))
 
-    n_daid_spread = [len(expanded_aids[0][1])
-                     for _, expanded_aids in crossval_splits]
+    n_daid_spread = [len(expanded_aids[0][1]) for _, expanded_aids in crossval_splits]
 
     # Check to see if we can pad confusors to make the database size equal
     max_size = max(n_daid_spread)
-    afford = (min(map(len, avail_confusors)) - (max(n_daid_spread) -
-                                                min(n_daid_spread)))
+    afford = min(map(len, avail_confusors)) - (max(n_daid_spread) - min(n_daid_spread))
     max_size += afford
 
     crossval_splits2 = []
-    _iter =  zip(crossval_splits, avail_confusors)
+    _iter = zip(crossval_splits, avail_confusors)
     for (n_query_per_name, expanded_aids), nid_to_confusors in _iter:
         crossval_splits2.append((n_query_per_name, []))
         for qaids, daids in expanded_aids:
@@ -1232,18 +1288,18 @@ def learn_termination(ibs, aids, max_per_query=3):
         for qaids, daids in expanded_aids:
             num_datab_pccs = len(np.unique(ibs.annots(daids).nids))
             # num_query_pccs = len(np.unique(ibs.annots(qaids).nids))
-            qreq_ = ibs.new_query_request(qaids, daids, verbose=False,
-                                          cfgdict=pipe_cfg)
+            qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
             freqs, bins = testres.get_rank_histograms(
-                key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs))
+                key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs)
+            )
             freq = freqs[0]
             accumulators.append(freq)
         size = max(map(len, accumulators))
         accum = np.zeros(size)
         for freq in accumulators:
-            accum[0:len(freq)] += freq
+            accum[0 : len(freq)] += freq
 
         # unsmoothed
         phi1 = accum / accum.sum()
@@ -1265,19 +1321,22 @@ def learn_phi():
     # t = 'baseline'
     # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
     import wbia
+
     # from wbia.init.filter_annots import annot_crossval
     from wbia.init.filter_annots import encounter_crossval
     from wbia.init import main_helpers
     from wbia.expt import test_result
     import wbia.plottool as pt
+
     pt.qtensure()
 
     ibs = wbia.opendb('GZ_Master1')
     # ibs = wbia.opendb('PZ_MTEST')
     # ibs = wbia.opendb('PZ_PB_RF_TRAIN')
 
-    aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
-                                     is_known=True)
+    aids = ibs.filter_annots_general(
+        require_timestamp=True, require_gps=True, is_known=True
+    )
     # aids = ibs.filter_annots_general(is_known=True, require_timestamp=True)
 
     # annots = ibs.annots(aids=aids, asarray=True)
@@ -1305,11 +1364,18 @@ def learn_phi():
     crossval_splits = []
     avail_confusors = []
     import random
+
     rng = random.Random(0)
     for n_query_per_name in range(1, 5):
         reshaped_splits, nid_to_confusors = encounter_crossval(
-            ibs, aids, qenc_per_name=n_query_per_name, denc_per_name=1,
-            rng=rng, n_splits=n_splits, early=True)
+            ibs,
+            aids,
+            qenc_per_name=n_query_per_name,
+            denc_per_name=1,
+            rng=rng,
+            n_splits=n_splits,
+            early=True,
+        )
 
         avail_confusors.append(nid_to_confusors)
 
@@ -1332,13 +1398,14 @@ def learn_phi():
 
     max_size = max(n_daid_spread)
 
-    afford = (min(map(len, avail_confusors)) - (max(n_daid_spread) -
-                                                min(n_daid_spread)))
+    afford = min(map(len, avail_confusors)) - (max(n_daid_spread) - min(n_daid_spread))
     max_size += afford
 
     crossval_splits2 = []
 
-    for (n_query_per_name, expanded_aids), nid_to_confusors in zip(crossval_splits, avail_confusors):
+    for (n_query_per_name, expanded_aids), nid_to_confusors in zip(
+        crossval_splits, avail_confusors
+    ):
         crossval_splits2.append((n_query_per_name, []))
         for qaids, daids in expanded_aids:
             n_extra = max(max_size - len(daids), 0)
@@ -1361,8 +1428,7 @@ def learn_phi():
         for qaids, daids in expanded_aids:
             num_datab_pccs = len(np.unique(ibs.annots(daids).nids))
             # num_query_pccs = len(np.unique(ibs.annots(qaids).nids))
-            qreq_ = ibs.new_query_request(qaids, daids, verbose=False,
-                                          cfgdict=pipe_cfg)
+            qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
 
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
@@ -1371,13 +1437,14 @@ def learn_phi():
             # freqs, bins = testres.get_rank_histograms(
             #     key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs))
             freqs, bins = testres.get_rank_histograms(
-                key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs))
+                key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs)
+            )
             freq = freqs[0]
             accumulators.append(freq)
         size = max(map(len, accumulators))
         accum = np.zeros(size)
         for freq in accumulators:
-            accum[0:len(freq)] += freq
+            accum[0 : len(freq)] += freq
 
         # unsmoothed
         phi1 = accum / accum.sum()
@@ -1406,7 +1473,7 @@ def learn_phi():
         title='Learned Termination CDF',
     )
 
-    #cmc = phi3.cumsum()
+    # cmc = phi3.cumsum()
     # accum[20:].sum()
     # import cv2
     # accum
@@ -1435,6 +1502,7 @@ def learn_phi():
     #         # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
     #         accumulator[rank] += 1
 
+
 if __name__ == '__main__':
     r"""
     CommandLine:
@@ -1442,6 +1510,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.iccv --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

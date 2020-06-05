@@ -74,22 +74,27 @@ def import_module_from_fpath(module_fpath):
     """ imports module from a file path """
     import platform
     from os.path import basename, splitext
+
     python_version = platform.python_version()
     modname = splitext(basename(module_fpath))[0]
     if python_version.startswith('2'):
         import imp
+
         module = imp.load_source(modname, module_fpath)
     elif python_version.startswith('3'):
         import importlib.machinery
+
         loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
         module = loader.load_module()
     else:
         raise AssertionError('invalid python version')
     return module
 
+
 try:
     import util_cplat_packages
-    #from util_cplat_packages import make_prereq_script, APPLE, FEDORA_FAMILY, DEBIAN_FAMILY, print_sysinfo
+
+    # from util_cplat_packages import make_prereq_script, APPLE, FEDORA_FAMILY, DEBIAN_FAMILY, print_sysinfo
 except ImportError as ex:
     module_fpath = os.path.abspath(join(dirname(__file__), 'util_cplat_packages.py'))
     util_cplat_packages = import_module_from_fpath(module_fpath)
@@ -132,29 +137,31 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     ]
 
     if util_cplat_packages.APPLE:
-        PREREQ_PKG_LIST.extend([
-            'opencv',
-        ])
+        PREREQ_PKG_LIST.extend(
+            ['opencv',]
+        )
 
     if util_cplat_packages.DEBIAN_FAMILY:
-        PREREQ_PKG_LIST.extend([
-            'libfftw3-dev',
-            #'libeigen3-dev',
-            'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
-            #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
-            'libfreetype6-dev',  # for matplotlib
-            #'libpng12-dev',
-            #'libjpeg-dev',
-            #'zlib1g-dev',
-            'python-dev',
-            # 'libopencv-dev',
-            # 'python-opencv'
-        ])
+        PREREQ_PKG_LIST.extend(
+            [
+                'libfftw3-dev',
+                #'libeigen3-dev',
+                'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
+                #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
+                'libfreetype6-dev',  # for matplotlib
+                #'libpng12-dev',
+                #'libjpeg-dev',
+                #'zlib1g-dev',
+                'python-dev',
+                # 'libopencv-dev',
+                # 'python-opencv'
+            ]
+        )
 
     if util_cplat_packages.FEDORA_FAMILY:
-        PREREQ_PKG_LIST.extend([
-            'python-dev',
-        ])
+        PREREQ_PKG_LIST.extend(
+            ['python-dev',]
+        )
         pass
 
     PREREQ_PYPKG_LIST = [
@@ -208,6 +215,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     ]
 
     import platform
+
     python_version = platform.python_version()
     PYTHON3 = python_version.startswith('3')
 
@@ -250,8 +258,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     if with_optional:
         PREREQ_PYPKG_LIST += OPTIONAL_PYPKG_LIST
 
-    #http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
-    '''
+    # http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
+    """
     # Install mpl_toolkits.basemap
     sudo apt-get install libgeos-dev -y
     cd ~/tmp
@@ -260,19 +268,24 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     cd basemap-1.0.7
     sudo checkinstall sudo python setup.py install
     python -c "from mpl_toolkits.basemap import Basemap"
-    '''
+    """
 
     # Need to do a distribute upgrade before matplotlib on Ubuntu?
     # not sure if that will work yet
 
     util_cplat_packages.print_sysinfo()
-    #upgrade()
+    # upgrade()
     with_sysfix = True
     with_syspkg = WITH_SYSPKG
-    with_pypkg  = True
+    with_pypkg = True
     output = util_cplat_packages.make_prereq_script(
-        PREREQ_PKG_LIST, PREREQ_PYPKG_LIST, with_sysfix,
-        with_syspkg, with_pypkg, upgrade=UPGRADE)
+        PREREQ_PKG_LIST,
+        PREREQ_PYPKG_LIST,
+        with_sysfix,
+        with_syspkg,
+        with_pypkg,
+        upgrade=UPGRADE,
+    )
     if output == '':
         print('System has all prerequisites!')
     elif not DRYRUN:
@@ -282,17 +295,18 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             file_.write(output)
         os.system('chmod +x ' + fpath)
         print('# wrote: %r' % fpath)
-        #sudo python super_setup.py --build --develop
+        # sudo python super_setup.py --build --develop
 
 
 def install_vtk():
     pass
-    #sudo apt-get install python-vtk
-    #import utool as ut
-    #linux_url = 'http://www.vtk.org/files/release/6.1/vtkpython-6.1.0-Linux-64bit.tar.gz'
-    #zipped_url = linux_url
-    #vtk_fpath = ut.grab_zipped_url(linux_url)
-    #vtk_dir = '/home/joncrall/.config/utool/vtkpython-6.1.0-Linux-64bit'
+    # sudo apt-get install python-vtk
+    # import utool as ut
+    # linux_url = 'http://www.vtk.org/files/release/6.1/vtkpython-6.1.0-Linux-64bit.tar.gz'
+    # zipped_url = linux_url
+    # vtk_fpath = ut.grab_zipped_url(linux_url)
+    # vtk_dir = '/home/joncrall/.config/utool/vtkpython-6.1.0-Linux-64bit'
+
 
 if __name__ == '__main__':
     bootstrap_sysreq()

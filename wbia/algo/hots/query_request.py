@@ -15,14 +15,16 @@ import vtool as vt
 import utool as ut
 import numpy as np
 from wbia.algo.hots import neighbor_index_cache
-#from wbia.algo.hots import multi_index
+
+# from wbia.algo.hots import multi_index
 # from wbia.algo.hots import scorenorm
 # from wbia.algo.hots import distinctiveness_normalizer
 from wbia.algo.hots import query_params
 from wbia.algo.hots import chip_match
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 import wbia.constants as const
-#import warnings
+
+# import warnings
 (print, rrr, profile) = ut.inject2(__name__)
 
 VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
@@ -34,6 +36,7 @@ def testdata_newqreq(defaultdb='testdb1'):
         (wbia.IBEISController, list, list)
     """
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     qaid_list = [1]
     daid_list = [1, 2, 3, 4, 5]
@@ -41,10 +44,17 @@ def testdata_newqreq(defaultdb='testdb1'):
 
 
 @profile
-def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
-                            verbose=None, unique_species=None,
-                            use_memcache=True,
-                            query_cfg=None, custom_nid_lookup=None):
+def new_wbia_query_request(
+    ibs,
+    qaid_list,
+    daid_list,
+    cfgdict=None,
+    verbose=None,
+    unique_species=None,
+    use_memcache=True,
+    query_cfg=None,
+    custom_nid_lookup=None,
+):
     """
     wbia entry point to create a new query request object
 
@@ -153,6 +163,7 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from wbia.algo.smk import smk_pipeline
+
         if query_cfg is None:
             config = cfgdict
         else:
@@ -171,7 +182,8 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
-            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
+            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename
+        )
     elif piperoot is not None and piperoot not in ['vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
@@ -179,7 +191,8 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
-            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
+            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot
+        )
         # assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
     else:
         if verbose > 2:
@@ -192,7 +205,8 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
         if unique_species is None:
             unique_species_ = apply_species_with_detector_hack(
-                ibs, cfgdict, qaid_list, daid_list)
+                ibs, cfgdict, qaid_list, daid_list
+            )
         else:
             unique_species_ = unique_species
         # </HACK>
@@ -216,11 +230,18 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         # </HACK>
         _indexer_request_params = dict(use_memcache=use_memcache)
         qreq_ = QueryRequest.new_query_request(
-            qaid_list, daid_list, qparams, qresdir, ibs,
-            query_config2_, data_config2_,
-            _indexer_request_params, custom_nid_lookup=custom_nid_lookup)
-        #qreq_.query_config2_ = query_config2_
-        #qreq_.data_config2_ = data_config2_
+            qaid_list,
+            daid_list,
+            qparams,
+            qresdir,
+            ibs,
+            query_config2_,
+            data_config2_,
+            _indexer_request_params,
+            custom_nid_lookup=custom_nid_lookup,
+        )
+        # qreq_.query_config2_ = query_config2_
+        # qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
         if verbose > 1:
             print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
@@ -233,8 +254,7 @@ def new_wbia_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
 
 @profile
-def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
-                                     verbose=None):
+def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=None):
     """
     HACK turns of featweights if they cannot be applied
     """
@@ -251,18 +271,16 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     # candetect = (len(unique_species) == 1 and
     #              ibs.has_species_detector(unique_species[0]))
 
-    ut.cprint(
-        'unique_species = %r' % (unique_species, ),
-        'yellow'
-    )
+    ut.cprint('unique_species = %r' % (unique_species,), 'yellow')
     candetect = True
     for species in set(unique_species):
         if species == const.UNKNOWN:
             continue
         if not ibs.has_species_detector(species):
             ut.cprint(
-                'Species %r is not supported with ibs.has_species_detector()' % (species, ),
-                'yellow'
+                'Species %r is not supported with ibs.has_species_detector()'
+                % (species,),
+                'yellow',
             )
             candetect = False
             break
@@ -270,24 +288,22 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     if not candetect:
         if ut.NOT_QUIET:
             ut.cprint(
-                '[qreq] HACKING FG_WEIGHT OFF (db species is not supported)',
-                'yellow'
+                '[qreq] HACKING FG_WEIGHT OFF (db species is not supported)', 'yellow'
             )
             if verbose > 1:
                 if len(unique_species) != 1:
                     print('[qreq]  * len(unique_species) = %r' % len(unique_species))
                 else:
                     print('[qreq]  * unique_species = %r' % (unique_species,))
-        #print('[qreq]  * valid species = %r' % (
+        # print('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
-        #cfg._featweight_cfg.featweight_enabled = 'ERR'
+        # cfg._featweight_cfg.featweight_enabled = 'ERR'
         cfgdict['featweight_enabled'] = False  # 'ERR'
         cfgdict['fg_on'] = False
     else:
-        #print(ibs.get_annot_species_texts(aid_list))
+        # print(ibs.get_annot_species_texts(aid_list))
         if verbose:
-            print('[qreq] Using fgweights of unique_species=%r' % (
-                unique_species,))
+            print('[qreq] Using fgweights of unique_species=%r' % (unique_species,))
     return unique_species
 
 
@@ -296,6 +312,7 @@ class QueryRequest(ut.NiceRepr):
     """
     Request object for pipline parameter run
     """
+
     _isnewreq = False
 
     def __init__(qreq_):
@@ -315,6 +332,7 @@ class QueryRequest(ut.NiceRepr):
             qreq_.ibs = None
         except Exception:
             import wbia
+
             qreq_.ibs = wbia.IBEISController()
 
         qreq_.indexer = None  # The nearest neighbor mechanism
@@ -322,7 +340,7 @@ class QueryRequest(ut.NiceRepr):
         qreq_.dstcnvs_normer = None
         qreq_.hasloaded = False
         # Pipeline configuration
-        qreq_.qparams = None   # Parameters relating to pipeline execution
+        qreq_.qparams = None  # Parameters relating to pipeline execution
         qreq_.query_config2_ = None
         qreq_.data_config2_ = None
         qreq_._indexer_request_params = None
@@ -340,9 +358,18 @@ class QueryRequest(ut.NiceRepr):
 
     @classmethod
     @profile
-    def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
-                          query_config2_, data_config2_,
-                          _indexer_request_params, custom_nid_lookup=None):
+    def new_query_request(
+        cls,
+        qaid_list,
+        daid_list,
+        qparams,
+        qresdir,
+        ibs,
+        query_config2_,
+        data_config2_,
+        _indexer_request_params,
+        custom_nid_lookup=None,
+    ):
         """
         old way of calling new
 
@@ -359,7 +386,7 @@ class QueryRequest(ut.NiceRepr):
         """
         qreq_ = cls()
         qreq_.ibs = ibs
-        qreq_.qparams = qparams   # Parameters relating to pipeline execution
+        qreq_.qparams = qparams  # Parameters relating to pipeline execution
         qreq_.query_config2_ = query_config2_
         qreq_.data_config2_ = data_config2_
         qreq_.qresdir = qresdir
@@ -382,8 +409,7 @@ class QueryRequest(ut.NiceRepr):
         if custom_nid_lookup is None:
             qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
         else:
-            qreq_.unique_nids = ut.dict_take(custom_nid_lookup,
-                                             qreq_.unique_aids)
+            qreq_.unique_nids = ut.dict_take(custom_nid_lookup, qreq_.unique_aids)
         qreq_.unique_nids = np.array(qreq_.unique_nids)
 
         # qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
@@ -437,8 +463,7 @@ class QueryRequest(ut.NiceRepr):
         unique_nids, groupxs = vt.group_indices(nids)
         grouped_visual_uuids = ut.apply_grouping(annots.visual_uuids, groupxs)
         group_hashes = [
-            ut.combine_hashes(sorted(u.bytes for u in uuids),
-                              hasher=hashlib.sha1())
+            ut.combine_hashes(sorted(u.bytes for u in uuids), hasher=hashlib.sha1())
             for uuids in grouped_visual_uuids
         ]
         nid_to_grouphash = dict(zip(unique_nids, group_hashes))
@@ -454,6 +479,7 @@ class QueryRequest(ut.NiceRepr):
         TODO. dont use uuids anymore. they are slow
         """
         import uuid
+
         for bytes_ in qreq_.get_qreq_pcc_hashes(aids):
             yield uuid.UUID(bytes=bytes_[0:16])
 
@@ -526,8 +552,7 @@ class QueryRequest(ut.NiceRepr):
         # attributes are used in the pipeline.
         label = ''.join(('_', prefix, 'PCC_UUIDS'))
         pcc_hashes = qreq_.get_qreq_pcc_hashes(sorted(aids))
-        pcc_hash = ut.combine_hashes(pcc_hashes,
-                                          hasher=hashlib.sha1())
+        pcc_hash = ut.combine_hashes(pcc_hashes, hasher=hashlib.sha1())
         pcc_hashstr = ut.convert_bytes_to_bigbase(pcc_hash)
         pcc_hashstr = pcc_hashstr[0:16]
 
@@ -538,8 +563,7 @@ class QueryRequest(ut.NiceRepr):
         if with_nids:
             unique_nids = set(qreq_.get_qreq_annot_nids(aids))
             n_nids = 'n' + str(len(unique_nids))
-            pcc_hashid = sep.join(
-                [label, n_aids, n_nids, pcc_hashstr])
+            pcc_hashid = sep.join([label, n_aids, n_nids, pcc_hashstr])
         else:
             pcc_hashid = sep.join([label, n_aids, pcc_hashstr])
         return pcc_hashid
@@ -562,7 +586,7 @@ class QueryRequest(ut.NiceRepr):
         """
         state = qreq_.__dict__.copy()
         # Unload attributes that should not be saved
-        #state['ibs'] = None
+        # state['ibs'] = None
         state['prog_hook'] = None
         state['indexer'] = None
         state['normalizer'] = None
@@ -578,16 +602,16 @@ class QueryRequest(ut.NiceRepr):
 
         # Hack for the actual wbia object
         # (The ibs object itself should now do this hack)
-        #state['dbdir'] = qreq_.ibs.get_dbdir()
+        # state['dbdir'] = qreq_.ibs.get_dbdir()
         return state
 
     def __setstate__(qreq_, state):
         # Hack for the actual wbia object
         # (The ibs object itself should now do this hack)
-        #import wbia
-        #dbdir = state['dbdir']
-        #del state['dbdir']
-        #state['ibs'] = wbia.opendb(dbdir=dbdir, web=False)
+        # import wbia
+        # dbdir = state['dbdir']
+        # del state['dbdir']
+        # state['ibs'] = wbia.opendb(dbdir=dbdir, web=False)
         qreq_.__dict__.update(state)
 
         # Internal caching objects and views
@@ -610,7 +634,7 @@ class QueryRequest(ut.NiceRepr):
         """
         typestr = qreq_.__class__.__name__
         parts = qreq_.get_shortinfo_parts()
-        #print('parts = %r' % (parts,))
+        # print('parts = %r' % (parts,))
         custom_str = '%s(%s) %s %s %s' % ((typestr,) + tuple(parts))
         return custom_str
 
@@ -669,16 +693,14 @@ class QueryRequest(ut.NiceRepr):
         qreq_.internal_daids = np.array(daid_list)
         # Use new annotation objects
         config = qreq_.get_internal_data_config2()
-        qreq_._internal_dannots = qreq_.ibs.annots(qreq_.internal_daids,
-                                                   config=config)
+        qreq_._internal_dannots = qreq_.ibs.annots(qreq_.internal_daids, config=config)
 
     def _set_internal_qaids(qreq_, qaid_list):
         qreq_.internal_qaids_mask = None  # Invalidate mask
         qreq_.internal_qaids = np.array(qaid_list)
         # Use new annotation objects
         config = qreq_.get_internal_query_config2()
-        qreq_._internal_qannots = qreq_.ibs.annots(qreq_.internal_qaids,
-                                                   config=config)
+        qreq_._internal_qannots = qreq_.ibs.annots(qreq_.internal_qaids, config=config)
 
     def shallowcopy(qreq_, qaids=None):
         """
@@ -698,7 +720,7 @@ class QueryRequest(ut.NiceRepr):
             >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
             >>> #assert qreq_.metadata is not qreq2_.metadata
         """
-        #qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate
+        # qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate
         qreq2_ = QueryRequest()
         qreq2_.__dict__.update(qreq_.__dict__)
         qaids = [qaids] if not ut.isiterable(qaids) else qaids
@@ -707,13 +729,13 @@ class QueryRequest(ut.NiceRepr):
         qreq2_.set_external_qaids(qaids)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
-        #qreq2_.metadata = {}
+        # qreq2_.metadata = {}
         qreq2_.hasloaded = False
         return qreq2_
 
     # --- State Modification ---
 
-    #def remove_internal_daids(qreq_, remove_daids):
+    # def remove_internal_daids(qreq_, remove_daids):
     #    r"""
     #    DEPRICATE
 
@@ -757,7 +779,7 @@ class QueryRequest(ut.NiceRepr):
     #        warnings.warn('Implement point removal from trees')
     #        qreq_.indexer.remove_wbia_support(qreq_, remove_daids)
 
-    #def add_internal_daids(qreq_, new_daids):
+    # def add_internal_daids(qreq_, new_daids):
     #    """
     #    DEPRICATE
 
@@ -808,13 +830,11 @@ class QueryRequest(ut.NiceRepr):
         if masked_daid_list is None or len(masked_daid_list) == 0:
             qreq_.internal_daids_mask = None
         else:
-            #with ut.EmbedOnException():
+            # with ut.EmbedOnException():
             # input denotes invalid elements mark all elements not in that
             # list as True
-            flags = vt.get_uncovered_mask(qreq_.internal_daids,
-                                          masked_daid_list)
-            assert len(flags) == len(qreq_.internal_daids), (
-                'unequal len internal daids')
+            flags = vt.get_uncovered_mask(qreq_.internal_daids, masked_daid_list)
+            assert len(flags) == len(qreq_.internal_daids), 'unequal len internal daids'
             qreq_.internal_daids_mask = flags
 
     def set_internal_masked_qaids(qreq_, masked_qaid_list):
@@ -842,10 +862,8 @@ class QueryRequest(ut.NiceRepr):
         else:
             # input denotes invalid elements mark all elements not in that
             # list as True
-            flags = vt.get_uncovered_mask(qreq_.internal_qaids,
-                                          masked_qaid_list)
-            assert len(flags) == len(qreq_.internal_qaids), (
-                'unequal len internal qaids')
+            flags = vt.get_uncovered_mask(qreq_.internal_qaids, masked_qaid_list)
+            assert len(flags) == len(qreq_.internal_qaids), 'unequal len internal qaids'
             qreq_.internal_qaids_mask = flags
 
     # --- INTERNAL INTERFACE ---
@@ -866,14 +884,14 @@ class QueryRequest(ut.NiceRepr):
             return qreq_._internal_dannots.compress(qreq_.internal_daids_mask)
 
     def get_internal_daids(qreq_):
-        #return np.array(qreq_.internal_dannots.aid)
+        # return np.array(qreq_.internal_dannots.aid)
         if qreq_.internal_daids_mask is None:
             return qreq_.internal_daids
         else:
             return qreq_.internal_daids.compress(qreq_.internal_daids_mask, axis=0)
 
     def get_internal_qaids(qreq_):
-        #return np.array(qreq_.internal_qannots.aid)
+        # return np.array(qreq_.internal_qannots.aid)
         if qreq_.internal_qaids_mask is None:
             return qreq_.internal_qaids
         else:
@@ -927,10 +945,14 @@ class QueryRequest(ut.NiceRepr):
         return qreq_.ibs.get_annot_kpts(daids, config2_=qreq_.extern_data_config2)
 
     def get_qreq_dannot_fgweights(qreq_, daids):
-        return qreq_.ibs.get_annot_fgweights(daids, config2_=qreq_.extern_data_config2, ensure=False)
+        return qreq_.ibs.get_annot_fgweights(
+            daids, config2_=qreq_.extern_data_config2, ensure=False
+        )
 
     def get_qreq_qannot_fgweights(qreq_, qaids):
-        return qreq_.ibs.get_annot_fgweights(qaids, config2_=qreq_.extern_query_config2, ensure=False)
+        return qreq_.ibs.get_annot_fgweights(
+            qaids, config2_=qreq_.extern_query_config2, ensure=False
+        )
 
     @property
     def dnids(qreq_):
@@ -953,8 +975,7 @@ class QueryRequest(ut.NiceRepr):
     def get_external_query_groundtruth(qreq_, qaids):
         """ gets groundtruth that are accessible via this query """
         external_daids = qreq_.daids
-        gt_aids = qreq_.ibs.get_annot_groundtruth(
-            qaids, daid_list=external_daids)
+        gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=external_daids)
         return gt_aids
 
     # External id-hashes
@@ -1005,8 +1026,9 @@ class QueryRequest(ut.NiceRepr):
         return pipe_hashstr
 
     @profile
-    def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
-                   hash_pipe=False):
+    def get_cfgstr(
+        qreq_, with_input=False, with_data=True, with_pipe=True, hash_pipe=False
+    ):
         r"""
         main cfgstring used to identify the 'querytype'
         FIXME: name params + data
@@ -1085,7 +1107,7 @@ class QueryRequest(ut.NiceRepr):
         subhook = None if prog_hook is None else prog_hook.next_subhook()
         if subhook is not None:
             subhook(0, 1, 'finished preload')
-        #if hook is not None:
+        # if hook is not None:
         #    hook.set_progress(4, 4, lbl='preloading features')
 
     @profile
@@ -1134,19 +1156,17 @@ class QueryRequest(ut.NiceRepr):
             print('[qreq] ensure_chips')
         external_qaids = qreq_.qaids
         external_daids = qreq_.daids
-        #np.union1d(external_qaids, external_daids)
+        # np.union1d(external_qaids, external_daids)
         # TODO check if configs are the same
         externgetkw = dict(
-            ensure=True,
-            check_external_storage=True,
-            num_retries=num_retries
+            ensure=True, check_external_storage=True, num_retries=num_retries
         )
         q_chip_fpath = qreq_.ibs.get_annot_chip_fpath(  # NOQA
-            external_qaids,
-            config2_=qreq_.extern_query_config2, **externgetkw)
+            external_qaids, config2_=qreq_.extern_query_config2, **externgetkw
+        )
         d_chip_fpath = qreq_.ibs.get_annot_chip_fpath(  # NOQA
-            external_daids,
-            config2_=qreq_.extern_data_config2, **externgetkw)
+            external_daids, config2_=qreq_.extern_data_config2, **externgetkw
+        )
 
     @profile
     def ensure_features(qreq_, verbose=ut.NOT_QUIET, prog_hook=None):
@@ -1171,7 +1191,7 @@ class QueryRequest(ut.NiceRepr):
             >>> result = qreq_.ensure_features(verbose)
             >>> print(result)
         """
-        #with ut.EmbedOnException():
+        # with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_features')
         if prog_hook is not None:
@@ -1208,16 +1228,19 @@ class QueryRequest(ut.NiceRepr):
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_wbia_nnindexer(
-                    qreq_, verbose=verbose, prog_hook=prog_hook,
-                    **qreq_._indexer_request_params)
-            #elif index_method == 'multi':
+                    qreq_,
+                    verbose=verbose,
+                    prog_hook=prog_hook,
+                    **qreq_._indexer_request_params,
+                )
+            # elif index_method == 'multi':
             #    if ut.VERYVERBOSE or verbose:
             #        print('[qreq] loading multi indexer normalizer')
             #    indexer = multi_index.request_wbia_mindexer(
             #        qreq_, verbose=verbose)
             else:
                 raise ValueError('unknown index_method=%r' % (index_method,))
-            #if qreq_.prog_hook is not None:
+            # if qreq_.prog_hook is not None:
             #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer
             return True
@@ -1245,12 +1268,15 @@ class QueryRequest(ut.NiceRepr):
             cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.get_qreq_pcc_uuids(qaid_list)
         for qaid, qauuid in zip(qaid_list, qauuid_list):
-            fname = chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
-                                                   cfgstr=cfgstr)
+            fname = chip_match.get_chipmatch_fname(
+                qaid, qreq_, qauuid=qauuid, cfgstr=cfgstr
+            )
             fpath = join(dpath, fname)
             yield fpath
 
-    def execute(qreq_, qaids=None, prog_hook=None, use_cache=None, invalidate_supercache=None):
+    def execute(
+        qreq_, qaids=None, prog_hook=None, use_cache=None, invalidate_supercache=None
+    ):
         r"""
         Runs the hotspotter pipeline and returns chip match objects.
 
@@ -1271,18 +1297,27 @@ class QueryRequest(ut.NiceRepr):
         """
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
-            cm_list = shallow_qreq_.execute(prog_hook=prog_hook, use_cache=use_cache,
-                                            invalidate_supercache=invalidate_supercache)
-            #cm_list = qreq_.ibs.query_chips(
+            cm_list = shallow_qreq_.execute(
+                prog_hook=prog_hook,
+                use_cache=use_cache,
+                invalidate_supercache=invalidate_supercache,
+            )
+            # cm_list = qreq_.ibs.query_chips(
             #    qreq_=shallow_qreq_, use_bigcache=False )
         else:
             from wbia.algo.hots import match_chips4 as mc4
+
             # Send query to hotspotter (runs the query)
             qreq_.prog_hook = prog_hook
             cm_list = mc4.submit_query_request(
-                qreq_, use_cache=use_cache, use_bigcache=use_cache, verbose=True,
-                save_qcache=use_cache, use_supercache=False,
-                invalidate_supercache=invalidate_supercache)
+                qreq_,
+                use_cache=use_cache,
+                use_bigcache=use_cache,
+                verbose=True,
+                save_qcache=use_cache,
+                use_supercache=False,
+                invalidate_supercache=invalidate_supercache,
+            )
         return cm_list
 
 
@@ -1297,6 +1332,7 @@ def cfg_deepcopy_test():
         >>> print(result)
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     cfg1 = ibs.cfg.query_cfg
     cfg2 = cfg1.deepcopy()
@@ -1318,5 +1354,6 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.query_request --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

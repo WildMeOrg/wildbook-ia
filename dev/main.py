@@ -16,5 +16,6 @@ from wbia.__main__ import run_wbia
 
 if __name__ == '__main__':
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     run_wbia()

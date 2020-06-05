@@ -2,6 +2,7 @@
 # flake8:noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+
 ut.noinject(__name__, '[__PYQT__.__init__]')
 from . import _internal
 
@@ -29,19 +30,26 @@ def QVariantHack(*args):
         raise NotImplementedError(str(args))
 
 
-
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
+
     def _fromUtf8(s):
         return s
+
+
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
     _encoding = ut.identity
+
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig)
-#print('__pyqt5__2')
+
+
+# print('__pyqt5__2')

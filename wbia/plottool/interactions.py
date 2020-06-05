@@ -11,8 +11,7 @@ def check_if_subinteract(func):
         if ut.VERBOSE:
             print('Checking if subinteraction')
             print('func = %r' % (func,))
-        is_sub = issubclass(
-            func, abstract_interaction.AbstractInteraction)
+        is_sub = issubclass(func, abstract_interaction.AbstractInteraction)
     except TypeError:
         is_sub = False
     if ut.VERBOSE:
@@ -50,6 +49,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         >>> inter.start()
         >>> pt.show_if_requested()
     """
+
     def __init__(self, fnum=None, _pnumiter=None, interactive=None, **kwargs):
         self.nRows = kwargs.get('nRows', None)
         self.nCols = kwargs.get('nCols', None)
@@ -102,9 +102,11 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
             *args: args to be passed to func
             **kwargs: kwargs to be passed to func
         """
+
         def _partial(fnum=None, pnum=None):
             pt.figure(fnum=fnum, pnum=pnum)
             func(*args, **kwargs)
+
         self.append_plot(_partial)
         # pnum = None
         # if pnum is None:
@@ -120,12 +122,13 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         if self.fig is None:
             raise AssertionError('fig is None, did you run interction.start()?')
         import wbia.plottool as pt
+
         fig = ih.begin_interaction('expandable', self.fnum)
         if not any(self.pnum_list):
             # If no pnum was given, find a set that agrees with constraints
-            self.nRows, self.nCols = pt.get_num_rc(len(self.pnum_list),
-                                                   nRows=self.nRows,
-                                                   nCols=self.nCols)
+            self.nRows, self.nCols = pt.get_num_rc(
+                len(self.pnum_list), nRows=self.nRows, nCols=self.nCols
+            )
             nSubplots = len(self.func_list)
             pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols, nSubplots=nSubplots)
             pnum_list = [pnum_() for _ in self.pnum_list]
@@ -144,13 +147,12 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 try:
                     func(fnum=self.fnum, pnum=pnum)
                 except Exception as ex:
-                    ut.printex(ex, 'failed plotting', keys=[
-                        'func', 'fnum', 'pnum'])
+                    ut.printex(ex, 'failed plotting', keys=['func', 'fnum', 'pnum'])
                     raise
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
             pt.set_plotdat(ax, 'expandable_index', index)
-        #if self.interactive is None or self.interactive:
+        # if self.interactive is None or self.interactive:
         #    ih.connect_callback(fig, 'button_press_event', self.onclick)
         self.connect_callbacks()
         self.fig = fig
@@ -167,7 +169,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 if ut.VERBOSE:
                     print('calling func = %r' % (func,))
                 fnum = pt.next_fnum()
-                #pt.figure(fnum=fnum)
+                # pt.figure(fnum=fnum)
                 pnum = (1, 1, 1)
                 index = pt.get_plotdat(ax, 'expandable_index', None)
                 if index is not None:
@@ -183,13 +185,13 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                     elif hasattr(func, 'plot'):
                         inter = func
                         inter.start()
-                        #func.plot(fnum=self.fnum, pnum=pnum)
+                        # func.plot(fnum=self.fnum, pnum=pnum)
                     else:
                         func(fnum=fnum, pnum=pnum)
-                    #inter.show_page()
+                    # inter.show_page()
                 fig = pt.gcf()
                 pt.show_figure(fig)
-                #extra
+                # extra
 
 
 def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
@@ -202,7 +204,7 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
         ax = pt.gca()
 
     def zoom_fun(event):
-        #print('zooming')
+        # print('zooming')
         # get the current x and y limits
         cur_xlim = ax.get_xlim()
         cur_ylim = ax.get_ylim()
@@ -240,7 +242,7 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
     # attach the call back
     fig.canvas.mpl_connect('scroll_event', zoom_fun)
 
-    #return the function
+    # return the function
     return zoom_fun
 
 
@@ -277,11 +279,11 @@ class PanEvents(object):
         self.cidKeyR = None
         self.cidScroll = None
         self.ax = ax
-        #if ax is None:
+        # if ax is None:
         #    import wbia.plottool as pt
         #    ax = pt.gca()
-        #self.ax = ax
-        #self.connect()
+        # self.ax = ax
+        # self.connect()
 
     def pan_on_press(self, event):
         if event.button != 1:
@@ -325,6 +327,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.interactions --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

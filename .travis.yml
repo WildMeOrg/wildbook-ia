@@ -11,7 +11,7 @@ env:
 language: python
 sudo: false
 
-cache: 
+cache:
     apt: true
     directories:
         - $HOME/.pip-cache
@@ -31,13 +31,13 @@ before_install:
   - pip install -r requirements.txt -U
 
 install:
-  - | 
+  - |
       MB_PYTHON_TAG="py2.py3-none-any"
-      VERSION=$(python -c "import setup; print(setup.VERSION)") 
+      VERSION=$(python -c "import setup; print(setup.VERSION)")
       echo "VERSION = $VERSION"
       echo "MB_PYTHON_TAG = $MB_PYTHON_TAG"
-  - | 
-      python setup.py bdist_wheel --universal 
+  - |
+      python setup.py bdist_wheel --universal
   - |
       BDIST_WHEEL_PATH=$(ls dist/*-$VERSION-$MB_PYTHON_TAG*.whl)
       echo "BDIST_WHEEL_PATH = $BDIST_WHEEL_PATH"
@@ -46,17 +46,17 @@ install:
   - python -m wbia --set-workdir ~/data/work --preload-exit
   - python -m wbia --get-workdir --preload-exit
   - python dev/reset_dbs.py
-    
-script: 
+
+script:
   - travis_wait ./run_doctests.sh
 
-after_success: 
-    - codecov 
+after_success:
+    - codecov
     - gpg --version
     - gpg2 --version
     - export GPG_EXECUTABLE=gpg2
     - openssl version
-    - | 
+    - |
         __heredoc__='''
         # Load or generate secrets
         source $(secret_loader.sh)
@@ -65,8 +65,8 @@ after_success:
         echo $CI_GITHUB_SECRET
 
         # encrypt relevant travis variables
-        travis encrypt TWINE_USERNAME=$TWINE_USERNAME 
-        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD  
+        travis encrypt TWINE_USERNAME=$TWINE_USERNAME
+        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD
         travis encrypt CI_GITHUB_SECRET=$CI_GITHUB_SECRET
 
         # HOW TO ENCRYPT YOUR SECRET GPG KEY
@@ -164,12 +164,12 @@ after_success:
     - $GPG_EXECUTABLE --version
     - openssl version
     - $GPG_EXECUTABLE --list-keys
-    - TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
+    - TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
     - TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
-    - TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
+    - TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
     - $GPG_EXECUTABLE --list-keys
     - MB_PYTHON_TAG=$(python -c "import setup; print(setup.native_mb_python_tag())")
-    - VERSION=$(python -c "import setup; print(setup.VERSION)") 
+    - VERSION=$(python -c "import setup; print(setup.VERSION)")
     - |
         pip install twine
         if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -188,7 +188,7 @@ after_success:
         KEYID=$(cat dev/public_gpg_key)
         echo "KEYID = '$KEYID'"
         if [[ "$TRAVIS_BRANCH" == "release" ]]; then
-            # use set +x to log all intermediate commands 
+            # use set +x to log all intermediate commands
             export CURRENT_BRANCH=$TRAVIS_BRANCH
             TAG_AND_UPLOAD=yes
         else

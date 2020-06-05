@@ -47,8 +47,7 @@ VIEWPOINT_MAPPING = {
     7: 'backleft',
 }
 VIEWPOINT_MAPPING_INVERT = {
-    value: key for key, value in VIEWPOINT_MAPPING.items()
-    if key is not None
+    value: key for key, value in VIEWPOINT_MAPPING.items() if key is not None
 }
 
 
@@ -80,13 +79,24 @@ class NavbarClass(object):
 
 
 def resize_via_web_parameters(image):
-    w_pix = request.args.get('resize_pix_w',      request.form.get('resize_pix_w',      None ))
-    h_pix = request.args.get('resize_pix_h',      request.form.get('resize_pix_h',      None ))
-    w_per = request.args.get('resize_per_w',      request.form.get('resize_per_w',      None ))
-    h_per = request.args.get('resize_per_h',      request.form.get('resize_per_h',      None ))
-    _pix  = request.args.get('resize_prefer_pix', request.form.get('resize_prefer_pix', False))
-    _per  = request.args.get('resize_prefer_per', request.form.get('resize_prefer_per', False))
-    args = (w_pix, h_pix, w_per, h_per, _pix, _per, )
+    w_pix = request.args.get('resize_pix_w', request.form.get('resize_pix_w', None))
+    h_pix = request.args.get('resize_pix_h', request.form.get('resize_pix_h', None))
+    w_per = request.args.get('resize_per_w', request.form.get('resize_per_w', None))
+    h_per = request.args.get('resize_per_h', request.form.get('resize_per_h', None))
+    _pix = request.args.get(
+        'resize_prefer_pix', request.form.get('resize_prefer_pix', False)
+    )
+    _per = request.args.get(
+        'resize_prefer_per', request.form.get('resize_prefer_per', False)
+    )
+    args = (
+        w_pix,
+        h_pix,
+        w_per,
+        h_per,
+        _pix,
+        _per,
+    )
     print('CHECKING RESIZING WITH %r pix, %r pix, %r %%, %r %% [%r, %r]' % args)
     # Check for nothing
     if not (w_pix or h_pix or w_per or h_per):
@@ -112,6 +122,7 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
     """ Creates an image embedded in HTML base64 format. """
     import cv2
     from PIL import Image
+
     if target_width is not None:
         imgBGR = _resize(imgBGR, t_width=target_width)
     elif target_height is not None:
@@ -120,11 +131,13 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
     pil_img = Image.fromarray(imgRGB)
     if six.PY2:
         from six.moves import cStringIO as StringIO
+
         string_buf = StringIO()
         pil_img.save(string_buf, format='jpeg')
         data = string_buf.getvalue().encode('base64').replace('\n', '')
     else:
         import io
+
         byte_buf = io.BytesIO()
         pil_img.save(byte_buf, format='jpeg')
         byte_buf.seek(0)
@@ -134,7 +147,7 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
 
 
 def check_valid_function_name(string):
-    return all([ char.isalpha() or char == '_' or char.isalnum() for char in string])
+    return all([char.isalpha() or char == '_' or char.isalnum() for char in string])
 
 
 def encode_refer_url(decoded):
@@ -163,29 +176,29 @@ def decode_refer_url(encoded):
 def template(template_directory=None, template_filename=None, **kwargs):
     ibs = current_app.ibs
     global_args = {
-        'NAVBAR'             : NavbarClass(),
-        'YEAR'               : date.today().year,
-        'URL'                : flask.request.url,
-        'REFER_SRC_STR'      : flask.request.url.replace(flask.request.url_root, ''),
-        '__login__'          : flask.request.url_rule.rule == url_for('login'),
-        '__wrapper__'        : True,
-        '__wrapper_header__' : True,
-        '__wrapper_footer__' : True,
-        '__containerized__'  : ibs.containerized,
-        '__https__'          : ibs.https,
-        'user'               : controller_inject.get_user(),
+        'NAVBAR': NavbarClass(),
+        'YEAR': date.today().year,
+        'URL': flask.request.url,
+        'REFER_SRC_STR': flask.request.url.replace(flask.request.url_root, ''),
+        '__login__': flask.request.url_rule.rule == url_for('login'),
+        '__wrapper__': True,
+        '__wrapper_header__': True,
+        '__wrapper_footer__': True,
+        '__containerized__': ibs.containerized,
+        '__https__': ibs.https,
+        'user': controller_inject.get_user(),
         'GOOGLE_MAPS_API_KEY': '<<INSERT GOOGLE API KEY>>',
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():
         refer = flask.request.args['refer']
-        print('[web] REFER: %r' % (refer, ))
+        print('[web] REFER: %r' % (refer,))
         global_args['REFER_DST_ENCODED'] = refer
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
         template_directory = ''
-        #template_directory = abspath(join(dirname(__file__), 'templates'))
-        #template_directory = join(dirname(dirname(__file__)))
+        # template_directory = abspath(join(dirname(__file__), 'templates'))
+        # template_directory = join(dirname(dirname(__file__)))
     if template_filename is None:
         template_filename = 'index'
     template_ = join(template_directory, template_filename + '.html')
@@ -202,7 +215,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
     print('[appfuncs.template] * template_ = %r' % (template_,))
     try:
         ret = flask.render_template(template_, **_global_args)
-        #ret = flask.render_template(full_template_fpath, **_global_args)
+        # ret = flask.render_template(full_template_fpath, **_global_args)
     except jinja2.exceptions.TemplateNotFound as ex:
         print('Error template not found')
         full_template_fpath = join(app.template_folder, template_)
@@ -231,6 +244,7 @@ def get_turk_image_args(is_reviewed_func):
     Helper to return gids in an imageset or a group review
     """
     ibs = current_app.ibs
+
     def _ensureid(_id):
         return None if _id == 'None' or _id == '' else int(_id)
 
@@ -243,7 +257,7 @@ def get_turk_image_args(is_reviewed_func):
 
     try:
         num_reviewed = reviewed_list.count(True)
-        progress = '%0.2f' % (100.0 * num_reviewed / len(gid_list), )
+        progress = '%0.2f' % (100.0 * num_reviewed / len(gid_list),)
     except ZeroDivisionError:
         progress = '0.00'
     gid = request.args.get('gid', '')
@@ -267,6 +281,7 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     Helper to return aids in an imageset or a group review
     """
     ibs = current_app.ibs
+
     def _ensureid(_id):
         return None if _id == 'None' or _id == '' else int(_id)
 
@@ -294,10 +309,10 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
         src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
         dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
         aid_list = src_aid_list
-        reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
+        reviewed_list = [src_aid in dst_aid_list for src_aid in src_aid_list]
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
     except ZeroDivisionError:
         progress = '0.00'
     aid = request.args.get('aid', '')
@@ -316,7 +331,7 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     previous = request.args.get('previous', None)
 
     print('aid = %r' % (aid,))
-    #print(ut.repr2(ibs.get_annot_info(aid)))
+    # print(ut.repr2(ibs.get_annot_info(aid)))
     # if aid is not None:
     #     print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
     return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
@@ -390,7 +405,7 @@ def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3)
 
         # ibs.set_image_reviewed(gid_list, update_reviewed_list)
     else:
-        images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
+        images_reviewed = [reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list)]
     return images_reviewed
 
 
@@ -414,7 +429,9 @@ def imageset_annot_canonical(ibs, aid_list, canonical_part_type=CANONICAL_PART_T
     part_types_list = list(map(ibs.get_part_types, part_rowids_list))
 
     annots_reviewed = []
-    for aid, part_rowid_list, part_type_list in zip(aid_list, part_rowids_list, part_types_list):
+    for aid, part_rowid_list, part_type_list in zip(
+        aid_list, part_rowids_list, part_types_list
+    ):
         reviewed = False
         for part_rowid, part_type in zip(part_rowid_list, part_type_list):
             if part_type == canonical_part_type:
@@ -425,36 +442,47 @@ def imageset_annot_canonical(ibs, aid_list, canonical_part_type=CANONICAL_PART_T
 
 
 def imageset_image_cameratrap_processed(ibs, gid_list):
-    images_reviewed = [ flag is not None for flag in ibs.get_image_cameratrap(gid_list) ]
+    images_reviewed = [flag is not None for flag in ibs.get_image_cameratrap(gid_list)]
     return images_reviewed
 
 
 def imageset_annot_processed(ibs, aid_list):
-    annots_reviewed = [ reviewed == 1 for reviewed in ibs.get_annot_reviewed(aid_list) ]
+    annots_reviewed = [reviewed == 1 for reviewed in ibs.get_annot_reviewed(aid_list)]
     return annots_reviewed
 
 
 def imageset_annot_viewpoint_processed(ibs, aid_list):
-    annots_reviewed = [ reviewed is not None for reviewed in ibs.get_annot_viewpoints(aid_list) ]
+    annots_reviewed = [
+        reviewed is not None for reviewed in ibs.get_annot_viewpoints(aid_list)
+    ]
     return annots_reviewed
 
 
 def imageset_annot_quality_processed(ibs, aid_list):
-    annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in ibs.get_annot_qualities(aid_list) ]
+    annots_reviewed = [
+        reviewed is not None and reviewed is not -1
+        for reviewed in ibs.get_annot_qualities(aid_list)
+    ]
     return annots_reviewed
 
 
 def imageset_part_type_processed(ibs, part_rowid_list, reviewed_flag_progress=True):
     if reviewed_flag_progress:
-        parts_reviewed = [ reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list) ]
+        parts_reviewed = [
+            reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list)
+        ]
     else:
-        parts_reviewed = [ reviewed is not None for reviewed in ibs.get_part_types(part_rowid_list) ]
+        parts_reviewed = [
+            reviewed is not None for reviewed in ibs.get_part_types(part_rowid_list)
+        ]
     return parts_reviewed
 
 
 def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress=True):
     if reviewed_flag_progress:
-        parts_reviewed = [ reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list) ]
+        parts_reviewed = [
+            reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list)
+        ]
     else:
         parts_reviewed = []
         contour_dict_list = ibs.get_part_contour(part_rowid_list)
@@ -467,20 +495,17 @@ def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress
 
 
 def imageset_annot_demographics_processed(ibs, aid_list):
-    print('[demographics] Check %d total annotations' % (len(aid_list), ))
+    print('[demographics] Check %d total annotations' % (len(aid_list),))
 
     nid_list = ibs.get_annot_nids(aid_list)
-    flag_list = [ nid <= 0 for nid in nid_list ]
+    flag_list = [nid <= 0 for nid in nid_list]
     aid_list_ = ut.filterfalse_items(aid_list, flag_list)
-    print('[demographics] Found %d named annotations' % (len(aid_list_), ))
+    print('[demographics] Found %d named annotations' % (len(aid_list_),))
 
     sex_list = ibs.get_annot_sex(aid_list_)
-    sex_dict = {
-        aid: sex in [0, 1, 2]
-        for aid, sex in zip(aid_list_, sex_list)
-    }
+    sex_dict = {aid: sex in [0, 1, 2] for aid, sex in zip(aid_list_, sex_list)}
     value_list = list(sex_dict.values())
-    print('[demographics] Found %d set sex annotations' % (sum(value_list), ))
+    print('[demographics] Found %d set sex annotations' % (sum(value_list),))
 
     age_list = ibs.get_annot_age_months_est(aid_list)
     age_dict = {
@@ -488,14 +513,13 @@ def imageset_annot_demographics_processed(ibs, aid_list):
         for aid, age in zip(aid_list, age_list)
     }
     value_list = list(age_dict.values())
-    print('[demographics] Found %d set age annotations' % (sum(value_list), ))
+    print('[demographics] Found %d set age annotations' % (sum(value_list),))
 
     annots_reviewed = [
-        sex_dict.get(aid, True) and age_dict.get(aid, True)
-        for aid in aid_list
+        sex_dict.get(aid, True) and age_dict.get(aid, True) for aid in aid_list
     ]
     value_list = annots_reviewed
-    print('[demographics] Found %d reviewed annotations' % (sum(value_list), ))
+    print('[demographics] Found %d reviewed annotations' % (sum(value_list),))
     return annots_reviewed
 
 
@@ -514,16 +538,14 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
         dt = record.timestamp
         dt = datetime(year, month, day, dt.hour, dt.minute, dt.second)
         # Gather values
-        posix = int(dt.strftime("%s"))
-        posix += (60 * 60 * GMT_OFFSET)
-        lat   = float(record.latitude)
-        lon   = float(record.longitude)
-        json_list.append({
-            'time': posix,
-            'lat':  lat,
-            'lon':  lon,
-        })
-    return json.dumps({ "track": json_list })
+        posix = int(dt.strftime('%s'))
+        posix += 60 * 60 * GMT_OFFSET
+        lat = float(record.latitude)
+        lon = float(record.longitude)
+        json_list.append(
+            {'time': posix, 'lat': lat, 'lon': lon,}
+        )
+    return json.dumps({'track': json_list})
 
 
 def convert_tuple_to_viewpoint(viewpoint_tuple):
@@ -533,7 +555,7 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         return None
     else:
         viewpoint_text = '__'.join(map(str, viewpoint_list))
-        viewpoint_text = '_%s_' % (viewpoint_text, )
+        viewpoint_text = '_%s_' % (viewpoint_text,)
         viewpoint_text = viewpoint_text.replace('_-1_', '')
         viewpoint_text = viewpoint_text.replace('_0_', 'up')
         viewpoint_text = viewpoint_text.replace('_1_', 'down')
@@ -541,7 +563,10 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         viewpoint_text = viewpoint_text.replace('_3_', 'back')
         viewpoint_text = viewpoint_text.replace('_4_', 'left')
         viewpoint_text = viewpoint_text.replace('_5_', 'right')
-        assert viewpoint_text in const.VIEW.CODE_TO_INT, 'Value %r not in acceptable %s' % (viewpoint_text, ut.repr3(const.VIEW.CODE_TO_INT))
+        assert viewpoint_text in const.VIEW.CODE_TO_INT, (
+            'Value %r not in acceptable %s'
+            % (viewpoint_text, ut.repr3(const.VIEW.CODE_TO_INT))
+        )
         return viewpoint_text
 
 
@@ -551,14 +576,14 @@ def convert_viewpoint_to_tuple(viewpoint_text):
     elif viewpoint_text == 'unknown':
         return (-1, -1, -1)
     else:
-        viewpoint_text = viewpoint_text.replace('up',    '_0_')
-        viewpoint_text = viewpoint_text.replace('down',  '_1_')
+        viewpoint_text = viewpoint_text.replace('up', '_0_')
+        viewpoint_text = viewpoint_text.replace('down', '_1_')
         viewpoint_text = viewpoint_text.replace('front', '_2_')
-        viewpoint_text = viewpoint_text.replace('back',  '_3_')
-        viewpoint_text = viewpoint_text.replace('left',  '_4_')
+        viewpoint_text = viewpoint_text.replace('back', '_3_')
+        viewpoint_text = viewpoint_text.replace('left', '_4_')
         viewpoint_text = viewpoint_text.replace('right', '_5_')
         viewpoint_list = viewpoint_text.split('_')
-        viewpoint_list = [ _ for _ in viewpoint_list if len(_) > 0 ]
+        viewpoint_list = [_ for _ in viewpoint_list if len(_) > 0]
         assert 1 <= len(viewpoint_list) and len(viewpoint_list) <= 3
         viewpoint_list = map(int, viewpoint_list)
         viewpoint_list = list(sorted(viewpoint_list))
@@ -574,12 +599,14 @@ def _resize(image, t_width=None, t_height=None):
     """
     if False:
         import vtool as vt
+
         maxdims = (int(round(t_width)), int(round(t_height)))
         interpolation = 'linear'
         return vt.resize_to_maxdims(image, maxdims, interpolation)
     else:
         import cv2
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
         height, width = image.shape[:2]
         if t_width is None and t_height is None:
             return image
@@ -592,8 +619,9 @@ def _resize(image, t_width=None, t_height=None):
         t_width, t_height = float(t_width), float(t_height)
         t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
         assert t_width > 0 and t_height > 0, 'target size too small'
-        assert t_width <= width * 100 and t_height <= height * 100, (
-            'target size too large (capped at 10,000%)')
+        assert (
+            t_width <= width * 100 and t_height <= height * 100
+        ), 'target size too large (capped at 10,000%)'
         # interpolation = cv2.INTER_LANCZOS4
         interpolation = cv2.INTER_LINEAR
         return cv2.resize(image, (t_width, t_height), interpolation=interpolation)

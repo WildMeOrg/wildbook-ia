@@ -11,6 +11,7 @@ http://www.linuxjournal.com/content/bash-brace-expansion
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -22,40 +23,54 @@ def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
                 # does removing prefix make it stanard?
                 prefix = cfgtype[0]
                 if key.startswith(prefix):
-                    key_ = key[len(prefix):]
+                    key_ = key[len(prefix) :]
                     if key_ in cfg or key_ in alias_keys:
                         # remove prefix
                         cfg_options[key_] = cfg_options[key]
                 try:
-                    assert key[1:] in cfg or key[1:] in alias_keys, (
-                        'key=%r, key[1:] =%r' % (key, key[1:] ))
+                    assert (
+                        key[1:] in cfg or key[1:] in alias_keys
+                    ), 'key=%r, key[1:] =%r' % (key, key[1:])
                 except AssertionError as ex:
-                    ut.printex(ex, 'Parse Error Customize Cfg Base ',
-                               keys=['key', 'cfg', 'alias_keys',
-                                     'cfgstr_options', 'cfgtype'])
+                    ut.printex(
+                        ex,
+                        'Parse Error Customize Cfg Base ',
+                        keys=['key', 'cfg', 'alias_keys', 'cfgstr_options', 'cfgtype'],
+                    )
                     raise
                 del cfg_options[key]
 
 
-@ut.on_exception_report_input(keys=['cfgname', 'cfgopt_strs', 'base_cfg',
-                                    'cfgtype', 'alias_keys', 'valid_keys'],
-                              force=True)
-def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
-                       alias_keys=None, valid_keys=None, offset=0,
-                       strict=True):
+@ut.on_exception_report_input(
+    keys=['cfgname', 'cfgopt_strs', 'base_cfg', 'cfgtype', 'alias_keys', 'valid_keys'],
+    force=True,
+)
+def customize_base_cfg(
+    cfgname,
+    cfgopt_strs,
+    base_cfg,
+    cfgtype,
+    alias_keys=None,
+    valid_keys=None,
+    offset=0,
+    strict=True,
+):
     """
     DEPRICATE
     """
     import re
+
     cfg = base_cfg.copy()
     # Parse dict out of a string
-    #ANYTHING_NOT_BRACE = r'[^\[\]]*\]'
+    # ANYTHING_NOT_BRACE = r'[^\[\]]*\]'
     ANYTHING_NOT_PAREN_OR_BRACE = r'[^()\[\]]*[\]\)]'
     cfgstr_options_list = re.split(
-        r',\s*' + ut.negative_lookahead(ANYTHING_NOT_PAREN_OR_BRACE), cfgopt_strs)
-    #cfgstr_options_list = cfgopt_strs.split(',')
+        r',\s*' + ut.negative_lookahead(ANYTHING_NOT_PAREN_OR_BRACE), cfgopt_strs
+    )
+    # cfgstr_options_list = cfgopt_strs.split(',')
     cfg_options = ut.parse_cfgstr_list(
-        cfgstr_list=cfgstr_options_list, smartcast=True, oldmode=False)
+        cfgstr_list=cfgstr_options_list, smartcast=True, oldmode=False
+    )
     # Hack for q/d-prefix specific configs
     remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys)
     # Remap keynames based on aliases
@@ -69,19 +84,19 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
     if strict:
         parsed_keys = cfg_options.keys()
         if valid_keys is not None:
-            ut.assert_all_in(parsed_keys, valid_keys,
-                             'keys specified not in valid set')
+            ut.assert_all_in(parsed_keys, valid_keys, 'keys specified not in valid set')
         else:
-            ut.assert_all_in(parsed_keys, cfg.keys(),
-                             'keys specified not in default options')
+            ut.assert_all_in(
+                parsed_keys, cfg.keys(), 'keys specified not in default options'
+            )
     # Finalize configuration dict
     cfg.update(cfg_options)
     cfg['_cfgtype'] = cfgtype
     cfg['_cfgname'] = cfgname
     cfg_combo = ut.all_dict_combinations(cfg)
-    #if len(cfg_combo) > 1:
+    # if len(cfg_combo) > 1:
     for combox, cfg_ in enumerate(cfg_combo, start=offset):
-        #cfg_['_cfgname'] += ';' + str(combox)
+        # cfg_['_cfgname'] += ';' + str(combox)
         cfg_['_cfgindex'] = combox
     for cfg_ in cfg_combo:
         if len(cfgopt_strs) > 0:
@@ -91,10 +106,18 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
     return cfg_combo
 
 
-def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
-                       alias_keys=None, valid_keys=None, expand_nested=True,
-                       strict=True, special_join_dict=None, is_nestedcfgtype=False,
-                       metadata=None):
+def parse_cfgstr_list2(
+    cfgstr_list,
+    named_defaults_dict=None,
+    cfgtype=None,
+    alias_keys=None,
+    valid_keys=None,
+    expand_nested=True,
+    strict=True,
+    special_join_dict=None,
+    is_nestedcfgtype=False,
+    metadata=None,
+):
     r"""
     Parses config strings. By looking up name in a dict of configs
 
@@ -167,10 +190,15 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 special_cfgstr_list = cfgstr.split('::')
                 special_combo_list = parse_cfgstr_list2(
                     special_cfgstr_list,
-                    named_defaults_dict=named_defaults_dict, cfgtype=cfgtype,
-                    alias_keys=alias_keys, valid_keys=valid_keys,
-                    strict=strict, expand_nested=expand_nested,
-                    is_nestedcfgtype=False, metadata=metadata)
+                    named_defaults_dict=named_defaults_dict,
+                    cfgtype=cfgtype,
+                    alias_keys=alias_keys,
+                    valid_keys=valid_keys,
+                    strict=strict,
+                    expand_nested=expand_nested,
+                    is_nestedcfgtype=False,
+                    metadata=metadata,
+                )
                 OLD = False
                 if OLD:
                     special_combo = ut.flatten(special_combo_list)
@@ -191,8 +219,8 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 if expand_nested:
                     cfg_combos.extend(cfg_combo)
                 else:
-                    #print('Appending: ' + str(ut.depth_profile(cfg_combo)))
-                    #if ut.depth_profile(cfg_combo) == [1, 9]:
+                    # print('Appending: ' + str(ut.depth_profile(cfg_combo)))
+                    # if ut.depth_profile(cfg_combo) == [1, 9]:
                     #    ut.embed()
                     cfg_combos_list.append(cfg_combo)
             else:
@@ -200,15 +228,24 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 # --
                 # Lookup named default settings
                 try:
-                    base_cfg_list = ut.lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=metadata)
+                    base_cfg_list = ut.lookup_base_cfg_list(
+                        cfgname, named_defaults_dict, metadata=metadata
+                    )
                 except Exception as ex:
                     ut.printex(ex, keys=['cfgstr_list'])
                     raise
                 # --
                 for base_cfg in base_cfg_list:
                     cfg_combo = customize_base_cfg(
-                        cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys,
-                        valid_keys, strict=strict, offset=len(cfg_combos))
+                        cfgname,
+                        cfgopt_strs,
+                        base_cfg,
+                        cfgtype,
+                        alias_keys,
+                        valid_keys,
+                        strict=strict,
+                        offset=len(cfg_combos),
+                    )
                     if is_nestedcfgtype:
                         cfg_combo = [cfg_combo]
                     if expand_nested:
@@ -216,17 +253,16 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                     else:
                         cfg_combos_list.append(cfg_combo)
             # SUBX Cannot work here because of acfg hackiness
-            #if subx is not None:
+            # if subx is not None:
             #    cfg_combo = ut.take(cfg_combo, subx)
             if expand_nested:
                 cfg_combos_list.append(cfg_combos)
         #    print('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))
-        #print('Returning len(cfg_combos_list) = %r' % (len(cfg_combos_list),))
+        # print('Returning len(cfg_combos_list) = %r' % (len(cfg_combos_list),))
     return cfg_combos_list
 
 
-def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
-                   valid_keys=None):
+def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=None):
     """ simple configs
 
     Args:
@@ -257,10 +293,12 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         cfgstr_list = ut.get_argval(argname, type_=list, default=default)
     if cfgstr_list is None:
         return None
-    cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
-                                         named_defaults_dict=named_defaults_dict,
-                                         valid_keys=valid_keys,
-                                         strict=False)
+    cfg_combos_list = parse_cfgstr_list2(
+        cfgstr_list,
+        named_defaults_dict=named_defaults_dict,
+        valid_keys=valid_keys,
+        strict=False,
+    )
     cfg_list = ut.flatten(cfg_combos_list)
     return cfg_list
 
@@ -273,6 +311,8 @@ if __name__ == '__main__':
         python -m wbia.expt.cfghelpers --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

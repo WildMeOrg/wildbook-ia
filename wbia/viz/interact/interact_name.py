@@ -25,12 +25,13 @@ from wbia.viz import viz_helpers as vh
 from wbia.other import ibsfuncs
 from wbia.viz import viz_chip
 from wbia.plottool.abstract_interaction import AbstractInteraction
+
 (print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 
 
-#==========================
+# ==========================
 # Name Interaction
-#==========================
+# ==========================
 
 MAX_COLS = 3
 
@@ -39,13 +40,21 @@ def build_name_context_options(ibs, nids):
     print('build_name_context_options nids = %r' % (nids,))
     callback_list = []
     from wbia.viz import viz_graph2
-    callback_list.extend([
-        ('New Split Interact (Name)', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
-    ])
+
+    callback_list.extend(
+        [
+            (
+                'New Split Interact (Name)',
+                functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids),
+            ),
+        ]
+    )
     return callback_list
 
 
-def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=True, **kwargs):
+def ishow_name(
+    ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=True, **kwargs
+):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -85,15 +94,23 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
-                if event.button == 3:   # right-click
+                if event.button == 3:  # right-click
                     import wbia.guitool
                     from wbia.viz.interact import interact_chip
+
                     height = fig.canvas.geometry().height()
                     qpoint = guitool.newQPoint(event.x, height - event.y)
-                    refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
+                    refresh_func = functools.partial(
+                        viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids
+                    )
                     interact_chip.show_annot_context_menu(
-                        ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
-                        with_interact_name=False)
+                        ibs,
+                        aid,
+                        fig.canvas,
+                        qpoint,
+                        refresh_func=refresh_func,
+                        with_interact_name=False,
+                    )
                 else:
                     viz.show_name(ibs, nid, fnum=fnum, sel_aids=[aid], in_image=True)
                     if select_aid_callback is not None:
@@ -132,12 +149,13 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
         >>> self.show_page()
         >>> ut.show_if_requested()
     """
-    #from wbia.viz.interact.interact_name import *  # NOQA
+    # from wbia.viz.interact.interact_name import *  # NOQA
     import wbia
-    #ibs = wbia.opendb(defaultdb='PZ_Master0')
+
+    # ibs = wbia.opendb(defaultdb='PZ_Master0')
     ibs = wbia.opendb(defaultdb=defaultdb)
-    #aid1 = ut.get_argval('--aid1', int, 14)
-    #aid2 = ut.get_argval('--aid2', int, 5545)
+    # aid1 = ut.get_argval('--aid1', int, 14)
+    # aid2 = ut.get_argval('--aid2', int, 5545)
     aid1 = ut.get_argval('--aid1', int, aid1)
     aid2 = ut.get_argval('--aid2', int, aid2)
     self = MatchVerificationInteraction(ibs, aid1, aid2, dodraw=False)
@@ -145,8 +163,17 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
 
 
 class MatchVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, aid1, aid2, update_callback=None,
-                 backend_callback=None, dodraw=True, max_cols=MAX_COLS, **kwargs):
+    def __init__(
+        self,
+        ibs,
+        aid1,
+        aid2,
+        update_callback=None,
+        backend_callback=None,
+        dodraw=True,
+        max_cols=MAX_COLS,
+        **kwargs,
+    ):
         if ut.VERBOSE:
             print('[matchver] __init__')
         if ut.VERBOSE or ut.is_developer():
@@ -157,20 +184,24 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.aid1 = aid1
         self.aid2 = aid2
         self.col_offset_list = [0, 0]
-        #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
+        # ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
         def _nonefn():
             return None
+
         if update_callback is None:
             update_callback = _nonefn
         if backend_callback is None:
             backend_callback = _nonefn
-        self.update_callback = update_callback  # if something like qt needs a manual refresh on change
+        self.update_callback = (
+            update_callback  # if something like qt needs a manual refresh on change
+        )
         self.backend_callback = backend_callback
         self.qres_callback = kwargs.get('qres_callback', None)
         self.cm = kwargs.get('cm', None)
         self.qreq_ = kwargs.get('qreq_', None)
         if self.cm is not None:
             from wbia.algo.hots import chip_match
+
             assert isinstance(self.cm, chip_match.ChipMatch)
             assert self.qreq_ is not None
         self.infer_data()
@@ -190,7 +221,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.name1, self.name2 = ibs.get_annot_names((aid1, aid2))
         self.other_valid_nids = []
         # The other annotations that belong to these two names
-        self.gts_list  = ibs.get_annot_groundtruth((aid1, aid2))
+        self.gts_list = ibs.get_annot_groundtruth((aid1, aid2))
         self.gt1, self.gt2 = self.gts_list
         # A flat list of all the aids we are looking at
         self.is_split_case = self.nid1 == self.nid2
@@ -225,7 +256,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         is_unknown = ibs.is_nid_unknown(unique_nid_list)
         is_name1 = [nid == self.nid1 for nid in unique_nid_list]
         is_name2 = [nid == self.nid2 for nid in unique_nid_list]
-        is_other = ut.and_lists(*tuple(map(ut.not_list, (is_name1, is_name2, is_unknown))))
+        is_other = ut.and_lists(
+            *tuple(map(ut.not_list, (is_name1, is_name2, is_unknown)))
+        )
         other_nid_list = ut.compress(unique_nid_list, is_other)
         return other_nid_list
 
@@ -293,6 +326,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             row_rotate_part = ut.list_roll(row_rotate_part_, -row_offset)
             row = row_nonrotate_part + row_rotate_part
             return row
+
         row_aids_list_ = [get_row(rowx) for rowx in range(self.nRows)]
         row_aids_list = list(filter(lambda x: len(x) > 0, row_aids_list_))
         return row_aids_list
@@ -304,13 +338,15 @@ class MatchVerificationInteraction(AbstractInteraction):
         """
         modbase = len(self.get_rotating_columns(rowx))
         self.col_offset_list[rowx] = (1 + self.col_offset_list[rowx]) % modbase
-        #self.gts_list[rowx] = list_roll(self.gts_list[rowx], -(self.nCols - 1))
+        # self.gts_list[rowx] = list_roll(self.gts_list[rowx], -(self.nCols - 1))
         self.show_page(onlyrows=[rowx], fulldraw=False)
 
     def prepare_page(self, fulldraw=True):
-        figkw = {'fnum': self.fnum,
-                 'doclf': fulldraw,
-                 'docla': fulldraw, }
+        figkw = {
+            'fnum': self.fnum,
+            'doclf': fulldraw,
+            'docla': fulldraw,
+        }
         if fulldraw:
             self.fig = pt.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
@@ -325,39 +361,53 @@ class MatchVerificationInteraction(AbstractInteraction):
         """
         if ut.VERBOSE:
             if not fulldraw:
-                print('[matchver] show_page(fulldraw=%r, onlyrows=%r)' % (fulldraw, onlyrows))
+                print(
+                    '[matchver] show_page(fulldraw=%r, onlyrows=%r)'
+                    % (fulldraw, onlyrows)
+                )
             else:
                 print('[matchver] show_page(fulldraw=%r)' % (fulldraw))
         self.prepare_page(fulldraw=fulldraw)
         # Variables we will work with to paint a pretty picture
         ibs = self.ibs
         nRows = self.nRows
-        colpad = 1 if  self.cm is not None else 0
+        colpad = 1 if self.cm is not None else 0
         nCols = self.nCols + colpad
 
         # Distinct color for every unique name
-        unique_nids = ut.unique_ordered(ibs.get_annot_name_rowids(self.all_aid_list, distinguish_unknowns=False))
-        unique_colors = pt.distinct_colors(len(unique_nids), brightness=.7, hue_range=(.05, .95))
+        unique_nids = ut.unique_ordered(
+            ibs.get_annot_name_rowids(self.all_aid_list, distinguish_unknowns=False)
+        )
+        unique_colors = pt.distinct_colors(
+            len(unique_nids), brightness=0.7, hue_range=(0.05, 0.95)
+        )
         self.nid2_color = dict(zip(unique_nids, unique_colors))
 
         row_aids_list = self.get_row_aids_list()
 
         if self.cm is not None:
-            print("DRAWING QRES")
+            print('DRAWING QRES')
             pnum = (1, nCols, 1)
             if not fulldraw:
                 # not doing full draw so we have to clear any axes
                 # that are here already manually
                 ax = self.fig.add_subplot(*pnum)
                 self.clear_parent_axes(ax)
-            self.cm.show_single_annotmatch(self.qreq_, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False)
+            self.cm.show_single_annotmatch(
+                self.qreq_,
+                self.aid2,
+                fnum=self.fnum,
+                pnum=pnum,
+                draw_fmatch=True,
+                colorbar_=False,
+            )
 
         # For each row
         for rowx, aid_list in enumerate(row_aids_list):
             offset = rowx * nCols + 1
             if onlyrows is not None and rowx not in onlyrows:
                 continue
-            #ibsfuncs.assert_valid_aids(ibs, groundtruth)
+            # ibsfuncs.assert_valid_aids(ibs, groundtruth)
             # For each column
             for colx, aid in enumerate(aid_list, start=colpad):
                 if colx >= nCols:
@@ -374,25 +424,32 @@ class MatchVerificationInteraction(AbstractInteraction):
                     print('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
                     raise
                 px = colx + offset
-                ax = self.plot_chip(int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw)
+                ax = self.plot_chip(
+                    int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw
+                )
                 # If there are still more in this row to display
                 if colx + 1 < len(aid_list) and colx + 1 >= nCols:
                     total_indices = len(aid_list)
                     current_index = self.col_offset_list[rowx] + 1
                     next_text = 'next\n%d/%d' % (current_index, total_indices)
                     next_func = functools.partial(self.rotate_row, rowx=rowx)
-                    self.append_button(next_text, callback=next_func,
-                                       location='right', size='33%', ax=ax)
+                    self.append_button(
+                        next_text,
+                        callback=next_func,
+                        location='right',
+                        size='33%',
+                        ax=ax,
+                    )
 
         if fulldraw:
             self.show_hud()
-            hspace = .05 if (self.nCols) > 1 else .1
+            hspace = 0.05 if (self.nCols) > 1 else 0.1
             subplotspar = {
-                'left': .1,
-                'right': .9,
-                'top': .85,
-                'bottom': .1,
-                'wspace': .3,
+                'left': 0.1,
+                'right': 0.9,
+                'top': 0.85,
+                'bottom': 0.1,
+                'wspace': 0.3,
                 'hspace': hspace,
             }
             pt.adjust_subplots(**subplotspar)
@@ -400,7 +457,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show()
         if bring_to_front:
             self.bring_to_front()
-        #self.update()
+        # self.update()
 
     def plot_chip(self, aid, nRows, nCols, px, fulldraw=True, **kwargs):
         """ Plots an individual chip in a subaxis """
@@ -419,8 +476,8 @@ class MatchVerificationInteraction(AbstractInteraction):
             # that are here already manually
             ax = self.fig.add_subplot(*pnum)
             self.clear_parent_axes(ax)
-            #ut.embed()
-            #print(subax)
+            # ut.embed()
+            # print(subax)
 
         viz_chip_kw = {
             'fnum': self.fnum,
@@ -450,7 +507,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ax = pt.gca()
         pt.draw_border(ax, color=kwargs.get('color'), lw=lw)
         if kwargs.get('make_buttons', True):
-            #divider = pt.ensure_divider(ax)
+            # divider = pt.ensure_divider(ax)
             butkw = {
                 #'divider': divider,
                 'ax': ax,
@@ -463,12 +520,20 @@ class MatchVerificationInteraction(AbstractInteraction):
         if not annotation_unknown:
             # remove name
             callback = functools.partial(self.unname_annotation, aid)
-            self.append_button('remove name (' + ibs.get_name_texts(nid) + ')', callback=callback, **butkw)
+            self.append_button(
+                'remove name (' + ibs.get_name_texts(nid) + ')',
+                callback=callback,
+                **butkw,
+            )
         else:
             # new name
             callback = functools.partial(self.mark_annotation_as_new_name, aid)
             self.append_button('mark as new name', callback=callback, **butkw)
-        if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0] and not self.is_split_case:
+        if (
+            nid != self.nid2
+            and not ibs.is_nid_unknown([self.nid2])[0]
+            and not self.is_split_case
+        ):
             # match to nid2
             callback = functools.partial(self.rename_annotation, aid, self.nid2)
             text = 'match to name2: ' + ibs.get_name_texts(self.nid2)
@@ -508,12 +573,15 @@ class MatchVerificationInteraction(AbstractInteraction):
             >>> pt.show_if_requested()
         """
         # Button positioners
-        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=.15, h=.063,
-                                                     xpad=.02, startx=0, stopx=1)
+        hl_slot, hr_slot = pt.make_bbox_positioners(
+            y=0.02, w=0.15, h=0.063, xpad=0.02, startx=0, stopx=1
+        )
         # hack make a second bbox positioner to get different sized buttons on #
         # the left
-        hl_slot2, hr_slot2 = pt.make_bbox_positioners(y=.02, w=.08, h=.05,
-                                                      xpad=.015, startx=0, stopx=1)
+        hl_slot2, hr_slot2 = pt.make_bbox_positioners(
+            y=0.02, w=0.08, h=0.05, xpad=0.015, startx=0, stopx=1
+        )
+
         def next_rect(accum=[-1]):
             accum[0] += 1
             return hr_slot(accum[0])
@@ -534,14 +602,22 @@ class MatchVerificationInteraction(AbstractInteraction):
         # option to remove all names only if at least one name exists
         if not all(is_unknown):
             unname_all_text = 'remove all names'
-            self.append_button(unname_all_text, callback=self.unname_all, rect=next_rect())
+            self.append_button(
+                unname_all_text, callback=self.unname_all, rect=next_rect()
+            )
         # option to merge all into a new name if all are unknown
         if all(is_unknown) and not nid1_is_known and not nid2_is_known:
             joinnew_text = 'match all (nonjunk)\n to a new name'
-            self.append_button(joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect())
+            self.append_button(
+                joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect(),
+            )
         # option dismiss all and give new names to all nonjunk images
         if any(is_unknown):
-            self.append_button('mark all unknowns\nas not matching', callback=self.dismiss_all, rect=next_rect())
+            self.append_button(
+                'mark all unknowns\nas not matching',
+                callback=self.dismiss_all,
+                rect=next_rect(),
+            )
         # merges all into the first name
         if nid1_is_known and not all(is_name1):
             join1_text = 'match all to name1:\n{name1}'.format(name1=name1)
@@ -559,11 +635,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.append_button('reset', callback=self.reset_all_names, rect=next_rect2())
         self.dbname = ibs.get_dbname()
         self.vsstr = 'qaid%d-vs-aid%d' % (self.aid1, self.aid2)
-        figtitle_fmt = '''
+        figtitle_fmt = """
         Match Review Interface - {dbname}
         {match_text}:
         {vsstr}
-        '''
+        """
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         pt.set_figtitle(figtitle)
 
@@ -611,7 +687,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def close_(self, event=None):
         # closing this gui with the button means you have reviewed the annotation.
-        #self.ibs.set_annot_pair_as_reviewed(self.aid1, self.aid2)
+        # self.ibs.set_annot_pair_as_reviewed(self.aid1, self.aid2)
         self.close()
 
     def unname_all(self, event=None):
@@ -632,7 +708,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ All nonjunk annotations are given the SAME new name """
         # Delete all original names
         aid_list = self.all_aid_list
-        aid_list_filtered = ut.filterfalse_items(aid_list, self.ibs.get_annot_isjunk(aid_list))
+        aid_list_filtered = ut.filterfalse_items(
+            aid_list, self.ibs.get_annot_isjunk(aid_list)
+        )
         # Rename annotations
         self.ibs.set_annot_names_to_same_new_name(aid_list_filtered)
         self.update_callback()
@@ -643,8 +721,8 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ All unknown annotations are given DIFFERENT new names """
         # Delete all original names
         ibs = self.ibs
-        aid_list    = self.all_aid_list
-        is_unknown  = ibs.is_aid_unknown(aid_list)
+        aid_list = self.all_aid_list
+        is_unknown = ibs.is_aid_unknown(aid_list)
         aid_list_filtered = ut.compress(aid_list, is_unknown)
         # Rename annotations
         ibs.set_annot_names_to_different_new_names(aid_list_filtered)
@@ -655,6 +733,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def on_key_press(self, event=None):
         if event.key == 'escape':
             import wbia.guitool
+
             if guitool.are_you_sure():
                 self.close()
 
@@ -664,27 +743,30 @@ class MatchVerificationInteraction(AbstractInteraction):
             viztype = vh.get_ibsdat(ax, 'viztype')
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
-                #print('... aid=%r' % aid)
-                if event.button == 3:   # right-click
-                    #import wbia.guitool
-                    #height = self.fig.canvas.geometry().height()
-                    #qpoint = guitool.newQPoint(event.x, height - event.y)
-                    #ibs = self.ibs
-                    #is_exemplar = ibs.get_annot_exemplar_flags(aid)
-                    #def context_func():
+                # print('... aid=%r' % aid)
+                if event.button == 3:  # right-click
+                    # import wbia.guitool
+                    # height = self.fig.canvas.geometry().height()
+                    # qpoint = guitool.newQPoint(event.x, height - event.y)
+                    # ibs = self.ibs
+                    # is_exemplar = ibs.get_annot_exemplar_flags(aid)
+                    # def context_func():
                     #    ibs.set_annot_exemplar_flags(aid, not is_exemplar)
                     #    self.show_page()
-                    #guitool.popup_menu(self.fig.canvas, pt, [
+                    # guitool.popup_menu(self.fig.canvas, pt, [
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
-                    #])
+                    # ])
                     # TODO USE ABSTRACT INTERACTION
                     from wbia.viz.interact import interact_chip
-                    options = interact_chip.build_annot_context_options(self.ibs, aid, refresh_func=self.show_page)
+
+                    options = interact_chip.build_annot_context_options(
+                        self.ibs, aid, refresh_func=self.show_page
+                    )
                     self.show_popup_menu(options, event)
-                    #interact_chip.show_annot_context_menu(
+                    # interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
-                    #ibs.print_annotation_table()
-                #print(ut.repr2(event.__dict__))
+                    # ibs.print_annotation_table()
+                # print(ut.repr2(event.__dict__))
             elif viztype == 'matches':
                 self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
 
@@ -700,6 +782,8 @@ if __name__ == '__main__':
         python -m wbia.viz.interact.interact_name --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -6,14 +6,17 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import vtool as vt
 from six.moves import zip
+
 (print, rrr, profile) = ut.inject2(__name__, '[yolo]')
 
 if not ut.get_argflag('--no-pydarknet'):
     try:
         import pydarknet
     except ImportError as ex:
-        print('WARNING Failed to import pydarknet. '
-              'PyDarknet YOLO detection is unavailable')
+        print(
+            'WARNING Failed to import pydarknet. '
+            'PyDarknet YOLO detection is unavailable'
+        )
         if ut.SUPER_STRICT:
             raise
 
@@ -96,15 +99,21 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
-            bbox_list = [ bbox ]
+            bbox = (
+                result['xtl'],
+                result['ytl'],
+                result['width'],
+                result['height'],
+            )
+            bbox_list = [bbox]
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, detector=None, config_filepath=None, weights_filepath=None,
-           **kwargs):
+def detect(
+    gpath_list, detector=None, config_filepath=None, weights_filepath=None, **kwargs
+):
     """
     Args:
         gpath_list (list of str): the list of image paths that need detection
@@ -137,12 +146,14 @@ def detect(gpath_list, detector=None, config_filepath=None, weights_filepath=Non
     if detector is None:
         classes_filepath = kwargs.pop('classes_filepath', None)
         verbose = kwargs.get('verbose', False)
-        detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
-                                                   weights_filepath=weights_filepath,
-                                                   classes_filepath=classes_filepath,
-                                                   verbose=verbose)
-    #dark = detector
-    #input_gpath_list = gpath_list
+        detector = pydarknet.Darknet_YOLO_Detector(
+            config_filepath=config_filepath,
+            weights_filepath=weights_filepath,
+            classes_filepath=classes_filepath,
+            verbose=verbose,
+        )
+    # dark = detector
+    # input_gpath_list = gpath_list
     results_iter = detector.detect(gpath_list, **kwargs)
     results_list = list(results_iter)
     del detector

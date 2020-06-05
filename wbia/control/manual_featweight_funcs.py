@@ -2,10 +2,13 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 from wbia.control import controller_inject
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
 @register_ibs_method
@@ -36,8 +39,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         >>> print('Calculated percent = %0.04f' % (percent_, ))
         >>> assert percent_ > .6 and percent_ < .8, 'should be around 0.7472'
     """
-    fgws_list = ibs.depc_annot.get('featweight', aid_list, 'fwg',
-                                   config=config2_)
+    fgws_list = ibs.depc_annot.get('featweight', aid_list, 'fwg', config=config2_)
     return fgws_list
 
 
@@ -64,6 +66,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_featweight_funcs --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     import utool as ut
+
     ut.doctest_funcs()

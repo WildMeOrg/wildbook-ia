@@ -6,6 +6,7 @@ import warnings
 import vtool.exif as vtexif
 import utool as ut
 import six
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -58,10 +59,12 @@ def parse_imageinfo(gpath):
     if six.PY2:
         import urllib
         import urlparse
+
         urlsplit = urlparse.urlsplit
         urlquote = urllib.quote
     else:
         import urllib
+
         urlsplit = urllib.parse.urlsplit
         urlquote = urllib.parse.quote
         urlunquote = urllib.parse.unquote
@@ -86,9 +89,12 @@ def parse_imageinfo(gpath):
                 _, ext = splitext(filename)
                 # base = filename
                 base = ut.random_nonce(16)
-                suffix = '.%s%s' % (base, ext, )
+                suffix = '.%s%s' % (base, ext,)
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
-                args = (gpath, temp_filepath, )
+                args = (
+                    gpath,
+                    temp_filepath,
+                )
                 print('[preproc] Caching remote %s file to temporary file %r' % args)
 
                 if isproto(gpath, s3_proto):
@@ -104,15 +110,19 @@ def parse_imageinfo(gpath):
                     try:
                         # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
-                        assert response.status_code == 200, '200 code not received on download'
+                        assert (
+                            response.status_code == 200
+                        ), '200 code not received on download'
                     except Exception:
                         scheme = urlsplit(uri_, allow_fragments=False).scheme
-                        uri_ = uri_.strip('%s://' % (scheme, ))
+                        uri_ = uri_.strip('%s://' % (scheme,))
                         uri_path = urlquote(uri_.encode('utf8'))
-                        uri_ = '%s://%s' % (scheme, uri_path, )
+                        uri_ = '%s://%s' % (scheme, uri_path,)
                         # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
-                        assert response.status_code == 200, '200 code not received on download'
+                        assert (
+                            response.status_code == 200
+                        ), '200 code not received on download'
 
                     # Save
                     with open(temp_filepath, 'wb') as temp_file_:
@@ -127,7 +137,13 @@ def parse_imageinfo(gpath):
             pil_img = Image.open(gpath_, 'r')
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
-        except (AssertionError, IOError, requests.HTTPError, urllib.error.HTTPError, Image.DecompressionBombError) as ex:
+        except (
+            AssertionError,
+            IOError,
+            requests.HTTPError,
+            urllib.error.HTTPError,
+            Image.DecompressionBombError,
+        ) as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
@@ -141,11 +157,11 @@ def parse_imageinfo(gpath):
             #     print(warnstr)
             print('%d warnings issued by %r' % (len(w), gpath,))
     # Parse out the data
-    width, height  = pil_img.size         # Read width, height
+    width, height = pil_img.size  # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
     if orient in [6, 8]:
         width, height = height, width
-    #orig_gpath = gpath
+    # orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)
     notes = ''
@@ -155,7 +171,7 @@ def parse_imageinfo(gpath):
         gpath,
         gpath,
         orig_gname,
-        #orig_gpath,
+        # orig_gpath,
         ext,
         width,
         height,
@@ -163,13 +179,13 @@ def parse_imageinfo(gpath):
         lat,
         lon,
         orient,
-        notes
+        notes,
     )
 
     if temp_filepath is not None:
         os.close(temp_file)
         os.unlink(temp_filepath)
-    #print('[ginfo] %r %r' % (image_uuid, orig_gname))
+    # print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
 
 
@@ -215,5 +231,6 @@ if __name__ == '__main__':
     python -m wbia.algo.preproc.preproc_image --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     ut.doctest_funcs()

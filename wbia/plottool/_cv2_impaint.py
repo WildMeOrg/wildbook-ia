@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     r"""
     CommandLine:
@@ -24,6 +24,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     """
     import cv2
     import numpy as np
+
     print('begining impaint mask. c=circle, r=rect')
 
     globals_ = dict(
@@ -34,13 +35,14 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
         bgcolor=0,
         label_index=0,
         radius=25,
-        transparency=.25,
-        ix=-1, iy=-1,
+        transparency=0.25,
+        ix=-1,
+        iy=-1,
     )
 
     # mouse callback function
     def draw_shape(x, y):
-        keys =  ['mode', 'ix', 'iy', 'color', 'radius']
+        keys = ['mode', 'ix', 'iy', 'color', 'radius']
         mode, ix, iy, color, radius = ut.dict_take(globals_, keys)
         if mode == 'rect':
             cv2.rectangle(mask, (ix, iy), (x, y), color, -1)
@@ -48,8 +50,8 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
             cv2.circle(mask, (x, y), radius, color, -1)
 
     def mouse_callback(event, x, y, flags, param):
-        #keys =  ['drawing', 'mode', 'ix', 'iy', 'color']
-        #drawing, mode, ix, iy, color = ut.dict_take(globals_, keys)
+        # keys =  ['drawing', 'mode', 'ix', 'iy', 'color']
+        # drawing, mode, ix, iy, color = ut.dict_take(globals_, keys)
 
         if event in [cv2.EVENT_RBUTTONDOWN, cv2.EVENT_LBUTTONDOWN]:
             globals_['drawing'] = True
@@ -68,7 +70,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
                 globals_['color'] = globals_['fgcolor']
             elif event == cv2.EVENT_LBUTTONUP:
                 pass
-                #globals_['color'] = 255
+                # globals_['color'] = 255
 
     if label_colors is None:
         color_list = [255, 0]
@@ -97,7 +99,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     cv2.setMouseCallback(title, mouse_callback)
 
     print('Valid Keys: r,c,t,l,q')
-    while(1):
+    while 1:
         # Blend images
         transparency = globals_['transparency']
         # Move from 0 to 1
@@ -115,7 +117,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
         if keycode == ord('c'):
             globals_['mode'] = 'circ'
         if keycode == ord('t'):
-            globals_['transparency'] = (globals_['transparency'] + .25) % 1.0
+            globals_['transparency'] = (globals_['transparency'] + 0.25) % 1.0
         if keycode == ord('l'):
             globals_['label_index'] = (globals_['label_index'] + 1) % len(color_list)
             globals_['fgcolor'] = color_list[globals_['label_index']]
@@ -127,9 +129,16 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     return mask
 
 
-def cached_impaint(bgr_img, cached_mask_fpath=None, label_colors=None,
-                   init_mask=None, aug=False, refine=False):
+def cached_impaint(
+    bgr_img,
+    cached_mask_fpath=None,
+    label_colors=None,
+    init_mask=None,
+    aug=False,
+    refine=False,
+):
     import vtool as vt
+
     if cached_mask_fpath is None:
         cached_mask_fpath = 'image_' + ut.hashstr_arr(bgr_img) + '.png'
     if aug:
@@ -137,12 +146,14 @@ def cached_impaint(bgr_img, cached_mask_fpath=None, label_colors=None,
         if label_colors is not None:
             cached_mask_fpath += ut.hashstr_arr(label_colors)
         cached_mask_fpath += '.png'
-    #cached_mask_fpath = 'tmp_mask.png'
+    # cached_mask_fpath = 'tmp_mask.png'
     if refine or not ut.checkpath(cached_mask_fpath):
         if refine and ut.checkpath(cached_mask_fpath):
             if init_mask is None:
                 init_mask = vt.imread(cached_mask_fpath, grayscale=True)
-        custom_mask = impaint_mask(bgr_img, label_colors=label_colors, init_mask=init_mask)
+        custom_mask = impaint_mask(
+            bgr_img, label_colors=label_colors, init_mask=init_mask
+        )
         vt.imwrite(cached_mask_fpath, custom_mask)
     else:
         custom_mask = vt.imread(cached_mask_fpath, grayscale=True)
@@ -172,7 +183,8 @@ def demo():
     globals_ = dict(
         drawing=False,  # true if mouse is pressed
         mode=False,  # if True, draw rectangle. Press 'm' to toggle to curve
-        ix=-1, iy=-1,
+        ix=-1,
+        iy=-1,
     )
 
     # mouse callback function
@@ -184,14 +196,18 @@ def demo():
         elif event == cv2.EVENT_MOUSEMOVE:
             if globals_['drawing'] is True:
                 if globals_['mode'] is True:
-                    cv2.rectangle(img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1)
+                    cv2.rectangle(
+                        img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1
+                    )
                 else:
                     cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
 
         elif event == cv2.EVENT_LBUTTONUP:
             globals_['drawing'] = False
             if globals_['mode'] is True:
-                cv2.rectangle(img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1)
+                cv2.rectangle(
+                    img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1
+                )
             else:
                 cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
 
@@ -199,7 +215,7 @@ def demo():
     cv2.namedWindow('image')
     cv2.setMouseCallback('image', draw_circle)
 
-    while(1):
+    while 1:
         cv2.imshow('image', img)
         keycode = cv2.waitKey(1) & 0xFF
         if keycode == ord('m'):

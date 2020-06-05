@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 CommandLine:
     rm -rf /media/raid/work/PZ_MTEST/_ibsdb/_wbia_cache/match_thumbs/
@@ -9,11 +10,14 @@ from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 import six
 from os.path import exists
 import utool as ut
+
 ut.noinject(__name__, '[APIThumbDelegate]')
 
 
 VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
-VERBOSE_THUMB = ut.VERBOSE or ut.get_argflag(('--verbose-thumb', '--verbthumb')) or VERBOSE_QT
+VERBOSE_THUMB = (
+    ut.VERBOSE or ut.get_argflag(('--verbose-thumb', '--verbthumb')) or VERBOSE_QT
+)
 
 
 MAX_NUM_THUMB_THREADS = 1
@@ -21,6 +25,7 @@ MAX_NUM_THUMB_THREADS = 1
 
 def read_thumb_size(thumb_path):
     import vtool as vt
+
     if VERBOSE_THUMB:
         print('[ThumbDelegate] Reading thumb size')
     # npimg = vt.imread(thumb_path, delete_if_corrupted=True)
@@ -30,12 +35,14 @@ def read_thumb_size(thumb_path):
         width, height = vt.open_image_size(thumb_path)
     except IOError as ex:
         if ut.checkpath(thumb_path, verbose=True):
-            ut.printex(ex, 'image=%r seems corrupted. Needs deletion' %
-                       (thumb_path,), iswarning=True)
+            ut.printex(
+                ex,
+                'image=%r seems corrupted. Needs deletion' % (thumb_path,),
+                iswarning=True,
+            )
             ut.delete(thumb_path)
         else:
-            ut.printex(ex, 'image=%r does not exist', (thumb_path,),
-                       iswarning=True)
+            ut.printex(ex, 'image=%r does not exist', (thumb_path,), iswarning=True)
         raise
     return width, height
 
@@ -44,11 +51,11 @@ def test_show_qimg(qimg):
     qpixmap = QtGui.QPixmap(qimg)
     lbl = QtWidgets.QLabel()
     lbl.setPixmap(qpixmap)
-    lbl.show()   # show label with qim image
+    lbl.show()  # show label with qim image
     return lbl
 
 
-#@ut.memprof
+# @ut.memprof
 def read_thumb_as_qimg(thumb_path):
     r"""
     Args:
@@ -86,9 +93,9 @@ def read_thumb_as_qimg(thumb_path):
     if VERBOSE_THUMB:
         print('[ThumbDelegate] Reading thumb as qimg. thumb_path=%r' % (thumb_path,))
     # Read thumbnail image and convert to 32bit aligned for Qt
-    #if False:
+    # if False:
     #    data  = np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))
-    #if False:
+    # if False:
     #    # Reading the npimage and then handing it off to Qt causes a memory
     #    # leak. The numpy array probably is never unallocated because qt doesn't
     #    # own it and it never loses its reference count
@@ -109,10 +116,10 @@ def read_thumb_as_qimg(thumb_path):
     #    #qimg    = QtGui.QImage(data, width, height, format_)
     #    #del npimg
     #    #del data
-    #else:
-    #format_ = QtGui.QImage.Format_ARGB32
-    #qimg    = QtGui.QImage(thumb_path, format_)
-    qimg    = QtGui.QImage(thumb_path)
+    # else:
+    # format_ = QtGui.QImage.Format_ARGB32
+    # qimg    = QtGui.QImage(thumb_path, format_)
+    qimg = QtGui.QImage(thumb_path)
     return qimg
 
 
@@ -147,10 +154,13 @@ class APIThumbDelegate(DELEGATE_BASE):
     SeeAlso:
          api_item_view.infer_delegates
     """
+
     def __init__(dgt, parent=None, get_thumb_size=None):
         if VERBOSE_THUMB:
-            print('[ThumbDelegate] __init__ parent=%r, get_thumb_size=%r' %
-                    (parent, get_thumb_size))
+            print(
+                '[ThumbDelegate] __init__ parent=%r, get_thumb_size=%r'
+                % (parent, get_thumb_size)
+            )
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = None
         # TODO: get from the view
@@ -162,11 +172,12 @@ class APIThumbDelegate(DELEGATE_BASE):
         dgt.row_rezised_flags = {}  # SUPER HACK FOR RESIZE SHRINK
         try:
             import cachetools
+
             dgt.thumb_cache = cachetools.TTLCache(256, ttl=2)
         except ImportError:
             dgt.thumb_cache = ut.LRUDict(256)
-        #import utool
-        #utool.embed()
+        # import utool
+        # utool.embed()
 
     def paint(dgt, painter, option, qtindex):
         """
@@ -217,12 +228,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 width, height = read_thumb_size(thumb_path)
                 return QtCore.QSize(width, height)
             else:
-                #print("[APIThumbDelegate] Name not found")
+                # print("[APIThumbDelegate] Name not found")
                 return QtCore.QSize()
         except Exception as ex:
             print('Error in APIThumbDelegate')
-            ut.printex(ex, 'Error in APIThumbDelegate', tb=True,
-                       iswarning=True)
+            ut.printex(ex, 'Error in APIThumbDelegate', tb=True, iswarning=True)
             return QtCore.QSize()
 
     def get_model_data(dgt, qtindex):
@@ -236,7 +246,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         if data is None:
             return None
         # The data should be specified as a thumbtup
-        #if isinstance(data, QtCore.QVariant):
+        # if isinstance(data, QtCore.QVariant):
         if hasattr(data, 'toPyObject'):
             data = data.toPyObject()
         if data is None:
@@ -247,28 +257,46 @@ class APIThumbDelegate(DELEGATE_BASE):
         if isinstance(data, dict):
             # HACK FOR DIFFERENT TYPE OF THUMB DATA
             return data
-        assert isinstance(data, tuple), (
-            'data=%r is %r. should be a thumbtup' % (data, type(data)))
+        assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (
+            data,
+            type(data),
+        )
         thumbtup = data
-        #(thumb_path, img_path, bbox_list) = thumbtup
+        # (thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
 
-    def spawn_thumb_creation_thread(dgt, thumb_path, img_path, img_size,
-                                    qtindex, view, offset, bbox_list,
-                                    theta_list, interest_list):
+    def spawn_thumb_creation_thread(
+        dgt,
+        thumb_path,
+        img_path,
+        img_size,
+        qtindex,
+        view,
+        offset,
+        bbox_list,
+        theta_list,
+        interest_list,
+    ):
         if VERBOSE_THUMB:
             print('[ThumbDelegate] Spawning thumbnail creation thread')
         thumbsize = dgt.get_thumb_size()
         thumb_creation_thread = ThumbnailCreationThread(
-            thumb_path, img_path, img_size, thumbsize,
-            qtindex, view, offset, bbox_list, theta_list,
-            interest_list
+            thumb_path,
+            img_path,
+            img_size,
+            thumbsize,
+            qtindex,
+            view,
+            offset,
+            bbox_list,
+            theta_list,
+            interest_list,
         )
-        #register_thread(thumb_path, thumb_creation_thread)
+        # register_thread(thumb_path, thumb_creation_thread)
         # Initialize threadcount
         if dgt.pool is None:
-            #dgt.pool = QtCore.QThreadPool()
-            #dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
+            # dgt.pool = QtCore.QThreadPool()
+            # dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
             dgt.pool = QtCore.QThreadPool.globalInstance()
         dgt.pool.start(thumb_creation_thread)
         # print('[ThumbDelegate] Waiting to compute')
@@ -303,10 +331,20 @@ class APIThumbDelegate(DELEGATE_BASE):
                     (thumb_path, img_path, img_size, bbox_list, theta_list) = data
                     interest_list = []
                 else:
-                    (thumb_path, img_path, img_size, bbox_list, theta_list,
-                     interest_list) = data
-                invalid = (thumb_path is None or img_path is None or bbox_list is
-                           None or img_size is None)
+                    (
+                        thumb_path,
+                        img_path,
+                        img_size,
+                        bbox_list,
+                        theta_list,
+                        interest_list,
+                    ) = data
+                invalid = (
+                    thumb_path is None
+                    or img_path is None
+                    or bbox_list is None
+                    or img_size is None
+                )
                 if invalid:
                     print('[thumb_delegate] something is wrong')
                     return
@@ -327,21 +365,30 @@ class APIThumbDelegate(DELEGATE_BASE):
             if thumbtup_mode:
                 if not exists(img_path):
                     if VERBOSE_THUMB:
-                        print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' %
-                              (img_path,))
+                        print(
+                            '[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,)
+                        )
                     return None
                 dgt.spawn_thumb_creation_thread(
-                    thumb_path, img_path, img_size, qtindex, view, offset,
-                    bbox_list, theta_list, interest_list)
+                    thumb_path,
+                    img_path,
+                    img_size,
+                    qtindex,
+                    view,
+                    offset,
+                    bbox_list,
+                    theta_list,
+                    interest_list,
+                )
                 return None
             elif thumbdat_mode:
                 thumbdat = data
                 thread_func = thumbdat['thread_func']
                 main_func = thumbdat['main_func']
-                #kwargs = data['kwargs']
-                #func(*args, **kwargs)
-                #print('data = %r' % (data,))
-                #print('newdata not computed')
+                # kwargs = data['kwargs']
+                # func(*args, **kwargs)
+                # print('data = %r' % (data,))
+                # print('newdata not computed')
                 # SPAWN
                 if VERBOSE_THUMB:
                     print('[ThumbDelegate] Spawning thumbnail creation thread')
@@ -349,11 +396,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 thumb_creation_thread = ThumbnailCreationThread2(
                     thread_func, args, qtindex, view, offset
                 )
-                #register_thread(thumb_path, thumb_creation_thread)
+                # register_thread(thumb_path, thumb_creation_thread)
                 # Initialize threadcount
                 if dgt.pool is None:
-                    #dgt.pool = QtCore.QThreadPool()
-                    #dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
+                    # dgt.pool = QtCore.QThreadPool()
+                    # dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
                     dgt.pool = QtCore.QThreadPool.globalInstance()
                 dgt.pool.start(thumb_creation_thread)
                 # print('[ThumbDelegate] Waiting to compute')
@@ -437,6 +484,7 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
 
     """
     import vtool as vt
+
     theta_list = [theta_list] if not ut.is_listlike(theta_list) else theta_list
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
@@ -468,11 +516,12 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
     """
     import vtool as vt
     from vtool import geometry
+
     orange_bgr = (0, 128, 255)
     blue_bgr = (255, 128, 0)
     # imread causes a MEMORY LEAK most likely!
     img = vt.imread(img_path)  # Read Image (.0424s) <- Takes most time!
-    #if False:
+    # if False:
     #    #http://stackoverflow.com/questions/9794019/convert-numpy-array-to-pyside-qpixmap
     #    # http://kogs-www.informatik.uni-hamburg.de/~meine/software/vigraqt/qimage2ndarray.py
     #    #import numpy as np
@@ -491,7 +540,7 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
     for new_verts, color_bgr in zip(new_verts_list, color_bgr_list):
         if new_verts is not None:
             geometry.draw_verts(thumb, new_verts, color=color_bgr, thickness=2, out=thumb)
-        #thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+        # thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     return thumb
 
 
@@ -519,9 +568,9 @@ class ThumbnailCreationThread2(RUNNABLE_BASE):
         """ Compute thumbnail in a different thread """
         if thread.thumb_would_not_be_visible():
             return
-        #func = thread.thumbdat['func']
+        # func = thread.thumbdat['func']
         thread.thread_func(thread.thumb_would_not_be_visible, *thread.args)
-        #func(check_func=thread.thumb_would_not_be_visible)
+        # func(check_func=thread.thumb_would_not_be_visible)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
 
     def run(thread):
@@ -529,7 +578,7 @@ class ThumbnailCreationThread2(RUNNABLE_BASE):
             thread._run()
         except Exception as ex:
             ut.printex(ex, 'thread failed', tb=True)
-            #raise
+            # raise
 
 
 class ThumbnailCreationThread(RUNNABLE_BASE):
@@ -541,8 +590,19 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
     """
 
-    def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex,
-                 view, offset, bbox_list, theta_list, interest_list):
+    def __init__(
+        thread,
+        thumb_path,
+        img_path,
+        img_size,
+        thumbsize,
+        qtindex,
+        view,
+        offset,
+        bbox_list,
+        theta_list,
+        interest_list,
+    ):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
@@ -561,44 +621,49 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
     def _run(thread):
         """ Compute thumbnail in a different thread """
         import vtool as vt
-        #time.sleep(.005)  # Wait a in case the user is just scrolling
+
+        # time.sleep(.005)  # Wait a in case the user is just scrolling
         if thread.thumb_would_not_be_visible():
             return
         # Precompute info BEFORE reading the image (.0002s)
         dsize, new_verts_list = get_thread_thumb_info(
-            thread.bbox_list, thread.theta_list, thread.thumbsize, thread.img_size)
-        #time.sleep(.005)  # Wait a in case the user is just scrolling
+            thread.bbox_list, thread.theta_list, thread.thumbsize, thread.img_size
+        )
+        # time.sleep(.005)  # Wait a in case the user is just scrolling
         if thread.thumb_would_not_be_visible():
             return
         # -----------------
         # This part takes time, hopefully the user actually wants to see this
         # thumbnail.
-        thumb = make_thread_thumb(thread.img_path, dsize, new_verts_list, thread.interest_list)
+        thumb = make_thread_thumb(
+            thread.img_path, dsize, new_verts_list, thread.interest_list
+        )
         if thread.thumb_would_not_be_visible():
             return
         vt.image.imwrite(thread.thumb_path, thumb)
         del thumb
         if thread.thumb_would_not_be_visible():
             return
-        #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
+        # print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
-        #unregister_thread(thread.thumb_path)
+        # unregister_thread(thread.thumb_path)
 
     def run(thread):
         try:
             thread._run()
         except Exception as ex:
             ut.printex(ex, 'thread failed', tb=True)
-            #raise
+            # raise
 
-    #def __del__(self):
+    # def __del__(self):
     #    print('About to delete creation thread')
 
 
 # GRAVE:
-#print('[APIItemDelegate] Request Thumb: rc=(%d, %d), nBboxes=%r' %
+# print('[APIItemDelegate] Request Thumb: rc=(%d, %d), nBboxes=%r' %
 #      (qtindex.row(), qtindex.column(), len(bbox_list)))
-#print('[APIItemDelegate] bbox_list = %r' % (bbox_list,))
+# print('[APIItemDelegate] bbox_list = %r' % (bbox_list,))
+
 
 def simple_thumbnail_widget():
     r"""
@@ -620,6 +685,7 @@ def simple_thumbnail_widget():
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
     import wbia.guitool
+
     guitool.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
     col_types_dict = {
@@ -632,7 +698,7 @@ def simple_thumbnail_widget():
     import vtool as vt
     from os.path import join
 
-    #imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
+    # imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
     imgname_list = ['carl.jpg', 'lena.png', 'patsy.jpg']
     imgname_list += ['doesnotexist.jpg']
 
@@ -641,6 +707,7 @@ def simple_thumbnail_widget():
 
     def thread_func(would_be, id_):
         from vtool.fontdemo import get_text_test_img
+
         get_text_test_img(id_)
 
     def thumb_getter(id_, thumbsize=128):
@@ -650,9 +717,9 @@ def simple_thumbnail_widget():
             return {
                 'fpath': id_ + '.jpg',
                 'thread_func': thread_func,
-                'main_func': lambda : (id_,),
+                'main_func': lambda: (id_,),
             }
-        #print(id_)
+        # print(id_)
         if id_ == 'doesnotexist.jpg':
             return None
             img_path = None
@@ -665,7 +732,7 @@ def simple_thumbnail_widget():
             bbox_list = [(10, 10, 200, 200)]
             theta_list = [0]
         elif id_ == 'lena.png':
-            #bbox_list = [(10, 10, 200, 200)]
+            # bbox_list = [(10, 10, 200, 200)]
             bbox_list = [None]
             theta_list = [None]
         else:
@@ -673,9 +740,9 @@ def simple_thumbnail_widget():
             theta_list = []
         interest_list = [False]
         thumbtup = (thumb_path, img_path, img_size, bbox_list, theta_list, interest_list)
-        #print('thumbtup = %r' % (thumbtup,))
+        # print('thumbtup = %r' % (thumbtup,))
         return thumbtup
-        #return None
+        # return None
 
     def imgname_getter(rowid):
         if rowid < len(imgname_list):
@@ -686,7 +753,7 @@ def simple_thumbnail_widget():
     col_getter_dict = {
         'rowid': num_imgs,
         'image_name': imgname_getter,
-        'thumb': thumb_getter
+        'thumb': thumb_getter,
     }
     col_ider_dict = {
         'thumb': 'image_name',
@@ -694,22 +761,33 @@ def simple_thumbnail_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'rowid'
+
     def get_thumb_size():
         return 128
-    #get_thumb_size = lambda: 128  # NOQA
+
+    # get_thumb_size = lambda: 128  # NOQA
     col_width_dict = {}
     col_bgrole_dict = {}
 
     api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+        col_name_list,
+        col_types_dict,
+        col_getter_dict,
+        col_bgrole_dict,
+        col_ider_dict,
+        col_setter_dict,
+        editable_colnames,
+        sortby,
+        get_thumb_size,
+        True,
+        col_width_dict,
+    )
     headers = api.make_headers(tblnice='Utool Test Images')
 
     wgt = guitool.APIItemWidget()
     wgt.change_headers(headers)
     wgt.resize(600, 400)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    # guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 
@@ -721,6 +799,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.api_thumb_delegate --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

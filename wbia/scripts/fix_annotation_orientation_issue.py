@@ -44,20 +44,19 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         exif.ORIENTATION_000,
     ]
     good_orient_key_list = [
-        orient_dict.get(good_orient)
-        for good_orient in good_orient_list
+        orient_dict.get(good_orient) for good_orient in good_orient_list
     ]
     assert None not in good_orient_key_list
 
     gid_list = ibs.get_valid_gids()
     orient_list = ibs.get_image_orientation(gid_list)
-    flag_list = [ orient not in good_orient_key_list for orient in orient_list ]
+    flag_list = [orient not in good_orient_key_list for orient in orient_list]
 
     # Filter based on based gids
     unfixable_gid_list = []
     gid_list = ut.filter_items(gid_list, flag_list)
     if len(gid_list) > 0:
-        args = (len(gid_list), )
+        args = (len(gid_list),)
         print('Found %d images with non-standard orientations' % args)
         aids_list = ibs.get_image_aids(gid_list, is_staged=None, __check_staged__=False)
         size_list = ibs.get_image_sizes(gid_list)
@@ -79,7 +78,10 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 percentage = overlap / area
                 if percentage < min_percentage:
                     args = (gid, orient_str, aid, overlap, area, percentage)
-                    print('\tInvalid GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
+                    print(
+                        '\tInvalid GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)'
+                        % args
+                    )
                     invalid = True
                     # break
             if invalid:
@@ -87,16 +89,25 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
 
         invalid_gid_list = list(set(invalid_gid_list))
         if len(invalid_gid_list) > 0:
-            args = (len(invalid_gid_list), len(gid_list), invalid_gid_list, )
+            args = (
+                len(invalid_gid_list),
+                len(gid_list),
+                invalid_gid_list,
+            )
             print('Found %d / %d images with invalid annotations = %r' % args)
             orient_list = ibs.get_image_orientation(invalid_gid_list)
-            aids_list = ibs.get_image_aids(invalid_gid_list, is_staged=None, __check_staged__=False)
+            aids_list = ibs.get_image_aids(
+                invalid_gid_list, is_staged=None, __check_staged__=False
+            )
             size_list = ibs.get_image_sizes(invalid_gid_list)
             zipped = zip(invalid_gid_list, orient_list, aids_list, size_list)
             for invalid_gid, orient, aid_list, (w, h) in zipped:
                 orient_str = exif.ORIENTATION_DICT[orient]
                 image_bbox = (0, 0, w, h)
-                args = (invalid_gid, len(aid_list), )
+                args = (
+                    invalid_gid,
+                    len(aid_list),
+                )
                 print('Fixing GID %r with %d annotations' % args)
                 theta = np.pi / 2.0
                 tx = 0.0
@@ -113,9 +124,13 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     ty = h
                 else:
                     raise ValueError('Unrecognized invalid orientation')
-                H = np.array([[np.cos(theta), -np.sin(theta), tx ],
-                              [np.sin(theta),  np.cos(theta), ty ],
-                              [0.0,            0.0,           1.0]])
+                H = np.array(
+                    [
+                        [np.cos(theta), -np.sin(theta), tx],
+                        [np.sin(theta), np.cos(theta), ty],
+                        [0.0, 0.0, 1.0],
+                    ]
+                )
                 # print(H)
                 verts_list = ibs.get_annot_rotated_verts(aid_list)
                 for aid, vert_list in zip(aid_list, verts_list):
@@ -123,13 +138,14 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     # print(vert_list)
                     vert_list = vert_list.T
                     transformed_vert_list = vt.transform_points_with_homography(
-                        H,
-                        vert_list
+                        H, vert_list
                     )
                     transformed_vert_list = transformed_vert_list.T
                     # print(transformed_vert_list)
 
-                    ibs.set_annot_verts([aid], [transformed_vert_list], update_visual_uuids=False)
+                    ibs.set_annot_verts(
+                        [aid], [transformed_vert_list], update_visual_uuids=False
+                    )
                     current_theta = ibs.get_annot_thetas(aid)
                     new_theta = current_theta + theta
                     ibs.set_annot_thetas(aid, new_theta, update_visual_uuids=False)
@@ -139,16 +155,27 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     fixed_overlap = bbox_overlap(image_bbox, fixed_annot_bbox)
                     fixed_area = fixed_annot_bbox[2] * fixed_annot_bbox[3]
                     fixed_percentage = fixed_overlap / fixed_area
-                    args = (invalid_gid, orient_str, aid, fixed_overlap, fixed_area, fixed_percentage)
-                    print('\tFixing GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
+                    args = (
+                        invalid_gid,
+                        orient_str,
+                        aid,
+                        fixed_overlap,
+                        fixed_area,
+                        fixed_percentage,
+                    )
+                    print(
+                        '\tFixing GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)'
+                        % args
+                    )
                     if fixed_percentage < min_percentage:
-                        print('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid, ))
+                        print('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid,))
                         unfixable_gid_list.append(gid)
-    print('Un-fixable gid_list = %r' % (unfixable_gid_list, ))
+    print('Un-fixable gid_list = %r' % (unfixable_gid_list,))
     return unfixable_gid_list
 
 
 if __name__ == '__main__':
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

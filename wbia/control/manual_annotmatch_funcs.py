@@ -18,32 +18,36 @@ from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_annotmatch(defaultdb='testdb1'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
     return ibs, config2_
 
 
-ANNOTMATCH_CONFIDENCE         = 'annotmatch_confidence'
+ANNOTMATCH_CONFIDENCE = 'annotmatch_confidence'
 ANNOTMATCH_POSIXTIME_MODIFIED = 'annotmatch_posixtime_modified'
-ANNOTMATCH_REVIEWER           = 'annotmatch_reviewer'
-ANNOTMATCH_ROWID              = 'annotmatch_rowid'
-ANNOTMATCH_TAG_TEXT           = 'annotmatch_tag_text'
-ANNOTMATCH_EVIDENCE_DECISION  = 'annotmatch_evidence_decision'
-ANNOTMATCH_META_DECISION      = 'annotmatch_meta_decision'
-ANNOTMATCH_COUNT              = 'annotmatch_count'
-ANNOT_ROWID1                  = 'annot_rowid1'
-ANNOT_ROWID2                  = 'annot_rowid2'
+ANNOTMATCH_REVIEWER = 'annotmatch_reviewer'
+ANNOTMATCH_ROWID = 'annotmatch_rowid'
+ANNOTMATCH_TAG_TEXT = 'annotmatch_tag_text'
+ANNOTMATCH_EVIDENCE_DECISION = 'annotmatch_evidence_decision'
+ANNOTMATCH_META_DECISION = 'annotmatch_meta_decision'
+ANNOTMATCH_COUNT = 'annotmatch_count'
+ANNOT_ROWID1 = 'annot_rowid1'
+ANNOT_ROWID2 = 'annot_rowid2'
 
 
 # FIXME: finish rename
@@ -73,14 +77,18 @@ def _get_all_annotmatch_rowids(ibs):
 
 @register_ibs_method
 @register_api('/api/match/', methods=['POST'])
-def add_annotmatch(ibs, aid1_list, aid2_list,
-                   annotmatch_evidence_decision_list=None,
-                   annotmatch_meta_decision_list=None,
-                   annotmatch_confidence_list=None,
-                   annotmatch_tag_text_list=None,
-                   annotmatch_reviewer_list=None,
-                   annotmatch_posixtime_modified_list=None,
-                   anotmatch_count_list=None):
+def add_annotmatch(
+    ibs,
+    aid1_list,
+    aid2_list,
+    annotmatch_evidence_decision_list=None,
+    annotmatch_meta_decision_list=None,
+    annotmatch_confidence_list=None,
+    annotmatch_tag_text_list=None,
+    annotmatch_reviewer_list=None,
+    annotmatch_posixtime_modified_list=None,
+    anotmatch_count_list=None,
+):
     r"""
     Returns:
         returns annotmatch_rowid_list of added (or already existing annotmatchs)
@@ -124,7 +132,12 @@ def add_annotmatch(ibs, aid1_list, aid2_list,
     # FIXME: encode superkey paramx
     superkey_paramx = (0, 1)
     annotmatch_rowid_list = ibs.db.add_cleanly(
-        const.ANNOTMATCH_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     return annotmatch_rowid_list
 
 
@@ -152,12 +165,12 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
         >>> num_deleted = ibs.delete_annotmatch(annotmatch_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from wbia.algo.preproc import preproc_annotmatch
+    # from wbia.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
     # Prepare: Delete externally stored data (if any)
-    #preproc_annotmatch.on_delete(ibs, annotmatch_rowid_list, config2_=config2_)
+    # preproc_annotmatch.on_delete(ibs, annotmatch_rowid_list, config2_=config2_)
     # NO EXTERN DELETE
     # Finalize: Delete self
     ibs.db.delete_rowids(const.ANNOTMATCH_TABLE, annotmatch_rowid_list)
@@ -194,8 +207,14 @@ def get_annotmatch_aid1(ibs, annotmatch_rowid_list, eager=True, nInput=None):
     """
     id_iter = annotmatch_rowid_list
     colnames = (ANNOT_ROWID1,)
-    aid1_list = ibs.db.get(const.ANNOTMATCH_TABLE, colnames,
-                           id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    aid1_list = ibs.db.get(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return aid1_list
 
 
@@ -228,8 +247,14 @@ def get_annotmatch_aid2(ibs, annotmatch_rowid_list, eager=True, nInput=None):
     """
     id_iter = annotmatch_rowid_list
     colnames = (ANNOT_ROWID2,)
-    aid2_list = ibs.db.get(const.ANNOTMATCH_TABLE, colnames,
-                           id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    aid2_list = ibs.db.get(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return aid2_list
 
 
@@ -263,13 +288,21 @@ def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=Non
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_CONFIDENCE,)
     annotmatch_confidence_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_confidence_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, eager=True, nInput=None):
+def get_annotmatch_posixtime_modified(
+    ibs, annotmatch_rowid_list, eager=True, nInput=None
+):
     r""" annotmatch_posixtime_modified_list <- annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_posixtime_modified" in the "annotmatch" table
@@ -297,7 +330,13 @@ def get_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, eager=True, nI
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_POSIXTIME_MODIFIED,)
     annotmatch_posixtime_modified_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_posixtime_modified_list
 
 
@@ -331,7 +370,13 @@ def get_annotmatch_reviewer(ibs, annotmatch_rowid_list, eager=True, nInput=None)
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_REVIEWER,)
     annotmatch_reviewer_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_reviewer_list
 
 
@@ -365,12 +410,20 @@ def get_annotmatch_rowid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_ROWID,)
     annotmatch_rowid_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_rowid_list
 
 
 @register_ibs_method
-def get_annotmatch_rowid_from_superkey(ibs, aid1_list, aid2_list, eager=True, nInput=None):
+def get_annotmatch_rowid_from_superkey(
+    ibs, aid1_list, aid2_list, eager=True, nInput=None
+):
     r""" annotmatch_rowid_list <- annotmatch[aid1_list, aid2_list]
 
     Args:
@@ -388,7 +441,13 @@ def get_annotmatch_rowid_from_superkey(ibs, aid1_list, aid2_list, eager=True, nI
     params_iter = zip(aid1_list, aid2_list)
     andwhere_colnames = [ANNOT_ROWID1, ANNOT_ROWID2]
     annotmatch_rowid_list = ibs.db.get_where_eq(
-        const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        params_iter,
+        andwhere_colnames,
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_rowid_list
 
 
@@ -422,7 +481,13 @@ def get_annotmatch_tag_text(ibs, annotmatch_rowid_list, eager=True, nInput=None)
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_TAG_TEXT,)
     annotmatch_tag_text_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_tag_text_list
 
 
@@ -456,7 +521,13 @@ def get_annotmatch_evidence_decision(ibs, annotmatch_rowid_list, eager=True, nIn
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_EVIDENCE_DECISION,)
     annotmatch_evidence_decision_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_evidence_decision_list
 
 
@@ -466,8 +537,13 @@ def get_annotmatch_meta_decision(ibs, annotmatch_rowid_list, eager=True, nInput=
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_META_DECISION,)
     annotmatch_evidence_decision_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid',
-        eager=eager, nInput=nInput)
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return annotmatch_evidence_decision_list
 
 
@@ -476,14 +552,22 @@ def get_annotmatch_meta_decision(ibs, annotmatch_rowid_list, eager=True, nInput=
 def get_annotmatch_count(ibs, annotmatch_rowid_list, eager=True, nInput=None):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_COUNT,)
-    return ibs.db.get(const.ANNOTMATCH_TABLE, colnames, id_iter,
-                      id_colname='rowid', eager=eager, nInput=nInput)
+    return ibs.db.get(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/confidence/', methods=['PUT'])
-def set_annotmatch_confidence(ibs, annotmatch_rowid_list, annotmatch_confidence_list, duplicate_behavior='error'):
+def set_annotmatch_confidence(
+    ibs, annotmatch_rowid_list, annotmatch_confidence_list, duplicate_behavior='error'
+):
     r""" annotmatch_confidence_list -> annotmatch.annotmatch_confidence[annotmatch_rowid_list]
 
     Args:
@@ -496,14 +580,23 @@ def set_annotmatch_confidence(ibs, annotmatch_rowid_list, annotmatch_confidence_
         col = annotmatch_confidence
     """
     id_iter = annotmatch_rowid_list
-    ibs.db.set(const.ANNOTMATCH_TABLE, (ANNOTMATCH_CONFIDENCE,),
-               annotmatch_confidence_list, id_iter,
-               duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        (ANNOTMATCH_CONFIDENCE,),
+        annotmatch_confidence_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
-def set_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, annotmatch_posixtime_modified_list, duplicate_behavior='error'):
+def set_annotmatch_posixtime_modified(
+    ibs,
+    annotmatch_rowid_list,
+    annotmatch_posixtime_modified_list,
+    duplicate_behavior='error',
+):
     r""" annotmatch_posixtime_modified_list -> annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
 
     Args:
@@ -517,14 +610,21 @@ def set_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, annotmatch_pos
     """
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_POSIXTIME_MODIFIED,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_posixtime_modified_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_posixtime_modified_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/user/', methods=['PUT'])
-def set_annotmatch_reviewer(ibs, annotmatch_rowid_list, annotmatch_reviewer_list, duplicate_behavior='error'):
+def set_annotmatch_reviewer(
+    ibs, annotmatch_rowid_list, annotmatch_reviewer_list, duplicate_behavior='error'
+):
     r""" annotmatch_reviewer_list -> annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
 
     Args:
@@ -538,14 +638,21 @@ def set_annotmatch_reviewer(ibs, annotmatch_rowid_list, annotmatch_reviewer_list
     """
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_REVIEWER,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_reviewer_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_reviewer_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/tags/', methods=['PUT'], __api_plural_check__=False)
-def set_annotmatch_tag_text(ibs, annotmatch_rowid_list, annotmatch_tag_text_list, duplicate_behavior='error'):
+def set_annotmatch_tag_text(
+    ibs, annotmatch_rowid_list, annotmatch_tag_text_list, duplicate_behavior='error'
+):
     r""" annotmatch_tag_text_list -> annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
 
     Args:
@@ -559,44 +666,67 @@ def set_annotmatch_tag_text(ibs, annotmatch_rowid_list, annotmatch_tag_text_list
     """
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_TAG_TEXT,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_tag_text_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_tag_text_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/decision/evidence/', methods=['PUT'])
-def set_annotmatch_evidence_decision(ibs, annotmatch_rowid_list,
-                                     annotmatch_evidence_decision_list,
-                                     duplicate_behavior='error'):
+def set_annotmatch_evidence_decision(
+    ibs,
+    annotmatch_rowid_list,
+    annotmatch_evidence_decision_list,
+    duplicate_behavior='error',
+):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_EVIDENCE_DECISION,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames,
-               annotmatch_evidence_decision_list, id_iter,
-               duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_evidence_decision_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/decision/meta/', methods=['PUT'])
-def set_annotmatch_meta_decision(ibs, annotmatch_rowid_list,
-                                 annotmatch_meta_decision_list,
-                                 duplicate_behavior='error'):
+def set_annotmatch_meta_decision(
+    ibs, annotmatch_rowid_list, annotmatch_meta_decision_list, duplicate_behavior='error',
+):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_META_DECISION,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames,
-               annotmatch_meta_decision_list, id_iter,
-               duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_meta_decision_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/count/', methods=['PUT'])
-def set_annotmatch_count(ibs, annotmatch_rowid_list, annotmatch_count_list, duplicate_behavior='error'):
+def set_annotmatch_count(
+    ibs, annotmatch_rowid_list, annotmatch_count_list, duplicate_behavior='error'
+):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_COUNT,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_count_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(
+        const.ANNOTMATCH_TABLE,
+        colnames,
+        annotmatch_count_list,
+        id_iter,
+        duplicate_behavior=duplicate_behavior,
+    )
 
 
 if __name__ == '__main__':
@@ -605,4 +735,5 @@ if __name__ == '__main__':
         xdoctest -m wbia.control.manual_annotmatch_funcs
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

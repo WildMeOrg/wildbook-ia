@@ -1,12 +1,12 @@
 countUp.js
 ==========
 
-countUp.js is a dependency-free, lightweight JavaScript "class" that can be used to quickly create animations that display numerical data in a more interesting way. 
+countUp.js is a dependency-free, lightweight JavaScript "class" that can be used to quickly create animations that display numerical data in a more interesting way.
 
 Despite its name, countUp can count in either direction, depending on the `startVal` and `endVal` params that you pass.
 <!-- as well as a coffeescript version, thanks to @HHSnopek. -->
 
-countUp.js supports all browsers. 
+countUp.js supports all browsers.
 
 ##[Try the demo](http://inorganik.github.io/countUp.js)
 

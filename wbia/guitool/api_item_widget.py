@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 This module contains functions and clases to get data visualized fast (in
 terms of development time)
@@ -8,11 +9,13 @@ from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.api_item_model import APIItemModel
 from wbia.guitool.api_table_view import APITableView
 from wbia.guitool.api_tree_view import APITreeView
-#from wbia.guitool import guitool_components as comp
+
+# from wbia.guitool import guitool_components as comp
 from functools import partial
 from six.moves import range
 import utool as ut
 import six
+
 (print, rrr, profile) = ut.inject2(__name__, '[APIItemWidget]')
 
 
@@ -41,6 +44,7 @@ def simple_api_item_widget():
         >>> gt.qtapp_loop(wgt, frequency=100)
     """
     import wbia.guitool as gt
+
     gt.ensure_qapp()
     col_getter_dict = {
         'col1': [1, 2, 3],
@@ -49,28 +53,32 @@ def simple_api_item_widget():
     }
     sortby = 'col1'
 
-    #col_display_role_func_dict = {
+    # col_display_role_func_dict = {
     #    'col1': lambda x: 'banana %d' % ((x * 100 % 23)),
-    #}
+    # }
 
     api = gt.CustomAPI(
         col_getter_dict=col_getter_dict,
-        #col_display_role_func_dict=col_display_role_func_dict,
+        # col_display_role_func_dict=col_display_role_func_dict,
         editable_colnames=['col3'],
-        sortby=sortby)
+        sortby=sortby,
+    )
     headers = api.make_headers(tblnice='Simple Example')
 
     wgt = gt.APIItemWidget()
     wgt.change_headers(headers)
-    #gt.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    # gt.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
 
     # for testing
     wgt.menubar = gt.newMenubar(wgt)
     wgt.menuFile = wgt.menubar.newMenu('Dev')
+
     def wgt_embed(wgt):
         view = wgt.view  # NOQA
         import utool
+
         utool.embed()
+
     ut.inject_func_as_method(wgt, wgt_embed)
     wgt.menuFile.newAction(triggered=wgt.wgt_embed)
     return wgt
@@ -96,6 +104,7 @@ def simple_api_tree_widget():
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
     import wbia.guitool
+
     guitool.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {
@@ -110,10 +119,7 @@ def simple_api_tree_widget():
     flat_data, reverse_list = ut.invertible_flatten1(grouped_data)
     col_getter_dict['annots'] = flat_data
 
-    iders = [
-        list(range(len(col_getter_dict['name']))),
-        reverse_list
-    ]
+    iders = [list(range(len(col_getter_dict['name']))), reverse_list]
 
     col_level_dict = {
         'name': 0,
@@ -133,7 +139,7 @@ def simple_api_tree_widget():
 
     wgt = guitool.APIItemWidget(view_class=APITreeView)
     wgt.change_headers(headers)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    # guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 
@@ -145,11 +151,24 @@ class CustomAPI(object):
     API wrapper around a list of lists, each containing column data
     Defines a single table
     """
-    def __init__(self, col_name_list=None, col_types_dict={}, col_getter_dict={},
-                 col_bgrole_dict={}, col_ider_dict={}, col_setter_dict={},
-                 editable_colnames={}, sortby=None, get_thumb_size=None,
-                 sort_reverse=False, col_width_dict={}, strict=False,
-                 col_display_role_func_dict=None, **kwargs):
+
+    def __init__(
+        self,
+        col_name_list=None,
+        col_types_dict={},
+        col_getter_dict={},
+        col_bgrole_dict={},
+        col_ider_dict={},
+        col_setter_dict={},
+        editable_colnames={},
+        sortby=None,
+        get_thumb_size=None,
+        sort_reverse=False,
+        col_width_dict={},
+        strict=False,
+        col_display_role_func_dict=None,
+        **kwargs,
+    ):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
         if col_name_list is None:
@@ -169,9 +188,17 @@ class CustomAPI(object):
 
         # Hack, maintain the original data
         # FIXME: make more ellegant
-        self.orig_data_tup = (col_types_dict, col_getter_dict,
-                              col_bgrole_dict, col_ider_dict, col_setter_dict,
-                              editable_colnames, sortby, sort_reverse, strict)
+        self.orig_data_tup = (
+            col_types_dict,
+            col_getter_dict,
+            col_bgrole_dict,
+            col_ider_dict,
+            col_setter_dict,
+            editable_colnames,
+            sortby,
+            sort_reverse,
+            strict,
+        )
         self.orig_kwargs = kwargs
         self.update_column_names(col_name_list)
         if VERBOSE_ITEM_WIDGET:
@@ -188,18 +215,20 @@ class CustomAPI(object):
         col_getter_dict = self.orig_data_tup[1]
         return list(col_getter_dict.keys())
 
-    def parse_column_tuples(self,
-                            col_name_list,
-                            col_types_dict,
-                            col_getter_dict,
-                            col_bgrole_dict,
-                            col_ider_dict,
-                            col_setter_dict,
-                            editable_colnames,
-                            sortby,
-                            sort_reverse=True,
-                            strict=False,
-                            **kwargs):
+    def parse_column_tuples(
+        self,
+        col_name_list,
+        col_types_dict,
+        col_getter_dict,
+        col_bgrole_dict,
+        col_ider_dict,
+        col_setter_dict,
+        editable_colnames,
+        sortby,
+        sort_reverse=True,
+        strict=False,
+        **kwargs,
+    ):
         """
         parses simple lists into information suitable for making guitool headers
         """
@@ -209,8 +238,10 @@ class CustomAPI(object):
             flag_list = [colname in col_getter_dict for colname in col_name_list]
             if not all(flag_list):
                 invalid_colnames = ut.compress(col_name_list, ut.not_list(flag_list))
-                print('[api_item_widget] Warning: colnames=%r have no getters' % (
-                    invalid_colnames,))
+                print(
+                    '[api_item_widget] Warning: colnames=%r have no getters'
+                    % (invalid_colnames,)
+                )
                 col_name_list = ut.compress(col_name_list, flag_list)
             # sloppy type inference
             for colname in col_name_list:
@@ -225,11 +256,13 @@ class CustomAPI(object):
         self.col_nice_list = [col_nice_dict.get(name, name) for name in col_name_list]
 
         self.col_name_list = col_name_list
-        self.col_type_list = [col_types_dict.get(colname, str)
-                              for colname in col_name_list]
+        self.col_type_list = [
+            col_types_dict.get(colname, str) for colname in col_name_list
+        ]
         # First col is always a getter
-        self.col_getter_list = [col_getter_dict.get(colname, str)
-                                for colname in col_name_list]
+        self.col_getter_list = [
+            col_getter_dict.get(colname, str) for colname in col_name_list
+        ]
         # Get number of rows / columns
         self.nCols = len(self.col_getter_list)
         if self.nCols == 0:
@@ -243,7 +276,7 @@ class CustomAPI(object):
             assert getter is not None, 'at least one getter must be an array/list'
             self.nRows = len(getter)
 
-        #self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
+        # self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
         self.col_ider_list = [None] * self.nCols  # ut.alloc_nones(self.nCols)
         # for colname, ider_colnames in six.iteritems(col_ider_dict):
@@ -259,15 +292,17 @@ class CustomAPI(object):
                 colx = colname2_colx[colname]
                 # Col iders might have tuple input
                 ider_cols = self._uinput_1to1(self.col_name_list.index, ider_colnames)
-                col_ider  = self._uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
+                col_ider = self._uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
                 self.col_ider_list[colx] = col_ider
                 del col_ider
                 del ider_cols
                 del colx
                 del colname
             except Exception as ex:
-                ut.printex(ex, keys=['colname', 'ider_colnames', 'colx',
-                                     'col_ider', 'ider_cols'])
+                ut.printex(
+                    ex,
+                    keys=['colname', 'ider_colnames', 'colx', 'col_ider', 'ider_cols'],
+                )
                 raise
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
@@ -275,8 +310,9 @@ class CustomAPI(object):
             colx = colname2_colx[colname]
             self.col_setter_list[colx] = col_setter
         # Init bgrole_getters to None, and then overwrite based on dict inputs
-        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None)
-                                       for colname in self.col_name_list]
+        self.col_bgrole_getter_list = [
+            col_bgrole_dict.get(colname, None) for colname in self.col_name_list
+        ]
         # Mark edtiable columns
         self.col_edit_list = [name in editable_colnames for name in col_name_list]
         # Mark the sort column index
@@ -304,8 +340,10 @@ class CustomAPI(object):
         ider_ = self.col_ider_list[column]
         if ider_ is None:
             return row
+
         def iderfunc(func_):
             return func_(row)
+
         return self._uinput_1to1(iderfunc, ider_)
 
     @staticmethod
@@ -383,15 +421,20 @@ class CustomAPI(object):
         if self._iders is None:
             return [self.ider]
         else:
+
             def _make_ider(level, ids_):
                 # the first ider takes no args.
                 # the second ider is in the context of the previous
                 if level == 0:
+
                     def _tmp_ider():
                         return ids_
+
                 else:
+
                     def _tmp_ider(parent_ids):
                         return ut.take(ids_, parent_ids)
+
                 return _tmp_ider
 
             return [_make_ider(level, ids_) for level, ids_ in enumerate(self._iders)]
@@ -405,17 +448,17 @@ class CustomAPI(object):
             'nice': tblname if tblnice is None else tblnice,
             'iders': self.get_iders(),
             # 'iders': [self.ider],
-            'col_name_list'    : self.col_name_list,
-            'col_type_list'    : self.col_type_list,
-            'col_nice_list'    : self.col_nice_list,
-            'col_edit_list'    : self.col_edit_list,
-            'col_sort_index'   : self.col_sort_index,
-            'col_level_list'   : self.col_level_list,
-            'col_sort_reverse' : self.col_sort_reverse,
-            'col_getter_list'  : self._make_getter_list(),
-            'col_setter_list'  : self._make_setter_list(),
-            'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
-            'get_thumb_size'   : self.get_thumb_size,
+            'col_name_list': self.col_name_list,
+            'col_type_list': self.col_type_list,
+            'col_nice_list': self.col_nice_list,
+            'col_edit_list': self.col_edit_list,
+            'col_sort_index': self.col_sort_index,
+            'col_level_list': self.col_level_list,
+            'col_sort_reverse': self.col_sort_reverse,
+            'col_getter_list': self._make_getter_list(),
+            'col_setter_list': self._make_setter_list(),
+            'col_bgrole_getter_list': self._make_bgrole_getter_list(),
+            'get_thumb_size': self.get_thumb_size,
             'col_display_role_func_dict': self.col_display_role_func_dict,
         }
         return headers
@@ -435,9 +478,15 @@ class APIItemWidget(WIDGET_BASE):
     SIMPLE WIDGET WHICH AUTO-CREATES MODEL AND VIEW FOR YOU.
     """
 
-    def __init__(widget, headers=None, parent=None,
-                 model_class=APIItemModel, view_class=APITableView,
-                 tblnice='APIItemWidget', doubleClicked=None):
+    def __init__(
+        widget,
+        headers=None,
+        parent=None,
+        model_class=APIItemModel,
+        view_class=APITableView,
+        tblnice='APIItemWidget',
+        doubleClicked=None,
+    ):
         WIDGET_BASE.__init__(widget, parent)
         if isinstance(view_class, six.string_types):
             if view_class == 'tree':
@@ -476,10 +525,10 @@ class APIItemWidget(WIDGET_BASE):
         widget.api = api
         if autopopulate:
             widget.refresh_headers()
-            #widget.resize_headers()
-            #headers = api.make_headers(tblnice=widget.tblnice)
-            #widget.change_headers(headers)
-            #print(ut.repr2(headers))
+            # widget.resize_headers()
+            # headers = api.make_headers(tblnice=widget.tblnice)
+            # widget.change_headers(headers)
+            # print(ut.repr2(headers))
 
     def change_headers(widget, headers):
         parent = widget.parent()
@@ -502,14 +551,14 @@ class APIItemWidget(WIDGET_BASE):
     def refresh_headers(widget):
         headers = widget.api.make_headers(tblnice=widget.tblnice)
         widget.change_headers(headers)
-        #print(ut.repr2(headers))
+        # print(ut.repr2(headers))
 
     def resize_headers(self, api=None):
         if api is None:
             api = self.api
         horizontal_header = self.view.horizontalHeader()
         for col, width in six.iteritems(api.col_width_dict):
-            #horizontal_header.defaultSectionSize()
+            # horizontal_header.defaultSectionSize()
             try:
                 index = api.col_name_list.index(col)
             except ValueError:
@@ -523,9 +572,9 @@ class APIItemWidget(WIDGET_BASE):
         if widget.api is not None:
             print(ut.repr2(widget.api.get_available_colnames()))
             # HACK test
-            #widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
+            # widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
             widget.refresh_headers()
-            #widget.change_headers(widget.api.make_headers())
+            # widget.change_headers(widget.api.make_headers())
         if VERBOSE_ITEM_WIDGET:
             print('context request')
 
@@ -538,6 +587,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.api_item_widget --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

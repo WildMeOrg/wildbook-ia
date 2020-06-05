@@ -4,6 +4,7 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
+
 ut.noinject(__name__, '[wbia.viz.interact.__init__]', DEBUG=False)
 
 from wbia.plottool import interact_helpers as ih
@@ -23,8 +24,7 @@ from wbia.viz.interact.interact_sver import ishow_sver
 
 import utool
 
-print, rrr, profile = utool.inject2(
-    __name__, '[wbia.viz.interact]')
+print, rrr, profile = utool.inject2(__name__, '[wbia.viz.interact]')
 
 
 def reassign_submodule_attributes(verbose=True):
@@ -32,10 +32,12 @@ def reassign_submodule_attributes(verbose=True):
     why reloading all the modules doesnt do this I don't know
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.viz.interact
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -58,9 +60,11 @@ def reassign_submodule_attributes(verbose=True):
 def reload_subs(verbose=True):
     """ Reloads wbia.viz.interact and submodules """
     rrr(verbose=verbose)
+
     def fbrrr(*args, **kwargs):
         """ fallback reload """
         pass
+
     getattr(interact_annotations2, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_chip, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_image, 'rrr', fbrrr)(verbose=verbose)
@@ -74,6 +78,8 @@ def reload_subs(verbose=True):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

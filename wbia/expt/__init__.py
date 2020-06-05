@@ -9,8 +9,8 @@ from wbia.expt import harness
 from wbia.expt import experiment_helpers
 from wbia.expt import experiment_printres
 import utool as ut
-print, rrr, profile = ut.inject2(
-    __name__, '[wbia.expt]')
+
+print, rrr, profile = ut.inject2(__name__, '[wbia.expt]')
 
 
 def reassign_submodule_attributes(verbose=True):
@@ -18,10 +18,12 @@ def reassign_submodule_attributes(verbose=True):
     why reloading all the modules doesnt do this I don't know
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.expt
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -44,9 +46,11 @@ def reassign_submodule_attributes(verbose=True):
 def reload_subs(verbose=True):
     """ Reloads wbia.expt and submodules """
     rrr(verbose=verbose)
+
     def fbrrr(*args, **kwargs):
         """ fallback reload """
         pass
+
     getattr(experiment_configs, 'rrr', fbrrr)(verbose=verbose)
     getattr(harness, 'rrr', fbrrr)(verbose=verbose)
     getattr(experiment_helpers, 'rrr', fbrrr)(verbose=verbose)
@@ -60,6 +64,8 @@ def reload_subs(verbose=True):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

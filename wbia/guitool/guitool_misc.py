@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
@@ -9,6 +10,7 @@ from six.moves import range
 from wbia.guitool.guitool_decorators import slot_
 from wbia.guitool import guitool_main
 import utool as ut
+
 ut.noinject(__name__)
 
 
@@ -21,10 +23,7 @@ def make_option_dict(options, shortcuts=True):
     keys = ut.take_column(options, 0)
     values = ut.take_column(options, 1)
     if shortcuts:
-        shortcut_keys = [
-            key[key.find('&') + 1] if '&' in key else None
-            for key in keys
-        ]
+        shortcut_keys = [key[key.find('&') + 1] if '&' in key else None for key in keys]
         try:
             ut.assert_unique(shortcut_keys, name='shortcut_keys', ignore=[None])
         except AssertionError:
@@ -33,7 +32,7 @@ def make_option_dict(options, shortcuts=True):
             raise
         shortcut_dict = {
             sc_key: val
-            #sc_key: (make_option_dict(val, shortcuts=True)
+            # sc_key: (make_option_dict(val, shortcuts=True)
             #         if isinstance(val, list) else val)
             for (sc_key, val) in zip(shortcut_keys, values)
             if sc_key is not None and not isinstance(val, list)
@@ -42,8 +41,9 @@ def make_option_dict(options, shortcuts=True):
     else:
         ut.assert_unique(keys, name='option_keys')
         fulltext_dict = {
-            key: (make_option_dict(val, shortcuts=False)
-                  if isinstance(val, list) else val)
+            key: (
+                make_option_dict(val, shortcuts=False) if isinstance(val, list) else val
+            )
             for (key, val) in zip(keys, values)
             if key is not None
         }
@@ -127,6 +127,7 @@ class BlockContext(object):
 # Qt object that will send messages (as signals) to the frontend gui_write slot
 class GUILoggingSender(QtCore.QObject):
     write_ = QtCore.pyqtSignal(str)
+
     def __init__(self, write_slot):
         QtCore.QObject.__init__(self)
         self.write_.connect(write_slot)
@@ -139,6 +140,7 @@ class GUILoggingHandler(logging.StreamHandler):
     """
     A handler class which sends messages to to a connected QSlot
     """
+
     def __init__(self, write_slot):
         super(GUILoggingHandler, self).__init__()
         self.sender = GUILoggingSender(write_slot)
@@ -156,7 +158,7 @@ class GUILoggingHandler(logging.StreamHandler):
 class QLoggedOutput(QtWidgets.QTextEdit):
     def __init__(self, parent=None, visible=True):
         super(QLoggedOutput, self).__init__(parent)
-        #QtWidgets.QTextEdit.__init__(self, parent)
+        # QtWidgets.QTextEdit.__init__(self, parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
         self.setVisible(visible)
@@ -241,7 +243,7 @@ def get_view_selection_as_str(view):
     # Do last element in list
     text = astext(model.data(qindex_list[-1]))
     copy_table.append(text)
-    #copy_table.append('\n')
+    # copy_table.append('\n')
     copy_str = str(''.join(copy_table))
     return copy_str
 
