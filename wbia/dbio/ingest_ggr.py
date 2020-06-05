@@ -14,7 +14,7 @@ def _fix_ggr2018_directory_structure(ggr_path):
 
     # Manual fixes for bad directories
 
-    src_uri = join(ggr_path, 'Clarine\ Plane\ Kurungu/')
+    src_uri = join(ggr_path, 'Clarine\\ Plane\\ Kurungu/')
     dst_uri = join(ggr_path, '231/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '231B/')
@@ -22,7 +22,7 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri.replace('\\', ''))
 
     src_uri = join(
-        ggr_path, 'Alex\ Peltier\ -\ Plane\ -\ Ngurnit/giraffe\ grevy\ count\ feb\ 18/'
+        ggr_path, 'Alex\\ Peltier\\ -\\ Plane\\ -\\ Ngurnit/giraffe\\ grevy\\ count\\ feb\\ 18/'
     )
     dst_uri = join(ggr_path, '232/')
     ut.ensuredir(dst_uri)
@@ -33,50 +33,50 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri)
 
     src_uri = join(
-        ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark', 'PANORAMA/'
+        ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1\\ spark', 'PANORAMA/'
     )
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1/')
     dst_uri = join(ggr_path, '233/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 1\ spark/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 1\\ spark/')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day2\ /')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day2\\ /')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, 'Mint\ Media\ Footage', 'Mpala\ day\ 2\ spark/')
+    src_uri = join(ggr_path, 'Mint\\ Media\\ Footage', 'Mpala\\ day\\ 2\\ spark/')
     dst_uri = join(ggr_path, '233', '233B/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, '103\ \(1\)/')
+    src_uri = join(ggr_path, '103\\ \\(1\\)/')
     dst_uri = join(ggr_path, '103/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '103\ \(ccef473b\)/')
+    src_uri = join(ggr_path, '103\\ \\(ccef473b\\)/')
     dst_uri = join(ggr_path, '103/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '108\ \(1\)/')
+    src_uri = join(ggr_path, '108\\ \\(1\\)/')
     dst_uri = join(ggr_path, '108/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '226A\ \(Shaba\ Funan\ Camp\)/')
+    src_uri = join(ggr_path, '226A\\ \\(Shaba\\ Funan\\ Camp\\)/')
     dst_uri = join(ggr_path, '226/')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '226A/')
@@ -89,12 +89,12 @@ def _fix_ggr2018_directory_structure(ggr_path):
     for src_filepath in ut.glob(src_uri.replace('\\', '')):
         ut.delete(src_filepath)
 
-    src_uri = join(ggr_path, '54', '54A\(16\)/')
+    src_uri = join(ggr_path, '54', '54A\\(16\\)/')
     dst_uri = join(ggr_path, '54', '54A/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '54', '54B\(16\)/')
+    src_uri = join(ggr_path, '54', '54B\\(16\\)/')
     dst_uri = join(ggr_path, '54', '54B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -129,17 +129,17 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ A/')
+    src_uri = join(ggr_path, '200', '200\\ A/')
     dst_uri = join(ggr_path, '200', '200A/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ B/')
+    src_uri = join(ggr_path, '200', '200\\ B/')
     dst_uri = join(ggr_path, '200', '200B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '200\ F/')
+    src_uri = join(ggr_path, '200', '200\\ F/')
     dst_uri = join(ggr_path, '200', '200F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -151,12 +151,12 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     # ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '201\ E/')
+    src_uri = join(ggr_path, '200', '201\\ E/')
     dst_uri = join(ggr_path, '201', '201E/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '201\ F/')
+    src_uri = join(ggr_path, '200', '201\\ F/')
     dst_uri = join(ggr_path, '201', '201F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
@@ -168,24 +168,24 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.rsync(src_uri, dst_uri)
     # ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '202\ B/')
+    src_uri = join(ggr_path, '200', '202\\ B/')
     dst_uri = join(ggr_path, '202', '202B/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '200', '202\ F/')
+    src_uri = join(ggr_path, '200', '202\\ F/')
     dst_uri = join(ggr_path, '202', '202F/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '230', '230A', 'El\ Karama/*.*')
+    src_uri = join(ggr_path, '230', '230A', 'El\\ Karama/*.*')
     dst_uri = join(ggr_path, '230', '230A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
     src_uri = '/'.join(src_uri.split('/')[:-1])
     ut.delete(src_uri)
 
-    src_uri = join(ggr_path, '136', '136B', '136B\ Grevys\ Rally/*.*')
+    src_uri = join(ggr_path, '136', '136B', '136B\\ Grevys\\ Rally/*.*')
     dst_uri = join(ggr_path, '136', '136B/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')

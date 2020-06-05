@@ -1,3 +1,4 @@
+# flake8: noqa
 # -*- coding: utf-8 -*-
 r"""
 Hacky file to download win packages

@@ -287,6 +287,13 @@ on any commit you make. (See also `pre-commit.com <https://pre-commit.com/>`_)
 
 Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit instal`` on the commandline. Now everytime you commit to this project's codebase the linter procedures will automatically run over the changed files.
 
+Black
+~~~~~~
+
+Our codebase has been Blackened by Black (https://black.readthedocs.io/en/stable/).
+
+Our only exception to Black's formatting is the obsession with double quotes over the Pythonic single quote.  We therefore use a pre-commit fix `double-quote-string-fixer` to undo the changes by Black.
+
 Python
 ~~~~~~
 
