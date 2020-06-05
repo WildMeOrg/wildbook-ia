@@ -110,7 +110,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> from wbia.viz.viz_matches import *  # NOQA
         >>> from wbia.algo.hots import chip_match
         >>> from wbia.algo.hots import name_scoring
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch.show_single_namematch
@@ -148,9 +148,9 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     heatmask = kwargs.pop('heatmask', False)
     if heatmask:
-        from vtool_ibeis.coverage_kpts import make_kpts_heatmask
+        from vtool.coverage_kpts import make_kpts_heatmask
         import numpy as np
-        import vtool_ibeis as vt
+        import vtool as vt
 
         wh1 = vt.get_size(rchip1)
         fx1 = np.unique(np.hstack([fm.T[0] for fm in name_fm_list]))
@@ -580,10 +580,10 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     target_wh = None
 
     """
-    import vtool_ibeis.image as gtool
+    import vtool.image as gtool
     import wbia.plottool as pt
     import numpy as np
-    import vtool_ibeis as vt
+    import vtool as vt
     kwargs = kwargs.copy()
 
     colorbar_ = kwargs.pop('colorbar_', True)

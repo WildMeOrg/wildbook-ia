@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 from os.path import join
 from operator import xor
 import six
@@ -1535,7 +1535,7 @@ class _ChipMatchConvenienceGetter(object):
             >>> result = ('info_ = %s' % (ut.repr3(info_, precision=2),))
             >>> print(result)
         """
-        import vtool_ibeis as vt
+        import vtool as vt
         if flags is None:
             flags = [True] * len(cm.daid_list)
             # flags = cm.score_list > 0

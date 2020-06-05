@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import warnings
 import utool as ut
-import vtool_ibeis as vt  # NOQA
+import vtool as vt  # NOQA
 import six
 import networkx as nx
 from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)

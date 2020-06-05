@@ -5,7 +5,7 @@ import six
 import copy
 import operator
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import numpy as np
 import itertools as it
 from functools import partial
@@ -1997,7 +1997,7 @@ class TestResult(ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         import wbia.plottool as pt
-        import vtool_ibeis as vt
+        import vtool as vt
 
         # dont look at filtered cases
         ibs = testres.ibs
@@ -2148,7 +2148,7 @@ class TestResult(ut.NiceRepr):
         rectify with experiment_drawing
         """
         #import wbia.plottool as pt
-        import vtool_ibeis as vt
+        import vtool as vt
         if ut.VERBOSE:
             print('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
         #from wbia.expt import cfghelpers

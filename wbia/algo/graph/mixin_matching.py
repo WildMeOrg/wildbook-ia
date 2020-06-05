@@ -6,7 +6,7 @@ import utool as ut
 import pandas as pd
 import itertools as it
 import networkx as nx
-import vtool_ibeis as vt
+import vtool as vt
 from os.path import join  # NOQA
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.nx_utils import e_

@@ -307,7 +307,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         >>> pt.show_if_requested()
     """
     #from mpl_toolkits.axes_grid.anchored_artists import AnchoredAuxTransformBox
-    import vtool_ibeis as vt
+    import vtool as vt
     ax = gca()
     if isinstance(icon, six.string_types):
         # hack because icon is probably a url
@@ -775,7 +775,7 @@ def show_if_requested(N=1):
         #import sys
         from os.path import basename, splitext, join, dirname
         import wbia.plottool as pt
-        import vtool_ibeis as vt
+        import vtool as vt
 
         # HACK
         arg_dict = {
@@ -1385,10 +1385,10 @@ def rotate_plot(theta=TAU / 8, ax=None):
         >>> print(result)
         >>> show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     if ax is None:
         ax = gca()
-    #import vtool_ibeis as vt
+    #import vtool as vt
     xy, width, height = get_axis_xy_width_height(ax)
     bbox = [xy[0], xy[1], width, height]
     M = mpl.transforms.Affine2D(vt.rotation_around_bbox_mat3x3(theta, bbox))
@@ -2075,7 +2075,7 @@ def plot_sift_signature(sift, title='', fnum=None, pnum=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> sift = vt.demodata.testdata_dummy_sift(1, np.random.RandomState(0))[0]
         >>> title = 'test sift histogram'
         >>> fnum = None
@@ -2127,7 +2127,7 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> vec = ((np.random.RandomState(0).rand(258) - .2) * 4)
         >>> title = 'test sift histogram'
         >>> fnum = None
@@ -2441,7 +2441,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         >>> # score_list = np.linspace(0, 1, 100)
         >>> cmap_ = 'plasma'
         >>> colors = pt.scores_to_color(score_list, cmap_)
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> imgRGB = vt.atleast_nd(np.array(colors)[:, 0:3], 3, tofront=True)
         >>> imgRGB = imgRGB.astype(np.float32)
         >>> imgBGR = vt.convert_colorspace(imgRGB, 'BGR', 'RGB')
@@ -2954,7 +2954,7 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
                 H1=None, H2=None, scale_factor1=None, scale_factor2=None,
                 ax=None, **kwargs):
-    import vtool_ibeis as vt
+    import vtool as vt
     if scale_factor1 is None:
         scale_factor1 = 1.0, 1.0
     if scale_factor2 is None:
@@ -3120,13 +3120,13 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> result = show_kpts(kpts)
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     import wbia.plottool as pt
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
     pt.draw_kpts2(kpts, **kwargs)
@@ -3267,7 +3267,7 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
     it with respect to the current mode.
 
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     wpatch, wkp  = vt.get_warped_patch(rchip, kpt, gray=True)
     try:
         gradx, grady = vt.patch_gradient(wpatch)
@@ -3312,7 +3312,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
     Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> rchip = vt.imread(ut.grab_test_imgpath('lena.png'))
         >>> kp = [100, 100, 20, 0, 20, 0]
         >>> sift = None
@@ -3324,7 +3324,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     #print('--------------------')
     kpts = np.array([kp])
     if warped:
@@ -3395,7 +3395,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> (fig, ax) = imshow(img)
@@ -3422,7 +3422,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         # Allow for path to image to be specified
         img_fpath = img
         ut.assertpath(img_fpath)
-        import vtool_ibeis as vt
+        import vtool as vt
         img = vt.imread(img_fpath)
     #darken = .4
     if darken is not None:
@@ -3546,7 +3546,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True,
         >>> # DISABLE_DOCTEST
         >>> import wbia.plottool as pt
         >>> import utool as ut
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> patch = vt.testdata_patch()
         >>> gx, gy = vt.patch_gradient(patch, gaussian_weighted=False)
         >>> stride = ut.get_argval('--stride', default=1)
@@ -3648,7 +3648,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> import wbia.plottool as pt
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> rchip1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
         >>> rchip2 = vt.imread(ut.grab_test_imgpath('easy2.png'))
         >>> kpts1 = np.array([
@@ -3679,7 +3679,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, **kwargs)
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
@@ -3690,7 +3690,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         dsize2 = wh1
 
     if heatmask:
-        from vtool_ibeis.coverage_kpts import make_kpts_heatmask
+        from vtool.coverage_kpts import make_kpts_heatmask
         if not kwargs.get('all_kpts', False) and fm is not None:
             kpts1_m = kpts1[fm.T[0]]
             kpts2_m = kpts2[fm.T[1]]
@@ -3943,7 +3943,7 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=.5):
         >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> import wbia.plottool as pt
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> # build test data
         >>> gori = np.array([[ 0.        ,  0.        ,  3.14159265,  3.14159265,  0.        ],
         ...                  [ 1.57079633,  3.92250052,  1.81294053,  3.29001537,  1.57079633],
@@ -4227,7 +4227,7 @@ def width_from(num, pad=.05, start=0, stop=1):
 
 
 #+-----
-# From vtool_ibeis.patch
+# From vtool.patch
 def param_plot_iterator(param_list, fnum=None, projection=None):
     from wbia.plottool import plot_helpers
     nRows, nCols = plot_helpers.get_square_row_cols(len(param_list), fix=True)
@@ -4262,7 +4262,7 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> import wbia.plottool as pt
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> shape=(19, 19)
         >>> sigma1, sigma2 = 2.0, 1.0
         >>> ybasis = np.arange(shape[0])

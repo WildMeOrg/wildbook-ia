@@ -10,7 +10,7 @@ import six
 from six.moves import zip, map, range
 import numpy as np
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 from wbia.algo.hots import neighbor_index_cache
 from wbia.algo.hots import hstypes
 

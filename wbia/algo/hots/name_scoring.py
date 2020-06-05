@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 import utool as ut
 import itertools
 from wbia.algo.hots import hstypes

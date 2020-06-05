@@ -25,7 +25,7 @@ def chip_montage(ibs, qaids, config=None):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     chip_list = ibs.get_annot_chips(qaids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)
@@ -54,7 +54,7 @@ def image_montage(ibs, gids, config=None):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     img_list = ibs.get_images(gids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)

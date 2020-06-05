@@ -555,8 +555,8 @@
 #         >>> ut.show_if_requested()
 #     """
 #     from wbia import dtool
-#     import vtool_ibeis as vt
-#     from vtool_ibeis import fontdemo
+#     import vtool as vt
+#     from vtool import fontdemo
 
 #     # put the test cache in the dtool repo
 #     dtool_repo = dirname(ut.get_module_dir(dtool))

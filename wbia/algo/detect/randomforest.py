@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists, join
 from wbia.algo.detect import grabmodels
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 from six.moves import zip, map
 import cv2
 import random

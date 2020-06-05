@@ -321,7 +321,7 @@ def get_injured_sharks():
 
     fpath = './GOPR1120.JPG'
 
-    import vtool_ibeis as vt
+    import vtool as vt
     for fpath in [fpath]:
         """
         http://scikit-image.org/docs/dev/auto_examples/plot_hog.html
@@ -601,7 +601,7 @@ def shark_misc():
     #if False:
     #    print('Removing small images')
     #    import numpy as np
-    #    import vtool_ibeis as vt
+    #    import vtool as vt
     #    imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed['new_fpath']])
     #    sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
     #    areq_flags_list = sqrt_area_list >= 750

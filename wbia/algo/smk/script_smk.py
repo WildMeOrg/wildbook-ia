@@ -287,7 +287,7 @@ def load_oxford_2007():
     """
     from os.path import join, basename, splitext
     import pandas as pd
-    import vtool_ibeis as vt
+    import vtool as vt
     dbdir = ut.truepath('/raid/work/Oxford/')
     data_fpath0 = join(dbdir, 'data_2007.pkl')
 
@@ -389,7 +389,7 @@ def load_oxford_2013():
     from yael.ynumpy import fvecs_read
     from yael.yutils import load_ext
     import scipy.io
-    import vtool_ibeis as vt
+    import vtool as vt
     from os.path import join
 
     dbdir = ut.truepath('/raid/work/Oxford/')
@@ -598,7 +598,7 @@ def run_asmk_script():
     # ================
     # PRE-PROCESS
     # ================
-    import vtool_ibeis as vt
+    import vtool as vt
 
     # Alias names to avoid errors in interactive sessions
     proc_vecs = raw_vecs
@@ -732,7 +732,7 @@ def run_asmk_script():
     percent_stats = ut.get_stats(percent_list)
     print('percent_stats = %s' % (ut.repr4(percent_stats),))
 
-    import vtool_ibeis as vt
+    import vtool as vt
     query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
     query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
     query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
@@ -959,7 +959,7 @@ def ensure_tf(X):
 
 
 def bow_vector(X, wx_to_weight, nwords):
-    import vtool_ibeis as vt
+    import vtool as vt
     wxs = sorted(list(X.wx_set))
     tf = np.array(ut.take(X.termfreq, wxs))
     idf = np.array(ut.take(wx_to_weight, wxs))
@@ -1055,7 +1055,7 @@ def verify_score():
 
 def kpts_inside_bbox(kpts, bbox, only_xy=False):
     # Use keypoint extent to filter out what is in query
-    import vtool_ibeis as vt
+    import vtool as vt
     xys = kpts[:, 0:2]
     if only_xy:
         flags = vt.point_inside_bbox(xys.T, bbox)
@@ -1101,7 +1101,7 @@ def oxford_conic_test():
     A, B, C = [0.016682, 0.001693, 0.014927]
     A, B, C = [0.010141, -1.1e-05, 0.02863]
     Z = np.array([[A, B], [B, C]])
-    import vtool_ibeis as vt
+    import vtool as vt
     invV = vt.decompose_Z_to_invV_2x2(Z)  # NOQA
     invV = vt.decompose_Z_to_invV_mats2x2(np.array([Z]))  # NOQA
     # seems ok
@@ -1178,7 +1178,7 @@ def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
     """
     i = 12
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     from os.path import join
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath = join(imgdir,  data_uri_order[i] + '.jpg')
@@ -1199,7 +1199,7 @@ def check_image_sizes(data_uri_order, all_kpts, offset_list):
     """
     Check if any keypoints go out of bounds wrt their associated images
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     from os.path import join
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath_list = [join(imgdir, imgid + '.jpg') for imgid in data_uri_order]
