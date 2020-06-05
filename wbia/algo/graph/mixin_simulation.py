@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Mixin functionality for experiments, tests, and simulations.
 This includes recordings measures used to generate plots in JC's thesis.
@@ -93,9 +94,7 @@ class SimulationHelpers(object):
 
         infr.metrics_list = []
         infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-        infr.real_n_pcc_mst_edges = sum(
-            len(cc) - 1 for cc in infr.nid_to_gt_cc.values()
-        )
+        infr.real_n_pcc_mst_edges = sum(len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
         infr.print(
             'real_n_pcc_mst_edges = %r' % (infr.real_n_pcc_mst_edges,), color='red'
         )
@@ -127,8 +126,7 @@ class SimulationHelpers(object):
         n_fp = sum(ut.take(confusion[NEGTV], non_negtv))
 
         n_error_edges = sum(
-            confusion[r][c] + confusion[c][r]
-            for r, c in ut.combinations(reviewd_cols, 2)
+            confusion[r][c] + confusion[c][r] for r, c in ut.combinations(reviewd_cols, 2)
         )
         # assert n_fn + n_fp == n_error_edges
 
@@ -268,9 +266,7 @@ class SimulationHelpers(object):
             )
         infr.print(
             'Decision Histogram: {}'.format(
-                ut.repr2(
-                    ut.dict_hist(ut.take_column(history, 'pred_decision')), si=True
-                )
+                ut.repr2(ut.dict_hist(ut.take_column(history, 'pred_decision')), si=True)
             ),
             color='yellow',
         )

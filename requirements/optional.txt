@@ -1,13 +1,13 @@
 ansi2html
 autopep8
-pyfiglet
 
-flask-cors
-flask-swagger
-pydot
-pydot-ng
+Cython>=0.24
 
 Flask-CAS
 
-Cython>=0.24
+flask-cors
+flask-swagger
 jupyter
+pydot
+pydot-ng
+pyfiglet

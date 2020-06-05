@@ -309,9 +309,7 @@ class WebMultipleNamedDuplicateException(WebException):
             'bad_dict': bad_dict,
         }
         code = 606
-        super(WebMultipleNamedDuplicateException, self).__init__(
-            message, rawreturn, code
-        )
+        super(WebMultipleNamedDuplicateException, self).__init__(message, rawreturn, code)
 
 
 class WebMatchThumbException(WebException):
@@ -887,9 +885,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     'metadata',
                 ]
                 for check in check_list:
-                    assert '/api/%s/' % (check,) not in rule, 'failed check=%r' % (
-                        check,
-                    )
+                    assert '/api/%s/' % (check,) not in rule, 'failed check=%r' % (check,)
             except Exception:
                 iswarning = not ut.SUPER_STRICT
                 ut.printex(
@@ -1017,9 +1013,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             ut.printex(ex, 'pip install ansi2html', iswarning=True)
                             webreturn = ut.strip_ansi(webreturn)
                             webreturn = (
-                                '<p><samp>\n'
-                                + html_newlines(webreturn)
-                                + '\n</samp></p>'
+                                '<p><samp>\n' + html_newlines(webreturn) + '\n</samp></p>'
                             )
                             webreturn = (
                                 '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n'
@@ -1140,7 +1134,7 @@ def get_wbia_flask_route(__name__):
             __route_postfix_check__=True,
             __route_authenticate__=True,
             __route_microsoft_check__=True,
-            **options
+            **options,
         ):
 
             # GLOBALLY DISABLE LOGINS
@@ -1162,9 +1156,7 @@ def get_wbia_flask_route(__name__):
             else:
                 __route_authenticate__ = False
             if __route_postfix_check__:
-                assert rule.endswith(
-                    '/'
-                ), 'A route should always end in a forward-slash'
+                assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert (
                 'methods' in options
             ), 'A route should always have a specified methods list'
@@ -1225,9 +1217,7 @@ def get_wbia_flask_route(__name__):
                         rawreturn = str(traceback.format_exc())
                         success = False
                         code = 400
-                        message = 'Route error, Python Exception thrown: %r' % (
-                            str(ex),
-                        )
+                        message = 'Route error, Python Exception thrown: %r' % (str(ex),)
                         jQuery_callback = None
                         result = translate_wbia_webreturn(
                             rawreturn,
@@ -1286,17 +1276,13 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
     # Make request to server
     try:
         if remote_api_method == 'GET':
-            req = requests.get(
-                remote_api_url, headers=headers, data=kwargs, verify=False
-            )
+            req = requests.get(remote_api_url, headers=headers, data=kwargs, verify=False)
         elif remote_api_method == 'POST':
             req = requests.post(
                 remote_api_url, headers=headers, data=kwargs, verify=False
             )
         elif remote_api_method == 'PUT':
-            req = requests.put(
-                remote_api_url, headers=headers, data=kwargs, verify=False
-            )
+            req = requests.put(remote_api_url, headers=headers, data=kwargs, verify=False)
         elif remote_api_method == 'DELETE':
             req = requests.delete(
                 remote_api_url, headers=headers, data=kwargs, verify=False

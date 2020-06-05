@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flake8: noqa
 def _add_dirty_rows(
     table, parent_rowids, config_rowid, isdirty_list, config, verbose=True

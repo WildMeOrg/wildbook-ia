@@ -82,8 +82,7 @@ def generate_all():
         [
             [
                 '\n\n### ' + ut.get_funcname(func),
-                '# python -m wbia.scripts.gen_cand_expts --exec-'
-                + ut.get_funcname(func),
+                '# python -m wbia.scripts.gen_cand_expts --exec-' + ut.get_funcname(func),
             ]
             + make_standard_test_scripts(func())[2]
             for func in TEST_GEN_FUNCS
@@ -174,9 +173,7 @@ def parse_latex_comments_for_commmands():
                 else:
                     cmd_list[-1] = cmd_list[-1] + '\n'
 
-    cmd_list = [
-        cmd.replace('--render', '').replace('--diskshow', '') for cmd in cmd_list
-    ]
+    cmd_list = [cmd.replace('--render', '').replace('--diskshow', '') for cmd in cmd_list]
 
     # formatting
     cmd_list2 = []

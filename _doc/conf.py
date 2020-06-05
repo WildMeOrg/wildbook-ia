@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sphinx.ext.autodoc import between
 import sphinx_rtd_theme
 import sys

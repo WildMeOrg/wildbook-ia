@@ -507,9 +507,7 @@ class Feedback(object):
         """ Sets all annotation node name labels to be unknown """
         infr.print('clear_name_labels()', 1)
         # make distinct names for all nodes
-        distinct_names = {
-            node: -aid for node, aid in infr.get_node_attrs('aid').items()
-        }
+        distinct_names = {node: -aid for node, aid in infr.get_node_attrs('aid').items()}
         infr.set_node_attrs('name_label', distinct_names)
 
 
@@ -576,8 +574,7 @@ class NameRelabel(object):
         ]
         # Make sure negatives dont get priority
         grouped_oldnames = [
-            [n for n in group if len(group) == 1 or n > 0]
-            for group in grouped_oldnames_
+            [n for n in group if len(group) == 1 or n > 0] for group in grouped_oldnames_
         ]
         infr.print(
             'begin rectification of %d grouped old names' % (len(grouped_oldnames)), 2
@@ -656,8 +653,7 @@ class NameRelabel(object):
                 }
             else:
                 new_labels = {
-                    count: infr._next_nid()
-                    for count, subgraph in enumerate(cc_subgraphs)
+                    count: infr._next_nid() for count, subgraph in enumerate(cc_subgraphs)
                 }
 
         for count, subgraph in enumerate(cc_subgraphs):
@@ -927,9 +923,7 @@ class AltConstructors(object):
         G.add_edges_from(aid_pairs)
         if attrs is not None:
             for key in attrs.keys():
-                nx.set_edge_attributes(
-                    G, name=key, values=ut.dzip(aid_pairs, attrs[key])
-                )
+                nx.set_edge_attributes(G, name=key, values=ut.dzip(aid_pairs, attrs[key]))
         infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
         return infr
 
@@ -1398,9 +1392,7 @@ class AnnotInference(
         """
         prefix_ = prefix + '.'
         subparams = {
-            k[len(prefix_) :]: v
-            for k, v in infr.params.items()
-            if k.startswith(prefix_)
+            k[len(prefix_) :]: v for k, v in infr.params.items() if k.startswith(prefix_)
         }
         return subparams
 

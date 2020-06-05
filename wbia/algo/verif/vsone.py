@@ -356,9 +356,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         ibs = pblm.infr.ibs
 
         if aids is None:
-            aids = ibs.filter_annots_general(
-                infr.aids, min_pername=3, species='primary'
-            )
+            aids = ibs.filter_annots_general(infr.aids, min_pername=3, species='primary')
 
         # cfgdict = pblm.hyper_params['sample_search'].copy()
         cfgdict = pblm._make_lnbnn_pcfg()
@@ -436,9 +434,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Sample hard moderate and easy positives / negative
             # For each query, choose same, different, and random training pairs
             rng = np.random.RandomState(42)
-            aid_pairs_ = infr._cm_training_pairs(
-                rng=rng, **pblm.hyper_params.pair_sample
-            )
+            aid_pairs_ = infr._cm_training_pairs(rng=rng, **pblm.hyper_params.pair_sample)
             cacher1.save(aid_pairs_)
             data = aid_pairs_
             print('Finished using LNBNN to compute pairs')
@@ -512,9 +508,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             for cc1, cc2 in ut.ProgIter(
                 ut.random_combinations(pccs, 2, rng=rng), label='neg sample'
             ):
-                neg_pairs = edgeset(
-                    ut.random_product((cc1, cc2), num=per_pair, rng=rng)
-                )
+                neg_pairs = edgeset(ut.random_product((cc1, cc2), num=per_pair, rng=rng))
                 aid_pairs.update(neg_pairs)
                 if len(aid_pairs) >= n_target:
                     break
@@ -963,10 +957,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 df_auc_ovr_hat = pd.DataFrame(
                     dict(
                         [
-                            (
-                                datakey,
-                                list(data_combo_res[datakey].roc_scores_ovr_hat()),
-                            )
+                            (datakey, list(data_combo_res[datakey].roc_scores_ovr_hat()),)
                             for datakey in data_keys
                         ]
                     ),
@@ -1254,9 +1245,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             if True:
                 # Use summary and global single thresholds with raw unaries
-                multibin_cols = featinfo.select_columns(
-                    [('summary_binval', '>', 0.625)]
-                )
+                multibin_cols = featinfo.select_columns([('summary_binval', '>', 0.625)])
                 onebin_cols = set.difference(cols, set(multibin_cols))
                 register_data_key('learn(sum,glob,onebin)', onebin_cols)
 
@@ -1415,8 +1404,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Take average feature importance
         ut.cprint(
-            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key),
-            'yellow',
+            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key), 'yellow',
         )
         print(' Caption:')
         print(' * The NaN row ensures that `weight` always sums to 1')

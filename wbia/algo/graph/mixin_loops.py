@@ -402,9 +402,7 @@ class InfrLoops(object):
         """
         if infr.refresh:
             infr.refresh.enabled = use_refresh
-        infr.print(
-            'Start inner loop with {} items in the queue'.format(len(infr.queue))
-        )
+        infr.print('Start inner loop with {} items in the queue'.format(len(infr.queue)))
         for count in it.count(0):
             if infr.is_recovering():
                 infr.print(

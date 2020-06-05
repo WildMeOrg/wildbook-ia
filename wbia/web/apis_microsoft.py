@@ -89,9 +89,7 @@ def _task(ibs, taskid):
     }
 
 
-def _ensure_general(
-    ibs, models, tag, rowid_from_uuid_func, unpack=True, *args, **kwargs
-):
+def _ensure_general(ibs, models, tag, rowid_from_uuid_func, unpack=True, *args, **kwargs):
 
     if isinstance(models, dict):
         models = [models]
@@ -420,7 +418,7 @@ def microsoft_annotation_add(
     viewpoint=None,
     name=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Add an Annotation to the system and return the UUID
@@ -479,9 +477,7 @@ def microsoft_annotation_add(
         assert len(bbox) == 4, 'Bounding Box must have 4 yntegers'
         assert isinstance(bbox[0], int), 'Bounding box xtl (index 0) must be an integer'
         assert isinstance(bbox[1], int), 'Bounding box ytl (index 1) must be an integer'
-        assert isinstance(
-            bbox[2], int
-        ), 'Bounding box width (index 2) must be an integer'
+        assert isinstance(bbox[2], int), 'Bounding box width (index 2) must be an integer'
         assert isinstance(
             bbox[3], int
         ), 'Bounding box height (index 3) must be an integer'
@@ -746,7 +742,7 @@ def microsoft_detect(
     nms_threshold=0.4,
     __jobid__=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     depc = ibs.depc_image
 
@@ -893,7 +889,7 @@ def microsoft_detect_batch(
     callback_url=None,
     callback_method=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     r"""
     The asynchronous variant of POST 'detect' that takes in a list of Image models and returns a task ID.
@@ -1033,7 +1029,7 @@ def microsoft_identify(
     callback_url=None,
     callback_method=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     r"""
     The asynchronous call to identify a list of pre-uploaded query annotations against a database of annotations.  Returns a task ID.

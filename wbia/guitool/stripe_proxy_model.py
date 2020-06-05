@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
@@ -151,8 +152,6 @@ class StripeProxyModel(
 
     def _get_adjacent_qtindex(self, proxyIndex, *args, **kwargs):
         qtindex = self.mapToSource(proxyIndex)
-        next_qtindex = self.sourceModel()._get_adjacent_qtindex(
-            qtindex, *args, **kwargs
-        )
+        next_qtindex = self.sourceModel()._get_adjacent_qtindex(qtindex, *args, **kwargs)
         next_proxyindex = self.mapFromSource(next_qtindex)
         return next_proxyindex

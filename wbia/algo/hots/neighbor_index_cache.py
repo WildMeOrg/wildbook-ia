@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 NEEDS CLEANUP
 """
@@ -17,9 +18,7 @@ NOCACHE_UUIDS = ut.get_argflag('--nocache-uuids') and USE_HOTSPOTTER_CACHE
 
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
 # MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=2)
-MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval(
-    '--max-neighbor-cachesize', type_=int, default=1
-)
+MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=1)
 # Background process for building indexes
 CURRENT_THREAD = None
 # Global map to keep track of UUID lists with prebuild indexers.
@@ -185,9 +184,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
     # uuid_map_ext    = '.shelf'
     uuid_map_ext = '.cPkl'
     uuid_map_prefix = 'uuid_map'
-    uuid_map_fname = (
-        ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
-    )
+    uuid_map_fname = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
     uuid_map_fpath = join(flann_cachedir, uuid_map_fname)
     return uuid_map_fpath
 
@@ -313,12 +310,7 @@ def request_wbia_nnindexer(qreq_, verbose=True, **kwargs):
 
 
 def request_augmented_wbia_nnindexer(
-    qreq_,
-    daid_list,
-    verbose=True,
-    use_memcache=True,
-    force_rebuild=False,
-    memtrack=None,
+    qreq_, daid_list, verbose=True, use_memcache=True, force_rebuild=False, memtrack=None,
 ):
     r"""
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
@@ -603,9 +595,7 @@ def request_diskcached_wbia_nnindexer(
         uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         daids_hashid = get_data_cfgstr(qreq_.ibs, daid_list)
         visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-        UUID_MAP_CACHE.write_uuid_map_dict(
-            uuid_map_fpath, visual_uuid_list, daids_hashid
-        )
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
         if memtrack is not None:
             memtrack.report('[AFTER WRITE_UUID_MAP]')
     return nnindexer
@@ -801,9 +791,7 @@ def check_background_process():
     CURRENT_THREAD = None
     # Write data to current uuidcache
     if len(visual_uuid_list) > min_reindex_thresh:
-        UUID_MAP_CACHE.write_uuid_map_dict(
-            uuid_map_fpath, visual_uuid_list, daids_hashid
-        )
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     return True
 
 
@@ -895,9 +883,7 @@ def background_flann_func(
     # Load or build the indexing structure
     nnindexer.ensure_indexer(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:
-        UUID_MAP_CACHE.write_uuid_map_dict(
-            uuid_map_fpath, visual_uuid_list, daids_hashid
-        )
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     print('[BG] Finished Background FLANN')
 
 

@@ -18,9 +18,7 @@ from wbia.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
-VERBOSE_SQL = ut.get_argflag(
-    ('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql')
-)
+VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 

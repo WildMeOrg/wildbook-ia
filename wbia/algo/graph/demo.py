@@ -543,9 +543,7 @@ def demodata_infr(**kwargs):
             g = nx.relabel_nodes(g, dict(enumerate(kwargs['ccs'][i])))
         else:
             # Make sure nodes do not conflict with others
-            g = nx.relabel_nodes(
-                g, dict(enumerate(range(counter, len(g) + counter + 1)))
-            )
+            g = nx.relabel_nodes(g, dict(enumerate(range(counter, len(g) + counter + 1))))
             counter += len(g)
 
         # The probability any edge is inconsistent is `p_incon`
@@ -625,9 +623,7 @@ def demodata_infr(**kwargs):
             (list(g1.nodes()), list(g2.nodes()))
             for (g1, g2) in it.combinations(new_ccs, 2)
         )
-        valid_cc_combos = [
-            (cc1, cc2) for cc1, cc2 in cc_combos if len(cc1) and len(cc2)
-        ]
+        valid_cc_combos = [(cc1, cc2) for cc1, cc2 in cc_combos if len(cc1) and len(cc2)]
         for cc1, cc2 in ut.ProgIter(valid_cc_combos, label='make neg-demo'):
             possible_edges = ut.estarmap(nx_utils.e_, it.product(cc1, cc2))
             # probability that any edge between these PCCs is negative
@@ -871,7 +867,7 @@ class DummyVerif(object):
                     rng=verif.rng,
                     a_max=1,
                     a_min=0,
-                    **verif.dummy_params[key]
+                    **verif.dummy_params[key],
                 )
                 # Just randomly assign other probs
                 probs1 = verif.rng.rand(len(group)) * (1 - probs0)

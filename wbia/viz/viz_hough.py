@@ -22,9 +22,7 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
         # .cfg.detect_cfg.species_text
     src_gpath_list = ibs.get_image_detectpaths([gid])
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    hough_gpath_list = [
-        gpath + '_' + species + '_hough.png' for gpath in dst_gpath_list
-    ]
+    hough_gpath_list = [gpath + '_' + species + '_hough.png' for gpath in dst_gpath_list]
     # Detect with hough
     config = {
         'output_gpath_list': hough_gpath_list,

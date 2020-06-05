@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
 import cv2
@@ -156,12 +157,8 @@ class PASCAL_Image(object):
     ):
         names = []
         for _obj in objects:
-            x_overlap = max(
-                0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin)
-            )
-            y_overlap = max(
-                0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin)
-            )
+            x_overlap = max(0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin))
+            y_overlap = max(0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin))
             area_overlap = float(x_overlap * y_overlap)
             width = obj['xmax'] - obj['xmin']
             height = obj['ymax'] - obj['ymin']
@@ -173,9 +170,7 @@ class PASCAL_Image(object):
         return list(set(names))
 
     def image_path(pascali):
-        return os.path.join(
-            pascali.absolute_dataset_path, 'JPEGImages', pascali.filename
-        )
+        return os.path.join(pascali.absolute_dataset_path, 'JPEGImages', pascali.filename)
 
     def categories(pascali, unique=True, patches=False):
         temp = [_object.name for _object in pascali.objects]
@@ -248,9 +243,7 @@ class PASCAL_Image(object):
         for prediction in prediction_list:
             centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
             if supressed == 0.0:
-                index_best, score_best = pascali._accuracy_match(
-                    prediction, object_list
-                )
+                index_best, score_best = pascali._accuracy_match(prediction, object_list)
                 if score_best >= alpha:
                     counters[index_best] += 1
                     true_positive += 1
@@ -272,27 +265,17 @@ class PASCAL_Image(object):
         category=None,
         alpha=0.5,
     ):
-        def _draw_box(
-            img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, top=True
-        ):
+        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, top=True):
             font = cv2.FONT_HERSHEY_SIMPLEX
             scale = 0.5
             width, height = cv2.getTextSize(annotation, font, scale, -1)[0]
             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, stroke)
             if top:
-                cv2.rectangle(
-                    img, (xmin, ymin - height), (xmin + width, ymin), color, -1
-                )
-                cv2.putText(
-                    img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255)
-                )
+                cv2.rectangle(img, (xmin, ymin - height), (xmin + width, ymin), color, -1)
+                cv2.putText(img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255))
             else:
-                cv2.rectangle(
-                    img, (xmin, ymax - height), (xmin + width, ymax), color, -1
-                )
-                cv2.putText(
-                    img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255)
-                )
+                cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
+                cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
 
         original = com.openImage(pascali.image_path(), color=True)
         color_dict = {}

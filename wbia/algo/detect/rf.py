@@ -128,9 +128,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
                 args_list.append(args)
 
         nTasks = len(args_list)
-        print(
-            'Processing vectors in parallel using vector_batch = %r' % (vector_batch,)
-        )
+        print('Processing vectors in parallel using vector_batch = %r' % (vector_batch,))
 
     # Perform inference
     classify_iter = ut.generate2(

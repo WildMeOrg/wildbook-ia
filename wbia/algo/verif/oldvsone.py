@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # @profile
 # def edge_hashids(samples):
 #     qvuuids = samples.annots1.visual_uuids

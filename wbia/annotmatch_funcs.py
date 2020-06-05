@@ -580,9 +580,7 @@ def set_annot_pair_as_positive_match(
             )
             if not trivial_merge:
                 if on_nontrivial_merge is None:
-                    raise Exception(
-                        'no function is set up to handle nontrivial merges!'
-                    )
+                    raise Exception('no function is set up to handle nontrivial merges!')
                 else:
                     on_nontrivial_merge(ibs, aid1, aid2)
             status = _set_annot_name_rowids(

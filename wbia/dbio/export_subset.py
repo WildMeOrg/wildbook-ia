@@ -36,9 +36,9 @@ def check_merge(ibs_src, ibs_dst):
         set(avuuids1).issubset(set(avuuids2))
         for avuuids1, avuuids2 in zip(avuuids_list1, avuuids_list2)
     ]
-    assert all(
-        issubset_list
-    ), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (issubset_list,)
+    assert all(issubset_list), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (
+        issubset_list,
+    )
     # aids_depth1 = ut.depth_profile(aids_list1)
     # aids_depth2 = ut.depth_profile(aids_list2)
     # depth might not be true if ibs_dst is not empty
@@ -456,8 +456,7 @@ def fix_bidirectional_annotmatch(ibs):
             print('t1, t2 = %r, %r' % (t1, t2))
             print('newtag = %r' % (newtag,))
             print(
-                'truth_real, truth1, truth2 = %r, %r, %r'
-                % (truth_real, truth1, truth2,)
+                'truth_real, truth1, truth2 = %r, %r, %r' % (truth_real, truth1, truth2,)
             )
             print('aid1, aid2 = %r, %r' % (aid1, aid2))
             fixme_edges.append(tuple(sorted((aid1, aid2))))
@@ -493,10 +492,7 @@ def fix_bidirectional_annotmatch(ibs):
 
     # Delete the old
     ibs.delete_annotmatch(
-        (
-            d1['annotmatch_rowid'].values.tolist()
-            + d2['annotmatch_rowid'].values.tolist()
-        )
+        (d1['annotmatch_rowid'].values.tolist() + d2['annotmatch_rowid'].values.tolist())
     )
 
     # Add the new
@@ -698,9 +694,7 @@ def fix_annotmatch_pzmaster1():
     import networkx as nx
 
     graph = nx.Graph()
-    graph.add_edges_from(
-        zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2'])
-    )
+    graph.add_edges_from(zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2']))
     list(nx.connected_components(graph))
 
     set(annotmatch.loc[x['disagree2']]['annotmatch_tag_text'])
@@ -1159,9 +1153,7 @@ def check_database_overlap(ibs1, ibs2):
     if np.any(is_semantic_diff):
         colxs, rowxs = np.nonzero(is_semantic_diff)
         colx2_rowids = ut.group_items(rowxs, colxs)
-        prop2_rowids = ut.map_dict_keys(
-            changed_sinfo1._fields.__getitem__, colx2_rowids
-        )
+        prop2_rowids = ut.map_dict_keys(changed_sinfo1._fields.__getitem__, colx2_rowids)
         print('changed_value_counts = ' + ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
         yawx = changed_sinfo1._fields.index('yaw')
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui
@@ -44,7 +45,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         display_indices=False,
         col_sort_index=None,
         parent=None,
-        *args
+        *args,
     ):
         super(ColumnListItemModel, model).__init__()
         model.sortcolumn = None

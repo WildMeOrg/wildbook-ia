@@ -371,12 +371,8 @@ def setup_help_menu(mainwin, back):
 def setup_web_menu(mainwin, back):
     mainwin.menuWeb = mainwin.menubar.newMenu('Web')
     menu = mainwin.menuWeb
-    menu.newAction(
-        text='Startup Web Interface', triggered=back.start_web_server_parallel
-    )
-    menu.newAction(
-        text='Shutdown Web Interface', triggered=back.kill_web_server_parallel
-    )
+    menu.newAction(text='Startup Web Interface', triggered=back.start_web_server_parallel)
+    menu.newAction(text='Shutdown Web Interface', triggered=back.kill_web_server_parallel)
     menu.addSeparator()
     menu.newAction(text='Startup Wildbook', triggered=back.startup_wildbook)
     menu.newAction(text='Shutdown Wildbook', triggered=back.shutdown_wildbook)
@@ -449,9 +445,7 @@ def setup_developer_menu(mainwin, back):
         name='actionBatchUnknownVsExemplarQueries',
         text='Query: Unknowns vs Exemplars',
         triggered=functools.partial(
-            back.compute_queries,
-            query_is_known=False,
-            daids_mode=const.VS_EXEMPLARS_KEY,
+            back.compute_queries, query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY,
         ),
     )
     adv_exq_menu.newAction(

@@ -57,9 +57,7 @@ def main():
     repo._ensure_remote_exists(
         'source', 'https://github.com/scikit-learn/scikit-learn.git'
     )
-    repo._ensure_remote_exists(
-        'raghavrv', 'https://github.com/raghavrv/scikit-learn.git'
-    )
+    repo._ensure_remote_exists('raghavrv', 'https://github.com/raghavrv/scikit-learn.git')
 
     # Master should point to the scikit-learn official repo
     if repo.get_branch_remote('master') != 'source':

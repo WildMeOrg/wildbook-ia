@@ -136,7 +136,7 @@ def figure(
     figtitle=None,
     doclf=False,
     projection=None,
-    **kwargs
+    **kwargs,
 ):
     """
     http://matplotlib.org/users/gridspec.html

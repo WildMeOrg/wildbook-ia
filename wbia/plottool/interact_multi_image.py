@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 
@@ -65,7 +66,7 @@ class MultiImageInteraction(BASE_CLASS):
         context_option_funcs=None,
         xlabel_list=None,
         vizkw=None,
-        **kwargs
+        **kwargs,
     ):
         # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
@@ -163,9 +164,7 @@ class MultiImageInteraction(BASE_CLASS):
         self.stop_index = self.start_index + self.nDisplay
         # Clear current figure
         self.clean_scope()
-        self.fig = df2.figure(
-            fnum=self.fnum, pnum=self.pnum_(0), doclf=True, docla=False
-        )
+        self.fig = df2.figure(fnum=self.fnum, pnum=self.pnum_(0), doclf=True, docla=False)
         # For some reason clf isn't working correctly in figure
         self.fig.clf()
         ih.disconnect_callback(self.fig, 'button_press_event')

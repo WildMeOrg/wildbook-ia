@@ -116,9 +116,7 @@ def make_metadata_custom_api(metadata):
 
     class MetadataViewer(guitool.APIItemWidget):
         def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
-            guitool.APIItemWidget.__init__(
-                wgt, parent=parent, tblnice=tblnice, **kwargs
-            )
+            guitool.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
             wgt.connect_signals_and_slots()
 
         @guitool.slot_(QtCore.QModelIndex)

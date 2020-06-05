@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import torch
 import torchvision
 import utool as ut
@@ -62,14 +63,11 @@ def visualize():
                         id(var),
                         label=size_to_str(var.size()),
                         fillcolor='orange',
-                        **node_attr
+                        **node_attr,
                     )
                 elif hasattr(var, 'variable'):
                     u = var.variable
-                    node_name = '%s\n %s' % (
-                        param_map.get(id(u)),
-                        size_to_str(u.size()),
-                    )
+                    node_name = '%s\n %s' % (param_map.get(id(u)), size_to_str(u.size()),)
                     G.add_node(
                         id(var), label=node_name, fillcolor='lightblue', **node_attr
                     )

@@ -396,9 +396,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl', pythoncmd=pythoncmd)
     if not GET_ARGFLAG('--ignore-opencv'):
-        cv_repo = ut.Repo(
-            'https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2'
-        )
+        cv_repo = ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2')
         tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
@@ -451,9 +449,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         )
 
     if WITH_CURVRANK:
-        wbia_rman.add_repos(
-            ['https://github.com/WildbookOrg/ibeis-curvrank-module.git']
-        )
+        wbia_rman.add_repos(['https://github.com/WildbookOrg/ibeis-curvrank-module.git'])
 
     if WITH_PYRF:
         wbia_rman.add_repos(
@@ -550,9 +546,7 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         if not ut.get_argflag('--opencv'):
             opencv_dir = ''
             print(
-                'OpenCV is not installed in the expected location: {}'.format(
-                    opencv_dir
-                )
+                'OpenCV is not installed in the expected location: {}'.format(opencv_dir)
             )
             print('Running this script with --opencv will build and install it there')
 
@@ -1326,9 +1320,7 @@ def execute_commands(tpl_rman, wbia_rman):
                 'cannot find username in commandline or environment vars'
             )
         usergroup = username
-        wbia_rman.issue(
-            'chown -R {username}:{usergroup} *'.format(**locals()), sudo=True
-        )
+        wbia_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()), sudo=True)
 
     upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
     if upstream_branch is not None:

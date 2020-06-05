@@ -281,9 +281,7 @@ def augment_graph_mst(ibs, graph):
     else:
         edge_weights = [1.0] * len(aids1)
     # Create implicit fully connected (by name) graph
-    aug_edges = [
-        (a1, a2, {'weight': w}) for a1, a2, w in zip(aids1, aids2, edge_weights)
-    ]
+    aug_edges = [(a1, a2, {'weight': w}) for a1, a2, w in zip(aids1, aids2, edge_weights)]
     aug_digraph.add_edges_from(aug_edges)
 
     # Determine which edges need to be added to
@@ -308,9 +306,7 @@ def ensure_node_images(ibs, graph):
     imgpath_list = ibs.depc_annot.get_property(
         'chips', aid_list, 'img', config=dict(dim_size=200), read_extern=False
     )
-    nx.set_node_attributes(
-        graph, name='image', values=dict(zip(node_list, imgpath_list))
-    )
+    nx.set_node_attributes(graph, name='image', values=dict(zip(node_list, imgpath_list)))
     if True:
         nx.set_node_attributes(graph, name='shape', values='rect')
 
@@ -327,7 +323,7 @@ def viz_netx_chipgraph(
     augment_graph=True,
     layoutkw=None,
     framewidth=True,
-    **kwargs
+    **kwargs,
 ):
     r"""
     DEPRICATE or improve
@@ -407,9 +403,7 @@ class InferenceConfig(dtool.Config):
         ut.ParamInfo(
             'thresh_method', 'elbow', valid_values=['elbow', 'mean', 'median', 'custom']
         ),
-        ut.ParamInfo(
-            'thresh', 0.5, hideif=lambda cfg: cfg['thresh_method'] != 'custom'
-        ),
+        ut.ParamInfo('thresh', 0.5, hideif=lambda cfg: cfg['thresh_method'] != 'custom'),
     ]
 
 
@@ -717,9 +711,7 @@ class AnnotGraphInteraction(AbstractInteraction):
             aid1, aid2 = self.selected_aids
             _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
             if _rowid is None:
-                _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
-                    [aid2], [aid1]
-                )
+                _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid2], [aid1])
             rowid = _rowid  # NOQA
 
     @ut.debug_function_exceptions
@@ -813,7 +805,7 @@ def make_name_graph_interaction(
     ensure_edges=None,
     use_image=False,
     temp_nids=None,
-    **kwargs
+    **kwargs,
 ):
     r"""
     CommandLine:

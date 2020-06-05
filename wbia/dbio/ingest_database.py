@@ -113,7 +113,7 @@ class Ingestable2(object):
         zipfile_list=None,
         postingest_func=None,
         ingest_config={},
-        **kwargs
+        **kwargs,
     ):
         self.dbdir = dbdir
         self.zipfile_list = zipfile_list
@@ -141,9 +141,7 @@ class Ingestable2(object):
                     valid_values=valid_species,
                 ),
                 ut.ParamInfo(
-                    'adjust_percent',
-                    0.0,
-                    hideif=lambda cfg: not cfg['images_as_annots'],
+                    'adjust_percent', 0.0, hideif=lambda cfg: not cfg['images_as_annots'],
                 ),
             ]
 
@@ -168,9 +166,7 @@ class Ingestable2(object):
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-                gpaths = ut.list_images(
-                    unzipped_file_dir, fullpath=True, recursive=True
-                )
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
                 gpath_list.extend(gpaths)
             return gpath_list
 
@@ -318,8 +314,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     species_text = ingestable.species
     postingest_func = ingestable.postingest_func
     print(
-        '[ingest] ingesting rawdata: img_dir=%r, injest_type=%r'
-        % (img_dir, ingest_type)
+        '[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type)
     )
     # Get images in the image directory
 
@@ -340,9 +335,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-                gpaths = ut.list_images(
-                    unzipped_file_dir, fullpath=True, recursive=True
-                )
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
                 gpath_list.extend(gpaths)
         return gpath_list
 
@@ -423,9 +416,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
             print('[ingest] big fat warning')
     # </DEBUG>
     gid_list = ut.filter_Nones(gid_list_)
-    unique_gids, unique_names, unique_notes = resolve_name_conflicts(
-        gid_list, name_list
-    )
+    unique_gids, unique_names, unique_notes = resolve_name_conflicts(gid_list, name_list)
     # Add ANNOTATIONs with names and notes
     if ingestable.images_as_annots:
         aid_list = ibs.use_images_as_annotations(
@@ -1170,8 +1161,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
                 dnote_list.append(quality)
         # 3) Add distractors: TODO: 100k
         ugid_list = [
-            gid_list[gname_list.index(gname)]
-            for gname in gname_without_groundtruth_list
+            gid_list[gname_list.index(gname)] for gname in gname_without_groundtruth_list
         ]
         ubbox_list = [[0, 0, w, h] for (w, h) in ibs.get_image_sizes(ugid_list)]
         unote_list = ['distractor'] * len(ugid_list)
@@ -1183,9 +1173,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         daid_list = ibs.add_annots(
             dgid_list, bbox_list=dbbox_list, name_list=dname_list, notes_list=dnote_list
         )
-        uaid_list = ibs.add_annots(
-            ugid_list, bbox_list=ubbox_list, notes_list=unote_list
-        )
+        uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
         print('Added %d query annototations' % len(qaid_list))
         print('Added %d database annototations' % len(daid_list))
         print('Added %d distractor annototations' % len(uaid_list))
@@ -1203,9 +1191,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
             'junk': ibs.const.QUAL_JUNK,
             #'distractor': ibs.const.QUAL_JUNK
         }
-        qual_text_list = [
-            _dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list
-        ]
+        qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
         ibs.set_annot_quality_texts(aid_list, qual_text_list)
         ibs._overwrite_all_annot_species_to('building')
 
@@ -1260,9 +1246,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         # Ensure query_df2 are aligned with database qannots
         import numpy as np
 
-        qannot_basename = [
-            basename(p) for p in ibs.get_image_uris_original(qannots.gids)
-        ]
+        qannot_basename = [basename(p) for p in ibs.get_image_uris_original(qannots.gids)]
         imgname_to_idx = ut.make_index_lookup(qannot_basename)
         sortx1 = ut.take(imgname_to_idx, query_df2['gname'].values)
         query_df3 = query_df2.take(np.argsort(sortx1))
@@ -1650,9 +1634,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
 
         print('Adding Metadata')
         image_annot_metadata_list = ut.flatten(image_annot_metadata_list_list)
-        image_annot_metadata_list = ut.filter_items(
-            image_annot_metadata_list, flag_list
-        )
+        image_annot_metadata_list = ut.filter_items(image_annot_metadata_list, flag_list)
         ibs.set_annot_metadata(aid_list, image_annot_metadata_list)
 
 
@@ -1753,9 +1735,7 @@ def ingest_serengeti_mamal_cameratrap(species):
             join(image_dir, basename(gpath)) for gpath in image_url_info_list
         ]
         exists_list = [ut.checkpath(gpath) for gpath in full_gpath_list]
-        image_url_info_list_ = ut.compress(
-            image_url_info_list, ut.not_list(exists_list)
-        )
+        image_url_info_list_ = ut.compress(image_url_info_list, ut.not_list(exists_list))
         print(
             'Already have %d/%d downloaded images'
             % (
@@ -1781,9 +1761,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         species_class_species_list = ut.get_list_column(species_class_csv_data, 2)
         # gold_count_list              = ut.get_list_column(gold_standard_csv_data, 3)
     else:
-        species_class_csv_data, species_class_header = read_csv(
-            consensus_metadata_fpath
-        )
+        species_class_csv_data, species_class_header = read_csv(consensus_metadata_fpath)
         species_class_eventid_list = ut.get_list_column(species_class_csv_data, 0)
         species_class_species_list = ut.get_list_column(species_class_csv_data, 7)
 

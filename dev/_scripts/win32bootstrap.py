@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flake8: noqa
 # -*- coding: utf-8 -*-
 r"""
@@ -431,9 +432,7 @@ def get_unofficial_package_hrefs(nocache=None):
     req = urllib2.Request(UNOFFICIAL_WEBURL, None, headers)
     page = urllib2.urlopen(req)
     page_str = page.read()
-    encrypted_lines = list(
-        filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
-    )
+    encrypted_lines = list(filter(lambda x: x.find('onclick') > -1, page_str.split('\n')))
 
     print('Read %d encrypted lines ' % (len(encrypted_lines,)))
     # List of all download links, now choose wisely, because we don't want

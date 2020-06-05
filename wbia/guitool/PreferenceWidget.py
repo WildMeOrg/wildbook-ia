@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 old code ported from utool
 """
@@ -43,9 +44,7 @@ def _qt_set_leaf_data(self, qvar):
         print('[pref.qt_set_leaf_data] qvar = %r' % qvar)
         print('[pref.qt_set_leaf_data] _intern.name=%r' % self._intern.name)
         print('[pref.qt_set_leaf_data] _intern.type_=%r' % self._intern.get_type())
-        print(
-            '[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value)
-        )
+        print('[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value))
         print('[pref.qt_set_leaf_data] _intern.value=%r' % self._intern.value)
         # print('[pref.qt_set_leaf_data] qvar.toString()=%s' % str(qvar.toString()))
     if self._tree.parent is None:
@@ -318,9 +317,7 @@ class Ui_editPrefSkel(object):
 
     def retranslateUi(self, editPrefSkel):
         # UTF-8 Support
-        editPrefSkel.setWindowTitle(
-            _translate('editPrefSkel', 'Edit Preferences', None)
-        )
+        editPrefSkel.setWindowTitle(_translate('editPrefSkel', 'Edit Preferences', None))
         # self.redrawBUT.setText(_translate('editPrefSkel', 'Redraw', None))
         # self.unloadFeaturesAndModelsBUT.setText(_translate('editPrefSkel', 'Unload Features and Models', None))
         self.defaultPrefsBUT.setText(_translate('editPrefSkel', 'Defaults', None))

@@ -61,9 +61,7 @@ def get_annot_chip_fpath(
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/chip/', methods=['GET'])
-def get_annot_chips(
-    ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True
-):
+def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -190,8 +188,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     thumbpath_list = [
-        join(thumb_dpath, six.text_type(uuid) + thumb_suffix)
-        for uuid in annot_uuid_list
+        join(thumb_dpath, six.text_type(uuid) + thumb_suffix) for uuid in annot_uuid_list
     ]
     return thumbpath_list
 

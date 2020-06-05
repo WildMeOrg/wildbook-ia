@@ -110,9 +110,7 @@ def _inject_getter_attrs(
 
     def _make_caching_getter(attrname, _rowid_getter):
         def _getter(self):
-            if self._ibs is None or (
-                self._caching and attrname in self._internal_attrs
-            ):
+            if self._ibs is None or (self._caching and attrname in self._internal_attrs):
                 data = self._internal_attrs[attrname]
             else:
                 data = _rowid_getter(self, self._rowids)

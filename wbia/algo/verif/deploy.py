@@ -433,9 +433,9 @@ class Deployer(object):
             deploy_info = self.deploy(task_key=task_key)
             assert exists(fpath), 'must now exist'
         verif = verifier.Verifier(self.pblm.infr.ibs, deploy_info=deploy_info)
-        assert (
-            verif.metadata['task_key'] == task_key
-        ), 'bad saved clf at fpath={}'.format(fpath)
+        assert verif.metadata['task_key'] == task_key, 'bad saved clf at fpath={}'.format(
+            fpath
+        )
         return verif
 
     def deploy(self, task_key=None, publish=False):

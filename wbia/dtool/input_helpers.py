@@ -191,10 +191,7 @@ def make_expanded_input_graph(graph, target):
             v_list = ut.take_column(edge_list, 1)
             # show the local_input_ids at the entire level
             pred_ids = [
-                [
-                    x['local_input_id']
-                    for x in list(graph.pred[node].values())[0].values()
-                ]
+                [x['local_input_id'] for x in list(graph.pred[node].values())[0].values()]
                 if len(graph.pred[node])
                 else []
                 for node in v_list
@@ -387,9 +384,7 @@ class RootMostInput(ut.HashComparable):
             yield_nodes=True,
         )
         bfs_iter = list(bfs_iter)
-        parent_level = [
-            RootMostInput(node, rmi.sink, rmi.exi_graph) for node in bfs_iter
-        ]
+        parent_level = [RootMostInput(node, rmi.sink, rmi.exi_graph) for node in bfs_iter]
         return parent_level
 
     @property
@@ -586,9 +581,7 @@ class TableInput(ut.NiceRepr):
     def total_expand(inputs):
         source_nodes = list(ut.nx_source_nodes(inputs.exi_graph))
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
-        rmi_list = [
-            RootMostInput(node, sink, inputs.exi_graph) for node in source_nodes
-        ]
+        rmi_list = [RootMostInput(node, sink, inputs.exi_graph) for node in source_nodes]
         exi_graph = inputs.exi_graph
         table = inputs.table
         reorder = True
@@ -630,9 +623,7 @@ class TableInput(ut.NiceRepr):
             # raise AssertionError('no parents to expand')
             new_rmi_list = inputs.rmi_list[:]
         else:
-            new_rmi_list = ut.insert_values(
-                inputs.rmi_list, index, parent_level, inplace
-            )
+            new_rmi_list = ut.insert_values(inputs.rmi_list, index, parent_level, inplace)
             new_rmi_list = ut.unique(new_rmi_list)
         if inplace:
             inputs.rmi_list = new_rmi_list
@@ -730,9 +721,7 @@ class TableInput(ut.NiceRepr):
             input_edges = [(node, output_node) for node in input_nodes]
 
             # another sorting strategy. maybe this is correct.
-            sortx = [
-                exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges
-            ]
+            sortx = [exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges]
             sortx_ = np.argsort(sortx)
             input_nodes = ut.take(input_nodes, sortx_)
 
@@ -833,7 +822,7 @@ class TableInput(ut.NiceRepr):
                 pt.show_nx,
                 exi_graph,
                 title='Expanded Input (%s)' % (tablename,),
-                **plot_kw
+                **plot_kw,
             )
         )
         if autostart:

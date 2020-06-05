@@ -365,7 +365,7 @@ class AbstractInteraction(object):
         size='9%',
         location='bottom',
         ax=None,
-        **kwargs
+        **kwargs,
     ):
         """ Adds a button to the current page """
 

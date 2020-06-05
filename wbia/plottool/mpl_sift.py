@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 import itertools as it
@@ -47,7 +48,7 @@ def get_sift_collection(
     circ_alpha=0.5,
     fidelity=256,
     scaling=True,
-    **kwargs
+    **kwargs,
 ):
     """
     Creates a collection of SIFT matplotlib patches
@@ -94,9 +95,7 @@ def get_sift_collection(
     MULTI_COLORED_ARMS = kwargs.pop('multicolored_arms', False)
     _kwarm = kwargs.copy()
     _kwarm.update(
-        dict(
-            head_width=1e-10, length_includes_head=False, transform=aff, color=[1, 1, 0]
-        )
+        dict(head_width=1e-10, length_includes_head=False, transform=aff, color=[1, 1, 0])
     )
     _kwcirc = dict(transform=aff)
     DSCALE = 0.25  # Descriptor scale factor
@@ -280,8 +279,7 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
     if isinstance(invVR_aff2Ds, (list, np.ndarray)):
         invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_) for aff_ in invVR_aff2Ds]
     colltup_list = [
-        get_sift_collection(sift, aff, **kwargs)
-        for sift, aff in zip(sifts, invVR_aff2Ds)
+        get_sift_collection(sift, aff, **kwargs) for sift, aff in zip(sifts, invVR_aff2Ds)
     ]
     ax.invert_xaxis()
 

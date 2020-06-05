@@ -189,9 +189,7 @@ def view_viewpoints(**kwargs):
     species_set = set(species_tag_list)
     species_nice_dict = {
         species_tag: ibs.get_species_nice(species_rowid)
-        for species_tag, species_rowid in list(
-            zip(species_tag_list, species_rowid_list)
-        )
+        for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
     viewpoint_dict = {}
@@ -866,9 +864,7 @@ def view_advanced1(**kwargs):
     species_set = set(species_tag_list)
     species_nice_dict = {
         species_tag: ibs.get_species_nice(species_rowid)
-        for species_tag, species_rowid in list(
-            zip(species_tag_list, species_rowid_list)
-        )
+        for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
     aid_list = ibs.get_valid_aids()
@@ -936,9 +932,7 @@ def view_advanced1(**kwargs):
     viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
     dataset_tag_list = ['GGR', 'GZGC']
     pie_label_images_list = ['Correct Viewpoint', '+/- 45 Viewpoint', 'Unused']
-    pie_values_images_dict = {
-        dataset_tag: [0, 0, 0] for dataset_tag in dataset_tag_list
-    }
+    pie_values_images_dict = {dataset_tag: [0, 0, 0] for dataset_tag in dataset_tag_list}
     allowed_viewpoint_dict = {
         'GGR': ['right', 'frontright', 'backright'],
         'GZGC': ['left', 'frontleft', 'backleft'],
@@ -1410,8 +1404,7 @@ def view_advanced4(**kwargs):
     ]
 
     diff_list_ggr = [
-        stage_list_ggr[i] - stage_list_ggr[i + 1]
-        for i in range(len(stage_list_ggr) - 1)
+        stage_list_ggr[i] - stage_list_ggr[i + 1] for i in range(len(stage_list_ggr) - 1)
     ]
 
     bar_value_list = map(list, list(zip(diff_list_gzgc, diff_list_ggr)))
@@ -1537,8 +1530,7 @@ def view_imagesets(**kwargs):
         images_reviewed.count(True) for images_reviewed in images_reviewed_list
     ]
     annot_processed_viewpoint_list = [
-        annots_reviewed.count(True)
-        for annots_reviewed in annots_reviewed_viewpoint_list
+        annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list
     ]
     annot_processed_quality_list = [
         annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list
@@ -2120,9 +2112,7 @@ def action(**kwargs):
 
     job_id_list = ibs.get_job_id_list()
     job_action_list = [None] * len(job_id_list)
-    job_status_list = [
-        ibs.get_job_status(job_id)['jobstatus'] for job_id in job_id_list
-    ]
+    job_status_list = [ibs.get_job_status(job_id)['jobstatus'] for job_id in job_id_list]
     action_list = list(zip(job_id_list, job_action_list, job_status_list))
 
     return appf.template(
@@ -2248,7 +2238,7 @@ def turk_detection(
     previous_only_aid=None,
     staged_super=False,
     progress=None,
-    **kwargs
+    **kwargs,
 ):
 
     ibs = current_app.ibs
@@ -2822,7 +2812,7 @@ def turk_detection_canonical(
         progress=progress,
         previous=previous,
         previous_only_aid=previous_only_aid,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -2899,9 +2889,7 @@ def turk_annotation(**kwargs):
 
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = (
-        request.cookies.get('ia-annotation_instructions_seen', 1) == 0
-    )
+    display_instructions = request.cookies.get('ia-annotation_instructions_seen', 1) == 0
     if not finished:
         gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
@@ -2940,9 +2928,7 @@ def turk_annotation(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [species == species_ for species_ in species_text_list]
-    species_list = list(
-        zip(species_nice_list, species_text_list, species_selected_list)
-    )
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     callback_url = url_for('submit_annotation')
@@ -2999,9 +2985,7 @@ def turk_annotation_dynamic(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [species == species_ for species_ in species_text_list]
-    species_list = list(
-        zip(species_nice_list, species_text_list, species_selected_list)
-    )
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     callback_url = url_for('submit_annotation')
@@ -3054,15 +3038,15 @@ def turk_annotation_canonical(
 
     canonical_str = None
     if species == 'zebra_grevys':
-        canonical_str = "Grevy's Zebra - right side + shoulder chevron, side stripes, and hip chevron"
+        canonical_str = (
+            "Grevy's Zebra - right side + shoulder chevron, side stripes, and hip chevron"
+        )
     elif species == 'zebra_plains':
         canonical_str = (
             'Plains Zebra - left side + shoulder chevron, side stripes, and entire hip'
         )
     elif species == 'giraffe_reticulated':
-        canonical_str = (
-            'Reticulated Giraffe - left side + entire body center mass, neck'
-        )
+        canonical_str = 'Reticulated Giraffe - left side + entire body center mass, neck'
     elif species == 'giraffe_masai':
         canonical_str = 'Masai Giraffe - right side + entire body center mass, neck'
     elif species == 'turtle_sea':
@@ -3406,7 +3390,7 @@ def turk_part_types(
     hotkeys=8,
     refresh=False,
     previous_part_types=None,
-    **kwargs
+    **kwargs,
 ):
     ibs = current_app.ibs
 
@@ -3605,9 +3589,7 @@ def turk_viewpoint(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [species == species_ for species_ in species_text_list]
-    species_list = list(
-        zip(species_nice_list, species_text_list, species_selected_list)
-    )
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     return appf.template(
@@ -3675,9 +3657,7 @@ def turk_viewpoint2(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [species == species_ for species_ in species_text_list]
-    species_list = list(
-        zip(species_nice_list, species_text_list, species_selected_list)
-    )
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     return appf.template(
@@ -3847,7 +3827,7 @@ def _init_identification_query_object(
     ibs,
     debug_ignore_name_gt=False,
     global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-    **kwargs
+    **kwargs,
 ):
     """
     CommandLine:
@@ -3929,10 +3909,7 @@ def load_identification_query_object(
     if current_app.QUERY_OBJECT is None:
         autoinit = True
     else:
-        if (
-            current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1
-            >= global_feedback_limit
-        ):
+        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
             # Apply current names that have been made to database
             commit_current_query_object_names(current_app.QUERY_OBJECT, ibs)
 
@@ -3969,10 +3946,7 @@ def check_engine_identification_query_object(
     # ibs.depc.get_rowids('probchip', ibs.get_valid_aids())
 
     if current_app.QUERY_OBJECT is not None:
-        if (
-            current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1
-            >= global_feedback_limit
-        ):
+        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
             # Apply current names that have been made to database
             commit_current_query_object_names(ibs, current_app.QUERY_OBJECT)
 
@@ -4014,7 +3988,7 @@ def turk_identification(
     aid2=None,
     use_engine=False,
     global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-    **kwargs
+    **kwargs,
 ):
     """
     CommandLine:
@@ -4431,9 +4405,7 @@ def _princeton_kaia_filtering(
         )
 
     if current_aids is None:
-        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text(
-            'Candidate Images'
-        )
+        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
         current_aids = ut.flatten(ibs.get_image_aids(current_gids))
         current_aoi_list = ibs.get_annot_interest(current_aids)
@@ -4450,9 +4422,7 @@ def _princeton_kaia_filtering(
         # Get all siblings of these animals
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
         current_aids = ut.flatten(ibs.get_image_aids(gid_list))
-        new_aid_list = ibs._princeton_kaia_annot_filtering(
-            current_aids, desired_species
-        )
+        new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
     if tier in [3]:
         new_gid_list = list(
@@ -4476,9 +4446,7 @@ def _princeton_kaia_filtering(
                 valid_nid_set.add(new_nid)
 
         all_aid_list = ibs.get_valid_aids()
-        all_aid_list = ibs._princeton_kaia_annot_filtering(
-            all_aid_list, desired_species
-        )
+        all_aid_list = ibs._princeton_kaia_annot_filtering(all_aid_list, desired_species)
         all_nid_list = ibs.get_annot_nids(all_aid_list)
         all_flag_list = [all_nid in valid_nid_set for all_nid in all_nid_list]
 
@@ -4716,7 +4684,7 @@ def turk_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
-            **config
+            **config,
         )
 
 
@@ -4784,7 +4752,7 @@ def turk_identification_graph(
     hogwild_species=None,
     creation_imageset_rowid_list=None,
     kaia=False,
-    **kwargs
+    **kwargs,
 ):
     """
     CommandLine:
@@ -4883,9 +4851,7 @@ def turk_identification_graph(
                     print(
                         'WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list'
                     )
-                    candidate_graph_uuid_list = [
-                        random.choice(fallback_graph_uuid_list)
-                    ]
+                    candidate_graph_uuid_list = [random.choice(fallback_graph_uuid_list)]
 
                 print(
                     'Using Hogwild fallback_graph_uuid_list  = %r'
@@ -4961,7 +4927,7 @@ def turk_identification_graph(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict,
                 creation_imageset_rowid_list=creation_imageset_rowid_list,
-                **kwargs
+                **kwargs,
             )
 
             print(
@@ -5258,9 +5224,7 @@ def turk_identification_graph(
         assert len(review_rowid_list) > 0
         review_rowid = review_rowid_list[-1]
         metadata_match = ibs.get_review_metadata(review_rowid)
-        comment_match = (
-            metadata_match.get('turk', {}).get('match', {}).get('comment', '')
-        )
+        comment_match = metadata_match.get('turk', {}).get('match', {}).get('comment', '')
     except Exception:
         comment_match = ''
 

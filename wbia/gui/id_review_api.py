@@ -393,11 +393,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
             OLD = False
             if OLD:
                 fpath = ensure_match_img(
-                    ibs,
-                    cm,
-                    daid,
-                    qreq_=qreq_,
-                    match_thumbtup_cache=match_thumbtup_cache,
+                    ibs, cm, daid, qreq_=qreq_, match_thumbtup_cache=match_thumbtup_cache,
                 )
                 if isinstance(thumbsize, int):
                     thumbsize = (thumbsize, thumbsize)

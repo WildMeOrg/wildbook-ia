@@ -1130,9 +1130,7 @@ def engine_queue_loop(port_dict):
             print('bind %s_url2 = %r' % (name, iface2,))
 
         collect_deal_sock = ctx.socket(zmq.DEALER)
-        collect_deal_sock.setsockopt_string(
-            zmq.IDENTITY, queue_name + '.collect.DEALER'
-        )
+        collect_deal_sock.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
         collect_deal_sock.connect(port_dict['collect_url1'])
         if VERBOSE_JOBS:
             print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
@@ -1350,9 +1348,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
                 update_proctitle('engine_loop', dbname=ibs.dbname)
 
-                idents, engine_request = rcv_multipart_json(
-                    engine_rout_sock, print=print
-                )
+                idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
 
                 action = engine_request['action']
                 jobid = engine_request['jobid']
@@ -1391,8 +1387,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 )
                 # if VERBOSE_JOBS:
                 print(
-                    '...done working. pushing result to collector for jobid %s'
-                    % (jobid,)
+                    '...done working. pushing result to collector for jobid %s' % (jobid,)
                 )
 
                 # CALLS: collector_store
@@ -1746,9 +1741,7 @@ def on_collect_request(
 
         if callback_url is not None:
             if containerized:
-                callback_url = callback_url.replace(
-                    '://localhost/', '://wildbook:8080/'
-                )
+                callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
             if callback_method is None:
                 callback_method = 'POST'

@@ -48,7 +48,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         update_callback=None,
         backend_callback=None,
         name_decision_callback=None,
-        **kwargs
+        **kwargs,
     ):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)

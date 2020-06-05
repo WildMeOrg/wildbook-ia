@@ -217,8 +217,7 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
 
     if not all(image_exist_flags):
         print(
-            'Only %d / %d image exist'
-            % (sum(image_exist_flags), len(image_exist_flags))
+            'Only %d / %d image exist' % (sum(image_exist_flags), len(image_exist_flags))
         )
 
     SEARCH_FOR_IMAGES = False
@@ -363,15 +362,11 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
     try:
         chips['ibs_gid'] = ut.take(ibs_gid_lookup, chips['hs_gid'])
     except KeyError:
-        chips['ibs_gid'] = [
-            ibs_gid_lookup.get(index, None) for index in chips['hs_gid']
-        ]
+        chips['ibs_gid'] = [ibs_gid_lookup.get(index, None) for index in chips['hs_gid']]
     try:
         chips['ibs_nid'] = ut.take(ibs_nid_lookup, chips['hs_nid'])
     except KeyError:
-        chips['ibs_nid'] = [
-            ibs_nid_lookup.get(index, None) for index in chips['hs_nid']
-        ]
+        chips['ibs_nid'] = [ibs_nid_lookup.get(index, None) for index in chips['hs_nid']]
 
     ibs.add_annots(
         chips['ibs_gid'],

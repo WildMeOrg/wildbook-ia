@@ -442,9 +442,7 @@ class Repo(ub.NiceRepr):
                         )
                     )
                     if not dry:
-                        repo._cmd(
-                            'git remote add {} {}'.format(remote_name, remote_url)
-                        )
+                        repo._cmd('git remote add {} {}'.format(remote_name, remote_url))
                 except ShellException:
                     if remote_name == repo.remote:
                         # Only error if the main remote is not available
@@ -557,8 +555,7 @@ class Repo(ub.NiceRepr):
         # Print some status
         repo.debug(
             ' * branch = {} -> {}'.format(
-                repo.pygit.active_branch.name,
-                repo.pygit.active_branch.tracking_branch(),
+                repo.pygit.active_branch.name, repo.pygit.active_branch.tracking_branch(),
             )
         )
 
@@ -615,9 +612,7 @@ class RepoRegistry(ub.NiceRepr):
                     try:
                         repo = future.result()
                     except DirtyRepoError:
-                        print(
-                            ub.color_text('Ignoring dirty repo={}'.format(repo), 'red')
-                        )
+                        print(ub.color_text('Ignoring dirty repo={}'.format(repo), 'red'))
                     else:
                         print(repo._getlogs())
                     processed_repos.append(repo)
@@ -782,9 +777,7 @@ def make_netharn_registry(remote):
             name='ibeis_curvrank',
             branch='master',
             remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',
-            },
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',},
         ),
         CommonRepo(
             name='wbia_deepsense',
@@ -798,9 +791,7 @@ def make_netharn_registry(remote):
             name='wbia_finfindr',
             branch='master',
             remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',
-            },
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',},
         ),
         CommonRepo(
             name='ibeis_flukematch',
@@ -814,9 +805,7 @@ def make_netharn_registry(remote):
             name='wbia_kaggle7',
             branch='master',
             remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',
-            },
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',},
         ),
         CommonRepo(
             name='wbia_2d_orientation',

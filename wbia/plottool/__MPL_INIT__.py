@@ -132,9 +132,7 @@ def get_target_backend():
         if target_backend is None:
             PyQt, pyqt_version = get_pyqt()
             if pyqt_version is None:
-                print(
-                    '[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND,)
-                )
+                print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND,))
                 target_backend = FALLBACK_BACKEND
             elif pyqt_version == 4:
                 target_backend = 'Qt4Agg'

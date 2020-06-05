@@ -220,13 +220,9 @@ def testdata_aids(
         )
         aidcfg_combo = aidcfg_combo_list[0]
         if len(aidcfg_combo_list) != 1:
-            raise AssertionError(
-                'Error: combinations not handled for single cfg setting'
-            )
+            raise AssertionError('Error: combinations not handled for single cfg setting')
         if len(aidcfg_combo) != 1:
-            raise AssertionError(
-                'Error: combinations not handled for single cfg setting'
-            )
+            raise AssertionError('Error: combinations not handled for single cfg setting')
         aidcfg = aidcfg_combo[0]
         aids = filter_annots.expand_single_acfg(ibs, aidcfg, verbose=verbose)
     if return_ibs:
@@ -410,7 +406,7 @@ def testdata_qreq_(
     default_daids=None,
     custom_nid_lookup=None,
     verbose=None,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Args:
@@ -452,7 +448,7 @@ def testdata_qreq_(
         default_qaids=default_qaids,
         default_daids=default_daids,
         verbose=verbose,
-        **kwargs
+        **kwargs,
     )
     pcfgdict = testdata_pipecfg(t=p, ibs=ibs, verbose=verbose)
     qreq_ = ibs.new_query_request(

@@ -69,9 +69,7 @@ def _get_all_annotgroup_rowids(ibs):
 
 @register_ibs_method
 # @register_api('/api/annotgroup/', methods=['POST'])
-def add_annotgroup(
-    ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
-):
+def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list):
     """
     Returns:
         returns annotgroup_rowid_list of added (or already existing annotgroups)

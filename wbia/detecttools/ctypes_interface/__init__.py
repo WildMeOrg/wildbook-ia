@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, division
 from os.path import join, exists, dirname, normpath
 import sys

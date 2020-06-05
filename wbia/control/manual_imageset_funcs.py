@@ -392,9 +392,7 @@ def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
 )  # HACK
 def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
     fraction_imgs_reviewed_list = ibs.get_imageset_fraction_imgs_reviewed(imgsetid_list)
-    percent_imgs_reviewed_str_list = list(
-        map(_percent_str, fraction_imgs_reviewed_list)
-    )
+    percent_imgs_reviewed_str_list = list(map(_percent_str, fraction_imgs_reviewed_list))
     return percent_imgs_reviewed_str_list
 
 
@@ -620,9 +618,7 @@ def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
         )
     else:
         # TODO: Group type
-        params_iter = (
-            (imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list)
-        )
+        params_iter = ((imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list))
         where_clause = 'imageset_rowid=? AND image_rowid=?'
         # list of relationships for each imageset
         gsgrids_list = ibs.db.get_where(
@@ -1410,9 +1406,7 @@ def set_imageset_occurrence_flags(
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/imageset/processed/', methods=['PUT'])
-def set_imageset_processed_flags(
-    ibs, imageset_rowid_list, imageset_processed_flag_list
-):
+def set_imageset_processed_flags(ibs, imageset_rowid_list, imageset_processed_flag_list):
     r"""
     imageset_processed_flag_list -> imageset.imageset_processed_flag[imageset_rowid_list]
 
@@ -1574,9 +1568,7 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
 def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
     from os.path import join, exists
 
-    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(
-        imageset_rowid_list
-    )
+    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
     content_list = []
     smart_patrol_dir = ibs.get_smart_patrol_dir()
     for imageset_smart_xml_fname in imageset_smart_xml_fname_list:

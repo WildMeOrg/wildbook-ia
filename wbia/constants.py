@@ -353,9 +353,7 @@ class ZIPPED_URLS(object):
     ORIENTATION = (
         'https://wildbookiarepository.azureedge.net/databases/testdb_orientation.zip'
     )
-    K7_EXAMPLE = (
-        'https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip'
-    )
+    K7_EXAMPLE = 'https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip'
 
 
 # Turn off features at Lewa :(

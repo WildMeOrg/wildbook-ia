@@ -145,9 +145,7 @@ def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
         URL:    /api/metadata/value/
     """
     db = db[0]  # Unwrap tuple, required by @accessor_decors.setter decorator
-    metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(
-        metadata_key_list, db
-    )
+    metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
     id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
     val_list = ((metadata_value,) for metadata_value in metadata_value_list)
     db.set(const.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
@@ -189,9 +187,7 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
         URL:    /api/contributor/new/temp/
     """
     name_first = ibs.get_dbname()
-    name_last = (
-        ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
-    )
+    name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
     print('[collect_transfer_data] Contributor default first name: %s' % (name_first,))
     print('[collect_transfer_data] Contributor default last name:  %s' % (name_last,))
     if user_prompt:
@@ -214,19 +210,11 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
         success = False
 
     if success:
-        print(
-            '\n[collect_transfer_data] Your location was be determined automatically.'
-        )
+        print('\n[collect_transfer_data] Your location was be determined automatically.')
         print('[collect_transfer_data] Contributor default city: %s' % (location_city,))
-        print(
-            '[collect_transfer_data] Contributor default state: %s' % (location_state,)
-        )
-        print(
-            '[collect_transfer_data] Contributor default zip: %s' % (location_country,)
-        )
-        print(
-            '[collect_transfer_data] Contributor default country: %s' % (location_zip,)
-        )
+        print('[collect_transfer_data] Contributor default state: %s' % (location_state,))
+        print('[collect_transfer_data] Contributor default zip: %s' % (location_country,))
+        print('[collect_transfer_data] Contributor default country: %s' % (location_zip,))
         if user_prompt:
             location_city = input(
                 '\n[collect_transfer_data] Change default location city (Enter to use default): '
@@ -388,9 +376,7 @@ def get_all_uncontributed_configs(ibs):
     isunassigned_list = [
         _contributor_rowid is None for _contributor_rowid in contributor_rowid_list
     ]
-    unassigned_config_rowid_list = ut.compress(
-        contributor_rowid_list, isunassigned_list
-    )
+    unassigned_config_rowid_list = ut.compress(contributor_rowid_list, isunassigned_list)
     return unassigned_config_rowid_list
 
 
@@ -406,9 +392,7 @@ def set_config_contributor_unassigned(ibs, contributor_rowid):
     # IS THIS NECESSARY?
     unassigned_config_rowid_list = ibs.get_all_uncontributed_configs()
     contributor_rowid_list = [contributor_rowid] * len(unassigned_config_rowid_list)
-    ibs.set_config_contributor_rowid(
-        unassigned_config_rowid_list, contributor_rowid_list
-    )
+    ibs.set_config_contributor_rowid(unassigned_config_rowid_list, contributor_rowid_list)
 
 
 #
@@ -826,9 +810,7 @@ def get_config_suffixes(ibs, config_rowid_list):
         Method: GET
         URL:    /api/contributor/config/suffixes/
     """
-    cfgsuffix_list = ibs.db.get(
-        const.CONFIG_TABLE, ('config_suffix',), config_rowid_list
-    )
+    cfgsuffix_list = ibs.db.get(const.CONFIG_TABLE, ('config_suffix',), config_rowid_list)
     return cfgsuffix_list
 
 

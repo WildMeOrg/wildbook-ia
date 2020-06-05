@@ -262,9 +262,7 @@ def get_namescore_nonvoting_feature_flags(
         name_group_fx1_groupxs_list = fx1_groupxs_list
     name_grouped_fid_grouped_fs_list = [
         vt.apply_grouping(fs_flat, fid_groupxs)
-        for fs_flat, fid_groupxs in zip(
-            name_grouped_fs_flat, name_group_fx1_groupxs_list
-        )
+        for fs_flat, fid_groupxs in zip(name_grouped_fs_flat, name_group_fx1_groupxs_list)
     ]
 
     # Flag which features are valid in this grouped space. Only one keypoint should be able to vote
@@ -376,14 +374,10 @@ def align_name_scores_with_annots(
         # +------------
         # Find the position of the highest name_scoring annotation for each name
         # IN THE FLATTENED GROUPED ANNOT_AID_LIST (this was the bug)
-        offset_list = np.array(
-            [annot_scores.argmax() for annot_scores in grouped_scores]
-        )
+        offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
         # Find the starting position of eatch group use chain to start offsets with 0
         _padded_scores = itertools.chain([[]], grouped_scores[:-1])
-        sizeoffset_list = np.array(
-            [len(annot_scores) for annot_scores in _padded_scores]
-        )
+        sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
         baseindex_list = sizeoffset_list.cumsum()
         # Augment starting position with offset index
         annot_idx_list = np.add(baseindex_list, offset_list)

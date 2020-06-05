@@ -270,9 +270,7 @@ class PairwiseFeatureExtractor(object):
 
         vecs = stacked_vecs
         num = K + Knorm
-        idxs, dists = indexer.batch_knn(
-            vecs, num, chunksize=8192, label='lnbnn scoring'
-        )
+        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
         idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
         dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
@@ -280,9 +278,7 @@ class PairwiseFeatureExtractor(object):
         prog = ut.ProgIter(iter_, length=len(matches_), label='lnbnn scoring')
         for match_, neighb_idx, neighb_dist in prog:
             qaid = match_.annot2['aid']
-            norm_k = nn_weights.get_normk(
-                qreq_, qaid, neighb_idx, Knorm, normalizer_rule
-            )
+            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
             ndist = vt.take_col_per_row(neighb_dist, norm_k)
             vdist = match_.local_measures['match_dist']
             lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
@@ -489,9 +485,7 @@ class PairwiseFeatureExtractor(object):
         """
         edges = list(edges)
         if extr.verbose:
-            print(
-                '[pairfeat] Requesting {} cached pairwise features'.format(len(edges))
-            )
+            print('[pairfeat] Requesting {} cached pairwise features'.format(len(edges)))
 
         # TODO: use object properties
         if len(edges) == 0:

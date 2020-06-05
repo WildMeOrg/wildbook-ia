@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
 import cv2
@@ -126,9 +127,7 @@ class IBEIS_Image(object):  # NOQA
                             for overlap_name in overlap_names:
                                 name = '%s' % overlap_name.upper()
                                 ibsi.objects_patches.append(
-                                    IBEIS_Object(
-                                        obj, ibsi.width, ibsi.height, name=name
-                                    )
+                                    IBEIS_Object(obj, ibsi.width, ibsi.height, name=name)
                                 )
                         else:
                             ibsi.objects_patches.append(
@@ -166,12 +165,8 @@ class IBEIS_Image(object):  # NOQA
     ):
         names = []
         for _obj in objects:
-            x_overlap = max(
-                0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin)
-            )
-            y_overlap = max(
-                0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin)
-            )
+            x_overlap = max(0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin))
+            y_overlap = max(0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin))
             area_overlap = float(x_overlap * y_overlap)
             width = obj['xmax'] - obj['xmin']
             height = obj['ymax'] - obj['ymin']

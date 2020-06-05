@@ -121,9 +121,7 @@ def run_expt(
         assert len(daids) != 0, '[harness] No database annotas specified'
         acfg = acfg_list[acfgx]
         if ut.NOT_QUIET:
-            ut.colorprint(
-                '\n---Annot config testnameid=%r' % (testnameid,), 'turquoise'
-            )
+            ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
         subindexer_partial = ut.ProgPartial(
             parent_index=acfgx, parent_length=nAcfg, enabled=ut.NOT_QUIET
         )
@@ -201,9 +199,7 @@ def make_single_testres(
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint(
-                    '[harn] single testres cache hit... returning', 'turquoise'
-                )
+                ut.colorprint('[harn] single testres cache hit... returning', 'turquoise')
             return testres
 
     if ibs.table_cache:
@@ -281,9 +277,7 @@ def make_single_testres(
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
-    testres = test_result.TestResult(
-        pipecfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_
-    )
+    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)
     testres.testnameid = testnameid
     testres.lbl = lbl
     testres.cfgdict_list = cfgdict_list

@@ -174,9 +174,7 @@ def get_data_list():
     # pyrf.RF_CLIB.__LIB_FPATH__
     # Hesaff
     libhesaff_fname = 'libhesaff' + LIB_EXT
-    libhesaff_src = realpath(
-        join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname)
-    )
+    libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname))
     libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
     DATATUP_LIST.append((libhesaff_dst, libhesaff_src))
 
@@ -187,9 +185,7 @@ def get_data_list():
     DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
     libpyrf_fname = 'libpydarknet' + LIB_EXT
-    libpyrf_src = realpath(
-        join(root_dir, '..', 'pydarknet', 'pydarknet', libpyrf_fname)
-    )
+    libpyrf_src = realpath(join(root_dir, '..', 'pydarknet', 'pydarknet', libpyrf_fname))
     libpyrf_dst = join(ibsbuild, 'pydarknet', 'lib', libpyrf_fname)
     DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
@@ -212,9 +208,7 @@ def get_data_list():
     #    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
     #    libflann_dst = join(ibsbuild, libflann_fname)
     # This path is when pyflann was built using setup.py develop
-    libflann_src = realpath(
-        join(root_dir, '..', 'flann', 'build', 'lib', libflann_fname)
-    )
+    libflann_src = realpath(join(root_dir, '..', 'flann', 'build', 'lib', libflann_fname))
     libflann_dst = join(ibsbuild, 'pyflann', 'lib', libflann_fname)
     DATATUP_LIST.append((libflann_dst, libflann_src))
 
@@ -337,9 +331,7 @@ def get_data_list():
     print('[installer] Checking Data (preweb)')
     try:
         for (dst, src) in DATATUP_LIST:
-            assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (
-                src,
-            )
+            assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
         ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise

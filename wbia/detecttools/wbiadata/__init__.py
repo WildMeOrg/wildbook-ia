@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 import os
@@ -95,9 +96,7 @@ class IBEIS_Data(object):  # NOQA
                 rois = '% 5d' % (rois,)
             except Exception:
                 pass
-            print(
-                '%s%s\t%s' % (category + ' ' * (spacing - len(category)), images, rois)
-            )
+            print('%s%s\t%s' % (category + ' ' * (spacing - len(category)), images, rois))
 
         key_list = list(ibsd.distribution_rois.keys())
         key_list += ['TOTAL', 'CATEGORY']

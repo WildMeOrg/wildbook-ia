@@ -502,9 +502,7 @@ def get_annotcfg_list(
         print('combo_slice = %r' % (combo_slice,))
         print('acfg_slice = %r' % (acfg_slice,))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-        ut.colorprint(
-            '[experiment_helpers] exiting due to AcfgInfo info request', 'red'
-        )
+        ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
         sys.exit(0)
 
     return acfg_list, expanded_aids_list

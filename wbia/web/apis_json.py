@@ -297,7 +297,7 @@ def add_images_json(
     image_unixtime_list=None,
     image_gps_lat_list=None,
     image_gps_lon_list=None,
-    **kwargs
+    **kwargs,
 ):
     """
     REST:
@@ -430,9 +430,7 @@ def add_images_json(
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = (
-                'The input list %s has the wrong length. Received: %d. Expected %d'
-            )
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
             args = (
                 tag,
                 length_,
@@ -564,7 +562,7 @@ def add_annots_json(
     annot_multiple_list=None,
     annot_interest_list=None,
     annot_name_list=None,
-    **kwargs
+    **kwargs,
 ):
     """
     REST:
@@ -636,9 +634,7 @@ def add_annots_json(
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = (
-                'The input list %s has the wrong length. Received: %d. Expected %d'
-            )
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
             args = (
                 tag,
                 length_,
@@ -757,29 +753,21 @@ def add_annots_json(
         ibs.set_annot_species(aid_list_, annot_species_list_)
 
     if annot_multiple_list is not None:
-        annot_multiple_list = _rectify(
-            annot_multiple_list, False, expected_length, bool
-        )
+        annot_multiple_list = _rectify(annot_multiple_list, False, expected_length, bool)
         annot_multiple_list = _verify(
             annot_multiple_list, 'annot_multiple_list', expected_length, allow_none=True
         )
-        flag_list = [
-            annot_multiple is not None for annot_multiple in annot_multiple_list
-        ]
+        flag_list = [annot_multiple is not None for annot_multiple in annot_multiple_list]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_multiple_list_ = ut.filter_items(annot_multiple_list, flag_list)
         ibs.set_annot_multiple(aid_list_, annot_multiple_list_)
 
     if annot_interest_list is not None:
-        annot_interest_list = _rectify(
-            annot_interest_list, False, expected_length, bool
-        )
+        annot_interest_list = _rectify(annot_interest_list, False, expected_length, bool)
         annot_interest_list = _verify(
             annot_interest_list, 'annot_interest_list', expected_length, allow_none=True
         )
-        flag_list = [
-            annot_interest is not None for annot_interest in annot_interest_list
-        ]
+        flag_list = [annot_interest is not None for annot_interest in annot_interest_list]
         aid_list_ = ut.filter_items(aid_list, flag_list)
         annot_interest_list_ = ut.filter_items(annot_interest_list, flag_list)
         ibs.set_annot_interest(aid_list_, annot_interest_list_)
@@ -839,9 +827,7 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
     def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
-            message = (
-                'The input list %s has the wrong length. Received: %d. Expected %d'
-            )
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
             args = (
                 tag,
                 length_,
@@ -1107,17 +1093,13 @@ def get_imageset_end_time_posix_json(ibs, imageset_uuid_list):
     return ibs.get_imageset_end_time_posix(imageset_rowid_list)
 
 
-@register_api(
-    '/api/imageset/gps/lat/json/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/imageset/gps/lat/json/', methods=['GET'], __api_plural_check__=False)
 def get_imageset_gps_lats_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.get_imageset_gps_lats(imageset_rowid_list)
 
 
-@register_api(
-    '/api/imageset/gps/lon/json/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/imageset/gps/lon/json/', methods=['GET'], __api_plural_check__=False)
 def get_imageset_gps_lons_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.get_imageset_gps_lons(imageset_rowid_list)
@@ -1683,9 +1665,7 @@ def get_annot_image_contributor_tag_json(ibs, annot_uuid_list):
     return ibs.get_annot_image_contributor_tag(aid_list)
 
 
-@register_api(
-    '/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False)
 def get_annot_age_months_est_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est(aid_list, **kwargs)

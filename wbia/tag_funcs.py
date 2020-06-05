@@ -718,8 +718,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     hacky setter for dynamic properties of annotmatches using notes table
     """
     print(
-        '[ibs] set_annotmatch_prop prop=%s for %d pairs'
-        % (prop, len(annotmatch_rowids))
+        '[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids))
     )
     # if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
     #    setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())

@@ -259,9 +259,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return 'removed'
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
-        print(
-            'Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value,)
-        )
+        print('Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value,))
         actor.infr.task_thresh[task][decision] = value
         print('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
         return 'updated'

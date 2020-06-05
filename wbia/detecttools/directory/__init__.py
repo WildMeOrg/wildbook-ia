@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 import os
@@ -183,9 +184,7 @@ if __name__ == '__main__':
     assert direct.num_directories() == 0
 
     # Test include
-    direct = Directory(
-        'tests/directory', include_file_extensions=['txt'], recursive=True
-    )
+    direct = Directory('tests/directory', include_file_extensions=['txt'], recursive=True)
     assert direct.num_files(recursive=False) == 3
     assert direct.num_files() == 6
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Check which subpackages I've updated but not released on pypi yet.
 

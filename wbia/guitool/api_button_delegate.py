@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
@@ -90,9 +91,7 @@ class APIButtonDelegate(DELEGATE_BASE):
         button = guitool_components.newButton(**butkw)
         pressed = dgt.is_qtindex_pressed(qtindex)
         view = dgt.parent()
-        paint_button(
-            painter, option, button=button, pressed=pressed, view=view, **butkw
-        )
+        paint_button(painter, option, button=button, pressed=pressed, view=view, **butkw)
         painter.restore()
 
     def is_qtindex_pressed(dgt, qtindex):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: These tests are good and important to run.
 Ensure they are run via run_tests even though they are not doctests.

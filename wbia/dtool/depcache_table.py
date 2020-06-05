@@ -456,9 +456,7 @@ class _TableDebugHelper(object):
     """
 
     def print_sql_info(table):
-        add_op = table.db._make_add_table_sqlstr(
-            sep='\n    ', **table._get_addtable_kw()
-        )
+        add_op = table.db._make_add_table_sqlstr(sep='\n    ', **table._get_addtable_kw())
         ut.cprint(add_op, 'sql')
 
     def print_internal_info(table, all_attrs=False):
@@ -522,12 +520,9 @@ class _TableDebugHelper(object):
         if with_colattrs:
             nl = 1
             print('TABEL COLUMN ATTRIBUTES')
+            print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=nl),))
             print(
-                'table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=nl),)
-            )
-            print(
-                'table.parent_col_attrs = %s'
-                % (ut.repr3(table.parent_col_attrs, nl=nl),)
+                'table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs, nl=nl),)
             )
             print(
                 'table.internal_data_col_attrs = %s'
@@ -589,9 +584,7 @@ class _TableDebugHelper(object):
             argspec = ut.get_func_argspec(table.preproc_func)
             args = argspec.args
             if argspec.varargs and argspec.keywords:
-                assert (
-                    len(args) == 1
-                ), 'varargs and kwargs must have one arg for depcache'
+                assert len(args) == 1, 'varargs and kwargs must have one arg for depcache'
             else:
                 if len(args) < 3:
                     print('args = %r' % (args,))
@@ -733,10 +726,7 @@ class _TableInternalSetup(ub.NiceRepr):
                 # External class column
                 assert hasattr(coltype, '__getstate__') and hasattr(
                     coltype, '__setstate__'
-                ), (
-                    'External classes must have __getstate__ and '
-                    '__setstate__ methods'
-                )
+                ), ('External classes must have __getstate__ and ' '__setstate__ methods')
                 read_func, write_func = make_extern_io_funcs(table, coltype)
                 sqltype = lite.TYPE_TO_SQLTYPE[str]
                 intern_colname = colname + EXTERN_SUFFIX
@@ -1084,10 +1074,7 @@ class _TableGeneralHelper(ub.NiceRepr):
     @ut.memoize
     def parent_id_tablenames(table):
         tablenames = tuple(
-            [
-                parent_colattr['parent_table']
-                for parent_colattr in table.parent_col_attrs
-            ]
+            [parent_colattr['parent_table'] for parent_colattr in table.parent_col_attrs]
         )
         return tablenames
 
@@ -1184,7 +1171,7 @@ class _TableGeneralHelper(ub.NiceRepr):
                 pt.show_nx,
                 G,
                 title='Dependency Subgraph (%s)' % (table.tablename),
-                **plot_kw
+                **plot_kw,
             )
         )
         if autostart:
@@ -1297,9 +1284,7 @@ class _TableGeneralHelper(ub.NiceRepr):
         for colattr in table.data_col_attrs:
             rattr = {}
             if colattr.get('isnested'):
-                nest_internal_names = ut.take_column(
-                    colattr['nestattrs'], 'flat_colname'
-                )
+                nest_internal_names = ut.take_column(colattr['nestattrs'], 'flat_colname')
                 nest_attrs = ut.dict_take(requestable_col_attrs, nest_internal_names)
                 rattr['intern_colname'] = nest_internal_names
                 rattr['intern_colx'] = ut.take_column(nest_attrs, 'intern_colx')
@@ -1415,9 +1400,7 @@ class _TableComputeHelper(object):
 
                         # Make a new model uuid
                         # TODO: maybe we should not do this here
-                        model_uuid = ut.hashable_to_uuid(
-                            (multi_ids, config.get_cfgstr())
-                        )
+                        model_uuid = ut.hashable_to_uuid((multi_ids, config.get_cfgstr()))
                         manifest_data['config'] = config
                         manifest_data['model_uuid'] = model_uuid
                         manifest_data['augmented'] = False
@@ -1536,9 +1519,7 @@ class _TableComputeHelper(object):
         Writes external data to disk if write function is specified.
         """
         internal_data_col_attrs = table.internal_data_col_attrs
-        writable_flags = ut.dict_take_column(
-            internal_data_col_attrs, 'write_func', False
-        )
+        writable_flags = ut.dict_take_column(internal_data_col_attrs, 'write_func', False)
         extern_colattrs = ut.compress(internal_data_col_attrs, writable_flags)
         # extern_colnames = ut.dict_take_column(extern_colattrs, 'colname')
         extern_writers = ut.dict_take_column(extern_colattrs, 'write_func')
@@ -1614,9 +1595,7 @@ class _TableComputeHelper(object):
         config_rowid = table.get_config_rowid(config)
         # depc.get_rowids(tablename, root_rowids, config)
         internal_data_col_attrs = table.internal_data_col_attrs
-        writable_flags = ut.dict_take_column(
-            internal_data_col_attrs, 'write_func', False
-        )
+        writable_flags = ut.dict_take_column(internal_data_col_attrs, 'write_func', False)
         extern_colattrs = ut.compress(internal_data_col_attrs, writable_flags)
         extern_colattr = extern_colattrs[extern_col_index]
         fname_list = table._get_extern_fnames(
@@ -2183,8 +2162,7 @@ class DependencyCacheTable(
             multi_parent_colxs = ut.where(multi_parent_flags)
             normal_colxs = ut.index_complement(multi_parent_colxs, num_parents)
             multi_parents = [
-                ut.apply_grouping(ids_, multi_parent_colxs)
-                for ids_ in valid_parent_ids_
+                ut.apply_grouping(ids_, multi_parent_colxs) for ids_ in valid_parent_ids_
             ]
             normal_parents = [
                 ut.apply_grouping(ids_, normal_colxs) for ids_ in valid_parent_ids_
@@ -2328,9 +2306,7 @@ class DependencyCacheTable(
         return rowid_list
 
     # @profile
-    def _get_rowid(
-        table, parent_ids_, config=None, eager=True, nInput=None, _debug=None
-    ):
+    def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None, _debug=None):
         """
         Returns rowids using parent superkeys. Does not add non-existing
         properties.
@@ -2835,8 +2811,7 @@ class DependencyCacheTable(
                     # table.delete_rows(failed_rowids, delete_extern=None)
                 raise ExternalStorageException(
                     'Some cached filenames failed to read. '
-                    'Need to recompute %d/%d rows'
-                    % (sum(failed_list), len(failed_list))
+                    'Need to recompute %d/%d rows' % (sum(failed_list), len(failed_list))
                 )
                 # raise Exception('Non existant data on disk. Need to recompute rows')
             prop_listT[extern_colx] = data_list

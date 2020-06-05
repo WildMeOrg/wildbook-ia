@@ -17,9 +17,7 @@ import scipy.io
 (print, rrr, profile) = ut.inject2(__name__, '[selective search]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
-SCRIPT_PATH = abspath(
-    expanduser(join('~', 'code', 'selective_search_ijcv_with_python'))
-)
+SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'selective_search_ijcv_with_python')))
 
 if not ut.get_argflag('--no-selective-search'):
     try:

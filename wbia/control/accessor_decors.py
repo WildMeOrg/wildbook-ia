@@ -248,9 +248,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                     # print('[cache_getter] "debug_cache_hits" turned off')
                 # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
                 if ASSERT_API_CACHE:
-                    assert_cache_hits(
-                        ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs
-                    )
+                    assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
                 # END HACK
                 if any(ismiss_list):
                     miss_indices = ut.list_where(ismiss_list)

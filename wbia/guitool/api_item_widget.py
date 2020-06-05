@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 This module contains functions and clases to get data visualized fast (in
 terms of development time)
@@ -20,9 +21,7 @@ import six
 
 WIDGET_BASE = QtWidgets.QWidget
 
-VERBOSE_ITEM_WIDGET = (
-    ut.get_argflag(('--verbose-item-widget', '--verbiw')) or ut.VERBOSE
-)
+VERBOSE_ITEM_WIDGET = ut.get_argflag(('--verbose-item-widget', '--verbiw')) or ut.VERBOSE
 
 
 def simple_api_item_widget():
@@ -168,7 +167,7 @@ class CustomAPI(object):
         col_width_dict={},
         strict=False,
         col_display_role_func_dict=None,
-        **kwargs
+        **kwargs,
     ):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
@@ -228,7 +227,7 @@ class CustomAPI(object):
         sortby,
         sort_reverse=True,
         strict=False,
-        **kwargs
+        **kwargs,
     ):
         """
         parses simple lists into information suitable for making guitool headers
@@ -293,9 +292,7 @@ class CustomAPI(object):
                 colx = colname2_colx[colname]
                 # Col iders might have tuple input
                 ider_cols = self._uinput_1to1(self.col_name_list.index, ider_colnames)
-                col_ider = self._uinput_1to1(
-                    lambda c: ut.partial(self.get, c), ider_cols
-                )
+                col_ider = self._uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
                 self.col_ider_list[colx] = col_ider
                 del col_ider
                 del ider_cols

@@ -53,9 +53,7 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
     # ---
     if stop_node == 'nearest_neighbors':
         return locals()
-    nns_list = nearest_neighbors(
-        qreq_, Kpad_list, impossible_daids_list, verbose=verbose
-    )
+    nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list, verbose=verbose)
     # ---
     if stop_node == 'baseline_neighbor_filter':
         return locals()
@@ -102,7 +100,7 @@ def testdata_pre(
     defaultdb='testdb1',
     p=['default'],
     a=['default:qindex=0:1,dindex=0:5'],
-    **kwargs
+    **kwargs,
 ):
     """
     New (1-1-2016) generic pipeline node testdata getter
@@ -219,11 +217,7 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
 
 
 def testdata_post_sver(
-    defaultdb='PZ_MTEST',
-    qaid_list=None,
-    daid_list=None,
-    codename='vsmany',
-    cfgdict=None,
+    defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None,
 ):
     """
         >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA

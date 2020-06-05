@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flake8:noqa
 # Wrapper around PyQt4/5
 """

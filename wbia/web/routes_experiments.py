@@ -507,9 +507,7 @@ def experiments_voting_area_src(ibs, aoi=False, **kwargs):
 
 
 @register_api(
-    '/experiments/ajax/voting/bbox/metrics/',
-    methods=['GET'],
-    __api_plural_check__=False,
+    '/experiments/ajax/voting/bbox/metrics/', methods=['GET'], __api_plural_check__=False,
 )
 def experiments_voting_bbox_width(ibs, **kwargs):
     aoi_dict = voting_data(**kwargs)

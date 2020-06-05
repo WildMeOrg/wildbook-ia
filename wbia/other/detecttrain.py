@@ -27,9 +27,7 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 def classifier_cameratrap_train(
     ibs, positive_imageset_id, negative_imageset_id, **kwargs
 ):
-    from ibeis_cnn.ingest_wbia import (
-        get_cnn_classifier_cameratrap_binary_training_images,
-    )
+    from ibeis_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
 
@@ -60,7 +58,7 @@ def classifier_cameratrap_densenet_train(
         negative_imageset_id,
         dest_path=data_path,
         image_size=densenet.INPUT_SIZE,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
@@ -136,7 +134,7 @@ def classifier_multiclass_densenet_train(
         label_list,
         dest_path=data_path,
         image_size=densenet.INPUT_SIZE,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
@@ -145,9 +143,7 @@ def classifier_multiclass_densenet_train(
         output_path = join(
             ibs.get_cachedir(), 'training', 'classifier-multiclass-ensemble-%d' % args
         )
-        weights_path = densenet.train(
-            extracted_path, output_path, blur=True, flip=False
-        )
+        weights_path = densenet.train(extracted_path, output_path, blur=True, flip=False)
         weights_path_list.append(weights_path)
 
     archive_name = 'classifier.multiclass.zip'
@@ -208,7 +204,7 @@ def classifier2_train(
         category_mapping=species_mapping,
         train_gid_set=train_gid_set,
         dest_path=data_path,
-        **kwargs
+        **kwargs,
     )
     extracted_path, category_list = values
     id_file, X_file, y_file = numpy_processed_directory3(extracted_path)
@@ -229,9 +225,7 @@ def classifier_train(ibs, **kwargs):
 
 
 @register_ibs_method
-def canonical_classifier_train(
-    ibs, species, ensembles=3, extracted_path=None, **kwargs
-):
+def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
     from wbia.other.detectexport import (
         get_cnn_classifier_canonical_training_images_pytorch,
     )
@@ -255,9 +249,7 @@ def canonical_classifier_train(
         )
         if exists(output_path):
             ut.delete(output_path)
-        weights_path = densenet.train(
-            extracted_path, output_path, blur=False, flip=False
-        )
+        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
     args = (species,)
@@ -406,7 +398,7 @@ def localizer_lightnet_train(
     cleanup_all=True,
     deploy=True,
     cache_species_str=None,
-    **kwargs
+    **kwargs,
 ):
     from wbia.algo.detect import lightnet
     import subprocess
@@ -454,9 +446,7 @@ def localizer_lightnet_train(
         '_^_NUM_BATCHES_^_': str(batches),
     }
 
-    dataset_py_path = _localizer_lightnet_template_replace(
-        dataset_py_path, replace_dict
-    )
+    dataset_py_path = _localizer_lightnet_template_replace(dataset_py_path, replace_dict)
     labels_py_path = _localizer_lightnet_template_replace(labels_py_path, replace_dict)
     test_py_path = _localizer_lightnet_template_replace(test_py_path, replace_dict)
     train_py_path = _localizer_lightnet_template_replace(train_py_path, replace_dict)
@@ -765,7 +755,7 @@ def labeler_train_ibeis_cnn(
         category_list=species_list,
         category_mapping=species_mapping,
         viewpoint_mapping=viewpoint_mapping,
-        **kwargs
+        **kwargs,
     )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
@@ -787,7 +777,7 @@ def labeler_train(
     species_mapping=None,
     viewpoint_mapping=None,
     ensembles=3,
-    **kwargs
+    **kwargs,
 ):
     from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
     from wbia.algo.detect import densenet
@@ -801,7 +791,7 @@ def labeler_train(
         category_mapping=species_mapping,
         viewpoint_mapping=viewpoint_mapping,
         dest_path=data_path,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
@@ -815,9 +805,7 @@ def labeler_train(
         )
         if exists(output_path):
             ut.delete(output_path)
-        weights_path = densenet.train(
-            extracted_path, output_path, blur=False, flip=False
-        )
+        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
     args = (species,)
@@ -931,7 +919,7 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
         patch_size=50,
         train_gid_set=train_gid_set,
         global_limit=global_limit,
-        **kwargs
+        **kwargs,
     )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')

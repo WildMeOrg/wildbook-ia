@@ -902,9 +902,7 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     return outputLog
 
 
-def newLabel(
-    parent=None, text='', align='center', gpath=None, fontkw={}, min_width=None
-):
+def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}, min_width=None):
     r"""
     Args:
         parent (None): (default = None)
@@ -1279,9 +1277,7 @@ def _inject_new_widget_methods(self):
                     if (row is None) != (col is None):
                         raise ValueError('only both or neither can be None')
                     if row is not None:
-                        layout.addWidget(
-                            widget, row, col, rowSpan, columnSpan, **kwargs
-                        )
+                        layout.addWidget(widget, row, col, rowSpan, columnSpan, **kwargs)
                     else:
                         if len(kwargs) == 0:
                             # qt weirdness
@@ -1440,7 +1436,7 @@ class GuitoolWidget(WIDGET_BASE):
         margin=None,
         name=None,
         ori=None,
-        **kwargs
+        **kwargs,
     ):
         super(GuitoolWidget, self).__init__(parent)
 
@@ -2131,9 +2127,7 @@ class CustomComboBox(QtWidgets.QComboBox):
 
     def setOptions(combo, options):
         flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
-        options = [
-            opt if flag else (str(opt), opt) for flag, opt in zip(flags, options)
-        ]
+        options = [opt if flag else (str(opt), opt) for flag, opt in zip(flags, options)]
         combo.options = options
 
     def updateOptions(combo, reselect=False, reselect_index=None):
@@ -2671,9 +2665,7 @@ class SimpleTree(QtCore.QObject):
                 return item.checkState(column) == QtCore.Qt.Checked
 
             def setChecked(flag):
-                return item.setCheckState(
-                    column, Qt.Checked if checked else Qt.Unchecked
-                )
+                return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
 
             item.isChecked = isChecked
             item.setChecked = setChecked
@@ -2693,9 +2685,7 @@ class SimpleTree(QtCore.QObject):
                 return item.checkState(column) == QtCore.Qt.Checked
 
             def setChecked(flag):
-                return item.setCheckState(
-                    column, Qt.Checked if checked else Qt.Unchecked
-                )
+                return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
 
             item.isChecked = isChecked
             item.setChecked = setChecked
@@ -2828,9 +2818,7 @@ class FlowLayout(QtWidgets.QLayout):
 
         if hasattr(self, 'contentsMargins'):
             margin = self.contentsMargins()
-            margin = (
-                margin.left() + margin.right() + margin.bottom() + margin.top()
-            ) / 4
+            margin = (margin.left() + margin.right() + margin.bottom() + margin.top()) / 4
         else:
             margin = self.margin()
 
@@ -2930,9 +2918,7 @@ class ComboRadioHybrid(GuitoolWidget):
             )
             adjustSizePolicy(rb_widget, vPolicy='Fixed')
             # rb_widget.addNewSpacer(row=0, column=0)
-            rb = rb_widget.addNewRadioButton(
-                row=0, column=1, name='opt_%d_rb' % (count,)
-            )
+            rb = rb_widget.addNewRadioButton(row=0, column=1, name='opt_%d_rb' % (count,))
             adjustSizePolicy(rb, hPolicy='Fixed', vPolicy='Fixed')
             # rb.setLayoutDirection(Qt.RightToLeft)
             # rb_widget.addNewSpacer(row=0, column=2)

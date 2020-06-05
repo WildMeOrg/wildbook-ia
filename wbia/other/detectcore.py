@@ -65,7 +65,7 @@ def export_to_xml(
     output_path=None,
     allow_empty_images=False,
     min_annot_size=5,
-    **kwargs
+    **kwargs,
 ):
     """Create training XML for training models."""
     import random
@@ -193,9 +193,7 @@ def export_to_xml(
             _image = ibs.get_images(gid)
             height, width, channels = _image.shape
 
-            condition = (
-                width > height if use_maximum_linear_dimension else width < height
-            )
+            condition = width > height if use_maximum_linear_dimension else width < height
             if condition:
                 ratio = height / width
                 decrease = target_size / width
@@ -336,7 +334,7 @@ def export_to_coco(
     require_image_reviewed=False,
     require_named=False,
     output_images=True,
-    **kwargs
+    **kwargs,
 ):
     """Create training COCO dataset for training models."""
     from datetime import date
@@ -535,9 +533,7 @@ def export_to_coco(
         if target_size is None:
             decrease = 1.0
         else:
-            condition = (
-                width > height if use_maximum_linear_dimension else width < height
-            )
+            condition = width > height if use_maximum_linear_dimension else width < height
             if condition:
                 ratio = height / width
                 decrease = target_size / width
@@ -573,9 +569,7 @@ def export_to_coco(
             }
         )
 
-        print(
-            'Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height),)
-        )
+        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height),))
 
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -623,9 +617,7 @@ def export_to_coco(
             if require_named and nid < 0:
                 continue
 
-            viewpoint = viewpoint_mapping.get(species_name, {}).get(
-                viewpoint, viewpoint
-            )
+            viewpoint = viewpoint_mapping.get(species_name, {}).get(viewpoint, viewpoint)
 
             # if viewpoint is None:
             #     continue
@@ -645,9 +637,7 @@ def export_to_coco(
                 width,
                 height,
             )
-            print(
-                '\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area,)
-            )
+            print('\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area,))
 
             if include_reviews:
                 # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
@@ -829,9 +819,7 @@ def imageset_train_test_split(
     temp_list = ibs.get_imageset_gids(test_imgsetid)
     ibs.unrelate_images_and_imagesets(temp_list, [test_imgsetid] * len(temp_list))
 
-    ibs.set_image_imgsetids(
-        global_train_list, [train_imgsetid] * len(global_train_list)
-    )
+    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
     ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
 
     print('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
@@ -969,7 +957,7 @@ def classifier_visualize_training_localizations(
     scheme=2,
     output_path=None,
     values=None,
-    **kwargs
+    **kwargs,
 ):
     def _draw(image_dict, list_, color):
         for _ in list_:

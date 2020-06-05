@@ -70,8 +70,7 @@ def rsync_ibsdb_main():
             'Usage: '
             # 'python -m wbia.scripts.rsync_wbiadb'
             'python -m wbia rsync'
-            '%s --db <db=%s> --user <user=%s>'
-            % (valid_modes, default_db, default_user,)
+            '%s --db <db=%s> --user <user=%s>' % (valid_modes, default_db, default_user,)
         )
         sys.exit(1)
 
@@ -82,9 +81,7 @@ def rsync_ibsdb_main():
 
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
-    dbnames = ut.get_argval(
-        ('--db', '--dbs', '--dbname'), type_=str, default=default_db
-    )
+    dbnames = ut.get_argval(('--db', '--dbs', '--dbname'), type_=str, default=default_db)
     dbnames = ut.smart_cast(dbnames, list)
     workdir = ut.get_argval(
         ('--workdir'), type_=str, default=None, help_='local work dir override'

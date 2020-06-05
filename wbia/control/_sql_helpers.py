@@ -8,9 +8,7 @@ import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-VERBOSE_SQL = ut.get_argflag(
-    ('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql')
-)
+VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
@@ -184,9 +182,7 @@ def copy_database(src_fpath, dst_fpath):
 
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
-    timeout = (
-        12 * 60 * 60
-    )  # Allow a lock of up to 12 hours for a database backup routine
+    timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
     db = dtool.SQLDatabaseController(
         fpath=src_fpath, text_factory=six.text_type, inmemory=False, timeout=timeout
     )

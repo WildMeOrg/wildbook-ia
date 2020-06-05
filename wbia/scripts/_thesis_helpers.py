@@ -338,10 +338,7 @@ class DBInputs(object):
             # PZ_Master is too big to run in full.  Select a smaller sample.
             # Be sure to include photobomb and incomparable cases.
             aids = ibs.filter_annots_general(
-                require_timestamp=True,
-                species='primary',
-                is_known=True,
-                minqual='poor',
+                require_timestamp=True, species='primary', is_known=True, minqual='poor',
             )
             infr = wbia.AnnotInference(ibs=ibs, aids=aids)
             infr.reset_feedback('staging', apply=True)
@@ -410,9 +407,7 @@ class DBInputs(object):
 
 def find_minority_class_ccs(infr):
     # Finds ccs involved in photobombs and incomparble cases
-    pb_edges = [
-        edge for edge, tags in infr.gen_edge_attrs('tags') if 'photobomb' in tags
-    ]
+    pb_edges = [edge for edge, tags in infr.gen_edge_attrs('tags') if 'photobomb' in tags]
     incomp_edges = list(infr.incomp_graph.edges())
     minority_edges = pb_edges + incomp_edges
     minority_nids = set(infr.node_labels(*set(ut.flatten(minority_edges))))

@@ -141,7 +141,7 @@ def qtapp_loop(
     enable_activate_qwin=True,
     frequency=420,
     init_signals=True,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Args:

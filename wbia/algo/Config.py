@@ -493,12 +493,8 @@ class NNWeightConfig(ConfigBase):
                         help_='config string for lnbnn score normalizer',
                     ),
                     #
-                    ut.ParamInfoBool(
-                        'can_match_sameimg', False, 'sameimg', hideif=False
-                    ),
-                    ut.ParamInfoBool(
-                        'can_match_samename', True, 'samename', hideif=True
-                    ),
+                    ut.ParamInfoBool('can_match_sameimg', False, 'sameimg', hideif=False),
+                    ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
                     ut.ParamInfoBool('sqrd_dist_on', False, hideif=True),
                 ],
             ]

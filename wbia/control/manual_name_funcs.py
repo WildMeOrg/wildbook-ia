@@ -111,11 +111,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     colnames = [NAME_UUID, NAME_TEXT, NAME_NOTE]
     params_iter = list(zip(name_uuid_list, name_text_list, name_note_list))
     name_rowid_list = ibs.db.add_cleanly(
-        const.NAME_TABLE,
-        colnames,
-        params_iter,
-        get_rowid_from_superkey,
-        superkey_paramx,
+        const.NAME_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx,
     )
     return name_rowid_list
     # OLD WAY
@@ -155,8 +151,7 @@ def sanitize_name_texts(ibs, name_text_list):
     """
     ibsfuncs.assert_valid_names(name_text_list)
     name_text_list_ = [
-        None if name_text == const.UNKNOWN else name_text
-        for name_text in name_text_list
+        None if name_text == const.UNKNOWN else name_text for name_text in name_text_list
     ]
     return name_text_list_
 
@@ -1583,9 +1578,7 @@ def get_name_max_speed(ibs, nid_list):
         >>> print(maxspeed_list)
     """
     speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(
-        [vt.safe_max(speeds, nans=False) for speeds in speeds_list]
-    )
+    maxspeed_list = np.array([vt.safe_max(speeds, nans=False) for speeds in speeds_list])
     return maxspeed_list
 
 

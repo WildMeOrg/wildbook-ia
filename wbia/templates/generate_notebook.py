@@ -238,9 +238,7 @@ def make_wbia_notebook(ibs):
 
 def make_wbia_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
-    autogen_str = '# python -m wbia autogen_ipynb --launch --dbdir %r' % (
-        ibs.get_dbdir()
-    )
+    autogen_str = '# python -m wbia autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
     # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
     dbdir = ibs.dbdir

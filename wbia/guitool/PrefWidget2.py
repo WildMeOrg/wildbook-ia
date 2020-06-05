@@ -122,9 +122,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 state = (QtGui.QValidator.Invalid, text, pos)
             else:
                 if not re.match(
-                    r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$',
-                    text,
-                    flags=re.MULTILINE,
+                    r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$', text, flags=re.MULTILINE,
                 ):
                     # print('INVALIDATE text = %r' % (text,))
                     state = (QtGui.QValidator.Invalid, text, pos)
@@ -335,9 +333,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             # print('curent_value = %r' % (curent_value,))
             editor.setValue(curent_value)
         else:
-            editor = super(ConfigValueDelegate, self).createEditor(
-                parent, option, index
-            )
+            editor = super(ConfigValueDelegate, self).createEditor(parent, option, index)
             editor.setAutoFillBackground(True)
             editor.keyPressEvent
             # none_ok
@@ -346,9 +342,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
     def setEditorData(self, editor, index):
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
-            print(
-                '[DELEGATE] setEditorData for %s at %s' % (leafNode, qindexstr(index))
-            )
+            print('[DELEGATE] setEditorData for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode is not None and leafNode.is_combo:
             editor.blockSignals(True)
             current_data = index.model().data(index)
@@ -521,9 +515,7 @@ class QConfigModel(QAbstractItemModel):
             print('[setData] type(value) = %r' % type(value))
         result = leafPref.qt_set_data(data)
         if VERBOSE_CONFIG:
-            print(
-                '[setData] Notified of %s' % ('acceptance' if result else 'rejection')
-            )
+            print('[setData] Notified of %s' % ('acceptance' if result else 'rejection'))
         self.dataChanged.emit(qtindex, qtindex)
         if VERBOSE_CONFIG:
             print('[setData] --- FINISH setData() ---')
@@ -989,9 +981,7 @@ class EditConfigWidget(QtWidgets.QWidget):
             )
             buttons.append(self.default_but)
 
-            self.orig_but = gt.newButton(
-                self, 'Original', pressed=self.reset_to_original
-            )
+            self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
             buttons.append(self.orig_but)
 
             if not self.user_mode:

@@ -120,7 +120,7 @@ def review_detection_test(
     result_list=None,
     callback_url=None,
     callback_method='POST',
-    **kwargs
+    **kwargs,
 ):
     ibs = current_app.ibs
     if image_uuid is None or result_list is None:
@@ -128,9 +128,7 @@ def review_detection_test(
         image_uuid = results_dict['image_uuid_list'][0]
         result_list = results_dict['results_list'][0]
     if callback_url is None:
-        callback_url = request.args.get(
-            'callback_url', url_for('process_detection_html')
-        )
+        callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     if callback_method is None:
         callback_method = request.args.get('callback_method', 'POST')
     template_html = review_detection_html(
@@ -237,8 +235,7 @@ def review_detection_html(
             height,
         )
         raise IOError(
-            'Image %r for review has either no width or no height (w = %s, h = %s)'
-            % vals
+            'Image %r for review has either no width or no height (w = %s, h = %s)' % vals
         )
 
     annotation_list = []
@@ -551,9 +548,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
-def detect_cnn_yolo(
-    ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs
-):
+def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
     """
     Run animal detection in each image. Adds annotations to the database as they are found.
 
@@ -680,7 +675,7 @@ def models_cnn(
     parse_line_func,
     check_hash=False,
     hidden_models=[],
-    **kwargs
+    **kwargs,
 ):
     import urllib
 
@@ -768,9 +763,7 @@ def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-@register_api(
-    '/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
     """
     Check to see if a detection has been completed.
@@ -920,7 +913,7 @@ def commit_localization_results(
     orienter_algo=None,
     orienter_model_tag=None,
     update_json_log=True,
-    **kwargs
+    **kwargs,
 ):
     global_gid_list = []
     global_bbox_list = []
@@ -1063,9 +1056,7 @@ def commit_detection_results_filtered(
         for bbox, theta, species, viewpoint, conf in result_list:
             if not (filter_species_list is None or species in filter_species_list):
                 continue
-            if not (
-                filter_viewpoint_list is None or viewpoint in filter_viewpoint_list
-            ):
+            if not (filter_viewpoint_list is None or viewpoint in filter_viewpoint_list):
                 continue
             note_ = None if note is None else [note]
             temp_list = ibs.add_annots(
@@ -1148,9 +1139,7 @@ def log_detections(ibs, aid_list, fallback=True):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api(
-    '/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
     """
     TODO: extend to use non-constant species.
@@ -1180,9 +1169,7 @@ def get_species_with_detectors(ibs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api(
-    '/api/detect/species/working/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/detect/species/working/', methods=['GET'], __api_plural_check__=False)
 def get_working_species(ibs):
     """
     Get working species for detection.

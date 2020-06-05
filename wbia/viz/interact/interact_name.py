@@ -172,7 +172,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         backend_callback=None,
         dodraw=True,
         max_cols=MAX_COLS,
-        **kwargs
+        **kwargs,
     ):
         if ut.VERBOSE:
             print('[matchver] __init__')
@@ -523,7 +523,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button(
                 'remove name (' + ibs.get_name_texts(nid) + ')',
                 callback=callback,
-                **butkw
+                **butkw,
             )
         else:
             # new name
@@ -609,9 +609,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         if all(is_unknown) and not nid1_is_known and not nid2_is_known:
             joinnew_text = 'match all (nonjunk)\n to a new name'
             self.append_button(
-                joinnew_text,
-                callback=self.merge_nonjunk_into_new_name,
-                rect=next_rect(),
+                joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect(),
             )
         # option dismiss all and give new names to all nonjunk images
         if any(is_unknown):
@@ -770,9 +768,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     # ibs.print_annotation_table()
                 # print(ut.repr2(event.__dict__))
             elif viztype == 'matches':
-                self.cm.ishow_single_annotmatch(
-                    self.qreq_, self.aid2, fnum=None, mode=0
-                )
+                self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
 
 
 if __name__ == '__main__':

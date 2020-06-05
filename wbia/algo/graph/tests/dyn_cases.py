@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.algo.graph import demo
 import utool as ut
@@ -679,9 +680,7 @@ def case_all_types():
         'notcomp edge should be incon',
     )
     check(infr1, 21, 31, 'inferred_state', INCMP, 'notcomp edge should remain notcomp')
-    check(
-        infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge'
-    )
+    check(infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge')
     check(
         infr1,
         12,

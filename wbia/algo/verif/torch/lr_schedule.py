@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Exponential(object):
     """
     Decay learning rate by a factor of `decay_rate` every `lr_decay_epoch`

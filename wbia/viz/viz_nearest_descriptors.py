@@ -271,9 +271,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                         qfx2_dist[0, k],
                     )
                     # info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
-                    info += '\n$s=%.3f$' % (
-                        qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k]
-                    )
+                    info += '\n$s=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
                 else:
                     info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
                     info += '\nLNBNN=%.3f' % (
@@ -287,11 +285,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                     info += 'Norm: $j_%r$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
                     info += '\n\\_'
                 else:
-                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (
-                        id_str,
-                        k,
-                        qfx2_dist[0, k],
-                    )
+                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (id_str, k, qfx2_dist[0, k],)
             else:
                 raise Exception('[viz] problem k=%r')
             return (rchip, kp, sift, fx, aid, info, type_)
@@ -352,7 +346,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                 aid=aid,
                 info=info,
                 type_=type_,
-                **featrow_kw
+                **featrow_kw,
             )
 
             px += px_shift

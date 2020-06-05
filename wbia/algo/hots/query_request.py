@@ -1231,7 +1231,7 @@ class QueryRequest(ut.NiceRepr):
                     qreq_,
                     verbose=verbose,
                     prog_hook=prog_hook,
-                    **qreq_._indexer_request_params
+                    **qreq_._indexer_request_params,
                 )
             # elif index_method == 'multi':
             #    if ut.VERYVERBOSE or verbose:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import range
@@ -348,9 +349,7 @@ def get_valid_fig_positions(
     if max_rows is None:
         max_rows = DEFAULT_MAX_ROWS
 
-    available_geom = get_avail_geom(
-        monitor_num, percent_w=percent_w, percent_h=percent_h
-    )
+    available_geom = get_avail_geom(monitor_num, percent_w=percent_w, percent_h=percent_h)
     # print('available_geom = %r' % (available_geom,))
     startx, starty, avail_width, avail_height = available_geom
 

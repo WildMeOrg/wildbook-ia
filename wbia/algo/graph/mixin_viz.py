@@ -283,9 +283,7 @@ class GraphVisualization(object):
                     'spline' if small_graph else 'line',
                     valid_values=['line', 'spline', 'ortho'],
                 ),
-                ut.ParamInfo(
-                    'groupby', 'name_label', valid_values=['name_label', None]
-                ),
+                ut.ParamInfo('groupby', 'name_label', valid_values=['name_label', None]),
             ]
 
         return GraphVizConfig
@@ -449,9 +447,7 @@ class GraphVisualization(object):
         reviewed_width = 2.0
         if highlight_reviews:
             nx.set_edge_attributes(
-                graph,
-                name='linewidth',
-                values=ut.dzip(reviewed_edges, [reviewed_width]),
+                graph, name='linewidth', values=ut.dzip(reviewed_edges, [reviewed_width]),
             )
             nx.set_edge_attributes(
                 graph,
@@ -504,9 +500,7 @@ class GraphVisualization(object):
         )
 
         # Only matching edges should impose constraints on the graph layout
-        nx.set_edge_attributes(
-            graph, name='implicit', values=ut.dzip(neg_edges, [True])
-        )
+        nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(neg_edges, [True]))
         nx.set_edge_attributes(
             graph, name='alpha', values=ut.dzip(neg_edges, [alpha_med])
         )
@@ -552,16 +546,12 @@ class GraphVisualization(object):
             nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(neg_edges, [0]))
 
         if not kwargs.get('show_incomparable_edges', True):
-            nx.set_edge_attributes(
-                graph, name='alpha', values=ut.dzip(incomp_edges, [0])
-            )
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(incomp_edges, [0]))
 
         if not kwargs.get('show_between', True):
             if node_to_nid is None:
                 node_to_nid = nx.get_node_attributes(graph, 'name_label')
-            between_edges = [
-                (u, v) for u, v in edges if node_to_nid[u] != node_to_nid[v]
-            ]
+            between_edges = [(u, v) for u, v in edges if node_to_nid[u] != node_to_nid[v]]
             nx.set_edge_attributes(
                 graph, name='alpha', values=ut.dzip(between_edges, [0])
             )
@@ -684,7 +674,7 @@ class GraphVisualization(object):
         pnum=(1, 1, 1),
         zoomable=True,
         pickable=False,
-        **kwargs
+        **kwargs,
     ):
         r"""
         Args:
@@ -744,7 +734,7 @@ class GraphVisualization(object):
                 use_image=use_image,
                 pnum=pnum,
                 verbose=verbose,
-                **kwargs
+                **kwargs,
             )
             if zoomable:
                 pt.zoom_factory()
@@ -918,9 +908,7 @@ def on_pick(event, infr=None):
     if plotdat:
         if 'node' in plotdat:
             all_node_data = ut.sort_dict(plotdat['node_data'].copy())
-            visual_node_data = ut.dict_subset(
-                all_node_data, infr.visual_node_attrs, None
-            )
+            visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
             node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
             node = plotdat['node']
             node_data['degree'] = infr.graph.degree(node)

@@ -199,8 +199,7 @@ class InvertedAnnotsExtras(object):
 
         # Stack them together
         solidbar = np.zeros(
-            (patch_img.shape[0], int(patch_img.shape[1] * 0.1), 3),
-            dtype=patch_img.dtype,
+            (patch_img.shape[0], int(patch_img.shape[1] * 0.1), 3), dtype=patch_img.dtype,
         )
         border_color = (100, 10, 10)  # bgr, darkblue
         if ut.is_float(solidbar):
@@ -329,9 +328,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         inva.aids = aids
         inva.wx_lists = [
             np.array(wx_list_, dtype=np.int32)
-            for wx_list_ in table.get_row_data(
-                tbl_rowids, 'wx_list', showprog='load wxs'
-            )
+            for wx_list_ in table.get_row_data(tbl_rowids, 'wx_list', showprog='load wxs')
         ]
         inva.fxs_lists = [
             [np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
@@ -341,9 +338,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         ]
         inva.maws_lists = [
             [np.array(m, dtype=np.float32) for m in maws]
-            for maws in table.get_row_data(
-                tbl_rowids, 'maws_list', showprog='load maws'
-            )
+            for maws in table.get_row_data(tbl_rowids, 'maws_list', showprog='load maws')
         ]
         inva.agg_rvecs = table.get_row_data(
             tbl_rowids, 'agg_rvecs', showprog='load agg_rvecs'
@@ -681,8 +676,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     worker = residual_worker
     args_gen = gen_residual_args(vocab, vecs_list, nAssign, int_rvec)
     args_gen = [
-        args
-        for args in ut.ProgIter(args_gen, length=len(vecs_list), lbl='building args')
+        args for args in ut.ProgIter(args_gen, length=len(vecs_list), lbl='building args')
     ]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()

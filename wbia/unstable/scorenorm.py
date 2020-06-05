@@ -180,9 +180,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
     valid_case_pos = testres.case_sample2(filt_cfg=f, return_mask=False)
     cfgx2_valid_qxs = ut.group_items(valid_case_pos.T[0], valid_case_pos.T[1])
     test_qaids = testres.get_test_qaids()
-    cfgx2_valid_qaids = ut.map_dict_vals(
-        ut.partial(ut.take, test_qaids), cfgx2_valid_qxs
-    )
+    cfgx2_valid_qaids = ut.map_dict_vals(ut.partial(ut.take, test_qaids), cfgx2_valid_qxs)
 
     join_acfgs = True
 
@@ -232,7 +230,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
             with_roc=True,
             with_postbayes=False,
             # with_postbayes=True,
-            **vizkw
+            **vizkw,
         )
         icon = testres.ibs.get_database_icon()
         if icon is not None:
@@ -269,9 +267,7 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         >>> print(result)
         scorenorm/zebra_grevys
     """
-    scorenorm_cachedir = join(
-        ibs.get_wbia_resource_dir(), const.PATH_NAMES.scorenormdir
-    )
+    scorenorm_cachedir = join(ibs.get_wbia_resource_dir(), const.PATH_NAMES.scorenormdir)
     species_cachedir = join(scorenorm_cachedir, species_text)
     if ensure:
         ut.ensurepath(scorenorm_cachedir)
@@ -772,13 +768,9 @@ def get_training_featscores(
             query_annots=query_annots,
         )
 
-    for cm in ut.ProgIter(
-        cm_list_, lbl='building train featscores', adjust=True, freq=1
-    ):
+    for cm in ut.ProgIter(cm_list_, lbl='building train featscores', adjust=True, freq=1):
         try:
-            tp_fsv, tn_fsv = train_getter(
-                cm, namemode=namemode, top_percent=top_percent
-            )
+            tp_fsv, tn_fsv = train_getter(cm, namemode=namemode, top_percent=top_percent)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
         except UnbalancedExampleException:
@@ -905,9 +897,7 @@ def get_topname_training_idxs(cm, num=5):
     # name ranks of the top groundfalse names
     tp_rank = tp_ranks[0]
     tn_ranks = [
-        rank
-        for rank in range(num + 1)
-        if rank != tp_rank and rank < len(sorted_groupxs)
+        rank for rank in range(num + 1) if rank != tp_rank and rank < len(sorted_groupxs)
     ]
     if len(tn_ranks) == 0:
         # if ut.STRICT:
@@ -1063,8 +1053,7 @@ def get_training_desc_dist(
         dfxs_list = ut.take(cm.dfxs_list, idxs)
 
         need_norm = (
-            len(ut.setintersect_ordered(['ratio', 'lnbnn', 'normdist'], special_lbls))
-            > 0
+            len(ut.setintersect_ordered(['ratio', 'lnbnn', 'normdist'], special_lbls)) > 0
         )
         # need_norm |= 'parzen' in special_lbls
         # need_norm |= 'norm_parzen' in special_lbls

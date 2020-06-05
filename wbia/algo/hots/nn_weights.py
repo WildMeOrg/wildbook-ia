@@ -227,9 +227,7 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
     elif normalizer_rule == 'external':
         pass
     else:
-        raise NotImplementedError(
-            '[nn_weights] no normalizer_rule=%r' % normalizer_rule
-        )
+        raise NotImplementedError('[nn_weights] no normalizer_rule=%r' % normalizer_rule)
     return neighb_normk
 
 

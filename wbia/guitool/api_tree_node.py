@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore  # NOQA

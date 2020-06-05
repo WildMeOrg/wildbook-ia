@@ -38,9 +38,7 @@ def _get_all_lblannot_rowids(ibs):
 
 @register_ibs_method
 @adder
-def add_annot_relationship(
-    ibs, aid_list, lblannot_rowid_list, alr_confidence_list=None
-):
+def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, alr_confidence_list=None):
     """
     Adds a relationship between annots and lblannots
         (annotations and labels of annotations)
@@ -80,9 +78,7 @@ def add_lblannots(
     if lblannot_uuid_list is None:
         lblannot_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
     colnames = ['lblannot_uuid', 'lbltype_rowid', LBLANNOT_VALUE, 'lblannot_note']
-    params_iter = list(
-        zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list)
-    )
+    params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
     get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
     superkey_paramx = (1, 2)
     lblannot_rowid_list = ibs.db.add_cleanly(
@@ -150,9 +146,7 @@ def get_alr_annot_rowids(ibs, alrid_list):
     Args:
         alrid_list (list of rowids): annot + label relationship rows
     get the annot_rowid belonging to each relationship """
-    annot_rowids_list = ibs.db.get(
-        const.AL_RELATION_TABLE, ('annot_rowid',), alrid_list
-    )
+    annot_rowids_list = ibs.db.get(const.AL_RELATION_TABLE, ('annot_rowid',), alrid_list)
     return annot_rowids_list
 
 

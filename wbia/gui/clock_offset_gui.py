@@ -119,9 +119,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
                 pt.close_figure(co_wgt.imfig)
             image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
             figtitle = 'Time Synchronization Picture'
-            co_wgt.imfig, co_wgt.imax = pt.imshow(
-                image, fnum=co_wgt.fnum, title=figtitle
-            )
+            co_wgt.imfig, co_wgt.imax = pt.imshow(image, fnum=co_wgt.fnum, title=figtitle)
             co_wgt.imfig.show()
 
     def show_helpmsg(co_wgt):
@@ -281,9 +279,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
     def accept(co_wgt):
         # Calculate offset
         # Get current image's actual time
-        image_time = co_wgt.ibs.get_image_unixtime(
-            co_wgt.gid_list[co_wgt.current_gindex]
-        )
+        image_time = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list[co_wgt.current_gindex])
         # Get unixtime from current dtime
         input_time = mktime(co_wgt.dtime.timetuple())
         # Go through gid list, and add that offset to every unixtime

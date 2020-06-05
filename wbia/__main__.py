@@ -127,9 +127,7 @@ def run_wbia():
         mod_alias_list = {'exptdraw': 'wbia.expt.experiment_drawing'}
         doctest_modname = mod_alias_list.get(doctest_modname, doctest_modname)
         module = ut.import_modname(doctest_modname)
-        (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(
-            module=module
-        )
+        (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(module=module)
         retcode = 1 - (len(failed_list) == 0)
         # print(module)
         sys.exit(retcode)

@@ -25,9 +25,7 @@ def rhombicuboctahedron():
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(24)
 
-    p1, p2, p3 = np.array(
-        [(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh),]
-    ).T
+    p1, p2, p3 = np.array([(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh),]).T
     plist = [p1, p2, p3]
 
     # three of the six main faces

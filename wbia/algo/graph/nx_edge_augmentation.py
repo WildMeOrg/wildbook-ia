@@ -294,10 +294,7 @@ def partial_k_edge_augmentation(G, k, avail, weight=None):
     # Find which parts of the graph can be k-edge-connected
     H = G.copy()
     H.add_edges_from(
-        (
-            (u, v, {'weight': w, 'generator': (u, v)})
-            for (u, v), w in zip(avail, avail_w)
-        )
+        ((u, v, {'weight': w, 'generator': (u, v)}) for (u, v), w in zip(avail, avail_w))
     )
     k_edge_subgraphs = list(nx_ec.k_edge_subgraphs(H, k=k))
 
@@ -514,8 +511,7 @@ def weighted_one_edge_augmentation(G, avail, weight=None, partial=False):
     candidate_mapping = _lightest_meta_edges(mapping, avail_uv, avail_w)
     # nx.set_edge_attributes(C, name='weight', values=0)
     C.add_edges_from(
-        (mu, mv, {'weight': w, 'generator': uv})
-        for (mu, mv), uv, w in candidate_mapping
+        (mu, mv, {'weight': w, 'generator': uv}) for (mu, mv), uv, w in candidate_mapping
     )
     # Find MST of the meta graph
     meta_mst = nx.minimum_spanning_tree(C)

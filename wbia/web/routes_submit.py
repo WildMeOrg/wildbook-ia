@@ -218,9 +218,7 @@ def submit_detection(**kwargs):
                     except ValueError:
                         manifest_list = []
                     test_truth = len(manifest_list) > 0
-                    test_challenge_list = [
-                        {'gid': gid, 'manifest_list': manifest_list,}
-                    ]
+                    test_challenge_list = [{'gid': gid, 'manifest_list': manifest_list,}]
                     test_response_list = [{'poor_boxes': poor_boxes,}]
                     test_result_list = [test_truth == poor_boxes]
                     test_user_id_list = [None]
@@ -265,9 +263,7 @@ def submit_detection(**kwargs):
                             int(np.round(width * (annot['percent']['left'] / 100.0))),
                             int(np.round(height * (annot['percent']['top'] / 100.0))),
                             int(np.round(width * (annot['percent']['width'] / 100.0))),
-                            int(
-                                np.round(height * (annot['percent']['height'] / 100.0))
-                            ),
+                            int(np.round(height * (annot['percent']['height'] / 100.0))),
                         )
                         for annot in annotation_list
                     ]
@@ -320,9 +316,7 @@ def submit_detection(**kwargs):
 
                     # Process annotations
                     survived_aid_list = [
-                        None
-                        if annot['label'] in [None, 'None']
-                        else int(annot['label'])
+                        None if annot['label'] in [None, 'None'] else int(annot['label'])
                         for annot in annotation_list
                     ]
 
@@ -503,8 +497,7 @@ def submit_detection(**kwargs):
 
                     # Get metadata
                     viewpoint1_list = [
-                        int(part['metadata'].get('viewpoint1', -1))
-                        for part in part_list
+                        int(part['metadata'].get('viewpoint1', -1)) for part in part_list
                     ]
                     viewpoint2_list = [-1] * len(part_list)
                     viewpoint3_list = [-1] * len(part_list)
@@ -528,8 +521,7 @@ def submit_detection(**kwargs):
                             raise ValueError('quality must be 0, 1 or 2')
 
                     type_list = [
-                        part['metadata'].get('type', const.UNKNOWN)
-                        for part in part_list
+                        part['metadata'].get('type', const.UNKNOWN) for part in part_list
                     ]
 
                     # Delete annotations that didn't survive
@@ -552,9 +544,7 @@ def submit_detection(**kwargs):
                     ibs.delete_parts(kill_part_rowid_list)
 
                     staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
-                    staged_user_id_list = [staged_user_id] * len(
-                        survived_part_rowid_list
-                    )
+                    staged_user_id_list = [staged_user_id] * len(survived_part_rowid_list)
 
                     part_rowid_list = []
                     zipped = zip(
@@ -565,9 +555,7 @@ def submit_detection(**kwargs):
                         staged_user_id_list,
                     )
                     for part_rowid, aid, bbox, staged_uuid, staged_user_id in zipped:
-                        staged_uuid_list_ = (
-                            None if staged_uuid is None else [staged_uuid]
-                        )
+                        staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
                         staged_user_id_list_ = (
                             None if staged_user_id is None else [staged_user_id]
                         )
@@ -584,9 +572,7 @@ def submit_detection(**kwargs):
                             ibs._set_part_aid([part_rowid], [aid])
                             ibs.set_part_bboxes([part_rowid], [bbox])
                             if staged_uuid_list_ is not None:
-                                ibs.set_part_staged_uuids(
-                                    [part_rowid], staged_uuid_list_
-                                )
+                                ibs.set_part_staged_uuids([part_rowid], staged_uuid_list_)
                             if staged_user_id_list_ is not None:
                                 ibs.set_part_staged_user_ids(
                                     [part_rowid], staged_user_id_list_
@@ -662,7 +648,7 @@ def submit_detection(**kwargs):
                     imgsetid=imgsetid,
                     previous=gid,
                     previous_only_aid=only_aid,
-                    **config
+                    **config,
                 )
             )
 
@@ -910,10 +896,7 @@ def submit_viewpoint3(**kwargs):
         else:
             # Get metadata
             viewpoint_str = kwargs.get('viewpoint-text-code', '')
-            if (
-                not isinstance(viewpoint_str, six.string_types)
-                or len(viewpoint_str) == 0
-            ):
+            if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
                 viewpoint_str = None
 
             if viewpoint_str is None:
@@ -1275,9 +1258,7 @@ def submit_part_types(**kwargs):
         return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_part_rotate_left_90([part_rowid])
-        print(
-            '[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
-        )
+        print('[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,))
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
@@ -1441,9 +1422,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(
-            url_for(
-                'turk_demographics', imgsetid=imgsetid, previous=aid, species=species
-            )
+            url_for('turk_demographics', imgsetid=imgsetid, previous=aid, species=species)
         )
 
 
@@ -1713,8 +1692,7 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
             hogwild_species,
         )
         url = (
-            '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s&kaia=true'
-            % args
+            '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s&kaia=true' % args
         )
         url = url.replace(': ', ':')
         return redirect(url)

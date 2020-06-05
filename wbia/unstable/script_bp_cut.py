@@ -429,9 +429,7 @@ def cut_step(
             verbose=False,
             verboseCPLEX=False,
         )
-        infr = opengm.inference.Multicut(
-            gm, parameter=mc_params, accumulator='minimizer'
-        )
+        infr = opengm.inference.Multicut(gm, parameter=mc_params, accumulator='minimizer')
 
         infr.infer()
         labels = infr.arg()
@@ -646,9 +644,7 @@ def main():
         print('nodes = %r' % (nodes,))
         # print('edges = %r' % (edges,))
         print('Noisy Observations')
-        print(
-            pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges))
-        )
+        print(pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges)))
         edge_probs = None
 
         cut_step(

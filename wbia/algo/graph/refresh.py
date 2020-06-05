@@ -661,9 +661,7 @@ def _dev_iters_until_threshold():
         slope = np.median(np.diff(dat[1]))
         aval = int(np.ceil(sval * slope))
         thresh = float(poisson_thresh.subs({s: sval, a: aval}).evalf())
-        print(
-            'aval={}, sval={}, thresh={}, target={}'.format(aval, sval, thresh, target)
-        )
+        print('aval={}, sval={}, thresh={}, target={}'.format(aval, sval, thresh, target))
 
     for target, dat in target_binom_plots.items():
         slope = np.median(np.diff(dat[1]))

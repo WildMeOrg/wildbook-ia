@@ -38,7 +38,7 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
         # draw_kpts=False,
         # draw_ell=False,
         # all_kpts=False,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -186,7 +186,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         show_query=show_query,
         qreq_=qreq_,
         failed_to_match=failed_to_match,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -441,7 +441,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                     annote=False,
                     notitle=True,
                     data_config2_=data_config2_,
-                    **_kwshow
+                    **_kwshow,
                 )
 
         if DEBUG_SHOW_QRES:

@@ -181,14 +181,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
 
 def finetune(
-    model,
-    dataloaders,
-    optimizer,
-    scheduler,
-    device,
-    num_epochs=128,
-    under=1.0,
-    over=1.0,
+    model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=1.0,
 ):
     phases = ['train', 'val']
 
@@ -614,9 +607,7 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         ut.unarchive_file(archive_path, output_dir=ensemble_path)
 
     assert os.path.exists(ensemble_path)
-    direct = Directory(
-        ensemble_path, include_file_extensions=['weights'], recursive=True
-    )
+    direct = Directory(ensemble_path, include_file_extensions=['weights'], recursive=True)
     weights_path_list = direct.files()
     weights_path_list = sorted(weights_path_list)
     assert len(weights_path_list) > 0

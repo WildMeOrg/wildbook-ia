@@ -468,9 +468,7 @@ def review_graph_match_html(
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
 
-    ibs.web_check_uuids(
-        qannot_uuid_list=[annot_uuid_1], dannot_uuid_list=[annot_uuid_2]
-    )
+    ibs.web_check_uuids(qannot_uuid_list=[annot_uuid_1], dannot_uuid_list=[annot_uuid_2])
 
     aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
@@ -589,9 +587,7 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
 
-    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][
-        0
-    ]
+    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
     annot_uuid_key = str(review_pair['annot_uuid_key'])
     cm_dict = result_dict['cm_dict'][annot_uuid_key]
     query_config_dict = result_dict['query_config_dict']
@@ -786,7 +782,7 @@ def query_chips_graph(
     n=16,
     view_orientation='horizontal',
     return_summary=True,
-    **kwargs
+    **kwargs,
 ):
     from wbia.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
@@ -1395,7 +1391,7 @@ def query_chips_graph_v2(
     finished_callback_url=None,
     finished_callback_method='POST',
     creation_imageset_rowid_list=None,
-    **kwargs
+    **kwargs,
 ):
     """
     CommandLine:
@@ -1713,9 +1709,7 @@ def review_graph_match_html_v2(
     return appf.template('turk', 'identification_insert', **embedded)
 
 
-@register_api(
-    '/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False
-)
+@register_api('/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False)
 def view_graphs_status(ibs):
     graph_dict = {}
     for graph_uuid in current_app.GRAPH_CLIENT_DICT:
@@ -1848,9 +1842,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     match_aid2_list = ut.take_column(match_aid_edge_list, 1)
     match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
     match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
-    match_annot_uuid_edge_list = list(
-        zip(match_annot_uuid1_list, match_annot_uuid2_list)
-    )
+    match_annot_uuid_edge_list = list(zip(match_annot_uuid1_list, match_annot_uuid2_list))
 
     zipped = list(zip(*(list(edge_delta_df[col]) for col in col_list)))
 

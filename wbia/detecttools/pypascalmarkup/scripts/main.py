@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import re
 import csv
@@ -71,9 +72,7 @@ if __name__ == '__main__':
     ]
     # classname = 'zebra_grevys'
     for classname, directory in zip(classes, directories):
-        images = load_data(
-            directory + '/image_table.csv', directory + '/chip_table.csv'
-        )
+        images = load_data(directory + '/image_table.csv', directory + '/chip_table.csv')
         info = {
             'database_name': 'The IBEIS Database',
             'source': 'Mpala, Ol Pejeta, Kenya',
@@ -124,9 +123,7 @@ if __name__ == '__main__':
 
                 new_img_name = (out_fmt % c) + '.jpg'
                 dst_img = os.path.join(output_dir, 'JPEGImages', new_img_name)
-                dst_ann = os.path.join(
-                    output_dir, 'Annotations', (out_fmt % c) + '.xml'
-                )
+                dst_ann = os.path.join(output_dir, 'Annotations', (out_fmt % c) + '.xml')
                 c += 1
                 copied += 1
 

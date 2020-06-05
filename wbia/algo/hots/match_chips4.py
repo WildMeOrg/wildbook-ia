@@ -14,9 +14,7 @@ from wbia.algo.hots import pipeline
 
 # TODO: Move to params
 USE_HOTSPOTTER_CACHE = pipeline.USE_HOTSPOTTER_CACHE
-USE_CACHE = (
-    not ut.get_argflag(('--nocache-query', '--noqcache')) and USE_HOTSPOTTER_CACHE
-)
+USE_CACHE = not ut.get_argflag(('--nocache-query', '--noqcache')) and USE_HOTSPOTTER_CACHE
 USE_BIGCACHE = (
     not ut.get_argflag(
         ('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')

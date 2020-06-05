@@ -24,9 +24,7 @@ print, rrr, profile = ut.inject2(__name__)
 METADATA_TABLE = 'metadata'
 
 READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
-VERBOSE_SQL = ut.get_argflag(
-    ('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql')
-)
+VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 VERBOSE = ut.VERBOSE
@@ -34,9 +32,7 @@ VERYVERBOSE = ut.VERYVERBOSE
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 # AUTODUMP       = ut.get_argflag('--auto-dump')
 
-TIMEOUT = (
-    600  # Wait for up to 600 seconds for the database to return from a locked state
-)
+TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a locked state
 
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk')
@@ -613,9 +609,7 @@ class SQLDatabaseController(object):
             def get_rowid_from_superkey(x):
                 return [None] * len(x)
 
-            db.add_cleanly(
-                METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey
-            )
+            db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
 
     def get_db_init_uuid(db, ensure=True):
@@ -656,9 +650,7 @@ class SQLDatabaseController(object):
             def get_rowid_from_superkey(x):
                 return [None] * len(x)
 
-            db.add_cleanly(
-                METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey
-            )
+            db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         db_init_uuid = uuid.UUID(db_init_uuid_str)
         return db_init_uuid
 
@@ -833,7 +825,7 @@ class SQLDatabaseController(object):
         params_iter,
         get_rowid_from_superkey,
         superkey_paramx=(0,),
-        **kwargs
+        **kwargs,
     ):
         """
         ADDER Extra input:
@@ -952,9 +944,7 @@ class SQLDatabaseController(object):
         """
         Checks if rowids exist. Yields True if they do
         """
-        operation = 'SELECT count(1) FROM {tblname} WHERE rowid=?'.format(
-            tblname=tblname
-        )
+        operation = 'SELECT count(1) FROM {tblname} WHERE rowid=?'.format(tblname=tblname)
         for rowid in rowids:
             yield bool(db.cur.execute(operation, (rowid,)).fetchone()[0])
 
@@ -967,7 +957,7 @@ class SQLDatabaseController(object):
         unpack_scalars=True,
         eager=True,
         op='AND',
-        **kwargs
+        **kwargs,
     ):
         """ hacked in function for nicer templates
 
@@ -987,7 +977,7 @@ class SQLDatabaseController(object):
             where_clause,
             unpack_scalars=unpack_scalars,
             eager=eager,
-            **kwargs
+            **kwargs,
         )
 
     def get_where_eq_set(
@@ -999,7 +989,7 @@ class SQLDatabaseController(object):
         unpack_scalars=True,
         eager=True,
         op='AND',
-        **kwargs
+        **kwargs,
     ):
         params_iter_ = list(params_iter)
         params_length = len(params_iter_)
@@ -1043,7 +1033,7 @@ class SQLDatabaseController(object):
         where_clause,
         unpack_scalars=True,
         eager=True,
-        **kwargs
+        **kwargs,
     ):
         """
         """
@@ -1076,7 +1066,7 @@ class SQLDatabaseController(object):
                 params_iter=params_iter,
                 unpack_scalars=unpack_scalars,
                 eager=eager,
-                **kwargs
+                **kwargs,
             )
         return val_list
 
@@ -1088,7 +1078,7 @@ class SQLDatabaseController(object):
         op='AND',
         unpack_scalars=True,
         eager=True,
-        **kwargs
+        **kwargs,
     ):
         """ hacked in function for nicer templates """
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
@@ -1112,7 +1102,7 @@ class SQLDatabaseController(object):
             params_iter=params_iter,
             unpack_scalars=unpack_scalars,
             eager=eager,
-            **kwargs
+            **kwargs,
         )
         return val_list
 
@@ -1131,7 +1121,7 @@ class SQLDatabaseController(object):
         id_colname='rowid',
         eager=True,
         assume_unique=False,
-        **kwargs
+        **kwargs,
     ):
         """ getter
 
@@ -1182,9 +1172,7 @@ class SQLDatabaseController(object):
                 + ut.get_caller_name(list(range(1, 4)))
                 + ' db.get(%r, %r, ...)' % (tblname, colnames,)
             )
-        assert isinstance(
-            colnames, tuple
-        ), 'must specify column names TUPLE to get from'
+        assert isinstance(colnames, tuple), 'must specify column names TUPLE to get from'
         # if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
 
@@ -1236,7 +1224,7 @@ class SQLDatabaseController(object):
         id_colname='rowid',
         duplicate_behavior='error',
         duplcate_auto_resolve=True,
-        **kwargs
+        **kwargs,
     ):
         """
         setter
@@ -1414,7 +1402,7 @@ class SQLDatabaseController(object):
         unpack_scalars=True,
         eager=True,
         dryrun=False,
-        **kwargs
+        **kwargs,
     ):
         operation = operation_fmt.format(**fmtdict)
         if dryrun:
@@ -1725,9 +1713,10 @@ class SQLDatabaseController(object):
                     superkeys, list
                 ), 'must be list got %r, superkeys=%r' % (type(superkeys), superkeys)
                 for superkey_colnames in superkeys:
-                    assert isinstance(superkey_colnames, tuple), (
-                        'must be list of tuples got list of %r'
-                        % (type(superkey_colnames,))
+                    assert isinstance(
+                        superkey_colnames, tuple
+                    ), 'must be list of tuples got list of %r' % (
+                        type(superkey_colnames,)
                     )
                     colnames_str = ','.join(superkey_colnames)
                     unique_constraint = constraint_fmtstr.format(
@@ -1791,9 +1780,7 @@ class SQLDatabaseController(object):
         if sep == ' ':
             op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
         else:
-            op_fmtstr = (
-                'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
-            )
+            op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
         operation = op_fmtstr.format(**fmtkw)
         return operation
 
@@ -1833,7 +1820,7 @@ class SQLDatabaseController(object):
         rename_columns=[],
         # transform_columns=[],
         # constraint=None, docstr=None, superkeys=None,
-        **metadata_keyval
+        **metadata_keyval,
     ):
         """
         function to modify the schema - only columns that are being added,
@@ -2047,12 +2034,8 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
 
         # Rename table's metadata
-        key_old_list = [
-            tablename_old + '_' + suffix for suffix in db.table_metadata_keys
-        ]
-        key_new_list = [
-            tablename_new + '_' + suffix for suffix in db.table_metadata_keys
-        ]
+        key_old_list = [tablename_old + '_' + suffix for suffix in db.table_metadata_keys]
+        key_new_list = [tablename_new + '_' + suffix for suffix in db.table_metadata_keys]
         id_iter = [(key,) for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
@@ -2422,11 +2405,7 @@ class SQLDatabaseController(object):
     def get_table_primarykey_colnames(db, tablename):
         columns = db.get_columns(tablename)
         primarykey_colnames = tuple(
-            [
-                name
-                for (column_id, name, type_, notnull, dflt_value, pk,) in columns
-                if pk
-            ]
+            [name for (column_id, name, type_, notnull, dflt_value, pk,) in columns if pk]
         )
         return primarykey_colnames
 
@@ -2524,9 +2503,7 @@ class SQLDatabaseController(object):
         )
         return column_vals
 
-    def get_table_as_pandas(
-        db, tablename, rowids=None, columns=None, exclude_columns=[]
-    ):
+    def get_table_as_pandas(db, tablename, rowids=None, columns=None, exclude_columns=[]):
         """
         aid = 30
         db = ibs.staging
@@ -3031,8 +3008,7 @@ class SQLDatabaseController(object):
                     ut.compress(col, isvalid_list) for col in column_list_
                 ]
                 valid_extern_superkey_colval_list = [
-                    ut.compress(col, isvalid_list)
-                    for col in extern_superkey_colval_list
+                    ut.compress(col, isvalid_list) for col in extern_superkey_colval_list
                 ]
                 print(
                     ' * filtered number of rows from %d to %d.'
@@ -3125,10 +3101,7 @@ class SQLDatabaseController(object):
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
             try:
                 superkey_paramxs_list = [
-                    [
-                        column_names_.index(str(superkey))
-                        for superkey in superkey_colnames
-                    ]
+                    [column_names_.index(str(superkey)) for superkey in superkey_colnames]
                     for superkey_colnames in superkey_colnames_list
                 ]
             except Exception as ex:

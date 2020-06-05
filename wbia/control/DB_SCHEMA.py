@@ -416,9 +416,7 @@ def post_1_2_0(db, ibs=None):
         nid_list = get_annot_name_rowids_from_lblannot_relation(aid_list)
         speciesid_list = get_annot_speciesid_from_lblannot_relation(aid_list)
 
-        assert len(nid_list1) == len(
-            nid_list
-        ), 'cannot update to 1_2_0 name length error'
+        assert len(nid_list1) == len(nid_list), 'cannot update to 1_2_0 name length error'
         assert len(speciesid_list1) == len(
             speciesid_list
         ), 'cannot update to 1_2_0 species length error'
@@ -499,13 +497,9 @@ def post_1_2_1(db, ibs=None):
         species_rowids1 = db.get(ANNOTATION_TABLE, (SPECIES_ROWID,), aid_list)
         # Look at the unique non-unknown ones
         unique_name_rowids1 = sorted(list(set(name_rowids1) - set([UNKNOWN_ROWID])))
-        unique_species_rowids1 = sorted(
-            list(set(species_rowids1) - set([UNKNOWN_ROWID]))
-        )
+        unique_species_rowids1 = sorted(list(set(species_rowids1) - set([UNKNOWN_ROWID])))
         # Get params out of label annotation tables
-        name_params_list = db.get(
-            LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1
-        )
+        name_params_list = db.get(LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1)
         species_params_list = db.get(
             LBLANNOT_TABLE, lblannot_colnames, unique_species_rowids1
         )
@@ -516,9 +510,7 @@ def post_1_2_1(db, ibs=None):
         )
         # Build mapping from old table to new table
         name_rowid_mapping = dict(zip(unique_name_rowids1, unique_name_rowids2))
-        speices_rowid_mapping = dict(
-            zip(unique_species_rowids1, unique_species_rowids2)
-        )
+        speices_rowid_mapping = dict(zip(unique_species_rowids1, unique_species_rowids2))
         name_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
         speices_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
         # Apply mapping
@@ -533,9 +525,7 @@ def post_1_2_1(db, ibs=None):
             name_rowid_list = ibs.get_annot_name_rowids(aid_list)
             name_text_list = ibs.db.get(NAME_TABLE_v121, (NAME_TEXT,), name_rowid_list)
             name_text_list = [
-                UNKNOWN
-                if rowid == UNKNOWN_NAME_ROWID or name_text is None
-                else name_text
+                UNKNOWN if rowid == UNKNOWN_NAME_ROWID or name_text is None else name_text
                 for name_text, rowid in zip(name_text_list, name_rowid_list)
             ]
             return name_text_list
@@ -1200,16 +1190,8 @@ def update_1_3_7(db, ibs=None):
     db.modify_table(
         const.ANNOTMATCH_TABLE,
         dependsmap={
-            ANNOT_ROWID1: (
-                const.ANNOTATION_TABLE,
-                (ANNOT_ROWID,),
-                (ANNOT_VISUAL_UUID,),
-            ),
-            ANNOT_ROWID2: (
-                const.ANNOTATION_TABLE,
-                (ANNOT_ROWID,),
-                (ANNOT_VISUAL_UUID,),
-            ),
+            ANNOT_ROWID1: (const.ANNOTATION_TABLE, (ANNOT_ROWID,), (ANNOT_VISUAL_UUID,),),
+            ANNOT_ROWID2: (const.ANNOTATION_TABLE, (ANNOT_ROWID,), (ANNOT_VISUAL_UUID,),),
         },
     )
     db.modify_table(
@@ -1249,11 +1231,7 @@ def update_1_3_7(db, ibs=None):
         'encounter_image_relationship',
         dependsmap={
             'image_rowid': (const.IMAGE_TABLE, (IMAGE_ROWID,), (IMAGE_UUID,)),
-            'encounter_rowid': (
-                'encounters',
-                ('encounter_rowid',),
-                ('encounter_text',),
-            ),
+            'encounter_rowid': ('encounters', ('encounter_rowid',), ('encounter_text',),),
         },
     )
 
@@ -1597,12 +1575,7 @@ def update_1_5_0(db, ibs=None):
             ('encounter_uuid', 'imageset_uuid', 'UUID NOT NULL', None),
             ('encounter_text', 'imageset_text', 'TEXT NOT NULL', None),
             ('encounter_note', 'imageset_note', 'TEXT NOT NULL', None),
-            (
-                'encounter_start_time_posix',
-                'imageset_start_time_posix',
-                'INTEGER',
-                None,
-            ),
+            ('encounter_start_time_posix', 'imageset_start_time_posix', 'INTEGER', None,),
             ('encounter_end_time_posix', 'imageset_end_time_posix', 'INTEGER', None),
             ('encounter_gps_lat', 'imageset_gps_lat', 'INTEGER', None),
             ('encounter_gps_lon', 'imageset_gps_lon', 'INTEGER', None),
@@ -1850,9 +1823,7 @@ def post_1_6_4(db, ibs=None):
         yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
         # Convert into viewpoint text
         viewpoint_list = ibsfuncs.get_yaw_viewtexts(yaws)
-        db.set(
-            const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list, id_iter=aids
-        )
+        db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list, id_iter=aids)
 
 
 def update_1_6_5(db, ibs=None):
@@ -2138,9 +2109,7 @@ def __test_db_version_table_constraints():
     assert 'contributors' in ibs2.db.get_table_names()
     print(ibs2.db.get_schema_current_autogeneration_str('foo'))
 
-    assert 'contributors_superkeys' in ut.get_list_column(
-        ibs2.db.get_metadata_items(), 0
-    )
+    assert 'contributors_superkeys' in ut.get_list_column(ibs2.db.get_metadata_items(), 0)
 
     ibs3 = wbia.opendb(dbdir=tmpdir3, use_cache=False)
     ibs3.db.print_schema()
@@ -2203,9 +2172,7 @@ def dump_schema_sql():
     for tablename in db.get_table_names():
         autogen_dict = db.get_table_autogen_dict(tablename)
         coldef_list = autogen_dict['coldef_list']
-        str_ = db._make_add_table_sqlstr(
-            tablename, coldef_list=coldef_list, sep='\n    '
-        )
+        str_ = db._make_add_table_sqlstr(tablename, coldef_list=coldef_list, sep='\n    ')
         print(str_)
 
 

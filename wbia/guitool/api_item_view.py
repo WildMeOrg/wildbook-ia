@@ -265,9 +265,7 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                 select_flag = QtCore.QItemSelectionModel.ClearAndSelect
                 # select_flag = QtCore.QItemSelectionModel.Select
                 # select_flag = QtCore.QItemSelectionModel.NoUpdate
-                with ut.Timer(
-                    '[api_item_view] selecting name. qtindex=%r' % (qtindex,)
-                ):
+                with ut.Timer('[api_item_view] selecting name. qtindex=%r' % (qtindex,)):
                     select_model.select(qtindex, select_flag)
                 with ut.Timer('[api_item_view] expanding'):
                     view.setExpanded(qtindex, True)

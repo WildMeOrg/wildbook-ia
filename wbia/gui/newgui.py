@@ -79,9 +79,7 @@ class APITabWidget(QtWidgets.QTabWidget):
         # QtWidgets.QTabWidget.__init__(tabwgt, parent)
         super(APITabWidget, tabwgt).__init__(parent)
         tabwgt.ibswgt = parent
-        tabwgt._sizePolicy = gt.newSizePolicy(
-            tabwgt, horizontalStretch=horizontalStretch
-        )
+        tabwgt._sizePolicy = gt.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
         tabwgt.setSizePolicy(tabwgt._sizePolicy)
         # tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
         tabwgt.currentChanged.connect(tabwgt._on_tabletab_change)
@@ -160,9 +158,7 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
 
     @slot_(int)
     def _close_tab_with_imgsetid(imageset_tabwgt, imgsetid):
-        print(
-            '[imageset_tab_widget] _close_tab_with_imgsetid(imgsetid=%r)' % (imgsetid)
-        )
+        print('[imageset_tab_widget] _close_tab_with_imgsetid(imgsetid=%r)' % (imgsetid))
         try:
             index = imageset_tabwgt.imgsetid_list.index(imgsetid)
             imageset_tabwgt._close_tab(index)
@@ -564,9 +560,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Add control widgets (import, group, species selector, etc...)
         for count, control_widgets in enumerate(ibswgt.control_widget_lists):
             _container = status_wgt.addNewWidget(
-                orientation=Qt.Horizontal,
-                margin=0,
-                name='ControlContainer%d' % (count,),
+                orientation=Qt.Horizontal, margin=0, name='ControlContainer%d' % (count,),
             )
             for widget in control_widgets:
                 _container.addWidget(widget)
@@ -599,9 +593,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
             if tblname != gh.IMAGESET_TABLE:
-                tblview.selectionModel().selectionChanged.connect(
-                    ibswgt.update_selection
-                )
+                tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
             # front.printSignal.connect(back.backend_print)
             # front.raiseExceptionSignal.connect(back.backend_exception)
             # CONNECT HOOK TO GET NUM ROWS
@@ -669,20 +661,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         )
 
         table_key2_selected_rowids = {
-            key: list(set(val))
-            for key, val in six.iteritems(table_key2_selected_rowids)
+            key: list(set(val)) for key, val in six.iteritems(table_key2_selected_rowids)
         }
         table_key2_deselected_rowids = {
             key: list(set(val))
             for key, val in six.iteritems(table_key2_deselected_rowids)
         }
         if ut.VERBOSE:
+            print('table_key2_selected_rowids = ' + ut.repr2(table_key2_selected_rowids))
             print(
-                'table_key2_selected_rowids = ' + ut.repr2(table_key2_selected_rowids)
-            )
-            print(
-                'table_key2_deselected_rowids = '
-                + ut.repr2(table_key2_deselected_rowids)
+                'table_key2_deselected_rowids = ' + ut.repr2(table_key2_deselected_rowids)
             )
 
         gh_const_tablename_map = {
@@ -858,9 +846,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if reselect_new_name in nice_name_list:
             reselect_index = nice_name_list.index(reselect_new_name)
             if VERBOSE_GUI:
-                print(
-                    '[front] Reselecting renamed selection: %r' % (reselect_new_name,)
-                )
+                print('[front] Reselecting renamed selection: %r' % (reselect_new_name,))
         if VERBOSE_GUI:
             print('[front] Reselecting index: %r' % (reselect_index,))
         # ibswgt.species_combo.setOptions(detection_combo_box_options)
@@ -1146,9 +1132,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         text = ibswgt.status_widget_list[index].text()
         ibswgt.select_table_indicies_from_text(tablename, text)
 
-    def select_table_indicies_from_text(
-        ibswgt, tblname, text, allow_table_change=False
-    ):
+    def select_table_indicies_from_text(ibswgt, tblname, text, allow_table_change=False):
         """
         Args:
             tblname - tablename of the id to parse from text
@@ -1209,9 +1193,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if not ut.QUIET:
                 print('[newgui]  * id_list = %r' % (id_list,))
             # print(id_list)
-            id_list = ibswgt.back._set_selection3(
-                backend_tablename, id_list, mode='set'
-            )
+            id_list = ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
         # Select the index if we are in the right table tab
         if len(id_list) == 1 and (
@@ -1385,10 +1367,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.override_all_annotation_species(aid_list),
                     ),
                     ('----', lambda: None),
-                    (
-                        "Remove annotation's name",
-                        lambda: ibswgt.back.unset_names([aid]),
-                    ),
+                    ("Remove annotation's name", lambda: ibswgt.back.unset_names([aid]),),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(aid_list)),
                     ('----', lambda: None),
                 ]
@@ -1458,9 +1437,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 def create_new_imageset_from_names_(ibs, nid_list):
                     ibs.create_new_imageset_from_names(nid_list)
-                    ibswgt.update_tables(
-                        [gh.IMAGESET_TABLE], clear_view_selection=False
-                    )
+                    ibswgt.update_tables([gh.IMAGESET_TABLE], clear_view_selection=False)
 
                 context_options += [
                     (

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import utool as ut
 import numpy as np
@@ -46,9 +47,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     #     # qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
     #     # weight_lists.append(qdstncvs_list)
     if fg_on:
-        qfgweight_list = ibs.get_annot_fgweights(
-            aid_list, ensure=True, config2_=config2_
-        )
+        qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
     if len(weight_lists) == 0:
         baseline_weights_list = [
@@ -271,14 +270,7 @@ def general_coverage_mask_generator(
     for daid, fm, fs in zip(id_list, fm_list, fs_list):
         # CAREFUL weight_mask_m is overriden on every iteration
         weight_mask_m = compute_general_matching_coverage_mask(
-            make_mask_func,
-            chipsize,
-            fm,
-            fs,
-            qkpts,
-            qweights,
-            cov_cfg,
-            out=weight_mask_m,
+            make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m,
         )
         yield daid, weight_mask_m, weight_mask
 

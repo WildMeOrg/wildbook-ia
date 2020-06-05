@@ -578,9 +578,7 @@ def make_wbia_headers_dict(ibs):
         # if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevel_dict = TABLE_TREE_LEVELS.get(tblname, ut.ddict(lambda: 0))
         collevels = [collevel_dict[colname] for colname in colnames]
-        hiddencols = TABLE_HIDDEN_LIST.get(
-            tblname, [False for _ in range(len(colnames))]
-        )
+        hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in range(len(colnames))])
         numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 
         colwidths_dict = widths.get(tblname, {})

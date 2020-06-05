@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: rewrite the hotspotter lnbnn algo to be a generator
 

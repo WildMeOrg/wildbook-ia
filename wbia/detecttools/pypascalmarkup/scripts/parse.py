@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import random
 from collections import defaultdict
@@ -57,9 +58,7 @@ if __name__ == '__main__':
     # open the files to write the assignments to
     with open(classname1 + '_train.txt', 'w') as training_file, open(
         classname1 + '_test.txt', 'w'
-    ) as test_file, open('test.txt', 'w') as test, open(
-        'trainval.txt', 'w'
-    ) as trainval:
+    ) as test_file, open('test.txt', 'w') as test, open('trainval.txt', 'w') as trainval:
         for i, filename in enumerate(keys):
             # write the first N files to the training set
             if i < N:

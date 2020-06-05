@@ -263,8 +263,7 @@ def run_tests():
         doctest_modname_list = [
             modname
             for modname in doctest_modname_list_
-            if not re.search('\\bgui\\b', modname)
-            and not re.search('\\bviz\\b', modname)
+            if not re.search('\\bgui\\b', modname) and not re.search('\\bviz\\b', modname)
         ]
 
     for modname in doctest_modname_list:
@@ -370,9 +369,7 @@ def convert_tests_from_wbia_to_nose(module_list):
             #    src_node.append('assert result == %r' % (want,))
             if '\nresult = ' in src:
                 src += '\nassert str(result) == %r' % (want,)
-        func_src = 'def test_%s_%d():\n' % (name.replace('.', '_'), num,) + ut.indent(
-            src
-        )
+        func_src = 'def test_%s_%d():\n' % (name.replace('.', '_'), num,) + ut.indent(src)
         autogen_test_src_funcs.append(func_src)
 
     autogen_test_src = (

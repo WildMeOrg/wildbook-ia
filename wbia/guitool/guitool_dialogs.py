@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
@@ -115,10 +116,7 @@ def user_option(
         msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, 'default=%r is not in options=%r' % (
-            default,
-            options,
-        )
+        assert default in options, 'default=%r is not in options=%r' % (default, options,)
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -283,8 +281,7 @@ def newDirectoryDialog(
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
         qopt = (
-            QtWidgets.QFileDialog.ShowDirsOnly
-            | QtWidgets.QFileDialog.DontUseNativeDialog
+            QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
         )
     else:
         qopt = QtWidgets.QFileDialog.ShowDirsOnly

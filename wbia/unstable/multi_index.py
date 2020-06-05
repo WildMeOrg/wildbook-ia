@@ -184,15 +184,12 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     # extra_indexes = []
     for tx, aids in enumerate(aids_list):
         print(
-            '[mindex] building forest %d/%d with %d aids'
-            % (tx + 1, num_bins, len(aids))
+            '[mindex] building forest %d/%d with %d aids' % (tx + 1, num_bins, len(aids))
         )
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(
-                qreq_, aids
-            )
+            nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     # if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -667,9 +664,7 @@ class MultiNeighborIndex(object):
             qfx2_fx_list.append(qfx2_fx)
             qfx2_ax_list.append(qfx2_ax)
             qfx2_rankx_list.append(
-                np.array(
-                    [[rankx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx)
-                )
+                np.array([[rankx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx))
             )
             qfx2_treex_list.append(
                 np.array([[tx for rankx in range(qfx2_idx.shape[1])]] * len(qfx2_idx))

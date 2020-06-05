@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 
@@ -23,9 +24,7 @@ def depc_34_helper(depc):
                     parent_data = '+'.join(['#'.join(col) for col in native_cols])
                 else:
                     parent_data = (
-                        'root('
-                        + ';'.join(list(map(str, ut.ensure_iterable(row))))
-                        + ')'
+                        'root(' + ';'.join(list(map(str, ut.ensure_iterable(row)))) + ')'
                     )
                 data += [parent_data]
             d = '[' + '&'.join(data) + ']'

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.plottool import custom_figure
 import utool as ut
@@ -29,9 +30,7 @@ def detect_keypress(fig):
 
 
 def clicked_inside_axis(event):
-    in_axis = event is not None and (
-        event.inaxes is not None and event.xdata is not None
-    )
+    in_axis = event is not None and (event.inaxes is not None and event.xdata is not None)
     if not in_axis:
         pass
         # print(' ...out of axis')

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
@@ -215,9 +216,7 @@ class Priority(object):
             extra_edges = set(maybe_error_edges).difference(set(edges))
             extra_edges = list(extra_edges)
             infr.print(
-                'ensuring {} inconsistent edge(s) get priority'.format(
-                    len(extra_edges)
-                ),
+                'ensuring {} inconsistent edge(s) get priority'.format(len(extra_edges)),
                 5,
             )
 
@@ -305,9 +304,7 @@ class Priority(object):
                     size1 = len(cc1)
                     size2 = len(cc2)
 
-                    if nid1 == nid2 and not (
-                        size1 > SIZE_THRESH and size2 > SIZE_THRESH
-                    ):
+                    if nid1 == nid2 and not (size1 > SIZE_THRESH and size2 > SIZE_THRESH):
                         continue
 
                 if infr.params['redun.enabled']:

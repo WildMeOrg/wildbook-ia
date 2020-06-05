@@ -301,9 +301,7 @@ def build_annot_context_options(
                     + key,
                     set_quality_func(key),
                 )
-                for count, key in enumerate(
-                    ibs.const.QUALITY_TEXT_TO_INT.keys(), start=1
-                )
+                for count, key in enumerate(ibs.const.QUALITY_TEXT_TO_INT.keys(), start=1)
             ],
         ),
     ]

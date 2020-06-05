@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from wbia.guitool.__PYQT__.QtCore import Qt
 import utool as ut
 import collections

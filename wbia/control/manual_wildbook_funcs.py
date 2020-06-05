@@ -107,9 +107,7 @@ def assert_ia_available_for_wb(ibs, wb_target=None):
         print('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
         return None
     except Exception as ex:
-        ut.printex(
-            ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True
-        )
+        ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
     else:
         have_server = False
         for count in ut.delayed_retry_gen([1], timeout=3, raise_=False):
@@ -160,9 +158,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
 
 @register_ibs_method
 @register_api('/api/wildbook/signal/annot/name/', methods=['PUT'])
-def wildbook_signal_annot_name_changes(
-    ibs, aid_list=None, wb_target=None, dryrun=False
-):
+def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None, dryrun=False):
     r"""
     Args:
         aid_list (int):  list of annotation ids(default = None)
@@ -574,9 +570,7 @@ def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
     gid_list = ibs.get_valid_gids()
     local_image_uuid_list = ibs.get_image_uuids(gid_list)
 
-    unknown_uuid_list = list(
-        set(flukebook_image_uuid_list) - set(local_image_uuid_list)
-    )
+    unknown_uuid_list = list(set(flukebook_image_uuid_list) - set(local_image_uuid_list))
     candidate_uuid_list = list(
         set(local_image_uuid_list) - set(flukebook_image_uuid_list)
     )
@@ -679,9 +673,7 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
     aid_list = ibs.get_valid_aids()
     local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    unknown_uuid_list = list(
-        set(flukebook_annot_uuid_list) - set(local_annot_uuid_list)
-    )
+    unknown_uuid_list = list(set(flukebook_annot_uuid_list) - set(local_annot_uuid_list))
     candidate_uuid_list = list(
         set(local_annot_uuid_list) - set(flukebook_annot_uuid_list)
     )

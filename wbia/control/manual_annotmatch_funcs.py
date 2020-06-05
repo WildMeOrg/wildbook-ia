@@ -493,9 +493,7 @@ def get_annotmatch_tag_text(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annotmatch_evidence_decision(
-    ibs, annotmatch_rowid_list, eager=True, nInput=None
-):
+def get_annotmatch_evidence_decision(ibs, annotmatch_rowid_list, eager=True, nInput=None):
     r"""
 
     gets data from the "native" column "annotmatch_evidence_decision" in the "annotmatch" table
@@ -701,10 +699,7 @@ def set_annotmatch_evidence_decision(
 @accessor_decors.setter
 @register_api('/api/match/decision/meta/', methods=['PUT'])
 def set_annotmatch_meta_decision(
-    ibs,
-    annotmatch_rowid_list,
-    annotmatch_meta_decision_list,
-    duplicate_behavior='error',
+    ibs, annotmatch_rowid_list, annotmatch_meta_decision_list, duplicate_behavior='error',
 ):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_META_DECISION,)

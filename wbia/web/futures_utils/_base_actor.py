@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO:
     Actors need to be able to reference each other.

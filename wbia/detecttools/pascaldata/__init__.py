@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 import os
@@ -85,9 +86,7 @@ class PASCAL_Data(object):
         def _print_line(category, spacing, images, rois):
             images = str(images)
             rois = str(rois)
-            print(
-                '%s%s\t%s' % (category + ' ' * (spacing - len(category)), images, rois)
-            )
+            print('%s%s\t%s' % (category + ' ' * (spacing - len(category)), images, rois))
 
         _max = (
             max(
@@ -102,9 +101,7 @@ class PASCAL_Data(object):
 
         _print_line('CATEGORY', _max, 'IMGs', 'ROIs')
         if 'BACKGROUND' in pascald.distribution_images:
-            _print_line(
-                'BACKGROUND', _max, pascald.distribution_images['BACKGROUND'], ''
-            )
+            _print_line('BACKGROUND', _max, pascald.distribution_images['BACKGROUND'], '')
 
         for category in sorted(pascald.distribution_rois):
             _print_line(

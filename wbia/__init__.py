@@ -120,7 +120,7 @@ def run_experiment(
     qaid_override=None,
     daid_override=None,
     lazy=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Convience function
@@ -212,13 +212,9 @@ def run_experiment(
         if qaid_override is not None:
             command_parts.extend(['--qaid=' + ','.join(map(str, qaid_override))])
         if daid_override is not None:
-            command_parts.extend(
-                ['--daid-override=' + ','.join(map(str, daid_override))]
-            )
+            command_parts.extend(['--daid-override=' + ','.join(map(str, daid_override))])
         if 'disttype' in kwargs:
-            command_parts.extend(
-                ['--disttype=', ','.join(map(str, kwargs['disttype']))]
-            )
+            command_parts.extend(['--disttype=', ','.join(map(str, kwargs['disttype']))])
 
         # hack parse out important args that were on command line
         if 'f' in kwargs:
@@ -248,9 +244,7 @@ def run_experiment(
         func = find_expt_func(e_)
         ibs = testres.ibs
         build_commandline(e=e_, **kwargs)
-        lazy_func = functools.partial(
-            func, ibs, testres, show_in_notebook=True, **kwargs
-        )
+        lazy_func = functools.partial(func, ibs, testres, show_in_notebook=True, **kwargs)
         return lazy_func
 
     def draw_taghist(testres, **kwargs):

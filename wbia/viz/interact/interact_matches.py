@@ -75,7 +75,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         fnum=None,
         qreq_=None,
         figtitle='Match Interaction',
-        **kwargs
+        **kwargs,
     ):
         # print('[ibs] MatchInteraction.__init__')
         self.ibs = ibs
@@ -103,9 +103,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
                 fs_list = self.cm.fs_list
             fs = None if fs_list is None else fs_list[index]
             H1 = None if self.cm.H_list is None else cm.H_list[index]
-            self.score = (
-                None if self.cm.score_list is None else self.cm.score_list[index]
-            )
+            self.score = None if self.cm.score_list is None else self.cm.score_list[index]
         else:
             self.qaid = self.cm.qaid
             self.daid = aid2
@@ -151,7 +149,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
             H2=None,
             fk=fk,
             fnum=fnum,
-            **kwargs
+            **kwargs,
         )
 
     # def plot(self, fnum, pnum):
@@ -211,7 +209,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
             self.fm,
             self.fs,
             qreq_=self.qreq_,
-            **show_matches_kw
+            **show_matches_kw,
         )
         ax, xywh1, xywh2 = tup
         self.xywh2 = xywh2

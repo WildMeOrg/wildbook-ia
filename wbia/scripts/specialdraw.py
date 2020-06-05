@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
@@ -1023,9 +1024,7 @@ def graph_iden_cut_demo():
     if False:
         # Find extra example
         annots = ibs.annots(
-            ibs.filter_annots_general(
-                view='right', require_timestamp=True, min_pername=2
-            )
+            ibs.filter_annots_general(view='right', require_timestamp=True, min_pername=2)
         )
         unique_nids = ut.unique(annots.nids)
         nid_to_annots = ut.dzip(
@@ -1249,52 +1248,44 @@ def show_id_graph():
         show_positive_edges=False,
         show_negative_edges=False,
         show_incomparable_edges=False,
-        **showkw
+        **showkw,
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph1.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph1.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr.show(
         show_positive_edges=True,
         show_negative_edges=False,
         show_incomparable_edges=False,
-        **showkw
+        **showkw,
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph2.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph2.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr.show(
         show_positive_edges=False,
         show_negative_edges=True,
         show_incomparable_edges=False,
-        **showkw
+        **showkw,
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph3.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph3.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr.show(
         show_positive_edges=False,
         show_negative_edges=False,
         show_incomparable_edges=True,
-        **showkw
+        **showkw,
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph4.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph4.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
     import networkx as nx
 
@@ -1302,9 +1293,7 @@ def show_id_graph():
     nx.set_node_attributes(infr.graph, name='pin', values='true')
     fig = pt.gcf()
     fig.savefig(
-        'id_graph5.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph5.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr2 = infr.copy()
@@ -1315,9 +1304,7 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph6.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph6.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
     for edge in infr2.find_neg_redun_candidate_edges(k=2):
         infr2.add_feedback(edge, evidence_decision=NEGTV)
@@ -1326,9 +1313,7 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph7.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph7.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr3 = infr.copy()
@@ -1349,9 +1334,7 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph8.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph8.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
     infr4 = infr.copy()
@@ -1361,9 +1344,7 @@ def show_id_graph():
     infr4.show(show_cand=True, **showkw)
     fig = pt.gcf()
     fig.savefig(
-        'id_graph9.png',
-        bbox_inches=pt.extract_axes_extents(fig, combine=True),
-        **savekw
+        'id_graph9.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
     )
 
 
@@ -1735,8 +1716,7 @@ def scalespace():
         prev_ty = octave_ty_starts[-1]
         prev_base = pyramid[i - 1][0]
         next_ty = prev_ty - (
-            (prev_base.shape[0] / framesize[1]) / 2
-            + (numintervals - 1) * (steps[i - 1])
+            (prev_base.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (steps[i - 1])
         )
         octave_ty_starts.append(next_ty)
 
@@ -2226,9 +2206,7 @@ def system_diagram():
     infr.add_feedback(edge, NEGTV)
 
     node_overrides = {
-        'label': {
-            n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())
-        }
+        'label': {n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())}
     }
     # edge_overrides = {
     #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
@@ -2239,7 +2217,7 @@ def system_diagram():
         node_overrides=node_overrides,
         fnum=1,
         pnum=(1, 4, 3),
-        **showkw
+        **showkw,
     )
     pt.gca().set_aspect('equal')
 

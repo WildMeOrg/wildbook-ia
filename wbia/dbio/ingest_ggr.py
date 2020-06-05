@@ -22,7 +22,8 @@ def _fix_ggr2018_directory_structure(ggr_path):
     ut.delete(src_uri.replace('\\', ''))
 
     src_uri = join(
-        ggr_path, 'Alex\\ Peltier\\ -\\ Plane\\ -\\ Ngurnit/giraffe\\ grevy\\ count\\ feb\\ 18/'
+        ggr_path,
+        'Alex\\ Peltier\\ -\\ Plane\\ -\\ Ngurnit/giraffe\\ grevy\\ count\\ feb\\ 18/',
     )
     dst_uri = join(ggr_path, '232/')
     ut.ensuredir(dst_uri)
@@ -436,9 +437,7 @@ def convert_ggr2018_to_wbia(
                         for index, gid in enumerate(gid_list)
                     ]
                     ibs.set_image_notes(gid_list, note_list)
-                    ibs.set_image_imagesettext(
-                        gid_list, [imageset_text] * len(gid_list)
-                    )
+                    ibs.set_image_imagesettext(gid_list, [imageset_text] * len(gid_list))
                 except Exception as ex:  # NOQA
                     ut.embed()
 

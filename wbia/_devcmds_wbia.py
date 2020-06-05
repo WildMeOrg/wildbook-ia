@@ -309,8 +309,7 @@ def export(ibs, aid_pairs=None):
                 '# matching_aids = %r' % (mkey,),
             ]
             header_lines += [
-                '# img%d = %r' % (count, fname)
-                for count, fname in enumerate(fnames_list)
+                '# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)
             ]
             header_lines += ['# LINE FORMAT: match_pts = [(img1_xy, img2_xy) ... ]']
             header_text = '\n'.join(header_lines)

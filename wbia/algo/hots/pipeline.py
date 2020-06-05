@@ -191,9 +191,7 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-        assert (
-            qreq_.qparams.pipeline_root != 'vsone'
-        ), 'pipeline no longer supports vsone'
+        assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline no longer supports vsone'
         if qreq_.prog_hook is not None:
             qreq_.prog_hook.initialize_subhooks(5)
 
@@ -538,9 +536,7 @@ def cachemiss_nn_compute_fn(
         # assert False, (
         #     'need to implement part where matches with the same name are not considered'
         # )
-        qvec_iter = ut.ProgressIter(
-            qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW
-        )
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
 
         """
         # Maybe some query vector stacking would help here
@@ -564,9 +560,7 @@ def cachemiss_nn_compute_fn(
             )
         ]
     else:
-        qvec_iter = ut.ProgressIter(
-            qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW
-        )
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
         idx_dist_list = [
             qreq_.indexer.knn(qfx2_vec, num_neighbors)
             for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)
@@ -766,9 +760,7 @@ def baseline_neighbor_filter(
     Knorm = qreq_.qparams.Knorm
     # Find which annotations each query matched against
     neighb_aids_iter = (
-        qreq_.indexer.get_nn_aids(
-            nn.neighb_idxs.T[0 : nn.neighb_idxs.shape[1] - Knorm].T
-        )
+        qreq_.indexer.get_nn_aids(nn.neighb_idxs.T[0 : nn.neighb_idxs.shape[1] - Knorm].T)
         for nn in nns_list
     )
     filter_iter_ = zip(neighb_aids_iter, impossible_daids_list)
@@ -779,7 +771,7 @@ def baseline_neighbor_filter(
         enabled=False,
         lbl=FILT_LBL,
         prog_hook=prog_hook,
-        **PROGKW
+        **PROGKW,
     )
     # Check to be sure that none of the matched annotations are in the impossible set
     nnvalid0_list = [
@@ -987,10 +979,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         ut.get_list_column(_filtweight_list, index) for index in range(nInternAids)
     ]
     filtvalids_list = [
-        [
-            None if filtvalid is None else filtvalid[index]
-            for filtvalid in _filtvalid_list
-        ]
+        [None if filtvalid is None else filtvalid[index] for filtvalid in _filtvalid_list]
         for index in range(nInternAids)
     ]
 
@@ -1346,7 +1335,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         length=len(cm_shortlist),
         prog_hook=prog_hook,
         lbl=SVER_LVL,
-        **PROGKW
+        **PROGKW,
     )
 
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]

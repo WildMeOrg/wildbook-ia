@@ -176,18 +176,14 @@ class AnnotPairDialog(gt.GuitoolWidget):
                 self.history.add(e)
             self.count = 0
             self._total = len(edges)
-            self.prev_but = np_bar.addNewButton(
-                'Prev', pressed=lambda: self.step_by(-1)
-            )
+            self.prev_but = np_bar.addNewButton('Prev', pressed=lambda: self.step_by(-1))
             self.index_edit = np_bar.addNewLineEdit(
                 str(self.count + 1), editingFinishedSlot=self.edit_jump
             )
             self.next_but = np_bar.addNewButton('Next', pressed=lambda: self.step_by(1))
         elif not self.standalone:
             self.count = 0
-            self.prev_but = np_bar.addNewButton(
-                'Prev', pressed=lambda: self.step_by(-1)
-            )
+            self.prev_but = np_bar.addNewButton('Prev', pressed=lambda: self.step_by(-1))
             self.index_edit = np_bar.addNewLineEdit(
                 str(self.count + 1), editingFinishedSlot=self.edit_jump
             )
@@ -296,9 +292,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.index_edit.setText('{} / {}'.format(self.count + 1, self.total))
 
         self.was_confirmed = False
-        edge_data = (
-            None if self.infr is None else self.infr.get_nonvisual_edge_data(edge)
-        )
+        edge_data = None if self.infr is None else self.infr.get_nonvisual_edge_data(edge)
         self.tuner.set_edge(edge, info_text)
         self.annot_state1.set_aid(edge[0])
         self.annot_state2.set_aid(edge[1])
@@ -803,10 +797,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def on_graph_update(graph_widget):
         # ut.cprint('[graph] on_graph_update', 'green')
-        if (
-            graph_widget.mpl_wgt is None
-            or graph_widget.mpl_wgt.visibleRegion().isEmpty()
-        ):
+        if graph_widget.mpl_wgt is None or graph_widget.mpl_wgt.visibleRegion().isEmpty():
             # Flag that graph should draw next time it is visible
             graph_widget.mpl_needs_update = True
         else:
@@ -966,9 +957,7 @@ class DevGraphWidget(gt.GuitoolWidget):
                     visual_node_data = ut.dict_subset(
                         all_node_data, infr.visual_node_attrs, None
                     )
-                    node_data = ut.delete_dict_keys(
-                        all_node_data, infr.visual_node_attrs
-                    )
+                    node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
                     print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
                     print('node_data: ' + ut.repr2(node_data, nl=1))
                     print('node: ' + ut.repr2(plotdat['node']))
@@ -1020,9 +1009,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
         if annot_selected:
             ibs = graph_widget.infr.ibs
-            print(
-                ut.repr2(ibs.get_annot_info(aid, default=True, name=True, gname=True))
-            )
+            print(ut.repr2(ibs.get_annot_info(aid, default=True, name=True, gname=True)))
             if event.button == 1:
                 graph_widget.toggle_selected_aid(aid)
 
@@ -1088,9 +1075,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.statbar1.addNewButton(
             'ScoreVsOne', min_width=1, pressed=self.score_edges_vsone
         )
-        self.statbar1.addNewButton(
-            'Edit Filters', min_width=1, pressed=self.edit_filters
-        )
+        self.statbar1.addNewButton('Edit Filters', min_width=1, pressed=self.edit_filters)
         self.statbar1.addNewButton('Repopulate', min_width=1, pressed=self.repopulate)
 
         self.statbar2.addNewButton(
@@ -1658,9 +1643,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             options += [
                 (
                     'Tune Vsone(vt)',
-                    inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_)[0][
-                        1
-                    ],
+                    inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_)[0][1],
                 )
             ]
 

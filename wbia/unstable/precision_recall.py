@@ -177,9 +177,7 @@ def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
     return draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref, fnum)
 
 
-def draw_precision_recall_curve_(
-    recall_range_, p_interp_curve, title_pref=None, fnum=1
-):
+def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None, fnum=1):
     import wbia.plottool as pt
 
     if recall_range_ is None:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
 from wbia.control import controller_inject
@@ -55,13 +56,9 @@ PROMETHEUS_DATA = {
         'Number of turnaround seconds for the current working job',
         ['name', 'endpoint'],
     ),
-    'api': Counter(
-        'wbia_api_counter', 'Number of calls per IBEIS API', ['name', 'tag'],
-    ),
+    'api': Counter('wbia_api_counter', 'Number of calls per IBEIS API', ['name', 'tag'],),
     'route': Counter(
-        'wbia_route_counter',
-        'Number of calls per IBEIS route endpoint',
-        ['name', 'tag'],
+        'wbia_route_counter', 'Number of calls per IBEIS route endpoint', ['name', 'tag'],
     ),
     'exception': Counter(
         'wbia_exception_counter', 'Number of web exceptions', ['name', 'tag'],
@@ -245,8 +242,7 @@ def prometheus_update(ibs, *args, **kwargs):
                                 total_seconds,
                             ) = calculate_timedelta(started, now)
                             print(
-                                'ELAPSED (%s): %d seconds...'
-                                % (job_uuid, total_seconds,)
+                                'ELAPSED (%s): %d seconds...' % (job_uuid, total_seconds,)
                             )
                             PROMETHEUS_DATA['elapsed'].labels(
                                 name=container_name, endpoint=endpoint

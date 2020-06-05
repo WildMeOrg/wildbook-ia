@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # @ut.accepts_scalar_input2(argx_list=[1])
 # def get_obj(depc, tablename, root_rowids, config=None, ensure=True):
 #     """ Convinience function. Gets data in `tablename` as a list of

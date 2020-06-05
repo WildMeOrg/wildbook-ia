@@ -113,9 +113,7 @@ def download_associations_list(**kwargs):
         name_header_str = 'ENCOUTNER'
     else:
         # name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
-        name_header_str = ','.join(
-            ['ENCOUNTER%d' % (i + 1,) for i in range(max_length)]
-        )
+        name_header_str = ','.join(['ENCOUNTER%d' % (i + 1,) for i in range(max_length)])
     combined_str = '\n'.join(combined_list)
     combined_str = 'NAME1,NAME2,ASSOCIATIONS,%s\n' % (name_header_str,) + combined_str
     return appf.send_csv_file(combined_str, filename)
@@ -392,9 +390,7 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     if max_length == 1:
         name_header_str = 'ENCOUTNER'
     else:
-        name_header_str = ','.join(
-            ['ENCOUNTER%d' % (i + 1,) for i in range(max_length)]
-        )
+        name_header_str = ','.join(['ENCOUNTER%d' % (i + 1,) for i in range(max_length)])
 
     zipped_list = sorted(
         zip(

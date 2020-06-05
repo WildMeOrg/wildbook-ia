@@ -1,4 +1,4 @@
-# -* coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Definitions for common aid configurations
 
@@ -321,10 +321,7 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
                     [
                         list(
                             ut.flatten(
-                                [
-                                    list(x.keys())
-                                    for x in unflatten_acfgdict(cfg).values()
-                                ]
+                                [list(x.keys()) for x in unflatten_acfgdict(cfg).values()]
                             )
                         )
                         for cfg in varied_acfg_list
@@ -418,7 +415,7 @@ def print_acfg_list(
     ibs=None,
     combined=False,
     only_summary=False,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Args:
@@ -455,9 +452,7 @@ def print_acfg_list(
         annotstats_kw = kwargs.copy()
         kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
         annotstats_kw.update(
-            ut.argparse_dict(
-                dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True
-            )
+            ut.argparse_dict(dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True)
         )
 
     hashid_list = []

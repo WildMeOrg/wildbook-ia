@@ -163,8 +163,7 @@ def compute_chipthumb(depc, aid_list, config=None):
             newscale_list = [sz[0] / thumbsize for sz in newsize_list]
         else:
             newsize_scale_list = [
-                vt.resized_clamped_thumb_dims((w, h), max_dsize)
-                for (w, h) in imgsz_list
+                vt.resized_clamped_thumb_dims((w, h), max_dsize) for (w, h) in imgsz_list
             ]
             newsize_list_ = ut.take_column(newsize_scale_list, 0)
             newscale_list = ut.take_column(newsize_scale_list, [1, 2])
@@ -838,9 +837,7 @@ def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
             yield probchip
 
 
-def rf_probchips(
-    ibs, aids, species, inputchip_fpaths, pad, smooth_thresh, smooth_ksize
-):
+def rf_probchips(ibs, aids, species, inputchip_fpaths, pad, smooth_thresh, smooth_ksize):
     import ubelt as ub
     from os.path import join
     from wbia.algo.detect import randomforest
@@ -1390,9 +1387,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
             # weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         else:
             # New way
-            weight_list = vt.patch_gaussian_weighted_average_intensities(
-                probchip, kpts_
-            )
+            weight_list = vt.patch_gaussian_weighted_average_intensities(probchip, kpts_)
         weights = np.array(weight_list, dtype=np.float32)
     return weights
 
@@ -1462,9 +1457,7 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
         ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True
     )
 
-    unique_lazy_annots = ut.flatten(
-        [x.values() for x in configured_lazy_annots.values()]
-    )
+    unique_lazy_annots = ut.flatten([x.values() for x in configured_lazy_annots.values()])
 
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
     for annot in unique_lazy_annots:

@@ -135,9 +135,7 @@ def get_bbox_centers(bbox_list):
 
 def is_unknown(ibs, nid_list):
     # this func seems unused
-    return [
-        not isinstance(nid, ut.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list
-    ]
+    return [not isinstance(nid, ut.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
 
 
 def get_truth_color(truth, base255=False, lighten_amount=None):

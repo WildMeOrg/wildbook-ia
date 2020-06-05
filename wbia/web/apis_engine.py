@@ -84,9 +84,7 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
         elif len(names) == 1:
             name = names[0]
         else:
-            raise RuntimeError(
-                'Sanity check failed in web_check_annot_uuids_with_names'
-            )
+            raise RuntimeError('Sanity check failed in web_check_annot_uuids_with_names')
 
         annot_uuid_list_.append(annot_uuid)
         name_list_.append(name)
@@ -889,9 +887,7 @@ def start_web_query_all(ibs):
         Method: GET
         URL: /api/engine/query/web/
     """
-    jobid = ibs.job_manager.jobiface.queue_job(
-        'load_identification_query_object_worker'
-    )
+    jobid = ibs.job_manager.jobiface.queue_job('load_identification_query_object_worker')
     return jobid
 
 

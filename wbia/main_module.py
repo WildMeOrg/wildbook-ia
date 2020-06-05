@@ -206,9 +206,7 @@ def _guitool_loop(main_locals, ipy=False):
         guitool.qtapp_loop(
             qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False
         )
-        if (
-            ipy
-        ):  # If we're in IPython, the qtapp loop won't block, so we need to refresh
+        if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:
         if NOT_QUIET:
@@ -262,7 +260,7 @@ def main(
     allow_newdir=False,
     db=None,
     delete_ibsdir=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Program entry point
@@ -551,7 +549,7 @@ def opendb(
     verbose=False,
     use_cache=True,
     web=None,
-    **kwargs
+    **kwargs,
 ):
     """
     main without the preload (except for option to delete database before

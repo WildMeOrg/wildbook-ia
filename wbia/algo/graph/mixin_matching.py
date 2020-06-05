@@ -769,9 +769,7 @@ class CandidateSearch(_RedundancyAugmentation):
 
         candidate_edges = {
             edge
-            for edge, state in zip(
-                lnbnn_results, infr.edge_decision_from(lnbnn_results)
-            )
+            for edge, state in zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
             if state == UNREV
         }
 
@@ -879,9 +877,7 @@ class CandidateSearch(_RedundancyAugmentation):
 
         if infr.verifiers and infr.ibs is not None:
             infr.print(
-                'Prioritizing {} edges with one-vs-one probs'.format(
-                    len(priority_edges)
-                ),
+                'Prioritizing {} edges with one-vs-one probs'.format(len(priority_edges)),
                 1,
             )
             infr.print('Using thresholds: %r' % (infr.task_thresh,))

@@ -291,9 +291,7 @@ def get_node_viz_attrs(
         variable = node[0]
         cpd = model.var2_cpd[variable]
         prior_marg = (
-            cpd
-            if cpd.evidence is None
-            else cpd.marginalize(cpd.evidence, inplace=False)
+            cpd if cpd.evidence is None else cpd.marginalize(cpd.evidence, inplace=False)
         )
 
         show_evidence = variable in evidence
@@ -355,9 +353,7 @@ def get_node_viz_attrs(
             evidence_text = cpd.variable_statenames[evidence[variable]]
             if isinstance(evidence_text, int):
                 evidence_text = '%d/%d' % (evidence_text + 1, cpd.variable_card)
-            evidence_tas.append(
-                dict(text=evidence_text, pos=pos, color=color, **_takw1)
-            )
+            evidence_tas.append(dict(text=evidence_text, pos=pos, color=color, **_takw1))
         if show_post:
             _takw1 = takw1
             if cpd.ttype == 'match':
@@ -545,9 +541,7 @@ def draw_bayesian_model(
                 # scalars =
                 colors = ttype_colors[key]
                 scalars = ttype_scalars[key]
-                pt.colorbar(
-                    scalars, colors, lbl=key, ticklabels=basis, ticklocation=loc
-                )
+                pt.colorbar(scalars, colors, lbl=key, ticklabels=basis, ticklocation=loc)
 
 
 def draw_markov_model(model, fnum=None, **kwargs):
@@ -658,9 +652,7 @@ def draw_junction_tree(model, fnum=None, **kwargs):
     # pos = nx.nx_agraph.graphviz_layout(netx_graph)
     pos = nx.pydot_layout(netx_graph)
     node_color = [pt.NEUTRAL] * len(pos)
-    drawkw = dict(
-        pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=2000
-    )
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=2000)
     nx.draw(netx_graph, **drawkw)
     if kwargs.get('show_title', True):
         pt.set_figtitle('Junction / Clique Tree / Cluster Graph')

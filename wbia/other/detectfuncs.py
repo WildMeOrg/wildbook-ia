@@ -193,7 +193,7 @@ def general_area_best_conf(
     interpolate=True,
     target=(1.0, 1.0),
     target_recall=None,
-    **kwargs
+    **kwargs,
 ):
     import matplotlib.pyplot as plt
 
@@ -260,7 +260,7 @@ def general_confusion_matrix_algo(
     conf=None,
     conf_list=None,
     size=10,
-    **kwargs
+    **kwargs,
 ):
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
@@ -919,9 +919,7 @@ def localizer_iou_recall_algo(
         )
         best_conf_list, best_re_list, best_pr_list, best_length = best_tup
         if len(best_conf_list) > 1:
-            print(
-                'WARNING: Multiple best operating points found %r' % (best_conf_list,)
-            )
+            print('WARNING: Multiple best operating points found %r' % (best_conf_list,))
         assert len(best_conf_list) > 0
 
         best_re_index = np.argmax(best_re_list)
@@ -1959,7 +1957,7 @@ def localizer_precision_recall_algo_display(
     plot_point=True,
     output_path=None,
     plot_iou_recall=True,
-    **kwargs
+    **kwargs,
 ):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
@@ -1971,9 +1969,7 @@ def localizer_precision_recall_algo_display(
     for _ in range(offset_color):
         color_list_ += [(0.2, 0.2, 0.2)]
 
-    color_list = pt.distinct_colors(
-        len(config_list) - len(color_list_), randomize=False
-    )
+    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
@@ -1995,7 +1991,7 @@ def localizer_precision_recall_algo_display(
             min_overlap=min_overlap,
             plot_point=plot_point,
             target_recall=target_recall,
-            **config
+            **config,
         )
         for color, config in zip(color_list, config_list)
     ]
@@ -2055,9 +2051,7 @@ def localizer_precision_recall_algo_display(
         axes_.set_ylim([0.0, 1.01])
 
         ret_list = [
-            localizer_iou_recall_algo_plot(
-                ibs, color=color_, plot_point=False, **config_
-            )
+            localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
             for color_, config_ in zip(color_list, config_list)
         ]
 
@@ -2140,7 +2134,7 @@ def localizer_precision_recall_algo_display(
             fig_=fig_,
             axes_=axes_,
             target_conf=target_conf,
-            **best_config
+            **best_config,
         )
         best_conf, (correct_rate, _) = values
 
@@ -2471,7 +2465,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
     positive_imageset_id,
     negative_imageset_id,
     output_cases=False,
-    **kwargs
+    **kwargs,
 ):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_image
@@ -2505,8 +2499,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
-        'positive' if confidence >= conf else 'negative'
-        for confidence in confidence_list
+        'positive' if confidence >= conf else 'negative' for confidence in confidence_list
     ]
 
     if output_cases:
@@ -2595,7 +2588,7 @@ def classifier_cameratrap_precision_recall_algo_display(
             color=color,
             positive_imageset_id=positive_imageset_id,
             negative_imageset_id=negative_imageset_id,
-            **config
+            **config,
         )
         for color, config in zip(color_list, config_list)
     ]
@@ -2633,7 +2626,7 @@ def classifier_cameratrap_precision_recall_algo_display(
             color=color,
             positive_imageset_id=positive_imageset_id,
             negative_imageset_id=negative_imageset_id,
-            **config
+            **config,
         )
         for color, config in zip(color_list, config_list)
     ]
@@ -2668,7 +2661,7 @@ def classifier_cameratrap_precision_recall_algo_display(
         positive_imageset_id=positive_imageset_id,
         negative_imageset_id=negative_imageset_id,
         output_cases=True,
-        **best_config1
+        **best_config1,
     )
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
@@ -2686,7 +2679,7 @@ def classifier_cameratrap_precision_recall_algo_display(
         axes_=axes_,
         positive_imageset_id=positive_imageset_id,
         negative_imageset_id=negative_imageset_id,
-        **best_config2
+        **best_config2,
     )
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
@@ -2838,7 +2831,7 @@ def classifier2_precision_recall_algo(
     output_path=None,
     test_gid_list=None,
     test_label_list=None,
-    **kwargs
+    **kwargs,
 ):
     depc = ibs.depc_image
     if test_gid_list is None:
@@ -2933,7 +2926,7 @@ def classifier2_precision_recall_algo_display(
     test_gid_list=None,
     test_label_list=None,
     figsize=(20, 9),
-    **kwargs
+    **kwargs,
 ):
     import matplotlib.pyplot as plt
     import wbia.plottool as pt
@@ -2987,9 +2980,7 @@ def classifier2_precision_recall_algo_display(
         config_list.append(config_dict)
 
     color_list_ = []
-    color_list = pt.distinct_colors(
-        len(config_list) - len(color_list_), randomize=False
-    )
+    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
     axes_ = plt.subplot(121)
@@ -3007,7 +2998,7 @@ def classifier2_precision_recall_algo_display(
             test_gid_list=test_gid_list,
             test_label_list=test_label_list,
             species_mapping=species_mapping,
-            **config
+            **config,
         )
     plt.title('Precision-Recall Curves', y=1.19)
     plt.legend(
@@ -3034,7 +3025,7 @@ def classifier2_precision_recall_algo_display(
             test_gid_list=test_gid_list,
             test_label_list=test_label_list,
             species_mapping=species_mapping,
-            **config
+            **config,
         )
         ap, best_conf, tup1, tup2 = values
         op_dict[config['category']] = best_conf
@@ -3091,7 +3082,7 @@ def labeler_tp_tn_fp_fn(
     viewpoint_mapping={},
     samples=SAMPLES,
     test_gid_set=None,
-    **kwargs
+    **kwargs,
 ):
     def errors(zipped, conf, category):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
@@ -3144,9 +3135,7 @@ def labeler_tp_tn_fp_fn(
     ]
     # Get predictions
     # depc.delete_property('labeler', aid_list, config=kwargs)
-    probability_dict_list = depc.get_property(
-        'labeler', aid_list, 'probs', config=kwargs
-    )
+    probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
 
     value1_list = set(label_list)
     value2_list = set(probability_dict_list[0].keys())
@@ -3255,7 +3244,7 @@ def labeler_confusion_matrix_algo_plot(
     viewpoint_mapping={},
     category_mapping=None,
     test_gid_set=None,
-    **kwargs
+    **kwargs,
 ):
     print('Processing Confusion Matrix')
     depc = ibs.depc_annot
@@ -3277,9 +3266,7 @@ def labeler_confusion_matrix_algo_plot(
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     temp_list = [
-        (aid, label)
-        for aid, label in zip(aid_list, label_list)
-        if label in category_list
+        (aid, label) for aid, label in zip(aid_list, label_list) if label in category_list
     ]
     aid_list = [_[0] for _ in temp_list]
     label_list = [_[1] for _ in temp_list]
@@ -3308,7 +3295,7 @@ def labeler_confusion_matrix_algo_plot(
         category_mapping,
         conf_list=conf_list,
         size=8,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -3325,7 +3312,7 @@ def labeler_precision_recall_algo_display(
     use_axis_aligned_chips=False,
     labeler_weight_filepath=None,
     config_list=None,
-    **kwargs
+    **kwargs,
 ):
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -3339,9 +3326,7 @@ def labeler_precision_recall_algo_display(
         aids_list = ibs.get_image_aids(test_gid_set)
         aid_list = ut.flatten(aids_list)
         species_list = ibs.get_annot_species_texts(aid_list)
-        species_list = [
-            species_mapping.get(species, species) for species in species_list
-        ]
+        species_list = [species_mapping.get(species, species) for species in species_list]
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
@@ -3369,7 +3354,7 @@ def labeler_precision_recall_algo_display(
         species_mapping=species_mapping,
         viewpoint_mapping=viewpoint_mapping,
         test_gid_set=test_gid_set,
-        **kwargs
+        **kwargs,
     )
 
     if config_list is None:
@@ -3399,9 +3384,7 @@ def labeler_precision_recall_algo_display(
         ]
 
     color_list = [(0.0, 0.0, 0.0)]
-    color_list += pt.distinct_colors(
-        len(config_list) - len(color_list), randomize=False
-    )
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
@@ -3476,7 +3459,7 @@ def labeler_precision_recall_algo_display(
         axes_=axes_,
         fuzzy_dict=fuzzy_dict,
         test_gid_set=test_gid_set,
-        **kwargs
+        **kwargs,
     )
 
     if fuzzy:
@@ -3587,8 +3570,7 @@ def canonical_confusion_matrix_algo_plot(
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
-        'positive' if confidence >= conf else 'negative'
-        for confidence in confidence_list
+        'positive' if confidence >= conf else 'negative' for confidence in confidence_list
     ]
 
     if output_cases:
@@ -3668,9 +3650,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(
-        len(config_list) - len(color_list), randomize=False
-    )
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -3744,7 +3724,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
         fig_=fig_,
         axes_=axes_,
         output_cases=True,
-        **best_config1
+        **best_config1,
     )
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
@@ -3993,7 +3973,7 @@ def canonical_localization_iou_visualize(
     color_list,
     label=None,
     species=None,
-    **kwargs
+    **kwargs,
 ):
     assert None not in [label, species]
     assert len(color_list) == 4
@@ -4148,9 +4128,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(
-        len(config_list) - len(color_list), randomize=False
-    )
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     min_, max_ = -1.0, 1.0
 
@@ -4299,9 +4277,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylim([0.0, 1.0])
 
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        values_ = canonical_localization_iou_plot(
-            ibs, color=color, index=index, **config
-        )
+        values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
         if index % 4 == 0:
             config_ = config_list[index]
             test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values_
@@ -4312,7 +4288,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
                 prediction_list,
                 y_list,
                 colors,
-                **config_
+                **config_,
             )
 
     plt.title('IoU Scatter Plot')
@@ -4330,9 +4306,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
 
 
 @register_ibs_method
-def background_accuracy_display(
-    ibs, category_list, test_gid_set=None, output_path=None
-):
+def background_accuracy_display(ibs, category_list, test_gid_set=None, output_path=None):
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'background')))
@@ -4393,12 +4367,8 @@ def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kw
         test_aid_list.append(test_aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property(
-        'aoi_two', test_aid_list, 'class', config=kwargs
-    )
-    confidence_list = depc.get_property(
-        'aoi_two', test_aid_list, 'score', config=kwargs
-    )
+    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
+    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -4434,7 +4404,7 @@ def aoi2_confusion_matrix_algo_plot(
     output_cases=False,
     category_list=None,
     test_gid_set_=None,
-    **kwargs
+    **kwargs,
 ):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_annot
@@ -4456,19 +4426,14 @@ def aoi2_confusion_matrix_algo_plot(
         test_aid_list.append(test_aid)
         label_list.append(label)
 
-    prediction_list = depc.get_property(
-        'aoi_two', test_aid_list, 'class', config=kwargs
-    )
-    confidence_list = depc.get_property(
-        'aoi_two', test_aid_list, 'score', config=kwargs
-    )
+    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
+    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     prediction_list = [
-        'positive' if confidence >= conf else 'negative'
-        for confidence in confidence_list
+        'positive' if confidence >= conf else 'negative' for confidence in confidence_list
     ]
 
     if output_cases:
@@ -4557,9 +4522,7 @@ def aoi2_precision_recall_algo_display(
         },
     ]
     color_list = [(0, 0, 0)]
-    color_list += pt.distinct_colors(
-        len(config_list) - len(color_list), randomize=False
-    )
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -4636,7 +4599,7 @@ def aoi2_precision_recall_algo_display(
         axes_=axes_,
         output_cases=output_cases,
         test_gid_set_=test_gid_set,
-        **best_config1
+        **best_config1,
     )
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')
@@ -4653,7 +4616,7 @@ def aoi2_precision_recall_algo_display(
         fig_=fig_,
         axes_=axes_,
         test_gid_set_=test_gid_set,
-        **best_config2
+        **best_config2,
     )
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0,))
     axes_.set_ylabel('Ground-Truth')

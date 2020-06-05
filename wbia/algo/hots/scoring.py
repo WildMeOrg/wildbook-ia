@@ -103,8 +103,7 @@ def get_name_shortlist_aids(
     top_annot_score_groups = ut.listclip(_top_annot_score_groups, nNameShortList)
     # Sort within each group by the annotation score
     top_daid_sortx_groups = [
-        annot_score_group.argsort()[::-1]
-        for annot_score_group in top_annot_score_groups
+        annot_score_group.argsort()[::-1] for annot_score_group in top_annot_score_groups
     ]
     top_sorted_daid_groups = vt.ziptake(top_daid_groups, top_daid_sortx_groups)
     top_clipped_daids = [

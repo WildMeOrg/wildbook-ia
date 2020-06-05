@@ -171,7 +171,7 @@ def show_image(
     notitle=False,
     rich_title=False,
     pnum=(1, 1, 1),
-    **kwargs
+    **kwargs,
 ):
     """
     Driver function to show images

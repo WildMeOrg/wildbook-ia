@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Interactive tool to draw mask on an image or image-like array.
 
@@ -324,9 +325,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
 
         # rotate the points by -theta to get the "unrotated" points for use as
         # basecoords
-        tmpcoords = rotate_points_around(
-            tmpcoords, -poly.theta, *points_center(poly.xy)
-        )
+        tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *points_center(poly.xy))
         # ensure the poly is closed, matplotlib might do this, but I'm not sure
         # if it preserves the ordering we depend on, even if it does add the
         # point
@@ -415,7 +414,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         prev_callback=None,
         do_mask=False,
         valid_species=[],
-        **kwargs
+        **kwargs,
     ):
         super(AnnotationInteraction, self).__init__(fnum=fnum, **kwargs)
 
@@ -671,8 +670,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             poly_list = ut.take(poly_dict, poly_inds)
             # Put polygon coords into figure space
             poly_pts = [
-                poly.get_transform().transform(np.asarray(poly.xy))
-                for poly in poly_list
+                poly.get_transform().transform(np.asarray(poly.xy)) for poly in poly_list
             ]
             # Find the nearest vertex from the annotations
             ind_dist_list = [vt.nearest_point(x, y, polypts) for polypts in poly_pts]
@@ -726,9 +724,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         poly.set_picker(self.is_poly_pickable)
         return poly
 
-    def handle_polygon_creation(
-        self, bbox_list, theta_list, species_list, metadata_list
-    ):
+    def handle_polygon_creation(self, bbox_list, theta_list, species_list, metadata_list):
         """ Maintain original input """
         assert bbox_list is not None
         if theta_list is None:
@@ -917,8 +913,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self.fig.clf()
             self.ax = ax = self.fig.subplot(111)
             mask_list = [
-                poly.get_poly_mask(self.img.shape)
-                for poly in six.itervalues(self.polys)
+                poly.get_poly_mask(self.img.shape) for poly in six.itervalues(self.polys)
             ]
             if len(mask_list) == 0:
                 print('[interact_annot] No polygons to make mask out of')
@@ -1107,9 +1102,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         if self._poly_held is True and self._ind is not None:
             # Resize by dragging corner
-            self._selected_poly.resize_poly(
-                self.mouseX, self.mouseY, self._ind, self.ax
-            )
+            self._selected_poly.resize_poly(self.mouseX, self.mouseY, self._ind, self.ax)
             self._selected_poly.anchor_idx = self._ind
         elif quick_resize:
             # Quick resize with special click

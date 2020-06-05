@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import requests
 import time
 import utool as ut
@@ -25,8 +26,7 @@ while True:
     failures = sum(history)
 
     print(
-        'bootstrapping = %s\toffline (%d): %r'
-        % (bootstrapping, failures, history[::-1],)
+        'bootstrapping = %s\toffline (%d): %r' % (bootstrapping, failures, history[::-1],)
     )
 
     if failures >= 10:

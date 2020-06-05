@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 import utool
@@ -47,7 +48,7 @@ def show_image(
     draw_lbls=True,
     fnum=None,
     annote=True,
-    **kwargs
+    **kwargs,
 ):
     """ Driver function to show images """
     # Shows an image with annotations

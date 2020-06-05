@@ -138,9 +138,7 @@ class SMKRequest(mc5.EstimatorRequest):
         # Hack to work with existing hs code
         qreq_.stack_config = SMKRequestConfig(**config)
         # Flat config
-        qreq_.qparams = dtool.base.StackedConfig(
-            [dict(qreq_.stack_config.parse_items())]
-        )
+        qreq_.qparams = dtool.base.StackedConfig([dict(qreq_.stack_config.parse_items())])
         #    # TODO: add vocab, inva, features
         qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 

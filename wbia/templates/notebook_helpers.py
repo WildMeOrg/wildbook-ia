@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def custom_globals():
     import utool as ut
 

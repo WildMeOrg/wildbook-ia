@@ -61,9 +61,7 @@ if not ut.get_argflag('--no-pytorch'):
                 sequence += [
                     iaa.PiecewiseAffine(scale=(0.0005, 0.005)),
                     iaa.Affine(
-                        rotate=(-rotate, rotate),
-                        shear=(-shear, shear),
-                        mode='symmetric',
+                        rotate=(-rotate, rotate), shear=(-shear, shear), mode='symmetric',
                     ),
                     iaa.Grayscale(alpha=(0.0, 0.5)),
                 ]
@@ -234,9 +232,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         return self.total
 
 
-def finetune(
-    model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=128
-):
+def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=128):
     phases = ['train', 'val']
 
     start = time.time()
@@ -392,7 +388,7 @@ def train(
     class_weights={},
     multi=PARALLEL,
     sample_multiplier=1.0,
-    **kwargs
+    **kwargs,
 ):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -589,7 +585,7 @@ def test_ensemble(
     ibs=None,
     gid_list=None,
     multiclass=False,
-    **kwargs
+    **kwargs,
 ):
 
     if ensemble_index is not None:
@@ -686,7 +682,7 @@ def test(
     classifier_weight_filepath=None,
     return_dict=False,
     multiclass=False,
-    **kwargs
+    **kwargs,
 ):
     from wbia.detecttools.directory import Directory
 
@@ -696,9 +692,7 @@ def test(
     ensemble_index = None
     if classifier_weight_filepath is not None and ':' in classifier_weight_filepath:
         assert classifier_weight_filepath.count(':') == 1
-        classifier_weight_filepath, ensemble_index = classifier_weight_filepath.split(
-            ':'
-        )
+        classifier_weight_filepath, ensemble_index = classifier_weight_filepath.split(':')
         ensemble_index = int(ensemble_index)
 
     if classifier_weight_filepath in ARCHIVE_URL_DICT:
@@ -706,8 +700,7 @@ def test(
         archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
         print(
-            'classifier_weight_filepath %r not recognized'
-            % (classifier_weight_filepath,)
+            'classifier_weight_filepath %r not recognized' % (classifier_weight_filepath,)
         )
         raise RuntimeError
 
@@ -719,9 +712,7 @@ def test(
         ut.unarchive_file(archive_path, output_dir=ensemble_path)
 
     assert os.path.exists(ensemble_path)
-    direct = Directory(
-        ensemble_path, include_file_extensions=['weights'], recursive=True
-    )
+    direct = Directory(ensemble_path, include_file_extensions=['weights'], recursive=True)
     weights_path_list = direct.files()
     weights_path_list = sorted(weights_path_list)
     assert len(weights_path_list) > 0
@@ -738,7 +729,7 @@ def test(
         classifier_weight_filepath,
         ensemble_index,
         multiclass=multiclass,
-        **kwargs
+        **kwargs,
     )
     for result in result_list:
         best_key = None
@@ -759,7 +750,7 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
         gpath_list,
         classifier_weight_filepath=classifier_weight_filepath,
         return_dict=True,
-        **kwargs
+        **kwargs,
     )
 
     for result in result_gen:

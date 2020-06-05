@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from wbia.control import controller_inject
 import utool as ut
@@ -57,9 +58,7 @@ def docker_register_config(
                 'Warning: docker_register_config called on an existing config. Already have container named %s'
                 % (container_name,)
             )
-    if DOCKER_IMAGE_PREFIX is not None and not image_name.startswith(
-        DOCKER_IMAGE_PREFIX
-    ):
+    if DOCKER_IMAGE_PREFIX is not None and not image_name.startswith(DOCKER_IMAGE_PREFIX):
         raise RuntimeError(
             'Cannot register an image name that does not have the prefix = %r'
             % (DOCKER_IMAGE_PREFIX,)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Implements ThreadActor """
 from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
@@ -25,9 +26,7 @@ class _WorkItem(object):
         self.message = message
 
 
-def _thread_actor_eventloop(
-    executor_reference, work_queue, _ActorClass, *args, **kwargs
-):
+def _thread_actor_eventloop(executor_reference, work_queue, _ActorClass, *args, **kwargs):
     """
     actor event loop run in a separate thread.
 

@@ -1145,8 +1145,7 @@ class Redundancy(_RedundancyComputers):
             infr.remove_internal_priority(cc)
             if infr.params['inference.update_attrs']:
                 infr.set_edge_attrs(
-                    'inferred_state',
-                    ut.dzip(nxu.edges_inside(infr.graph, cc), ['same']),
+                    'inferred_state', ut.dzip(nxu.edges_inside(infr.graph, cc), ['same']),
                 )
         else:
             if was_pos_redun:
@@ -1478,9 +1477,7 @@ class NonDynamicUpdate(object):
 
         # Find edges within consistent PCCs
         positive = {
-            nid1: union(
-                ne_to_edges[key][(nid1, nid2)] for key in (POSTV,) + UNINFERABLE
-            )
+            nid1: union(ne_to_edges[key][(nid1, nid2)] for key in (POSTV,) + UNINFERABLE)
             for nid1, nid2 in name_edges[POSTV]
         }
         # Find edges between 1-negative-redundant consistent PCCs

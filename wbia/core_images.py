@@ -162,9 +162,7 @@ def draw_thumb_helper(thumbsize, gpath, orient, bbox_list, theta_list, interest_
     thumb = vt.resize(img, dsize)
     orange_bgr = (0, 128, 255)
     blue_bgr = (255, 128, 0)
-    color_bgr_list = [
-        blue_bgr if interest else orange_bgr for interest in interest_list
-    ]
+    color_bgr_list = [blue_bgr if interest else orange_bgr for interest in interest_list]
     for new_verts, color_bgr in zip(new_verts_list, color_bgr_list):
         thumb = vt.draw_verts(thumb, new_verts, color=color_bgr, thickness=2)
     width, height = dsize
@@ -309,9 +307,7 @@ def compute_classifications(depc, gid_list, config=None):
             'draw_annots': False,
             'thumbsize': (192, 192),
         }
-        thumbnail_list = depc.get_property(
-            'thumbnails', gid_list, 'img', config=config_
-        )
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     elif config['classifier_algo'] in ['svm']:
         from wbia.algo.detect.svm import classify
@@ -328,16 +324,9 @@ def compute_classifications(depc, gid_list, config=None):
             'thumbsize': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
         }
         thumbpath_list = ibs.depc_image.get(
-            'thumbnails',
-            gid_list,
-            'img',
-            config=config_,
-            read_extern=False,
-            ensure=True,
+            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True,
         )
-        result_list = densenet.test(
-            thumbpath_list, ibs=ibs, gid_list=gid_list, **config
-        )
+        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     else:
         raise ValueError(
             'specified classifier algo is not supported in config = %r' % (config,)
@@ -404,9 +393,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'thumbsize': (192, 192),
         }
         # depc.delete_property('thumbnails', gid_list, config=config_)
-        thumbnail_list = depc.get_property(
-            'thumbnails', gid_list, 'img', config=config_
-        )
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
     elif config['classifier_two_algo'] in ['rf']:
         from wbia.algo.detect.rf import classify
@@ -423,12 +410,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'thumbsize': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
         }
         thumbpath_list = ibs.depc_image.get(
-            'thumbnails',
-            gid_list,
-            'img',
-            config=config_,
-            read_extern=False,
-            ensure=True,
+            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True,
         )
         config_ = {
             'classifier_weight_filepath': config['classifier_two_weight_filepath'],
@@ -439,7 +421,7 @@ def compute_classifications2(depc, gid_list, config=None):
             gid_list=gid_list,
             return_dict=True,
             multiclass=True,
-            **config_
+            **config_,
         )
         result_list = list(result_list)
         for index in range(len(result_list)):
@@ -561,9 +543,7 @@ def compute_features(depc, gid_list, config=None):
             from keras.applications.resnet50 import preprocess_input
         ######################################################################################
         elif config['model'] in ['inception']:
-            from keras.applications.inception_v3 import (
-                InceptionV3 as MODEL_CLASS,
-            )  # NOQA
+            from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
             from keras.applications.inception_v3 import preprocess_input
 
             target_size = (299, 299)
@@ -913,10 +893,7 @@ def compute_localizations_original(depc, gid_list, config=None):
             # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
             {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'},  # YOLO1
             {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'},  # YOLO2
-            {
-                'algo': 'faster-rcnn',
-                'config_filepath': 'pretrained-zf-pascal',
-            },  # FRCNN1
+            {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal',},  # FRCNN1
             {
                 'algo': 'faster-rcnn',
                 'config_filepath': 'pretrained-vgg-pascal',
@@ -1112,9 +1089,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                     confs_list = np.array(nms_confs)
 
                     nms_thresh = 1.0 - config['nms_thresh']
-                    keep_indices_list = detectcore.nms(
-                        coord_list, confs_list, nms_thresh
-                    )
+                    keep_indices_list = detectcore.nms(coord_list, confs_list, nms_thresh)
                     keep_list = np.array(keep_indices_list)
 
                     if len(keep_list) == 0:
@@ -1224,9 +1199,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print(
-                        'Filtered invalid images (%d -> %d)' % (count_old, count_new,)
-                    )
+                    print('Filtered invalid images (%d -> %d)' % (count_old, count_new,))
 
         if config['boundary']:
             gid = depc.get_ancestor_rowids(
@@ -1339,10 +1312,7 @@ def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
         mask = cv2.resize(img_, tuple(new_size), **warpkw)
         # cv2.imshow('', mask)
         # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (
-            mask.shape,
-            new_size,
-        )
+        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, new_size,)
         assert mask.shape[0] == new_size[0] and mask.shape[1] == new_size[1], msg
         return mask
 
@@ -1352,9 +1322,7 @@ def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
     return gid_list, mask_list
 
 
-def get_localization_chips(
-    ibs, loc_id_list, target_size=(128, 128), axis_aligned=False
-):
+def get_localization_chips(ibs, loc_id_list, target_size=(128, 128), axis_aligned=False):
     depc = ibs.depc_image
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
@@ -1586,8 +1554,7 @@ def get_localization_aoi2(ibs, loc_id_list, target_size=(192, 192)):
     # Grab the localizations
     bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
     gids_list = [
-        np.array([gid] * len(bbox_list))
-        for gid, bbox_list in zip(gid_list_, bboxes_list)
+        np.array([gid] * len(bbox_list)) for gid, bbox_list in zip(gid_list_, bboxes_list)
     ]
     # Flatten all of these lists for efficiency
     gid_list = ut.flatten(gids_list)
@@ -2470,9 +2437,7 @@ def compute_detections(depc, gid_list, config=None):
                 print(
                     'Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'],)
                 )
-                print(
-                    'Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],)
-                )
+                print('Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],))
         if len(zipped_) == 0:
             detect_list = list(empty_list)
         else:

@@ -99,7 +99,7 @@ class _CoreDependencyCache(object):
         configclass=None,
         requestclass=None,
         default_to_unpack=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Registers a table with this dependency cache.
@@ -155,7 +155,7 @@ class _CoreDependencyCache(object):
             preproc_func=preproc_func,
             fname=fname,
             default_to_unpack=default_to_unpack,
-            **kwargs
+            **kwargs,
         )
         depc.cachetable_dict[tablename] = table
         depc.configclass_dict[tablename] = configclass
@@ -193,8 +193,7 @@ class _CoreDependencyCache(object):
         Creates all registered tables
         """
         print(
-            '[depc] Initialize %s depcache in %r'
-            % (depc.root.upper(), depc.cache_dpath)
+            '[depc] Initialize %s depcache in %r' % (depc.root.upper(), depc.cache_dpath)
         )
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
@@ -538,13 +537,11 @@ class _CoreDependencyCache(object):
                 input_nodes_ = input_nodes
                 if _debug:
                     print(
-                        'table.parent_id_tablenames = %r'
-                        % (table.parent_id_tablenames,)
+                        'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
                     )
                     print('input_nodes_ = %r' % (input_nodes_,))
                 input_multi_flags = [
-                    node.ismulti and node in exi_inputs.rmi_list
-                    for node in input_nodes_
+                    node.ismulti and node in exi_inputs.rmi_list for node in input_nodes_
                 ]
 
                 # Args currently go in like this:
@@ -709,7 +706,7 @@ class _CoreDependencyCache(object):
             input_tuple,
             config=config,
             _hack_rootmost=_hack_rootmost,
-            **_kwargs
+            **_kwargs,
         )
 
         with ut.Indenter('[GetRowId-%s]' % (target_tablename,), enabled=_debug):
@@ -885,9 +882,7 @@ class _CoreDependencyCache(object):
                     # Vectorized get of properties
                     tbl_rowids = depc.get_rowids(tablename, input_tuple, **rowid_kw)
                     if _debug:
-                        print(
-                            '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
-                        )
+                        print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
                     prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
                 except depcache_table.ExternalStorageException:
                     print('!!* Hit ExternalStorageException')
@@ -1370,9 +1365,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         remove_non_implicit = ut.compress(in_edges, explicit_flags)
                         # remember this nodes removed in edges
                         removed_in_edges[node] = remove_non_implicit
-                to_remove2 = ut.take_column(
-                    ut.flatten(removed_in_edges.values()), [0, 1]
-                )
+                to_remove2 = ut.take_column(ut.flatten(removed_in_edges.values()), [0, 1])
                 nonmulti_graph.remove_edges_from(to_remove2)
 
             graph_tr = ut.nx_transitive_reduction(nonmulti_graph)
@@ -1421,12 +1414,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         # utool.embed()
                         graph_tr.add_edge(new_parent, node)
                     # G_tr[new_parent][v][0]['is_multi'] = True
-            nx.set_node_attributes(
-                graph_tr, name='color', values=_node_attrs(color_dict)
-            )
-            nx.set_node_attributes(
-                graph_tr, name='shape', values=_node_attrs(shape_dict)
-            )
+            nx.set_node_attributes(graph_tr, name='color', values=_node_attrs(color_dict))
+            nx.set_node_attributes(graph_tr, name='shape', values=_node_attrs(shape_dict))
             graph = graph_tr
 
         if kwargs.get('remove_local_input_id', False):

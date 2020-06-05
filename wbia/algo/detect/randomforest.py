@@ -136,7 +136,7 @@ def train_gid_list(
         train_neg_cpath_list,
         trees_path=trees_path,
         species=species,
-        **kwargs
+        **kwargs,
     )
 
     # Remove cached negatives directory
@@ -288,9 +288,7 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     """
     # Get scales from detect config, if not specified
     if 'scale_list' not in kwargs.keys():
-        kwargs['scale_list'] = list(
-            map(float, ibs.cfg.detect_cfg.scale_list.split(','))
-        )
+        kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
         assert all([isinstance(scale, float) for scale in kwargs['scale_list']])
 
     verbose = kwargs.get('verbose', ut.VERBOSE)
@@ -337,9 +335,7 @@ def _valid_candidate(candidate, annot_bbox_list, overlap=0.0, tries=10):
     return False
 
 
-def _get_models(
-    ibs, species, modeldir='default', cfg_override=True, verbose=VERBOSE_RF
-):
+def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VERBOSE_RF):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object

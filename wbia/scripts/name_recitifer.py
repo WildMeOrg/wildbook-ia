@@ -306,9 +306,7 @@ def simple_munkres(part_oldnames):
     return assignment_
 
 
-def find_consistent_labeling(
-    grouped_oldnames, extra_prefix='_extra_name', verbose=False
-):
+def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbose=False):
     r"""
     Solves a a maximum bipirtite matching problem to find a consistent
     name assignment that minimizes the number of annotations with different
@@ -497,8 +495,7 @@ def find_consistent_labeling(
     nontrivial_partition = list(nx.connected_components(g))
     if verbose:
         print(
-            '  * partitioned non-trivial into %d subgroups'
-            % (len(nontrivial_partition))
+            '  * partitioned non-trivial into %d subgroups' % (len(nontrivial_partition))
         )
         part_size_stats = ut.get_stats(map(len, nontrivial_partition))
         stats_str = ut.repr2(part_size_stats, precision=2, strkeys=True)

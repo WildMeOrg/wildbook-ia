@@ -53,9 +53,7 @@ def get_glr_lblimage_rowids(ibs, glrid_list):
 @getter_1to1
 def get_glr_image_rowids(ibs, glrid_list):
     """ get the image_rowid belonging to each relationship """
-    image_rowids_list = ibs.db.get(
-        const.GL_RELATION_TABLE, ('image_rowid',), glrid_list
-    )
+    image_rowids_list = ibs.db.get(const.GL_RELATION_TABLE, ('image_rowid',), glrid_list)
     return image_rowids_list
 
 
@@ -77,9 +75,7 @@ def add_lblimages(
     if lblimage_uuid_list is None:
         lblimage_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
     colnames = ['lblimage_uuid', 'lbltype_rowid', 'lblimage_value', 'lblimage_note']
-    params_iter = list(
-        zip(lblimage_uuid_list, lbltype_rowid_list, value_list, note_list)
-    )
+    params_iter = list(zip(lblimage_uuid_list, lbltype_rowid_list, value_list, note_list))
     get_rowid_from_superkey = ibs.get_lblimage_rowid_from_superkey
     superkey_paramx = (1, 2)
     lblimage_rowid_list = ibs.db.add_cleanly(

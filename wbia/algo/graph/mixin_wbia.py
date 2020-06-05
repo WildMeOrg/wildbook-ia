@@ -348,8 +348,7 @@ class IBEISIO(object):
             ibs.const.META_DECISION.CODE_TO_INT, edge_delta_df_['new_meta_decision']
         )
         new_tags = [
-            '' if tags is None else ';'.join(tags)
-            for tags in edge_delta_df_['new_tags']
+            '' if tags is None else ';'.join(tags) for tags in edge_delta_df_['new_tags']
         ]
         new_conf = ut.dict_take(
             ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None
@@ -509,9 +508,7 @@ class IBEISIO(object):
             }
         aid_list = list(node_to_new_label.keys())
         new_name_list = ut.take(label_to_name, node_to_new_label.values())
-        old_name_list = infr.ibs.get_annot_name_texts(
-            aid_list, distinguish_unknowns=True
-        )
+        old_name_list = infr.ibs.get_annot_name_texts(aid_list, distinguish_unknowns=True)
         # Put into a dataframe for convinience
         name_delta_df_ = pd.DataFrame(
             {'old_name': old_name_list, 'new_name': new_name_list},
@@ -720,9 +717,7 @@ class IBEISIO(object):
         df['meta_decision'] = meta_decision
         df['aid1'] = aids1
         df['aid2'] = aids2
-        df['tags'] = [
-            None if ts is None else [t.lower() for t in ts if t] for ts in tags
-        ]
+        df['tags'] = [None if ts is None else [t.lower() for t in ts if t] for ts in tags]
         df['confidence'] = confidence
         df['timestamp_c1'] = timestamp_c1
         df['timestamp_c2'] = timestamp_c2
@@ -1053,9 +1048,7 @@ class IBEISGroundtruth(object):
             is_comp = np.full(len(aid_pairs), np.nan)
         # But use information that we have
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        truths = ut.replace_nones(
-            ibs.get_annotmatch_evidence_decision(am_rowids), np.nan
-        )
+        truths = ut.replace_nones(ibs.get_annotmatch_evidence_decision(am_rowids), np.nan)
         truths = np.asarray(truths)
         is_notcomp_have = truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE
         is_comp_have = (truths == ibs.const.EVIDENCE_DECISION.POSITIVE) | (
@@ -1098,8 +1091,7 @@ def _update_staging_to_annotmatch(infr):
     reverse_df = infr.match_state_delta('annotmatch', 'staging')
     if len(reverse_df) > 0:
         raise AssertionError(
-            'Cannot update staging because '
-            'some staging items have not been commited.'
+            'Cannot update staging because ' 'some staging items have not been commited.'
         )
     df = infr.match_state_delta('staging', 'annotmatch')
     print(
@@ -1195,8 +1187,7 @@ def fix_annotmatch_to_undirected_upper(ibs):
 
         df4 = df3[~pd.isnull(df3[ed_key])]
         ibs.set_annotmatch_evidence_decision(
-            df4.annotmatch_rowid,
-            [None if pd.isnull(x) else int(x) for x in df4[ed_key]],
+            df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4[ed_key]],
         )
         ibs.set_annotmatch_tag_text(
             df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist()
@@ -1211,10 +1202,7 @@ def fix_annotmatch_to_undirected_upper(ibs):
         )
         ibs.set_annotmatch_posixtime_modified(
             df4.annotmatch_rowid,
-            [
-                None if pd.isnull(x) else int(x)
-                for x in df4.annotmatch_posixtime_modified
-            ],
+            [None if pd.isnull(x) else int(x) for x in df4.annotmatch_posixtime_modified],
         )
 
         ibs.delete_annotmatch(delete_df.annotmatch_rowid)

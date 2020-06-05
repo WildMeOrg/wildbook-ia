@@ -173,7 +173,7 @@ def bootstrap_pca_test(
     neighbors=1000,
     nms_thresh=0.5,
     min_confidence=0.3,
-    **kwargs
+    **kwargs,
 ):
     from annoy import AnnoyIndex
     import random
@@ -348,9 +348,7 @@ def bootstrap_pca_test(
                         try:
                             chip = neighbor_image[ytl:ybr, xtl:xbr, :]
                             chip = cv2.resize(chip, (192, 192), **warpkw)
-                            color = (
-                                (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
-                            )
+                            color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
                             cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
                             chip_list.append(chip)
                         except Exception:
@@ -382,7 +380,7 @@ def bootstrap(
     visualize=True,
     C=1.0,
     kernel='rbf',
-    **kwargs
+    **kwargs,
 ):
     from sklearn import svm, preprocessing
 
@@ -469,9 +467,7 @@ def bootstrap(
     if precompute and precompute_test:
         # depc.get_rowids('localizations_features', test_gid_list, config=config)
         if not is_wic_model_trained:
-            depc.delete_property(
-                'localizations_classifier', test_gid_list, config=config
-            )
+            depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     # return
@@ -680,7 +676,7 @@ def bootstrap2(
     overlap_thresh_cat_1=0.75,
     overlap_thresh_cat_2=0.25,
     overlap_thresh_cat_3=0.0,
-    **kwargs
+    **kwargs,
 ):
     from sklearn import svm, preprocessing
     from annoy import AnnoyIndex
@@ -782,9 +778,7 @@ def bootstrap2(
     if precompute and precompute_test:
         # depc.get_rowids('localizations_features', test_gid_list, config=config)
         if not is_wic_model_trained:
-            depc.delete_property(
-                'localizations_classifier', test_gid_list, config=config
-            )
+            depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     ######################################################################################
@@ -855,9 +849,7 @@ def bootstrap2(
                 )
 
             print('\tGather Predictions')
-            pred_dict = localizer_parse_pred(
-                ibs, test_gid_list=round_gid_list, **config
-            )
+            pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
 
             category_dict = {}
             for image_index, image_uuid in enumerate(gt_dict.keys()):
@@ -1000,9 +992,7 @@ def bootstrap2(
                     confs_list = np.array(confs_list)
                     # Perform NMS
                     nms_thresh = (
-                        nms_thresh_pos
-                        if cat_tag in ['cat1', 'cat3']
-                        else nms_thresh_neg
+                        nms_thresh_pos if cat_tag in ['cat1', 'cat3'] else nms_thresh_neg
                     )
                     keep_indices_list = nms(coord_list, confs_list, nms_thresh)
                     keep_indices_set = set(keep_indices_list)
@@ -1280,9 +1270,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
     redo = raw_input('Redo? [enter to continue] ')
     redo = redo.strip()
     if len(redo) == 0:
-        ibs.set_reviewed_from_target_species_count(
-            species_set=species_set, target=target
-        )
+        ibs.set_reviewed_from_target_species_count(species_set=species_set, target=target)
     else:
         gid_list = []
         for species in species_set:

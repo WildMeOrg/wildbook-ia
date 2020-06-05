@@ -178,7 +178,7 @@ def detect(
     verbose=VERBOSE_SS,
     use_gpu=True,
     use_gpu_id=0,
-    **kwargs
+    **kwargs,
 ):
     """
     Args:

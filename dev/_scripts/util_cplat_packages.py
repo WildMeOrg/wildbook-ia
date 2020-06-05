@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
 # -*- coding: utf-8 -*-
 """

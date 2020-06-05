@@ -199,9 +199,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         else:
             bottom_bar_layout.setContentsMargins(0, 0, 0, 0)
         lbl.setMinimumSize(0, 0)
-        lbl.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored
-        )
+        lbl.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
         # lbl.setSizePolicy(gt.newSizePolicy())
 
         qres_wgt.layout().addWidget(bottom_bar)
@@ -305,9 +303,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             review_cfg=qres_wgt.review_cfg,
         )
 
-        headers = qres_wgt.review_api.make_headers(
-            tblname='review_api', tblnice=tblnice
-        )
+        headers = qres_wgt.review_api.make_headers(tblname='review_api', tblnice=tblnice)
 
         # HACK IN ROW SIZE
         vertical_header = qres_wgt.view.verticalHeader()
@@ -780,7 +776,7 @@ def review_match(
     backend_callback=None,
     qreq_=None,
     cm=None,
-    **kwargs
+    **kwargs,
 ):
     print('Review match: {}-vs-{}'.format(aid1, aid2))
     from wbia.viz.interact import interact_name
@@ -795,7 +791,7 @@ def review_match(
         cm=cm,
         qreq_=qreq_,
         backend_callback=backend_callback,
-        **kwargs
+        **kwargs,
     )
     return mvinteract
     # ih.register_interaction(mvinteract)
@@ -1021,9 +1017,7 @@ def make_vsone_tuner(
     def set_edge(self, edge, info_text=None):
         aid1, aid2 = edge
         if qreq_ is None:
-            qreq2_ = ibs.new_query_request(
-                [aid1], [aid2], cfgdict=cfgdict, verbose=False
-            )
+            qreq2_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict, verbose=False)
         else:
             qreq2_ = ibs.new_query_request(
                 [aid1], [aid2], cfgdict=qreq_.qparams, verbose=False
@@ -1136,9 +1130,9 @@ def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
 def make_aidpair_tag_context_options(ibs, aid1, aid2):
     from wbia import tag_funcs
 
-    annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
-        [aid1], [aid2]
-    )[0]
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])[
+        0
+    ]
 
     if annotmatch_rowid is None:
         tags = []
