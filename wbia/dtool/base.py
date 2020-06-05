@@ -929,7 +929,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
-            import vtool_ibeis as vt
+            import vtool as vt
             directed_edges = np.array(parent_rowids)
             undirected_edges = vt.to_undirected_edges(directed_edges)
             edge_ids = vt.compute_unique_data_ids(undirected_edges)

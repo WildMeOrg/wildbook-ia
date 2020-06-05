@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range
 from os.path import expanduser, join, abspath
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 import utool as ut
 import cv2
 from wbia.control import controller_inject

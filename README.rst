@@ -489,16 +489,16 @@ Example usage
     python -m wbia.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
 
     # 2D Gaussian Curves
-    python -m vtool_ibeis.patch --test-test_show_gaussian_patches2 --show
+    python -m vtool.patch --test-test_show_gaussian_patches2 --show
 
     # Test Keypoint Coverage
-    python -m vtool_ibeis.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
-    python -m vtool_ibeis.coverage_kpts --test-make_kpts_coverage_mask --show
+    python -m vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
+    python -m vtool.coverage_kpts --test-make_kpts_coverage_mask --show
 
     # Test Grid Coverage
-    python -m vtool_ibeis.coverage_grid --test-gridsearch_coverage_grid_mask --show
-    python -m vtool_ibeis.coverage_grid --test-sparse_grid_coverage --show
-    python -m vtool_ibeis.coverage_grid --test-gridsearch_coverage_grid --show
+    python -m vtool.coverage_grid --test-gridsearch_coverage_grid_mask --show
+    python -m vtool.coverage_grid --test-sparse_grid_coverage --show
+    python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
 
     # Test Spatially Constrained Scoring
     python -m wbia.algo.hots.vsone_pipeline --test-compute_query_constrained_matches --show

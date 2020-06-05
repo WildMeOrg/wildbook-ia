@@ -424,7 +424,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     try:
         dataset.load()
     except IOError:
-        import vtool_ibeis as vt
+        import vtool as vt
         dataset.ensure_dirs()
 
         if data_type == 'hog':
@@ -1125,7 +1125,7 @@ def shark_svm():
 
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
             c_ydata = np.array([t[1] for t in grid.grid_scores_])
-            import vtool_ibeis as vt
+            import vtool as vt
             #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
             submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
             #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)

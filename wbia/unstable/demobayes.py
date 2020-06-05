@@ -203,7 +203,7 @@ def classify_k(cfg={}):
 
 
 def show_toy_distributions(toy_params):
-    import vtool_ibeis as vt
+    import vtool as vt
     import wbia.plottool as pt
     pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
@@ -241,7 +241,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -383,7 +383,7 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
         >>> result = ('(aids, nids, aids1, nids1, all_aids, all_nids) = %s' % (ut.repr2((aids, nids, aids1, nids1, all_aids, all_nids), nl=1),))
         >>> print(result)
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     if num_names is None:
         num_names = num_annots
     print('Generating toy data with num_annots=%r' % (num_annots,))
@@ -472,7 +472,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_annots = 1000
         >>> num_names = 400
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -564,7 +564,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     #diag_labels = pairwise_matches.compress(is_diag)
 
     # Learn P(S_{ij} | M_{ij})
-    import vtool_ibeis as vt
+    import vtool as vt
     encoder = vt.ScoreNormalizer(
         reverse=True, monotonize=True,
         adjust=4,

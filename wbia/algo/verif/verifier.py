@@ -5,7 +5,7 @@ import pandas as pd
 import utool as ut
 from wbia.algo.verif import pairfeat
 from wbia.algo.verif import sklearn_utils
-import vtool_ibeis as vt
+import vtool as vt
 # import itertools as it
 # from os.path import join
 print, rrr, profile = ut.inject2(__name__)

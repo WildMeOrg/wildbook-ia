@@ -4,7 +4,7 @@ Interface to SSD object proposals.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 from six.moves import zip
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np

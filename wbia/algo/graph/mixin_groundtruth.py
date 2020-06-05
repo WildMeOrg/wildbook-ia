@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 import pandas as pd
 from wbia.algo.graph.nx_utils import ensure_multi_index
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP

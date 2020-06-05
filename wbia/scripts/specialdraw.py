@@ -23,7 +23,7 @@ def multidb_montage():
     """
     import wbia
     import wbia.plottool as pt
-    import vtool_ibeis as vt
+    import vtool as vt
     import numpy as np
     pt.ensureqt()
     dbnames = [
@@ -1422,7 +1422,7 @@ def scalespace():
     import numpy as np
     # import matplotlib.pyplot as plt
     import cv2
-    import vtool_ibeis as vt
+    import vtool as vt
     import wbia.plottool as pt
     pt.qt4ensure()
 

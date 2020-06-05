@@ -115,7 +115,7 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> from wbia.control.manual_feat_funcs import *  # NOQA
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> import numpy as np
         >>> import wbia
         >>> import wbia.viz.interact

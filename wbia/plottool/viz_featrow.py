@@ -84,7 +84,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> pt.show_if_requested()
     """
     import numpy as np
-    import vtool_ibeis as vt
+    import vtool as vt
     # should not need ncols here
 
     if nCols is not None:

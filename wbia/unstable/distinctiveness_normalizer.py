@@ -191,7 +191,7 @@ class DistinctivnessNormalizer(ut.Cachable):
 
     def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args,
                             **kwargs):
-        from vtool_ibeis._pyflann_backend import pyflann as pyflann
+        from vtool._pyflann_backend import pyflann as pyflann
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
             try:

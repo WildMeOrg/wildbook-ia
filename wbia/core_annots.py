@@ -48,10 +48,10 @@ Setup:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from vtool_ibeis import image_filters
+from vtool import image_filters
 from wbia import dtool
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import numpy as np
 import cv2
 import wbia.constants as const
@@ -696,7 +696,7 @@ def compute_probchip(depc, aid_list, config=None):
     """
     print('[core] COMPUTING FEATWEIGHTS')
     print('config = %r' % (config,))
-    import vtool_ibeis as vt
+    import vtool as vt
 
     ibs = depc.controller
 
