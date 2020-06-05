@@ -1,0 +1,482 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.plottool.screeninfo &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.plottool.screeninfo</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+    <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>
+    <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="k">import</span> <span class="n">QtGui</span> <span class="k">as</span> <span class="n">QtWidgets</span>
+        <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="k">import</span> <span class="n">QtCore</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">PyQt5</span> <span class="k">import</span> <span class="n">QtWidgets</span>  <span class="c1"># NOQA</span>
+        <span class="kn">from</span> <span class="nn">PyQt5</span> <span class="k">import</span> <span class="n">QtCore</span>  <span class="c1"># NOQA</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: guitool did not import correctly&#39;</span><span class="p">)</span>
+<span class="c1">#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, &#39;[screeninfo]&#39;, DEBUG=True)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[screeninfo]&#39;</span><span class="p">)</span>
+
+
+<span class="n">DEFAULT_MAX_ROWS</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<span class="c1"># Win7 Areo</span>
+<span class="n">WIN7_SIZES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;os_border_x&#39;</span><span class="p">:</span>   <span class="mi">20</span><span class="p">,</span>
+    <span class="s1">&#39;os_border_y&#39;</span><span class="p">:</span>   <span class="mi">35</span><span class="p">,</span>
+    <span class="s1">&#39;os_border_h&#39;</span><span class="p">:</span>   <span class="mi">30</span><span class="p">,</span>
+    <span class="s1">&#39;win_border_x&#39;</span><span class="p">:</span>  <span class="mi">17</span><span class="p">,</span>
+    <span class="s1">&#39;win_border_y&#39;</span><span class="p">:</span>  <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;mpl_toolbar_y&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Ubuntu (Medeterrainian Dark)</span>
+<span class="n">GNOME3_SIZES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;os_border_x&#39;</span><span class="p">:</span>    <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;os_border_y&#39;</span><span class="p">:</span>   <span class="mi">35</span><span class="p">,</span>  <span class="c1"># for gnome3 title bar</span>
+    <span class="s1">&#39;os_border_h&#39;</span><span class="p">:</span>    <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;win_border_x&#39;</span><span class="p">:</span>   <span class="mi">5</span><span class="p">,</span>
+    <span class="s1">&#39;win_border_y&#39;</span><span class="p">:</span>  <span class="mi">30</span><span class="p">,</span>
+    <span class="s1">&#39;mpl_toolbar_y&#39;</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">GNOME3_SIZES</span><span class="p">:</span>
+    <span class="n">GNOME3_SIZES</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">5</span>
+
+
+<div class="viewcode-block" id="infer_monitor_specs"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.infer_monitor_specs">[docs]</a><span class="k">def</span> <span class="nf">infer_monitor_specs</span><span class="p">(</span><span class="n">res_w</span><span class="p">,</span> <span class="n">res_h</span><span class="p">,</span> <span class="n">inches_diag</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    monitors = [</span>
+<span class="sd">        dict(name=&#39;work1&#39;, inches_diag=23, res_w=1920, res_h=1080),</span>
+<span class="sd">        dict(name=&#39;work2&#39;, inches_diag=24, res_w=1920, res_h=1200),</span>
+
+<span class="sd">        dict(name=&#39;hp-129&#39;, inches_diag=25, res_w=1920, res_h=1080),</span>
+<span class="sd">        dict(name=&#39;?-26&#39;, inches_diag=26, res_w=1920, res_h=1080),</span>
+<span class="sd">        dict(name=&#39;?-27&#39;, inches_diag=27, res_w=1920, res_h=1080),</span>
+<span class="sd">    ]</span>
+<span class="sd">    for info in monitors:</span>
+<span class="sd">        name = info[&#39;name&#39;]</span>
+<span class="sd">        inches_diag = info[&#39;inches_diag&#39;]</span>
+<span class="sd">        res_h = info[&#39;res_h&#39;]</span>
+<span class="sd">        res_w = info[&#39;res_w&#39;]</span>
+<span class="sd">        print(&#39;---&#39;)</span>
+<span class="sd">        print(name)</span>
+<span class="sd">        inches_w = inches_diag * res_w / np.sqrt(res_h**2 + res_w**2)</span>
+<span class="sd">        inches_h = inches_diag * res_h / np.sqrt(res_h**2 + res_w**2)</span>
+<span class="sd">        print(&#39;inches diag = %.2f&#39; % (inches_diag))</span>
+<span class="sd">        print(&#39;inches WxH = %.2f x %.2f&#39; % (inches_w, inches_h))</span>
+
+<span class="sd">    #inches_w = inches_diag * res_w/sqrt(res_h**2 + res_w**2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sympy</span>
+    <span class="c1"># Build a system of equations and solve it</span>
+    <span class="n">inches_w</span><span class="p">,</span> <span class="n">inches_h</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;inches_w inches_h&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">res_w</span><span class="p">,</span> <span class="n">res_h</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;res_w res_h&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">inches_diag</span><span class="p">,</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;inches_diag&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">equations</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">sympy</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">inches_diag</span><span class="p">,</span> <span class="p">(</span><span class="n">inches_w</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">inches_h</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span>
+        <span class="n">sympy</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">res_w</span> <span class="o">/</span> <span class="n">res_h</span><span class="p">,</span> <span class="n">inches_w</span> <span class="o">/</span> <span class="n">inches_h</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Possible solutions:&#39;</span><span class="p">)</span>
+    <span class="n">query_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">inches_w</span><span class="p">,</span> <span class="n">inches_h</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">solution</span> <span class="ow">in</span> <span class="n">sympy</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">equations</span><span class="p">,</span> <span class="n">query_vars</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solution:&#39;</span><span class="p">)</span>
+        <span class="n">reprstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">query_vars</span><span class="p">,</span> <span class="n">solution</span><span class="p">)),</span> <span class="n">explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_comma</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">autopep8_format</span><span class="p">(</span><span class="n">reprstr</span><span class="p">)))</span></div>
+    <span class="c1">#(inches_diag*res_w/sqrt(res_h**2 + res_w**2), inches_diag*res_h/sqrt(res_h**2 + res_w**2))</span>
+
+
+<div class="viewcode-block" id="get_resolution_info"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_resolution_info">[docs]</a><span class="k">def</span> <span class="nf">get_resolution_info</span><span class="p">(</span><span class="n">monitor_num</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        monitor_num (int): (default = 0)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: info</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.screeninfo get_resolution_info --show</span>
+<span class="sd">        xrandr | grep &#39; connected&#39;</span>
+<span class="sd">        grep &quot;NVIDIA&quot; /var/log/Xorg.0.log</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.screeninfo import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; monitor_num = 1</span>
+<span class="sd">        &gt;&gt;&gt; for monitor_num in range(get_number_of_monitors()):</span>
+<span class="sd">        &gt;&gt;&gt;     info = get_resolution_info(monitor_num)</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;monitor(%d).info = %s&#39; % (monitor_num, ut.repr3(info, precision=3)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># NOQA</span>
+    <span class="c1"># screen_resolution = app.desktop().screenGeometry()</span>
+    <span class="c1"># width, height = screen_resolution.width(), screen_resolution.height()</span>
+    <span class="c1"># print(&#39;height = %r&#39; % (height,))</span>
+    <span class="c1"># print(&#39;width = %r&#39; % (width,))</span>
+
+    <span class="n">desktop</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QDesktopWidget</span><span class="p">()</span>
+    <span class="n">screen</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">screen</span><span class="p">(</span><span class="n">monitor_num</span><span class="p">)</span>
+    <span class="n">ppi_x</span> <span class="o">=</span> <span class="n">screen</span><span class="o">.</span><span class="n">logicalDpiX</span><span class="p">()</span>
+    <span class="n">ppi_y</span> <span class="o">=</span> <span class="n">screen</span><span class="o">.</span><span class="n">logicalDpiY</span><span class="p">()</span>
+    <span class="n">dpi_x</span> <span class="o">=</span> <span class="n">screen</span><span class="o">.</span><span class="n">physicalDpiX</span><span class="p">()</span>
+    <span class="n">dpi_y</span> <span class="o">=</span> <span class="n">screen</span><span class="o">.</span><span class="n">physicalDpiY</span><span class="p">()</span>
+    <span class="c1"># This call is not rotated correctly</span>
+    <span class="c1"># rect = screen.screenGeometry()</span>
+
+    <span class="c1"># This call has bad offsets</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">screenGeometry</span><span class="p">(</span><span class="n">screen</span><span class="o">=</span><span class="n">monitor_num</span><span class="p">)</span>
+
+    <span class="c1"># This call subtracts offsets weirdly</span>
+    <span class="c1"># desktop.availableGeometry(screen=monitor_num)</span>
+
+    <span class="n">pixels_w</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">()</span>
+    <span class="c1"># for num in range(desktop.screenCount()):</span>
+    <span class="c1"># pass</span>
+    <span class="n">pixels_h</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+    <span class="c1"># + rect.y()</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    I have two monitors (screens), after rotation effects they have</span>
+<span class="sd">    the geometry: (for example)</span>
+<span class="sd">        S1 = {x: 0, y=300, w: 1920, h:1080}</span>
+<span class="sd">        S2 = {x=1920, y=0, w: 1080, h:1920}</span>
+
+<span class="sd">    Here is a pictoral example</span>
+<span class="sd">    G--------------------------------------C-------------------</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    A--------------------------------------|                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                 S1                   |                  |</span>
+<span class="sd">    |                                      |        S2        |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |--------------------------------------B                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    |                                      |                  |</span>
+<span class="sd">    ----------------------------------------------------------D</span>
+<span class="sd">    Desired Info</span>
+
+<span class="sd">    G = (0, 0)</span>
+<span class="sd">    A = (S1.x, S1.y)</span>
+<span class="sd">    B = (S1.x + S1.w, S1.y + S1.h)</span>
+
+<span class="sd">    C = (S2.x, S2.y)</span>
+<span class="sd">    D = (S2.x + S1.w, S2.y + S2.h)</span>
+
+<span class="sd">    from PyQt4 import QtGui, QtCore</span>
+<span class="sd">    app = QtCore.QCoreApplication.instance()</span>
+<span class="sd">    if app is None:</span>
+<span class="sd">        import sys</span>
+<span class="sd">        app = QtGui.QApplication(sys.argv)</span>
+<span class="sd">    desktop = QtGui.QDesktopWidget()</span>
+<span class="sd">    rect1 = desktop.screenGeometry(screen=0)</span>
+<span class="sd">    rect2 = desktop.screenGeometry(screen=1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># I want to get the relative positions of my monitors</span>
+    <span class="c1"># pt = screen.pos()</span>
+    <span class="c1"># pt = screen.mapToGlobal(pt)</span>
+    <span class="c1"># pt = screen.mapToGlobal(screen.pos())</span>
+    <span class="c1"># Screen offsets seem bugged</span>
+    <span class="c1"># off_x = pt.x()</span>
+    <span class="c1"># off_y = pt.y()</span>
+    <span class="c1"># print(pt.x())</span>
+    <span class="c1"># print(pt.y())</span>
+    <span class="c1"># pt = screen.mapToGlobal(QtCore.QPoint(0, 0))</span>
+    <span class="c1"># print(pt.x())</span>
+    <span class="c1"># print(pt.y())</span>
+    <span class="n">off_x</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">x</span><span class="p">()</span>
+    <span class="n">off_y</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">y</span><span class="p">()</span>
+    <span class="c1"># pt.x(), pt.y()</span>
+
+    <span class="n">inches_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">pixels_w</span> <span class="o">/</span> <span class="n">dpi_x</span><span class="p">)</span>
+    <span class="n">inches_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">pixels_h</span> <span class="o">/</span> <span class="n">dpi_y</span><span class="p">)</span>
+    <span class="n">inches_diag</span> <span class="o">=</span> <span class="p">(</span><span class="n">inches_w</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">inches_h</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="o">.</span><span class="mi">5</span>
+
+    <span class="n">mm_w</span> <span class="o">=</span> <span class="n">inches_w</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">MM_PER_INCH</span>
+    <span class="n">mm_h</span> <span class="o">=</span> <span class="n">inches_h</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">MM_PER_INCH</span>
+    <span class="n">mm_diag</span> <span class="o">=</span> <span class="n">inches_diag</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">MM_PER_INCH</span>
+
+    <span class="n">ratio</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mm_w</span><span class="p">,</span> <span class="n">mm_h</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">mm_w</span><span class="p">,</span> <span class="n">mm_h</span><span class="p">)</span>
+
+    <span class="c1">#pixel_density = dpi_x / ppi_x</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;monitor_num&#39;</span><span class="p">,</span> <span class="n">monitor_num</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;off_x&#39;</span><span class="p">,</span> <span class="n">off_x</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;off_y&#39;</span><span class="p">,</span> <span class="n">off_y</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ratio&#39;</span><span class="p">,</span> <span class="n">ratio</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ppi_x&#39;</span><span class="p">,</span> <span class="n">ppi_x</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ppi_y&#39;</span><span class="p">,</span> <span class="n">ppi_y</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;dpi_x&#39;</span><span class="p">,</span> <span class="n">dpi_x</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;dpi_y&#39;</span><span class="p">,</span> <span class="n">dpi_y</span><span class="p">),</span>
+        <span class="c1">#&#39;pixel_density&#39;, pixel_density),</span>
+        <span class="p">(</span><span class="s1">&#39;inches_w&#39;</span><span class="p">,</span> <span class="n">inches_w</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;inches_h&#39;</span><span class="p">,</span> <span class="n">inches_h</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;inches_diag&#39;</span><span class="p">,</span> <span class="n">inches_diag</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mm_w&#39;</span><span class="p">,</span> <span class="n">mm_w</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mm_h&#39;</span><span class="p">,</span> <span class="n">mm_h</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mm_diag&#39;</span><span class="p">,</span> <span class="n">mm_diag</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;pixels_w&#39;</span><span class="p">,</span> <span class="n">pixels_w</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;pixels_h&#39;</span><span class="p">,</span> <span class="n">pixels_h</span><span class="p">),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">info</span></div>
+
+
+<div class="viewcode-block" id="get_number_of_monitors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_number_of_monitors">[docs]</a><span class="k">def</span> <span class="nf">get_number_of_monitors</span><span class="p">():</span>
+    <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+    <span class="n">desktop</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QDesktopWidget</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">desktop</span><span class="p">,</span> <span class="s1">&#39;numScreens&#39;</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">numScreens</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">screenCount</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="get_monitor_geom"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_monitor_geom">[docs]</a><span class="k">def</span> <span class="nf">get_monitor_geom</span><span class="p">(</span><span class="n">monitor_num</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        monitor_num (int): (default = 0)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: geom</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.screeninfo get_monitor_geom --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.screeninfo import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; monitor_num = 0</span>
+<span class="sd">        &gt;&gt;&gt; geom = get_monitor_geom(monitor_num)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;geom = %s&#39; % (ut.repr2(geom),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+    <span class="n">desktop</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QDesktopWidget</span><span class="p">()</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">availableGeometry</span><span class="p">(</span><span class="n">screen</span><span class="o">=</span><span class="n">monitor_num</span><span class="p">)</span>
+    <span class="n">geom</span> <span class="o">=</span> <span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">x</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">y</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">geom</span></div>
+
+
+<div class="viewcode-block" id="get_monitor_geometries"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_monitor_geometries">[docs]</a><span class="k">def</span> <span class="nf">get_monitor_geometries</span><span class="p">():</span>
+    <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+    <span class="n">monitor_geometries</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">desktop</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QDesktopWidget</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">desktop</span><span class="p">,</span> <span class="s1">&#39;numScreens&#39;</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">numScreens</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">screenCount</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">screenx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">availableGeometry</span><span class="p">(</span><span class="n">screen</span><span class="o">=</span><span class="n">screenx</span><span class="p">)</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">x</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">y</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">())</span>
+        <span class="n">monitor_geometries</span><span class="p">[</span><span class="n">screenx</span><span class="p">]</span> <span class="o">=</span> <span class="n">geom</span>
+    <span class="k">return</span> <span class="n">monitor_geometries</span></div>
+
+
+<div class="viewcode-block" id="get_stdpxls"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_stdpxls">[docs]</a><span class="k">def</span> <span class="nf">get_stdpxls</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">):</span>
+        <span class="n">stdpxls</span> <span class="o">=</span> <span class="n">WIN7_SIZES</span>
+    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;linux&#39;</span><span class="p">):</span>
+        <span class="n">stdpxls</span> <span class="o">=</span> <span class="n">GNOME3_SIZES</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stdpxls</span> <span class="o">=</span> <span class="n">GNOME3_SIZES</span>
+    <span class="k">return</span> <span class="n">stdpxls</span></div>
+
+
+<div class="viewcode-block" id="get_xywh_pads"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_xywh_pads">[docs]</a><span class="k">def</span> <span class="nf">get_xywh_pads</span><span class="p">():</span>
+    <span class="n">stdpxls</span> <span class="o">=</span> <span class="n">get_stdpxls</span><span class="p">()</span>
+    <span class="n">w_pad</span> <span class="o">=</span>  <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;win_border_x&#39;</span><span class="p">]</span>
+    <span class="n">y_pad</span> <span class="o">=</span>  <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;win_border_y&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;mpl_toolbar_y&#39;</span><span class="p">]</span>
+    <span class="c1"># Pads are applied to all windows</span>
+    <span class="n">x_pad</span> <span class="o">=</span>  <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;os_border_x&#39;</span><span class="p">]</span>
+    <span class="n">y_pad</span> <span class="o">=</span>  <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;os_border_y&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x_pad</span><span class="p">,</span> <span class="n">y_pad</span><span class="p">,</span> <span class="n">w_pad</span><span class="p">,</span> <span class="n">y_pad</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_avail_geom"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_avail_geom">[docs]</a><span class="k">def</span> <span class="nf">get_avail_geom</span><span class="p">(</span><span class="n">monitor_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">percent_w</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">percent_h</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">stdpxls</span> <span class="o">=</span> <span class="n">get_stdpxls</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">monitor_num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">monitor_num</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">monitor_geometries</span> <span class="o">=</span> <span class="n">get_monitor_geometries</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">startx</span><span class="p">,</span> <span class="n">starty</span><span class="p">,</span> <span class="n">availw</span><span class="p">,</span> <span class="n">availh</span><span class="p">)</span> <span class="o">=</span> <span class="n">monitor_geometries</span><span class="p">[</span><span class="n">monitor_num</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">startx</span><span class="p">,</span> <span class="n">starty</span><span class="p">,</span> <span class="n">availw</span><span class="p">,</span> <span class="n">availh</span><span class="p">)</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">monitor_geometries</span><span class="p">)</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="n">available_geom</span> <span class="o">=</span> <span class="p">(</span><span class="n">startx</span><span class="p">,</span>
+                      <span class="n">starty</span><span class="p">,</span>
+                      <span class="n">availw</span> <span class="o">*</span> <span class="n">percent_w</span><span class="p">,</span>
+                      <span class="p">(</span><span class="n">availh</span> <span class="o">-</span> <span class="n">stdpxls</span><span class="p">[</span><span class="s1">&#39;os_border_h&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="n">percent_h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">available_geom</span></div>
+
+
+<div class="viewcode-block" id="get_valid_fig_positions"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.screeninfo.get_valid_fig_positions">[docs]</a><span class="k">def</span> <span class="nf">get_valid_fig_positions</span><span class="p">(</span><span class="n">num_wins</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">monitor_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">percent_w</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                            <span class="n">percent_h</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of bounding boxes where figures can be placed on the screen</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">percent_h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">percent_h</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="n">percent_w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">percent_w</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="n">max_rows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_rows</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_ROWS</span>
+
+    <span class="n">available_geom</span> <span class="o">=</span> <span class="n">get_avail_geom</span><span class="p">(</span><span class="n">monitor_num</span><span class="p">,</span> <span class="n">percent_w</span><span class="o">=</span><span class="n">percent_w</span><span class="p">,</span> <span class="n">percent_h</span><span class="o">=</span><span class="n">percent_h</span><span class="p">)</span>
+    <span class="c1"># print(&#39;available_geom = %r&#39; % (available_geom,))</span>
+    <span class="n">startx</span><span class="p">,</span> <span class="n">starty</span><span class="p">,</span> <span class="n">avail_width</span><span class="p">,</span> <span class="n">avail_height</span> <span class="o">=</span> <span class="n">available_geom</span>
+
+    <span class="n">nRows</span> <span class="o">=</span> <span class="n">num_wins</span> <span class="k">if</span> <span class="n">num_wins</span> <span class="o">&lt;</span> <span class="n">max_rows</span> <span class="k">else</span> <span class="n">max_rows</span>
+    <span class="n">nCols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_wins</span> <span class="o">/</span> <span class="n">nRows</span><span class="p">))</span>
+
+    <span class="n">win_height</span> <span class="o">=</span> <span class="n">avail_height</span> <span class="o">/</span> <span class="n">nRows</span>
+    <span class="n">win_width</span>  <span class="o">=</span> <span class="n">avail_width</span>  <span class="o">/</span> <span class="n">nCols</span>
+
+    <span class="p">(</span><span class="n">x_pad</span><span class="p">,</span> <span class="n">y_pad</span><span class="p">,</span> <span class="n">w_pad</span><span class="p">,</span> <span class="n">h_pad</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_xywh_pads</span><span class="p">()</span>
+
+    <span class="c1"># print(&#39;startx, startx = %r, %r&#39; % (startx, starty))</span>
+    <span class="c1"># print(&#39;avail_width, avail_height = %r, %r&#39; % (avail_width, avail_height))</span>
+    <span class="c1"># print(&#39;win_width, win_height = %r, %r&#39; % (win_width, win_height))</span>
+    <span class="c1"># print(&#39;nRows, nCols = %r, %r&#39; % (nRows, nCols))</span>
+
+    <span class="k">def</span> <span class="nf">get_position_ix</span><span class="p">(</span><span class="n">ix</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">row_first</span><span class="p">:</span>
+            <span class="n">rowx</span> <span class="o">=</span> <span class="n">ix</span> <span class="o">%</span> <span class="n">nRows</span>
+            <span class="n">colx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ix</span> <span class="o">//</span> <span class="n">nRows</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">colx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ix</span> <span class="o">%</span> <span class="n">nCols</span><span class="p">)</span>
+            <span class="n">rowx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ix</span> <span class="o">//</span> <span class="n">nCols</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">win_width</span>  <span class="o">-</span> <span class="n">w_pad</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">win_height</span> <span class="o">-</span> <span class="n">h_pad</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">startx</span> <span class="o">+</span> <span class="n">colx</span> <span class="o">*</span> <span class="p">(</span><span class="n">win_width</span><span class="p">)</span>  <span class="o">+</span> <span class="n">x_pad</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">starty</span> <span class="o">+</span> <span class="n">rowx</span> <span class="o">*</span> <span class="p">(</span><span class="n">win_height</span><span class="p">)</span> <span class="o">+</span> <span class="n">y_pad</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">valid_positions</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_position_ix</span><span class="p">(</span><span class="n">ix</span><span class="p">)</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_wins</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">valid_positions</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.screeninfo</span>
+<span class="sd">        python -m wbia.plottool.screeninfo --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../plottool.html">wbia.plottool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

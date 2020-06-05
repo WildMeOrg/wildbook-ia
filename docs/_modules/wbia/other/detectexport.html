@@ -1,0 +1,729 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.other.detectexport &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.other.detectexport</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+
+<span class="c1"># Inject utool functions</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[other.detectexport]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_cnn_classifier_cameratrap_binary_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_classifier_cameratrap_binary_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_classifier_cameratrap_binary_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">positive_imageset_id</span><span class="p">,</span>
+                                                                 <span class="n">negative_imageset_id</span><span class="p">,</span>
+                                                                 <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                                 <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                                 <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                 <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                                                 <span class="n">skip_rate_pos</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                                                 <span class="n">skip_rate_neg</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;classifier-cameratrap-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="n">train_pos_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="s1">&#39;positive&#39;</span><span class="p">)</span>
+    <span class="n">train_neg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="s1">&#39;negative&#39;</span><span class="p">)</span>
+    <span class="n">valid_pos_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="s1">&#39;positive&#39;</span><span class="p">)</span>
+    <span class="n">valid_neg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="s1">&#39;negative&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_pos_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_neg_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_pos_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_neg_path</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+
+    <span class="n">positive_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">positive_imageset_id</span><span class="p">))</span>
+    <span class="n">negative_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">negative_imageset_id</span><span class="p">))</span>
+
+    <span class="n">candidate_gid_set</span> <span class="o">=</span> <span class="n">positive_gid_set</span> <span class="o">|</span> <span class="n">negative_gid_set</span>
+    <span class="n">candidate_gid_set</span> <span class="o">=</span> <span class="n">train_gid_set</span> <span class="o">&amp;</span> <span class="n">candidate_gid_set</span>
+
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">candidate_gid_set</span><span class="p">:</span>
+        <span class="c1"># args = (gid, )</span>
+        <span class="c1"># print(&#39;Processing GID: %r&#39; % args)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping - Sampling&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">positive_gid_set</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;positive&#39;</span>
+        <span class="k">elif</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">negative_gid_set</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;negative&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping - No Label&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">skip_rate_pos</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate_pos</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping Positive&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">skip_rate_neg</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;negative&#39;</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate_neg</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping Negative&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+
+        <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span><span class="p">:</span>
+            <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_pos_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_pos_path</span>
+        <span class="k">elif</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;negative&#39;</span><span class="p">:</span>
+            <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_neg_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_neg_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">)</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_image_gid_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+        <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">image_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<div class="viewcode-block" id="get_cnn_classifier_multiclass_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_classifier_multiclass_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_classifier_multiclass_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">label_list</span><span class="p">,</span>
+                                                          <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                          <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                          <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span>
+                                                          <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                          <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;classifier-multiclass-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="n">label_set</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">label_list</span><span class="p">))</span>
+
+    <span class="n">train_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">valid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_set</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">train_dict</span>
+        <span class="k">assert</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_dict</span>
+        <span class="n">train_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">valid_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_set</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_dict</span><span class="p">[</span><span class="n">label</span><span class="p">])</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_dict</span><span class="p">[</span><span class="n">label</span><span class="p">])</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">label_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">train_gid_set</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing GID: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping - Sampling&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+        <span class="n">dest_dict</span> <span class="o">=</span> <span class="n">valid_dict</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_dict</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">dest_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">)</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_image_gid_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+        <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">image_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<div class="viewcode-block" id="get_cnn_classifier_canonical_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_classifier_canonical_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_classifier_canonical_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                                         <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                         <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                         <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                         <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                                         <span class="n">skip_rate_pos</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                                         <span class="n">skip_rate_neg</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">exists</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;classifier-canonical-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="n">train_pos_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="s1">&#39;positive&#39;</span><span class="p">)</span>
+    <span class="n">train_neg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="s1">&#39;negative&#39;</span><span class="p">)</span>
+    <span class="n">valid_pos_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="s1">&#39;positive&#39;</span><span class="p">)</span>
+    <span class="n">valid_neg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="s1">&#39;negative&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_pos_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_neg_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_pos_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_neg_path</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+    <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">train_gid_set</span><span class="p">))</span>
+    <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_canonical</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">bool_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+    <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bool_list</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flag_list</span><span class="p">,</span> <span class="n">bool_list</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span>
+        <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing AID: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping - Sampling&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;positive&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;negative&#39;</span>
+
+        <span class="k">if</span> <span class="n">skip_rate_pos</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate_pos</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping Positive&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">skip_rate_neg</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;negative&#39;</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate_neg</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping Negative&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+
+        <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span><span class="p">:</span>
+            <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_pos_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_pos_path</span>
+        <span class="k">elif</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;negative&#39;</span><span class="p">:</span>
+            <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_neg_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_neg_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_image_aid_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+            <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<div class="viewcode-block" id="get_cnn_localizer_canonical_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_localizer_canonical_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_localizer_canonical_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                                        <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                        <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                        <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                        <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">exists</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectfuncs</span> <span class="k">import</span> <span class="n">_canonical_get_boxes</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;localizer-canonical-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+    <span class="n">train_gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_gid_set</span><span class="p">)</span>
+    <span class="n">aid_list_</span><span class="p">,</span> <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">_canonical_get_boxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">train_gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span>
+        <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing AID: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping - Sampling&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_path</span>
+
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_image_aid_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+            <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">label_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_image_aid_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.csv&#39;</span> <span class="o">%</span> <span class="n">values</span>
+            <span class="n">label_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">label_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">label_filepath</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">label_file</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)):</span>
+                <span class="n">bbox</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.08f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="p">)</span>
+            <span class="n">label_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bbox</span><span class="p">),</span> <span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<div class="viewcode-block" id="get_cnn_labeler_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_labeler_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_labeler_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span>
+                                            <span class="n">category_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_examples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                            <span class="n">category_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                            <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                            <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                            <span class="n">use_axis_aligned_chips</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                            <span class="n">train_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">exists</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;labeler-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;category mapping = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">category_mapping</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;viewpoint mapping = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">viewpoint_mapping</span><span class="p">),</span> <span class="p">))</span>
+
+    <span class="c1"># train_gid_set = ibs.get_valid_gids()</span>
+    <span class="k">if</span> <span class="n">train_gid_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">train_gid_set</span><span class="p">)</span>
+    <span class="c1"># bboxes_list = [ ibs.get_annot_bboxes(aid_list) for aid_list in aids_list ]</span>
+    <span class="c1"># aid_list = ibs.get_valid_aids()</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="c1"># import random</span>
+    <span class="c1"># random.shuffle(aid_list)</span>
+    <span class="c1"># aid_list = sorted(aid_list[:100])</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">category_mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">category_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_list</span>
+        <span class="p">]</span>
+    <span class="n">species_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">category_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">category_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_set</span><span class="p">))</span>
+        <span class="n">undesired_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;unspecified_animal&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">undesired_species</span> <span class="ow">in</span> <span class="n">undesired_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">undesired_species</span> <span class="ow">in</span> <span class="n">category_list</span><span class="p">:</span>
+                <span class="n">category_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">undesired_species</span><span class="p">)</span>
+    <span class="n">category_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">category_list</span><span class="p">)</span>
+
+    <span class="c1"># Filter the tup_list based on the requested categories</span>
+    <span class="n">tup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">yaw_list</span><span class="p">))</span>
+    <span class="n">old_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">)</span>
+    <span class="n">tup_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">aid</span><span class="p">,</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">yaw</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">tup_list</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">category_set</span>
+    <span class="p">]</span>
+    <span class="n">new_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Filtered annotations: keep </span><span class="si">%d</span><span class="s1"> / original </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_len</span><span class="p">,</span> <span class="n">old_len</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="c1"># Skip any annotations that are of the wanted category and don&#39;t have a specified viewpoint</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">seen_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">yaw_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="c1"># Keep track of the number of overall instances</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_dict</span><span class="p">:</span>
+            <span class="n">seen_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">seen_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># Keep track of yaws that aren&#39;t None</span>
+        <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yaw_dict</span><span class="p">:</span>
+                <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">yaw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]:</span>
+                <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">yaw</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">yaw</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Get the list of species that do not have enough viewpoint examples for training</span>
+    <span class="n">invalid_seen_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">invalid_yaw_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">seen_dict</span><span class="p">:</span>
+        <span class="c1"># Check that the number of instances is above the min_examples</span>
+        <span class="k">if</span> <span class="n">seen_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_examples</span><span class="p">:</span>
+            <span class="n">invalid_seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="c1"># If the species has viewpoints, check them as well</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">yaw_dict</span><span class="p">:</span>
+                <span class="c1"># Check that all viewpoints exist</span>
+                <span class="c1"># if len(yaw_dict[species]) &lt; 8:</span>
+                <span class="c1">#     invalid_yaw_set.add(species)</span>
+                <span class="c1">#     continue</span>
+                <span class="c1"># Check that all viewpoints have a minimum number of instances</span>
+                <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]:</span>
+                    <span class="c1"># assert yaw in ibs.const.VIEWTEXT_TO_YAW_RADIANS</span>
+                    <span class="k">if</span> <span class="n">yaw_dict</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">yaw</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_examples</span><span class="p">:</span>
+                        <span class="n">invalid_yaw_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+                        <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">invalid_yaw_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Null yaws: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">valid_seen_set</span> <span class="o">=</span> <span class="n">category_set</span> <span class="o">-</span> <span class="n">invalid_seen_set</span>
+    <span class="n">valid_yaw_set</span> <span class="o">=</span> <span class="n">valid_seen_set</span> <span class="o">-</span> <span class="n">invalid_yaw_set</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Requested categories:&#39;</span><span class="p">)</span>
+    <span class="n">category_set</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">category_set</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_list</span><span class="p">(</span><span class="n">category_set</span><span class="p">)</span>
+    <span class="c1"># print(&#39;Invalid yaw categories:&#39;)</span>
+    <span class="c1"># ut.print_list(sorted(invalid_yaw_set))</span>
+    <span class="c1"># print(&#39;Valid seen categories:&#39;)</span>
+    <span class="c1"># ut.print_list(sorted(valid_seen_set))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Valid yaw categories:&#39;</span><span class="p">)</span>
+    <span class="n">valid_yaw_set</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">valid_yaw_set</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_list</span><span class="p">(</span><span class="n">valid_yaw_set</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid seen categories (could not fulfill request):&#39;</span><span class="p">)</span>
+    <span class="n">invalid_seen_set</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">invalid_seen_set</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_list</span><span class="p">(</span><span class="n">invalid_seen_set</span><span class="p">)</span>
+
+    <span class="n">skipped_yaw</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">skipped_seen</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">aid_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">category_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">valid_yaw_set</span><span class="p">:</span>
+            <span class="c1"># If the species is valid, but this specific annotation has no yaw, skip it</span>
+            <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">skipped_yaw</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">valid_seen_set</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">skipped_seen</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="n">aid_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">category_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Skipped Yaw:  skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skipped_yaw</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Skipped Seen: skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skipped_seen</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),</span> <span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">category_list_</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Making folder for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="n">category</span><span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">valid_path</span><span class="p">,</span> <span class="n">category</span><span class="p">))</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span>
+        <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;axis_aligned&#39;</span><span class="p">:</span> <span class="n">use_axis_aligned_chips</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">chip_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Get training data</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">category</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">chip_list_</span><span class="p">,</span> <span class="n">category_list_</span><span class="p">):</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing AID: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_path</span>
+        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">category</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">dest_path</span><span class="p">)</span>
+
+        <span class="c1"># Compute data</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_annot_aid_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+        <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+
+        <span class="c1"># Compute label</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">patch_filename</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using labels for labeler training:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">category_list_</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<div class="viewcode-block" id="get_cnn_orientation_training_images_pytorch"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectexport.get_cnn_orientation_training_images_pytorch">[docs]</a><span class="k">def</span> <span class="nf">get_cnn_orientation_training_images_pytorch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span>
+                                                <span class="n">dest_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span>
+                                                <span class="n">padding_multiplier</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+                                                <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                <span class="n">skip_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                                <span class="n">valid_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                <span class="n">train_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">exists</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;orientation-pytorch&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="n">name_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">train_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="n">valid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">name_path</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">name_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">train_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">valid_path</span><span class="p">)</span>
+
+    <span class="c1"># train_gid_set = ibs.get_valid_gids()</span>
+    <span class="k">if</span> <span class="n">train_gid_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">train_gid_set</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span>
+        <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;axis_aligned&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">chip_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Get training data</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">category</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">chip_list_</span><span class="p">,</span> <span class="n">category_list_</span><span class="p">):</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing AID: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">skip_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> Skipping&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">valid_rate</span>
+        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">valid_path</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="n">train_path</span>
+        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">category</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">dest_path</span><span class="p">)</span>
+
+        <span class="c1"># Compute data</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">patch_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_annot_aid_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">values</span>
+        <span class="n">patch_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">patch_filename</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+
+        <span class="c1"># Compute label</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">patch_filename</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using labels for labeler training:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">category_list_</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">name_path</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.detectexport</span>
+<span class="sd">        python -m wbia.other.detectexport --allexamples</span>
+<span class="sd">        python -m wbia.other.detectexport --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../other.html">wbia.other</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

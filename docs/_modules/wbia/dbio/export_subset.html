@@ -1,0 +1,1313 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.dbio.export_subset &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.dbio.export_subset</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Exports subset of an IBEIS database to a new IBEIS database</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="check_merge"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.check_merge">[docs]</a><span class="k">def</span> <span class="nf">check_merge</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">):</span>
+    <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">gid_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">gname_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
+    <span class="n">image_uuid_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
+    <span class="n">gid_list2</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list1</span><span class="p">)</span>
+    <span class="n">gname_list2</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)</span>
+    <span class="c1"># Asserts</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">,</span> <span class="s1">&#39;gid_list1&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">,</span> <span class="s1">&#39;gid_list2&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">gname_list1</span><span class="p">,</span> <span class="n">gname_list2</span><span class="p">,</span> <span class="s1">&#39;faild gname&#39;</span><span class="p">)</span>
+    <span class="c1"># Image UUIDS should be consistent between databases</span>
+    <span class="n">image_uuid_list2</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">image_uuid_list1</span><span class="p">,</span> <span class="n">image_uuid_list2</span><span class="p">,</span> <span class="s1">&#39;failed uuid&#39;</span><span class="p">)</span>
+
+    <span class="n">aids_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
+    <span class="n">aids_list2</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)</span>
+
+    <span class="n">avuuids_list1</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">,</span> <span class="n">aids_list1</span><span class="p">)</span>
+    <span class="n">avuuids_list2</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">,</span> <span class="n">aids_list2</span><span class="p">)</span>
+
+    <span class="n">issubset_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">avuuids1</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">avuuids2</span><span class="p">))</span>
+                     <span class="k">for</span> <span class="n">avuuids1</span><span class="p">,</span> <span class="n">avuuids2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avuuids_list1</span><span class="p">,</span> <span class="n">avuuids_list2</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">issubset_list</span><span class="p">),</span> <span class="s1">&#39;ibs_src must be a subset of ibs_dst: issubset_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">issubset_list</span><span class="p">,)</span>
+    <span class="c1">#aids_depth1 = ut.depth_profile(aids_list1)</span>
+    <span class="c1">#aids_depth2 = ut.depth_profile(aids_list2)</span>
+    <span class="c1"># depth might not be true if ibs_dst is not empty</span>
+    <span class="c1">#ut.assert_lists_eq(aids_depth1, aids_depth2, &#39;failed depth&#39;)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merge seems ok...&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="merge_databases"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.merge_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">rowid_subsets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">localize_images</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    New way of merging using the non-hacky sql table merge.</span>
+<span class="sd">    However, its only workings due to major hacks.</span>
+
+<span class="sd">    FIXME: annotmatch table</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia --test-merge_databases</span>
+
+<span class="sd">        python -m wbia merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL</span>
+<span class="sd">        python -m wbia merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL</span>
+
+<span class="sd">        python -m wbia merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1</span>
+<span class="sd">        python -m wbia merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1</span>
+
+<span class="sd">        python -m wbia merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1</span>
+<span class="sd">        python -m wbia merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; db1 = ut.get_argval(&#39;--db1&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; db2 = ut.get_argval(&#39;--db2&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; dbdir1 = ut.get_argval(&#39;--dbdir1&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; dbdir2 = ut.get_argval(&#39;--dbdir2&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; delete_ibsdir = False</span>
+<span class="sd">        &gt;&gt;&gt; # Check for test mode instead of script mode</span>
+<span class="sd">        &gt;&gt;&gt; if db1 is None and db2 is None and dbdir1 is None and dbdir2 is None:</span>
+<span class="sd">        ...     db1 = &#39;testdb1&#39;</span>
+<span class="sd">        ...     dbdir2 = &#39;testdb_dst&#39;</span>
+<span class="sd">        ...     delete_ibsdir = True</span>
+<span class="sd">        &gt;&gt;&gt; # Open the source and destination database</span>
+<span class="sd">        &gt;&gt;&gt; assert db1 is not None or dbdir1 is not None</span>
+<span class="sd">        &gt;&gt;&gt; assert db2 is not None or dbdir2 is not None</span>
+<span class="sd">        &gt;&gt;&gt; ibs_src = wbia.opendb(db=db1, dbdir=dbdir1)</span>
+<span class="sd">        &gt;&gt;&gt; ibs_dst = wbia.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,</span>
+<span class="sd">        &gt;&gt;&gt;                        delete_ibsdir=delete_ibsdir)</span>
+<span class="sd">        &gt;&gt;&gt; merge_databases(ibs_src, ibs_dst)</span>
+<span class="sd">        &gt;&gt;&gt; check_merge(ibs_src, ibs_dst)</span>
+<span class="sd">        &gt;&gt;&gt; ibs_dst.print_dbinfo()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: ensure images are localized</span>
+    <span class="c1"># otherwise this wont work</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;BEGIN MERGE OF </span><span class="si">%r</span><span class="s1"> into </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
+          <span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span>
+    <span class="c1"># ibs_src.run_integrity_checks()</span>
+    <span class="c1"># ibs_dst.run_integrity_checks()</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="n">ibs_src</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="n">ibs_src</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">()</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">()</span>
+    <span class="n">ibs_src</span><span class="o">.</span><span class="n">fix_invalid_annotmatches</span><span class="p">()</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">fix_invalid_annotmatches</span><span class="p">()</span>
+    <span class="c1"># Hack move of the external data</span>
+    <span class="k">if</span> <span class="n">rowid_subsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span> <span class="ow">in</span> <span class="n">rowid_subsets</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">rowid_subsets</span><span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">imgpath_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">dst_imgdir</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">localize_images</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy_files_to</span><span class="p">(</span><span class="n">imgpath_list</span><span class="p">,</span> <span class="n">dst_imgdir</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ignore_tables</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;lblannot&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage&#39;</span><span class="p">,</span> <span class="s1">&#39;image_lblimage_relationship&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotation_lblannot_relationship&#39;</span><span class="p">,</span> <span class="s1">&#39;keys&#39;</span>
+    <span class="p">]</span>
+    <span class="c1"># ignore_tables += [</span>
+    <span class="c1">#     &#39;contributors&#39;, &#39;party&#39;, &#39;configs&#39;</span>
+    <span class="c1"># ]</span>
+    <span class="c1"># TODO: Fix database merge to allow merging tables with more than one superkey</span>
+    <span class="c1"># and no primary superkey.</span>
+    <span class="n">error_tables</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;imageset_image_relationship&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotgroup_annotation_relationship&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">ignore_tables</span> <span class="o">+=</span> <span class="n">error_tables</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">merge_databases_new</span><span class="p">(</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">ignore_tables</span><span class="o">=</span><span class="n">ignore_tables</span><span class="p">,</span> <span class="n">rowid_subsets</span><span class="o">=</span><span class="n">rowid_subsets</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FINISHED MERGE </span><span class="si">%r</span><span class="s1"> into </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
+          <span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span></div>
+
+
+<div class="viewcode-block" id="make_new_dbpath"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.make_new_dbpath">[docs]</a><span class="k">def</span> <span class="nf">make_new_dbpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">id_label</span><span class="p">,</span> <span class="n">id_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a new database path unique to the exported subset of ids.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">tag_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ALPHABET_27</span><span class="p">)</span>
+    <span class="n">base_fmtstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">id_label</span> <span class="o">+</span> <span class="s1">&#39;s=&#39;</span> <span class="o">+</span> \
+        <span class="n">tag_hash</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%d</span><span class="s1">&#39;</span>
+    <span class="n">dpath</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">non_existing_path</span><span class="p">(</span><span class="n">base_fmtstr</span><span class="p">,</span> <span class="n">dpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_dbpath</span></div>
+
+
+<div class="viewcode-block" id="export_names"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.export_names">[docs]</a><span class="k">def</span> <span class="nf">export_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    exports a subset of names and other required info</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        nid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.dbio.export_subset --test-export_names</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = export_names(ibs, nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting name nid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid_list</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">new_dbpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">make_new_dbpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">))</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">export_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="find_gid_list"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.find_gid_list">[docs]</a><span class="k">def</span> <span class="nf">find_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">ensure_annots</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ensure_annots</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">reviewed</span>
+            <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="c1"># Filter by reviewed</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">gid</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_count</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_count</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+
+<span class="k">def</span> <span class="nf">__export_reviewed_subset</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">ensure_annots</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">find_gid_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="n">min_count</span><span class="p">,</span> <span class="n">ensure_annots</span><span class="o">=</span><span class="n">ensure_annots</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">new_dbpath</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;Datasets&#39;</span><span class="p">,</span> <span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting to </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_dbpath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">export_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="export_images"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.export_images">[docs]</a><span class="k">def</span> <span class="nf">export_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    exports a subset of images and other required info</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        gid_list (list):  list of annotation rowids</span>
+<span class="sd">        new_dbpath (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: new_dbpath</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting image gid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">new_dbpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">make_new_dbpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">export_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="export_annots"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.export_annots">[docs]</a><span class="k">def</span> <span class="nf">export_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    exports a subset of annotations and other required info</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        PZ_Master1 needs to backproject information back on to NNP_Master3 and</span>
+<span class="sd">        PZ_Master0</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        new_dbpath (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: new_dbpath</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.dbio.export_subset export_annots</span>
+<span class="sd">        python -m wbia.dbio.export_subset export_annots --db NNP_Master3 \</span>
+<span class="sd">            -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints</span>
+
+<span class="sd">        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 \</span>
+<span class="sd">            --db NNP_Master3 \</span>
+<span class="sd">            -a viewpoint_compare --nocache-aid --verbtd</span>
+<span class="sd">        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \</span>
+<span class="sd">            -a viewpoint_compare --nocache-aid --verbtd</span>
+<span class="sd">        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \</span>
+<span class="sd">            -a default:aids=all,is_known=True,view_pername=#primary&gt;0&amp;#primary1&gt;0,per_name=4,size=200</span>
+<span class="sd">        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \</span>
+<span class="sd">            -a default:aids=all,is_known=True,view_pername=&#39;#primary&gt;0&amp;#primary1&gt;0&#39;,per_name=4,size=200 --acfginfo</span>
+
+<span class="sd">        python -m wbia.expt.experiment_helpers get_annotcfg_list:0 --db PZ_Master1 \</span>
+<span class="sd">            -a default:has_any=photobomb --acfginfo</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.expt import experiment_helpers</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;NNP_Master3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; acfg_name_list = ut.get_argval((&#39;--aidcfg&#39;, &#39;--acfg&#39;, &#39;-a&#39;), type_=list, default=[&#39;&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = expanded_aids_list[0][0]</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)</span>
+<span class="sd">        &gt;&gt;&gt; # Expand to get all annots in each chosen image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.flatten(ibs.get_image_aids(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)</span>
+<span class="sd">        &gt;&gt;&gt; new_dbpath = ut.get_argval(&#39;--new-dbpath&#39;, default=&#39;PZ_ViewPoints&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; new_dbpath = export_annots(ibs, aid_list, new_dbpath)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;new_dbpath = %s&#39; % (str(new_dbpath),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting annotations aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">new_dbpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">make_new_dbpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">export_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="export_data"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.export_data">[docs]</a><span class="k">def</span> <span class="nf">export_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    exports a subset of data and other required info</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        nid_list (list):  list of name rowids</span>
+<span class="sd">        imgsetid_list (list):  list of imageset rowids</span>
+<span class="sd">        gsgrid_list (list):  list of imageset-image pairs rowids</span>
+<span class="sd">        new_dbpath (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: new_dbpath</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">gsgrid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gsgrids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+
+    <span class="c1"># TODO: write SQL query to do this</span>
+    <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
+    <span class="n">flags1_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">aid</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">)]</span>
+    <span class="n">flags2_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">aid</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">)]</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">and_lists</span><span class="p">(</span><span class="n">flags1_list</span><span class="p">,</span> <span class="n">flags2_list</span><span class="p">)</span>
+    <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="c1">#am_rowids = ibs.get_valid_aids(ibs.get_valid_aids())</span>
+
+    <span class="n">rowid_subsets</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">:</span> <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">:</span> <span class="n">nid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">:</span> <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">:</span> <span class="n">am_rowids</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">:</span> <span class="n">gsgrid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">:</span> <span class="n">imgsetid_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Main merge driver</span>
+    <span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">rowid_subsets</span><span class="o">=</span><span class="n">rowid_subsets</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exported to </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_dbpath</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">new_dbpath</span></div>
+
+
+<div class="viewcode-block" id="slow_merge_test"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.slow_merge_test">[docs]</a><span class="k">def</span> <span class="nf">slow_merge_test</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.dbio.export_subset --test-slow_merge_test</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = slow_merge_test()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.dbio</span> <span class="k">import</span> <span class="n">export_subset</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb2&#39;</span><span class="p">)</span>
+    <span class="n">ibs1</span><span class="o">.</span><span class="n">fix_invalid_annotmatches</span><span class="p">()</span>
+    <span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span>
+        <span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb_dst2&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+    <span class="c1">#ibs_src = ibs1</span>
+    <span class="n">check_merge</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">ibs1</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+    <span class="n">ibs2</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+
+    <span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+    <span class="c1">#ibs_src = ibs2</span>
+    <span class="n">check_merge</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+
+    <span class="n">ibs3</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs3</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+    <span class="c1">#ibs_src = ibs2</span>
+    <span class="n">check_merge</span><span class="p">(</span><span class="n">ibs3</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ibs_dst</span></div>
+
+    <span class="c1">#ibs_src.print_annotation_table(exclude_columns=[&#39;annot_verts&#39;,</span>
+    <span class="c1">#&#39;annot_semantic_uuid&#39;, &#39;annot_note&#39;, &#39;annot_parent_rowid&#39;,</span>
+    <span class="c1">#&#39;annot_exemplar_flag,&#39;])</span>
+    <span class="c1"># ibs_dst.print_annotation_table()</span>
+
+
+<div class="viewcode-block" id="fix_bidirectional_annotmatch"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.fix_bidirectional_annotmatch">[docs]</a><span class="k">def</span> <span class="nf">fix_bidirectional_annotmatch</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">initialize_graph</span><span class="p">()</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+    <span class="n">aid_to_nid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+
+    <span class="c1"># Delete bidirectional annotmatches</span>
+    <span class="n">annotmatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Find entires that have both directions</span>
+    <span class="n">pairs1</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="p">[[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">f_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs1</span><span class="p">}</span>
+    <span class="n">b_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs1</span><span class="p">}</span>
+    <span class="n">isect_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">b_edges</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">f_edges</span><span class="p">)}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> bidirectional edges&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">isect_edges</span><span class="p">))</span>
+    <span class="n">isect_edges1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">isect_edges</span><span class="p">)</span>
+    <span class="n">isect_edges2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">isect_edges</span><span class="p">]</span>
+
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="n">extra_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fixme_edges</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">d1</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">isect_edges1</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">isect_edges2</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">d1</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">d2</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+    <span class="kn">from</span> <span class="nn">wbia.tag_funcs</span> <span class="k">import</span> <span class="n">_parse_tags</span>
+    <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">d1</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">d2</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()):</span>
+        <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">r1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">aid1</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">]</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]</span>
+        <span class="n">truth_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span>
+                      <span class="k">if</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span> <span class="k">else</span>
+                      <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">)</span>
+        <span class="n">truth1</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+        <span class="n">truth2</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span>
+        <span class="n">newtag</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">union_ordered</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)</span>
+        <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">truth1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">truth_real</span> <span class="o">!=</span> <span class="n">truth1</span><span class="p">:</span>
+                <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">truth2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">truth_real</span> <span class="o">!=</span> <span class="n">truth2</span><span class="p">:</span>
+                <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">fixme_flag</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;t1, t2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;newtag = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newtag</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;truth_real, truth1, truth2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">truth_real</span><span class="p">,</span> <span class="n">truth1</span><span class="p">,</span> <span class="n">truth2</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+            <span class="n">fixme_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extra_</span><span class="p">[(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_real</span><span class="p">,</span> <span class="n">newtag</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixme_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># need to manually fix these edges</span>
+        <span class="n">fix_infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="o">.</span><span class="n">from_pairs</span><span class="p">(</span><span class="n">fixme_edges</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">feedback</span> <span class="o">=</span> <span class="n">fix_infr</span><span class="o">.</span><span class="n">read_wbia_annotmatch_feedback</span><span class="p">(</span><span class="n">only_existing_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">infr</span> <span class="o">=</span> <span class="n">fix_infr</span>
+
+        <span class="n">fix_infr</span><span class="o">.</span><span class="n">external_feedback</span> <span class="o">=</span> <span class="n">feedback</span>
+        <span class="n">fix_infr</span><span class="o">.</span><span class="n">apply_feedback_edges</span><span class="p">()</span>
+        <span class="n">fix_infr</span><span class="o">.</span><span class="n">start_qt_interface</span><span class="p">(</span><span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># DELETE OLD EDGES TWICE</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_edges</span><span class="p">(</span><span class="n">fixme_edges</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_edges</span><span class="p">(</span><span class="n">fixme_edges</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+
+        <span class="c1"># MANUALLY CALL THIS ONCE FINISHED</span>
+        <span class="c1"># TO ONLY CHANGE ANNOTMATCH EDGES</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_annotmatch_feedback</span><span class="p">()</span>
+
+    <span class="c1"># extra_.update(custom_)</span>
+    <span class="n">new_pairs</span> <span class="o">=</span> <span class="n">extra_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">new_truths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_</span><span class="p">,</span> <span class="n">new_pairs</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">new_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_</span><span class="p">,</span> <span class="n">new_pairs</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">new_tag_texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">new_tags</span><span class="p">]</span>
+    <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listT</span><span class="p">(</span><span class="n">new_pairs</span><span class="p">)</span>
+
+    <span class="c1"># Delete the old</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">((</span><span class="n">d1</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">+</span>
+                           <span class="n">d2</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+
+    <span class="c1"># Add the new</span>
+    <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_evidence_decision</span><span class="p">(</span><span class="n">ams</span><span class="p">,</span> <span class="n">new_truths</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_tag_text</span><span class="p">(</span><span class="n">ams</span><span class="p">,</span> <span class="n">new_tag_texts</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+        <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+        <span class="n">inspect_gui</span><span class="o">.</span><span class="n">show_vsone_tuner</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fix_annotmatch_pzmaster1"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.fix_annotmatch_pzmaster1">[docs]</a><span class="k">def</span> <span class="nf">fix_annotmatch_pzmaster1</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PZ_Master1 had annotmatch rowids that did not agree with the current name</span>
+<span class="sd">    labeling. Looking at the inconsistencies in the graph interface was too</span>
+<span class="sd">    cumbersome, because over 3000 annots were incorrectly grouped together.</span>
+
+<span class="sd">    This function deletes any annotmatch rowid that is not consistent with the</span>
+<span class="sd">    current labeling so we can go forward with using the new AnnotInference</span>
+<span class="sd">    object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">initialize_graph</span><span class="p">()</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+    <span class="n">aid_to_nid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">ensure_mst</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">apply_feedback_edges</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">start_qt_interface</span><span class="p">()</span>
+
+    <span class="c1"># Get annotmatch rowids that agree with current labeling</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">annotmatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="n">flags1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">annotmatch</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">])</span>
+        <span class="n">flags2</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">bad_part</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="p">[</span><span class="n">flags1</span> <span class="o">&amp;</span> <span class="n">flags2</span><span class="p">]</span>
+        <span class="n">rowids</span> <span class="o">=</span> <span class="n">bad_part</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="c1"># Delete bidirectional annotmatches</span>
+        <span class="n">annotmatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Find entires that have both directions</span>
+        <span class="n">pairs1</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="p">[[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">f_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs1</span><span class="p">}</span>
+        <span class="n">b_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs1</span><span class="p">}</span>
+        <span class="n">isect_edges</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">b_edges</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">f_edges</span><span class="p">)}</span>
+        <span class="n">isect_edges1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">isect_edges</span><span class="p">)</span>
+        <span class="n">isect_edges2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">isect_edges</span><span class="p">]</span>
+
+        <span class="c1"># cols = [&#39;annotmatch_evidence_decision&#39;, &#39;annotmatch_tag_text&#39;]</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+        <span class="n">custom_</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="mi">559</span><span class="p">,</span> <span class="mi">4909</span><span class="p">):</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mi">7918</span><span class="p">,</span> <span class="mi">8041</span><span class="p">):</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mi">6634</span><span class="p">,</span> <span class="mi">6754</span><span class="p">):</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mi">3707</span><span class="p">,</span> <span class="mi">3727</span><span class="p">):</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mi">86</span><span class="p">,</span> <span class="mi">103</span><span class="p">):</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]),</span>
+        <span class="p">}</span>
+        <span class="n">extra_</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="n">fixme_edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">d1</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">isect_edges1</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">d2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">isect_edges2</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">d1</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">d2</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+        <span class="kn">from</span> <span class="nn">wbia.tag_funcs</span> <span class="k">import</span> <span class="n">_parse_tags</span>
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">d1</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">d2</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()):</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">r1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">aid1</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">]</span>
+            <span class="n">aid2</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]</span>
+            <span class="n">truth_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span>
+                          <span class="k">if</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span> <span class="k">else</span>
+                          <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">)</span>
+            <span class="n">truth1</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+            <span class="n">truth2</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span>
+            <span class="n">t1</span> <span class="o">=</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span>
+            <span class="n">t2</span> <span class="o">=</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span>
+            <span class="n">newtag</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">union_ordered</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">custom_</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">truth1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">truth_real</span> <span class="o">!=</span> <span class="n">truth1</span><span class="p">:</span>
+                    <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">truth2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">truth_real</span> <span class="o">!=</span> <span class="n">truth2</span><span class="p">:</span>
+                    <span class="n">fixme_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">fixme_flag</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;newtag = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newtag</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;truth_real = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth_real</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;truth1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth1</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;truth2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth2</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
+                <span class="n">fixme_edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">extra_</span><span class="p">[(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_real</span><span class="p">,</span> <span class="n">newtag</span><span class="p">)</span>
+
+        <span class="n">extra_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">custom_</span><span class="p">)</span>
+        <span class="n">new_pairs</span> <span class="o">=</span> <span class="n">extra_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">new_truths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_</span><span class="p">,</span> <span class="n">new_pairs</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">new_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_</span><span class="p">,</span> <span class="n">new_pairs</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">new_tag_texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">new_tags</span><span class="p">]</span>
+        <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listT</span><span class="p">(</span><span class="n">new_pairs</span><span class="p">)</span>
+
+        <span class="c1"># Delete the old</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">((</span><span class="n">d1</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">+</span>
+                               <span class="n">d2</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+
+        <span class="c1"># Add the new</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_evidence_decision</span><span class="p">(</span><span class="n">ams</span><span class="p">,</span> <span class="n">new_truths</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_tag_text</span><span class="p">(</span><span class="n">ams</span><span class="p">,</span> <span class="n">new_tag_texts</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+            <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
+            <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+            <span class="n">inspect_gui</span><span class="o">.</span><span class="n">show_vsone_tuner</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+
+        <span class="c1"># pairs2 = pairs1.T[::-1].T</span>
+        <span class="c1"># idx1, idx2 = ut.isect_indices(list(map(tuple, pairs1)),</span>
+        <span class="c1">#                               list(map(tuple, pairs2)))</span>
+        <span class="c1"># r_edges = list(set(map(tuple, map(sorted, pairs1[idx1]))))</span>
+        <span class="c1"># unique_pairs = list(set(map(tuple, map(sorted, pairs1[idx1]))))</span>
+        <span class="c1"># df = annotmatch.set_index([&#39;annot_rowid1&#39;, &#39;annot_rowid2&#39;])</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">annotmatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
+    <span class="n">prog</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">annotmatch</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">aid1</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">]</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;agree1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid_to_nid</span><span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;agree2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">ub</span><span class="o">.</span><span class="n">map_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">annotmatch</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree1&#39;</span><span class="p">]][</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span>
+
+    <span class="n">disagree1</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree1&#39;</span><span class="p">]]</span>
+    <span class="n">pb_disagree1</span> <span class="o">=</span>  <span class="n">disagree1</span><span class="p">[</span><span class="n">disagree1</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;photobomb&#39;</span><span class="p">]</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">pb_disagree1</span><span class="p">[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">pb_disagree1</span><span class="p">[</span><span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="o">.</span><span class="n">from_pairs</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">feedback</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">read_wbia_annotmatch_feedback</span><span class="p">(</span><span class="n">edges</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">external_feedback</span> <span class="o">=</span> <span class="n">feedback</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">apply_feedback_edges</span><span class="p">()</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">start_qt_interface</span><span class="p">(</span><span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Delete these values</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">nonpb_disagree1</span> <span class="o">=</span> <span class="n">disagree1</span><span class="p">[</span><span class="n">disagree1</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;photobomb&#39;</span><span class="p">]</span>
+        <span class="n">disagree2</span> <span class="o">=</span> <span class="n">annotmatch</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree2&#39;</span><span class="p">]]</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">nonpb_disagree1</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">])</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">disagree2</span><span class="p">[</span><span class="s1">&#39;annotmatch_rowid&#39;</span><span class="p">])</span>
+
+    <span class="c1"># ut.dict_hist(disagree1[&#39;annotmatch_tag_text&#39;])</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pb_disagree1</span><span class="p">[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">],</span> <span class="n">pb_disagree1</span><span class="p">[</span><span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]))</span>
+    <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
+
+    <span class="nb">set</span><span class="p">(</span><span class="n">annotmatch</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;disagree2&#39;</span><span class="p">]][</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">])</span></div>
+
+    <span class="c1"># aid1, aid2 = 2585, 1875</span>
+    <span class="c1"># # pd.unique(annotmatch[&#39;annotmatch_evidence_decision&#39;])</span>
+    <span class="c1"># from wbia.gui import inspect_gui</span>
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs, aid1, aid2)</span>
+    <span class="c1"># from vtool import inspect_matches</span>
+
+    <span class="c1"># aid1, aid2 = 2108, 2040</span>
+
+    <span class="c1"># pd.unique(annotmatch[&#39;annotmatch_tag_text&#39;])</span>
+
+    <span class="c1"># infr.reset_feedback()</span>
+    <span class="c1"># infr.relabel_using_reviews()</span>
+
+
+<div class="viewcode-block" id="remerge_subset"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.remerge_subset">[docs]</a><span class="k">def</span> <span class="nf">remerge_subset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assumes ibs1 is an updated subset of ibs2.</span>
+<span class="sd">    Re-merges ibs1 back into ibs2.</span>
+
+<span class="sd">    TODO: annotmatch table must have non-directional edges for this to work.</span>
+<span class="sd">    I.e. u &lt; v</span>
+
+<span class="sd">    Ignore:</span>
+
+<span class="sd">        # Ensure annotmatch and names are up to date with staging</span>
+
+<span class="sd">        # Load graph</span>
+<span class="sd">        import ibei</span>
+<span class="sd">        ibs = wbia.opendb(&#39;PZ_PB_RF_TRAIN&#39;)</span>
+<span class="sd">        infr = wbia.AnnotInference(aids=&#39;all&#39;, ibs=ibs, verbose=3)</span>
+<span class="sd">        infr.reset_feedback(&#39;staging&#39;, apply=True)</span>
+<span class="sd">        infr.relabel_using_reviews()</span>
+
+<span class="sd">        # Check deltas</span>
+<span class="sd">        infr.wbia_name_group_delta_info()</span>
+<span class="sd">        infr.wbia_delta_info()</span>
+
+<span class="sd">        # Write if it looks good</span>
+<span class="sd">        infr.write_wbia_annotmatch_feedback()</span>
+<span class="sd">        infr.write_wbia_name_assignment()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        import wbia</span>
+<span class="sd">        ibs = wbia.opendb(&#39;PZ_Master1&#39;)</span>
+<span class="sd">        infr = wbia.AnnotInference(ibs, &#39;all&#39;)</span>
+<span class="sd">        infr.reset_feedback(&#39;annotmatch&#39;, apply=True)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.dbio.export_subset remerge_subset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_PB_RF_TRAIN&#39;</span><span class="p">)</span>
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+
+    <span class="n">gids1</span><span class="p">,</span> <span class="n">gids2</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">images</span><span class="p">(),</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+    <span class="n">idxs1</span><span class="p">,</span> <span class="n">idxs2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">isect_indices</span><span class="p">(</span><span class="n">gids1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="n">gids2</span><span class="o">.</span><span class="n">uuids</span><span class="p">)</span>
+    <span class="n">isect_gids1</span><span class="p">,</span> <span class="n">isect_gids2</span> <span class="o">=</span> <span class="n">gids1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs1</span><span class="p">),</span> <span class="n">gids2</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs2</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="nb">set</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">a1</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">a2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">isect_gids1</span><span class="o">.</span><span class="n">annot_uuids</span><span class="p">,</span> <span class="n">isect_gids2</span><span class="o">.</span><span class="n">annot_uuids</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">annot_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">isect_gids1</span><span class="o">.</span><span class="n">annot_uuids</span><span class="p">)</span>
+    <span class="c1"># aids1 = ibs1.annots(ibs1.get_annot_aids_from_uuid(annot_uuids), asarray=True)</span>
+    <span class="c1"># aids2 = ibs2.annots(ibs2.get_annot_aids_from_uuid(annot_uuids), asarray=True)</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">uuids</span><span class="o">=</span><span class="n">annot_uuids</span><span class="p">,</span> <span class="n">asarray</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">uuids</span><span class="o">=</span><span class="n">annot_uuids</span><span class="p">,</span> <span class="n">asarray</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">to_aids2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+    <span class="c1"># to_aids1 = dict(zip(aids2, aids1))</span>
+
+    <span class="c1"># Step 1) Update individual annot properties</span>
+    <span class="c1"># These annots need updates</span>
+    <span class="c1"># np.where(aids1.visual_uuids != aids2.visual_uuids)</span>
+    <span class="c1"># np.where(aids1.semantic_uuids != aids2.semantic_uuids)</span>
+
+    <span class="n">annot_unary_props</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># &#39;yaws&#39;, &#39;bboxes&#39;, &#39;thetas&#39;, &#39;qual&#39;, &#39;species&#39;, &#39;unary_tags&#39;]</span>
+        <span class="s1">&#39;yaws&#39;</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span> <span class="s1">&#39;thetas&#39;</span><span class="p">,</span> <span class="s1">&#39;qual&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;case_tags&#39;</span><span class="p">,</span> <span class="s1">&#39;multiple&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;age_months_est_max&#39;</span><span class="p">,</span> <span class="s1">&#39;age_months_est_min&#39;</span><span class="p">,</span>  <span class="c1"># &#39;sex_texts&#39;</span>
+    <span class="p">]</span>
+    <span class="n">to_change</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">annot_unary_props</span><span class="p">:</span>
+        <span class="n">prop1</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">prop2</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">diff_idxs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">prop1</span> <span class="o">!=</span> <span class="n">prop2</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">diff_idxs</span><span class="p">:</span>
+            <span class="n">diff_prop1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">prop1</span><span class="p">,</span> <span class="n">diff_idxs</span><span class="p">)</span>
+            <span class="n">diff_prop2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">prop2</span><span class="p">,</span> <span class="n">diff_idxs</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;diff_prop1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">diff_prop1</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;diff_prop2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">diff_prop2</span><span class="p">,))</span>
+            <span class="n">to_change</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_idxs</span>
+    <span class="k">if</span> <span class="n">to_change</span><span class="p">:</span>
+        <span class="n">changed_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">to_change</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> annots that need updated properties&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_idxs</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;changing unary attributes: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">to_change</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="s1">&#39;apply change&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">to_change</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">subaids1</span> <span class="o">=</span> <span class="n">aids1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+                <span class="n">subaids2</span> <span class="o">=</span> <span class="n">aids2</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+                <span class="n">prop1</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">subaids1</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="c1"># prop2 = getattr(subaids2, key)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">subaids2</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">prop1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Annot properties are in sync. Nothing to change&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Step 2) Update annotmatch - pairwise relationships</span>
+    <span class="n">infr1</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">aids</span><span class="o">=</span><span class="n">aids1</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                 <span class="n">autoinit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># infr2 = wbia.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">infr2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">aids</span><span class="o">=</span><span class="n">aids2</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">infr2</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># map feedback from ibs1 onto ibs2 using ibs2 aids.</span>
+    <span class="n">fb1</span> <span class="o">=</span> <span class="n">infr1</span><span class="o">.</span><span class="n">read_wbia_annotmatch_feedback</span><span class="p">()</span>
+    <span class="n">fb1_t</span> <span class="o">=</span> <span class="p">{(</span><span class="n">to_aids2</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">to_aids2</span><span class="p">[</span><span class="n">v</span><span class="p">]):</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">fb1</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">fb1_df_t</span> <span class="o">=</span> <span class="n">infr2</span><span class="o">.</span><span class="n">_pandas_feedback_format</span><span class="p">(</span><span class="n">fb1_t</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;am_rowid&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Add transformed feedback into ibs2</span>
+    <span class="n">infr2</span><span class="o">.</span><span class="n">add_feedback_from</span><span class="p">(</span><span class="n">fb1_df_t</span><span class="p">)</span>
+
+    <span class="c1"># Now ensure that dummy connectivity exists to preserve origninal names</span>
+    <span class="c1"># from wbia.algo.graph import nx_utils</span>
+    <span class="c1"># for (u, v) in infr2.find_mst_edges(&#39;name_label&#39;):</span>
+    <span class="c1">#     infr2.draw_aids((u, v))</span>
+    <span class="c1">#     cc1 = infr2.pos_graph.connected_to(u)</span>
+    <span class="c1">#     cc2 = infr2.pos_graph.connected_to(v)</span>
+    <span class="c1">#     print(nx_utils.edges_cross(infr2.graph, cc1, cc2))</span>
+    <span class="c1">#     infr2.neg_redundancy(cc1, cc2)</span>
+    <span class="c1">#     infr2.pos_redundancy(cc2)</span>
+
+    <span class="n">infr2</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">(</span><span class="n">rectify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">infr2</span><span class="o">.</span><span class="n">apply_nondynamic_update</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">wbia_delta_info</span><span class="p">()</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">wbia_name_group_delta_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr2</span><span class="o">.</span><span class="n">inconsistent_components</span><span class="p">()))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;need to fix inconsistencies first&#39;</span><span class="p">)</span>
+        <span class="c1"># Make it so it just loops until inconsistencies are resolved</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">prioritize</span><span class="p">()</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">qt_review_loop</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">write_wbia_annotmatch_feedback</span><span class="p">()</span>
+        <span class="n">infr2</span><span class="o">.</span><span class="n">write_wbia_name_assignment</span><span class="p">()</span>
+
+    <span class="c1"># if False:</span>
+    <span class="c1">#     # Fix any inconsistency</span>
+    <span class="c1">#     infr2.start_qt_interface(loop=False)</span>
+    <span class="c1">#     test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,</span>
+    <span class="c1">#                   5338, 2654]</span>
+    <span class="c1">#     import networkx as nx</span>
+    <span class="c1">#     nx.is_connected(infr2.graph.subgraph(test_nodes))</span>
+    <span class="c1">#     # infr = wbia.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)</span>
+
+    <span class="c1">#     # randomly sample some new labels to verify</span>
+    <span class="c1">#     import wbia.guitool as gt</span>
+    <span class="c1">#     from wbia.gui import inspect_gui</span>
+    <span class="c1">#     gt.ensure_qapp()</span>
+    <span class="c1">#     ut.qtensure()</span>
+    <span class="c1">#     old_groups = ut.group_items(name_delta.index.tolist(), name_delta[&#39;old_name&#39;])</span>
+    <span class="c1">#     del old_groups[&#39;____&#39;]</span>
+
+    <span class="c1">#     new_groups = ut.group_items(name_delta.index.tolist(), name_delta[&#39;new_name&#39;])</span>
+
+    <span class="c1">#     from wbia.algo.hots import simulate</span>
+    <span class="c1">#     c = simulate.compare_groups(</span>
+    <span class="c1">#         list(new_groups.values()),</span>
+    <span class="c1">#         list(old_groups.values()),</span>
+    <span class="c1">#     )</span>
+    <span class="c1">#     ut.map_vals(len, c)</span>
+    <span class="c1">#     for aids in c[&#39;pred_splits&#39;]:</span>
+    <span class="c1">#         old_nids = ibs2.get_annot_nids(aids)</span>
+    <span class="c1">#         new_nids = ut.take_column(infr2.gen_node_attrs(&#39;name_label&#39;, aids), 1)</span>
+    <span class="c1">#         split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)</span>
+    <span class="c1">#         aid1, aid2 = split_aids[0:2]</span>
+
+    <span class="c1">#         if False:</span>
+    <span class="c1">#             inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)</span>
+    <span class="c1">#     infr2.start_qt_interface(loop=False)</span>
+
+    <span class="c1"># if False:</span>
+    <span class="c1">#     # import wbia</span>
+    <span class="c1">#     ibs1 = wbia.opendb(&#39;PZ_PB_RF_TRAIN&#39;)</span>
+    <span class="c1">#     infr1 = wbia.AnnotInference(aids=&#39;all&#39;, ibs=ibs1, verbose=3)</span>
+    <span class="c1">#     infr1.initialize_graph()</span>
+    <span class="c1">#     # infr1.reset_feedback(&#39;staging&#39;)</span>
+    <span class="c1">#     infr1.reset_feedback(&#39;annotmatch&#39;)</span>
+    <span class="c1">#     infr1.apply_feedback_edges()</span>
+    <span class="c1">#     infr1.relabel_using_reviews()</span>
+    <span class="c1">#     infr1.apply_review_inference()</span>
+    <span class="c1">#     infr1.start_qt_interface(loop=False)</span>
+    <span class="c1"># delta = infr2.match_state_delta()</span>
+    <span class="c1"># print(&#39;delta = %r&#39; % (delta,))</span>
+
+    <span class="c1"># infr2.ensure_mst()</span>
+    <span class="c1"># infr2.relabel_using_reviews()</span>
+    <span class="c1"># infr2.apply_review_inference()</span>
+
+    <span class="c1"># mst_edges = infr2.find_mst_edges()</span>
+    <span class="c1"># set(infr2.graph.edges()).intersection(mst_edges)</span>
+
+    <span class="k">return</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO:</span>
+<span class="sd">        Task 2:</span>
+<span class="sd">            Build AnnotInfr for ibs2 then add all decision from</span>
+<span class="sd">            ibs1 to the internal feedback dict.</span>
+
+<span class="sd">            Ensure that all other (esp old name-id related) edges are correctly</span>
+<span class="sd">            placed, then overrite with new vals (</span>
+<span class="sd">                make sure implicit vals do not cuase conflicts with new</span>
+<span class="sd">                explicit vals, but old explicit vals should cause a conflict).</span>
+<span class="sd">            Then just commit to staging and then commit to annotmatch and</span>
+<span class="sd">            re-infer the names.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+    <span class="c1"># Print some info about the delta</span>
+    <span class="c1"># def _to_tup(x):</span>
+    <span class="c1">#     return tuple(x) if isinstance(x, list) else x</span>
+    <span class="c1"># changetype_list = list(zip(</span>
+    <span class="c1">#     delta[&#39;old_decision&#39;], delta[&#39;new_decision&#39;],</span>
+    <span class="c1">#     map(_to_tup, delta[&#39;old_tags&#39;]),</span>
+    <span class="c1">#     map(_to_tup, delta[&#39;new_tags&#39;])))</span>
+    <span class="c1"># changetype_hist = ut.dict_hist(changetype_list, ordered=True)</span>
+    <span class="c1"># print(ut.align(ut.repr4(changetype_hist), &#39;:&#39;))</span>
+
+    <span class="c1"># import pandas as pd</span>
+    <span class="c1"># pd.options.display.max_rows = 20</span>
+    <span class="c1"># pd.options.display.max_columns = 40</span>
+    <span class="c1"># pd.options.display.width = 160</span>
+    <span class="c1"># pd.options.display.float_format = lambda x: &#39;%.4f&#39; % (x,)</span>
+
+    <span class="c1"># a, b = 86,    6265</span>
+    <span class="c1"># c, d = to_aids1[a], to_aids1[b]</span>
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs2, a, b)</span>
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])</span>
+    <span class="c1"># am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],</span>
+    <span class="c1">#                                          [to_aids1[b]])</span>
+    <span class="c1"># am2 = ibs2.get_annotmatch_rowids_between([a], [b])</span>
+    <span class="c1"># print(ibs1.db.get_table_csv(&#39;annotmatch&#39;, rowids=am1))</span>
+    <span class="c1"># print(ibs2.db.get_table_csv(&#39;annotmatch&#39;, rowids=am2))</span>
+
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs2, 8, 242)</span>
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs2, 86, 103)</span>
+    <span class="c1"># inspect_gui.show_vsone_tuner(ibs2, 86, 6265)</span>
+
+
+<div class="viewcode-block" id="find_overlap_annots"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.find_overlap_annots">[docs]</a><span class="k">def</span> <span class="nf">find_overlap_annots</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;annots&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the aids of annotations in ibs1 that are also in ibs2</span>
+
+<span class="sd">    ibs1 = wbia.opendb(&#39;PZ_Master1&#39;)</span>
+<span class="sd">    ibs2 = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;images&#39;</span><span class="p">:</span>
+        <span class="n">images1</span><span class="p">,</span> <span class="n">images2</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">images</span><span class="p">(),</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+        <span class="n">idxs1</span><span class="p">,</span> <span class="n">idxs2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">isect_indices</span><span class="p">(</span><span class="n">images1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="n">images2</span><span class="o">.</span><span class="n">uuids</span><span class="p">)</span>
+        <span class="n">isect_images1</span> <span class="o">=</span> <span class="n">images1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs1</span><span class="p">)</span>
+        <span class="n">annot_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">isect_images1</span><span class="o">.</span><span class="n">annot_uuids</span><span class="p">)</span>
+        <span class="n">isect_annots1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">uuids</span><span class="o">=</span><span class="n">annot_uuids</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;annots&#39;</span><span class="p">:</span>
+        <span class="n">annots1</span><span class="p">,</span> <span class="n">annots2</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">annots</span><span class="p">(),</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+        <span class="n">idxs1</span><span class="p">,</span> <span class="n">idxs2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">isect_indices</span><span class="p">(</span><span class="n">annots1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="n">annots2</span><span class="o">.</span><span class="n">uuids</span><span class="p">)</span>
+        <span class="n">isect_annots1</span> <span class="o">=</span> <span class="n">annots1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">isect_annots1</span><span class="o">.</span><span class="n">aids</span></div>
+
+
+<div class="viewcode-block" id="check_database_overlap"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_subset.check_database_overlap">[docs]</a><span class="k">def</span> <span class="nf">check_database_overlap</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST</span>
+<span class="sd">        dev.py -t listdbs</span>
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap</span>
+<span class="sd">        --db PZ_MTEST --db2 PZ_MOTHERS</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap</span>
+
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA</span>
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA</span>
+
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL</span>
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=GZ_ALL --db2=lewa_grevys</span>
+
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1</span>
+<span class="sd">        python -m wbia.dbio.export_subset check_database_overlap --db1=PZ_PB_RF_TRAIN --db2=PZ_Master1</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; #ibs1 = wbia.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs2 = wbia.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; db1 = ut.get_argval(&#39;--db1&#39;, str, default=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; db2 = ut.get_argval(&#39;--db2&#39;, str, default=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; dbdir1 = ut.get_argval(&#39;--dbdir1&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; dbdir2 = ut.get_argval(&#39;--dbdir2&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; ibs1 = wbia.opendb(db=db1, dbdir=dbdir1)</span>
+<span class="sd">        &gt;&gt;&gt; ibs2 = wbia.opendb(db=db2, dbdir=dbdir2)</span>
+<span class="sd">        &gt;&gt;&gt; check_database_overlap(ibs1, ibs2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="k">def</span> <span class="nf">print_isect</span><span class="p">(</span><span class="n">items1</span><span class="p">,</span> <span class="n">items2</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">set1_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">items1</span><span class="p">)</span>
+        <span class="n">set2_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">items2</span><span class="p">)</span>
+        <span class="n">items_isect</span> <span class="o">=</span> <span class="n">set1_</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">set2_</span><span class="p">)</span>
+        <span class="n">fmtkw1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">part</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">set1_</span><span class="p">),</span>
+                      <span class="n">num_isect</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">items_isect</span><span class="p">),</span>
+                      <span class="n">percent</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">items_isect</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">set1_</span><span class="p">))</span>
+        <span class="n">fmtkw2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">part</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">set2_</span><span class="p">),</span>
+                      <span class="n">num_isect</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">items_isect</span><span class="p">),</span>
+                      <span class="n">percent</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">items_isect</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">set2_</span><span class="p">))</span>
+        <span class="n">fmt_a</span> <span class="o">=</span> <span class="s1">&#39;  * Num </span><span class="si">{lbl}</span><span class="s1"> </span><span class="si">{part}</span><span class="s1">: </span><span class="si">{num_isect}</span><span class="s1"> / </span><span class="si">{num}</span><span class="s1"> = </span><span class="si">{percent:.2f}</span><span class="s1">%&#39;</span>
+        <span class="c1"># fmt_b = &#39;  * Num {lbl} isect: {num}&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking </span><span class="si">{lbl}</span><span class="s1"> intersection&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">fmt_a</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtkw1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">fmt_a</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtkw2</span><span class="p">))</span>
+        <span class="c1"># print(fmt_b.format(lbl=lbl, num=len(items_isect)))</span>
+        <span class="c1"># items = items_isect</span>
+        <span class="c1"># list_ = items1</span>
+        <span class="n">x_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_list_indexes</span><span class="p">(</span><span class="n">items1</span><span class="p">,</span> <span class="n">items_isect</span><span class="p">)</span>
+        <span class="n">x_list2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_list_indexes</span><span class="p">(</span><span class="n">items2</span><span class="p">,</span> <span class="n">items_isect</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x_list1</span><span class="p">,</span> <span class="n">x_list2</span>
+
+    <span class="n">gids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+    <span class="n">gids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+
+    <span class="c1"># Find common images</span>
+    <span class="c1"># items1, items2, lbl, = gids1.uuids, gids2.uuids, &#39;images&#39;</span>
+    <span class="n">gx_list1</span><span class="p">,</span> <span class="n">gx_list2</span> <span class="o">=</span> <span class="n">print_isect</span><span class="p">(</span><span class="n">gids1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="n">gids2</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
+    <span class="n">gids_isect1</span> <span class="o">=</span> <span class="n">gids1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gx_list1</span><span class="p">)</span>
+    <span class="n">gids_isect2</span> <span class="o">=</span> <span class="n">gids2</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gx_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gids_isect2</span><span class="o">.</span><span class="n">uuids</span> <span class="o">==</span> <span class="n">gids_isect1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="s1">&#39;sequence must be aligned&#39;</span>
+
+    <span class="n">SHOW_ISECT_GIDS</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">SHOW_ISECT_GIDS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gx_list1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gids_isect1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gids_isect1</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gids_isect2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gids_isect2</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="c1"># Debug code</span>
+                <span class="kn">import</span> <span class="nn">wbia.viz</span>
+                <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+                <span class="n">gid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gids_isect1</span><span class="p">,</span> <span class="n">gids_isect2</span><span class="p">))</span>
+                <span class="n">pairs_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">gid_pairs</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">pairs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs_iter</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">),</span> <span class="n">nCols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
+                        <span class="n">wbia</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span>
+                            <span class="n">ibs1</span><span class="p">,</span> <span class="n">gid1</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+                        <span class="n">wbia</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span>
+                            <span class="n">ibs2</span><span class="p">,</span> <span class="n">gid2</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+
+    <span class="c1"># if False:</span>
+    <span class="c1">#     aids1 = ibs1.get_valid_aids()</span>
+    <span class="c1">#     aids2 = ibs2.get_valid_aids()</span>
+    <span class="c1">#     ibs1.update_annot_visual_uuids(aids1)</span>
+    <span class="c1">#     ibs2.update_annot_visual_uuids(aids2)</span>
+    <span class="c1">#     ibs1.update_annot_semantic_uuids(aids1)</span>
+    <span class="c1">#     ibs2.update_annot_semantic_uuids(aids2)</span>
+
+    <span class="c1"># Check to see which intersecting images have different annotations</span>
+    <span class="n">image_aids_isect1</span> <span class="o">=</span> <span class="n">gids_isect1</span><span class="o">.</span><span class="n">aids</span>
+    <span class="n">image_aids_isect2</span> <span class="o">=</span> <span class="n">gids_isect2</span><span class="o">.</span><span class="n">aids</span>
+    <span class="n">image_avuuids_isect1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="n">ibs1</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">,</span> <span class="n">image_aids_isect1</span><span class="p">))</span>
+    <span class="n">image_avuuids_isect2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">,</span> <span class="n">image_aids_isect2</span><span class="p">))</span>
+    <span class="n">changed_image_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span>
+        <span class="n">image_avuuids_isect1</span> <span class="o">!=</span> <span class="n">image_avuuids_isect2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_image_xs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> images with changes in annotation visual information&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">changed_image_xs</span><span class="p">),))</span>
+        <span class="n">changed_gids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids_isect1</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
+        <span class="n">changed_gids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids_isect2</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
+
+        <span class="n">SHOW_CHANGED_GIDS</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">SHOW_CHANGED_GIDS</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gids_isect1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">changed_gids2</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gids_isect2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">changed_gids1</span><span class="p">,))</span>
+            <span class="c1"># if False:</span>
+            <span class="c1">#     # Debug code</span>
+            <span class="c1">#     import wbia.viz</span>
+            <span class="c1">#     import wbia.plottool as pt</span>
+            <span class="c1">#     gid_pairs = list(zip(changed_gids1, changed_gids2))</span>
+            <span class="c1">#     pairs_iter = ut.ichunks(gid_pairs, chunksize=8)</span>
+            <span class="c1">#     for fnum, pairs in enumerate(pairs_iter, start=1):</span>
+            <span class="c1">#         pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)</span>
+            <span class="c1">#         for gid1, gid2 in pairs:</span>
+            <span class="c1">#             wbia.viz.show_image(</span>
+            <span class="c1">#                 ibs1, gid1, pnum=pnum_(), fnum=fnum)</span>
+            <span class="c1">#             wbia.viz.show_image(</span>
+            <span class="c1">#                 ibs2, gid2, pnum=pnum_(), fnum=fnum)</span>
+
+    <span class="c1"># Check for overlapping annotations (visual info only) in general</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+
+    <span class="c1"># Check for overlapping annotations (visual + semantic info) in general</span>
+    <span class="n">aux_list1</span><span class="p">,</span> <span class="n">aux_list2</span> <span class="o">=</span> <span class="n">print_isect</span><span class="p">(</span>
+        <span class="n">aids1</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="n">aids2</span><span class="o">.</span><span class="n">uuids</span><span class="p">,</span> <span class="s1">&#39;uuids&#39;</span><span class="p">)</span>
+    <span class="n">avx_list1</span><span class="p">,</span> <span class="n">avx_list2</span> <span class="o">=</span> <span class="n">print_isect</span><span class="p">(</span>
+        <span class="n">aids1</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">,</span> <span class="n">aids2</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">,</span> <span class="s1">&#39;vuuids&#39;</span><span class="p">)</span>
+    <span class="n">asx_list1</span><span class="p">,</span> <span class="n">asx_list2</span> <span class="o">=</span> <span class="n">print_isect</span><span class="p">(</span>
+        <span class="n">aids1</span><span class="o">.</span><span class="n">semantic_uuids</span><span class="p">,</span> <span class="n">aids2</span><span class="o">.</span><span class="n">semantic_uuids</span><span class="p">,</span> <span class="s1">&#39;suuids&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Check which images with the same visual uuids have different semantic</span>
+    <span class="c1"># uuids</span>
+    <span class="n">changed_ax_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avx_list1</span><span class="p">,</span> <span class="n">asx_list1</span><span class="p">)</span>
+    <span class="n">changed_ax_list2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avx_list2</span><span class="p">,</span> <span class="n">asx_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_ax_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids1</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
+        <span class="n">aids2</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">,</span> <span class="n">changed_ax_list2</span><span class="p">)</span>
+
+    <span class="n">changed_aids1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">))</span>
+    <span class="n">changed_aids2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">changed_ax_list2</span><span class="p">))</span>
+
+    <span class="n">changed_sinfo1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">changed_aids1</span><span class="p">)</span>
+    <span class="n">changed_sinfo2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">changed_aids2</span><span class="p">)</span>
+    <span class="n">sinfo1_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">changed_sinfo1</span><span class="p">)</span>
+    <span class="n">sinfo2_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">changed_sinfo2</span><span class="p">)</span>
+    <span class="n">is_semantic_diff</span> <span class="o">=</span> <span class="n">sinfo2_arr</span> <span class="o">!=</span> <span class="n">sinfo1_arr</span>
+    <span class="c1"># Inspect semantic differences</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_semantic_diff</span><span class="p">):</span>
+        <span class="n">colxs</span><span class="p">,</span> <span class="n">rowxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_semantic_diff</span><span class="p">)</span>
+        <span class="n">colx2_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">rowxs</span><span class="p">,</span> <span class="n">colxs</span><span class="p">)</span>
+        <span class="n">prop2_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span>
+            <span class="n">changed_sinfo1</span><span class="o">.</span><span class="n">_fields</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">colx2_rowids</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;changed_value_counts = &#39;</span> <span class="o">+</span>
+              <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">prop2_rowids</span><span class="p">)))</span>
+        <span class="n">yawx</span> <span class="o">=</span> <span class="n">changed_sinfo1</span><span class="o">.</span><span class="n">_fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;yaw&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Show change in viewpoints</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colx2_rowids</span><span class="p">[</span><span class="n">yawx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">vp_category_diff</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">viewpoint_diff</span><span class="p">(</span>
+                <span class="n">sinfo1_arr</span><span class="p">[</span><span class="n">yawx</span><span class="p">],</span> <span class="n">sinfo2_arr</span><span class="p">[</span><span class="n">yawx</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="c1"># Look for category changes</span>
+            <span class="c1">#any_diff = np.floor(vp_category_diff) &gt; 0</span>
+            <span class="c1">#_xs    = np.nonzero(any_diff)[0]</span>
+            <span class="c1">#_aids1 = changed_aids1.take(_xs)</span>
+            <span class="c1">#_aids2 = changed_aids2.take(_xs)</span>
+            <span class="c1"># Look for significant changes</span>
+            <span class="n">is_significant_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">vp_category_diff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="n">significant_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_significant_diff</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">significant_aids1</span> <span class="o">=</span> <span class="n">changed_aids1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">significant_xs</span><span class="p">)</span>
+            <span class="n">significant_aids2</span> <span class="o">=</span> <span class="n">changed_aids2</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">significant_xs</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> significant viewpoint changes&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">significant_aids2</span><span class="p">),))</span>
+            <span class="c1">#vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])</span>
+            <span class="c1">#zip(ibs1.get_annot_viewpoint_code(significant_aids1),</span>
+            <span class="c1">#ibs2.get_annot_viewpoint_code(significant_aids2))</span>
+            <span class="c1"># print(&#39;yawdiff = %r&#39; % )</span>
+            <span class="c1"># if False:</span>
+            <span class="c1"># Hack: Apply fixes</span>
+            <span class="c1"># good_yaws = ibs2.get_annot_yaws(significant_aids2)</span>
+            <span class="c1"># ibs1.set_annot_yaws(significant_aids1, good_yaws)</span>
+            <span class="c1">#    pass</span>
+            <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="c1"># Debug code</span>
+                <span class="kn">import</span> <span class="nn">wbia.viz</span>
+                <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+                <span class="c1">#aid_pairs = list(zip(_aids1, _aids2))</span>
+                <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">significant_aids1</span><span class="p">,</span> <span class="n">significant_aids2</span><span class="p">))</span>
+                <span class="n">pairs_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">pairs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs_iter</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">),</span> <span class="n">nCols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
+                        <span class="n">wbia</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span>
+                            <span class="n">ibs1</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">show_viewcode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nokpts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="n">wbia</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span>
+                            <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">show_viewcode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nokpts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="n">nAnnots_per_image1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_num_annotations</span><span class="p">(</span><span class="n">gids1</span><span class="p">))</span>
+    <span class="n">nAnnots_per_image2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_num_annotations</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span>
+    <span class="c1">#</span>
+    <span class="n">images_without_annots1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nAnnots_per_image1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">images_without_annots2</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nAnnots_per_image2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;images_without_annots1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">images_without_annots1</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;images_without_annots2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">images_without_annots2</span><span class="p">,))</span>
+
+    <span class="n">nAnnots_per_image1</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def MERGE_NNP_MASTER_SCRIPT():</span>
+<span class="sd">    print(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.const.ANNOTATION_TABLE,</span>
+<span class="sd">        exclude_columns=[&#39;annot_verts&#39;, &#39;annot_semantic_uuid&#39;, &#39;annot_note&#39;, &#39;annot_parent_rowid&#39;]), 10000))</span>
+<span class="sd">    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE,</span>
+<span class="sd">        exclude_columns=[&#39;annot_verts&#39;, &#39;annot_semantic_uuid&#39;, &#39;annot_note&#39;, &#39;annot_parent_rowid&#39;]), 10000))</span>
+<span class="sd">    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE), 10000))</span>
+
+<span class="sd">    from wbia.dbio.export_subset import *  # NOQA</span>
+<span class="sd">    import wbia</span>
+<span class="sd">    # Step 1</span>
+<span class="sd">    ibs_src1 = wbia.opendb(&#39;GZC&#39;)</span>
+<span class="sd">    ibs_dst = wbia.opendb(&#39;NNP_Master3&#39;, allow_newdir=True)</span>
+<span class="sd">    merge_databases(ibs_src1, ibs_dst)</span>
+
+<span class="sd">    ibs_src2 = wbia.opendb(&#39;NNP_initial&#39;)</span>
+<span class="sd">    merge_databases(ibs_src2, ibs_dst)</span>
+
+<span class="sd">    ## Step 2</span>
+<span class="sd">    #ibs_src = wbia.opendb(&#39;GZC&#39;)</span>
+
+<span class="sd">    ## Check</span>
+<span class="sd">    ibs1 = wbia.opendb(&#39;NNP_initial&#39;)</span>
+<span class="sd">    ibs2 = wbia.opendb(&#39;GZC&#39;)</span>
+<span class="sd">    ibs3 = ibs_dst</span>
+
+<span class="sd">    #print(ibs1.get_image_time_statstr())</span>
+<span class="sd">    #print(ibs2.get_image_time_statstr())</span>
+<span class="sd">    #print(ibs3.get_image_time_statstr())</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m wbia.dbio.export_subset</span>
+<span class="sd">    python -m wbia.dbio.export_subset --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

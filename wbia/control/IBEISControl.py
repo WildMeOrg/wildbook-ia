@@ -474,7 +474,9 @@ class IBEISController(BASE_CLASS):
             print('[ibs] _initialize_self()')
         ibs.reset_table_cache()
         ut.util_class.inject_all_external_modules(
-            ibs, controller_inject.CONTROLLER_CLASSNAME, allow_override=ibs.allow_override
+            ibs,
+            controller_inject.CONTROLLER_CLASSNAME,
+            allow_override=ibs.allow_override,
         )
         assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
         assert hasattr(ibs, 'get_annot_pair_timedelta'), 'issue with annotmatch_funcs'
@@ -637,7 +639,8 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable')
+                    ex,
+                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 import utool
 
@@ -731,7 +734,8 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable')
+                    ex,
+                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 raise
         # IBEIS SQL State Database

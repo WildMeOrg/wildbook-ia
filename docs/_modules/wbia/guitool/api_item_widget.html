@@ -1,0 +1,648 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.guitool.api_item_widget &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.guitool.api_item_widget</h1><div class="highlight"><pre>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains functions and clases to get data visualized fast (in</span>
+<span class="sd">terms of development time)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.api_item_model</span> <span class="k">import</span> <span class="n">APIItemModel</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.api_table_view</span> <span class="k">import</span> <span class="n">APITableView</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.api_tree_view</span> <span class="k">import</span> <span class="n">APITreeView</span>
+<span class="c1">#from wbia.guitool import guitool_components as comp</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[APIItemWidget]&#39;</span><span class="p">)</span>
+
+
+<span class="n">WIDGET_BASE</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span>
+
+<span class="n">VERBOSE_ITEM_WIDGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verbose-item-widget&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbiw&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+
+<div class="viewcode-block" id="simple_api_item_widget"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.simple_api_item_widget">[docs]</a><span class="k">def</span> <span class="nf">simple_api_item_widget</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Very simple example of basic APIItemWidget widget with CustomAPI</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --test-simple_api_item_widget</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --test-simple_api_item_widget --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_item_widget import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.guitool as gt</span>
+<span class="sd">        &gt;&gt;&gt; gt.ensure_qapp()  # must be ensured before any embeding</span>
+<span class="sd">        &gt;&gt;&gt; wgt = simple_api_item_widget()</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.show()</span>
+<span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(wgt, frequency=100)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+    <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;col1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="s1">&#39;col2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;col3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s1">&#39;col1&#39;</span>
+
+    <span class="c1">#col_display_role_func_dict = {</span>
+    <span class="c1">#    &#39;col1&#39;: lambda x: &#39;banana %d&#39; % ((x * 100 % 23)),</span>
+    <span class="c1">#}</span>
+
+    <span class="n">api</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_getter_dict</span><span class="o">=</span><span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="c1">#col_display_role_func_dict=col_display_role_func_dict,</span>
+        <span class="n">editable_colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;col3&#39;</span><span class="p">],</span>
+        <span class="n">sortby</span><span class="o">=</span><span class="n">sortby</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(</span><span class="n">tblnice</span><span class="o">=</span><span class="s1">&#39;Simple Example&#39;</span><span class="p">)</span>
+
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">()</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+    <span class="c1">#gt.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)</span>
+
+    <span class="c1"># for testing</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">menubar</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newMenubar</span><span class="p">(</span><span class="n">wgt</span><span class="p">)</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">menuFile</span> <span class="o">=</span> <span class="n">wgt</span><span class="o">.</span><span class="n">menubar</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Dev&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wgt_embed</span><span class="p">(</span><span class="n">wgt</span><span class="p">):</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">wgt</span><span class="o">.</span><span class="n">view</span>  <span class="c1"># NOQA</span>
+        <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">wgt_embed</span><span class="p">)</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">triggered</span><span class="o">=</span><span class="n">wgt</span><span class="o">.</span><span class="n">wgt_embed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wgt</span></div>
+
+
+<div class="viewcode-block" id="simple_api_tree_widget"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.simple_api_tree_widget">[docs]</a><span class="k">def</span> <span class="nf">simple_api_tree_widget</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Minimal example of a tree based api widget</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --test-simple_api_tree_widget</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --test-simple_api_tree_widget --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_item_widget import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.guitool</span>
+<span class="sd">        &gt;&gt;&gt; guitool.ensure_qapp()  # must be ensured before any embeding</span>
+<span class="sd">        &gt;&gt;&gt; wgt = simple_api_tree_widget()</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.show()</span>
+<span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(wgt, frequency=100)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;num_annots&#39;</span><span class="p">,</span> <span class="s1">&#39;annots&#39;</span><span class="p">]</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="s1">&#39;sue&#39;</span><span class="p">,</span> <span class="s1">&#39;tom&#39;</span><span class="p">,</span> <span class="s1">&#39;mary&#39;</span><span class="p">,</span> <span class="s1">&#39;paul&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;num_annots&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="c1"># make consistent data</span>
+    <span class="n">grouped_data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">col_getter_dict</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">col_getter_dict</span><span class="p">[</span><span class="s1">&#39;num_annots&#39;</span><span class="p">])</span>
+    <span class="p">]</span>
+    <span class="n">flat_data</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invertible_flatten1</span><span class="p">(</span><span class="n">grouped_data</span><span class="p">)</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s1">&#39;annots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_data</span>
+
+    <span class="n">iders</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">col_getter_dict</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]))),</span>
+        <span class="n">reverse_list</span>
+    <span class="p">]</span>
+
+    <span class="n">col_level_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;num_annots&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;annots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+
+    <span class="n">api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_name_list</span><span class="o">=</span><span class="n">col_name_list</span><span class="p">,</span>
+        <span class="n">col_getter_dict</span><span class="o">=</span><span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">sortby</span><span class="o">=</span><span class="n">sortby</span><span class="p">,</span>
+        <span class="n">iders</span><span class="o">=</span><span class="n">iders</span><span class="p">,</span>
+        <span class="n">col_level_dict</span><span class="o">=</span><span class="n">col_level_dict</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(</span><span class="n">tblnice</span><span class="o">=</span><span class="s1">&#39;Tree Example&#39;</span><span class="p">)</span>
+
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">(</span><span class="n">view_class</span><span class="o">=</span><span class="n">APITreeView</span><span class="p">)</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+    <span class="c1">#guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)</span>
+    <span class="k">return</span> <span class="n">wgt</span></div>
+
+
+<div class="viewcode-block" id="CustomAPI"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI">[docs]</a><span class="k">class</span> <span class="nc">CustomAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows list of lists to be represented as an abstract api table</span>
+
+<span class="sd">    # TODO: Rename CustomAPI</span>
+<span class="sd">    API wrapper around a list of lists, each containing column data</span>
+<span class="sd">    Defines a single table</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">col_getter_dict</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">col_bgrole_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">col_ider_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">col_setter_dict</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">editable_colnames</span><span class="o">=</span><span class="p">{},</span> <span class="n">sortby</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sort_reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">col_width_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">col_display_role_func_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">VERBOSE_ITEM_WIDGET</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[CustomAPI] &lt;__init__&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">col_name_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">col_name_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">col_getter_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_width_dict</span> <span class="o">=</span> <span class="n">col_width_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_setter_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_display_role_func_dict</span> <span class="o">=</span> <span class="n">col_display_role_func_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">get_thumb_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_thumb_size</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="mi">128</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_thumb_size</span> <span class="o">=</span> <span class="n">get_thumb_size</span>
+
+        <span class="c1"># Hack, maintain the original data</span>
+        <span class="c1"># FIXME: make more ellegant</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig_data_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
+                              <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
+                              <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">sort_reverse</span><span class="p">,</span> <span class="n">strict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_column_names</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">VERBOSE_ITEM_WIDGET</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[CustomAPI] &lt;/__init__&gt;&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CustomAPI.update_column_names"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.update_column_names">[docs]</a>    <span class="k">def</span> <span class="nf">update_column_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse_column_tuples</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_data_tup</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CustomAPI.add_column_names"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.add_column_names">[docs]</a>    <span class="k">def</span> <span class="nf">add_column_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_colnames</span><span class="p">):</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">+</span> <span class="n">new_colnames</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_column_names</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CustomAPI.get_available_colnames"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.get_available_colnames">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_colnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_data_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">col_getter_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="CustomAPI.parse_column_tuples"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.parse_column_tuples">[docs]</a>    <span class="k">def</span> <span class="nf">parse_column_tuples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">col_name_list</span><span class="p">,</span>
+                            <span class="n">col_types_dict</span><span class="p">,</span>
+                            <span class="n">col_getter_dict</span><span class="p">,</span>
+                            <span class="n">col_bgrole_dict</span><span class="p">,</span>
+                            <span class="n">col_ider_dict</span><span class="p">,</span>
+                            <span class="n">col_setter_dict</span><span class="p">,</span>
+                            <span class="n">editable_colnames</span><span class="p">,</span>
+                            <span class="n">sortby</span><span class="p">,</span>
+                            <span class="n">sort_reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        parses simple lists into information suitable for making guitool headers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Unpack the column tuples into names, getters, and types</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="c1"># slopply colname definitions</span>
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">colname</span> <span class="ow">in</span> <span class="n">col_getter_dict</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">flag_list</span><span class="p">):</span>
+                <span class="n">invalid_colnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">flag_list</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[api_item_widget] Warning: colnames=</span><span class="si">%r</span><span class="s1"> have no getters&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">invalid_colnames</span><span class="p">,))</span>
+                <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="c1"># sloppy type inference</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">:</span>
+                <span class="n">getter_</span> <span class="o">=</span> <span class="n">col_getter_dict</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">col_types_dict</span><span class="p">:</span>
+                    <span class="n">type_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_homogenous_list_type</span><span class="p">(</span><span class="n">getter_</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">col_types_dict</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_</span>
+        <span class="c1"># sloppy kwargs.</span>
+        <span class="c1"># FIXME: explicitly list col_nice_dict</span>
+        <span class="n">col_nice_dict</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_nice_dict&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_nice_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_nice_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">=</span> <span class="n">col_name_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_types_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                              <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+        <span class="c1"># First col is always a getter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_getter_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+        <span class="c1"># Get number of rows / columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">getter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">getter</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="n">getter</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="c1"># FIXME</span>
+            <span class="k">assert</span> <span class="n">getter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;at least one getter must be an array/list&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">getter</span><span class="p">)</span>
+
+        <span class="c1">#self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME</span>
+        <span class="c1"># Init iders to default and then overwite based on dict inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_ider_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span>  <span class="c1"># ut.alloc_nones(self.nCols)</span>
+        <span class="c1"># for colname, ider_colnames in six.iteritems(col_ider_dict):</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># utool.embed()</span>
+        <span class="n">colname2_colx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">colname</span><span class="p">,</span> <span class="n">ider_colnames</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">col_ider_dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">colname2_colx</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c1"># for colname in self.col_name_list:</span>
+            <span class="n">ider_colnames</span> <span class="o">=</span> <span class="n">col_ider_dict</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">colx</span> <span class="o">=</span> <span class="n">colname2_colx</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+                <span class="c1"># Col iders might have tuple input</span>
+                <span class="n">ider_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uinput_1to1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ider_colnames</span><span class="p">)</span>
+                <span class="n">col_ider</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uinput_1to1</span><span class="p">(</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">ider_cols</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">col_ider_list</span><span class="p">[</span><span class="n">colx</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_ider</span>
+                <span class="k">del</span> <span class="n">col_ider</span>
+                <span class="k">del</span> <span class="n">ider_cols</span>
+                <span class="k">del</span> <span class="n">colx</span>
+                <span class="k">del</span> <span class="n">colname</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;colname&#39;</span><span class="p">,</span> <span class="s1">&#39;ider_colnames&#39;</span><span class="p">,</span> <span class="s1">&#39;colx&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;col_ider&#39;</span><span class="p">,</span> <span class="s1">&#39;ider_cols&#39;</span><span class="p">])</span>
+                <span class="k">raise</span>
+        <span class="c1"># Init setters to data, and then overwrite based on dict inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_setter_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">colname</span><span class="p">,</span> <span class="n">col_setter</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">col_setter_dict</span><span class="p">):</span>
+            <span class="n">colx</span> <span class="o">=</span> <span class="n">colname2_colx</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_setter_list</span><span class="p">[</span><span class="n">colx</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_setter</span>
+        <span class="c1"># Init bgrole_getters to None, and then overwrite based on dict inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_bgrole_getter_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_bgrole_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                                       <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">]</span>
+        <span class="c1"># Mark edtiable columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_edit_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="ow">in</span> <span class="n">editable_colnames</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+        <span class="c1"># Mark the sort column index</span>
+        <span class="k">if</span> <span class="n">sortby</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_str</span><span class="p">(</span><span class="n">sortby</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="o">=</span> <span class="n">sortby</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_reverse</span> <span class="o">=</span> <span class="n">sort_reverse</span>
+
+        <span class="c1"># Hacks for tree widget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iders</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iders&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_level_dict</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_level_dict&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">col_level_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_level_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_level_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">col_level_dict</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_infer_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns the row based on the columns iders.</span>
+<span class="sd">        This is the identity for the default ider</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ider_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_ider_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ider_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">row</span>
+        <span class="k">def</span> <span class="nf">iderfunc</span><span class="p">(</span><span class="n">func_</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uinput_1to1</span><span class="p">(</span><span class="n">iderfunc</span><span class="p">,</span> <span class="n">ider_</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_uinput_1to1</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; universal input (really just accept list or tuple as input to a list</span>
+<span class="sd">        only function)</span>
+
+<span class="sd">        Move to guitool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="n">output_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_general_get</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Works with getter funcs or indexable read/write arrays &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="s1">&#39;__getitem__&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">getter</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;index error at column index=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;getter = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">getter</span><span class="p">,))</span>
+                <span class="c1"># print(&#39;index for column=%r&#39; % (self.column_names[index]))</span>
+                <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">getter</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_general_set</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Works with setter funcs or indexable read/write arrays &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="s1">&#39;__setitem__&#39;</span><span class="p">):</span>
+            <span class="n">setter</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">setter</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CustomAPI.get"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        getters always receive primary rowids, rectify if col_ider is</span>
+<span class="sd">        specified (row might be a row_pair)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_index</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+        <span class="n">column_getter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="c1"># Columns might be getter funcs indexable read/write arrays</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_general_get</span><span class="p">(</span><span class="n">column_getter</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># FIXME: There may be an issue on tuple-key getters when row input is</span>
+            <span class="c1"># vectorized. Hack it away</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+                <span class="n">row_list</span> <span class="o">=</span> <span class="n">row</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">row_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">row_</span> <span class="ow">in</span> <span class="n">row_list</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="CustomAPI.set"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_index</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+        <span class="n">column_setter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_setter_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="c1"># Columns might be setter funcs or indexable read/write arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_general_set</span><span class="p">(</span><span class="n">column_setter</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CustomAPI.get_bgrole"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.get_bgrole">[docs]</a>    <span class="k">def</span> <span class="nf">get_bgrole</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">bgrole_getter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_bgrole_getter_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bgrole_getter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_index</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_general_get</span><span class="p">(</span><span class="n">bgrole_getter</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CustomAPI.ider"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.ider">[docs]</a>    <span class="k">def</span> <span class="nf">ider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CustomAPI.get_iders"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.get_iders">[docs]</a>    <span class="k">def</span> <span class="nf">get_iders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iders</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ider</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">_make_ider</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">ids_</span><span class="p">):</span>
+                <span class="c1"># the first ider takes no args.</span>
+                <span class="c1"># the second ider is in the context of the previous</span>
+                <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_tmp_ider</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="n">ids_</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_tmp_ider</span><span class="p">(</span><span class="n">parent_ids</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">ids_</span><span class="p">,</span> <span class="n">parent_ids</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_tmp_ider</span>
+
+            <span class="k">return</span> <span class="p">[</span><span class="n">_make_ider</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">ids_</span><span class="p">)</span> <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">ids_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iders</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="CustomAPI.make_headers"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.CustomAPI.make_headers">[docs]</a>    <span class="k">def</span> <span class="nf">make_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tblname</span><span class="o">=</span><span class="s1">&#39;custom_api&#39;</span><span class="p">,</span> <span class="n">tblnice</span><span class="o">=</span><span class="s1">&#39;Custom API&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds headers for APIItemModel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">tblname</span><span class="p">,</span>
+            <span class="s1">&#39;nice&#39;</span><span class="p">:</span> <span class="n">tblname</span> <span class="k">if</span> <span class="n">tblnice</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tblnice</span><span class="p">,</span>
+            <span class="s1">&#39;iders&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_iders</span><span class="p">(),</span>
+            <span class="c1"># &#39;iders&#39;: [self.ider],</span>
+            <span class="s1">&#39;col_name_list&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">,</span>
+            <span class="s1">&#39;col_type_list&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_type_list</span><span class="p">,</span>
+            <span class="s1">&#39;col_nice_list&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_nice_list</span><span class="p">,</span>
+            <span class="s1">&#39;col_edit_list&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">,</span>
+            <span class="s1">&#39;col_sort_index&#39;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_index</span><span class="p">,</span>
+            <span class="s1">&#39;col_level_list&#39;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">,</span>
+            <span class="s1">&#39;col_sort_reverse&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_sort_reverse</span><span class="p">,</span>
+            <span class="s1">&#39;col_getter_list&#39;</span>  <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_getter_list</span><span class="p">(),</span>
+            <span class="s1">&#39;col_setter_list&#39;</span>  <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_setter_list</span><span class="p">(),</span>
+            <span class="s1">&#39;col_bgrole_getter_list&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_bgrole_getter_list</span><span class="p">(),</span>
+            <span class="s1">&#39;get_thumb_size&#39;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_thumb_size</span><span class="p">,</span>
+            <span class="s1">&#39;col_display_role_func_dict&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_display_role_func_dict</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">headers</span></div>
+
+    <span class="k">def</span> <span class="nf">_make_bgrole_getter_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bgrole</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_make_getter_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_make_setter_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="APIItemWidget"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget">[docs]</a><span class="k">class</span> <span class="nc">APIItemWidget</span><span class="p">(</span><span class="n">WIDGET_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SIMPLE WIDGET WHICH AUTO-CREATES MODEL AND VIEW FOR YOU.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">model_class</span><span class="o">=</span><span class="n">APIItemModel</span><span class="p">,</span> <span class="n">view_class</span><span class="o">=</span><span class="n">APITableView</span><span class="p">,</span>
+                 <span class="n">tblnice</span><span class="o">=</span><span class="s1">&#39;APIItemWidget&#39;</span><span class="p">,</span> <span class="n">doubleClicked</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">WIDGET_BASE</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">view_class</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">view_class</span> <span class="o">==</span> <span class="s1">&#39;tree&#39;</span><span class="p">:</span>
+                <span class="n">view_class</span> <span class="o">=</span> <span class="n">APITreeView</span>
+            <span class="k">elif</span> <span class="n">view_class</span> <span class="o">==</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span>
+                <span class="n">view_class</span> <span class="o">=</span> <span class="n">APITableView</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown view_class=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">view_class</span><span class="p">,))</span>
+        <span class="c1"># Create vertical layout for the table to go into</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">vert_layout</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+        <span class="c1"># Create a ColumnListTableView for the AbstractItemModel</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="n">view_class</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="c1"># Instantiate the AbstractItemModel</span>
+        <span class="c1"># FIXME: It is very bad to give the model a view.</span>
+        <span class="c1"># Only the view should have a model</span>
+        <span class="c1"># Also the model should not be an attribute because</span>
+        <span class="c1"># it might live in another thread</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model_class</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">vert_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">tblnice</span> <span class="o">=</span> <span class="n">tblnice</span>
+        <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Make sure we don&#39;t call a subclass method</span>
+            <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">connect_signals</span><span class="p">()</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">api</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">doubleClicked</span><span class="p">:</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">doubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">doubleClicked</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+
+<div class="viewcode-block" id="APIItemWidget.connect_api"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.connect_api">[docs]</a>    <span class="k">def</span> <span class="nf">connect_api</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">autopopulate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">api</span> <span class="o">=</span> <span class="n">api</span>
+        <span class="k">if</span> <span class="n">autopopulate</span><span class="p">:</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">refresh_headers</span><span class="p">()</span></div>
+            <span class="c1">#widget.resize_headers()</span>
+            <span class="c1">#headers = api.make_headers(tblnice=widget.tblnice)</span>
+            <span class="c1">#widget.change_headers(headers)</span>
+            <span class="c1">#print(ut.repr2(headers))</span>
+
+<div class="viewcode-block" id="APIItemWidget.change_headers"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.change_headers">[docs]</a>    <span class="k">def</span> <span class="nf">change_headers</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="p">):</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        <span class="c1"># Update headers of both model and view</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nice</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nice&#39;</span><span class="p">,</span> <span class="s1">&#39;NO NICE NAME&#39;</span><span class="p">)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">nice</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="APIItemWidget.connect_signals"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.connect_signals">[docs]</a>    <span class="k">def</span> <span class="nf">connect_signals</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">_rows_updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">on_rows_updated</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">contextMenuClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">on_contextMenuRequested</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="APIItemWidget.on_rows_updated"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.on_rows_updated">[docs]</a>    <span class="k">def</span> <span class="nf">on_rows_updated</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">VERBOSE_ITEM_WIDGET</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rows updated&#39;</span><span class="p">)</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="APIItemWidget.refresh_headers"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.refresh_headers">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_headers</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(</span><span class="n">tblnice</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">tblnice</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span></div>
+        <span class="c1">#print(ut.repr2(headers))</span>
+
+<div class="viewcode-block" id="APIItemWidget.resize_headers"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.resize_headers">[docs]</a>    <span class="k">def</span> <span class="nf">resize_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">api</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">api</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span>
+        <span class="n">horizontal_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">width</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">col_width_dict</span><span class="p">):</span>
+            <span class="c1">#horizontal_header.defaultSectionSize()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">col_name_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">horizontal_header</span><span class="o">.</span><span class="n">resizeSection</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="APIItemWidget.on_contextMenuRequested"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_widget.APIItemWidget.on_contextMenuRequested">[docs]</a>    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPoint</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_contextMenuRequested</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;context request&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">widget</span><span class="o">.</span><span class="n">api</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">get_available_colnames</span><span class="p">()))</span>
+            <span class="c1"># HACK test</span>
+            <span class="c1">#widget.api.add_column_names([&#39;qx2_gt_rank&#39;, &#39;qx2_gf_rank&#39;, &#39;qx2_gt_raw_score&#39;, &#39;qx2_gf_raw_score&#39;])</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">refresh_headers</span><span class="p">()</span>
+            <span class="c1">#widget.change_headers(widget.api.make_headers())</span>
+        <span class="k">if</span> <span class="n">VERBOSE_ITEM_WIDGET</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;context request&#39;</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --allexamples</span>
+<span class="sd">        python -m wbia.guitool.api_item_widget --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../guitool.html">wbia.guitool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

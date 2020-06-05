@@ -1,0 +1,575 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.viz.viz_qres &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.viz.viz_qres</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_matches</span>  <span class="c1"># NOQA</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">DEFAULT_NTOP</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<div class="viewcode-block" id="show_qres_top"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_qres.show_qres_top">[docs]</a><span class="k">def</span> <span class="nf">show_qres_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around show_qres.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
+    <span class="c1">#name_scoring = kwargs.get(&#39;name_scoring&#39;, False)</span>
+    <span class="c1">#if isinstance(cm, chip_match.ChipMatch):</span>
+    <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)</span>
+    <span class="n">aidstr</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">aidstr</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">figtitle</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;figtitle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;q</span><span class="si">%s</span><span class="s1"> -- TOP </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aidstr</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span> <span class="o">+</span> <span class="n">figtitle</span>
+    <span class="k">return</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+                     <span class="c1"># dont use these. use annot mode instead</span>
+                     <span class="c1">#draw_kpts=False,</span>
+                     <span class="c1">#draw_ell=False,</span>
+                     <span class="c1">#all_kpts=False,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_qres_analysis"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_qres.show_qres_analysis">[docs]</a><span class="k">def</span> <span class="nf">show_qres_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around show_qres.</span>
+
+<span class="sd">    KWARGS:</span>
+<span class="sd">        aid_list - show matches against aid_list (default top 3)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        cm (ChipMatch):  object of feature correspondences and scores</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.viz.viz_qres --exec-show_qres_analysis --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.viz.viz_qres import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; cm, qreq_ = wbia.testdata_cm(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;PZ_MTEST&#39;, default_qaids=[1],</span>
+<span class="sd">        &gt;&gt;&gt;     default_daids=[2, 3, 4, 5, 6, 7, 8, 9])</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(show_query=False, viz_name_score=True,</span>
+<span class="sd">        &gt;&gt;&gt;               show_timedelta=True, N=3, show_gf=True)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; show_qres_analysis(ibs, cm, qreq_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.viz.viz_qres import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; cm, qreq_ = wbia.testdata_cm(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;PZ_MTEST&#39;, default_qaids=[1],</span>
+<span class="sd">        &gt;&gt;&gt;     default_daids=[2])</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(show_query=False, viz_name_score=True,</span>
+<span class="sd">        &gt;&gt;&gt;               show_timedelta=True, N=3, show_gf=True)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; show_qres_analysis(ibs, cm, qreq_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] cm.show_analysis()&#39;</span><span class="p">)</span>
+    <span class="c1"># Parse arguments</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
+    <span class="n">show_gt</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;show_gt&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">show_gf</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;show_gf&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">show_query</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;show_query&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">aid_list</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;aid_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">figtitle</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figtitle&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">viz_name_score</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viz_name_score&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">failed_to_match</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Compare to aid_list instead of using top ranks</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">failed_to_match</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING! No matches found for this query&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">figtitle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;WARNING: no matches found!&#39;</span> <span class="o">+</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">aidstr</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">topscore</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_annot_scores</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">figtitle</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;q</span><span class="si">%s</span><span class="s1"> -- topscore=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibsfuncs</span><span class="o">.</span><span class="n">aidstr</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">),</span> <span class="n">topscore</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[analysis] showing a given list of aids&#39;</span><span class="p">)</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">aid_list</span>
+        <span class="k">if</span> <span class="n">figtitle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;comparing to &#39;</span> <span class="o">+</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">aidstr</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span> <span class="o">+</span> <span class="n">figtitle</span>
+
+    <span class="c1"># Get any groundtruth if you are showing it</span>
+    <span class="n">showgt_aids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">show_gt</span><span class="p">:</span>
+        <span class="c1"># Get the missed groundtruth annotations</span>
+        <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">matchable_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">matchable_aids</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
+            <span class="c1"># Only look at the groundtruth if a name isnt in the top list</span>
+            <span class="n">_gtnids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
+            <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+            <span class="n">_valids</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">_gtnids</span><span class="p">,</span> <span class="n">top_nids</span><span class="p">)</span>
+            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_valids</span><span class="p">)</span>
+
+        <span class="c1"># No need to display highly ranked groundtruth. It will already show up</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>
+        <span class="c1"># Sort missed grountruth by score</span>
+        <span class="n">_gtscores</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_annot_scores</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_gtscores</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="c1"># Hack to not show too many unmatched groundtruths</span>
+                <span class="c1">#_isexmp = ibs.get_annot_exemplar_flags(_gtaids)</span>
+                <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">_gtaids</span>
+
+    <span class="k">if</span> <span class="n">show_gf</span><span class="p">:</span>
+        <span class="c1"># Show only one top-scoring groundfalse example</span>
+        <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+        <span class="n">is_groundfalse</span> <span class="o">=</span> <span class="n">top_nids</span> <span class="o">!=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">gf_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_groundfalse</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gf_idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">best_gf_idx</span> <span class="o">=</span> <span class="n">gf_idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">isvalid</span> <span class="o">=</span> <span class="o">~</span><span class="n">is_groundfalse</span>
+            <span class="n">isvalid</span><span class="p">[</span><span class="n">best_gf_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Filter so there is only one groundfalse</span>
+            <span class="n">top_aids</span> <span class="o">=</span> <span class="n">top_aids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     if len(top_aids) == 1:</span>
+        <span class="c1">#         top_aids = top_aids.tolist()</span>
+        <span class="c1">#         top_aids.append(None)</span>
+
+        <span class="c1"># else:</span>
+        <span class="c1">#     # seems like there were no results. Must be bad feature detections</span>
+        <span class="c1">#     # maybe too much spatial verification</span>
+        <span class="c1">#     top_aids = []</span>
+
+        <span class="c1"># if len(showgt_aids) != 0:</span>
+        <span class="c1">#     # Hack to just include gtaids in normal list</span>
+        <span class="c1">#     top_aids = np.append(top_aids, showgt_aids)</span>
+        <span class="c1">#     showgt_aids = []</span>
+
+    <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
+        <span class="c1"># Make sure that there is only one of each name in the list</span>
+        <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">top_nids</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">showgt_aids</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span>
+                     <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="n">show_query</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+                     <span class="n">failed_to_match</span><span class="o">=</span><span class="n">failed_to_match</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_qres"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_qres.show_qres">[docs]</a><span class="k">def</span> <span class="nf">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display Query Result Logic</span>
+<span class="sd">    Defaults to: query chip, groundtruth matches, and top matches</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController): wbia controller object</span>
+<span class="sd">        cm (wbia.ChipMatch): object of feature correspondences and scores</span>
+<span class="sd">        qreq_ (wbia.QueryRequest):  query request object with hyper-parameters(default = None)</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        annot_mode, figtitle, make_figtitle, aug, top_aids, all_kpts,</span>
+<span class="sd">        show_query, in_image, sidebyside, name_scoring, max_nCols,</span>
+<span class="sd">        failed_to_match, fnum</span>
+<span class="sd">        in_image (bool) show result  in image view if True else chip view</span>
+<span class="sd">        annot_mode (int):</span>
+<span class="sd">            if annot_mode == 0, then draw lines and ellipse</span>
+<span class="sd">            elif annot_mode == 1, then dont draw lines or ellipse</span>
+<span class="sd">            elif annot_mode == 2, then draw only lines</span>
+<span class="sd">            elif annot_mode == 3, draw heatmask only</span>
+<span class="sd">        See: viz_matches.show_name_matches, viz_helpers.get_query_text</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mpl.Figure: fig</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ./main.py --query 1 -y --db PZ_MTEST --noshow-qres</span>
+<span class="sd">        python -m wbia.viz.viz_qres show_qres --show</span>
+<span class="sd">        python -m wbia.viz.viz_qres show_qres --show --top-aids=10 --db=PZ_MTEST \</span>
+<span class="sd">                --sidebyside --annot_mode=0 --notitle --no-viz_name_score \</span>
+<span class="sd">                --qaids=5 --max_nCols=2 --adjust=.01,.01,.01</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.viz.viz_qres import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; cm, qreq_ = wbia.testdata_cm()</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(</span>
+<span class="sd">        &gt;&gt;&gt;     top_aids=ut.get_argval(&#39;--top-aids&#39;, type_=int, default=3),</span>
+<span class="sd">        &gt;&gt;&gt;     sidebyside=not ut.get_argflag(&#39;--no-sidebyside&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     annot_mode=ut.get_argval(&#39;--annot_mode&#39;, type_=int, default=1),</span>
+<span class="sd">        &gt;&gt;&gt;     viz_name_score=not ut.get_argflag(&#39;--no-viz_name_score&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     simplemode=ut.get_argflag(&#39;--simplemode&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     max_nCols=ut.get_argval(&#39;--max_nCols&#39;, type_=int, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; fig = show_qres(ibs, cm, show_query=False, qreq_=qreq_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#ut.print_dict(kwargs)</span>
+    <span class="n">annot_mode</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span>  <span class="c1"># this is toggled</span>
+    <span class="n">figtitle</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">aug</span>            <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aug&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">top_aids</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top_aids&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
+    <span class="n">gt_aids</span>        <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;gt_aids&#39;</span><span class="p">,</span>   <span class="p">[])</span>
+    <span class="n">all_kpts</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;all_kpts&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">show_query</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_query&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">in_image</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">sidebyside</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">simplemode</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;simplemode&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">colorbar_</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;colorbar_&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#name_scoring   = kwargs.get(&#39;name_scoring&#39;, False)</span>
+    <span class="n">viz_name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viz_name_score&#39;</span><span class="p">,</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">max_nCols</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_nCols&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">failed_to_match</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;failed_to_match&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fnum&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;query_info = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_info</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gname</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">exemplar</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;top_aids_info = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_info</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gname</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">exemplar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reference_aid</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">failed_to_match</span><span class="p">:</span>
+        <span class="c1"># HACK to visually indicate failure to match in analysis</span>
+        <span class="n">show_query</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">top_aids</span>
+
+    <span class="n">nTop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">max_nCols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
+            <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+            <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;gts should be missed.  not in top&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;top_aids&#39;</span><span class="p">,</span> <span class="s1">&#39;gt_aids&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
+
+    <span class="c1">#--------------------------------------------------</span>
+    <span class="c1"># Get grid / cell information to build subplot grid</span>
+    <span class="c1">#--------------------------------------------------</span>
+    <span class="c1"># Show query or not</span>
+    <span class="n">nQuerySubplts</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">show_query</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># The top row is given slots for ground truths and querys</span>
+    <span class="c1"># all aids in gt_aids should not be in top aids</span>
+    <span class="n">nGtSubplts</span>    <span class="o">=</span> <span class="n">nQuerySubplts</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">gt_aids</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))</span>
+    <span class="c1"># The bottom rows are for the top results</span>
+    <span class="n">nTopNSubplts</span>  <span class="o">=</span> <span class="n">nTop</span>
+    <span class="n">nTopNCols</span>     <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_nCols</span><span class="p">,</span> <span class="n">nTopNSubplts</span><span class="p">)</span>
+    <span class="n">nGTCols</span>       <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_nCols</span><span class="p">,</span> <span class="n">nGtSubplts</span><span class="p">)</span>
+    <span class="n">nGTCols</span>       <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nGTCols</span><span class="p">,</span> <span class="n">nTopNCols</span><span class="p">)</span>
+    <span class="n">nTopNCols</span>     <span class="o">=</span> <span class="n">nGTCols</span>
+    <span class="c1"># Get number of rows to show groundtruth</span>
+    <span class="n">nGtRows</span>       <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">nGTCols</span>   <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nGtSubplts</span>   <span class="o">/</span> <span class="n">nGTCols</span><span class="p">))</span>
+    <span class="c1"># Get number of rows to show results</span>
+    <span class="n">nTopNRows</span>     <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">nTopNCols</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nTopNSubplts</span> <span class="o">/</span> <span class="n">nTopNCols</span><span class="p">))</span>
+    <span class="n">nGtCells</span>      <span class="o">=</span> <span class="n">nGtRows</span> <span class="o">*</span> <span class="n">nGTCols</span>
+    <span class="c1"># Total number of rows</span>
+    <span class="n">nRows</span>         <span class="o">=</span> <span class="n">nTopNRows</span> <span class="o">+</span> <span class="n">nGtRows</span>
+
+    <span class="n">DEBUG_SHOW_QRES</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+        <span class="n">allgt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">nSelGt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span>
+        <span class="n">nAllGt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">allgt_aids</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres]========================&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres]----------------&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * annot_mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annot_mode</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] #nTop=</span><span class="si">%r</span><span class="s1"> #missed_gts=</span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTop</span><span class="p">,</span> <span class="n">nSelGt</span><span class="p">,</span> <span class="n">nAllGt</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * nRows=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * nGtSubplts=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nGtSubplts</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * nTopNSubplts=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTopNSubplts</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * nQuerySubplts=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nQuerySubplts</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * nGTCols=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nGTCols</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * fnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fnum</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * figtitle=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">figtitle</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * max_nCols=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_nCols</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * show_query=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">show_query</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres] * kwargs=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),))</span>
+
+    <span class="c1"># HACK:</span>
+    <span class="n">_color_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">nTop</span><span class="p">)</span>
+    <span class="n">aid2_color</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">_color_list</span><span class="p">[</span><span class="n">ox</span><span class="p">]</span> <span class="k">for</span> <span class="n">ox</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)}</span>
+    <span class="n">ranked_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
+
+    <span class="c1"># Helpers</span>
+    <span class="k">def</span> <span class="nf">_show_query_fn</span><span class="p">(</span><span class="n">plotx_shift</span><span class="p">,</span> <span class="n">rowcols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; helper for show_qres &quot;&quot;&quot;</span>
+        <span class="n">plotx</span> <span class="o">=</span> <span class="n">plotx_shift</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowcols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rowcols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">plotx</span><span class="p">)</span>
+        <span class="c1">#print(&#39;[viz] Plotting Query: pnum=%r&#39; % (pnum,))</span>
+        <span class="n">_kwshow</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">draw_kpts</span><span class="o">=</span><span class="n">annot_mode</span><span class="p">)</span>
+        <span class="n">_kwshow</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;q&#39;</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;pnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pnum</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;aid2_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid2_color</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_ell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_mode</span> <span class="o">&gt;=</span> <span class="mi">1</span>
+        <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_plot_matches_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">plotx_shift</span><span class="p">,</span> <span class="n">rowcols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; helper for show_qres to draw many aids &quot;&quot;&quot;</span>
+        <span class="n">_kwshow</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">draw_ell</span><span class="o">=</span><span class="n">annot_mode</span><span class="p">,</span> <span class="n">draw_pts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">draw_lines</span><span class="o">=</span><span class="n">annot_mode</span><span class="p">,</span>
+                        <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">all_kpts</span><span class="o">=</span><span class="n">all_kpts</span><span class="p">)</span>
+        <span class="n">_kwshow</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fnum</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;in_image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">in_image</span>
+        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;colorbar_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colorbar_</span>
+        <span class="k">if</span> <span class="n">sidebyside</span><span class="p">:</span>
+            <span class="c1"># Draw each match side by side the query</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_ell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_mode</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">}</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_lines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_mode</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;heatmask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_mode</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">3</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#print(&#39;annot_mode = %r&#39; % (annot_mode,))</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_ell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_mode</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="c1">#_kwshow[&#39;draw_pts&#39;] = annot_mode &gt;= 1</span>
+            <span class="c1">#_kwshow[&#39;draw_lines&#39;] = False</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;show_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">def</span> <span class="nf">_show_matches_fn</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">orank</span><span class="p">,</span> <span class="n">pnum</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Helper function for drawing matches to one aid &quot;&quot;&quot;</span>
+            <span class="n">aug</span> <span class="o">=</span> <span class="s1">&#39;rank=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">orank</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;pnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pnum</span>
+            <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;title_aug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aug</span>
+            <span class="c1">#draw_ell = annot_mode == 1</span>
+            <span class="c1">#draw_lines = annot_mode &gt;= 1</span>
+            <span class="c1"># If we already are showing the query dont show it here</span>
+            <span class="k">if</span> <span class="n">sidebyside</span><span class="p">:</span>
+                <span class="c1"># Draw each match side by side the query</span>
+                <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
+                    <span class="n">cm</span><span class="o">.</span><span class="n">show_single_namematch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">simplemode</span><span class="p">:</span>
+                        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;draw_lbl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;notitle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;vert&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">_kwshow</span><span class="p">[</span><span class="s1">&#39;modifysize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">cm</span><span class="o">.</span><span class="n">show_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+                    <span class="c1">#viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Draw each match by themselves</span>
+                <span class="n">data_config2_</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span>
+                <span class="c1">#_kwshow[&#39;draw_border&#39;] = kwargs.get(&#39;draw_border&#39;, True)</span>
+                <span class="c1">#_kwshow[&#39;notitle&#39;] = ut.get_argflag((&#39;--no-title&#39;, &#39;--notitle&#39;))</span>
+                <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">notitle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">data_config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[show_qres()] Plotting Chips </span><span class="si">%s</span><span class="s1">:&#39;</span> <span class="o">%</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Do lazy load before show</span>
+        <span class="c1">#data_config2_ = None if qreq_ is None else qreq_.extern_data_config2</span>
+
+        <span class="c1"># tblhack = getattr(qreq_, &#39;tablename&#39;, None)</span>
+        <span class="c1"># HACK FOR HUMPBACKS</span>
+        <span class="c1"># (Also in viz_matches)</span>
+        <span class="c1"># if tblhack == &#39;vsone&#39; or (qreq_ is not None and not qreq_._isnewreq):</span>
+        <span class="c1">#     # precompute</span>
+        <span class="c1">#     pass</span>
+        <span class="c1">#     #ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)</span>
+        <span class="c1">#     #ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)</span>
+
+        <span class="k">for</span> <span class="n">ox</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
+            <span class="n">plotx</span> <span class="o">=</span> <span class="n">ox</span> <span class="o">+</span> <span class="n">plotx_shift</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowcols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rowcols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">plotx</span><span class="p">)</span>
+            <span class="n">oranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ranked_aids</span> <span class="o">==</span> <span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># This pair has no matches between them.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">oranks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">orank</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="s1">&#39;Failed to find matches</span><span class="se">\n</span><span class="s1">for qaid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_show_matches_fn</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">orank</span><span class="p">,</span> <span class="n">pnum</span><span class="p">)</span>
+                <span class="c1">#if DEBUG_SHOW_QRES:</span>
+                <span class="c1">#    print(&#39;skipping pnum=%r&#39; % (pnum,))</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,))</span>
+            <span class="n">orank</span> <span class="o">=</span> <span class="n">oranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">_show_matches_fn</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">orank</span><span class="p">,</span> <span class="n">pnum</span><span class="p">)</span>
+
+    <span class="n">shift_topN</span> <span class="o">=</span> <span class="n">nGtCells</span>
+
+    <span class="k">if</span> <span class="n">nGtSubplts</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">nGTCols</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">nRows</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="s1">&#39;[viz_qres] No matches. nRows=0&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Plot Query</span>
+        <span class="k">if</span> <span class="n">show_query</span><span class="p">:</span>
+            <span class="n">_show_query_fn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">))</span>
+        <span class="c1"># Plot Ground Truth (if given)</span>
+        <span class="n">_plot_matches_aids</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">nQuerySubplts</span><span class="p">,</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">))</span>
+        <span class="c1"># Plot Results</span>
+        <span class="n">_plot_matches_aids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">shift_topN</span><span class="p">,</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nTopNCols</span><span class="p">))</span>
+        <span class="n">figtitle</span> <span class="o">+=</span> <span class="n">aug</span>
+    <span class="k">if</span> <span class="n">failed_to_match</span><span class="p">:</span>
+        <span class="n">figtitle</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> No matches found&#39;</span>
+
+    <span class="n">incanvas</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;with_figtitle&#39;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">vh</span><span class="o">.</span><span class="n">NO_LBL_OVERRIDE</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">incanvas</span><span class="o">=</span><span class="n">incanvas</span><span class="p">)</span>
+
+    <span class="c1"># Result Interaction</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.viz.viz_qres</span>
+<span class="sd">        python -m wbia.viz.viz_qres --allexamples</span>
+<span class="sd">        python -m wbia.viz.viz_qres --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../viz.html">wbia.viz</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,257 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.scripts.fix_annotation_orientation_issue &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.scripts.fix_annotation_orientation_issue</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="fix_annotation_orientation"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.fix_annotation_orientation_issue.fix_annotation_orientation">[docs]</a><span class="k">def</span> <span class="nf">fix_annotation_orientation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_percentage</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fixes the annotations that are outside the bounds of the image due to a</span>
+<span class="sd">    changed image orientation flag in the database</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.scripts.fix_annotation_orientation_issue fix_annotation_orientation</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.scripts.fix_annotation_orientation_issue import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb()</span>
+<span class="sd">        &gt;&gt;&gt; unfixable_gid_list = fix_annotation_orientation(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(unfixable_gid_list) == 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">exif</span>
+
+    <span class="k">def</span> <span class="nf">bbox_overlap</span><span class="p">(</span><span class="n">bbox1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">):</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ay1</span> <span class="o">=</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ay2</span> <span class="o">=</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">bx1</span> <span class="o">=</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">by1</span> <span class="o">=</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bx2</span> <span class="o">=</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">by2</span> <span class="o">=</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">overlap_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="n">bx2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">bx1</span><span class="p">))</span>
+        <span class="n">overlap_y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ay2</span><span class="p">,</span> <span class="n">by2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">ay1</span><span class="p">,</span> <span class="n">by1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">overlap_x</span> <span class="o">*</span> <span class="n">overlap_y</span>
+
+    <span class="n">orient_dict</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_DICT_INVERSE</span>
+    <span class="n">good_orient_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_UNDEFINED</span><span class="p">,</span>
+        <span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_000</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">good_orient_key_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">orient_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">good_orient</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">good_orient</span> <span class="ow">in</span> <span class="n">good_orient_list</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_orient_key_list</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">orient</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_orient_key_list</span> <span class="k">for</span> <span class="n">orient</span> <span class="ow">in</span> <span class="n">orient_list</span> <span class="p">]</span>
+
+    <span class="c1"># Filter based on based gids</span>
+    <span class="n">unfixable_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> images with non-standard orientations&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">__check_staged__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">size_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">invalid_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">size_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">h_</span><span class="p">,</span> <span class="n">w_</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">h</span> <span class="o">!=</span> <span class="n">h_</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">!=</span> <span class="n">w_</span><span class="p">:</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">_set_image_sizes</span><span class="p">([</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">w_</span><span class="p">],</span> <span class="p">[</span><span class="n">h_</span><span class="p">])</span>
+            <span class="n">orient_str</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_DICT</span><span class="p">[</span><span class="n">orient</span><span class="p">]</span>
+            <span class="n">image_bbox</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+            <span class="n">verts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">invalid</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">vert_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">verts_list</span><span class="p">):</span>
+                <span class="n">annot_bbox</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+                <span class="n">overlap</span> <span class="o">=</span> <span class="n">bbox_overlap</span><span class="p">(</span><span class="n">image_bbox</span><span class="p">,</span> <span class="n">annot_bbox</span><span class="p">)</span>
+                <span class="n">area</span> <span class="o">=</span> <span class="n">annot_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">annot_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">percentage</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">/</span> <span class="n">area</span>
+                <span class="k">if</span> <span class="n">percentage</span> <span class="o">&lt;</span> <span class="n">min_percentage</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">orient_str</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">percentage</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Invalid GID </span><span class="si">%r</span><span class="s1">, Orient </span><span class="si">%r</span><span class="s1">, AID </span><span class="si">%r</span><span class="s1">: Overlap </span><span class="si">%0.2f</span><span class="s1">, Area </span><span class="si">%0.2f</span><span class="s1"> (</span><span class="si">%0.2f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                    <span class="n">invalid</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="c1"># break</span>
+            <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
+                <span class="n">invalid_gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+        <span class="n">invalid_gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">invalid_gid_list</span><span class="p">,</span> <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> images with invalid annotations = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">)</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">__check_staged__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">size_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">)</span>
+            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">size_list</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">invalid_gid</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+                <span class="n">orient_str</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_DICT</span><span class="p">[</span><span class="n">orient</span><span class="p">]</span>
+                <span class="n">image_bbox</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid_gid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fixing GID </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%d</span><span class="s1"> annotations&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span>
+                <span class="n">tx</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">ty</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">if</span> <span class="n">orient</span> <span class="o">==</span> <span class="n">orient_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_090</span><span class="p">):</span>
+                    <span class="n">theta</span> <span class="o">*=</span> <span class="mf">1.0</span>
+                    <span class="n">tx</span> <span class="o">=</span> <span class="n">w</span>
+                <span class="k">elif</span> <span class="n">orient</span> <span class="o">==</span> <span class="n">orient_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_180</span><span class="p">):</span>
+                    <span class="n">theta</span> <span class="o">*=</span> <span class="mf">2.0</span>
+                    <span class="n">tx</span> <span class="o">=</span> <span class="n">w</span>
+                    <span class="n">ty</span> <span class="o">=</span> <span class="n">h</span>
+                <span class="k">elif</span> <span class="n">orient</span> <span class="o">==</span> <span class="n">orient_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">exif</span><span class="o">.</span><span class="n">ORIENTATION_270</span><span class="p">):</span>
+                    <span class="n">theta</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.0</span>
+                    <span class="n">ty</span> <span class="o">=</span> <span class="n">h</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unrecognized invalid orientation&#39;</span><span class="p">)</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">tx</span> <span class="p">],</span>
+                              <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>  <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">ty</span> <span class="p">],</span>
+                              <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>            <span class="mf">0.0</span><span class="p">,</span>           <span class="mf">1.0</span><span class="p">]])</span>
+                <span class="c1"># print(H)</span>
+                <span class="n">verts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">vert_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">verts_list</span><span class="p">):</span>
+                    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+                    <span class="c1"># print(vert_list)</span>
+                    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">vert_list</span><span class="o">.</span><span class="n">T</span>
+                    <span class="n">transformed_vert_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">transform_points_with_homography</span><span class="p">(</span>
+                        <span class="n">H</span><span class="p">,</span>
+                        <span class="n">vert_list</span>
+                    <span class="p">)</span>
+                    <span class="n">transformed_vert_list</span> <span class="o">=</span> <span class="n">transformed_vert_list</span><span class="o">.</span><span class="n">T</span>
+                    <span class="c1"># print(transformed_vert_list)</span>
+
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_verts</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">transformed_vert_list</span><span class="p">],</span> <span class="n">update_visual_uuids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">current_theta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                    <span class="n">new_theta</span> <span class="o">=</span> <span class="n">current_theta</span> <span class="o">+</span> <span class="n">theta</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">new_theta</span><span class="p">,</span> <span class="n">update_visual_uuids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                    <span class="n">fixed_vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                    <span class="n">fixed_annot_bbox</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">fixed_vert_list</span><span class="p">)</span>
+                    <span class="n">fixed_overlap</span> <span class="o">=</span> <span class="n">bbox_overlap</span><span class="p">(</span><span class="n">image_bbox</span><span class="p">,</span> <span class="n">fixed_annot_bbox</span><span class="p">)</span>
+                    <span class="n">fixed_area</span> <span class="o">=</span> <span class="n">fixed_annot_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">fixed_annot_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">fixed_percentage</span> <span class="o">=</span> <span class="n">fixed_overlap</span> <span class="o">/</span> <span class="n">fixed_area</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid_gid</span><span class="p">,</span> <span class="n">orient_str</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fixed_overlap</span><span class="p">,</span> <span class="n">fixed_area</span><span class="p">,</span> <span class="n">fixed_percentage</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Fixing GID </span><span class="si">%r</span><span class="s1">, Orient </span><span class="si">%r</span><span class="s1">, AID </span><span class="si">%r</span><span class="s1">: Overlap </span><span class="si">%0.2f</span><span class="s1">, Area </span><span class="si">%0.2f</span><span class="s1"> (</span><span class="si">%0.2f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">fixed_percentage</span> <span class="o">&lt;</span> <span class="n">min_percentage</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">WARNING: FIXING DID NOT CORRECT AID </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="n">unfixable_gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Un-fixable gid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unfixable_gid_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">unfixable_gid_list</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

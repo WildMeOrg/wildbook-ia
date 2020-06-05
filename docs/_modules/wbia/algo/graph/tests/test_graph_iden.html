@@ -1,0 +1,258 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.algo.graph.tests.test_graph_iden &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.algo.graph.tests.test_graph_iden</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">)</span>
+
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_incomp_inference"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_graph_iden.test_incomp_inference">[docs]</a><span class="k">def</span> <span class="nf">test_incomp_inference</span><span class="p">():</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span><span class="n">num_pccs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Make 2 consistent and 2 inconsistent CCs</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">3</span><span class="p">,</span>  <span class="mi">4</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">4</span><span class="p">,</span>  <span class="mi">1</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">14</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">33</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="c1"># Incomparable within CCs</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;==========================&#39;</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">INCMP</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final state:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="s1">&#39;decision&#39;</span><span class="p">))))</span></div>
+
+
+<div class="viewcode-block" id="test_unrev_inference"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_graph_iden.test_unrev_inference">[docs]</a><span class="k">def</span> <span class="nf">test_unrev_inference</span><span class="p">():</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span><span class="n">num_pccs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Make 2 consistent and 2 inconsistent CCs</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">3</span><span class="p">,</span>  <span class="mi">4</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">4</span><span class="p">,</span>  <span class="mi">1</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">14</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">33</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="c1"># Incomparable within CCs</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;==========================&#39;</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">UNREV</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final state:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="s1">&#39;decision&#39;</span><span class="p">))))</span></div>
+
+
+<div class="viewcode-block" id="test_pos_neg"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_graph_iden.test_pos_neg">[docs]</a><span class="k">def</span> <span class="nf">test_pos_neg</span><span class="p">():</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span><span class="n">num_pccs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Make 3 inconsistent CCs</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">3</span><span class="p">,</span>  <span class="mi">4</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">4</span><span class="p">,</span>  <span class="mi">1</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">3</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">13</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="c1"># Fix inconsistency</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="c1"># Merge inconsistent CCS</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="c1"># Negative edge within an inconsistent CC</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># Negative edge external to an inconsistent CC</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="c1"># -----</span>
+    <span class="c1"># Make inconsistency from positive</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">33</span><span class="p">,</span> <span class="mi">34</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">34</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">34</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="c1"># Fix everything</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">3</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span>  <span class="mi">4</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">34</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">31</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">13</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">23</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
+    <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final state:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="s1">&#39;decision&#39;</span><span class="p">))))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/graph/tests</span>
+<span class="sd">        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_pos_neg</span>
+<span class="sd">        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_unrev_inference</span>
+<span class="sd">        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_incomp_inference</span>
+<span class="sd">        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="c1"># import ubelt as ub</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  <li><a href="../../../../wbia.html">wbia</a><ul>
+  <li><a href="../../../algo.html">wbia.algo</a><ul>
+  <li><a href="../../graph.html">wbia.algo.graph</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>
