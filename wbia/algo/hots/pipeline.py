@@ -44,7 +44,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import chip_match
 from wbia.algo.hots import nn_weights

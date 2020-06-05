@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import numpy as np
 import ubelt as ub
 import pandas as pd

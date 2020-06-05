@@ -52,7 +52,7 @@ def crftest():
         False: {'mu': 7.0, 'sigma': .9}
     }
     if False:
-        import vtool_ibeis as vt
+        import vtool as vt
         import wbia.plottool as pt
         pt.ensureqt()
         xdata = np.linspace(0, 100, 1000)

@@ -352,7 +352,7 @@ def split_analysis(ibs):
         aid_pairs = [annots.get_aidpairs() for annots in annots_list]
 
     speeds_list = ibs.unflat_map(ibs.get_annotpair_speeds, aid_pairs)
-    import vtool_ibeis as vt
+    import vtool as vt
     max_speeds = np.array([vt.safe_max(s, nans=False) for s in speeds_list])
 
     nan_idx = np.where(np.isnan(max_speeds))[0]
@@ -1028,7 +1028,7 @@ def print_feature_info(testres):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     #ibs = testres.ibs
     def print_feat_stats(kpts, vecs):
         assert len(vecs) == len(kpts), 'disagreement'

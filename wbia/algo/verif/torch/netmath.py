@@ -1,6 +1,6 @@
 import utool as ut
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 import six
 import torch
 # from torch.autograd import Variable  # NOQA

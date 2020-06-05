@@ -422,7 +422,7 @@ def draw_cmcs(dbname):
         >>> print(result)
     """
     # DRAW RESULTS
-    import vtool_ibeis as vt
+    import vtool as vt
     import wbia.plottool as pt
     import pathlib
     if dbname is None:
@@ -492,7 +492,7 @@ def iccv_roc(dbname):
         >>> print(result)
     """
     import wbia.plottool as pt
-    import vtool_ibeis as vt
+    import vtool as vt
     from wbia.scripts.script_vsone import OneVsOneProblem
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     pt.qtensure()
@@ -617,7 +617,7 @@ def draw_saved_roc(dbname):
     # DRAW RESULTS
     import wbia.plottool as pt
     import sklearn.metrics
-    import vtool_ibeis as vt
+    import vtool as vt
     import matplotlib as mpl
     pt.qtensure()
 
@@ -1136,7 +1136,7 @@ def draw_ete(dbname):
     plot_fpath = plot_fpath.parent.joinpath('fig_' + plot_fpath.stem + plot_fpath.suffix)
     # .joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
-    import vtool_ibeis as vt
+    import vtool as vt
     clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
     print('plot_fpath = %r' % (plot_fpath,))
     print('clip_fpath = %r' % (clip_fpath,))

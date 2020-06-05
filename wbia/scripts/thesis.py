@@ -12,7 +12,7 @@ import numpy as np
 from os.path import basename, join, splitext, exists  # NOQA
 import utool as ut
 import wbia.plottool as pt
-import vtool_ibeis as vt
+import vtool as vt
 import pathlib
 import matplotlib as mpl
 import random
@@ -3799,7 +3799,7 @@ class Sampler(object):
             return subenc
 
         def _only_comparable(qsubenc, avail_dencs):
-            from vtool_ibeis import _rhomb_dist
+            from vtool import _rhomb_dist
             qviews = set(ut.flatten(qsubenc.viewpoint_code))
             comparable_encs = []
             for denc in avail_dencs:

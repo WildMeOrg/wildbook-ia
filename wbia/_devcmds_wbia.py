@@ -11,7 +11,7 @@ from os.path import split, join, expanduser
 from wbia.plottool import draw_func2 as df2
 import numpy as np
 import utool
-import vtool_ibeis.keypoint as ktool
+import vtool.keypoint as ktool
 from wbia import sysres
 from wbia.other import ibsfuncs
 from wbia.dbio import ingest_hsdb

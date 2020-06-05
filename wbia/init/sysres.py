@@ -624,7 +624,7 @@ def ensure_pz_mtest_batchworkflow_test():
                 imageset_aids_list[imageset_idx].extend(chunk)
                 imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
 
-            #import vtool_ibeis as vt
+            #import vtool as vt
             #import networkx as netx
             #nodes = list(range(len(aids)))
             #edges_pairs = vt.pdist_argsort(hourdiffs)

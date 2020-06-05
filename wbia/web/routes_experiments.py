@@ -7,7 +7,7 @@ from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 from os.path import abspath, expanduser, join
 import utool as ut
-import vtool_ibeis as vt
+import vtool as vt
 import numpy as np
 import cv2
 

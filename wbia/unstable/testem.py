@@ -239,7 +239,7 @@ def try_rf_classifier():
 
 
 def make_test_pairwise_fetaures(case1, case2, label, rng):
-    import vtool_ibeis as vt
+    import vtool as vt
     mu_fm = 50 if label == 1 else 10
     sigma_fm = 10 if label == 1 else 20
     mu_fs = .2 if label == 1 else .4
@@ -267,7 +267,7 @@ def make_test_pairwise_fetaures(case1, case2, label, rng):
 
 
 def make_test_pairwise_labels(case1, case2):
-    import vtool_ibeis as vt
+    import vtool as vt
     is_same = case1['name'] == case2['name']
     yaw1 = case1['yaw']
     yaw2 = case2['yaw']
@@ -289,7 +289,7 @@ def make_test_pairwise_labels(case1, case2):
 
 
 def make_test_pairwise_labels2(cases1, cases2):
-    import vtool_ibeis as vt
+    import vtool as vt
     is_same = np.array(cases1['name']) == np.array(cases2['name'])
     yaw1 = np.array(cases1['yaw'])
     yaw2 = np.array(cases2['yaw'])
@@ -360,7 +360,7 @@ def try_em():
         #     'B':  1 * tau / 4,
         #     'R':  2 * tau / 4,
         # }
-        import vtool_ibeis as vt
+        import vtool as vt
 
         nid_list = np.array(ut.dict_take_column(test_case, 'name'))
         yaw_list = np.array(ut.dict_take(view_to_ori, ut.dict_take_column(test_case, 'view')))

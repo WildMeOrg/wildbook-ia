@@ -20,7 +20,7 @@ import re
 from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
-import vtool_ibeis as vt
+import vtool as vt
 import utool as ut
 import ubelt as ub
 from utool._internal.meta_util_six import get_funcname, set_funcname
@@ -937,7 +937,7 @@ def check_annot_size(ibs):
 
 def check_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT """
-    import vtool_ibeis.exif as exif
+    import vtool.exif as exif
     from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
     exif_dict_list = []
@@ -1112,7 +1112,7 @@ def fix_exif_data(ibs, gid_list):
         >>> result = fix_exif_data(ibs, gid_list)
         >>> print(result)
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
 
@@ -2670,7 +2670,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         >>> print(result)
         extended_yaws_list = [['frontleft'], ['frontright'], ['backleft'], ['frontleft']]
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     # DEPRICATE?
     ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
     ori2 = const.VIEWTEXT_TO_YAW_RADIANS[towards]
@@ -2890,7 +2890,7 @@ def get_yaw_viewtexts(yaw_list):
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
 
     """
-    #import vtool_ibeis as vt
+    #import vtool as vt
     import numpy as np
     stdlblyaw_list = list(const.VIEWTEXT_TO_YAW_RADIANS.items())
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
@@ -4327,7 +4327,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> wbia.other.dbinfo.hackshow_names(ibs, filtered_aids)
         >>> ut.show_if_requested()
     """
-    import vtool_ibeis as vt
+    import vtool as vt
     #min_timedelta = 60 * 60 * 24
     #min_timedelta = 60 * 10
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
@@ -6780,7 +6780,7 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
 
 
 def overwrite_unixtimes_from_gps_worker(path):
-    from vtool_ibeis.exif import parse_exif_unixtime_gps
+    from vtool.exif import parse_exif_unixtime_gps
     unixtime_gps = parse_exif_unixtime_gps(path)
     return unixtime_gps
 

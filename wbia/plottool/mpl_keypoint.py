@@ -63,7 +63,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> from wbia.plottool.mpl_keypoint import *  # NOQA
         >>> from wbia.plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
         >>> import wbia.plottool as pt
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
         >>> H = np.array([[.8, 0, 0], [0, .8, 0], [0, 0, 1]])
@@ -93,7 +93,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
-    import vtool_ibeis.keypoint as ktool
+    import vtool.keypoint as ktool
     if kpts_.shape[1] == 2:
         # pad out structure if only xy given
         kpts = np.zeros((len(kpts_), 6))
@@ -156,7 +156,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
             _xs, _ys = ktool.get_xys(kpts)
             if H is not None:
                 # adjust for homogrpahy
-                import vtool_ibeis as vt
+                import vtool as vt
                 _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
 
             pts_patches = _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha)
@@ -209,7 +209,7 @@ class HomographyTransform(mpl.transforms.Transform):
         """
         The input and output are Nx2 numpy arrays.
         """
-        import vtool_ibeis as vt
+        import vtool as vt
         _xys = input_xy.T
         xy_t = vt.transform_points_with_homography(self.H, _xys)
         output_xy = xy_t.T
@@ -231,7 +231,7 @@ def get_invVR_aff2Ds(kpts, H=None):
 
     Example:
         >>> # Test CV2 ellipse vs mine using MSER
-        >>> import vtool_ibeis as vt
+        >>> import vtool as vt
         >>> import cv2
         >>> import wbia.plottool as pt
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
@@ -264,7 +264,7 @@ def get_invVR_aff2Ds(kpts, H=None):
         >>> # we start out with a unit circle not a half circle
         >>> pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)
     """
-    import vtool_ibeis.keypoint as ktool
+    import vtool.keypoint as ktool
     #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
     if H is None:
@@ -314,7 +314,7 @@ def eigenvector_actors(invVR_aff2Ds):
 
 def orientation_actors(kpts, H=None):
     """ creates orientation actors w.r.t. the gravity vector """
-    import vtool_ibeis.keypoint as ktool
+    import vtool.keypoint as ktool
     try:
         # Get xy diretion of the keypoint orientations
         _xs, _ys = ktool.get_xys(kpts)
@@ -332,7 +332,7 @@ def orientation_actors(kpts, H=None):
 
         #if H is not None:
         #    # adjust for homogrpahy
-        #    import vtool_ibeis as vt
+        #    import vtool as vt
         #    _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
         #    _dxs, _dys = vt.transform_points_with_homography(H, np.vstack((_dxs, _dys)))
 
