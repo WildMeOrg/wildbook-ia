@@ -5,3 +5,4 @@
 *.xml linguist-detectable=false
 *.ipynb linguist-detectable=false
 *.ipynb linguist-vendored
+dev/notebooks/Experiment.ipynb filter=lfs diff=lfs merge=lfs -text
